@@ -1,4 +1,4 @@
-describe('CLMAppLocation', function () {
+describe('CLMContextLocation', function () {
   var appId, orgId, state;
 
   function setApplicationState(newAppId) {
@@ -21,7 +21,7 @@ describe('CLMAppLocation', function () {
     orgId = newOrgId;
   }
 
-  beforeEach(module('CLMAppLocation', function($provide) {
+  beforeEach(module('CLMContextLocation', function($provide) {
     state = {};
 
     $provide.value('ApplicationId', {
@@ -40,18 +40,18 @@ describe('CLMAppLocation', function () {
     $provide.value('baseUrl', '');
   }));
 
-  it('New Triggers Global', inject(function (CLMAppLocations) {
+  it('New Triggers Global', inject(function (CLMContextLocations) {
     setApplicationState('_new_');
-    expect(CLMAppLocations.getFindUsersUrl()).toEqual('/rest/user/global/global/query');
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/global/global/query');
   }));
 
-  it('Application', inject(function (CLMAppLocations) {
+  it('Application', inject(function (CLMContextLocations) {
     setApplicationState('bom1-12345678');
-    expect(CLMAppLocations.getFindUsersUrl()).toEqual('/rest/user/application/bom1-12345678/query');
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/application/bom1-12345678/query');
   }));
 
-  it('Organization', inject(function (CLMAppLocations) {
+  it('Organization', inject(function (CLMContextLocations) {
     setOrganizationState('bom1-12345678');
-    expect(CLMAppLocations.getFindUsersUrl()).toEqual('/rest/user/organization/bom1-12345678/query');
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/organization/bom1-12345678/query');
   }));
 });

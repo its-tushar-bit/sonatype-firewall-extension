@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMAppLocations,
+function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMContextLocations,
                                      PolicyHierarchyStore) {
   var vm = this,
       ieDeferred;
@@ -35,7 +35,7 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
 
   function importPolicyUrl() {
     if (vm.importFile) {
-      return CLMAppLocations.getImportPolicyUrl();
+      return CLMContextLocations.getImportPolicyUrl();
     }
   }
 
@@ -45,7 +45,7 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
 
     if ($window.FormData) {
       var formData = new FormData(form[0]);
-      vm.importPolicyMask.wrap($http.post(CLMAppLocations.getImportPolicyUrl(), formData)).then(function() {
+      vm.importPolicyMask.wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData)).then(function() {
         PolicyHierarchyStore.refresh();
         $rootScope.$broadcast('policy.imported');
         $scope.$close();
@@ -79,5 +79,6 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
 }
 
 ImportPolicyModalController.$inject = [
-  '$rootScope', '$scope', '$q', '$http', '$window', '$cookies', 'Messages', 'CLMAppLocations', 'PolicyHierarchyStore'
+  '$rootScope', '$scope', '$q', '$http', '$window', '$cookies', 'Messages', 'CLMContextLocations',
+  'PolicyHierarchyStore'
 ];

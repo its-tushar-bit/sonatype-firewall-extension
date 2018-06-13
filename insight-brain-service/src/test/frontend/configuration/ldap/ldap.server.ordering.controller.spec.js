@@ -4,8 +4,8 @@ describe('ldap.server.ordering.controller.spec.js', function() {
 
   beforeEach(module('ldap.module'));
 
-  beforeEach(inject(function($httpBackend, $controller, $rootScope, LdapConfigurationStore, CLMLocations) {
-    $httpBackend.whenGET(CLMLocations.getLdapConfig()).respond([
+  beforeEach(inject(function($httpBackend, $controller, $rootScope, LdapConfigurationStore, CLMContextLocations) {
+    $httpBackend.whenGET(CLMContextLocations.getLdapConfig()).respond([
       {id: 'b', priority: 2},
       {id: 'a', priority: 1},
       {id: 'c', priority: 3}

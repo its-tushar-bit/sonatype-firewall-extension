@@ -5,7 +5,7 @@
  */
 import { omit, map } from 'ramda';
 
-export default function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
+export default function RoleMembershipController($scope, $http, CLMContextLocations, Messages) {
 
   var vm = this;
 
@@ -101,7 +101,7 @@ export default function RoleMembershipController($scope, $http, CLMAppLocations,
       var pickedUsers = getCurrentMembers();
       vm.searchInProgress = true;
 
-      vm.accessEditorSearchMask.wrap($http.get(CLMAppLocations.getFindUsersUrl(), {
+      vm.accessEditorSearchMask.wrap($http.get(CLMContextLocations.getFindUsersUrl(), {
         params: {
           q: vm.query
         }
@@ -160,5 +160,5 @@ export default function RoleMembershipController($scope, $http, CLMAppLocations,
 }
 
 RoleMembershipController.$inject = [
-  '$scope', '$http', 'CLMAppLocations', 'Messages'
+  '$scope', '$http', 'CLMContextLocations', 'Messages'
 ];

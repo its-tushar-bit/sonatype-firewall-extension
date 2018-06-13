@@ -5,7 +5,7 @@ describe('import.policy.modal.controller.spec.js', function() {
       vm,
       $httpBackend,
       $timeout,
-      CLMAppLocations;
+      CLMContextLocations;
 
   beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
@@ -13,13 +13,13 @@ describe('import.policy.modal.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _$timeout_, _CLMAppLocations_) {
+  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _$timeout_, _CLMContextLocations_) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss');
 
     $httpBackend = _$httpBackend_;
     $timeout = _$timeout_;
-    CLMAppLocations = _CLMAppLocations_;
+    CLMContextLocations = _CLMContextLocations_;
 
     vm = $controller('import.policy.modal.controller',
         {$scope: scope});
@@ -49,7 +49,7 @@ describe('import.policy.modal.controller.spec.js', function() {
     it('Test import failure', function() {
       validateInitialState();
 
-      $httpBackend.expectPOST(CLMAppLocations.getImportPolicyUrl()).respond(500, 'Some failure');
+      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond(500, 'Some failure');
 
       vm.doSubmit();
       $httpBackend.flush();
@@ -61,7 +61,7 @@ describe('import.policy.modal.controller.spec.js', function() {
       validateInitialState();
       scope.$close = jasmine.createSpy('close');
 
-      $httpBackend.expectPOST(CLMAppLocations.getImportPolicyUrl()).respond({
+      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond({
         ownerName: 'test'
       });
       spyOn(PolicyHierarchyStore, 'refresh');

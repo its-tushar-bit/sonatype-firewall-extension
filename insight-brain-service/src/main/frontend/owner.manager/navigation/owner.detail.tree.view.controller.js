@@ -4,14 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, CLMAppLocations, ApplicationStore,
+function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, CLMContextLocations, ApplicationStore,
                                        OrganizationStore, LocalRoleService, ProductFeatures) {
   var vm = this;
 
   vm.areAnyCategoriesDefined = undefined;
   vm.isMonitoringSupported = undefined;
-  vm.isApp = CLMAppLocations.isApplication();
-  vm.isRepositories = CLMAppLocations.isRepositories();
+  vm.isApp = CLMContextLocations.isApplication();
+  vm.isRepositories = CLMContextLocations.isRepositories();
   vm.state = $state;
   vm.ownerName = undefined;
   vm.details = undefined;
@@ -28,15 +28,15 @@ function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, 
 
   function doLoad() {
     var promises = [
-      $http.get(CLMAppLocations.getOwnerDetailsUrl())
+      $http.get(CLMContextLocations.getOwnerDetailsUrl())
     ];
 
     if (vm.isApp) {
-      promises.push(ApplicationStore.getById(CLMAppLocations.getEntityId()));
-      promises.push($http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())));
+      promises.push(ApplicationStore.getById(CLMContextLocations.getEntityId()));
+      promises.push($http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())));
     }
     else if (!vm.isRepositories) {
-      promises.push(OrganizationStore.getById(CLMAppLocations.getEntityId()));
+      promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
     }
 
     promises.push(ProductFeatures.load());
@@ -69,6 +69,6 @@ function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, 
 }
 
 OwnerDetailTreeViewController.$inject = [
-  '$scope', '$q', '$http', '$state', 'CLMLocations', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore',
+  '$scope', '$q', '$http', '$state', 'CLMLocations', 'CLMContextLocations', 'ApplicationStore', 'OrganizationStore',
   'local.role.service', 'ProductFeatures'
 ];

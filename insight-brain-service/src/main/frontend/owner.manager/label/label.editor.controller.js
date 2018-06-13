@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
+function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMContextLocations, DeleteModalService,
                                SameOwnerStateNavigationService) {
   var vm = this;
 
@@ -35,7 +35,7 @@ function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMA
   }
 
   function doLoad() {
-    $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(CLMAppLocations.getApplicableLabelsUrl(CLMAppLocations.getEntityId()))]).then(function(results) {
+    $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(CLMContextLocations.getApplicableLabelsUrl(CLMContextLocations.getEntityId()))]).then(function(results) {
       results[1].data.labelsByOwner.forEach(function(owner) {
         vm.siblings = vm.siblings.concat(owner.labels);
       });
@@ -77,6 +77,6 @@ function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMA
 }
 
 LabelEditorController.$inject = [
-  '$scope', '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
+  '$scope', '$q', '$http', '$stateParams', 'LabelStore', 'CLMContextLocations', 'DeleteModalService',
   'SameOwnerStateNavigationService'
 ];

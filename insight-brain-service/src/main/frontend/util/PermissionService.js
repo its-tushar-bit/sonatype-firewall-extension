@@ -4,29 +4,30 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-import CLMAppLocationModule from './CLMAppLocation';
+import CLMContextLocationModule from './CLMContextLocation';
 
-var module = angular.module('PermissionServiceModule', [CLMAppLocationModule.name]);
+var module = angular.module('PermissionServiceModule', [CLMContextLocationModule.name]);
 export default module;
 
 module.service('PermissionService', [
-  '$http', 'CLMAppLocations', '$q', function($http, CLMAppLocations, $q) {
+  '$http', 'CLMContextLocations', '$q', function($http, CLMContextLocations, $q) {
     return {
       isContextAuthorized: function (permissions, ownerType, ownerId) {
         var deferred = $q.defer();
 
-        $http.put(CLMAppLocations.getPermissionContextTestUrl(ownerType, ownerId), permissions).then(function(data) {
-          deferred.resolve(permissions.length === data.data.length);
-        }, function() {
-          deferred.reject(arguments);
-        });
+        $http.put(CLMContextLocations.getPermissionContextTestUrl(ownerType, ownerId), permissions)
+            .then(function(data) {
+              deferred.resolve(permissions.length === data.data.length);
+            }, function() {
+              deferred.reject(arguments);
+            });
 
         return deferred.promise;
       },
       isAuthorized: function(permissions, globalContext) {
         var deferred = $q.defer();
 
-        $http.put(CLMAppLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
+        $http.put(CLMContextLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
           deferred.resolve(permissions.length === data.data.length);
         }, function() {
           deferred.reject(arguments);
@@ -37,7 +38,7 @@ module.service('PermissionService', [
       getValidPermissions: function(permissions, globalContext) {
         var deferred = $q.defer();
 
-        $http.put(CLMAppLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
+        $http.put(CLMContextLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
           deferred.resolve(data.data);
         }, function() {
           deferred.reject(arguments);

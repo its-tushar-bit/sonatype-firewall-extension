@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService, EventNameConstant) {
+function LabelTileController($scope, $http, CLMContextLocations, SameOwnerStateNavigationService, EventNameConstant) {
   var vm = this;
   vm.ownerName = undefined;
   vm.applicableLabels = undefined;
@@ -19,7 +19,7 @@ function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavig
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
-    $http.get(CLMAppLocations.getApplicableLabelsUrl()).then(function(result) {
+    $http.get(CLMContextLocations.getApplicableLabelsUrl()).then(function(result) {
       vm.applicableLabels = result.data.labelsByOwner;
       vm.applicableLabels.forEach(function(labels, index) {
         labels.inherited = index > 0;
@@ -45,5 +45,5 @@ function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavig
 }
 
 LabelTileController.$inject = [
-  '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+  '$scope', '$http', 'CLMContextLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
 ];

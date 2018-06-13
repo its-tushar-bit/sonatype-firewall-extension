@@ -1,5 +1,5 @@
 describe('owner.tree-view.directive.spec.js', function() {
-  var scope, $httpBackend, $state, $timeout, CLMLocations, CLMAppLocations, EventNameConstant;
+  var scope, $httpBackend, $state, $timeout, CLMLocations, CLMContextLocations, EventNameConstant;
 
   beforeEach(module(function($provide) {
     // $state stub for spying
@@ -26,12 +26,12 @@ describe('owner.tree-view.directive.spec.js', function() {
       var ownerList = SidebarResourceMockData.getOwnerListUrl();
 
       beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
-                                 _CLMAppLocations_, $injector) {
+                                 _CLMContextLocations_, $injector) {
         $timeout = _$timeout_;
         $httpBackend = _$httpBackend_;
         $state = _$state_;
         CLMLocations = _CLMLocations_;
-        CLMAppLocations = _CLMAppLocations_;
+        CLMContextLocations = _CLMContextLocations_;
         EventNameConstant = $injector.get('event.name.constant');
 
         scope = _$rootScope_.$new();
@@ -44,7 +44,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         spyOn($state, 'includes').and.returnValue(false);
 
         $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
-        $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
+        $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
         scope.$digest();
         $httpBackend.flush();
         $timeout.flush();
@@ -273,7 +273,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_TREE_DATA);
 
         $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
-        $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
+        $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
         scope.$digest();
         $httpBackend.flush();
         $timeout.flush();
@@ -348,12 +348,12 @@ describe('owner.tree-view.directive.spec.js', function() {
         options = { location: 'replace' };
 
     beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
-                               _CLMAppLocations_) {
+                               _CLMContextLocations_) {
       $httpBackend = _$httpBackend_;
       $state = _$state_;
       $timeout = _$timeout_;
       CLMLocations = _CLMLocations_;
-      CLMAppLocations = _CLMAppLocations_;
+      CLMContextLocations = _CLMContextLocations_;
 
       spyOn($state, 'is').and.returnValue(true);
       scope = _$rootScope_.$new();
@@ -382,7 +382,7 @@ describe('owner.tree-view.directive.spec.js', function() {
 
     it('handles load error', function() {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(400, 'Bad Request');
-      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
       $httpBackend.flush();
 
       expect(scope.vm.error).toBeDefined();
@@ -396,7 +396,7 @@ describe('owner.tree-view.directive.spec.js', function() {
 
     function doLoadWithOwnerList(ownerList) {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
-      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
       scope.$digest();
       $httpBackend.flush();
       $timeout.flush();

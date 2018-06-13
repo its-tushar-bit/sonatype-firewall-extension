@@ -1,5 +1,5 @@
 describe('AppSecurityControllerSpec', function() {
-  var mockCLMAppLocations = {
+  var mockCLMContextLocations = {
     getRoleMappingUrl: function() {
       //NOTE /rest/ is actually required even in this fake path as one of the http interceptors
       //uses its presence in a conditional
@@ -7,20 +7,20 @@ describe('AppSecurityControllerSpec', function() {
     }
   };
 
-  beforeEach(module('ApplicationSecurityModule', 'HttpInterceptors', 'CLMAppLocation', function ($provide) {
-    $provide.value('CLMAppLocations', mockCLMAppLocations);
+  beforeEach(module('ApplicationSecurityModule', 'HttpInterceptors', 'CLMContextLocation', function ($provide) {
+    $provide.value('CLMContextLocations', mockCLMContextLocations);
   }));
 
   describe('AppSecurityController', function() {
     var scope = null, parentScope = null, role1 = null, role2 = null;
 
-    beforeEach(inject(function ($rootScope, $httpBackend, CLMAppLocations, $controller) {
+    beforeEach(inject(function ($rootScope, $httpBackend, CLMContextLocations, $controller) {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
       role1 = MockData.getRoleOneData();
       role2 = MockData.getRoleTwoData();
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl())).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getRoleMappingUrl())).respond({
         'membersByRole': [role1, role2]
       });
       $controller('AppSecurityController', {
@@ -196,7 +196,7 @@ describe('AppSecurityControllerSpec', function() {
 
           scope.save();
 
-          $httpBackend.expectPUT(SpecUtil.toRegExp(mockCLMAppLocations.getRoleMappingUrl(role1Id))).respond();
+          $httpBackend.expectPUT(SpecUtil.toRegExp(mockCLMContextLocations.getRoleMappingUrl(role1Id))).respond();
           expect(hide).not.toHaveBeenCalled();
           expect(eventSpy).not.toHaveBeenCalled();
 

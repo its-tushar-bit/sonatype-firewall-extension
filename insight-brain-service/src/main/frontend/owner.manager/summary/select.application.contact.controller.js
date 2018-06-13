@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function SelectApplicationContactController($scope, $http, CLMAppLocations, owner, DeleteModalService, Messages) {
+function SelectApplicationContactController($scope, $http, CLMContextLocations, owner, DeleteModalService, Messages) {
   var vm = this;
 
   vm.deleteMode = false;
@@ -40,7 +40,7 @@ function SelectApplicationContactController($scope, $http, CLMAppLocations, owne
     delete vm.searchError;
     delete vm.submitError;
     delete vm.selected;
-    $http.get(CLMAppLocations.getFindUsersUrl(), {
+    $http.get(CLMContextLocations.getFindUsersUrl(), {
       params: {
         q: vm.query,
         groups: false
@@ -93,5 +93,5 @@ function SelectApplicationContactController($scope, $http, CLMAppLocations, owne
 }
 
 SelectApplicationContactController.$inject = [
-  '$scope', '$http', 'CLMAppLocations', 'owner', 'DeleteModalService', 'Messages'
+  '$scope', '$http', 'CLMContextLocations', 'owner', 'DeleteModalService', 'Messages'
 ];

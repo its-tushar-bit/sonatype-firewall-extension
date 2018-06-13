@@ -6,7 +6,7 @@
 import { omit, prop } from 'ramda';
 
 export default
-function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
+function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMContextLocations, CLMLocations,
                                              PolicyHierarchyStore) {
   var originalCategoryArray,
       vm = this;
@@ -17,7 +17,7 @@ function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore
   vm.submitError = undefined;
   vm.submitErrorMessage = undefined;
   vm.categories = undefined;
-  vm.isApp = CLMAppLocations.isApplication();
+  vm.isApp = CLMContextLocations.isApplication();
   vm.ownerName = undefined;
   vm.categoryEditor = undefined;
   vm.categoryEditorMask = undefined;
@@ -35,15 +35,15 @@ function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore
     if (vm.isApp) {
       $q.all([
         ApplicationStore[vm.loadError ? 'refresh' : 'get'](),
-        $http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())),
-        $http.get(CLMLocations.getApplicationTagUrl(CLMAppLocations.getEntityId()))
+        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())),
+        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId()))
       ]).then(function(results) {
         var organizationCategories = results[1].data,
             applicationCategories = results[2].data;
         vm.categories = [];
 
         results[0].some(function(candidate) {
-          if (candidate.publicId === CLMAppLocations.getEntityId()) {
+          if (candidate.publicId === CLMContextLocations.getEntityId()) {
             vm.ownerName = candidate.name;
             return true;
           }
@@ -63,7 +63,7 @@ function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore
         originalCategoryArray = angular.copy(vm.categories);
 
         if (!vm.ownerName) {
-          vm.loadError = 'Could not find an application with ID ' + CLMAppLocations.getEntityId() + '.';
+          vm.loadError = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
         }
       }, function(error) {
         vm.loadError = error;
@@ -78,7 +78,7 @@ function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore
 
     var appliedCategories = vm.categories.filter(prop('isApplied')).map(omit(['isApplied']));
 
-    vm.categoryEditorMask.wrap($http.put(CLMLocations.getApplicationTagUrl(CLMAppLocations.getEntityId()),
+    vm.categoryEditorMask.wrap($http.put(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId()),
         appliedCategories)).then(function() {
       originalCategoryArray = angular.copy(vm.categories);
       vm.categoryEditor.$setPristine();
@@ -95,5 +95,5 @@ function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore
 }
 
 ApplicationCategoryEditorController.$inject = [
-  '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'PolicyHierarchyStore'
+  '$scope', '$q', '$http', 'ApplicationStore', 'CLMContextLocations', 'CLMLocations', 'PolicyHierarchyStore'
 ];

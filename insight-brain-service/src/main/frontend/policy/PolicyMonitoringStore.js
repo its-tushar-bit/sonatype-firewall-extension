@@ -5,24 +5,24 @@
  */
 /*global angular */
 import commonServicesModule from '../util/CommonServices';
-import CLMAppLocationModule from '../util/CLMAppLocation';
+import CLMContextLocationModule from '../util/CLMContextLocation';
 
-var policyModule = angular.module('Policy', [CLMAppLocationModule.name, commonServicesModule.name]);
+var policyModule = angular.module('Policy', [CLMContextLocationModule.name, commonServicesModule.name]);
 
 policyModule.service('PolicyMonitoringStore', [
-  'CLMAppLocations', '$http', function(CLMAppLocations, $http) {
+  'CLMContextLocations', '$http', function(CLMContextLocations, $http) {
     return {
       get: function() {
-        return $http.get(CLMAppLocations.getPolicyMonitoringUrl());
+        return $http.get(CLMContextLocations.getPolicyMonitoringUrl());
       },
       getApplicable: function() {
-        return $http.get(CLMAppLocations.getApplicablePolicyMonitoring());
+        return $http.get(CLMContextLocations.getApplicablePolicyMonitoring());
       },
       save: function(policyMonitoring) {
-        return $http.put(CLMAppLocations.getPolicyMonitoringUrl(), policyMonitoring);
+        return $http.put(CLMContextLocations.getPolicyMonitoringUrl(), policyMonitoring);
       },
       remove: function() {
-        return $http['delete'](CLMAppLocations.getPolicyMonitoringUrl());
+        return $http['delete'](CLMContextLocations.getPolicyMonitoringUrl());
       }
     };
   }

@@ -4,23 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-import CLMAppLocationModule from '../util/CLMAppLocation';
+import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';
 
 var licenseGroupModule = angular.module('LicenseThreatGroup',
-    [storesModule.name, CLMAppLocationModule.name]);
+    [storesModule.name, CLMContextLocationModule.name]);
 
 licenseGroupModule.service('licenseGroupStore', [
-  'CLMAppLocations', 'CachedStore', function(CLMAppLocations, CachedStore) {
+  'CLMContextLocations', 'CachedStore', function(CLMContextLocations, CachedStore) {
     var licenseGroupStoreTemplate = {
       id: 'id',
       template: { id: null, ownerId: null, name: null, threatLevel: 5 },
-      getUrl: CLMAppLocations.getLicenseGroupsUrl,
+      getUrl: CLMContextLocations.getLicenseGroupsUrl,
       relationalConfigs: {
         'licenses': {
           id: 'licenseId',
           template: { id: null, licenseId: null },
-          url: CLMAppLocations.getLicenseGroupLicensesUrl
+          url: CLMContextLocations.getLicenseGroupLicensesUrl
         }
       }
     };

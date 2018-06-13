@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function ApplicationCategoryTileControllerOrg($scope, CLMAppLocations, SameOwnerStateNavigationService, TagStore,
+function ApplicationCategoryTileControllerOrg($scope, CLMContextLocations, SameOwnerStateNavigationService, TagStore,
                                               EventNameConstant) {
   var vm = this;
 
@@ -12,7 +12,7 @@ function ApplicationCategoryTileControllerOrg($scope, CLMAppLocations, SameOwner
   vm.doLoad = doLoad;
   vm.editCategory = editCategory;
   vm.error = undefined;
-  vm.isOrg = CLMAppLocations.isOrganization();
+  vm.isOrg = CLMContextLocations.isOrganization();
   vm.ownerName = undefined;
 
   vm.doLoad();
@@ -59,5 +59,5 @@ function ApplicationCategoryTileControllerOrg($scope, CLMAppLocations, SameOwner
 }
 
 ApplicationCategoryTileControllerOrg.$inject = [
-  '$scope', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'TagStore', 'event.name.constant'
+  '$scope', 'CLMContextLocations', 'SameOwnerStateNavigationService', 'TagStore', 'event.name.constant'
 ];

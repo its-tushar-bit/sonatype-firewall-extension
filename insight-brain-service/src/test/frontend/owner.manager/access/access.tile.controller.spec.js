@@ -4,7 +4,7 @@ describe('access.tile.controller.spec.js', function() {
   var vm,
       $rootScope,
       $httpBackend,
-      CLMAppLocations,
+      CLMContextLocations,
       EventNameConstant;
 
   beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
@@ -13,9 +13,9 @@ describe('access.tile.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_, _CLMContextLocations_) {
     $httpBackend = _$httpBackend_;
-    CLMAppLocations = _CLMAppLocations_;
+    CLMContextLocations = _CLMContextLocations_;
     EventNameConstant = $injector.get('event.name.constant');
     $rootScope = _$rootScope_;
 
@@ -30,7 +30,7 @@ describe('access.tile.controller.spec.js', function() {
   });
 
   it('Properly Loading Membership Mappings', function() {
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
 
     expect(vm.ownerName).toEqual(AccessMockData.getRoleMappings().membersByRole[0].membersByOwner[0].ownerName);
@@ -44,30 +44,30 @@ describe('access.tile.controller.spec.js', function() {
   });
 
   it('Missing Membership Mappings', function() {
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(400, 'Bad Request');
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(400, 'Bad Request');
     $httpBackend.flush();
 
     expect(vm.error).toBeDefined();
 
     vm.doLoad();
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
 
     expect(vm.error).toBeUndefined();
   });
 
   it('Reloads on broadcasted owner summary reload event', function() {
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
 
     expect(vm.ownerName).not.toEqual('Bob');

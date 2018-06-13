@@ -66,7 +66,7 @@ describe('policy.editor.notifications.controller.spec.js', function() {
 
   var jiraServiceResolver = createJiraServiceResolver();
 
-  beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, _CLMLocations_) {
+  beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMContextLocations, _CLMLocations_) {
     scope = $rootScope.$new();
     CLMLocations = _CLMLocations_;
 
@@ -87,7 +87,7 @@ describe('policy.editor.notifications.controller.spec.js', function() {
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
 
     $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
-    $httpBackend.whenGET(CLMAppLocations.getRoleMappingUrl()).respond(membershipMapping);
+    $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
   }));
 
   describe('controller init', function() {
@@ -159,7 +159,7 @@ describe('policy.editor.notifications.controller.spec.js', function() {
       expect(vm.recipients[1].issueTypeId).toBe(2);
     });
 
-    it('still shows editor if jira projects fails', inject(function(CLMAppLocations, $controller, $httpBackend) {
+    it('still shows editor if jira projects fails', inject(function(CLMContextLocations, $controller, $httpBackend) {
       var error = 'error';
 
       jiraServiceResolver.reset();

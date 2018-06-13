@@ -3,15 +3,15 @@ import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.ma
 describe('owner.image.directive.spec.js', function() {
   var scope,
       ownerImageScope,
-      CLMAppLocations;
+      CLMContextLocations;
 
   beforeEach(angular.mock.module(ownerManagerModule.name));
 
-  beforeEach(inject(function($compile, $rootScope, _CLMAppLocations_) {
-    CLMAppLocations = _CLMAppLocations_;
+  beforeEach(inject(function($compile, $rootScope, _CLMContextLocations_) {
+    CLMContextLocations = _CLMContextLocations_;
     scope = $rootScope.$new();
 
-    spyOn(CLMAppLocations, 'getOwnerImageUrl').and.callThrough();
+    spyOn(CLMContextLocations, 'getOwnerImageUrl').and.callThrough();
 
     scope.owner = {id: '123'};
     var element = $compile('<div owner-image="owner"></div>')(scope);
@@ -21,7 +21,7 @@ describe('owner.image.directive.spec.js', function() {
   }));
 
   it('Properly requests for owner image url', function() {
-    expect(CLMAppLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
+    expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
     expect(ownerImageScope.ownerUrl).toBeDefined();
   });
 
@@ -31,7 +31,7 @@ describe('owner.image.directive.spec.js', function() {
     scope.owner = {id: '111'};
     scope.$digest();
 
-    expect(CLMAppLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
+    expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
     expect(ownerImageScope.ownerUrl).not.toEqual(previousUrl);
   });
 

@@ -6,15 +6,15 @@ describe('role.membership.controller.spec.js', function() {
       $httpBackend,
       $rootScope,
       $q,
-      CLMAppLocations;
+      CLMContextLocations;
 
   beforeEach(module('role.membership.module'));
 
-  beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$q_, _CLMAppLocations_) {
+  beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$q_, _CLMContextLocations_) {
     $httpBackend = _$httpBackend_;
     $rootScope = _$rootScope_;
     $q = _$q_;
-    CLMAppLocations = _CLMAppLocations_;
+    CLMContextLocations = _CLMContextLocations_;
   }));
 
   afterEach(function() {
@@ -93,7 +93,7 @@ describe('role.membership.controller.spec.js', function() {
     function doSearch() {
       vm.search();
 
-      $httpBackend.expectGET(CLMAppLocations.getFindUsersUrl() + '?q=testSearch')
+      $httpBackend.expectGET(CLMContextLocations.getFindUsersUrl() + '?q=testSearch')
           .respond(AccessMockData.getQueryResults());
     }
 

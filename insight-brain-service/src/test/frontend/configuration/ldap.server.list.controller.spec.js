@@ -4,11 +4,11 @@ describe('ldap.server.list.controller.spec.js', function() {
 
   var vm,
       $httpBackend,
-      CLMLocations;
+      CLMContextLocations;
 
-  beforeEach(inject(function(_$httpBackend_, $controller, _CLMLocations_) {
+  beforeEach(inject(function(_$httpBackend_, $controller, _CLMContextLocations_) {
     $httpBackend = _$httpBackend_;
-    CLMLocations = _CLMLocations_;
+    CLMContextLocations = _CLMContextLocations_;
   }));
 
   describe('Authorized', function() {
@@ -27,7 +27,7 @@ describe('ldap.server.list.controller.spec.js', function() {
     it('Properly loads ldap servers', function() {
       expect(vm.ldapList).toBeUndefined();
 
-      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([
+      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([
         {
           'id': '123',
           'name': 'ldap1',
@@ -50,19 +50,19 @@ describe('ldap.server.list.controller.spec.js', function() {
     });
 
     it('fails to load ldap server data', function() {
-      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond(500, 'foo');
+      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond(500, 'foo');
       $httpBackend.flush();
       expect(vm.error.data).toEqual('foo');
 
       //make sure reload clears error
       vm.doLoad();
-      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([]);
+      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       expect(vm.error).toBeFalsy();
     });
 
     it('Refresh after reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q, $timeout) {
-      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([]);
+      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.resolve());
       spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
@@ -76,7 +76,7 @@ describe('ldap.server.list.controller.spec.js', function() {
 
     it('Does not refresh on cancelled reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q,
                                                                 $timeout) {
-      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([]);
+      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.reject());
       spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);

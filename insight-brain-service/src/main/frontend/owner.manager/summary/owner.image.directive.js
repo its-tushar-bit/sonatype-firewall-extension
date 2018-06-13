@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function OwnerImageDirective(CLMAppLocations, EventNameConstant) {
+function OwnerImageDirective(CLMContextLocations, EventNameConstant) {
   return {
     scope: {
       owner: '=ownerImage'
@@ -13,7 +13,7 @@ function OwnerImageDirective(CLMAppLocations, EventNameConstant) {
     link: function(scope) {
       scope.$watch('owner', function() {
         if (scope.owner) {
-          scope.ownerUrl = CLMAppLocations.getOwnerImageUrl(scope.owner);
+          scope.ownerUrl = CLMContextLocations.getOwnerImageUrl(scope.owner);
         }
       });
 
@@ -29,4 +29,4 @@ function OwnerImageDirective(CLMAppLocations, EventNameConstant) {
   };
 }
 
-OwnerImageDirective.$inject = ['CLMAppLocations', 'event.name.constant'];
+OwnerImageDirective.$inject = ['CLMContextLocations', 'event.name.constant'];

@@ -15,27 +15,29 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
         $timeout,
         $httpBackend,
         CLMLocations,
-        CLMAppLocations,
+        CLMContextLocations,
         mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null;
 
-    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
-      $scope = $rootScope.$new();
-      $timeout = _$timeout_;
-      $httpBackend = _$httpBackend_;
-      CLMLocations = _CLMLocations_;
-      CLMAppLocations = _CLMAppLocations_;
+    beforeEach(inject(
+        function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_) {
+          $scope = $rootScope.$new();
+          $timeout = _$timeout_;
+          $httpBackend = _$httpBackend_;
+          CLMLocations = _CLMLocations_;
+          CLMContextLocations = _CLMContextLocations_;
 
-      spyOn(CLMAppLocations, 'isApplication').and.returnValue(type === 'application');
-      spyOn(CLMAppLocations, 'isRepositories').and.returnValue(type === 'repositories');
-      spyOn(CLMAppLocations, 'getEntityId').and.returnValue(owner[type === 'application' ? 'publicId' : 'id']);
+          spyOn(CLMContextLocations, 'isApplication').and.returnValue(type === 'application');
+          spyOn(CLMContextLocations, 'isRepositories').and.returnValue(type === 'repositories');
+          spyOn(CLMContextLocations, 'getEntityId').and.returnValue(owner[type === 'application' ? 'publicId' : 'id']);
 
-      vm = $controller('OwnerDetailTreeViewController', {
-        $scope: $scope,
-        $state: {
-          $current: {name: ''}
+          vm = $controller('OwnerDetailTreeViewController', {
+            $scope: $scope,
+            $state: {
+              $current: {name: ''}
+            }
+          });
         }
-      });
-    }));
+    ));
 
     afterEach(function() {
       $httpBackend.verifyNoOutstandingExpectation();
@@ -70,7 +72,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       if (!vm.isRepositories) {
         expect(vm.ownerName).toBeUndefined();
         expect(vm.error).toBe('Could not find an ' + type + ' with ID ' +
-        CLMAppLocations.getEntityId() + '.');
+        CLMContextLocations.getEntityId() + '.');
       }
       else {
         expect(vm.ownerName).toBe('Repositories');
@@ -89,10 +91,12 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       if (mockOwnerStore) {
         mockOwnerStore.resolveGetById(owner);
       }
-      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(SidebarResourceMockData.getOwnerDetailsUrl());
+      $httpBackend.expectGET(CLMContextLocations.getOwnerDetailsUrl())
+          .respond(SidebarResourceMockData.getOwnerDetailsUrl());
 
       if (vm.isApp) {
-        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())).respond([]);
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
+            .respond([]);
       }
 
       $httpBackend.flush();
@@ -109,13 +113,15 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
           mockOwnerStore.resolveGetById(ownerData);
         }
         else {
-          mockOwnerStore.rejectGetById('Could not find an ' + type + ' with ID ' + CLMAppLocations.getEntityId() + '.');
+          mockOwnerStore.rejectGetById('Could not find an ' + type + ' with ID ' + CLMContextLocations.getEntityId() +
+            '.');
         }
       }
-      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
+      $httpBackend.expectGET(CLMContextLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
 
       if (vm.isApp) {
-        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())).respond([]);
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
+            .respond([]);
       }
 
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);

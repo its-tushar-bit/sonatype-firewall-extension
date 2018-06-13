@@ -53,10 +53,10 @@ describe('application.category.tile.controller.org.spec.js', function() {
     });
 
     if (isOrg) {
-      it('Properly Loading Applicable Categories and Org Name', inject(function(CLMAppLocations) {
+      it('Properly Loading Applicable Categories and Org Name', inject(function(CLMContextLocations) {
         var mockAppCategoryOwners = TagResourceMockData.getTagsUrl();
 
-        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(mockAppCategoryOwners);
+        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(mockAppCategoryOwners);
         $httpBackend.flush();
 
         expect(vm.ownerName).toEqual(mockAppCategoryOwners.tagsByOwner[0].ownerName);
@@ -66,8 +66,8 @@ describe('application.category.tile.controller.org.spec.js', function() {
         });
       }));
 
-      it('Missing Categories', inject(function(CLMAppLocations) {
-        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(400, 'Bad Request');
+      it('Missing Categories', inject(function(CLMContextLocations) {
+        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(400, 'Bad Request');
         $httpBackend.flush();
 
         expect(vm.error).toBeDefined();
@@ -75,18 +75,18 @@ describe('application.category.tile.controller.org.spec.js', function() {
         expect(vm.appCategoryOwners).toEqual([]);
       }));
 
-      it('Reloads on broadcasted owner summary reload event', inject(function(CLMAppLocations) {
-        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+      it('Reloads on broadcasted owner summary reload event', inject(function(CLMContextLocations) {
+        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
         $httpBackend.flush();
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
         $httpBackend.flush();
       }));
 
-      it('Updates Owner name on broadcasted updated owner event', inject(function(CLMAppLocations) {
-        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+      it('Updates Owner name on broadcasted updated owner event', inject(function(CLMContextLocations) {
+        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
         $httpBackend.flush();
 
         expect(vm.ownerName).not.toEqual('Bob');

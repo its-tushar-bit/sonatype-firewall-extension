@@ -7,10 +7,12 @@
 import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
 
-var locationModule = angular.module('CLMAppLocation', [commonServicesModule.name, 'ui.router', CLMLocationModule.name]);
+var locationModule = angular.module('CLMContextLocation',
+    [commonServicesModule.name, 'ui.router', CLMLocationModule.name]);
+
 export default locationModule;
 
-locationModule.factory('CLMAppLocations', [
+locationModule.factory('CLMContextLocations', [
   'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window', 'CLMLocations',
   function(appId, orgId, $state, baseUrl, $window, CLMLocations) {
     function isApplication() {
@@ -49,6 +51,14 @@ locationModule.factory('CLMAppLocations', [
       else {
         return path + '/' + id;
       }
+    }
+
+    function getLdapConfig(ldapId) {
+      var url = baseUrl.get() + '/rest/config/ldap';
+      if (ldapId) {
+        url += '/' + ldapId;
+      }
+      return url;
     }
 
     var getId = function(raw) {
@@ -190,6 +200,28 @@ locationModule.factory('CLMAppLocations', [
       getProprietaryConfigUrl: function() {
         return baseUrl.get() + '/rest/proprietary/' + getServicePathWithId();
       },
+
+      getLdapConnectionConfig: function() {
+        return getLdapConfig($state.params.ldapId) + '/connection';
+      },
+
+      getLdapConnectionTest: function() {
+        return getLdapConfig($state.params.ldapId) + '/testConnection';
+      },
+
+      getLdapLoginTest: function() {
+        return getLdapConfig($state.params.ldapId) + '/testLogin';
+      },
+
+      getLdapUserMappingConfig: function() {
+        return getLdapConfig($state.params.ldapId) + '/userMapping';
+      },
+
+      getLdapUserMappingTest: function() {
+        return getLdapConfig($state.params.ldapId) + '/testUserMapping';
+      },
+
+      getLdapConfig,
 
       isApplication: isApplication,
       isOrganization: isOrganization,

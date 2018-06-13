@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function LdapConfigurationStore(clmLocations, StoreFactory) {
+export default function LdapConfigurationStore(clmContextLocations, StoreFactory) {
   return StoreFactory.getStore({
     id: 'id',
-    url: clmLocations.getLdapConfig(),
+    url: clmContextLocations.getLdapConfig(),
     template: {
       id: null,
       name: ''
@@ -14,4 +14,4 @@ export default function LdapConfigurationStore(clmLocations, StoreFactory) {
     type: 'LDAP server'
   });
 }
-LdapConfigurationStore.$inject = ['CLMLocations', 'StoreFactory'];
+LdapConfigurationStore.$inject = ['CLMContextLocations', 'StoreFactory'];

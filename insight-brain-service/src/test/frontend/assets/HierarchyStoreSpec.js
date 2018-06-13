@@ -23,7 +23,7 @@ describe('HierarchyStoreFactory', function() {
     };
   }
 
-  beforeEach(module('ResourceModule', 'CLMAppLocation'));
+  beforeEach(module('ResourceModule', 'CLMContextLocation'));
 
   beforeEach(inject(function(HierarchyStoreFactory) {
     store = HierarchyStoreFactory.getStore(

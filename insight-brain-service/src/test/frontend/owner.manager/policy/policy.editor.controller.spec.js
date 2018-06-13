@@ -29,7 +29,7 @@ describe('policy.editor.controller.spec.js', function() {
         $q,
         scope,
         $timeout,
-        CLMAppLocations,
+        CLMContextLocations,
         deleteServiceResourceDefer,
         isApp = type === 'application',
         mockDeleteService,
@@ -44,12 +44,12 @@ describe('policy.editor.controller.spec.js', function() {
             .getApplicablePolicies(type, owner.id, owner.name), 'policiesByOwner'),
         mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMAppLocations_) {
+    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMContextLocations_) {
       scope = $rootScope.$new();
       $q = _$q_;
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
-      CLMAppLocations = _CLMAppLocations_;
+      CLMContextLocations = _CLMContextLocations_;
 
       deleteServiceResourceDefer = $q.defer();
 
@@ -61,8 +61,8 @@ describe('policy.editor.controller.spec.js', function() {
 
       mockCategoryOwners = TagResourceMockData.getTagsUrl(type, owner.id);
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
-      spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
-      spyOn(CLMAppLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
+      spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
+      spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
 
       $state.current.name = type;
       if (type === 'application') {
@@ -364,10 +364,10 @@ describe('policy.editor.controller.spec.js', function() {
       }
 
       if (!expectError && (!isApp || policyStoreData.length > 1 && policyStoreData[1].policies.some(function(policy) { return policyId === policy.id; }))) {
-        $httpBackend.expectGET(CLMAppLocations.getCategoriesUrl()).respond(mockCategoryOwners);
+        $httpBackend.expectGET(CLMContextLocations.getCategoriesUrl()).respond(mockCategoryOwners);
 
         if (policyId) {
-          $httpBackend.expectGET(CLMAppLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
+          $httpBackend.expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
         }
 
         $timeout.flush();
@@ -381,7 +381,7 @@ describe('policy.editor.controller.spec.js', function() {
     function resolveSaveData(policyId) {
       mockPolicy.resolveSave();
       if (!isApp) {
-        $httpBackend.expectPUT(CLMAppLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
+        $httpBackend.expectPUT(CLMContextLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
       }
       $timeout.flush();
       if (!isApp) {

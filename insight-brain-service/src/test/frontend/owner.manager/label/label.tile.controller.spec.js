@@ -6,7 +6,7 @@ describe('label.tile.controller.spec.js', function() {
       $httpBackend,
       $rootScope,
       EventNameConstant,
-      CLMAppLocations;
+      CLMContextLocations;
 
   beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
@@ -14,10 +14,10 @@ describe('label.tile.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function(_$rootScope_, $injector, $controller, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function(_$rootScope_, $injector, $controller, _$httpBackend_, _CLMContextLocations_) {
     $rootScope = _$rootScope_;
     $httpBackend = _$httpBackend_;
-    CLMAppLocations = _CLMAppLocations_;
+    CLMContextLocations = _CLMContextLocations_;
     scope = $rootScope.$new();
     EventNameConstant = $injector.get('event.name.constant');
 
@@ -32,7 +32,7 @@ describe('label.tile.controller.spec.js', function() {
   });
 
   it('Properly Loading Labels', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
     $httpBackend.flush();
 
     expect(vm.ownerName).toEqual(LabelMockData.getApplicableLabels().labelsByOwner[0].ownerName);
@@ -43,24 +43,24 @@ describe('label.tile.controller.spec.js', function() {
   });
 
   it('Missing Labels', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(400, 'Bad Request');
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(400, 'Bad Request');
     $httpBackend.flush();
 
     expect(vm.error).toBeDefined();
   });
 
   it('Reloads on broadcasted owner summary reload event', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
     $httpBackend.flush();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
     $httpBackend.flush();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
     $httpBackend.flush();
 
     expect(vm.ownerName).not.toEqual('Bob');

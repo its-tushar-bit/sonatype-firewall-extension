@@ -4,13 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMAppLocations,
+function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMContextLocations,
                                             DeleteModalService, SameOwnerStateNavigationService) {
   var originalPickedLicenseIds = [],
       isNavigatingAfterRemove,
       vm = this;
 
-  vm.isApp = CLMAppLocations.isApplication();
+  vm.isApp = CLMContextLocations.isApplication();
   vm.availableLicenses = [];
   vm.deleteLTG = deleteLTG;
   vm.dirtyLTG = undefined;
@@ -54,7 +54,7 @@ function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $st
   function doLoad() {
     var promises = [
       $http.get(CLMLocations.getLicensesUrl()),
-      $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl())
+      $http.get(CLMContextLocations.getApplicableLicenseGroupsUrl())
     ];
 
     if ($stateParams.licenseThreatGroupId) {
@@ -154,6 +154,6 @@ function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $st
 }
 
 LicenseThreatGroupEditorController.$inject = [
-  '$scope', '$q', '$http', '$stateParams', '$state', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations',
+  '$scope', '$q', '$http', '$stateParams', '$state', 'CLMLocations', 'licenseGroupStore', 'CLMContextLocations',
   'DeleteModalService', 'SameOwnerStateNavigationService'
 ];

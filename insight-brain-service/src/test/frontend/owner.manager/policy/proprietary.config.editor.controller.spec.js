@@ -14,23 +14,25 @@ describe('proprietary.config.editor.controller.spec.js', function() {
       $httpBackend,
       $timeout,
       $rootScope,
-      CLMAppLocations,
+      CLMContextLocations,
       mockProprietaryConfig = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function(_$rootScope_, $injector, _$q_, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_) {
-    $rootScope = _$rootScope_;
-    scope = $rootScope.$new();
-    $q = _$q_;
-    $httpBackend = _$httpBackend_;
-    $timeout = _$timeout_;
-    CLMAppLocations = _CLMAppLocations_;
+  beforeEach(inject(
+      function(_$rootScope_, $injector, _$q_, $controller, _$timeout_, _$httpBackend_, _CLMContextLocations_) {
+        $rootScope = _$rootScope_;
+        scope = $rootScope.$new();
+        $q = _$q_;
+        $httpBackend = _$httpBackend_;
+        $timeout = _$timeout_;
+        CLMContextLocations = _CLMContextLocations_;
 
-    vm = $controller('proprietary.config.editor.controller', {
-      $scope: scope
-    });
+        vm = $controller('proprietary.config.editor.controller', {
+          $scope: scope
+        });
 
-    vm.proprietaryConfigEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
-  }));
+        vm.proprietaryConfigEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      }
+  ));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -39,7 +41,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
 
   describe('Page Changes', function() {
     beforeEach(inject(function() {
-      $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+      $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+          .respond(ProprietaryMockData.getProprietaryConfiguration());
       $httpBackend.flush();
       vm.dirtyProprietaryConfig = mockProprietaryConfig;
       vm.dirtyProprietaryConfig.isDirty = angular.noop;
@@ -61,7 +64,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('proprietary config editor loads properly', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     expect(vm.dirtyProprietaryConfig.$new).toBeFalsy();
@@ -86,7 +90,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('Save fails with successful retry', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.dirtyProprietaryConfig = mockProprietaryConfig;
@@ -101,14 +106,15 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('proprietary config editor fails to load data', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(500, 'foo');
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl()).respond(500, 'foo');
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.loadError).toEqual('foo');
   });
 
   it('removes package matcher from local array and updates vm.dirtyProprietaryConfig.packages', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     expect(vm.localMatchers.length).toBe(3);
@@ -125,7 +131,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('removes regex matcher from local array and updates vm.dirtyProprietaryConfig.regexes', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     expect(vm.localMatchers.length).toBe(3);
@@ -140,7 +147,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('removes same regex and package name', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
@@ -164,7 +172,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('Expect field to be cleared on add', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.matcherType = vm.matcherTypes.PACKAGE;
@@ -181,7 +190,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('Add package updates arrays', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
@@ -198,7 +208,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('Add regex updates arrays', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
@@ -215,7 +226,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('Add button disabled toggles properly with regex', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.matcherType = vm.matcherTypes.REGEX;
@@ -228,7 +240,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
   });
 
   it('Add button disabled toggles properly with package', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+        .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
     vm.matcherType = vm.matcherTypes.PACKAGE;
@@ -242,7 +255,8 @@ describe('proprietary.config.editor.controller.spec.js', function() {
 
   describe('Validation of Inputs', function() {
     beforeEach(function() {
-      $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+      $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl())
+          .respond(ProprietaryMockData.getProprietaryConfiguration());
       $httpBackend.flush();
     });
 

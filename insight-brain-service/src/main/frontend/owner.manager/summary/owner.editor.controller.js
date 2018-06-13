@@ -5,7 +5,7 @@
  */
 export default
 function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings,
-                               messages, CLMAppLocations, EventNameConstant) {
+                               messages, CLMContextLocations, EventNameConstant) {
   var vm = this,
       deferred,
       preventDismiss = false,
@@ -22,7 +22,7 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
   vm.fileUploadComplete = fileUploadComplete;
   vm.getTypeName = getTypeName;
   vm.icon = {};
-  vm.iconUploadUrl = CLMAppLocations.getAddIconUrl(ownerType);
+  vm.iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType);
   vm.ownerEditor = undefined;
   vm.ownerEditorMask = undefined;
   vm.ownerType = ownerType;
@@ -109,7 +109,7 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
         var formData = new FormData(form[0]);
         deferred = $q.defer();
 
-        $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData).then(function() {
+        $http.post(CLMContextLocations.getAddIconUrl(ownerType), formData).then(function() {
           deferred.resolve(result);
         }, function(error) {
           if (isNew || nameChanged === true) { // only show warning for new and mixed state
@@ -180,11 +180,11 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
   }
 
   function robotUrl() {
-    return CLMAppLocations.getRobotUrl(ownerType, vm.icon.robotHash);
+    return CLMContextLocations.getRobotUrl(ownerType, vm.icon.robotHash);
   }
 }
 
 OwnerEditorController.$inject = [
   '$scope', '$rootScope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings',
-  'Messages', 'CLMAppLocations', 'event.name.constant'
+  'Messages', 'CLMContextLocations', 'event.name.constant'
 ];

@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import commonServicesModule from '../util/CommonServices';
-import CLMAppLocationModule from '../util/CLMAppLocation';
+import CLMContextLocationModule from '../util/CLMContextLocation';
 import RoleMembershipDirective from './role.membership.directive';
 import RoleMembershipController from './role.membership.controller';
 
-export default angular.module('role.membership.module', [CLMAppLocationModule.name, commonServicesModule.name])
+export default angular.module('role.membership.module', [CLMContextLocationModule.name, commonServicesModule.name])
     .directive('roleMembership', RoleMembershipDirective)
     .controller('role.membership.controller', RoleMembershipController);

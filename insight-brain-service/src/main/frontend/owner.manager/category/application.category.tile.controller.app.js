@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
+function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMContextLocations, CLMLocations,
                                               SameOwnerStateNavigationService, EventNameConstant) {
   var vm = this;
 
@@ -13,7 +13,7 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
   vm.assignCategories = assignCategories;
   vm.doLoad = doLoad;
   vm.error = undefined;
-  vm.isApp = CLMAppLocations.isApplication();
+  vm.isApp = CLMContextLocations.isApplication();
   vm.ownerName = undefined;
 
   vm.doLoad();
@@ -26,11 +26,11 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
     if (vm.isApp) {
       $q.all([
         ApplicationStore[vm.error ? 'refresh' : 'get'](),
-        $http.get(CLMLocations.getApplicationTagUrl(CLMAppLocations.getEntityId())),
-        $http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId()))
+        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())),
+        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
       ]).then(function(results) {
         results[0].forEach(function(candidate) {
-          if (candidate.publicId === CLMAppLocations.getEntityId()) {
+          if (candidate.publicId === CLMContextLocations.getEntityId()) {
             vm.ownerName = candidate.name;
           }
         });
@@ -39,7 +39,7 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
         vm.areAnyCategoriesDefined = results[2].data.length > 0;
 
         if (!vm.ownerName) {
-          vm.error = 'Could not find an application with ID ' + CLMAppLocations.getEntityId() + '.';
+          vm.error = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
         }
       }, function(error) {
         vm.error = error;
@@ -61,5 +61,5 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
 }
 
 ApplicationCategoryTileControllerApp.$inject = [
-  '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+  '$scope', '$q', '$http', 'ApplicationStore', 'CLMContextLocations', 'CLMLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
 ];

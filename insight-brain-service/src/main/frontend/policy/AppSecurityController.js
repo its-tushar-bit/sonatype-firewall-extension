@@ -6,7 +6,7 @@
 /* global angular */
 import commonServicesModule from '../util/CommonServices';
 import angularCommonModule from '../util/AngularCommon';
-import CLMAppLocationModule from '../util/CLMAppLocation';
+import CLMContextLocationModule from '../util/CLMContextLocation';
 
 var groupings = [{
   type: 'GROUP',
@@ -78,7 +78,7 @@ function AppSecurityController($scope, $http, clmAppLocations, isAuthorized) {
   $scope.doLoad();
 }
 
-AppSecurityController.$inject = ['$scope', '$http', 'CLMAppLocations', 'isAuthorized'];
+AppSecurityController.$inject = ['$scope', '$http', 'CLMContextLocations', 'isAuthorized'];
 
 /**
  * Controller for the editor component of each row of the Administration Roles table.  This essentially
@@ -146,7 +146,7 @@ function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Mes
   //isDirty bound from role.membership.controller
 }
 
-AppSecurityEditorController.$inject = ['$scope', '$http', 'Dialog', 'CLMAppLocations', 'Messages'];
+AppSecurityEditorController.$inject = ['$scope', '$http', 'Dialog', 'CLMContextLocations', 'Messages'];
 
 function AppSecurityEditorDirective() {
   return {
@@ -162,7 +162,7 @@ function AppSecurityEditorDirective() {
 
 export default angular //
     .module('ApplicationSecurityModule', //
-        [commonServicesModule.name, angularCommonModule.name, CLMAppLocationModule.name, 'role.membership.module']) //
+        [commonServicesModule.name, angularCommonModule.name, CLMContextLocationModule.name, 'role.membership.module'])
     .controller('AppSecurityController', AppSecurityController) //
     .controller('AppSecurityEditorController', AppSecurityEditorController) //
     .directive('appSecurityEditor', AppSecurityEditorDirective);

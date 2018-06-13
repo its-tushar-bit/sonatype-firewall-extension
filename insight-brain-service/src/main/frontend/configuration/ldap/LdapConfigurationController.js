@@ -175,7 +175,7 @@ LdapConfigurationController.$inject = [
   '$scope', '$state', 'Dialog', 'LdapConfigurationStore', 'ErrorDialog', 'isAuthorized'
 ];
 
-export function LdapConnectionController($scope, Modal, $http, CLMLocations, ErrorDialog) {
+export function LdapConnectionController($scope, Modal, $http, CLMContextLocations, ErrorDialog) {
   $scope.ldapProtocols = ['LDAP', 'LDAPS'];
   $scope.ldapMethods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
   $scope.alerts = [];
@@ -201,7 +201,7 @@ export function LdapConnectionController($scope, Modal, $http, CLMLocations, Err
 
   $scope.testInProgress = false;
   $scope.testConnection = function() {
-    testRequest($scope, $http, CLMLocations.getLdapConnectionTest(), $scope.ldapConn);
+    testRequest($scope, $http, CLMContextLocations.getLdapConnectionTest(), $scope.ldapConn);
   };
 
   $scope.reset = resetDialog(Modal, function() {
@@ -212,7 +212,7 @@ export function LdapConnectionController($scope, Modal, $http, CLMLocations, Err
 
   $scope.save = function() {
     $scope.saving = true;
-    $http.put(CLMLocations.getLdapConnectionConfig(), $scope.ldapConn).then(function(response) {
+    $http.put(CLMContextLocations.getLdapConnectionConfig(), $scope.ldapConn).then(function(response) {
       $scope.saving = false;
       origLdapConn = response.data;
       $scope.ldapConn = angular.copy(origLdapConn);
@@ -232,7 +232,7 @@ export function LdapConnectionController($scope, Modal, $http, CLMLocations, Err
     }
   });
 
-  $http.get(CLMLocations.getLdapConnectionConfig()).then(function(response) {
+  $http.get(CLMContextLocations.getLdapConnectionConfig()).then(function(response) {
     origLdapConn = response.data;
     $scope.ldapConn = angular.copy(origLdapConn);
   }, function(error) {
@@ -240,9 +240,9 @@ export function LdapConnectionController($scope, Modal, $http, CLMLocations, Err
   });
 }
 
-LdapConnectionController.$inject = ['$scope', 'Modal', '$http', 'CLMLocations', 'ErrorDialog'];
+LdapConnectionController.$inject = ['$scope', 'Modal', '$http', 'CLMContextLocations', 'ErrorDialog'];
 
-export function LdapUsermappingController($scope, Modal, $http, CLMLocations, ErrorDialog, $q) {
+export function LdapUsermappingController($scope, Modal, $http, CLMContextLocations, ErrorDialog, $q) {
   $scope.alerts = [];
   delete $scope.ldapUserMapping;// make sure the scope is clean while we query backend
 
@@ -274,7 +274,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMLocations, Er
 
   $scope.save = function() {
     $scope.saving = true;
-    $http.put(CLMLocations.getLdapUserMappingConfig(), $scope.ldapUserMapping).then(function(response) {
+    $http.put(CLMContextLocations.getLdapUserMappingConfig(), $scope.ldapUserMapping).then(function(response) {
       $scope.saving = false;
       origLdapUserMapping = response.data;
       $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
@@ -297,7 +297,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMLocations, Er
       resolve: {
         users: function() {
           var deferred = $q.defer();
-          $http.put(CLMLocations.getLdapUserMappingTest(), $scope.ldapUserMapping).then(function (response) {
+          $http.put(CLMContextLocations.getLdapUserMappingTest(), $scope.ldapUserMapping).then(function (response) {
             var users = response.data;
             // Add property that holds the count of fields that are populated
             users.forEach(function(user) {
@@ -343,7 +343,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMLocations, Er
     return $scope.ldapUserMapping && $scope.ldapUserMapping.groupMappingType === groupMappingType;
   };
 
-  $http.get(CLMLocations.getLdapUserMappingConfig()).then(function(response) {
+  $http.get(CLMContextLocations.getLdapUserMappingConfig()).then(function(response) {
     origLdapUserMapping = response.data;
 
     // non-required properties must be initialized to empty string (not null or undefined) so that
@@ -358,7 +358,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMLocations, Er
   });
 }
 
-LdapUsermappingController.$inject = ['$scope', 'Modal', '$http', 'CLMLocations', 'ErrorDialog', '$q'];
+LdapUsermappingController.$inject = ['$scope', 'Modal', '$http', 'CLMContextLocations', 'ErrorDialog', '$q'];
 
 export function LdapCheckUserMappingController($scope, users) {
   $scope.users = users;
@@ -368,7 +368,7 @@ export function LdapCheckUserMappingController($scope, users) {
 
 LdapCheckUserMappingController.$inject = ['$scope', 'users'];
 
-export function LdapCheckLoginController($scope, $http, CLMLocations) {
+export function LdapCheckLoginController($scope, $http, CLMContextLocations) {
   $scope.alerts = [];
   $scope.testInProgress = false;
   $scope.ldapCredentials = {};
@@ -378,8 +378,8 @@ export function LdapCheckLoginController($scope, $http, CLMLocations) {
       username: $scope.ldapCredentials.username,
       password: $scope.ldapCredentials.password
     };
-    testRequest($scope, $http, CLMLocations.getLdapLoginTest(), request);
+    testRequest($scope, $http, CLMContextLocations.getLdapLoginTest(), request);
   };
 }
 
-LdapCheckLoginController.$inject = ['$scope', '$http', 'CLMLocations'];
+LdapCheckLoginController.$inject = ['$scope', '$http', 'CLMContextLocations'];

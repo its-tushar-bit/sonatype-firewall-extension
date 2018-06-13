@@ -9,7 +9,7 @@ import CommonServicesModule from './CommonServices';
 var angularCommon = angular.module('AngularCommon',
     [CommonServicesModule.name, 'ui.bootstrap', 'ngSanitize', 'vs-repeat']);
 
-angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMAppLocations', 'selected', function ($scope, $http, CLMAppLocations, selected) {
+angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMContextLocations', 'selected', function ($scope, $http, CLMContextLocations, selected) {
   $scope.deletedEnabled = true;
   $scope.selected = selected;
 

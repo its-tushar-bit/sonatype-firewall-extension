@@ -14,7 +14,7 @@ describe('owner.summary.controller.js', function() {
         $timeout,
         $httpBackend,
         CLMLocations,
-        CLMAppLocations,
+        CLMContextLocations,
         stageTypeStoreDefer,
         mockState,
         mockWindow,
@@ -26,11 +26,11 @@ describe('owner.summary.controller.js', function() {
         mockPermissionService,
         mockChangeApplicationIdService;
 
-    beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_, StageTypeStore) {
+    beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_, StageTypeStore) {
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       CLMLocations = _CLMLocations_;
-      CLMAppLocations = _CLMAppLocations_;
+      CLMContextLocations = _CLMContextLocations_;
       stageTypeStoreDefer = $q.defer();
       deleteOwnerDefer = $q.defer();
       isContextAuthorizedDefer = $q.defer();
@@ -46,7 +46,7 @@ describe('owner.summary.controller.js', function() {
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
       spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
-      spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
+      spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
 
       mockState = {
         current: {

@@ -5,17 +5,17 @@
  */
 /* global angular */
 import CLMLocationModule from '../util/CLMLocation';
-import CLMAppLocationModule from '../util/CLMAppLocation';
+import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';
 
 var tagTemplate = {id: null, organizationId: null, name: null, description: null, color: null};
 
-var tagModule = angular.module('Tags', [CLMAppLocationModule.name, CLMLocationModule.name, storesModule.name]);
+var tagModule = angular.module('Tags', [CLMContextLocationModule.name, CLMLocationModule.name, storesModule.name]);
 
 tagModule.service('TagStore', [
-  'CachedHierarchyStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedHierarchyStore, CLMAppLocations, CLMLocations, $http) {
+  'CachedHierarchyStore', 'CLMContextLocations', 'CLMLocations', '$http', function(CachedHierarchyStore, CLMContextLocations, CLMLocations, $http) {
     var tagStoreTemplate = {
-      getUrl: CLMAppLocations.getCategoriesUrl,
+      getUrl: CLMContextLocations.getCategoriesUrl,
       template: tagTemplate,
       field: 'tagsByOwner',
       storeField: 'tags',
@@ -25,17 +25,17 @@ tagModule.service('TagStore', [
 
     return angular.extend(tagStores, {
       getApplied: function() {
-        return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMAppLocations.getEntityId()));
+        return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMContextLocations.getEntityId()));
       }
     });
   }
 ]);
 
-tagModule.service('PolicyTagStore', ['$http', 'CachedStore', 'CLMAppLocations', 'CLMLocations',
-  function($http, CachedStore, CLMAppLocations, CLMLocations) {
+tagModule.service('PolicyTagStore', ['$http', 'CachedStore', 'CLMContextLocations', 'CLMLocations',
+  function($http, CachedStore, CLMContextLocations, CLMLocations) {
     var policyId, policyTagTemplate = {
       getKey: function() { return policyId; },
-      getUrl: function() { return CLMAppLocations.getPolicyTagUrl(policyId); },
+      getUrl: function() { return CLMContextLocations.getPolicyTagUrl(policyId); },
       template: tagTemplate
     };
     var store = CachedStore.get(policyTagTemplate);
@@ -45,7 +45,7 @@ tagModule.service('PolicyTagStore', ['$http', 'CachedStore', 'CLMAppLocations', 
         return store;
       },
       getApplied: function() {
-        return $http.get(CLMLocations.getOrganizationPolicyTagUrl(CLMAppLocations.getEntityId()));
+        return $http.get(CLMLocations.getOrganizationPolicyTagUrl(CLMContextLocations.getEntityId()));
       }
     };
   }

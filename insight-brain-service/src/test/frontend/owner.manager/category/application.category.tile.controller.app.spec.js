@@ -18,7 +18,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
         isApp = type === 'application',
         CLMLocations,
         EventNameConstant,
-        mockCLMAppLocations,
+        mockCLMContextLocations,
         mockApplicationStore = StoreUtils().createMockStore('ApplicationStore');
 
     beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_, _$timeout_, _CLMLocations_) {
@@ -29,7 +29,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
       scope = $rootScope.$new();
       EventNameConstant = $injector.get('event.name.constant');
 
-      mockCLMAppLocations = {
+      mockCLMContextLocations = {
         isApplication: function() {
           return isApp;
         },
@@ -39,7 +39,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
       };
 
       vm = $controller('ApplicationCategoryTileControllerApp', {
-        CLMAppLocations: mockCLMAppLocations,
+        CLMContextLocations: mockCLMContextLocations,
         $scope: scope
       });
     }));
@@ -65,8 +65,8 @@ describe('application.category.tile.controller.app.spec.js', function() {
 
       it('Missing App Info', function() {
         mockApplicationStore.resolveGet([{}, {}]);
-        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(TagResourceMockData.getApplicationTagUrl());
-        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
+        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMContextLocations.getEntityId())).respond(TagResourceMockData.getApplicationTagUrl());
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMContextLocations.getEntityId())).respond([]);
         $timeout.flush();
         $httpBackend.flush();
 
@@ -75,9 +75,9 @@ describe('application.category.tile.controller.app.spec.js', function() {
 
       it('Missing Categories', function() {
         mockApplicationStore.resolveGet([owner]);
-        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(400,
+        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMContextLocations.getEntityId())).respond(400,
             'Bad Request');
-        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond(
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMContextLocations.getEntityId())).respond(
             []);
         $timeout.flush();
         $httpBackend.flush();
@@ -106,8 +106,8 @@ describe('application.category.tile.controller.app.spec.js', function() {
 
     function expectLoadAndReturnProperData() {
       mockApplicationStore.resolveGet([owner]);
-      $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(TagResourceMockData.getApplicationTagUrl());
-      $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
+      $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMContextLocations.getEntityId())).respond(TagResourceMockData.getApplicationTagUrl());
+      $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMContextLocations.getEntityId())).respond([]);
       $timeout.flush();
       $httpBackend.flush();
     }

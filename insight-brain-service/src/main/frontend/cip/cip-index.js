@@ -14,7 +14,7 @@ import '../utility/services/login.modal.service';
 import '../util/Globals';
 import '../util/AngularCommon';
 import '../util/CommonServices';
-import '../util/CLMAppLocation';
+import '../util/CLMContextLocation';
 import '../util/CLMLocation';
 import '../util/HttpInterceptors';
 import 'angular-sanitize';

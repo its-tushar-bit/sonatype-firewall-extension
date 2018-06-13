@@ -6,7 +6,7 @@
 export default
 function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                               PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                              ProprietaryConfigHierarchyStore, CLMAppLocations, ProductFeatures) {
+                              ProprietaryConfigHierarchyStore, CLMContextLocations, ProductFeatures) {
   var vm = this;
   vm.ownerName = undefined;
   vm.policiesByOwner = undefined;
@@ -15,7 +15,7 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
   vm.monitoredStage = undefined;
   vm.localProprietaryCount = 0;
   vm.inheritedProprietaryCount = 0;
-  vm.isRootOrg = CLMAppLocations.isRootOrg();
+  vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
@@ -91,5 +91,5 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
 PolicyTileController.$inject = [
   '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
   'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
-  'ProprietaryConfigHierarchyStore', 'CLMAppLocations', 'ProductFeatures'
+  'ProprietaryConfigHierarchyStore', 'CLMContextLocations', 'ProductFeatures'
 ];

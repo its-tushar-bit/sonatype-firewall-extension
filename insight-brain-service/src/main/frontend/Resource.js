@@ -573,7 +573,7 @@ module.service('StoreFactory', [
 ]);
 
 module.service('HierarchyStoreFactory', [
-  '$http', '$q', 'StoreFactory', 'CLMAppLocations', function($http, $q, StoreFactory, CLMAppLocations) {
+  '$http', '$q', 'StoreFactory', 'CLMContextLocations', function($http, $q, StoreFactory, CLMContextLocations) {
     function getErrorFn(deferred) {
       return function(errorResponse) {
         deferred.reject({
@@ -649,7 +649,7 @@ module.service('HierarchyStoreFactory', [
             angular.forEach(data[config.field], function(owner) {
               if (config.crudUrl) {
                 storeConfig.url = config.crudUrl(owner.ownerType,
-                    owner.ownerType === 'application' ? CLMAppLocations.getEntityId() : owner.ownerId);
+                    owner.ownerType === 'application' ? CLMContextLocations.getEntityId() : owner.ownerId);
               }
 
               var ownerStore = StoreFactory.getStore(angular.copy(storeConfig));

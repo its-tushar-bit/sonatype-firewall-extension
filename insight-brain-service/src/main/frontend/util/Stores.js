@@ -6,9 +6,10 @@
 /* global angular */
 import resourceModule from '../Resource';
 import CLMLocationModule from '../util/CLMLocation';
-import CLMAppLocationModule from '../util/CLMAppLocation';
+import CLMContextLocationModule from '../util/CLMContextLocation';
 
-var storesModule = angular.module('Stores', [CLMLocationModule.name, CLMAppLocationModule.name, resourceModule.name]);
+var storesModule = angular.module('Stores',
+    [CLMLocationModule.name, CLMContextLocationModule.name, resourceModule.name]);
 
 export default storesModule;
 
@@ -129,7 +130,7 @@ storesModule.service('StageTypeStore', [
 ]);
 
 storesModule.service('PolicyStore', [
-  'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'StoreFactory', '$q',
+  'ConstraintStore', 'CLMLocations', 'CLMContextLocations', 'StoreFactory', '$q',
   function(constraintStore, clmLocations, clmAppLocations, StoreFactory, $q) {
     var conditionTypes = null,
         policyStoreTemplate = {
@@ -188,8 +189,8 @@ storesModule.service('PolicyStore', [
   }
 ]);
 
-storesModule.service('ConstraintStore', [
-  'CLMLocations', 'CLMAppLocations', 'StoreFactory', '$q', function(clmLocations, clmAppLocations, StoreFactory, $q) {
+storesModule.service('ConstraintStore', ['CLMLocations', 'CLMContextLocations', 'StoreFactory', '$q',
+  function(clmLocations, clmAppLocations, StoreFactory, $q) {
     var conditionTypeStore = StoreFactory.getStore({
       id: 'id',
       url: clmLocations.getConditionTypeUrl()
@@ -209,7 +210,7 @@ storesModule.service('ConstraintStore', [
 ]);
 
 storesModule.service('PolicyHierarchyStore', [
-  'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
+  'CLMContextLocations', 'CachedHierarchyStore', function(CLMContextLocations, CachedHierarchyStore) {
     var policyStoreTemplate = {
       template: {
         id: undefined,
@@ -236,8 +237,8 @@ storesModule.service('PolicyHierarchyStore', [
         }
       },
       type: 'policy',
-      getUrl: CLMAppLocations.getApplicablePolicies,
-      crudUrl: CLMAppLocations.getPolicyUrl,
+      getUrl: CLMContextLocations.getApplicablePolicies,
+      crudUrl: CLMContextLocations.getPolicyUrl,
       field: 'policiesByOwner',
       storeField: 'policies'
     };
@@ -264,7 +265,7 @@ storesModule.service('WebhookStore', [
 ]);
 
 storesModule.service('ProprietaryConfigHierarchyStore', [
-  'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
+  'CLMContextLocations', 'CachedHierarchyStore', function(CLMContextLocations, CachedHierarchyStore) {
     var proprietaryConfigStoreTemplate = {
       template: {
         id: undefined,
@@ -272,8 +273,8 @@ storesModule.service('ProprietaryConfigHierarchyStore', [
         regexes: []
       },
       type: 'proprietary configuration',
-      getUrl: CLMAppLocations.getProprietaryConfigUrl,
-      crudUrl: CLMAppLocations.getProprietaryConfigUrl,
+      getUrl: CLMContextLocations.getProprietaryConfigUrl,
+      crudUrl: CLMContextLocations.getProprietaryConfigUrl,
       field: 'proprietaryConfigByOwners',
       storeField: 'proprietaryConfig',
       id: 'ownerId'
@@ -289,12 +290,12 @@ storesModule.service('ProprietaryConfigHierarchyStore', [
  *   getUrl a function that returns the store URL at the point the store is requested
  *   getKey (optional) a function that returns the key at the point the store is requested
  */
-function CachedStoreFactory(StoreFactory, CLMAppLocations) {
+function CachedStoreFactory(StoreFactory, CLMContextLocations) {
   function CachedStore(config) {
     var store, storeKey = null;
 
     function refreshStore() {
-      var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
+      var key = config.getKey ? config.getKey() : CLMContextLocations.getEntityId();
       if (!store || key !== storeKey) {
         store = StoreFactory.getStore(angular.extend({ url: config.getUrl() }, config));
         storeKey = key;
@@ -326,6 +327,6 @@ function CachedStoreFactory(StoreFactory, CLMAppLocations) {
   };
 }
 
-storesModule.service('CachedStore', ['StoreFactory', 'CLMAppLocations', CachedStoreFactory]);
+storesModule.service('CachedStore', ['StoreFactory', 'CLMContextLocations', CachedStoreFactory]);
 
-storesModule.service('CachedHierarchyStore', ['HierarchyStoreFactory', 'CLMAppLocations', CachedStoreFactory]);
+storesModule.service('CachedHierarchyStore', ['HierarchyStoreFactory', 'CLMContextLocations', CachedStoreFactory]);

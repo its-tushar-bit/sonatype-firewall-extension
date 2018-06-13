@@ -7,7 +7,7 @@ import { prop } from 'ramda';
 
 export default
 function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
-                                SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant,
+                                SameOwnerStateNavigationService, CLMContextLocations, $rootScope, EventNameConstant,
                                 $state) {
   var vm = this,
       originalCategories,
@@ -30,7 +30,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
   vm.submitError = undefined;
   vm.owner = undefined;
   vm.readOnly = undefined;
-  vm.isRootOrg = CLMAppLocations.isRootOrg();
+  vm.isRootOrg = CLMContextLocations.isRootOrg();
 
   vm.doLoad();
 
@@ -87,7 +87,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
           id: policyStores[0].ownerId,
           name: policyStores[0].ownerName
         };
-        vm.isOrgOwner = CLMAppLocations.isOrganization();
+        vm.isOrgOwner = CLMContextLocations.isOrganization();
       }
 
       vm.categories = [];
@@ -97,7 +97,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
 
         // A newly created policy won't have any tags associated with it
         if ($stateParams.policyId) {
-          promises.push($http.get(CLMAppLocations.getPolicyTagUrl($stateParams.policyId)));
+          promises.push($http.get(CLMContextLocations.getPolicyTagUrl($stateParams.policyId)));
         }
 
         $q.all(promises).then(function(results) {
@@ -147,7 +147,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
 
     if (vm.policyEditor.$valid && vm.isPolicyDirty() && !vm.readOnly) {
       var savePolicy = vm.dirtyPolicy.$save().then(function() {
-        return !vm.isOrgOwner ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
+        return !vm.isOrgOwner ? $q.when([]) : $http.put(CLMContextLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
             vm.hasPolicyCategories ? appliedCategories : []);
       }, submitErrorHandler);
 
@@ -183,5 +183,5 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
 
 PolicyEditorController.$inject = [
   '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'TagStore', 'DeleteModalService',
-  'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant', '$state'
+  'SameOwnerStateNavigationService', 'CLMContextLocations', '$rootScope', 'event.name.constant', '$state'
 ];

@@ -5,15 +5,15 @@
  */
 export default
 function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, OwnerEditor, ApplicationStore,
-                                OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
-                                SelectApplicationContactService, EvaluateApplicationModalService,
+                                OrganizationStore, CLMLocations, CLMContextLocations, StageTypeStore,
+                                DeleteModalService, SelectApplicationContactService, EvaluateApplicationModalService,
                                 ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant,
                                 ChangeApplicationIdService, PermissionService) {
   var vm = this;
 
   vm.error = undefined;
-  vm.isApp = CLMAppLocations.isApplication();
-  vm.isRootOrg = CLMAppLocations.isRootOrg();
+  vm.isApp = CLMContextLocations.isApplication();
+  vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.owner = undefined;
   vm.stages = undefined;
   vm.doLoad = doLoad;
@@ -152,7 +152,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
 
 OwnerSummaryController.$inject = [
   '$state', '$scope', '$rootScope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore',
-  'OrganizationStore', 'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService',
+  'OrganizationStore', 'CLMLocations', 'CLMContextLocations', 'StageTypeStore', 'DeleteModalService',
   'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
   'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service',
   'PermissionService'

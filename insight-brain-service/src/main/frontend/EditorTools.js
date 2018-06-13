@@ -6,12 +6,12 @@
 /* global angular */
 import commonServicesModule from './util/CommonServices';
 import angularCommonModule from './util/AngularCommon';
-import CLMAppLocationModule from './util/CLMAppLocation';
+import CLMContextLocationModule from './util/CLMContextLocation';
 import storesModule from './util/Stores';
 
 var module = angular.module('EditorTools',
     [
-      commonServicesModule.name, CLMAppLocationModule.name, storesModule.name, angularCommonModule.name, 'xeditable',
+      commonServicesModule.name, CLMContextLocationModule.name, storesModule.name, angularCommonModule.name, 'xeditable',
       'ngCookies'
     ]);
 

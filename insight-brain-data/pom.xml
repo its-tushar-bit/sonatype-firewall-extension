@@ -45,11 +45,11 @@
       <artifactId>joda-time</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
-      <version>1.4.5</version>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.6.1</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>knowledge-api</artifactId>

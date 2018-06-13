@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.tools.urlrunner;
 
-import org.apache.http.HttpResponse;
+import com.sonatype.insight.brain.tools.metrics.MetricsReport;
+
+import org.apache.http.StatusLine;
 
 public class Stats
 {
@@ -13,11 +15,15 @@ public class Stats
 
   private String type;
 
-  private HttpResponse response;
+  private String responseBody;
+
+  private StatusLine statusLine;
 
   private long responseTime;
 
   private String requestPayload;
+
+  private MetricsReport metricsReport;
 
 
   public String getUrl() {
@@ -36,12 +42,20 @@ public class Stats
     this.type = type;
   }
 
-  public HttpResponse getResponse() {
-    return response;
+  public String getResponseBody() {
+    return responseBody;
   }
 
-  public void setResponse(final HttpResponse response) {
-    this.response = response;
+  public void setResponseBody(final String responseBody) {
+    this.responseBody = responseBody;
+  }
+
+  public StatusLine getStatusLine() {
+    return statusLine;
+  }
+
+  public void setStatusLine(final StatusLine statusLine) {
+    this.statusLine = statusLine;
   }
 
   public long getResponseTime() {
@@ -58,5 +72,13 @@ public class Stats
 
   public void setRequestPayload(final String requestPayload) {
     this.requestPayload = requestPayload;
+  }
+
+  public void setMetricsReport(MetricsReport metricsReport) {
+    this.metricsReport = metricsReport;
+  }
+
+  public MetricsReport getMetricsReport() {
+    return metricsReport;
   }
 }

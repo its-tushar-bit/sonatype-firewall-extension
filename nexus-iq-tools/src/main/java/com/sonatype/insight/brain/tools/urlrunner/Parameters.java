@@ -9,6 +9,7 @@ import java.io.File;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.apache.commons.lang.StringUtils;
 
 class Parameters
 {
@@ -19,14 +20,18 @@ class Parameters
   @Parameter(names = { "-f", "--input-file" }, description = "path of the input file", required = true)
   private File inputFile = new File("");
 
-  @Parameter(names = { "-s", "--server" }, description = "IQ Server URL in the form of http://server:port", required = true)
+  @Parameter(names = { "-s", "--server" }, description = "IQ Server URL in the form of http://server:port",
+      required = true)
   private String server;
 
-  @Parameter(names = {"-u", "--username" }, description = "IQ Server username")
+  @Parameter(names = { "-u", "--username" }, description = "IQ Server username")
   private String username = "admin";
 
-  @Parameter(names = {"-p", "--password" }, description = "IQ Server password")
+  @Parameter(names = { "-p", "--password" }, description = "IQ Server password")
   private String password = "admin123";
+
+  @Parameter(names = { "-a", "--adminUrl" }, description = "IQ Server Admin URL in the form of http://server:port")
+  private String adminServer;
 
   @Parameter(names = { "-pr", "--proxy" }, description = "Proxy Server URL in the form of http://server:port")
   private String proxy;
@@ -80,10 +85,19 @@ class Parameters
   }
 
   public String getServer() {
-    if (!server.contains("//")) {
-      server = "http://" + server;
+    return getServerUrl(this.server);
+  }
+
+  public String getAdminServer() {
+    return getServerUrl(this.adminServer);
+  }
+
+  private String getServerUrl(String serverString) {
+    String serverUrl = serverString;
+    if (StringUtils.isNotEmpty(serverString) && !serverString.contains("//")) {
+      serverUrl = "http://" + serverString;
     }
-    return server;
+    return serverUrl;
   }
 
   public String getProxy() {

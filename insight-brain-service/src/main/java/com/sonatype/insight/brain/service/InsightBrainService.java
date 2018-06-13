@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
+import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -144,6 +145,8 @@ public class InsightBrainService
       }
     });
     initialize(bootstrap);
+    CustomMetrics.registerMetrics(bootstrap.getMetricRegistry());
+
     new ConfigurationChecker().check(arguments, bootstrap);
     final Cli cli = new Cli(new JarLocation(this.getClass()), bootstrap, System.out, System.err);
     cli.run(arguments);

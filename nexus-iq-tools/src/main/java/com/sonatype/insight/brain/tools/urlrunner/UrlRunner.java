@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.tools.urlrunner;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -13,10 +15,15 @@ import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.tools.common.PerfTestConfig;
 import com.sonatype.insight.brain.tools.common.PerfTestConfig.TestUrl;
+import com.sonatype.insight.brain.tools.metrics.MetricsReader;
+import com.sonatype.insight.brain.tools.metrics.MetricsReport;
+import com.sonatype.insight.brain.tools.metrics.MetricsResult;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -27,6 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,14 +58,18 @@ public class UrlRunner
 
   private Header authHeader;
 
+  private String adminUrl;
+
   // default access for testing and probable use by other tools in same package
   void run(PerfTestConfig input,
            String server,
            String username,
            String password,
            Consumer<Stats> callback,
+           String adminUrl,
            String proxy) throws Exception
   {
+    this.adminUrl = adminUrl;
     String usernamePass = username + ":" + password;
     authHeader = new BasicHeader("Authorization",
         "Basic " + Base64.getEncoder().encodeToString(usernamePass.getBytes(StandardCharsets.UTF_8)));
@@ -149,23 +161,90 @@ public class UrlRunner
   private long executeHttpCall(CloseableHttpClient http, TestUrl url, HttpUriRequest request, Consumer<Stats> callback)
       throws Exception
   {
+    MetricsResult metricsBefore = getMetrics(http);
+
     long responseTime;
     long currentTime = System.currentTimeMillis();
+    String responseBody;
+    StatusLine statusLine;
+
     try (CloseableHttpResponse response = http.execute(request)) {
       responseTime = (System.currentTimeMillis() - currentTime);
-      // need to read whatever the caller wants from the response here before the response is closed
-      callback.accept(collectStats(url, response, responseTime));
+      responseBody = getResponseBody(response);
+      logResponseHeaders(response.getAllHeaders());
+      statusLine = response.getStatusLine();
     }
+    MetricsResult metricsAfter = getMetrics(http);
+
+
+    MetricsReport metricsReport = getMetricsReport(metricsBefore, metricsAfter);
+    callback.accept(collectStats(url, responseBody, statusLine, responseTime, metricsReport));
     return responseTime;
   }
 
-  private Stats collectStats(TestUrl url, HttpResponse httpResponse, long responseTime) {
+  private MetricsReport getMetricsReport(MetricsResult metricsBefore, MetricsResult metricsAfter)
+  {
+    MetricsReport metricsReport = null;
+    if (metricsBefore != null && metricsAfter != null) {
+      metricsReport = new MetricsReport(metricsBefore, metricsAfter);
+    }
+    return metricsReport;
+  }
+
+  private Stats collectStats(TestUrl url,
+                             String responseBody,
+                             StatusLine statusLine,
+                             long responseTime,
+                             MetricsReport metricsReport)
+  {
     Stats stats = new Stats();
     stats.setUrl(url.getUrl());
     stats.setType(url.getType());
-    stats.setResponse(httpResponse);
+    stats.setResponseBody(responseBody);
+    stats.setStatusLine(statusLine);
     stats.setRequestPayload(url.getPayload());
     stats.setResponseTime(responseTime);
+    stats.setMetricsReport(metricsReport);
     return stats;
+  }
+
+  private String getResponseBody(final HttpResponse httpResponse) {
+    String responseBody = null;
+    if (httpResponse != null) {
+      HttpEntity entity = httpResponse.getEntity();
+      if (entity != null) {
+        try {
+          responseBody = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+        }
+        catch (IOException e) {
+          log.error("Error getting response body", e);
+        }
+      }
+    }
+    return responseBody;
+  }
+
+  private MetricsResult getMetrics(CloseableHttpClient http) throws Exception {
+    MetricsResult metricsResult = null;
+    if (adminUrl != null) {
+      String metricsUrl = "metrics/admin";
+      log.debug("Running: {}", metricsUrl);
+      HttpGet request = new HttpGet(adminUrl + "/" + metricsUrl);
+      try (CloseableHttpResponse response = http.execute(request)) {
+        if (response != null) {
+          HttpEntity entity = response.getEntity();
+          if (entity != null) {
+            String responseBody = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+            metricsResult = MetricsReader.getMetricsResult(responseBody);
+          }
+        }
+      }
+    }
+    return metricsResult;
+  }
+
+  private static void logResponseHeaders(Header[] headers) {
+    log.debug("Response Headers:");
+    Arrays.asList(headers).forEach(h -> log.debug("  {}:{}", h.getName(), h.getValue()));
   }
 }

@@ -32,18 +32,20 @@ public class UrlRunnerTest
 {
 
   private static String serverUrl;
+  private static String adminUrl;
 
   @Override
   public void initTest() throws Exception {
     super.initTest();
     serverUrl = getCLMServer().getClientConfiguration().getServerUrl();
+    adminUrl = getCLMServer().getClientConfiguration().getServerAdminUrl();
   }
 
   @Test
   public void testReturnMinimum() throws Exception {
     UrlRunner urlRunner = spy(UrlRunner.class);
     urlRunner.run(getObjectGetRepeat(), serverUrl, "admin", "admin123", (it) -> {
-    }, null);
+    }, adminUrl, null);
     verify(urlRunner, times(3))
         .makeGetCall(Mockito.any(CloseableHttpClient.class), Mockito.any(TestUrl.class), Mockito.anyString(),
             Mockito.any());
@@ -54,7 +56,7 @@ public class UrlRunnerTest
     UrlRunner urlRunner = spy(UrlRunner.class);
 
     doReturn(50000L).when(urlRunner).makeGetCall(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
-    urlRunner.run(getObjectGetRepeat(), serverUrl, "admin", "admin123", null, null);
+    urlRunner.run(getObjectGetRepeat(), serverUrl, "admin", "admin123", null, adminUrl, null);
     verify(urlRunner, times(5)).makeSingleHttpCall(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
   }
 
@@ -62,36 +64,36 @@ public class UrlRunnerTest
   public void testSuccessfulGet() throws Exception {
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
-    urlRunner.run(getObjectBasicGet(), serverUrl, "admin", "admin123", statsList::add, null);
+    urlRunner.run(getObjectBasicGet(), serverUrl, "admin", "admin123", statsList::add, adminUrl, null);
     assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getResponse().getStatusLine().getStatusCode(), is(200));
+    assertThat(statsList.get(0).getStatusLine().getStatusCode(), is(200));
   }
 
   @Test
   public void testUnsuccessfulGet() throws Exception {
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
-    urlRunner.run(getObjectBadGetUrl(), serverUrl, "admin", "admin123", statsList::add, null);
+    urlRunner.run(getObjectBadGetUrl(), serverUrl, "admin", "admin123", statsList::add, null, null);
     assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getResponse().getStatusLine().getStatusCode(), not(200));
+    assertThat(statsList.get(0).getStatusLine().getStatusCode(), not(200));
   }
 
   @Test
   public void testSuccessfulPost() throws Exception {
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
-    urlRunner.run(getObjectPostUrl(), serverUrl, "admin", "admin123", statsList::add, null);
+    urlRunner.run(getObjectPostUrl(), serverUrl, "admin", "admin123", statsList::add, null, null);
     assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getResponse().getStatusLine().getStatusCode(), is(200));
+    assertThat(statsList.get(0).getStatusLine().getStatusCode(), is(200));
   }
 
   @Test
   public void testUnsuccessfulPost() throws Exception {
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
-    urlRunner.run(getObjectPostBadUrl(), serverUrl, "admin", "admin123", statsList::add, null);
+    urlRunner.run(getObjectPostBadUrl(), serverUrl, "admin", "admin123", statsList::add, null, null);
     assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getResponse().getStatusLine().getStatusCode(), not(200));
+    assertThat(statsList.get(0).getStatusLine().getStatusCode(), not(200));
   }
 
   private PerfTestConfig getObjectGetRepeat() {

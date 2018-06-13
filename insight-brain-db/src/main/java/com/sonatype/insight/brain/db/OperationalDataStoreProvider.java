@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
+import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +82,13 @@ public class OperationalDataStoreProvider
     }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
+
+    if (SqlCallCounterMetrics.getInstance().getJDBCListener() != null) {
+      props.put("openjpa.jdbc.JDBCListeners",
+          new JDBCListener[] {SqlCallCounterMetrics.getInstance().getJDBCListener()});
+      log.info("Enabled JPA JDBC listener for performance testing.");
+    }
+
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainODS", props);
     isInitialized = true;
 

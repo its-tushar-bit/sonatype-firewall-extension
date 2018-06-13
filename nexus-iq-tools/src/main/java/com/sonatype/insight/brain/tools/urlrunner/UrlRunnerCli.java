@@ -14,15 +14,12 @@ import java.util.Arrays;
 import com.sonatype.insight.brain.tools.common.PerfTestConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.util.EntityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UrlRunnerCli
 {
-
   private static final Logger log = LoggerFactory.getLogger(UrlRunnerCli.class);
 
   public static void main(String[] args) {
@@ -53,7 +50,7 @@ public class UrlRunnerCli
   private void run(Parameters params) throws Exception {
     UrlRunner urlRunner = new UrlRunner();
     urlRunner.run(getInputObject(params.getInputFile()), params.getServer(), params.getUsername(), params.getPassword(),
-        (it) -> printStats(it), params.getProxy());
+        this::printStats, params.getAdminServer(), params.getProxy());
   }
 
   private static PerfTestConfig getInputObject(File file) throws Exception {
@@ -69,24 +66,19 @@ public class UrlRunnerCli
       if (stats.getRequestPayload() != null) {
         log.info("Request Payload: {}", stats.getRequestPayload());
       }
-      log.info("Response Status: {} {}", stats.getResponse().getStatusLine().getStatusCode(),
-          stats.getResponse().getStatusLine().getReasonPhrase());
+      log.info("Response Status: {} {}", stats.getStatusLine().getStatusCode(),
+          stats.getStatusLine().getReasonPhrase());
       log.info("Response Time: {}", stats.getResponseTime());
 
-      String responseBody = null;
-      if (stats.getResponse() != null) {
-        HttpEntity entity = stats.getResponse().getEntity();
-        if (entity != null) {
-          responseBody = EntityUtils.toString(entity, StandardCharsets.UTF_8);
-        }
+      if (StringUtils.isNotEmpty(stats.getResponseBody())) {
+        log.info("Size: {}", stats.getResponseBody().getBytes().length);
+        log.debug("Response body: {}", stats.getResponseBody());
+        log.info("MD5 of response: {}", getMD5(stats.getResponseBody()));
       }
 
-      if (responseBody != null && responseBody.length() > 0) {
-        log.info("Size: {}", responseBody.getBytes().length);
-        log.debug("Response body: {}", responseBody);
-        log.info("MD5 of response: {}", getMD5(responseBody));
+      if (stats.getMetricsReport() != null) {
+        stats.getMetricsReport().printMetrics();
       }
-      logResponseHeaders(stats.getResponse().getAllHeaders());
     }
     catch (Exception e) {
       log.info("Error printing stats for: {} see debug log for details", stats.getUrl());
@@ -101,10 +93,4 @@ public class UrlRunnerCli
     BigInteger bigInt = new BigInteger(1, keySum);
     return bigInt.toString(16);
   }
-
-  private static void logResponseHeaders(Header[] headers) {
-    log.debug("Response Headers:");
-    Arrays.asList(headers).forEach(h -> log.debug("  {}:{}", h.getName(), h.getValue()));
-  }
-
 }

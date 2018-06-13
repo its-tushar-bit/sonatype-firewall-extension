@@ -42,7 +42,7 @@ public class UrlRunnerCliTest
     assertThat(results, hasSize(8));
     // all but the last one should succeed
     List<Stats> failedCalls = results.stream()
-        .filter(result -> result.getResponse().getStatusLine().getStatusCode() != 200).collect(Collectors.toList());
+        .filter(result -> result.getStatusLine().getStatusCode() != 200).collect(Collectors.toList());
 
     assertThat(failedCalls, hasSize(1));
     assertThat(failedCalls.get(0).getUrl(), is("rest/dashboard/policy/applicationRiskss"));

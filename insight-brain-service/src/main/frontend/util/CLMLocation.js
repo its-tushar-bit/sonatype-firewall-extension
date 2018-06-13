@@ -71,7 +71,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       },
 
       getLdapPriority: function() {
-        return '/rest/config/ldap/priority';
+        return baseUrl.get() + '/rest/config/ldap/priority';
       },
 
       getReportUrl: function(applicationPublicId, scanId) {

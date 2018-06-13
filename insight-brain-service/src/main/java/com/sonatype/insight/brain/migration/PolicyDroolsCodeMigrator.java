@@ -33,7 +33,8 @@ public class PolicyDroolsCodeMigrator
 
   // v2 since 1.16
   // v3 since 1.32
-  static final int DROOLS_CODE_VERSION = 3;
+  // v4 since NEW_POLICY_VIOLATION_COMPARISON_VERSION
+  static final int DROOLS_CODE_VERSION = 4;
 
   @Inject
   public PolicyDroolsCodeMigrator(SchemaInfoDAO schemaInfoDAO) {

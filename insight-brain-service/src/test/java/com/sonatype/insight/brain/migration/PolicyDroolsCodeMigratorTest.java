@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -57,9 +58,7 @@ public class PolicyDroolsCodeMigratorTest
     ValidationResult validationResult = policy.validate(null, policy.getOwnerId());
     assertThat(validationResult.isValid(), is(false));
 
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-    schemaInfo.setDroolsCodeVersion(2);
-    schemaInfoDAO.update(schemaInfo);
+    fakeDroolsCodeVersion(2);
 
     migrator.migrate();
 
@@ -76,10 +75,7 @@ public class PolicyDroolsCodeMigratorTest
     policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
     policyInternalDAO.update(policyInternal);
 
-    // Fake schema state before migration
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-    schemaInfo.setDroolsCodeVersion(2);
-    schemaInfoDAO.update(schemaInfo);
+    fakeDroolsCodeVersion(2);
 
     migrator.migrate();
     Policy policy = policyDAO.getById(policyId);
@@ -89,7 +85,32 @@ public class PolicyDroolsCodeMigratorTest
     assertThat(deprecatedCondition.getValue(), is(nullValue()));
   }
 
+  @Test
+  public void testMigrate_FromVersion3() throws Exception {
+    String policyId = tempEntity.newPolicy("Test").getId();
+    PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
+    PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
+    policyInternal.setDroolsCode("");
+    policyInternalDAO.update(policyInternal);
+    Policy policy = policyDAO.getById(policyId);
+    assertThat(policy.getDroolsCode(), is(""));
+
+    fakeDroolsCodeVersion(3);
+
+    migrator.migrate();
+    policy = policyDAO.getById(policyId);
+    assertThat(policy.getDroolsCode(), containsString("$conditionTriggers"));
+
+    assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
+  }
+
   private String getPolicyContent(String filename) throws Exception {
     return IOUtil.toString(getClass().getResourceAsStream("/PolicyDroolsCodeMigratorTest/" + filename), "UTF-8");
+  }
+
+  private void fakeDroolsCodeVersion(int version) {
+    SchemaInfo schemaInfo = schemaInfoDAO.get();
+    schemaInfo.setDroolsCodeVersion(version);
+    schemaInfoDAO.update(schemaInfo);
   }
 }

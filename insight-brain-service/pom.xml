@@ -32,6 +32,7 @@
     <grunt.task>build</grunt.task>
     <grunt.task.obfuscate>build-prod</grunt.task.obfuscate>
     <angular.debug>false</angular.debug>
+    <grunt.tests.skip>${skip.grunt}</grunt.tests.skip>
   </properties>
 
   <dependencies>
@@ -994,6 +995,7 @@
               <goal>grunt</goal>
             </goals>
             <configuration>
+              <skip>${grunt.tests.skip}</skip>
               <srcdir>${basedir}/src/main/frontend</srcdir>
               <arguments>test</arguments>
             </configuration>
@@ -1135,6 +1137,7 @@
         <grunt.task>m2e</grunt.task>
         <!-- As obfuscate profile is default enabled the frontend plugin uses the grunt obfuscate task -->
         <grunt.task.obfuscate>m2e</grunt.task.obfuscate>
+        <grunt.tests.skip>true</grunt.tests.skip>
       </properties>
     </profile>
     <profile>

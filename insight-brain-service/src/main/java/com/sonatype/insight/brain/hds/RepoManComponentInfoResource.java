@@ -85,8 +85,7 @@ public class RepoManComponentInfoResource
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("applicationPublicId") String applicationPublicId,
-                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier,
-                                                                     @QueryParam("matchState") String matchState) throws IOException
+                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
     return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
         componentIdentifier, httpRequest);

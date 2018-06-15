@@ -48,6 +48,7 @@ public class ComponentInfoServiceAuthzTest
     super.configure(binder);
   }
 
+  @SuppressWarnings("unchecked")
   private void configureHdsClientMock() throws IOException {
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();

@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+pipeline {
+  agent { label 'ubuntu-zion' }
+  tools {
+    jdk 'Java 7'
+  }
+  options {
+    buildDiscarder(
+        logRotator(numToKeepStr: '100', artifactNumToKeepStr: '20')
+    )
+  }
+  stages {
+    stage('Export Variables') {
+      steps {
+        exportBuildVariables(params.environment, env.releaseBuild_NAME)
+      }
+    }
+    stage('Checkout Publishing Scripts') {
+      steps {
+        checkoutPublishingScripts()
+      }
+    }
+    stage('Gather Build Artifacts') {
+      steps {
+        gatherBuildArtifacts('insight/insight-brain/release', env.releaseBuild_NUMBER)
+      }
+    }
+    stage('Publish Server') {
+      steps {
+        publishProduct('IQServer')
+      }
+    }
+    stage('Publish CLI Scanner') {
+      steps {
+        publishProduct('CLIScanner')
+      }
+    }
+    stage('Build and push internal RPM') {
+      when {
+        equals expected: 'Staging', actual: params.environment
+      }
+      steps {
+        dir('iq-server-rpm') {
+          git(url: 'git@github.com:sonatype/iq-server-rpm.git', branch: 'master',
+              credentialsId: 'a046da04-58b6-4f2a-894c-7b7dcd83004e')
+          runSafely "make -f Makefile.bamboo -e VERSION=${getVersionFromBuildName(env.releaseBuild_NAME)} rpm"
+          archiveArtifacts artifacts: 'build/rpmbuild/RPMS/noarch/*.rpm'
+          publishRpm()
+        }
+      }
+    }
+    stage('Update iq-server latest version') {
+      steps {
+        updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))
+      }
+    }
+    stage('Update iq-cli latest version') {
+      steps {
+        updateLatestVersionTable(params.environment, 'IQ_CLI', getVersionFromBuildName(env.releaseBuild_NAME))
+      }
+    }
+    stage('Update nginx configuration') {
+      steps {
+        updateNginxConfig()
+      }
+    }
+  }
+  post {
+    always {
+      notifyChat(currentBuild: currentBuild, env: env, room: 'ops-builds')
+      deleteDir()
+    }
+  }
+}

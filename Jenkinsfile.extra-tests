@@ -12,12 +12,21 @@ def testConfig(String mavenOptions, String pomFile = null) {
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 
+def copyRepo() {
+  copyArtifacts(projectName: currentBuild.upstreamBuilds[0].fullProjectName,
+    filter: '.zion/repository/**',
+    selector: specific(currentBuild.upstreamBuilds[0].id),
+    flatten: false)
+}
+
 def gebTests() {
+  copyRepo()
   def testConfig = testConfig('-Dgeb.env=ci', 'insight-brain-functional-test/pom.xml')
   mvn testConfig, 'clean test'
 }
 
 def functionalTests(String browser, String testRegex) {
+  copyRepo()
   String mavenOptions = "'-Dit.test=%regex[${testRegex}]'"
   mavenOptions += ' -Drun-functional-tests=docker'
   mavenOptions += " -Dbrowser=${browser}"

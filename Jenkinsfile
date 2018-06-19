@@ -12,6 +12,7 @@ make(
     mavenOptions: '-pl nexus-iq-server,nexus-iq-cli,nexus-iq-integrator-scanner -am -D skipTests' +
         ' -D skip-functional-test',
     downstreamJobName: 'extra-tests',
+    artifactsForDownstream: '.zion/repository/**',
     iqPolicyEvaluation: { stage ->
       nexusPolicyEvaluation iqStage: stage, iqApplication: 'CLM-server',
           iqScanPatterns: [[scanPattern: '**/target/*.jar']],

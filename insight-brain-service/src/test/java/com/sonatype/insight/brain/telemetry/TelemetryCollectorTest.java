@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.telemetry;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -28,6 +30,22 @@ import static org.hamcrest.Matchers.nullValue;
 public class TelemetryCollectorTest
     extends AbstractComponentTest
 {
+  private static final String NUMBER_OF_UNKNOWN_COMPONENTS = "number_of_unknown_components";
+
+  private static final String NUMBER_OF_MAVEN_COMPONENTS = "number_of_maven_components";
+
+  private static final String NUMBER_OF_NPM_COMPONENTS = "number_of_npm_components";
+
+  private static final String NUMBER_OF_NUGET_COMPONENTS = "number_of_nuget_components";
+
+  private static final String NUMBER_OF_ANAME_COMPONENTS = "number_of_aname_components";
+
+  private static final String NUMBER_OF_PYPI_COMPONENTS = "number_of_pypi_components";
+
+  private static final String NUMBER_OF_RPM_COMPONENTS = "number_of_rpm_components";
+
+  private static final String NUMBER_OF_RUBYGEMS_COMPONENTS = "number_of_gem_components";
+  
   @Inject
   private TelemetryCollector telemetryCollector;
 
@@ -130,12 +148,44 @@ public class TelemetryCollectorTest
     }
   }
 
+  @Test
+  public void testCollectComponentCountsData() {
+    String applicationId = tempEntity.newApplicationWithParent().getId();
+    createApplicationComponents(applicationId, null, 1);
+    createApplicationComponents(applicationId, ComponentIdentifier.createMavenCoordinates("g", "a", "v"), 2);
+    createApplicationComponents(applicationId, ComponentIdentifier.createNpmCoordinates("p", "v"), 3);
+    createApplicationComponents(applicationId, ComponentIdentifier.createNugetCoordinates("p", "v"), 4);
+    createApplicationComponents(applicationId, ComponentIdentifier.createAnameCoordinates("n", "q", "v"), 5);
+    createApplicationComponents(applicationId, ComponentIdentifier.createPypiCoordinates("n", "v", "q", "e"), 6);
+    createApplicationComponents(applicationId, ComponentIdentifier.createRpmCoordinates("n", "v", "a"), 7);
+    createApplicationComponents(applicationId, ComponentIdentifier.createRubyGemsCoordinates("n", "v", "p"), 8);
+
+    TelemetryData telemetryData = telemetryCollector.collectComponentCountsData();
+
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_UNKNOWN_COMPONENTS), is("1"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_MAVEN_COMPONENTS), is("2"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_NPM_COMPONENTS), is("3"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_NUGET_COMPONENTS), is("4"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_ANAME_COMPONENTS), is("5"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_PYPI_COMPONENTS), is("6"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_RPM_COMPONENTS), is("7"));
+    assertThat(telemetryData.getAttributes().get(NUMBER_OF_RUBYGEMS_COMPONENTS), is("8"));
+    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_COMPONENTS), is("36"));
+  }
+
   private void createAppsAndOrgs(int numberOfOrgs) {
     for (int i = 0; i < numberOfOrgs; i++) {
       Organization organization = tempEntity.newOrganization();
       for (int j = 0; j < i; j++) {
         tempEntity.newApplication(organization.getId());
       }
+    }
+  }
+
+  private void createApplicationComponents(String applicationId, ComponentIdentifier componentIdentifier, int count) {
+    for (int i = 0; i < count; i++) {
+      tempEntity.newApplicationComponent(applicationId, BuildStageType.ID, tempEntity.uuid().substring(12),
+          componentIdentifier);
     }
   }
 }

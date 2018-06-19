@@ -425,6 +425,7 @@ CREATE TABLE application_component (
 );
 CREATE INDEX application_component_hash_idx ON application_component(hash);
 CREATE INDEX application_component_time_idx ON application_component(time);
+CREATE INDEX application_component_component_id_format_idx ON application_component(component_id_format);
 
 CREATE TABLE last_policy_evaluation (
   policy_evaluation_id varchar(50) NOT NULL,

@@ -67,12 +67,16 @@ public class TelemetrySchedulerTest
   @Test
   public void testGetTelemetryRunnableRun_SendSuccess() throws Exception {
     TelemetryData telemetryData = mock(TelemetryData.class);
+    TelemetryData telemetryComponentCountsData = mock(TelemetryData.class);
     when(telemetryCollector.collectData()).thenReturn(telemetryData);
+    when(telemetryCollector.collectComponentCountsData()).thenReturn(telemetryComponentCountsData);
 
     telemetryScheduler.getTelemetryRunnable().run();
 
     verify(telemetryCollector).collectData();
+    verify(telemetryCollector).collectComponentCountsData();
     verify(telemetrySender).send(telemetryData);
+    verify(telemetrySender).send(telemetryComponentCountsData);
   }
 
   @Test

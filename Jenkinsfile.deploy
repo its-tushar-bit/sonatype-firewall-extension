@@ -42,7 +42,7 @@ pipeline {
     }
     stage('Build and push internal RPM') {
       when {
-        equals expected: 'Staging', actual: params.environment
+        expression {'Staging' == params?.environment}
       }
       steps {
         dir('iq-server-rpm') {

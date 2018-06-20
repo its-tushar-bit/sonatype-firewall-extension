@@ -7,7 +7,7 @@
 pipeline {
   agent { label 'ubuntu-zion' }
   tools {
-    jdk 'Java 8'
+    jdk 'Java 7'
   }
   options {
     buildDiscarder(

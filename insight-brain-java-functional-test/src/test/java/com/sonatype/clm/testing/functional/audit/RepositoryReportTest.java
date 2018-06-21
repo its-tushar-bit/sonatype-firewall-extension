@@ -392,6 +392,11 @@ public class RepositoryReportTest
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     eyesWatcher.eyesCheck("Repository report version graph");
+    
+    VersionsCIP.showDetailsLink().shouldBe(visible).click();
+    VersionsCIP.hideDetailsLink().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Repository report version graph with details");
 
     // close CIP
     RepositoryReportPage.table().row(0).component().click();

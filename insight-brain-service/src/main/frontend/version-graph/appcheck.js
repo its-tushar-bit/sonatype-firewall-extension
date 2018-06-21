@@ -24,7 +24,10 @@
       textColor = '#575757',
       pillColor = '#cee8fb',
       gridLine = '#dee6f3',
-      ComponentInformation;
+      ComponentInformation,
+      highlightPanel,
+      verticalRule,
+      showThreatCategories;
 
   function getAge(reportDate, endDate) {
     var val,
@@ -394,14 +397,23 @@
         actualHeight: function(config) {
           return this.height(config) + 11 + this.bottomPadding(config);
         },
+        noCategoriesActualHeight: function(config) {
+          return this.noCategoriesHeight(config) + 11 + this.bottomPadding(config);
+        },
         barHeight: function(config) {
           return (config.barWidth + config.barGap) * 3 - 1;
         },
         height: function(config) {
           return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
         },
+        noCategoriesHeight: function(config) {
+          return config.topPadding + this.contentRowsNoCategories(config) * (config.barWidth + config.barGap) + 1;
+        },
         contentRows: function(config) {
-          return config.partialDisplay ? 4 : 9;
+          return config.partialDisplay ? 4 : 11;
+        },
+        contentRowsNoCategories: function(config) {
+          return config.partialDisplay ? 4 : 6;
         },
         bottomPadding: function(config) {
           return config.partialDisplay ? 20 : 0;
@@ -464,7 +476,7 @@
           versions: [],
           versionPopularity: [],
           majorRevIndices: [],
-          policyThreatLevels: {SECURITY: [], LICENSE: [], QUALITY: [], OTHER: []}
+          policyThreatLevels: {HIGHEST_THREAT: [], SECURITY: [], LICENSE: [], QUALITY: [], OTHER: []}
         };
 
       $.each(json.versions, function(index, item) {
@@ -482,6 +494,10 @@
         data.policyThreatLevels.LICENSE.push(getThreatSeverity(threats.LICENSE));
         data.policyThreatLevels.QUALITY.push(getThreatSeverity(threats.QUALITY));
         data.policyThreatLevels.OTHER.push(getThreatSeverity(threats.OTHER));
+        data.policyThreatLevels.HIGHEST_THREAT.push(Math.min(data.policyThreatLevels.SECURITY[index], 
+            data.policyThreatLevels.LICENSE[index], 
+            data.policyThreatLevels.QUALITY[index], 
+            data.policyThreatLevels.OTHER[index]));
       });
       return data;
     }
@@ -497,6 +513,7 @@
       var leftPan = false,
           rightPan = false,
           xIndex = 0,
+          panTop = 50, // fix position pan triangles in between the 2 charts
           pan = function(val) {
             var m = contentViz.transform().translate(val, 0),
                 temp = xIndex + val;
@@ -525,7 +542,7 @@
           };
 
       panWrapper.add(pv.Dot).left(config.contentWidth - 7).top(15 +
-              (config.height / 2)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(-Math.PI /
+              (panTop)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(-Math.PI /
               2).shape('triangle').lineWidth(1).size(30).cursor('pointer').events('all').event('mouseover',function() {
         this.fillStyle(darkGrey).render();
       }).event('mouseout',function() {
@@ -539,7 +556,7 @@
           });
 
       panWrapper.add(pv.Dot).left(7).top(15 +
-              (config.height / 2)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(Math.PI /
+              (panTop)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(Math.PI /
               2).shape('triangle').lineWidth(1).size(30).cursor('pointer').event('all').events('all').event('mouseover',
           function() {
             this.fillStyle(darkGrey).render();
@@ -563,6 +580,7 @@
           leftPositionFn = getLeftPositionFn(config),
           selectedIndex = null;
 
+      highlightPanel = bars;
       //the highlight sections
       bars.data(config.data.versions).width(config.spacer - 1).left(function() {
         return config.left + leftPositionFn(this.index) - 1;
@@ -661,7 +679,8 @@
     }
 
     function createPolicyThreatPanel(vis, config, category) {
-      var inner = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left);
+      var inner = vis.add(pv.Panel).width(config.width).top(config.top - config.spacer).height(config.spacer).left(
+          config.left);
 
       inner.add(pv.Bar).top(config.barGap / 2).data(config.data.policyThreatLevels[category]).width(
           config.barWidth).height(config.barWidth).left(
@@ -699,6 +718,29 @@
 
       return vis;
     }
+    
+    function createPolicyThreatDetailRow(vizLabels, vis, config, category) {
+      vizLabels.add(pv.Label).left(28).top(config.top + 1).textAlign('left').text(category);
+      createPolicyThreatPanel(vis, config, category.toUpperCase());
+    }
+    
+    function toggleThreatCategories(config, vizLabels, vizContent) {
+      showThreatCategories = !showThreatCategories;
+      
+      // the extra +1 on the actualHeight prevents shifting when toggling
+      const actualHeight = showThreatCategories ? config.actualHeight + 1 : config.noCategoriesActualHeight;
+      const height = showThreatCategories ? config.height : config.noCategoriesHeight;
+      const verticalBarHeight = height - 20;
+      
+      // adjust the vertical version bar and vertical rule
+      highlightPanel.height(verticalBarHeight).render();
+      verticalRule.height(verticalBarHeight).render();
+
+      vizLabels.height(actualHeight).render();
+      $('#aiVersionChartContainer').height(actualHeight);
+      $('#aiVersionChartViz').height(actualHeight);
+      vizContent.render();
+    }
 
     function loadVersionChart(config) {
       var gridLines = [],
@@ -709,6 +751,7 @@
           vizContent,
           i;
 
+      showThreatCategories = true;
       config = $.extend({}, defaults, config);
 
       if (node.length === 0) {
@@ -765,46 +808,55 @@
           .strokeStyle(gridLine)
           .strokeDasharray('1 1');
 
-      $.each(config.partialDisplay ? [] : [6, 7, 8, 9], function(index, row) {
+      // fill in default heatmap rows
+      $.each(config.partialDisplay ? [] : [6, 8, 9, 10, 11], function(index, row) {
         fillRow(vizContent, $.extend({}, config, { top: config.top + (row - 1) * config.spacer }), lightGrey);
       });
 
-      $.each(config.partialDisplay ? [] : [4, 5, 10], function(index, row) {
+      // fill in empty rows
+      $.each(config.partialDisplay ? [] : [4, 5, 7, 12], function(index, row) {
         fillRow(vizContent, $.extend({}, config, {top: config.top + (row - 1) * config.spacer}), bgBlue, true);
       });
 
       if (config.versionCount !== 0) {
         //the current version vertical rule
-        vizContent.add(pv.Rule).left((config.width / 2) - 1).top(config.topPadding).height(config.height -
-            config.topPadding).strokeStyle('#949599');
+        verticalRule = vizContent.add(pv.Rule).left((config.width / 2) - 1).top(
+            config.topPadding).height(config.height - config.topPadding).strokeStyle('#949599');
 
         //put in the version labels
         vizContent.add(pv.Label).left((config.width / 2) - 70).top(15).textAlign('center').text('Older');
         vizContent.add(pv.Label).left(config.width / 2).top(15).textAlign('center').text('This Version');
         vizContent.add(pv.Label).left((config.width / 2) + 70).top(15).textAlign('center').text('Newer');
       }
-      vizLabels.add(pv.Label).left(20).top(config.top + config.labelTop).textAlign('left').font('bold 10px arial').text(
+      vizLabels.add(pv.Label).left(5).top(config.top + config.labelTop).textAlign('left').font('bold 10px arial').text(
           'Popularity');
       config.top += 1;
       createPopularityPanel(vizContent, config);
 
-      config.top += 10;
-      vizLabels.add(pv.Label).left(20).top(config.top - 1).textAlign('left').font('bold 10px arial').text(
+      config.top += (config.spacer * 2) + 1;
+      vizLabels.add(pv.Label).left(5).top(config.top + 1).textAlign('left').font('bold 10px arial').text(
           'Policy Threat');
+
+      createPolicyThreatPanel(vizContent, config, 'HIGHEST_THREAT');
+
+      vizLabels.add(pv.Label).left(15).top(config.top + 1).textAlign('left').font('10px arial').text(
+          'Details')
+          .textDecoration('underline')
+          .textStyle(blue)
+          .cursor("pointer").event('all').events('all')
+          .event('click', function() {
+            toggleThreatCategories(config, vizLabels, vizContent);
+            this.text(showThreatCategories ? 'Hide Details' : 'Details').render();
+            return;
+          });
 
       //these values are all hidden unless paid for
       if (!config.partialDisplay) {
-        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('Security');
-        createPolicyThreatPanel(vizContent, config, 'SECURITY');
-
-        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('License');
-        createPolicyThreatPanel(vizContent, config, 'LICENSE');
-
-        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('Quality');
-        createPolicyThreatPanel(vizContent, config, 'QUALITY');
-
-        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('Other');
-        createPolicyThreatPanel(vizContent, config, 'OTHER');
+        config.top += config.spacer; // skip past the details link
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, "Security");
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, "License");
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, "Quality");
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, "Other");
       }
 
       if (config.versionCount === 0) {
@@ -822,8 +874,7 @@
         config.contentWidth -= 15;
       }
 
-      vizLabels.render();
-      vizContent.render();
+      toggleThreatCategories(config, vizLabels, vizContent);
 
       //automatically pan to the center current version of the dataset
       if (config.panning) {

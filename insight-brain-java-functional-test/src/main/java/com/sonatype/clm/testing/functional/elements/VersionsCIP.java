@@ -8,7 +8,9 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class VersionsCIP
 {
@@ -91,5 +93,13 @@ public class VersionsCIP
 
   public static SelenideElement addProprietaryMatchersButton() {
     return $("#add-proprietary-btn");
+  }
+
+  public static SelenideElement showDetailsLink() {
+    return $$("#aiVersionChartLabels text").find(text("Details"));
+  }
+
+  public static SelenideElement hideDetailsLink() {
+    return $$("#aiVersionChartLabels").find(text("Hide Details"));
   }
 }

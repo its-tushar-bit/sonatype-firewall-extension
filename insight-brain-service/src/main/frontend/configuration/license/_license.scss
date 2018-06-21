@@ -36,3 +36,9 @@
     width: $iq-paragraph-width-maximum;
   }
 }
+
+#eulaModal {
+  .iq-scrollable {
+    max-height: calc(100vh - 200px);
+  }
+}

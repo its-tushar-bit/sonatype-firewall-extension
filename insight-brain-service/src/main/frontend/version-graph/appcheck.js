@@ -765,7 +765,8 @@
       node.height(config.actualHeight);
 
       //create the main viz container with the blue background
-      vizLabels = new pv.Panel().canvas('aiVersionChartLabels').height(config.actualHeight).width(config.labelWidth).fillStyle(bgBlue).strokeStyle(bgBlue);
+      vizLabels = new pv.Panel().canvas('aiVersionChartLabels').overflow('hidden').height(config.actualHeight).width(
+          config.labelWidth).fillStyle(bgBlue).strokeStyle(bgBlue);
 
       //create the inner panel
       vizContent = new pv.Panel().canvas('aiVersionChartViz').overflow('hidden').height(config.actualHeight).width(config.contentWidth).fillStyle(bgBlue).strokeStyle(bgBlue);

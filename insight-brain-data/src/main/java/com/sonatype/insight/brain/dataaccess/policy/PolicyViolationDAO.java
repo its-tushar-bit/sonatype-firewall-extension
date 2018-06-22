@@ -143,6 +143,13 @@ public class PolicyViolationDAO
     return getList(sQuery, appId, stageTypeIds, from, to);
   }
 
+  public List<PolicyViolation> getGrandfatheredByApplicationId(String appId) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1" + //
+        " AND entity.grandfatherTime IS NOT NULL";
+    return getList(sQuery, appId);
+  }
+
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {
     String sQuery = "UPDATE PolicyViolation entity" + //
         " SET entity.policyId=?2" + //

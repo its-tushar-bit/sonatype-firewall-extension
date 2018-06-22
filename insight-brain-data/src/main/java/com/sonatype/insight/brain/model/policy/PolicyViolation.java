@@ -45,6 +45,9 @@ public class PolicyViolation
   @Column(name = "waive_time")
   private Date waiveTime;
 
+  @Column(name = "grandfather_time")
+  private Date grandfatherTime;
+
   @Column(name = "fix_time")
   private Date fixTime;
 
@@ -163,6 +166,18 @@ public class PolicyViolation
       throw new IllegalStateException("Cannot un-waive a policy violation.");
     }
     this.waiveTime = waiveTime;
+  }
+
+  public boolean isGrandfathered() {
+    return grandfatherTime != null;
+  }
+
+  public Date getGrandfatherTime() {
+    return grandfatherTime;
+  }
+
+  public void setGrandfatherTime(Date grandfatherTime) {
+    this.grandfatherTime = grandfatherTime;
   }
 
   public boolean isFixed() {

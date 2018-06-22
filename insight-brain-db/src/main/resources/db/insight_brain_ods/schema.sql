@@ -375,9 +375,10 @@ CREATE TABLE policy_violation (
   action_type_id varchar(20), 
 
   -- timestamps recording the state and transitions thereof for the violation
-  open_time datetime NOT NULL, -- when the violation first occurred
-  waive_time datetime NULL,    -- when the violation was waived
-  fix_time datetime NULL,      -- when the violation disappeared entirely
+  open_time datetime NOT NULL,    -- when the violation first occurred
+  waive_time datetime NULL,       -- when the violation was waived
+  grandfather_time datetime NULL, -- when the violation was grandfathered
+  fix_time datetime NULL,         -- when the violation disappeared entirely
 
   -- details of the waiver that suppressed this violation
   policy_waiver_id varchar(50) NULL,  -- no foreign key constraint to policy_waiver, waivers can be deleted at any time

@@ -1,0 +1,14 @@
+[ {
+  "constraintId" : "TestConstraintId",
+  "constraintName" : "TestConstraint",
+  "operatorName" : "AND",
+  "conditionFacts" : [ {
+    "conditionTypeId" : "SecurityVulnerabilitySeverity",
+    "summary" : "Security Vulnerability Severity >= 7",
+    "reason" : "Found Security Vulnerability with Severity >= 7"
+  }, {
+    "conditionTypeId" : "License Threat Group Level",
+    "summary" : "License Threat Group Level >= 2",
+    "reason" : "Found 'Weak Copyleft' License Threat Group with Level >= 2"
+  } ]
+} ]

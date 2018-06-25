@@ -149,12 +149,12 @@ public class ComponentPolicyEvaluator
       List<Condition> conditions = constraint.getConditions();
       int conditionIndex = matchFact.getConditionIndex();
       if (conditionIndex >= 0) {
-        ConditionFact conditionFact = createConditionFact(conditions.get(conditionIndex), conditionIndex, matchFact);
+        ConditionFact conditionFact = createConditionFact(conditions.get(conditionIndex), matchFact);
         constraintFact.addConditionFact(conditionFact);
       }
       else {
         for (Condition condition : conditions) {
-          ConditionFact conditionFact = createConditionFact(condition, conditionIndex, matchFact);
+          ConditionFact conditionFact = createConditionFact(condition, matchFact);
           constraintFact.addConditionFact(conditionFact);
         }
       }
@@ -179,20 +179,14 @@ public class ComponentPolicyEvaluator
     }
   }
 
-  public static ConditionFact createConditionFact(Condition condition, int conditionIndex) {
-    return createConditionFact(condition, conditionIndex, null /* matchFact */);
-  }
-
-  public static ConditionFact createConditionFact(Condition condition,
-                                                  int conditionIndex,
-                                                  MatchFact matchFact)
-  {
+  public static ConditionFact createConditionFact(Condition condition, MatchFact matchFact) {
     final ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
 
     String summary = conditionType.explainCondition(condition);
     String reason = conditionType.explainMatch(condition, matchFact);
 
-    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), conditionIndex, summary, reason);
+    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), condition.getConditionIndex(),
+        summary, reason);
     if (matchFact != null && !matchFact.getConditionTriggers().isEmpty()) {
       ConditionTrigger conditionTrigger = matchFact.getConditionTriggerByConditionIndex(condition.getConditionIndex());
       if (conditionTrigger != null) {

@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -776,6 +778,88 @@ public class ComponentPolicyEvaluatorTest
         SecurityVulnerabilitySeverityConditionType.ID, newConditionTriggerWithSeverity(1, sv3), policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
         SecurityVulnerabilityStatusConditionType.ID, newConditionTriggerWithStatus(2, sv3), policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_ConditionFacts_Conjunction() {
+    Constraint constraint = new Constraint("cid", "CVSS >= 7 and <= 9", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    constraint.addCondition(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
+        SecurityVulnerabilityOverrideStatus.OPEN.getId()));
+
+    Policy policy = new Policy("pid", "Security-High");
+    policy.addConstraint(constraint);
+
+    Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component.setHash("12345678901234567890");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
+        SecurityVulnerabilityOverrideStatus.OPEN);
+    component.addSecurityVulnerability(securityVulnerability);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(component));
+    assertThat(policyAlerts, hasSize(1));
+    PolicyAlert policyAlert = policyAlerts.get(0);
+    assertFactCounts(1, 1, policyAlert);
+    List<ConditionFact> conditionFacts = policyAlert.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts();
+    assertThat(conditionFacts, hasSize(2));
+    assertConditionFact(conditionFacts.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
+        "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
+        newConditionTriggerWithSeverity(0, securityVulnerability));
+    assertConditionFact(conditionFacts.get(1), 1, SecurityVulnerabilityStatusConditionType.ID,
+        "Found security vulnerability CVE-1234-1234 with status 'Open'.", "Security Vulnerability Status is OPEN",
+        newConditionTriggerWithStatus(1, securityVulnerability));
+  }
+
+  @Test
+  public void testEvaluate_ConditionFacts_Disjunction() {
+    Constraint constraint = new Constraint("cid", "CVSS >= 7 and <= 9", LogicalOperator.OR);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    constraint.addCondition(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
+        SecurityVulnerabilityOverrideStatus.OPEN.getId()));
+
+    Policy policy = new Policy("pid", "Security-High");
+    policy.addConstraint(constraint);
+
+    Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component.setHash("12345678901234567890");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
+        SecurityVulnerabilityOverrideStatus.OPEN);
+    component.addSecurityVulnerability(securityVulnerability);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(component));
+    assertThat(policyAlerts, hasSize(2));
+    PolicyAlert policyAlert1 = policyAlerts.get(0);
+    assertFactCounts(1, 1, policyAlert1);
+    List<ConditionFact> conditionFacts1 = policyAlert1.getTrigger().getComponentFacts().get(0).getConstraintFacts()
+        .get(0).getConditionFacts();
+    assertThat(conditionFacts1, hasSize(1));
+    assertConditionFact(conditionFacts1.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
+        "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
+        newConditionTriggerWithSeverity(0, securityVulnerability));
+
+    PolicyAlert policyAlert2 = policyAlerts.get(1);
+    assertFactCounts(1, 1, policyAlert2);
+    List<ConditionFact> conditionFacts2 = policyAlert2.getTrigger().getComponentFacts().get(0).getConstraintFacts()
+        .get(0).getConditionFacts();
+    assertThat(conditionFacts2, hasSize(1));
+    assertConditionFact(conditionFacts2.get(0), 1, SecurityVulnerabilityStatusConditionType.ID,
+        "Found security vulnerability CVE-1234-1234 with status 'Open'.", "Security Vulnerability Status is OPEN",
+        newConditionTriggerWithStatus(1, securityVulnerability));
+  }
+
+  private void assertConditionFact(ConditionFact actual,
+                                   int expectedConditionIndex,
+                                   String expectedConditionTypeId,
+                                   String expectedReason,
+                                   String expectedSummary,
+                                   ConditionTrigger expectedConditionTrigger)
+  {
+    assertThat(actual.getConditionIndex(), is(expectedConditionIndex));
+    assertThat(actual.getConditionTypeId(), is(expectedConditionTypeId));
+    assertThat(actual.getReason(), is(expectedReason));
+    assertThat(actual.getSummary(), is(expectedSummary));
+    assertThat(actual.getTriggerJson(), is(JsonUtils.format(expectedConditionTrigger)));
   }
 
   private ConditionTrigger newConditionTriggerWithSeverity(int conditionIndex,

@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -30,8 +31,10 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.report.ReportService;
@@ -45,6 +48,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Injector;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -473,6 +477,54 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS));
     assertThat(telemetryData.getTimestamp(), is(lessThanOrEqualTo(System.currentTimeMillis())));
     assertThat(telemetryData.getAttributes(), is(expectedAttributes));
+  }
+
+  private File createScanFile(Application app, String scanId) {
+  @Test
+  public void testEvaluate_BeforeAndAfterAddingConditionTriggerData() throws Exception {
+    // Add a policy
+    Policy policy = new Policy(null, "Test Policy");
+    policy.setThreatLevel(5);
+    policy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    constraint.addCondition(new Condition(LicenseThreatGroupLevelConditionType.ID, ">=", "2"));
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    // Add a legacy policy violation - i.e. the way it used to be stored before we added condition trigger data.
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
+        "commons-httpclient", "3.1", "", "jar");
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Date beforeTime = new Date(System.currentTimeMillis() - 2000);
+    PolicyEvaluation policyEvaluationBefore = tempEntity.newPolicyEvaluation(application.getId(),
+        stage.getStageTypeId(), "scanIdBefore", beforeTime);
+    String constraintFactsJson = IOUtils.toString(getClass().getResource(
+        "/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/policy-violation-constraint-facts.json"),
+        "UTF-8");
+    constraintFactsJson = constraintFactsJson.replace("TestConstraintId", policy.getConstraints().get(0).getId());
+    PolicyViolation policyViolationBefore = new PolicyViolation(policyEvaluationBefore, policy.getId(),
+        policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), "964cd74171f427720480",
+        componentIdentifier, constraintFactsJson, "commons-httpclient-3.1.jar");
+    new PolicyViolationDAO().insert(policyViolationBefore);
+    assertThat(policyViolationBefore.getOpenTime(), is(beforeTime));
+
+    // Evaluate the policy.
+    String scanId = "scanId";
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/report");
+    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    // There should be only one policy violation (the existing one).
+    List<PolicyViolation> policyViolationsAfter = new PolicyViolationDAO().getByApplicationId(application.getId());
+    assertThat(policyViolationsAfter, hasSize(1));
+    PolicyViolation policyViolationAfter = policyViolationsAfter.get(0);
+    assertThat(policyViolationAfter.getId(), is(policyViolationBefore.getId()));
+    assertThat(policyViolationAfter.getOpenTime(), is(beforeTime));
+    assertThat(policyViolationAfter.getConstraintFacts(), hasSize(1));
+    ConstraintFact constraintFact = policyViolationAfter.getConstraintFacts().get(0);
+    assertThat(constraintFact.getConditionFacts(), hasSize(2));
+    assertThat(constraintFact.getConditionFacts().get(0).getConditionIndex(), is(0));
+    assertThat(constraintFact.getConditionFacts().get(1).getConditionIndex(), is(1));
   }
 
   private File createScanFile(Application app, String scanId) {

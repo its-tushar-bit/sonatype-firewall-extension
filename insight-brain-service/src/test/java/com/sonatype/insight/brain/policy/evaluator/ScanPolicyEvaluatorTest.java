@@ -527,6 +527,54 @@ public class ScanPolicyEvaluatorTest
   }
 
   private File createScanFile(Application app, String scanId) {
+  @Test
+  public void testEvaluate_BeforeAndAfterAddingConditionTriggerData() throws Exception {
+    // Add a policy
+    Policy policy = new Policy(null, "Test Policy");
+    policy.setThreatLevel(5);
+    policy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    constraint.addCondition(new Condition(LicenseThreatGroupLevelConditionType.ID, ">=", "2"));
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    // Add a legacy policy violation - i.e. the way it used to be stored before we added condition trigger data.
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
+        "commons-httpclient", "3.1", "", "jar");
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Date beforeTime = new Date(System.currentTimeMillis() - 2000);
+    PolicyEvaluation policyEvaluationBefore = tempEntity.newPolicyEvaluation(application.getId(),
+        stage.getStageTypeId(), "scanIdBefore", beforeTime);
+    String constraintFactsJson = IOUtils.toString(getClass().getResource(
+        "/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/policy-violation-constraint-facts.json"),
+        "UTF-8");
+    constraintFactsJson = constraintFactsJson.replace("TestConstraintId", policy.getConstraints().get(0).getId());
+    PolicyViolation policyViolationBefore = new PolicyViolation(policyEvaluationBefore, policy.getId(),
+        policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), "964cd74171f427720480",
+        componentIdentifier, constraintFactsJson, "commons-httpclient-3.1.jar");
+    new PolicyViolationDAO().insert(policyViolationBefore);
+    assertThat(policyViolationBefore.getOpenTime(), is(beforeTime));
+
+    // Evaluate the policy.
+    String scanId = "scanId";
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/report");
+    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    // There should be only one policy violation (the existing one).
+    List<PolicyViolation> policyViolationsAfter = new PolicyViolationDAO().getByApplicationId(application.getId());
+    assertThat(policyViolationsAfter, hasSize(1));
+    PolicyViolation policyViolationAfter = policyViolationsAfter.get(0);
+    assertThat(policyViolationAfter.getId(), is(policyViolationBefore.getId()));
+    assertThat(policyViolationAfter.getOpenTime(), is(beforeTime));
+    assertThat(policyViolationAfter.getConstraintFacts(), hasSize(1));
+    ConstraintFact constraintFact = policyViolationAfter.getConstraintFacts().get(0);
+    assertThat(constraintFact.getConditionFacts(), hasSize(2));
+    assertThat(constraintFact.getConditionFacts().get(0).getConditionIndex(), is(0));
+    assertThat(constraintFact.getConditionFacts().get(1).getConditionIndex(), is(1));
+  }
+
+  private File createScanFile(Application app, String scanId) {
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     scanFile.delete();
     URL testScanFileUrl = getClass().getResource("/ScanPolicyEvaluatorTest/scan.xml.gz");

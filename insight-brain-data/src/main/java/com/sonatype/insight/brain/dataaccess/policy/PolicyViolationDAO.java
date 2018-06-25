@@ -52,7 +52,7 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL";
     return getList(sQuery, applicationId, stageTypeId);
   }
 
@@ -62,7 +62,7 @@ public class PolicyViolationDAO
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.hash=?3" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL";
     return getList(sQuery, applicationId, stageTypeId, hash);
   }
 
@@ -80,7 +80,8 @@ public class PolicyViolationDAO
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1" + //
         " AND entity.fixTime IS NULL" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "");
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
+        (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds);
   }
 
@@ -103,7 +104,8 @@ public class PolicyViolationDAO
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "");
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
+        (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds, stageTypeIds);
   }
 
@@ -133,11 +135,13 @@ public class PolicyViolationDAO
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
         " AND (" + //
         "   (entity.openTime >= ?3 AND entity.openTime < ?4" + // opened during time range
-        "    AND (entity.waiveTime > entity.openTime OR entity.waiveTime IS NULL)) " + // not immediately waived
+        "    AND (entity.waiveTime > entity.openTime OR entity.waiveTime IS NULL) " + // not immediately waived
+        "    AND (entity.grandfatherTime > entity.openTime OR entity.grandfatherTime IS NULL)) " + // not grandfathered
         "   OR " + //
         "   (entity.openTime < ?3 " + // opened before time range
         "    AND CASE WHEN entity.fixTime <= ?3 THEN false" + // not fixed before time range
         "             WHEN entity.waiveTime <= ?3 THEN false" + // not waived before time range
+        "             WHEN entity.grandfatherTime <= ?3 THEN false" + // not grandfathered before time range
         "             ELSE true " + //
         "        END = true))";
     return getList(sQuery, appId, stageTypeIds, from, to);

@@ -335,11 +335,6 @@ $iq-cell-affected-apps-width: 109px;
       overflow: visible;
     }
 
-    .iq-cell--low-risk {
-      width: $iq-cell-default-width + $iq-cell-chevron-width + 24px;
-      max-width: $iq-cell-default-width + $iq-cell-chevron-width + 24px;
-    }
-
     .iq-cell--component-name {
       // in calc below 8px are header LR spacing, 24px is L/R padding, 1px is borders
       width: calc(
@@ -347,7 +342,6 @@ $iq-cell-affected-apps-width: 109px;
              (
                8px + 24px
                + (#{$iq-cell-default-width} + 24px + 1px) * 6
-               + #{$iq-cell-chevron-width} + 24px
                + 8px
              )
            );
@@ -358,9 +352,13 @@ $iq-cell-affected-apps-width: 109px;
       width: $iq-cell-default-width + 1px;
       max-width: $iq-cell-default-width + 1px;
     }
+    .iq-cell--low-risk {
+      padding-right: 0;
+      width: $iq-cell-default-width - $iq-cell-chevron-width + 8px;
+      max-width: $iq-cell-default-width - $iq-cell-chevron-width + 8px;
+    }
     .iq-cell--chevron {
-      width: $iq-cell-chevron-width + 8px;
-      max-width: $iq-cell-chevron-width + 8px;
+      padding-left: 0;
     }
     .iq-cell--component-name {
       // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
@@ -368,8 +366,9 @@ $iq-cell-affected-apps-width: 109px;
                100% -
                (
                  8px + 24px
-                 + (#{$iq-cell-default-width} + 24px + 1px) * 6
-                 + #{$iq-cell-chevron-width} + 24px
+                 + (#{$iq-cell-default-width} + 24px + 1px) * 5
+                 + (#{$iq-cell-default-width} - #{$iq-cell-chevron-width} + 12px + 1px)
+                 + #{$iq-cell-chevron-width} + 12px
                )
              );
     }
@@ -386,18 +385,21 @@ $iq-cell-affected-apps-width: 109px;
 .scrollbar-present {
   .iq-components-results {
     .iq-cell--chevron {
-      padding-left: 5px;
-      width: $iq-cell-chevron-width;
-      max-width: $iq-cell-chevron-width;
+      padding-left: 0;
     }
-
+    .iq-cell--low-risk {
+      padding-right: 0;
+      width: $iq-cell-default-width - $iq-cell-chevron-width - 8px;
+      max-width: $iq-cell-default-width - $iq-cell-chevron-width - 8px;
+    }
     .iq-cell--component-name {
       // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
       width: calc(
                100% -
                (
                  8px + 24px
-                 + (#{$iq-cell-default-width} + 24px + 1px) * 6
+                 + (#{$iq-cell-default-width} + 24px + 1px) * 5
+                 + (#{$iq-cell-default-width} - #{$iq-cell-chevron-width})
                  + #{$iq-cell-chevron-width} + 9px
                )
              );

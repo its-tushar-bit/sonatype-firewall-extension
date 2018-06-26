@@ -45,6 +45,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.eclipse.jetty.http.HttpStatus;
@@ -114,11 +115,11 @@ public class HdsClientTest
     // Method does not pass an original request, hence the null header.
     client.get(InputStream.class, testPath, null, new String[] {});
     assertNull(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER));
-    client.get(request, InputStream.class, testPath, new String[] {});
+    client.relay(request, InputStream.class, testPath, new String[] {});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
-    client.get(request, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, InputStream.class, testPath, null, new String[] {});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
-    client.getResponse(request, testPath, null, new String[] {});
+    client.relay(request, null, InputStream.class, testPath, null, new String[] {});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
     // Method does not pass an original request, hence the null header.
     client.put(null, InputStream.class, testPath,
@@ -127,7 +128,7 @@ public class HdsClientTest
 
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
     when(request.getHeader(eq(HdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testClmClientUserAgent);
-    client.get(request, InputStream.class, testPath, new String[] {});
+    client.relay(request, InputStream.class, testPath, new String[] {});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
 
     HttpEntity httpEntity = MultipartEntityBuilder.create().build();
@@ -175,11 +176,21 @@ public class HdsClientTest
 
     client.get(InputStream.class, testPath, null, new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
-    client.get(request, InputStream.class, testPath, new String[] {});
+    client.get(InputStream.class, testPath);
     assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
-    client.get(request, InputStream.class, testPath, null, new String[] {});
+
+    client.post(testPath, new StringEntity(""), "test-client-user-agent");
     assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
-    client.getResponse(request, testPath, null, new String[] {});
+    client.post(InputStream.class, testPath, Collections.emptyMap());
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    client.post(null, InputStream.class, testPath, "test-client-user-agent", Collections.emptyMap());
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+
+    client.relay(request, InputStream.class, testPath, new String[] {});
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    client.relay(request, InputStream.class, testPath, null, new String[] {});
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    client.relay(request, null, InputStream.class, testPath, null, new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
     client.put(null, InputStream.class, testPath,
         new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
@@ -215,7 +226,7 @@ public class HdsClientTest
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.get(request, String.class, "/rest/test");
+    client.relay(request, String.class, "/rest/test");
 
     assertThat(HttpHeaders.AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat(HttpHeaders.PROXY_AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
@@ -248,7 +259,7 @@ public class HdsClientTest
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.get(request, String.class, "/rest/test");
+    client.relay(request, String.class, "/rest/test");
 
     assertThat("X-Forwarded-Host".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat("X-Forwarded-Server".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
@@ -284,7 +295,7 @@ public class HdsClientTest
     when(request.getContentLength()).thenReturn(1);
     when(request.getMethod()).thenReturn("POST");
 
-    client.get(request, String.class, "/rest/test");
+    client.relay(request, String.class, "/rest/test");
 
     assertThat(request.getContentLength(), not(Integer.parseInt(headers.get(HttpHeaders.CONTENT_LENGTH))));
     assertThat(headers.get(HttpHeaders.CONTENT_LENGTH), is(Integer.toString(test.length)));
@@ -455,7 +466,7 @@ public class HdsClientTest
 
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication("test-app-id");
 
-    client.get(request, analytics, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, analytics, InputStream.class, testPath, null, new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
     assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
 
@@ -491,7 +502,7 @@ public class HdsClientTest
       fail("Expected exception");
     }
     catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The Sonatype Data Services returned error " + statusCode + 
+      assertThat(e.getMessage(), is("The Sonatype Data Services returned error " + statusCode +
           ", please retry in a bit."));
     }
   }
@@ -611,7 +622,7 @@ public class HdsClientTest
         ":\"\",\"version\":\"1.8.14\"}} ");
 
     //making sure reserved characters are preserved where they should be and encoded in the query values
-    String requestUri = client.get(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams);
+    String requestUri = client.relay(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams);
     assertThat(requestUri,
         containsString("name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit" +
             "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D"));
@@ -683,7 +694,7 @@ public class HdsClientTest
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.<String> emptyList()));
     when(request.getMethod()).thenReturn("GET");
 
-    client.get(request, null, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, null, InputStream.class, testPath, null, new String[] {});
     assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
 
     client.post(String.class, testPath, "foo", new String[] {});

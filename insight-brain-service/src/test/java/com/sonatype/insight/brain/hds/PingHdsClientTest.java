@@ -74,7 +74,7 @@ public class PingHdsClientTest
 
       when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
       when(request.getMethod()).thenReturn("GET");
-      client.get(request, String.class, "/rest/test");
+      client.relay(request, String.class, "/rest/test");
       fail("Expected exception");
     }
     // SocketTimeoutException gets converted by HdsClient to BadGatewayException 

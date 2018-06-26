@@ -95,7 +95,7 @@ public class IdeResource
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();
 
-    MatchedComponent matchedComponent = client.get(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",
+    MatchedComponent matchedComponent = client.relay(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",
         scanType, path);
     // Is this a manually claimed component?
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifierDAO().getByHash(matchedComponent
@@ -168,7 +168,7 @@ public class IdeResource
   @Path("component/versions")
   @Produces(MediaType.APPLICATION_JSON)
   public String[] getVersions(@Context HttpServletRequest req) throws IOException {
-    return client.get(req, String[].class, "rest/ide/artifact/versions");
+    return client.relay(req, String[].class, "rest/ide/artifact/versions");
   }
 
   /**

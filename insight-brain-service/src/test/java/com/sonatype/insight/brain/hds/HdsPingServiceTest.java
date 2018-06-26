@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -47,7 +46,7 @@ public class HdsPingServiceTest
 
   @Test
   public void testPingHds_Unreachable() throws Exception {
-    when(pingHdsClientMock.get(String.class, "ping")).thenThrow(new IOException("Unreachable"));
+    when(pingHdsClientMock.get(String.class, "ping")).thenThrow(new BadGatewayException("Unreachable"));
 
     PingResponseDTO status = hdsPingService.pingHds();
 

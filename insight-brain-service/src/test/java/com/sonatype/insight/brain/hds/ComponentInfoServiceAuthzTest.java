@@ -53,9 +53,9 @@ public class ComponentInfoServiceAuthzTest
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
     componentDetailsList.setList(new ArrayList<ComponentDetails>());
-    when(hdsClientMock.get((HttpServletRequest) any(), any(Class.class), any(String.class))).thenReturn(
+    when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class))).thenReturn(
         componentDetailsList);
-    when(hdsClientMock.get((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
+    when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
         .thenReturn(namedComponentDetails);
   }
 

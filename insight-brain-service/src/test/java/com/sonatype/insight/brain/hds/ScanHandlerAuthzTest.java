@@ -65,7 +65,7 @@ public class ScanHandlerAuthzTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
+    when(hdsClient.relay(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);

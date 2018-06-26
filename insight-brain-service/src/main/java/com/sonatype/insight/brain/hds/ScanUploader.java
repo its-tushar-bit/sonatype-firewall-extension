@@ -47,7 +47,7 @@ public class ScanUploader
 
     String appId = application.getId();
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
-    final ScanReceipt receipt = client.get(request, analytics, ScanReceipt.class, HDS_PATH, null);
+    final ScanReceipt receipt = client.relay(request, analytics, ScanReceipt.class, HDS_PATH, null);
 
     augmentScanReceipt(application.getPublicId(), receipt);
 

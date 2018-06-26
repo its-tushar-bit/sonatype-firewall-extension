@@ -36,6 +36,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -131,84 +132,54 @@ public class HdsClient
     return configuration;
   }
 
-  HttpResponse getResponse(HttpServletRequest request,
-                                  String path,
-                                  Map<String, String> queryParams,
-                                  String... uriParams) throws IOException
-  {
-    return getResponse(request, null, path, queryParams, uriParams);
-  }
-
-  private HttpResponse getResponse(HttpServletRequest request,
-                                   HdsClientAnalytics analytics,
-                                   String path,
-                                   Map<String, String> queryParams,
-                                   String... uriParams) throws IOException
-  {
-    return execute(request, buildUri(request, path, queryParams, uriParams), analytics);
-  }
-
-  private HttpResponse getResponse(HttpServletRequest request, String path) throws IOException {
-    String url = config.getServerUrl();
-    if (!url.endsWith("/")) {
-      url += '/';
-    }
-    if (path.startsWith("/")) {
-      url += path.substring(1);
-    }
-    else {
-      url += path;
-    }
-    return execute(request, url, null);
-  }
-
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams)
-      throws IOException
   {
-    return get(null, clazz, path, queryParams, uriParams);
+    return internalGet(clazz, buildUri(null, path, queryParams, uriParams));
   }
 
-  public <T> T get(HttpServletRequest request, Class<T> clazz, String path, String... uriParams) throws IOException {
-    return get(request, clazz, path, null, uriParams);
+  public <T> T get(Class<T> clazz, String url) {
+    return internalGet(clazz, buildUri(url));
   }
 
-  public <T> T get(HttpServletRequest request,
-                   Class<T> clazz,
-                   String path,
-                   Map<String, String> queryParams,
-                   String... uriParams) throws IOException
-  {
-    return get(request, null, clazz, path, queryParams, uriParams);
-  }
-
-  public <T> T get(HttpServletRequest request,
-                   HdsClientAnalytics analytics,
-                   Class<T> clazz,
-                   String path,
-                   Map<String, String> queryParams,
-                   String... uriParams) throws IOException
-  {
+  private <T> T internalGet(Class<T> clazz, String url) {
     long start = System.currentTimeMillis();
-
     try {
-      HttpResponse response = getResponse(request, analytics, path, queryParams, uriParams);
-      return fromHttpResponse(response, clazz);
+      HttpGet cloudReq = createGetRequest(url, null, null);
+      return execute(cloudReq, clazz);
     }
     finally {
       log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
-  public <T> T get(Class<T> clazz, String url) throws IOException {
-    return get(null, clazz, url);
+  public <T> T relay(HttpServletRequest request, Class<T> clazz, String path, String... uriParams) throws IOException {
+    return relay(request, clazz, path, null, uriParams);
   }
 
-  private <T> T get(HttpServletRequest request, Class<T> clazz, String url) throws IOException {
+  public <T> T relay(HttpServletRequest request,
+                     Class<T> clazz,
+                     String path,
+                     Map<String, String> queryParams,
+                     String... uriParams)
+      throws IOException
+  {
+    return relay(request, null, clazz, path, queryParams, uriParams);
+  }
+
+  public <T> T relay(HttpServletRequest request,
+                     HdsClientAnalytics analytics,
+                     Class<T> clazz,
+                     String path,
+                     Map<String, String> queryParams,
+                     String... uriParams)
+      throws IOException
+  {
     long start = System.currentTimeMillis();
 
     try {
-      HttpResponse response = getResponse(request, url);
-      return fromHttpResponse(response, clazz);
+      String url = buildUri(request, path, queryParams, uriParams);
+      HttpUriRequest cloudReq = createRequest(request, url, analytics);
+      return execute(cloudReq, clazz);
     }
     finally {
       log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
@@ -221,6 +192,9 @@ public class HdsClient
     try {
       HttpEntity entity = response.getEntity();
       if (entity == null) {
+        return null;
+      }
+      else if (clazz == null) {
         return null;
       }
       else if (String.class.equals(clazz)) {
@@ -295,6 +269,7 @@ public class HdsClient
     }
   }
 
+  @VisibleForTesting
   String getErrorMessage(HttpResponse response) {
     Header hdr = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
     if (hdr != null && hdr.getValue() != null && hdr.getValue().contains(ContentType.TEXT_PLAIN.getMimeType())
@@ -310,7 +285,8 @@ public class HdsClient
     return response.getStatusLine().getReasonPhrase();
   }
 
-  private HttpResponse execute(HttpServletRequest request, String url, HdsClientAnalytics analytics) throws IOException
+  private HttpUriRequest createRequest(HttpServletRequest request, String url, HdsClientAnalytics analytics)
+      throws IOException
   {
     HttpUriRequest cloudReq;
     if (request == null || "GET".equals(request.getMethod())) {
@@ -333,7 +309,7 @@ public class HdsClient
       throw new IllegalArgumentException("Unknown request method " + request.getMethod());
     }
     populateRequest(request, cloudReq, analytics);
-    return execute(cloudReq);
+    return cloudReq;
   }
 
   /**
@@ -342,12 +318,9 @@ public class HdsClient
   public void post(String path, HttpEntity httpEntity, String clientUserAgent) {
     long start = System.currentTimeMillis();
     try {
-      HttpPost cloudReq = new HttpPost(buildUri(path));
-      setClientUserAgentHeader(cloudReq, clientUserAgent);
+      HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
       cloudReq.setEntity(httpEntity);
-      populateRequest(null /* base request */, cloudReq, null);
-      HttpResponse response = execute(cloudReq);
-      throwErrorIfNeeded(response);
+      execute(cloudReq, null);
     }
     finally {
       log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
@@ -360,6 +333,21 @@ public class HdsClient
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException
   {
     return post(null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject, uriParams);
+  }
+
+  private HttpGet createGetRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
+    return createGetRequest(url, analytics, null, clientUserAgent);
+  }
+
+  private HttpGet createGetRequest(String url,
+                                   HdsClientAnalytics analytics,
+                                   HttpServletRequest request,
+                                   String clientUserAgent)
+  {
+    HttpGet cloudReq = new HttpGet(url);
+    populateRequest(request, cloudReq, analytics);
+    setClientUserAgentHeader(cloudReq, clientUserAgent);
+    return cloudReq;
   }
 
   /**
@@ -375,20 +363,24 @@ public class HdsClient
   {
     long start = System.currentTimeMillis();
     try {
-      HttpPost cloudReq = new HttpPost(buildUri(path, uriParams));
+      HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
       StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
       cloudReq.setEntity(entity);
-      populateRequest(null /* base request */, cloudReq, analytics);
-      setClientUserAgentHeader(cloudReq, clientUserAgent);
       cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
       cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
-      HttpResponse response = execute(cloudReq);
-      return fromHttpResponse(response, clazz);
+      return execute(cloudReq, clazz);
     }
     finally {
       log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
+  }
+
+  private HttpPut createPutRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
+    HttpPut cloudReq = new HttpPut(url);
+    populateRequest(null, cloudReq, analytics);
+    setClientUserAgentHeader(cloudReq, clientUserAgent);
+    return cloudReq;
   }
 
   /**
@@ -403,20 +395,18 @@ public class HdsClient
       if (!uploadFile.exists()) {
         throw new FileNotFoundException(uploadFile.getAbsolutePath());
       }
-      HttpPut cloudReq = new HttpPut(buildUri(path, uriParams));
+      HttpPut cloudReq = createPutRequest(buildUri(path, uriParams), analytics, null);
       cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
-      populateRequest(null /* base request */, cloudReq, analytics);
-      HttpResponse response = execute(cloudReq);
-      return fromHttpResponse(response, clazz);
+      return execute(cloudReq, clazz);
     }
     finally {
       log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
-  private HttpResponse execute(HttpUriRequest request) {
+  private <T> T execute(HttpUriRequest request, Class<T> clazz) {
     try {
-      return client.execute(request);
+      return fromHttpResponse(client.execute(request), clazz);
     }
     catch (HttpHostConnectException e) {
       throw new GatewayTimeoutException(e.getMessage(), e);
@@ -433,6 +423,13 @@ public class HdsClient
       log.error(e.getMessage(), e);
       throw new BadGatewayException("The request to Sonatype Data Services failed, please retry in a bit.");
     }
+  }
+
+  private HttpPost createPostRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
+    HttpPost cloudReq = new HttpPost(url);
+    populateRequest(null, cloudReq, analytics);
+    setClientUserAgentHeader(cloudReq, clientUserAgent);
+    return cloudReq;
   }
 
   private HttpEntity buildEntity(HttpServletRequest request) throws IOException {
@@ -481,6 +478,9 @@ public class HdsClient
   }
 
   public static String getClientUserAgent(HttpServletRequest request) {
+    if (request == null) {
+      return null;
+    }
     // some clients can't control the actual UA header and use an alternative header
     String clientUserAgent = request.getHeader(CLM_CLIENT_USER_AGENT_HEADER);
     if (clientUserAgent == null) {

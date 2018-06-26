@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -58,6 +57,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -731,7 +731,7 @@ public class RepositoryService
     try {
       return hdsClient.get(FirewallIgnorePatterns.class, HDS_IGNORE_PATTERNS_PATH);
     }
-    catch (IOException e) {
+    catch (BadGatewayException e) {
       throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
     }
   }

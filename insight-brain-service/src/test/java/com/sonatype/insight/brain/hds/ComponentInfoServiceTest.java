@@ -144,12 +144,12 @@ public class ComponentInfoServiceTest
 
   private void mockHdsGetComponentDetails(NamedComponentDetails hdsComponentDetails) throws IOException {
     when(
-        hdsClientMock.get(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
+        hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
             newCoordinatesQueryParam(hdsComponentDetails))).thenReturn(hdsComponentDetails);
   }
 
   private void mockHdsGetComponentDetailsList(ComponentDetailsList hdsComponentDetailsList) throws IOException {
-    when(hdsClientMock.get(httpRequestMock, ComponentDetailsList.class, "rest/" + TOOL_NAME + "/componentDetails/list"))
+    when(hdsClientMock.relay(httpRequestMock, ComponentDetailsList.class, "rest/" + TOOL_NAME + "/componentDetails/list"))
         .thenReturn(hdsComponentDetailsList);
   }
 
@@ -463,7 +463,7 @@ public class ComponentInfoServiceTest
     queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(MAVEN_COORDINATES));
 
     when(
-        hdsClientMock.get(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
+        hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
             queryParams)).thenThrow(new NotFoundException("test"));
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
@@ -687,7 +687,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails = newNamedComponentDetails(emptyComponentIdentifier);
     hdsComponentDetails.setHash(hash);
     when(
-        hdsClientMock.get(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
+        hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
             newCoordinatesQueryParam(hdsComponentDetails))).thenThrow(new NotFoundException("unknown GAV"));
     componentDetails = componentInfoService.getComponentDetails(application, emptyComponentIdentifier,
         MatchState.UNKNOWN.getId(), "01234567890123456789", false /* proprietary */, httpRequestMock);

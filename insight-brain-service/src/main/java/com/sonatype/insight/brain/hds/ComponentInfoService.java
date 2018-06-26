@@ -174,7 +174,7 @@ public class ComponentInfoService
             }
 
             try {
-              componentDetails = hdsClient.get(httpRequest, NamedComponentDetails.class, "rest/" + toolName
+              componentDetails = hdsClient.relay(httpRequest, NamedComponentDetails.class, "rest/" + toolName
                   + "/componentDetails", queryParams);
               componentDetails.setMatchState(MatchState.EXACT.getId());
             }
@@ -345,7 +345,7 @@ public class ComponentInfoService
     }
 
     String url = "rest/" + toolName + "/componentDetails/list";
-    ComponentDetailsList componentDetailsList = hdsClient.get(httpRequest, ComponentDetailsList.class, url);
+    ComponentDetailsList componentDetailsList = hdsClient.relay(httpRequest, ComponentDetailsList.class, url);
 
     log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);

@@ -30,7 +30,7 @@ public class EnvironmentResource
 
   @GET
   public String submitClientEnvironment(@Context HttpServletRequest request) throws Exception {
-    return client.get(request, String.class, "session/environment");
+    return client.relay(request, String.class, "session/environment");
   }
 
 }

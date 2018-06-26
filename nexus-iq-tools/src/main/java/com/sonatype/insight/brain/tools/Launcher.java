@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import com.sonatype.insight.brain.tools.dbutil.DbUtil;
 import com.sonatype.insight.brain.tools.urlrunner.UrlRunnerCli;
+import com.sonatype.insight.brain.tools.resultdiff.ResultDiff;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -29,6 +30,9 @@ public class Launcher
   @Parameter(names = { "urlrunner", "-urlrunner" }, description = "Run UrlRunner.")
   boolean runUrlRunner;
 
+  @Parameter(names = { "resultdiff", "-resultdiff" }, description = "Run ResultDiff.")
+  boolean runResultDiff;
+
   private Launcher() {
   }
 
@@ -42,6 +46,7 @@ public class Launcher
     Optional<Consumer<String[]>> target = Optional.empty();
     target = runDbUtil ? Optional.of(DbUtil::main) : target;
     target = runUrlRunner ? Optional.of(UrlRunnerCli::main) : target;
+    target = runResultDiff ? Optional.of(ResultDiff::main) : target;
 
     target.ifPresent(util -> util.accept(launchParams));
   }

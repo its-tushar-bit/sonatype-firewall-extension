@@ -60,6 +60,11 @@ public class UrlRunnerCli
 
   // default for testing
   void printStats(Stats stats) {
+    printStats(stats, log);
+  }
+
+  // public for testing
+  public void printStats(Stats stats, Logger log) {
     try {
       log.info("-------------");
       log.info("URL : {}", stats.getUrl());

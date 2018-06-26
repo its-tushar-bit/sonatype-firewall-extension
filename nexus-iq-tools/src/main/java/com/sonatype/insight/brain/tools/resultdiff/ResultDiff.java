@@ -36,7 +36,7 @@ public class ResultDiff
   private List<File> files = new ArrayList<>();
 
   @Parameter(names = "-minDiff", validateWith = PositiveInteger.class, description = "only report result with a minimum difference greater than this number of milliseconds")
-  private Integer minDiff = 2000;
+  private int minDiff = 2000;
 
   private static class Result
   {
@@ -163,7 +163,7 @@ public class ResultDiff
   }
 
   @VisibleForTesting
-  void setMinDiff(Integer minDiff) {
+  void setMinDiff(int minDiff) {
     this.minDiff = minDiff;
   }
 

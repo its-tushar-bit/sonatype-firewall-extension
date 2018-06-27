@@ -121,9 +121,8 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 15 items.");
-    assertThat(dependencies, hasSize(15));
-    assertThat(dependencies, hasItem(dependencyWithName("dns-sync:0.1.0")));
+    logOutput.assertInfo("Found 14 items.");
+    assertThat(dependencies, hasSize(14));
     assertThat(dependencies, hasItem(dependencyWithName("zlib")));
     assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
     assertThat(dependencies,

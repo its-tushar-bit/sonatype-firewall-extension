@@ -42,7 +42,7 @@ public interface ConditionType
    * 
    * @param conditionIndex The condition index in the policy constraint.
    * 
-   * @since 1.48.0
+   * @since NEW_POLICY_VIOLATION_COMPARISON_VERSION
    */
   default String generateDroolsTriggerCode(@SuppressWarnings("unused") Condition condition, int conditionIndex) {
     return null;

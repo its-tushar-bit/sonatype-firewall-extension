@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import java.util.stream.IntStream;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.validators.PositiveInteger;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -32,10 +34,15 @@ public class ResultDiff
 {
   private static final Logger log = LoggerFactory.getLogger(ResultDiff.class);
 
+  static final String ERROR_MIN_FILES = "A minimum of 2 files are required to compare.";
+
+  static final String ERROR_INVALID_FILE_PREFIX = "Invalid file: ";
+
   @Parameter(description = "<file 1> <file 2> ... [file n]")
   private List<File> files = new ArrayList<>();
 
-  @Parameter(names = "-minDiff", validateWith = PositiveInteger.class, description = "only report result with a minimum difference greater than this number of milliseconds")
+  @Parameter(names = "-minDiff", validateWith = PositiveInteger.class,
+             description = "only report result with a minimum difference greater than this number of milliseconds")
   private int minDiff = 2000;
 
   private static class Result
@@ -77,10 +84,13 @@ public class ResultDiff
           .addObject(rd) //
           .build() //
           .parse(args);
+      rd.validate();
       rd.run();
-
     }
     catch (Exception e) {
+      if (e instanceof ParameterException) {
+        log.info("\nERROR: {}\n", e.getMessage());
+      }
       log.error(e.getMessage(), e);
       printUsage();
       System.exit(1);
@@ -93,6 +103,26 @@ public class ResultDiff
         .programName("java -jar nexus-iq-tools.jar resultdiff") //
         .build() //
         .usage();
+  }
+
+  private void validate() throws Exception {
+    validateFiles(files);
+  }
+
+  @VisibleForTesting
+  static void validateFiles(List<File> files) throws Exception {
+    String error;
+    if (files.size() < 2) {
+      error = ERROR_MIN_FILES;
+    }
+    else {
+      Optional<String> invalid = files.stream().filter(f -> !f.exists()).map(File::getAbsolutePath).findFirst();
+      error = invalid.isPresent() ? ERROR_INVALID_FILE_PREFIX + invalid.get() : null;
+    }
+
+    if (error != null) {
+      throw new ParameterException(error);
+    }
   }
 
   private Map<String, List<Result>> loadResults(List<File> files) throws Exception {
@@ -201,6 +231,9 @@ public class ResultDiff
   }
 
   private void printDiffs(List<DiffData> diffs) {
+    if (diffs.isEmpty()) {
+      log.info("\nNo differences found greater than {}ms\n", minDiff);
+    }
     diffs.forEach(diff -> {
       log.info("url: {}", diff.url);
       log.info("  min: {}ms  max: {}ms", diff.min, diff.max);

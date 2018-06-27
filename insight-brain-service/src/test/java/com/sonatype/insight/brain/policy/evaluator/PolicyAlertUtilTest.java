@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -87,5 +88,39 @@ public class PolicyAlertUtilTest
       assertThat(conditionFact.getConditionIndex(), is(0));
       assertThat(conditionFact.getTriggerJson(), is(nullValue()));
     }
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_OnePolicyAlertForEachPolicyViolation() {
+    Application app = tempEntity.newApplicationWithParent("app-id");
+    Policy policy = tempEntity.newPolicy("Test Policy");
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String hash = "hash";
+    String reason1 = "test reason1";
+    String reason2 = "test reason2";
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEval, policy, componentIdentifier, hash,
+        reason1);
+    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEval, policy, componentIdentifier, hash,
+        reason2);
+
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation1, policyViolation2),
+        policyEval.getStageTypeId(), policyEval.isForMonitoring());
+
+    assertThat(alerts, hasSize(2));
+
+    PolicyAlert alert1 = alerts.get(0);
+    assertThat(alert1.getTrigger().getPolicyId(), is(policy.getId()));
+    assertThat(alert1.getTrigger().getPolicyName(), is(policy.getName()));
+    assertThat(alert1.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
+        .getReason(), is(reason1));
+    assertThat(alert1.getActions(), empty());
+
+    PolicyAlert alert2 = alerts.get(1);
+    assertThat(alert2.getTrigger().getPolicyId(), is(policy.getId()));
+    assertThat(alert2.getTrigger().getPolicyName(), is(policy.getName()));
+    assertThat(alert2.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
+        .getReason(), is(reason2));
+    assertThat(alert2.getActions(), empty());
   }
 }

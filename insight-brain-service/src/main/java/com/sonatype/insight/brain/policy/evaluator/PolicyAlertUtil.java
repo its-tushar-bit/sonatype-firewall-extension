@@ -7,9 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -30,25 +28,20 @@ public class PolicyAlertUtil
   {
     List<PolicyAlert> result = new ArrayList<>();
     PolicyDAO policyDAO = new PolicyDAO();
-    Map<String, PolicyFact> policyFactsByPolicyId = new LinkedHashMap<>();
     for (PolicyViolation policyViolation : policyViolations) {
       String policyId = policyViolation.getPolicyId();
-      PolicyFact policyFact = policyFactsByPolicyId.get(policyId);
-      if (policyFact == null) {
-        policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(), policyViolation.getThreatLevel());
-        policyFactsByPolicyId.put(policyId, policyFact);
-
-        Policy policy = policyDAO.getById(policyId);
-        List<? extends Action> actions;
-        if (policy == null) {
-          actions = Collections.emptyList();
-        }
-        else {
-          actions = policy.toActions(stageTypeId, forMonitoring);
-        }
-        PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
-        result.add(policyAlert);
+      PolicyFact policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(),
+          policyViolation.getThreatLevel());
+      Policy policy = policyDAO.getById(policyId);
+      List<? extends Action> actions;
+      if (policy == null) {
+        actions = Collections.emptyList();
       }
+      else {
+        actions = policy.toActions(stageTypeId, forMonitoring);
+      }
+      PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
+      result.add(policyAlert);
 
       ComponentFact componentFact = new ComponentFact(policyViolation.getComponentIdentifier(),
           policyViolation.getHash());

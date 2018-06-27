@@ -165,8 +165,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    AbstractPolicyEvaluationTest.assertFactCounts(2, 9, policyAlerts.get(0));
+    Assert.assertEquals(9, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
     Component expectedComponentExact = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.EXACT);
     expectedComponentExact.setHash("3102cdd0edd5a05afe00");
     Component expectedComponentSimilar1 = ComponentFactory
@@ -387,8 +389,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
-    AbstractPolicyEvaluationTest.assertFactCounts(1, 36, policyAlerts.get(0));
+    Assert.assertEquals(72, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation, notNullValue());
@@ -444,8 +448,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyEval);
     policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
-    AbstractPolicyEvaluationTest.assertFactCounts(1, 36, policyAlerts.get(0));
+    Assert.assertEquals(72, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation, notNullValue());
     assertThat(policyEvaluation.isReevaluation(), is(true));
@@ -574,8 +580,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    AbstractPolicyEvaluationTest.assertFactCounts(1, 3, policyAlerts.get(0));
+    Assert.assertEquals(3, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
     Component expectedComponent = ComponentFactory.forGav("org.webjars", "select2", "3.2", MatchState.EXACT);
     expectedComponent.setHash("f2e35e4a21f07d25710f");
     assertContainsPolicyAlert(expectedComponent, policy1, constraint1, Action.ID_FAIL, LicenseConditionType.ID,
@@ -623,8 +631,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    AbstractPolicyEvaluationTest.assertFactCounts(2, 2, policyAlerts.get(0));
+    Assert.assertEquals(2, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
     Component expectedComponent = ComponentFactory.forGav("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
     expectedComponent.setHash("1a667c9d419dc4f185c9");
     assertContainsPolicyAlert(expectedComponent, policy1, constraint1, Action.ID_FAIL, LicenseConditionType.ID,
@@ -806,7 +816,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyEvaluationResult);
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    Assert.assertEquals(36, policyAlerts.size());
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // Notification message should have been sent
@@ -822,7 +832,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(200, response);
     policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
-    Assert.assertEquals(1, policyAlerts.size());
+    Assert.assertEquals(36, policyAlerts.size());
     assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation

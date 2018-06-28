@@ -23,11 +23,13 @@ import com.google.common.annotations.VisibleForTesting;
 
 public class DbModifier
 {
-  private Connection connection;
+  private final String schemaName;
 
-  private static final String DEFAULT_SCHEMA = "insight_brain_ods";
+  private final String dbConnectionString;
 
-  private String schemaName;
+  private final String username;
+
+  private final String password;
 
   @VisibleForTesting
   static class TableAndColumns
@@ -35,30 +37,28 @@ public class DbModifier
     String table;
 
     final List<String> columns = new ArrayList<>();
-
   }
 
-  public Connection createDbConnection(final String dbConnectionString,
-                                       final String username,
-                                       final String password,
-                                       final String schemaName) throws SQLException
+  @VisibleForTesting
+  DbModifier(final String dbConnectionString, final String username, final String password, final String schemaName)
   {
+    this.dbConnectionString = dbConnectionString + ";SCHEMA=" + schemaName;
+    this.username = username;
+    this.password = password;
     this.schemaName = schemaName;
-    closeDbConnection();
-    connection = DriverManager.getConnection(dbConnectionString, username, password);
-    return connection;
   }
 
-  public void closeDbConnection() throws SQLException {
-    if (connection != null) {
-      connection.close();
-      connection = null;
-    }
+  public DbModifier(final File file, final String username, final String password, final String schemaName)
+  {
+    this(getDbConnectionString(file), username, password, schemaName);
   }
 
-  private static String getDefaultDbConnectionString(final File file) {
-    return "jdbc:h2:" + file.getAbsolutePath() +
-        ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;SCHEMA=" + DEFAULT_SCHEMA;
+  private Connection getConnection() throws SQLException {
+    return DriverManager.getConnection(dbConnectionString, username, password);
+  }
+
+  private static String getDbConnectionString(final File file) {
+    return "jdbc:h2:" + file.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
   }
 
   /**
@@ -112,7 +112,7 @@ public class DbModifier
 
   private List<Timestamp> retrieveTimestamps(final String maxOrMinSql) {
     List<Timestamp> timestamps = new ArrayList<>();
-    try (Statement statement = connection.createStatement()) {
+    try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
       ResultSet resultSet = statement.executeQuery(maxOrMinSql);
       int numOfColumns = resultSet.getMetaData().getColumnCount();
       while (resultSet.next()) {
@@ -142,7 +142,7 @@ public class DbModifier
       TableAndColumns tableAndColumns = new TableAndColumns();
       tableAndColumns.table = tableName;
 
-      try (Statement statement = connection.createStatement()) {
+      try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
         ResultSet resultSet = statement.executeQuery(getSqlForTimestampColumns(tableName));
         while (resultSet.next()) {
           tableAndColumns.columns.add(resultSet.getString(1));
@@ -168,7 +168,7 @@ public class DbModifier
     List<String> tableNames = new ArrayList<>();
     String getTablesSql =
         "SELECT TABLE_NAME from \"INFORMATION_SCHEMA\".\"TABLES\" where TABLE_SCHEMA = '" + schemaName + "'";
-    try (Statement statement = connection.createStatement()) {
+    try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
       ResultSet resultSet = statement.executeQuery(getTablesSql);
       while (resultSet.next()) {
         tableNames.add(resultSet.getString(1));

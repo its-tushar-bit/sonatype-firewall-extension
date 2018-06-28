@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.tools.dbmodifier;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -36,6 +37,9 @@ public class DbModifierTest
 
   private static final LocalDate MAX_DATE_TABLE2 = LocalDate.of(2017, 3, 8);
 
+  private static final String TEST_DB_CONNECTION_STRING =
+      "jdbc:h2:mem:test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+
   private static DbModifier dbModifier;
 
   private static final String TABLE_NAME1 = "table1";
@@ -46,17 +50,21 @@ public class DbModifierTest
 
   private Connection dbConnection;
 
+  private static final String USER_NAME = "";
+
+  private static final String PASSWORD = "";
+
   @Before
   public void init() throws Exception {
-    dbModifier = new DbModifier();
-    dbConnection = createTestDbConnection(dbModifier);
+    dbConnection = createTestDbConnection();
     createTestDb(dbConnection);
+    dbModifier = new DbModifier(TEST_DB_CONNECTION_STRING, USER_NAME, PASSWORD, TEST_SCHEMA);
   }
 
   @After
   public void cleanup() throws Exception {
     dropTestDb(dbConnection);
-    dbModifier.closeDbConnection();
+    dbConnection.close();
   }
 
   @Test
@@ -118,9 +126,8 @@ public class DbModifierTest
     assertThat(minTimestamp, nullValue());
   }
 
-  private static Connection createTestDbConnection(DbModifier dbModifier) throws Exception {
-    String dbConnectionString = "jdbc:h2:mem:test" + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
-    return dbModifier.createDbConnection(dbConnectionString, "", "", TEST_SCHEMA);
+  private static Connection createTestDbConnection() throws Exception {
+    return DriverManager.getConnection(TEST_DB_CONNECTION_STRING, USER_NAME, PASSWORD);
   }
 
   private static void dropTestDb(Connection conn) throws Exception {
@@ -133,7 +140,6 @@ public class DbModifierTest
   }
 
   private static void createTestDb(Connection conn) throws Exception {
-
     String tableSql1 = "CREATE TABLE " + TABLE_NAME1 + " (id varchar(5) NOT NULL, ts1 datetime NOT NULL)";
     try (Statement statement = conn.createStatement()) {
       statement.executeUpdate("CREATE SCHEMA " + TEST_SCHEMA);
@@ -173,7 +179,6 @@ public class DbModifierTest
   }
 
   private static void createEmptyTimestampDb(Connection conn) throws Exception {
-
     String tableSql1 = "CREATE TABLE " + TABLE_NAME1 + " (id varchar(5) NOT NULL, ts1 datetime)";
     try (Statement statement = conn.createStatement()) {
       statement.executeUpdate("CREATE SCHEMA " + TEST_SCHEMA);

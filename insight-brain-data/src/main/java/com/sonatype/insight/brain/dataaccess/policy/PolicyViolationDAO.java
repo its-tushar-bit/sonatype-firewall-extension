@@ -154,6 +154,19 @@ public class PolicyViolationDAO
     return getList(sQuery, appId);
   }
 
+  public List<PolicyViolation> getUnfixedGrandfatheredByApplicationId(String appId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getUnfixedGrandfatheredByApplicationId(tx, appId);
+    }
+  }
+
+  public List<PolicyViolation> getUnfixedGrandfatheredByApplicationId(TransactionContext tx, String appId) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1" + //
+        " AND entity.fixTime IS NULL AND entity.grandfatherTime IS NOT NULL";
+    return getList(tx, sQuery, appId);
+  }
+
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {
     String sQuery = "UPDATE PolicyViolation entity" + //
         " SET entity.policyId=?2" + //

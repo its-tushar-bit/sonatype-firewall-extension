@@ -15,6 +15,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -45,6 +46,8 @@ public class ApplicationAdapterTest
 
   @Inject
   private ApplicationAdapter applicationAdapter;
+
+  private PolicyViolationDAO mockPolicyViolationDAO;
 
   // Application variables
   private String applicationId = "AppId";

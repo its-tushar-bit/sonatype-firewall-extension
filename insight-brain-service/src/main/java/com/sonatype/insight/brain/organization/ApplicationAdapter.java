@@ -19,6 +19,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.Member;
@@ -40,16 +41,22 @@ public class ApplicationAdapter
 
   private final OrganizationDAO organizationDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   private final UserDirectory userDirectory;
 
   @Inject
   public ApplicationAdapter(UserDirectory userDirectory) {
-    this(userDirectory, new OrganizationDAO());
+    this(userDirectory, new OrganizationDAO(), new PolicyViolationDAO());
   }
 
-  public ApplicationAdapter(UserDirectory userDirectory, OrganizationDAO organizationDAO) {
+  public ApplicationAdapter(UserDirectory userDirectory,
+                            OrganizationDAO organizationDAO,
+                            PolicyViolationDAO policyViolationDAO)
+  {
     this.userDirectory = userDirectory;
     this.organizationDAO = organizationDAO;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   /**
@@ -133,6 +140,9 @@ public class ApplicationAdapter
       summary.setOrganizationName(org.getName());
 
       summary.setContact(contacts[i]);
+      summary.setHasGrandfatheredPolicyViolations(
+          !policyViolationDAO.getUnfixedGrandfatheredByApplicationId(application.getId()).isEmpty());
+
       applicationManagementSummaryDTOList.add(summary);
     }
 
@@ -156,6 +166,8 @@ public class ApplicationAdapter
     summary.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
     final ContactDTO contact = getContact(application.getContactInternalName());
     summary.setContact(contact);
+    summary.setHasGrandfatheredPolicyViolations(
+        !policyViolationDAO.getUnfixedGrandfatheredByApplicationId(application.getId()).isEmpty());
 
     return summary;
   }

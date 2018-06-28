@@ -12,6 +12,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -225,6 +226,11 @@ public class PolicyViolation
 
   public void setSeenByMonitoringEvaluation(boolean seenByMonitoringEvaluation) {
     this.seenByMonitoringEvaluation = seenByMonitoringEvaluation;
+  }
+
+  @Transient
+  public boolean isActive() {
+    return !isFixed() && !isWaived() && !isGrandfathered();
   }
 
   @Override

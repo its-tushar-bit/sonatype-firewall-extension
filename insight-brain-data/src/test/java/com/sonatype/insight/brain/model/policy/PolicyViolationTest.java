@@ -254,4 +254,34 @@ public class PolicyViolationTest
       assertThat(expected.getMessage(), is("Cannot un-fix a policy violation."));
     }
   }
+
+  @Test
+  public void testIsActive_Fixed() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    assertThat(policyViolation.isActive(), is(true));
+
+    policyViolation.setFixTime(new Date());
+    assertThat(policyViolation.isActive(), is(false));
+  }
+
+  @Test
+  public void testIsActive_Waived() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    assertThat(policyViolation.isActive(), is(true));
+
+    policyViolation.setWaiveTime(new Date());
+    assertThat(policyViolation.isActive(), is(false));
+  }
+
+  @Test
+  public void testIsActive_Grandfathered() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    assertThat(policyViolation.isActive(), is(true));
+
+    policyViolation.setGrandfatherTime(new Date());
+    assertThat(policyViolation.isActive(), is(false));
+  }
 }

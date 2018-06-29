@@ -12,6 +12,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,6 +43,16 @@ public class DbModifier
   }
 
   @VisibleForTesting
+  static class TableDateMinMax
+  {
+    String table;
+
+    Timestamp min;
+
+    Timestamp max;
+  }
+
+  @VisibleForTesting
   DbModifier(final String dbConnectionString, final String username, final String password, final String schemaName)
   {
     this.dbConnectionString = dbConnectionString + ";SCHEMA=" + schemaName;
@@ -59,6 +72,49 @@ public class DbModifier
 
   private static String getDbConnectionString(final File file) {
     return "jdbc:h2:" + file.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+  }
+
+  public void shiftToDate(final LocalDate maxDate) {
+    Timestamp maxTimestamp = getMaxTimestamp();
+    if (maxTimestamp == null) {
+      return;
+    }
+    Duration dateDifference = Duration
+        .between(maxTimestamp.toLocalDateTime().truncatedTo(ChronoUnit.DAYS), maxDate.atStartOfDay());
+
+    int daysBetween = (int) dateDifference.toDays();
+    shiftDays(daysBetween);
+  }
+
+  public void shiftDays(final int numDays) {
+    List<TableAndColumns> tablesWithTsColumns = getAllTablesWithTimestampColumns();
+    tablesWithTsColumns.forEach(tableAndColumns -> runUpdateQuery(tableAndColumns, numDays));
+  }
+
+  public List<TableDateMinMax> getDateInfo() {
+    List<TableDateMinMax> allTableDates = new ArrayList<>();
+    List<TableAndColumns> tablesWithTsColumns = getAllTablesWithTimestampColumns();
+    tablesWithTsColumns.forEach(tableAndColumns -> {
+      TableDateMinMax tableDates = new TableDateMinMax();
+      tableDates.table = tableAndColumns.table;
+      tableDates.max = getMaxTimestampInTable(tableAndColumns);
+      tableDates.min = getMinTimestampInTable(tableAndColumns);
+      allTableDates.add(tableDates);
+    });
+    return allTableDates;
+  }
+
+  private void runUpdateQuery(TableAndColumns tableAndColumns, int numDays) {
+    final String table = tableAndColumns.table;
+    tableAndColumns.columns.forEach(column -> {
+      String sql = "UPDATE " + table + " SET \"" + column + "\" = DATEADD('day', " + numDays + ", \"" + column + "\");";
+      try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+        statement.executeUpdate(sql);
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   /**
@@ -180,4 +236,3 @@ public class DbModifier
     }
   }
 }
-

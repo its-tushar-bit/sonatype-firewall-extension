@@ -9,12 +9,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.tools.dbmodifier.DbModifier.TableAndColumns;
+import com.sonatype.insight.brain.tools.dbmodifier.DbModifier.TableDateMinMax;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,13 +31,13 @@ public class DbModifierTest
 {
   private static final String TEST_SCHEMA = "TEST_SCHEMA";
 
-  private static final LocalDate MAX_DATE = LocalDate.of(2018, 8, 1);
+  private static final LocalDate MAX_DATE = LocalDate.of(2017, 8, 1);
 
-  private static final LocalDate MIN_DATE = LocalDate.of(2017, 2, 1);
+  private static final LocalDate MIN_DATE = LocalDate.of(2014, 2, 1);
 
-  private static final LocalDate MIN_DATE_TABLE1 = LocalDate.of(2018, 1, 1);
+  private static final LocalDate MIN_DATE_TABLE1 = LocalDate.of(2017, 1, 1);
 
-  private static final LocalDate MAX_DATE_TABLE2 = LocalDate.of(2017, 3, 8);
+  private static final LocalDate MAX_DATE_TABLE2 = LocalDate.of(2014, 3, 8);
 
   private static final String TEST_DB_CONNECTION_STRING =
       "jdbc:h2:mem:test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
@@ -65,6 +67,104 @@ public class DbModifierTest
   public void cleanup() throws Exception {
     dropTestDb(dbConnection);
     dbConnection.close();
+  }
+
+  @Test
+  public void testShiftDays_ForwardOneDay() {
+    dbModifier.shiftDays(1);
+    Timestamp minTimestamp = dbModifier.getMinTimestamp();
+    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.plusDays(1))));
+    Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
+    assertThat(maxTimestamp, is(getTimestamp(MAX_DATE.plusDays(1))));
+  }
+
+  @Test
+  public void testShiftDays_ForwardThirtyDays() {
+    dbModifier.shiftDays(30);
+    Timestamp minTimestamp = dbModifier.getMinTimestamp();
+    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.plusDays(30))));
+  }
+
+  @Test
+  public void testShiftDays_BackwardOneDay() {
+    dbModifier.shiftDays(-1);
+    Timestamp minTimestamp = dbModifier.getMinTimestamp();
+    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.minusDays(1))));
+  }
+
+  @Test
+  public void testShiftDays_BackwardThirtyDays() {
+    dbModifier.shiftDays(-30);
+    Timestamp minTimestamp = dbModifier.getMinTimestamp();
+    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.minusDays(30))));
+  }
+
+  @Test
+  public void testShiftDays_AllNulls() throws Exception {
+    dropTestDb(dbConnection);
+    createEmptyTimestampDb(dbConnection);
+    dbModifier.shiftDays(1);
+    assertThat(dbModifier.getMinTimestamp(), nullValue());
+    assertThat(dbModifier.getMaxTimestamp(), nullValue());
+  }
+
+  @Test
+  public void testShiftToDate_Backward() {
+    LocalDate dateToShiftTo = LocalDate.of(2016, 6, 1);
+    testDateShift(dateToShiftTo);
+  }
+
+  @Test
+  public void testShiftToDate_Forward() {
+    LocalDate dateToShiftTo = LocalDate.of(2018, 6, 1);
+    testDateShift(dateToShiftTo);
+  }
+
+  private void testDateShift(final LocalDate dateToShiftTo) {
+    dbModifier.shiftToDate(dateToShiftTo);
+    Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
+    assertThat(maxTimestamp, is(getTimestamp(dateToShiftTo)));
+    Duration timeDifference = Duration.between(getTimestamp(MAX_DATE).toLocalDateTime(), dateToShiftTo.atStartOfDay());
+    long daysDifference = timeDifference.toDays();
+    assertThat(dbModifier.getMinTimestamp(), is(getTimestamp(MIN_DATE.plusDays(daysDifference))));
+  }
+
+  @Test
+  public void testShiftToDate_AllNulls() throws Exception {
+    dropTestDb(dbConnection);
+    createEmptyTimestampDb(dbConnection);
+    LocalDate dateToShiftTo = LocalDate.of(2018, 6, 1);
+    dbModifier.shiftToDate(dateToShiftTo);
+    assertThat(dbModifier.getMinTimestamp(), nullValue());
+    assertThat(dbModifier.getMaxTimestamp(), nullValue());
+  }
+
+  @Test
+  public void testShiftToDate_CheckTimeIsNormalized() throws Exception {
+    modifyDbToAddTimeToMax(dbConnection, "15:23:00");
+    LocalDate dateToShiftTo = LocalDate.of(2018, 6, 1);
+    dbModifier.shiftToDate(dateToShiftTo);
+    Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
+    Timestamp expectedTimestamp = Timestamp.valueOf(dateToShiftTo.atTime(15, 23, 0));
+    assertThat(maxTimestamp, is(expectedTimestamp));
+    Duration timeDifference = Duration.between(getTimestamp(MAX_DATE).toLocalDateTime(), dateToShiftTo.atStartOfDay());
+    long daysDifference = timeDifference.toDays();
+    assertThat(dbModifier.getMinTimestamp(), is(getTimestamp(MIN_DATE.plusDays(daysDifference))));
+  }
+
+  @Test
+  public void testShowDateInfo() {
+    List<TableDateMinMax> tableDates = dbModifier.getDateInfo();
+    tableDates.forEach(tableDate -> {
+      if (tableDate.table.equals(TABLE_NAME1)) {
+        assertThat(tableDate.max, is(getTimestamp(MAX_DATE)));
+        assertThat(tableDate.min, is(getTimestamp(MIN_DATE_TABLE1)));
+      }
+      else {
+        assertThat(tableDate.max, is(getTimestamp(MAX_DATE_TABLE2)));
+        assertThat(tableDate.min, is(getTimestamp(MIN_DATE)));
+      }
+    });
   }
 
   @Test
@@ -148,12 +248,12 @@ public class DbModifierTest
       statement.executeUpdate("ALTER TABLE " + TABLE_NAME1 + " ADD PRIMARY KEY (id)");
       int index = 1;
       statement.executeUpdate(getInsertString(TABLE_NAME1, index++, MIN_DATE_TABLE1));
-      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2018, 2, 1)));
-      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2018, 3, 1)));
-      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2018, 4, 1)));
-      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2018, 5, 1)));
-      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2018, 6, 1)));
-      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2018, 7, 1)));
+      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2017, 2, 1)));
+      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2017, 3, 1)));
+      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2017, 4, 1)));
+      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2017, 5, 1)));
+      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2017, 6, 1)));
+      statement.executeUpdate(getInsertString(TABLE_NAME1, index++, LocalDate.of(2017, 7, 1)));
       statement.executeUpdate(getInsertString(TABLE_NAME1, index++, MAX_DATE));
     }
 
@@ -162,19 +262,30 @@ public class DbModifierTest
       statement.executeUpdate(tableSql2);
       statement.executeUpdate("ALTER TABLE " + TABLE_NAME2 + " ADD PRIMARY KEY (id)");
       int index = 1;
-      statement.executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 1), MIN_DATE));
+      statement.executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 1), MIN_DATE));
       statement
-          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 2), LocalDate.of(2017, 2, 2)));
+          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 2), LocalDate.of(2014, 2, 2)));
       statement
-          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 3), LocalDate.of(2017, 2, 3)));
+          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 3), LocalDate.of(2014, 2, 3)));
       statement
-          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 4), LocalDate.of(2017, 2, 4)));
-      statement.executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 5), null));
+          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 4), LocalDate.of(2014, 2, 4)));
+      statement.executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 5), null));
       statement
-          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 6), LocalDate.of(2017, 2, 6)));
+          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 6), LocalDate.of(2014, 2, 6)));
       statement
-          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2017, 3, 7), LocalDate.of(2017, 2, 7)));
-      statement.executeUpdate(getInsertString(TABLE_NAME2, index++, MAX_DATE_TABLE2, LocalDate.of(2017, 2, 8)));
+          .executeUpdate(getInsertString(TABLE_NAME2, index++, LocalDate.of(2014, 3, 7), LocalDate.of(2014, 2, 7)));
+      statement.executeUpdate(getInsertString(TABLE_NAME2, index++, MAX_DATE_TABLE2, LocalDate.of(2014, 2, 8)));
+    }
+  }
+
+  private static void modifyDbToAddTimeToMax(Connection conn, String timeString) throws Exception {
+    String oldTimeStampString = MAX_DATE.format(timestampFormatter) + " 00:00:00";
+    String newTimestampString = MAX_DATE.format(timestampFormatter) + " " + timeString;
+    String tableSql =
+        "UPDATE " + TABLE_NAME1 + " SET ts1 = '" + newTimestampString + "' WHERE ts1 = '" + oldTimeStampString + "'";
+    try (Statement statement = conn.createStatement()) {
+      statement.executeUpdate("SET SCHEMA " + TEST_SCHEMA);
+      statement.executeUpdate(tableSql);
     }
   }
 

@@ -23,7 +23,7 @@ import com.google.common.base.Predicates;
  * @since 1.27
  */
 public class PolicyViolationStateFilter
-    implements Predicate<PolicyViolationState>
+    implements Predicate<Set<PolicyViolationState>>
 {
   private Set<PolicyViolationState> policyViolationStates = EnumSet.noneOf(PolicyViolationState.class);
 
@@ -48,20 +48,30 @@ public class PolicyViolationStateFilter
   }
 
   @Override
-  public boolean apply(PolicyViolationState state) {
-    return policyViolationStates.isEmpty() || policyViolationStates.contains(state);
+  public boolean apply(Set<PolicyViolationState> states) {
+    return policyViolationStates.isEmpty() || policyViolationStates.stream().anyMatch(states::contains);
   }
 
   /**
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */
   public Predicate<PolicyViolation> asPolicyViolationPredicate() {
-    return Predicates.compose(this, new Function<PolicyViolation, PolicyViolationState>()
+    return Predicates.compose(this, new Function<PolicyViolation, Set<PolicyViolationState>>()
     {
       @Override
       @Nullable
-      public PolicyViolationState apply(@Nullable PolicyViolation input) {
-        return input.isWaived() ? PolicyViolationState.WAIVED : PolicyViolationState.OPEN;
+      public Set<PolicyViolationState> apply(@Nullable PolicyViolation input) {
+        Set<PolicyViolationState> states = EnumSet.noneOf(PolicyViolationState.class);
+        if (input.isWaived()) {
+          states.add(PolicyViolationState.WAIVED);
+        }
+        if (input.isGrandfathered()) {
+          states.add(PolicyViolationState.GRANDFATHERED);
+        }
+        if (states.isEmpty()) {
+          states.add(PolicyViolationState.OPEN);
+        }
+        return states;
       }
     });
   }

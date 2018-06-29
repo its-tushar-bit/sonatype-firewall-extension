@@ -1008,6 +1008,18 @@ public class TemporaryEntity
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), "hash", policyWaiver);
   }
 
+  public PolicyViolation newGrandfatheredPolicyViolation(PolicyEvaluation evaluation,
+                                                         Policy policy,
+                                                         ComponentIdentifier componentIdentifier,
+                                                         String hash)
+  {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
+        policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier, "[]", "unknown.jar");
+    policyViolation.setGrandfatherTime(evaluation.getTime());
+    policyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
                                             Policy policy,
                                             int threatLevel,

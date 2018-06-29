@@ -154,6 +154,19 @@ public class ApplicationRiskServiceTest
     assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
     assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(app1Policy.getThreatLevel()));
 
+    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1.getId(), "policy Grandfather", 5);
+    tempEntity.newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
+    result = applicationRiskService
+        .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
+            new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), "-TOTAL_RISK", 1000);
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
+    appDTO = result.dashboardResults.get(0);
+    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(app1GrandfatherPolicy.getThreatLevel()));
+
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
@@ -166,15 +179,15 @@ public class ApplicationRiskServiceTest
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK",
-            1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
+                PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks, hasSize(1));
     assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
     assertThat(appDTO.stageRisks.get(0).risk.totalRisk,
-        is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2));
+        is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2 + app1GrandfatherPolicy.getThreatLevel()));
   }
 
   @Test

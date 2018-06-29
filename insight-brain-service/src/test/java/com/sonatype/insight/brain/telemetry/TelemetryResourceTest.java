@@ -12,6 +12,8 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 

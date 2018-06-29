@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;

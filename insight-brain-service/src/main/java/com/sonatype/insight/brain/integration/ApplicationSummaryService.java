@@ -20,10 +20,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.brain.telemetry.TelemetryData;
-import com.sonatype.insight.brain.telemetry.TelemetryPurpose;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

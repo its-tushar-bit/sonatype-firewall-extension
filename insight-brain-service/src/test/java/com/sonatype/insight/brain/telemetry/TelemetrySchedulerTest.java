@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
 import org.junit.Test;

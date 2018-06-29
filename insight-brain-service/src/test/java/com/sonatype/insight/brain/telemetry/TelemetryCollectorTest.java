@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Test;
 

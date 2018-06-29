@@ -13,11 +13,11 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.telemetry.TelemetryData;
-import com.sonatype.insight.brain.telemetry.TelemetryPurpose;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang.StringUtils;
 

@@ -22,11 +22,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.TelemetryData;
-import com.sonatype.insight.brain.telemetry.TelemetryHeader;
-import com.sonatype.insight.brain.telemetry.TelemetryPurpose;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryHeader;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.apache.http.HttpEntity;

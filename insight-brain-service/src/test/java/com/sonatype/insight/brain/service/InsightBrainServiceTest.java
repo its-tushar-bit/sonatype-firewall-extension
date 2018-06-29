@@ -24,12 +24,12 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
-import com.sonatype.insight.brain.telemetry.TelemetryData;
-import com.sonatype.insight.brain.telemetry.TelemetryHeader;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryHeader;
 
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;

@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
@@ -74,12 +76,15 @@ public class ApplicationResource
 
   private final InsightWork work;
 
+  private final InsightConfig config;
+
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private ApplicationService applicationService;
 
   @Inject
   public ApplicationResource(final InsightWork work,
+                             final InsightConfig config,
                              final BaseUrl baseUrl,
                              final RobotImageService robotImageService,
                              final ScanPolicyEvaluator scanPolicyEvaluator,
@@ -89,6 +94,7 @@ public class ApplicationResource
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
+    this.config = config;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;
     this.applicationService = applicationService;
@@ -208,6 +214,10 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationDTO addApplication(Application application) {
     application = applicationService.addApplication(application);
+    if (config.isEnablePolicyViolationGrandfathering()) {
+      application.setPolicyViolationGrandfatheringEnabled(true);
+      new ApplicationDAO().update(application);
+    }
     return applicationAdapter.convert(application);
   }
 

@@ -43,6 +43,9 @@ public class Application
   @Column(name = "contact_internal_name")
   private String contactInternalName;
 
+  @Column(name = "policy_violation_grandfathering_enabled")
+  private Boolean policyViolationGrandfatheringEnabled;
+
   public Application() {
   }
 
@@ -164,5 +167,13 @@ public class Application
   @JsonIgnore
   public OwnerType getType() {
     return OwnerType.APPLICATION;
+  }
+
+  public Boolean isPolicyViolationGrandfatheringEnabled() {
+    return policyViolationGrandfatheringEnabled;
+  }
+
+  public void setPolicyViolationGrandfatheringEnabled(Boolean policyViolationGrandfatheringEnabled) {
+    this.policyViolationGrandfatheringEnabled = policyViolationGrandfatheringEnabled;
   }
 }

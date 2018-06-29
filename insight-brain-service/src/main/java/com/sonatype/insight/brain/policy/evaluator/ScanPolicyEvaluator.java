@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -79,6 +80,8 @@ public class ScanPolicyEvaluator
   private final InsightWork work;
 
   private final ReportService reportService;
+
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -155,9 +158,8 @@ public class ScanPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, components, forMonitoring);
 
     // Save the policy evaluation and violations
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = persistPolicyResults(appId, scanId, stage, forMonitoring,
-        policyResults,
-        components);
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = persistPolicyResults(application, scanId, stage,
+        forMonitoring, policyResults, components);
 
     createReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
@@ -181,13 +183,14 @@ public class ScanPolicyEvaluator
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
   }
 
-  private ScanPolicyEvaluatorResults persistPolicyResults(String appId,
+  private ScanPolicyEvaluatorResults persistPolicyResults(Application app,
                                                           String scanId,
                                                           Stage stage,
                                                           boolean forMonitoring,
                                                           PolicyResults policyResults,
                                                           List<Component> components)
   {
+    String appId = app.getId();
     Object lock = getPersistenceLock(appId);
     synchronized (lock) {
       long start = System.currentTimeMillis();
@@ -251,8 +254,9 @@ public class ScanPolicyEvaluator
           }
         }
 
-        setGrandfatheredPolicyViolations(tx, appId, results.allViolations);
-        results.activeViolations = results.allViolations.stream().filter(PolicyViolation::isActive).collect(toList());
+        boolean isFirstEvaluation = lastPrimaryPolicyEvaluation == null;
+        setGrandfatheredPolicyViolations(tx, app, isFirstEvaluation, policyEvaluation.getTime(),
+            results.allViolations);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
@@ -300,7 +304,12 @@ public class ScanPolicyEvaluator
                 oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
                 oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
               }
+              oldPolicyViolation.setGrandfatherTime(newPolicyViolation.getGrandfatherTime());
               policyViolationDAO.update(tx, oldPolicyViolation);
+
+              // Update the violation in the list of all violation to be the one actually saved to the db.
+              results.allViolations.remove(newPolicyViolation);
+              results.allViolations.add(oldPolicyViolation);
             }
           }
 
@@ -309,7 +318,9 @@ public class ScanPolicyEvaluator
 
         tx.commit();
 
-        if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
+        results.activeViolations = results.allViolations.stream().filter(PolicyViolation::isActive).collect(toList());
+
+        if (!isReevaluation && !isFirstEvaluation) {
           String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
           deletePreviousScanFile(appId, stage, previousScanId);
         }
@@ -324,19 +335,40 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * Updates the grandfathered policy violations based on the existing grandfathered violations (across all stages).
+   * If policy violation grandfathering is enabled for the specified application, then it updates the grandfathered
+   * policy violations:
+   * - if this is the first policy evaluation, then all policy violations are marked as grandfathered
+   * - if this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
+   * existing grandfathered policy violations (across all stages).
    */
   private void setGrandfatheredPolicyViolations(TransactionContext tx,
-                                                String appId,
+                                                Application app,
+                                                boolean isFirstEvaluationForStage,
+                                                Date policyEvaluationTime,
                                                 List<PolicyViolation> policyViolations)
   {
-    List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO.getUnfixedGrandfatheredByApplicationId(tx,
-        appId);
-    PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
-        .digestPolicyViolations(grandfatheredPolicyViolations, policyViolations);
-    policyViolationDiff.getSame().forEach( //
-        (grandfatheredPolicyViolation, newPolicyViolation) -> newPolicyViolation
-            .setGrandfatherTime(grandfatheredPolicyViolation.getGrandfatherTime()));
+    if (!isPolicyViolationGrandfatheringEnabled(app)) {
+      return;
+    }
+
+    if (isFirstEvaluationForStage) {
+      // Only policy violations with threat level <= 8 should be grandfathered.
+      policyViolations.stream().filter(policyViolation -> policyViolation.getThreatLevel() <= 8)
+          .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
+    }
+    else {
+      List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
+          .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
+          .digestPolicyViolations(grandfatheredPolicyViolations, policyViolations);
+      policyViolationDiff.getSame().forEach( //
+          (grandfatheredPolicyViolation, newPolicyViolation) -> newPolicyViolation
+              .setGrandfatherTime(grandfatheredPolicyViolation.getGrandfatherTime()));
+    }
+  }
+
+  private boolean isPolicyViolationGrandfatheringEnabled(Application app) {
+    return Boolean.TRUE.equals(app.isPolicyViolationGrandfatheringEnabled());
   }
 
   private String getFilename(ComponentFact componentFact) {

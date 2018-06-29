@@ -34,6 +34,7 @@ CREATE TABLE application (
   name_lowercase_no_whitespace varchar(200) NOT NULL,
   organization_id varchar(50) NOT NULL,
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
+  policy_violation_grandfathering_enabled boolean,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase),
   CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace),

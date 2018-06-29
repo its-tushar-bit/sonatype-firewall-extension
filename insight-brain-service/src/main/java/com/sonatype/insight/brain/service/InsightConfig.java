@@ -231,6 +231,10 @@ public class InsightConfig
   @JsonProperty
   private boolean enableDefaultPasswordWarning = true;
 
+  // Temp config property to enable grandfathering on new organization created via the UI.
+  @JsonProperty
+  private boolean enablePolicyViolationGrandfathering;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -614,5 +618,9 @@ public class InsightConfig
 
   public void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
     this.enableDefaultPasswordWarning = enableDefaultPasswordWarning;
+  }
+
+  public boolean isEnablePolicyViolationGrandfathering() {
+    return enablePolicyViolationGrandfathering;
   }
 }

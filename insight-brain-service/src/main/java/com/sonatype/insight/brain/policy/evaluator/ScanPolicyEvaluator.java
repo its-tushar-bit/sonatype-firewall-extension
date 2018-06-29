@@ -31,7 +31,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -80,8 +79,6 @@ public class ScanPolicyEvaluator
   private final InsightWork work;
 
   private final ReportService reportService;
-
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 

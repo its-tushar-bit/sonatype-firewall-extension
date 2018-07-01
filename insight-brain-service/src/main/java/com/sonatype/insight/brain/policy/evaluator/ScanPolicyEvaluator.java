@@ -279,8 +279,9 @@ public class ScanPolicyEvaluator
           for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
             PolicyViolation oldPolicyViolation = entry.getKey();
             PolicyViolation newPolicyViolation = entry.getValue();
-            if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
-              // The policy violation was un-waived.
+            if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived() || //
+                !newPolicyViolation.isGrandfathered() && oldPolicyViolation.isGrandfathered()) {
+              // The policy violation was un-waived or un-grandfathered.
               oldPolicyViolation.setFixTime(policyEvaluation.getTime());
               policyViolationDAO.update(tx, oldPolicyViolation);
               if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {

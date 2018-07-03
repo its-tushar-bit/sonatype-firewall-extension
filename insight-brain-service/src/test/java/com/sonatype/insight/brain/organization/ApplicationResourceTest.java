@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -22,14 +21,9 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -329,7 +323,6 @@ public class ApplicationResourceTest
     assertThat(actual.getOrganizationName(), is(org.getName()));
     assertThat(actual.getPolicyEvaluations().size(), is(policyEvaluationCount));
     assertContact(actual.getContact(), contact);
-    assertThat(actual.getHasGrandfatheredPolicyViolations(), is(false));
   }
 
   @Test
@@ -420,7 +413,6 @@ public class ApplicationResourceTest
 
     ApplicationManagementSummaryDTO applicationSummary = response.getBody(ApplicationManagementSummaryDTO.class);
     assertApplicationManagementSummaryDTO(applicationSummary, application, organization, 2, expectedContact);
-    assertThat(applicationSummary.getHasGrandfatheredPolicyViolations(), is(false));
 
     policyEvaluations = applicationSummary.getPolicyEvaluations();
     stageTypeIds = policyEvaluations.keySet().toArray(new String[0]);
@@ -439,28 +431,6 @@ public class ApplicationResourceTest
 
     Assert.assertNotNull(policyEvaluationsResults);
     Assert.assertEquals(0, policyEvaluationsResults.size());
-  }
-
-  @Test
-  public void testGetApplicationManagementSummary_WithGrandfatheredViolations() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-
-    Policy appPolicy = tempEntity.newPolicy(application.getId(), "AppPolicy");
-    PolicyEvaluation policyEvaluation = tempEntity
-        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId1App1");
-    PolicyViolation policyViolation = tempEntity
-        .newPolicyViolation(policyEvaluation, appPolicy, "g1", "a1", "v1", "h1", "r1");
-    policyViolation.setGrandfatherTime(new Date());
-    new PolicyViolationDAO().update(policyViolation);
-
-    HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY)
-        .parameter(application.getPublicId()).get();
-    assertResponseStatus(200, response);
-
-    ApplicationManagementSummaryDTO applicationSummary = response.getBody(ApplicationManagementSummaryDTO.class);
-    assertThat(applicationSummary.getId(), is(application.getId()));
-    assertThat(applicationSummary.getPolicyEvaluations().size(), is(1));
-    assertThat(applicationSummary.getHasGrandfatheredPolicyViolations(), is(true));
   }
 
   @Test(timeout = 10000)

@@ -29,8 +29,6 @@ public class ApplicationManagementSummaryDTO
 
   private ContactDTO contact;
 
-  private boolean hasGrandfatheredPolicyViolations;
-
   public String getId() {
     return id;
   }
@@ -106,20 +104,6 @@ public class ApplicationManagementSummaryDTO
    */
   public void setContact(final ContactDTO contact) {
     this.contact = contact;
-  }
-
-  /**
-   * @since POLICY_VIOLATION_GRANDFATHERING
-   */
-  public boolean getHasGrandfatheredPolicyViolations() {
-    return hasGrandfatheredPolicyViolations;
-  }
-
-  /**
-   * @since POLICY_VIOLATION_GRANDFATHERING
-   */
-  public void setHasGrandfatheredPolicyViolations(final boolean hasGrandfatheredPolicyViolations) {
-    this.hasGrandfatheredPolicyViolations = hasGrandfatheredPolicyViolations;
   }
 
   @Override

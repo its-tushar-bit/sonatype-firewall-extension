@@ -536,6 +536,28 @@ public class ApplicationResourceTest
     testValidIconResponse(response);
   }
 
+  @Test
+  public void testRevertGrandfatheringOnNextEvaluation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    applicationDAO.update(application);
+
+    HttpResponse response = restRequest().path(ApplicationResource.REVERT_GRANDFATHERING_PATH)
+        .parameter(application.getPublicId()).put();
+    assertResponseStatus(204, response);
+    assertThat(applicationDAO.getByPublicId(application.getPublicId()).isPolicyViolationGrandfatheringEnabled(),
+        is(false));
+  }
+
+  @Test
+  public void testRevertGrandfatheringOnNextEvaluation_BadAppId() throws Exception {
+    HttpResponse response = restRequest().path(ApplicationResource.REVERT_GRANDFATHERING_PATH)
+        .parameter("badAppId").put();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(), is("Could not find an application with public ID badAppId."));
+  }
+
   private void createDirectory(File dir) {
     if (!dir.isDirectory()) {
       Assert.assertTrue("create directory " + dir.getAbsolutePath(), dir.mkdirs());

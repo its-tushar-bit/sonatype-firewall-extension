@@ -47,9 +47,7 @@ public class ApplicationAdapter
     this(userDirectory, new OrganizationDAO());
   }
 
-  public ApplicationAdapter(UserDirectory userDirectory,
-                            OrganizationDAO organizationDAO)
-  {
+  public ApplicationAdapter(UserDirectory userDirectory, OrganizationDAO organizationDAO) {
     this.userDirectory = userDirectory;
     this.organizationDAO = organizationDAO;
   }

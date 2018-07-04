@@ -440,36 +440,6 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetGrandfatheredByApplicationId() {
-    PolicyViolationDAO dao = new PolicyViolationDAO();
-
-    Policy policy1 = tempEntity.newPolicy(applicationId, "policy-1");
-    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
-    tempEntity.newPolicyViolation(policyEvaluation1, policy1);
-    PolicyViolation grandfatheredViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
-    grandfatheredViolation1.setGrandfatherTime(policyEvaluation1.getTime());
-    dao.update(grandfatheredViolation1);
-
-    String applicationId2 = tempEntity.newApplicationWithParent().getId();
-    Policy policy2 = tempEntity.newPolicy(applicationId2, "policy-2");
-    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(applicationId2, BuildStageType.ID, "scan-2");
-    tempEntity.newPolicyViolation(policyEvaluation2, policy2);
-    PolicyViolation grandfatheredViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
-    grandfatheredViolation2.setGrandfatherTime(policyEvaluation2.getTime());
-    dao.update(grandfatheredViolation2);
-
-    List<PolicyViolation> violations1 = dao.getGrandfatheredByApplicationId(applicationId);
-
-    assertThat(violations1, hasSize(1));
-    assertThat(violations1.get(0).getId(), is(grandfatheredViolation1.getId()));
-
-    List<PolicyViolation> violations2 = dao.getGrandfatheredByApplicationId(applicationId2);
-
-    assertThat(violations2, hasSize(1));
-    assertThat(violations2.get(0).getId(), is(grandfatheredViolation2.getId()));
-  }
-
-  @Test
   public void testGetUnfixedGrandfatheredByApplicationId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
 
@@ -496,13 +466,15 @@ public class PolicyViolationDAOTest
     fixedGrandfatheredViolation2.setGrandfatherTime(new Date());
     dao.update(fixedGrandfatheredViolation2);
 
-    List<PolicyViolation> violations1 = dao.getUnfixedGrandfatheredByApplicationId(applicationId);
-    assertThat(violations1, hasSize(1));
-    assertThat(violations1.get(0).getId(), is(unfixedGrandfatheredViolation1.getId()));
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyViolation> violations1 = dao.getUnfixedGrandfatheredByApplicationId(tx, applicationId);
+      assertThat(violations1, hasSize(1));
+      assertThat(violations1.get(0).getId(), is(unfixedGrandfatheredViolation1.getId()));
 
-    List<PolicyViolation> violations2 = dao.getUnfixedGrandfatheredByApplicationId(applicationId2);
-    assertThat(violations2, hasSize(1));
-    assertThat(violations2.get(0).getId(), is(unfixedGrandfatheredViolation2.getId()));
+      List<PolicyViolation> violations2 = dao.getUnfixedGrandfatheredByApplicationId(tx, applicationId2);
+      assertThat(violations2, hasSize(1));
+      assertThat(violations2.get(0).getId(), is(unfixedGrandfatheredViolation2.getId()));
+    }
   }
 
   @Test

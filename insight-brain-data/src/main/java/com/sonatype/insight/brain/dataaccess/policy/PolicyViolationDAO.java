@@ -147,19 +147,6 @@ public class PolicyViolationDAO
     return getList(sQuery, appId, stageTypeIds, from, to);
   }
 
-  public List<PolicyViolation> getGrandfatheredByApplicationId(String appId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1" + //
-        " AND entity.grandfatherTime IS NOT NULL";
-    return getList(sQuery, appId);
-  }
-
-  public List<PolicyViolation> getUnfixedGrandfatheredByApplicationId(String appId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getUnfixedGrandfatheredByApplicationId(tx, appId);
-    }
-  }
-
   public List<PolicyViolation> getUnfixedGrandfatheredByApplicationId(TransactionContext tx, String appId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1" + //

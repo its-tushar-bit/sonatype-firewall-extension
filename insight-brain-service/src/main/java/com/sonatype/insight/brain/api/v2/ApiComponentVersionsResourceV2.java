@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -40,7 +39,7 @@ public class ApiComponentVersionsResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifier) throws IOException {
+  public List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifier) {
     return componentVersionsService.getComponentVersions(componentIdentifier);
   }
 }

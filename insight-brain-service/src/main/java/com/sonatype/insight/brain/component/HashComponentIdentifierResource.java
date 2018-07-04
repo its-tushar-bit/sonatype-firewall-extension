@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.component;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -47,14 +45,14 @@ public class HashComponentIdentifierResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public HashComponentIdentifierDTO set(final HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  public HashComponentIdentifierDTO set(final HashComponentIdentifier hashComponentIdentifier) {
     return hashComponentIdentifierService.set(hashComponentIdentifier);
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public HashComponentIdentifierDTO update(final HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  public HashComponentIdentifierDTO update(final HashComponentIdentifier hashComponentIdentifier) {
     return hashComponentIdentifierService.update(hashComponentIdentifier);
   }
 

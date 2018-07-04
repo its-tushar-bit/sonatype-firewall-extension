@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.component;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class HashComponentIdentifierService
   }
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
-  public HashComponentIdentifierDTO set(final HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  public HashComponentIdentifierDTO set(final HashComponentIdentifier hashComponentIdentifier) {
     ComponentIdentifierValidator.validate(hashComponentIdentifier.getComponentIdentifier());
 
     ensureUnknownComponent(hashComponentIdentifier);
@@ -68,7 +67,7 @@ public class HashComponentIdentifierService
   }
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
-  public HashComponentIdentifierDTO update(final HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  public HashComponentIdentifierDTO update(final HashComponentIdentifier hashComponentIdentifier) {
     ComponentIdentifierValidator.validate(hashComponentIdentifier.getComponentIdentifier());
 
     ensureUnknownComponent(hashComponentIdentifier);
@@ -109,7 +108,7 @@ public class HashComponentIdentifierService
     ReportService.flushReportChanges();
   }
 
-  private void ensureUnknownComponent(final HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  private void ensureUnknownComponent(final HashComponentIdentifier hashComponentIdentifier) {
     ComponentSummary componentSummary = getComponentSummary(hashComponentIdentifier.getComponentIdentifier());
 
     if (componentSummary.isKnown()) {
@@ -119,7 +118,7 @@ public class HashComponentIdentifierService
     }
   }
 
-  private ComponentSummary getComponentSummary(final ComponentIdentifier componentIdentifier) throws IOException {
+  private ComponentSummary getComponentSummary(final ComponentIdentifier componentIdentifier) {
     Map<String, String> queryParams = Collections.singletonMap("componentIdentifier",
         ComponentIdentifierAdapter.toJson(componentIdentifier));
     return client.get(ComponentSummary.class, "rest/component/summary", queryParams);

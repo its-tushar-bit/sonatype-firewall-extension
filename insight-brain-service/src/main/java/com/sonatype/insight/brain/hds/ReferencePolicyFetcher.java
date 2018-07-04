@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -26,7 +24,7 @@ public class ReferencePolicyFetcher
     this.hdsClient = hdsClient;
   }
 
-  public PolicyExportResult getReferencePolicies() throws IOException {
+  public PolicyExportResult getReferencePolicies() {
     return hdsClient.get(PolicyExportResult.class, REFERENCE_POLICY_PATH, null);
   }
 }

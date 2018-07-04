@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,9 +40,7 @@ public class ApiComponentVersionsServiceV2
     this.hdsClient = hdsClient;
   }
 
-  public List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifierDTO)
-      throws IOException
-  {
+  public List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifierDTO) {
     long start = System.currentTimeMillis();
 
     ComponentIdentifier componentIdentifier;

@@ -758,11 +758,11 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testRejectEmptyPasswordAsPerRfc4513Section5_1_2() throws Exception {
+  public void testAuthenticateUser_RejectEmptyPasswordAsPerRfc4513Section5_1_2() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    createUserMapping(ldapServer);
 
     try {
       ldapService.authenticateUser("test_user", "".toCharArray());
@@ -771,6 +771,14 @@ public class LdapServiceTest
     catch (AuthenticationException expected) {
       // expected
     }
+  }
+
+  @Test
+  public void testTestUserLogin_RejectEmptyPasswordAsPerRfc4513Section5_1_2() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    startLdapServer(testLdapServer1, ldapConnection);
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     try {
       ldapService.testUserLogin(umap, "test_user", "".toCharArray());
@@ -1181,7 +1189,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testFindUsersByGroup_Static_UsernameExpression() throws Exception {
+  public void testGetUsersByGroup_Static_UsernameExpression() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -1199,7 +1207,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testFindUsersByGroup_Static_DnExpression() throws Exception {
+  public void testGetUsersByGroup_Static_DnExpression() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -1217,7 +1225,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testFindUsersByGroup_Static_wildcardMatchingNotExpected() throws Exception {
+  public void testGetUsersByGroup_Static_wildcardMatchingNotExpected() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -1235,7 +1243,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testFindUsersByGroup_Dynamic_wildcardMatchingNotExpected() throws Exception {
+  public void testGetUsersByGroup_Dynamic_wildcardMatchingNotExpected() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -1497,7 +1505,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testFindUsersByGroup_Dynamic() throws Exception {
+  public void testGetUsersByGroup_Dynamic() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);

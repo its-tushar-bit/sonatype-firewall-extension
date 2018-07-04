@@ -51,13 +51,12 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testOrgImport_InsertFailure() throws Exception {
-    String orgId = "PolicyResourceTest-testOrgImport_Insert";
+  public void testImportPolicies_OrganizationDoesNotExist() throws Exception {
+    String orgId = "OrgDoesNotExist";
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).path("import")
         .part("file", "file", createImportBody()).post();
 
-    // ensure that we cannot import to an Org that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Cannot find organization with ID " + orgId + "."));
   }
@@ -146,19 +145,19 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testCreateInvalidPolicy_AppLevel() throws Exception {
+  public void testAddPolicy_InvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testCreateInvalidPolicy";
     tempEntity.newApplicationWithParent(applicationPublicId);
-    testCreateInvalidPolicy(OwnerType.APPLICATION, applicationPublicId);
+    testAddPolicy_InvalidPolicy(OwnerType.APPLICATION, applicationPublicId);
   }
 
   @Test
-  public void testCreateInvalidPolicy_OrgLevel() throws Exception {
+  public void testAddPolicy_InvalidPolicy_OrgLevel() throws Exception {
     String orgId = tempEntity.newOrganization("test").getId();
-    testCreateInvalidPolicy(OwnerType.ORGANIZATION, orgId);
+    testAddPolicy_InvalidPolicy(OwnerType.ORGANIZATION, orgId);
   }
 
-  private void testCreateInvalidPolicy(OwnerType ownerType, String ownerId) throws Exception {
+  private void testAddPolicy_InvalidPolicy(OwnerType ownerType, String ownerId) throws Exception {
     Policy policy = new Policy();
     policy.setName(null);
     Constraint constraint = new Constraint();
@@ -171,19 +170,21 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testUpdateInvalidPolicy_AppLevel() throws Exception {
+  public void testUpdatePolicy_InvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testUpdateInvalidPolicy";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    testUpdateInvalidPolicy(OwnerType.APPLICATION, app.getId(), app.getPublicId());
+    testUpdatePolicy_InvalidPolicy(OwnerType.APPLICATION, app.getId(), app.getPublicId());
   }
 
   @Test
-  public void testUpdateInvalidPolicy_OrgLevel() throws Exception {
+  public void testUpdatePolicy_InvalidPolicy_OrgLevel() throws Exception {
     String orgId = tempEntity.newOrganization("test").getId();
-    testUpdateInvalidPolicy(OwnerType.ORGANIZATION, orgId, orgId);
+    testUpdatePolicy_InvalidPolicy(OwnerType.ORGANIZATION, orgId, orgId);
   }
 
-  private void testUpdateInvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid) throws Exception {
+  private void testUpdatePolicy_InvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid)
+      throws Exception
+  {
     // Create a valid policy
     Policy policy = new Policy();
     policy.setOwnerId(ownerId);
@@ -411,7 +412,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testImportOfNonJsonPolicyFile() throws Exception {
+  public void testImportPolicies_NonJsonPolicyFile() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
         .part("file", "garbage.png", "garbage").post();
@@ -421,7 +422,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testImportOfJsonFileIncorrectFormat() throws Exception {
+  public void testImportPolicies_JsonFileIncorrectFormat() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
         .part("file", "badPolicy.json", "{\"badJson\":\"noClosingBraces\"").post();
@@ -448,7 +449,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testExportImport_Organization() throws Exception {
+  public void testExportImport() throws Exception {
     // Export
     Organization fromOrg = tempEntity.newOrganization();
     tempEntity.newPolicy(fromOrg.getId(), "Test Policy");
@@ -477,7 +478,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testAppImport_NotSupported() throws Exception {
+  public void testImportPolicies_AppImportNotSupported() throws Exception {
     HttpResponse response = restRequest(OwnerType.APPLICATION, "foo").path("import")
         .part("file", "file", createImportBody()).post();
 
@@ -487,7 +488,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testOrgImport_NoPolicies() throws Exception {
+  public void testImportPolicies_NoPolicies() throws Exception {
     PolicyExportResult policyExportResult = new PolicyExportResult();
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, tempEntity.newOrganization().getId()).path("import")

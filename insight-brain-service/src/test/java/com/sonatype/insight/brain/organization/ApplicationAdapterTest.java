@@ -23,12 +23,13 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
 
 import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,51 +75,50 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testConvertApplication() {
-
+  public void testConvert_Application() {
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
     createMember(contactInternalName, userFirstName, userLastName, userEmail);
 
-    ContactDTO expectedContactDTO = createExpectedContact(contactInternalName, userFirstName + " " + userLastName,
+    ContactDTO expectedContactDTO = createExpectedContactDTO(contactInternalName, userFirstName + " " + userLastName,
         InternalRealm.DISPLAY_NAME, userEmail);
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
+    ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
+        expectedContactDTO);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
+    assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
   @Test
-  public void testConvertApplication_WithUpperCaseInternalName() {
-
+  public void testConvert_Application_WithUpperCaseInternalName() {
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
     // Member has a name that is in all upper case but searching is done in a case-insensitive manner.
     createMember(contactInternalName.toUpperCase(Locale.ENGLISH), userFirstName, userLastName, userEmail);
 
-    ContactDTO expectedContactDTO = createExpectedContact(contactInternalName.toUpperCase(Locale.ENGLISH),
+    ContactDTO expectedContactDTO = createExpectedContactDTO(contactInternalName.toUpperCase(Locale.ENGLISH),
         userFirstName + " " + userLastName, InternalRealm.DISPLAY_NAME, userEmail);
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
+    ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
+        expectedContactDTO);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
+    assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
   @Test
-  public void testConvertApplication_WithUnfoundUser() {
-
+  public void testConvert_Application_WithUnfoundUser() {
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
-    ContactDTO expectedContact = createExpectedContactForNotFoundError(contactInternalName);
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContact);
+    ContactDTO expectedContact = createExpectedContactDTOForNotFoundError(contactInternalName);
+    ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
+        expectedContact);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
+    assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
   @Test
-  public void testConvertApplication_WithUserDirectoryException() {
-
+  public void testConvert_Application_WithUserDirectoryException() {
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
     UserDirectory.QueryResult result = new UserDirectory.QueryResult(new ArrayList<Member>(),
@@ -126,27 +126,29 @@ public class ApplicationAdapterTest
     UserDirectory mockUserDirectory = mock(UserDirectory.class);
     when(mockUserDirectory.getUsersByName(Collections.singleton(contactInternalName))).thenReturn(result);
 
-    ContactDTO expectedContactDTO = createExpectedContactForUserDirectoryError(contactInternalName);
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
+    ContactDTO expectedContactDTO = createExpectedContactDTOForUserDirectoryError(contactInternalName);
+    ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
+        expectedContactDTO);
 
     applicationAdapter = new ApplicationAdapter(mockUserDirectory);
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
+    assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
   @Test
-  public void testConvertApplication_ExcludeContact() {
+  public void testConvert_Application_ExcludeContact() {
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
     ContactDTO expectedContactDTO = null;
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
+    ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
+        expectedContactDTO);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application, false);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
+    assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
   @Test
-  public void testCreateApplications() {
+  public void testConvert_Applications() {
     List<ApplicationDTO> expectedApplicationDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
     List<Member> members = new ArrayList<>();
@@ -165,9 +167,9 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContactDTO = createExpectedContact(contactName, displayName, InternalRealm.DISPLAY_NAME,
+      ContactDTO expectedContactDTO = createExpectedContactDTO(contactName, displayName, InternalRealm.DISPLAY_NAME,
           email);
-      ApplicationDTO expectedApplicationDTO = createExpectedDTO(appName, appId, expectedContactDTO);
+      ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(appName, appId, expectedContactDTO);
       expectedApplicationDTOs.add(expectedApplicationDTO);
 
       // These members will be returned by the user directory.
@@ -177,12 +179,11 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationDTO> actualApplicationDTOs = applicationAdapter.convert(applications);
-    assertApplications(actualApplicationDTOs, expectedApplicationDTOs);
+    assertApplicationDTOs(actualApplicationDTOs, expectedApplicationDTOs);
   }
 
   @Test
   public void testCreateApplicationManagementSummaries() {
-
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
 
     List<Application> applications = new ArrayList<>();
@@ -201,7 +202,8 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContact(contactName, displayName, InternalRealm.DISPLAY_NAME, email);
+      ContactDTO expectedContact = createExpectedContactDTO(contactName, displayName, InternalRealm.DISPLAY_NAME,
+          email);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       createMember(contactName, firstName, lastName, email);
@@ -215,7 +217,6 @@ public class ApplicationAdapterTest
 
   @Test
   public void testCreateApplicationManagementSummaries_WithUnfoundUsers() {
-
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
 
@@ -230,7 +231,7 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContactForNotFoundError(contactName);
+      ContactDTO expectedContact = createExpectedContactDTOForNotFoundError(contactName);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       // The names of the members that will be queried but not found.
@@ -245,7 +246,6 @@ public class ApplicationAdapterTest
 
   @Test
   public void testCreateApplicationManagementSummaries_WithUserDirectoryException() {
-
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
 
@@ -260,7 +260,7 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContactForUserDirectoryError(contactName);
+      ContactDTO expectedContact = createExpectedContactDTOForUserDirectoryError(contactName);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       memberNames.add(contactName);
@@ -281,7 +281,6 @@ public class ApplicationAdapterTest
 
   @Test
   public void testCreateApplicationManagementSummaries_WithNullUserNames() {
-
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
 
@@ -305,7 +304,6 @@ public class ApplicationAdapterTest
 
   @Test
   public void testCreateApplicationManagementSummaries_WithSameUser() {
-
     String displayName = userFirstName + " " + userLastName;
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
@@ -320,8 +318,8 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactInternalName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContact(contactInternalName, displayName, InternalRealm.DISPLAY_NAME,
-          userEmail);
+      ContactDTO expectedContact = createExpectedContactDTO(contactInternalName, displayName,
+          InternalRealm.DISPLAY_NAME, userEmail);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
@@ -335,7 +333,6 @@ public class ApplicationAdapterTest
 
   @Test
   public void testCreateApplicationManagementSummaries_NotAllUsersFound() {
-
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
 
@@ -358,10 +355,10 @@ public class ApplicationAdapterTest
       // All names will be passed to the user directory, but only half of them will be found.
       if (i % 2 == 0) {
         createMember(contactName, firstName, lastName, email);
-        expectedContact = createExpectedContact(contactName, displayName, InternalRealm.DISPLAY_NAME, email);
+        expectedContact = createExpectedContactDTO(contactName, displayName, InternalRealm.DISPLAY_NAME, email);
       }
       else {
-        expectedContact = createExpectedContactForNotFoundError(contactName);
+        expectedContact = createExpectedContactDTOForNotFoundError(contactName);
       }
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
@@ -378,7 +375,6 @@ public class ApplicationAdapterTest
                                                                                         String appId,
                                                                                         ContactDTO contact)
   {
-
     ApplicationManagementSummaryDTO dto = new ApplicationManagementSummaryDTO();
     dto.setName(appName);
     dto.setId(appId);
@@ -390,8 +386,7 @@ public class ApplicationAdapterTest
     return dto;
   }
 
-  private ApplicationDTO createExpectedDTO(String appName, String appId, ContactDTO contact) {
-
+  private ApplicationDTO createExpectedApplicationDTO(String appName, String appId, ContactDTO contact) {
     ApplicationDTO expectedApplicationDTO = new ApplicationDTO();
     expectedApplicationDTO.setPublicId(publicId);
     expectedApplicationDTO.setOrganizationName(organizationName);
@@ -403,24 +398,21 @@ public class ApplicationAdapterTest
     return expectedApplicationDTO;
   }
 
-  private ContactDTO createExpectedContactForNotFoundError(String internalName) {
-
-    ContactDTO expectedContact = createExpectedContact(internalName, null, null, null);
+  private ContactDTO createExpectedContactDTOForNotFoundError(String internalName) {
+    ContactDTO expectedContact = createExpectedContactDTO(internalName, null, null, null);
     expectedContact.setError("The username " + internalName + " no longer exists.");
 
     return expectedContact;
   }
 
-  private ContactDTO createExpectedContactForUserDirectoryError(String internalName) {
-
-    ContactDTO expectedContact = createExpectedContact(internalName, null, null, null);
+  private ContactDTO createExpectedContactDTOForUserDirectoryError(String internalName) {
+    ContactDTO expectedContact = createExpectedContactDTO(internalName, null, null, null);
     expectedContact.setError(USER_DIRECTORY_ERROR);
 
     return expectedContact;
   }
 
-  private ContactDTO createExpectedContact(String internalName, String displayName, String realm, String email) {
-
+  private ContactDTO createExpectedContactDTO(String internalName, String displayName, String realm, String email) {
     ContactDTO expectedContact = new ContactDTO();
     expectedContact.setInternalName(internalName);
     expectedContact.setDisplayName(displayName);
@@ -450,47 +442,44 @@ public class ApplicationAdapterTest
     return member;
   }
 
-  private void assertApplications(List<ApplicationDTO> actualApplicationDTOs,
-                                  List<ApplicationDTO> expectedApplicationDTOs)
+  private void assertApplicationDTOs(List<ApplicationDTO> actualApplicationDTOs,
+                                     List<ApplicationDTO> expectedApplicationDTOs)
   {
-
-    Assert.assertThat(actualApplicationDTOs.size(), is(expectedApplicationDTOs.size()));
+    assertThat(actualApplicationDTOs.size(), is(expectedApplicationDTOs.size()));
     for (int i = 0; i < actualApplicationDTOs.size(); i++) {
-      assertApplication(actualApplicationDTOs.get(i), expectedApplicationDTOs.get(i));
+      assertApplicationDTO(actualApplicationDTOs.get(i), expectedApplicationDTOs.get(i));
     }
   }
 
-  private void assertApplication(ApplicationDTO actualApplicationDTO, ApplicationDTO expectedApplicationDTO) {
+  private void assertApplicationDTO(ApplicationDTO actualApplicationDTO, ApplicationDTO expectedApplicationDTO) {
+    assertNotNull(actualApplicationDTO);
+    assertNotNull(expectedApplicationDTO);
+    assertThat(actualApplicationDTO.getId(), is(expectedApplicationDTO.getId()));
+    assertThat(actualApplicationDTO.getName(), is(expectedApplicationDTO.getName()));
+    assertThat(actualApplicationDTO.getOrganizationId(), is(expectedApplicationDTO.getOrganizationId()));
+    assertThat(actualApplicationDTO.getOrganizationName(), is(expectedApplicationDTO.getOrganizationName()));
+    assertThat(actualApplicationDTO.getPublicId(), is(expectedApplicationDTO.getPublicId()));
 
-    Assert.assertNotNull(actualApplicationDTO);
-    Assert.assertNotNull(expectedApplicationDTO);
-    Assert.assertThat(actualApplicationDTO.getId(), is(expectedApplicationDTO.getId()));
-    Assert.assertThat(actualApplicationDTO.getName(), is(expectedApplicationDTO.getName()));
-    Assert.assertThat(actualApplicationDTO.getOrganizationId(), is(expectedApplicationDTO.getOrganizationId()));
-    Assert.assertThat(actualApplicationDTO.getOrganizationName(), is(expectedApplicationDTO.getOrganizationName()));
-    Assert.assertThat(actualApplicationDTO.getPublicId(), is(expectedApplicationDTO.getPublicId()));
-
-    assertContact(actualApplicationDTO.getContact(), expectedApplicationDTO.getContact());
+    assertContactDTO(actualApplicationDTO.getContact(), expectedApplicationDTO.getContact());
   }
 
-  private void assertContact(ContactDTO actualContact, ContactDTO expectedContact) {
-
+  private void assertContactDTO(ContactDTO actualContact, ContactDTO expectedContact) {
     if (actualContact == null || expectedContact == null) {
-      Assert.assertThat(actualContact, is(expectedContact));
+      assertThat(actualContact, is(expectedContact));
       return;
     }
 
-    Assert.assertThat(actualContact.getInternalName(), is(expectedContact.getInternalName()));
-    Assert.assertThat(actualContact.getDisplayName(), is(expectedContact.getDisplayName()));
-    Assert.assertThat(actualContact.getEmail(), is(expectedContact.getEmail()));
-    Assert.assertThat(actualContact.getRealm(), is(expectedContact.getRealm()));
-    Assert.assertThat(actualContact.getError(), is(expectedContact.getError()));
+    assertThat(actualContact.getInternalName(), is(expectedContact.getInternalName()));
+    assertThat(actualContact.getDisplayName(), is(expectedContact.getDisplayName()));
+    assertThat(actualContact.getEmail(), is(expectedContact.getEmail()));
+    assertThat(actualContact.getRealm(), is(expectedContact.getRealm()));
+    assertThat(actualContact.getError(), is(expectedContact.getError()));
   }
 
   private void assertApplicationManagementSummaryDTOs(List<ApplicationManagementSummaryDTO> actualList,
                                                       List<ApplicationManagementSummaryDTO> expectedList)
   {
-    Assert.assertThat(actualList.size(), is(expectedList.size()));
+    assertThat(actualList.size(), is(expectedList.size()));
 
     for (int i = 0; i < actualList.size(); i++) {
       ApplicationManagementSummaryDTO actual = actualList.get(i);
@@ -503,13 +492,12 @@ public class ApplicationAdapterTest
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
                                                      ApplicationManagementSummaryDTO expected)
   {
+    assertThat(actual.getId(), is(expected.getId()));
+    assertThat(actual.getName(), is(expected.getName()));
+    assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
+    assertThat(actual.getOrganizationName(), is(expected.getOrganizationName()));
+    assertThat(actual.getPublicId(), is(expected.getPublicId()));
 
-    Assert.assertThat(actual.getId(), is(expected.getId()));
-    Assert.assertThat(actual.getName(), is(expected.getName()));
-    Assert.assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
-    Assert.assertThat(actual.getOrganizationName(), is(expected.getOrganizationName()));
-    Assert.assertThat(actual.getPublicId(), is(expected.getPublicId()));
-
-    assertContact(actual.getContact(), expected.getContact());
+    assertContactDTO(actual.getContact(), expected.getContact());
   }
 }

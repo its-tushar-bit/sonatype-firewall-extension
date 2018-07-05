@@ -159,8 +159,8 @@ public class ComponentPolicyEvaluator
         }
       }
 
-  public static ConditionFact createConditionFact(Condition condition, int conditionIndex, Component component) {
-    final ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
+      componentFact.addConstraintFact(constraintFact);
+      policyFact.addComponentFact(componentFact);
 
       Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
       PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);

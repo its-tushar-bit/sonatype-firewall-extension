@@ -246,7 +246,7 @@ public class PolicyViolationDigesterTest
 
   private static ConditionFact conditionFact(final String conditionTypeId, final String operator, final String value) {
     final Condition condition = new Condition(conditionTypeId, operator, value);
-    return ComponentPolicyEvaluator.createConditionFact(condition, 0 /* conditionIndex */,
+    return ComponentPolicyEvaluator.createConditionFact(condition,
         new MatchFact(ComponentFactory.forGav("G", "A", "V", MatchState.EXACT), null /* policyId */,
             null /* constraintId */, Collections.emptyList() /* conditionTriggers */));
   }

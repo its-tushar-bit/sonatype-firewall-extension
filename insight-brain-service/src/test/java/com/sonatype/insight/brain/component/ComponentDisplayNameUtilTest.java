@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.component;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -24,14 +22,13 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.deriveComponentName;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
-import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPathnames;
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromFilename;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertThat;
 
 public class ComponentDisplayNameUtilTest
@@ -127,30 +124,9 @@ public class ComponentDisplayNameUtilTest
   }
 
   @Test
-  public void testFromPathnames() {
-    List<String> pathnames = Arrays.asList("a/b/c.jar", "c/d/foo.bar/");
-    List<ComponentDisplayNamePart> displayFieldValues = fromPathnames(pathnames, "hash").parts;
-    assertThat(displayFieldValues, is(notNullValue()));
-    assertThat(displayFieldValues, hasSize(3));
-    assertThat(displayFieldValues.get(0).field, is("Filename"));
-    assertThat(displayFieldValues.get(0).value, is("c.jar"));
-    assertThat(displayFieldValues.get(1).field, is(nullValue()));
-    assertThat(displayFieldValues.get(1).value, is(", "));
-    assertThat(displayFieldValues.get(2).field, is("Filename"));
-    assertThat(displayFieldValues.get(2).value, is("foo.bar"));
-
-    displayFieldValues = fromPathnames(Collections.<String>emptyList(), "hash").parts;
-    assertThat(displayFieldValues.size(), is(2));
-    assertThat(displayFieldValues.get(0).field, is(nullValue()));
-    assertThat(displayFieldValues.get(0).value, is("(Anonymized Path) SHA1: "));
-    assertThat(displayFieldValues.get(1).field, is("Hash"));
-    assertThat(displayFieldValues.get(1).value, is("hash"));
-  }
-
-  @Test
   public void testDeriveComponentName() {
     String filename = "c.jar";
-    ComponentDisplayName displayName = fromPathnames(Collections.singleton(filename), "hash");
+    ComponentDisplayName displayName = fromFilename(filename, "hash");
     assertThat(deriveComponentName(createNewestRiskDTO(displayName, null)), is("c.jar"));
 
     assertThat(deriveComponentName(createNewestRiskDTO(null, "c.jar")), is("c.jar"));

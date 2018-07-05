@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.component;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -72,19 +69,6 @@ public class ComponentDisplayNameUtil
   public static ComponentDisplayName fromFilename(String filename, String hash) {
     return fromFilenames(
         !StringUtils.isBlank(filename) ? Collections.singletonList(filename) : Collections.<String>emptyList(), hash);
-  }
-
-  /**
-   * @since 1.24.0
-   */
-  public static ComponentDisplayName fromPathnames(Collection<String> pathNames, String hash) {
-    Set<String> fileNames = new LinkedHashSet<>();
-    if (pathNames != null) {
-      for (String pathName : pathNames) {
-        fileNames.add(new File(pathName).getName());
-      }
-    }
-    return fromFilenames(fileNames, hash);
   }
 
   private static ComponentDisplayName fromFilenames(Collection<String> fileNames, String hash) {

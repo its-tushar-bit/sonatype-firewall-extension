@@ -21,9 +21,13 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -537,25 +541,17 @@ public class ApplicationResourceTest
   }
 
   @Test
-  public void testRevertGrandfatheringOnNextEvaluation() throws Exception {
+  public void testRevokeGrandfathering() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    application.setPolicyViolationGrandfatheringEnabled(true);
-    applicationDAO.update(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
+    Policy policy = tempEntity.newPolicy("test");
+    PolicyViolation policyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
 
-    HttpResponse response = restRequest().path(ApplicationResource.REVERT_GRANDFATHERING_PATH)
+    HttpResponse response = restRequest().path(ApplicationResource.REVOKE_GRANDFATHERING_PATH)
         .parameter(application.getPublicId()).put();
     assertResponseStatus(204, response);
-    assertThat(applicationDAO.getByPublicId(application.getPublicId()).isPolicyViolationGrandfatheringEnabled(),
-        is(false));
-  }
-
-  @Test
-  public void testRevertGrandfatheringOnNextEvaluation_BadAppId() throws Exception {
-    HttpResponse response = restRequest().path(ApplicationResource.REVERT_GRANDFATHERING_PATH)
-        .parameter("badAppId").put();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Could not find an application with public ID badAppId."));
+    policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
+    assertThat(policyViolation.isGrandfathered(), is(false));
   }
 
   private void createDirectory(File dir) {

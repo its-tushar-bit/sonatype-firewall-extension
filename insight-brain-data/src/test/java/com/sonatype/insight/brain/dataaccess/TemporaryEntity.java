@@ -1009,6 +1009,17 @@ public class TemporaryEntity
   }
 
   public PolicyViolation newGrandfatheredPolicyViolation(PolicyEvaluation evaluation,
+                                                         Policy policy)
+  {
+    return newGrandfatheredPolicyViolation(evaluation, policy, ComponentIdentifier.createNpmCoordinates(uuid(), uuid()),
+        newRandomHash());
+  }
+
+  private String newRandomHash() {
+    return uuid().substring(0, 20);
+  }
+
+  public PolicyViolation newGrandfatheredPolicyViolation(PolicyEvaluation evaluation,
                                                          Policy policy,
                                                          ComponentIdentifier componentIdentifier,
                                                          String hash)

@@ -17,8 +17,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -41,22 +44,30 @@ public class ApplicationService
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   private final ApplicationCleaner applicationCleaner;
 
   private final ApplicationHelper applicationHelper;
 
   private final ManagementEventService managementEventService;
 
+  private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
+
   @Inject
   public ApplicationService(ApplicationDAO applicationDAO,
+                            final PolicyViolationDAO policyViolationDAO,
                             final ApplicationCleaner applicationCleaner,
                             final ApplicationHelper applicationHelper,
-                            final ManagementEventService managementEventService)
+                            final ManagementEventService managementEventService,
+                            final PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
   {
     this.applicationDAO = applicationDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
     this.managementEventService = managementEventService;
+    this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -194,5 +205,27 @@ public class ApplicationService
       }
     }
     return applicationIds;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void revokeGrandfathering(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    log.info("Revoking grandfathered policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
+
+    Object lock = policyViolationPersistenceLocks.getLock(app.getId());
+    synchronized (lock) {
+      try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+        tx.begin();
+
+        List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
+            .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+        for (PolicyViolation grandfatheredPolicyViolation : grandfatheredPolicyViolations) {
+          grandfatheredPolicyViolation.setGrandfatherTime(null);
+          policyViolationDAO.update(tx, grandfatheredPolicyViolation);
+        }
+
+        tx.commit();
+      }
+    }
   }
 }

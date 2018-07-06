@@ -72,7 +72,7 @@ public class ApplicationResource
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
-  public static final String REVERT_GRANDFATHERING_PATH = GET_APPLICATION_PATH + "/revertGrandfatheringNextEval";
+  public static final String REVOKE_GRANDFATHERING_PATH = "revokeGrandfathering/{applicationPublicId}";
 
   private final ApplicationAdapter applicationAdapter;
 
@@ -238,16 +238,12 @@ public class ApplicationResource
   }
 
   /**
-   * Intended to be temporary until a UI can be put in place.
-   *
    * @since POLICY_VIOLATION_GRANDFATHERING
    */
   @PUT
-  @Path(REVERT_GRANDFATHERING_PATH)
-  public void revertGrandfatheringOnNextEvaluation(@PathParam("applicationPublicId") String applicationPublicId) {
-    Application application = applicationService.getApplicationByPublicId(applicationPublicId);
-    application.setPolicyViolationGrandfatheringEnabled(false);
-    applicationService.updateApplication(application);
+  @Path(REVOKE_GRANDFATHERING_PATH)
+  public void revokeGrandfathering(@PathParam("applicationPublicId") String applicationPublicId) {
+    applicationService.revokeGrandfathering(applicationPublicId);
   }
 
   private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(final List<Application> applications)

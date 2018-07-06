@@ -54,8 +54,7 @@ public class LabelDAO
   }
 
   /**
-   * @param inherit inherit boolean if {@code true} the returned list will include labels inherited from organization
-   *          hierarchy
+   * @param inherit if {@code true} the returned list will include labels inherited from organization hierarchy.
    */
   public List<Label> getByOwnerId(TransactionContext tx, String ownerId, boolean inherit) {
     final String sQuery = "SELECT label FROM Label label" + //
@@ -168,8 +167,6 @@ public class LabelDAO
   }
 
   private void validateLabelUnique(TransactionContext tx, Label label, boolean update) throws InvalidLabelException {
-    // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
-    // label uniqueness constraints
     final ApplicationDAO appDAO = new ApplicationDAO();
 
     // first, check the same label does not exist in for the same owner

@@ -261,24 +261,6 @@ public class ApplicationComponentDAOTest
     assertThat(components.get(2).getId(), is(componentId3));
   }
 
-  @Test
-  public void testGetCountByComponentIdFormat() {
-    assertThat(dao.getCountByComponentIdFormat(null), is(0));
-    assertThat(dao.getCountByComponentIdFormat(ComponentIdentifier.FORMAT_ANAME), is(0));
-    ApplicationComponent unknownApplicationComponent = tempEntity
-        .newApplicationComponent(application.getId(), BuildStageType.ID, "hash-1", null);
-    ApplicationComponent anameApplicationComponent = tempEntity
-        .newApplicationComponent(application.getId(), BuildStageType.ID, "hash-2",
-            ComponentIdentifier.createAnameCoordinates("n", "q", "v"));
-    assertThat(dao.getCountByComponentIdFormat(null), is(1));
-    assertThat(dao.getCountByComponentIdFormat(ComponentIdentifier.FORMAT_ANAME), is(1));
-    dao.delete(unknownApplicationComponent);
-    assertThat(dao.getCountByComponentIdFormat(null), is(0));
-    assertThat(dao.getCountByComponentIdFormat(ComponentIdentifier.FORMAT_ANAME), is(1));
-    dao.delete(anameApplicationComponent);
-    assertThat(dao.getCountByComponentIdFormat(ComponentIdentifier.FORMAT_ANAME), is(0));
-  }
-
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {
     assertThat(actual, notNullValue());
     assertThat(actual.getApplicationId(), is(expected.getApplicationId()));

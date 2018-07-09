@@ -54,7 +54,6 @@ public class TelemetryScheduler
   Runnable getTelemetryRunnable() {
     return new SystemRunnable(() -> {
       telemetrySender.send(telemetryCollector.collectData());
-      telemetrySender.send(telemetryCollector.collectComponentCountsData());
     });
   }
 

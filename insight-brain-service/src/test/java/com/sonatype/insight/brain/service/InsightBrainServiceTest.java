@@ -90,9 +90,6 @@ public class InsightBrainServiceTest
 
     Date expectedMinCreateTime = new Date();
     getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
-      if (status[0] != 0) {
-        return;
-      }
       status[0] = response.getStatus();
       multipartDataSources[0] = new ByteArrayDataSource(request.getInputStream(), "multipart/form-data");
     }, 204);

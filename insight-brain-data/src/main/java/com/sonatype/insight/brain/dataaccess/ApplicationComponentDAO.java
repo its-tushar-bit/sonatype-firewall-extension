@@ -113,15 +113,4 @@ public class ApplicationComponentDAO
 
     return retval;
   }
-
-  public int getCountByComponentIdFormat(String componentIdFormat) {
-    if (componentIdFormat == null) {
-      String sQuery = "SELECT COUNT(1) FROM ApplicationComponent entity WHERE entity.componentIdFormat IS NULL";
-      return getSingle(Number.class, sQuery).intValue();
-    }
-    else {
-      String sQuery = "SELECT COUNT(1) FROM ApplicationComponent entity WHERE entity.componentIdFormat=?1";
-      return getSingle(Number.class, sQuery, componentIdFormat).intValue();
-    }
-  }
 }

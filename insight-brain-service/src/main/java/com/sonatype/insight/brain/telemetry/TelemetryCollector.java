@@ -9,20 +9,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
@@ -43,19 +38,10 @@ import org.slf4j.LoggerFactory;
 public class TelemetryCollector
 {
   private static final Logger log = LoggerFactory.getLogger(TelemetryCollector.class);
-  
-  private static final String UNKNOWN = "unknown";
-
-  private static final Set<String> ALL_FORMATS = new HashSet<>(Arrays
-      .asList(UNKNOWN, ComponentIdentifier.FORMAT_MAVEN, ComponentIdentifier.FORMAT_NPM,
-          ComponentIdentifier.FORMAT_NUGET, ComponentIdentifier.FORMAT_ANAME, ComponentIdentifier.FORMAT_PYPI,
-          ComponentIdentifier.FORMAT_RPM, ComponentIdentifier.FORMAT_RUBYGEMS));
 
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
-
-  private final ApplicationComponentDAO applicationComponentDAO;
 
   public static final String NUMBER_OF_ORGS = "number_of_orgs";
 
@@ -69,16 +55,10 @@ public class TelemetryCollector
 
   public static final String ODS_SIZE_BYTES = "ods_size_bytes";
 
-  public static final String NUMBER_OF_COMPONENTS = "number_of_components";
-
   @Inject
-  public TelemetryCollector(ApplicationDAO applicationDAO,
-                            OrganizationDAO organizationDAO,
-                            ApplicationComponentDAO applicationComponentDAO)
-  {
+  public TelemetryCollector(ApplicationDAO applicationDAO, OrganizationDAO organizationDAO) {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
-    this.applicationComponentDAO = applicationComponentDAO;
   }
 
   public TelemetryData collectData() {
@@ -137,18 +117,5 @@ public class TelemetryCollector
       log.warn(e.getMessage(), e);
     }
     return null;
-  }
-
-  public TelemetryData collectComponentCountsData() {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.COMPONENT_COUNTS, System.currentTimeMillis());
-    Map<String, Object> attributes = telemetryData.getAttributes();
-    int totalCount = 0;
-    for (String format : ALL_FORMATS) {
-      int count = applicationComponentDAO.getCountByComponentIdFormat(format.equals(UNKNOWN) ? null : format);
-      totalCount += count;
-      attributes.put("number_of_" + format.replace("-", "") + "_components", String.valueOf(count));
-    }
-    attributes.put(NUMBER_OF_COMPONENTS, String.valueOf(totalCount));
-    return telemetryData;
   }
 }

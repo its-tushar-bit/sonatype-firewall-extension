@@ -6,13 +6,14 @@
 package com.sonatype.insight.brain.tools;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.tools.dbutil.DbUtil;
-import com.sonatype.insight.brain.tools.urlrunner.UrlRunnerCli;
 import com.sonatype.insight.brain.tools.resultdiff.ResultDiff;
 import com.sonatype.insight.brain.tools.dbmodifier.DbModifierCli;
+import com.sonatype.insight.brain.tools.scanscrubber.ScanScrubber;
+import com.sonatype.insight.brain.tools.urlrunner.UrlRunnerCli;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -37,6 +38,9 @@ public class Launcher
   @Parameter(names = { "dbmod", "-dbmod" }, description = "Run DbModifier.")
   boolean dbMod;
 
+  @Parameter(names = {"scanscrubber", "-scanscrubber"}, description = "Run ScanScrubber.")
+  boolean scanScrubber;
+
   private Launcher() {
   }
 
@@ -52,6 +56,7 @@ public class Launcher
     target = runUrlRunner ? Optional.of(UrlRunnerCli::main) : target;
     target = runResultDiff ? Optional.of(ResultDiff::main) : target;
     target = dbMod ? Optional.of(DbModifierCli::main) : target;
+    target = scanScrubber ? Optional.of(ScanScrubber::main) : target;
 
     target.ifPresent(util -> util.accept(launchParams));
   }

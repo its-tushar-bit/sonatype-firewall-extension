@@ -22,4 +22,10 @@ public class LauncherTest
     assertTrue(new Launcher("urlrunner").runUrlRunner);
     assertTrue(new Launcher("-urlrunner").runUrlRunner);
   }
+
+  @Test
+  public void testLauncher_ScanScrubber() {
+    assertTrue(new Launcher("scanscrubber").scanScrubber);
+    assertTrue(new Launcher("-scanscrubber").scanScrubber);
+  }
 }

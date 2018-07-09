@@ -280,21 +280,4 @@ public class ApplicationServiceAuthzTest
     }
     assertThat(ids, containsInAnyOrder(app.getId(), app2.getId()));
   }
-
-  @Test
-  public void testRevokeGrandfathering_Authorized() throws Exception {
-    grantWritePermission(app.getId());
-    applicationService.revokeGrandfathering(app.getPublicId());
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testRevokeGrandfathering_Unauthorized() throws Exception {
-    login();
-    applicationService.revokeGrandfathering(app.getPublicId());
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testRevokeGrandfathering_Unauthenticated() throws Exception {
-    applicationService.revokeGrandfathering(app.getPublicId());
-  }
 }

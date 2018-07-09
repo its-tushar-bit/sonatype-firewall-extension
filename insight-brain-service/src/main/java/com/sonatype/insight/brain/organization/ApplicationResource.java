@@ -72,8 +72,6 @@ public class ApplicationResource
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
-  public static final String REVOKE_GRANDFATHERING_PATH = "revokeGrandfathering/{applicationPublicId}";
-
   private final ApplicationAdapter applicationAdapter;
 
   private final InsightWork work;
@@ -235,15 +233,6 @@ public class ApplicationResource
   @Path(GET_APPLICATION_PATH)
   public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
     applicationService.deleteApplicationByPublicId(applicationPublicId);
-  }
-
-  /**
-   * @since POLICY_VIOLATION_GRANDFATHERING
-   */
-  @PUT
-  @Path(REVOKE_GRANDFATHERING_PATH)
-  public void revokeGrandfathering(@PathParam("applicationPublicId") String applicationPublicId) {
-    applicationService.revokeGrandfathering(applicationPublicId);
   }
 
   private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(final List<Application> applications)

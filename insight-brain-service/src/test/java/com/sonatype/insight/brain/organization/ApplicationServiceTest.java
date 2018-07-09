@@ -6,24 +6,18 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -228,27 +222,5 @@ public class ApplicationServiceTest
 
     Set<String> applicationIds = applicationService.getApplicationIdsByOrganizationIds(null);
     assertThat(applicationIds, notNullValue());
-  }
-  
-  @Test
-  public void testRevokeGrandfathering() throws Exception {
-    Policy policy = tempEntity.newPolicy("test");
-    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scanId1");
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    PolicyViolation fixedGrandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation1,
-        policy);
-    fixedGrandfatheredPolicyViolation.setFixTime(new Date());
-    policyViolationDAO.update(fixedGrandfatheredPolicyViolation);
-    PolicyViolation grandfatheredPolicyViolation1 = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation1,
-        policy);
-    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "scanId2");
-    PolicyViolation grandfatheredPolicyViolation2 = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation2,
-        policy);
-
-    applicationService.revokeGrandfathering(app1.getPublicId());
-
-    assertThat(policyViolationDAO.getById(fixedGrandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).isGrandfathered(), is(false));
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered(), is(true));
   }
 }

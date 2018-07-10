@@ -108,7 +108,6 @@ public class ScanPolicyEvaluator
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.telemetrySender = telemetrySender;
-  }
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
 

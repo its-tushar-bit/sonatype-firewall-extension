@@ -164,28 +164,6 @@ public abstract class AbstractPolicyEvaluationTest
     return null; // unreachable, only needed to avoid warnings
   }
 
-  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
-                                                        Policy expectedPolicy,
-                                                        Constraint expectedConstraint,
-                                                        String expectedActionTypeId,
-                                                        String expectedConditionTypeId,
-                                                        ConditionTrigger expectedConditionTrigger,
-                                                        List<PolicyAlert> actual)
-  {
-    List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
-        expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
-    if (conditionFacts.isEmpty()) {
-      fail("Cannot find expected policy alert in:" + toString(actual));
-    }
-    
-    for (ConditionFact conditionFact : conditionFacts) {
-      if (conditionFact.getTriggerJson().equals(JsonUtils.format(expectedConditionTrigger))) {
-        return;
-      }
-    }
-    fail("Cannot find expected policy alert with condition trigger in:" + toString(actual));
-  }
-
   public static void assertNotContainsPolicyAlert(Component expectedComponent,
                                                   Policy expectedPolicy,
                                                   Constraint expectedConstraint,

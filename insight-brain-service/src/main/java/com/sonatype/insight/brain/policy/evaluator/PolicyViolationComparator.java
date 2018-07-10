@@ -212,33 +212,6 @@ public class PolicyViolationComparator
         }
       }
 
-      // Condition type
-      int result = conditionFact1.getConditionTypeId().compareTo(conditionFact2.getConditionTypeId());
-      if (result != 0) {
-        return result;
-      }
-
-      // If the condition index is null, then this policy violation was created before we added condition trigger data
-      // to policy violations.
-      // In this case we ignore the condition index and trigger data in the newer policy violation.
-
-      // Condition index
-      if (conditionFact1.getConditionIndex() != null && conditionFact2.getConditionIndex() != null) {
-        result = conditionFact1.getConditionIndex() - conditionFact2.getConditionIndex();
-        if (result != 0) {
-          return result;
-        }
-
-        // Condition trigger
-        // Not all condition types store trigger data.
-        if (conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
-          result = conditionFact1.getTriggerJson().compareTo(conditionFact2.getTriggerJson());
-        }
-        if (result != 0) {
-          return result;
-        }
-      }
-
       return 0;
     }
   }

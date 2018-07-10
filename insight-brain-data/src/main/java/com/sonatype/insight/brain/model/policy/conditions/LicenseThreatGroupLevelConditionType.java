@@ -94,19 +94,6 @@ public class LicenseThreatGroupLevelConditionType
     throw new IllegalArgumentException("Unsupported condition operator:" + operator);
   }
 
-  public boolean evaluateCondition(LicenseThreatGroup licenseThreatGroup,
-                                   String operator,
-                                   Integer licenseThreatGroupLevel)
-  {
-    if (">=".equals(operator)) {
-      return licenseThreatGroup.getThreatLevel() >= licenseThreatGroupLevel;
-    }
-    if ("<=".equals(operator)) {
-      return licenseThreatGroup.getThreatLevel() <= licenseThreatGroupLevel;
-    }
-    throw new IllegalArgumentException("Unsupported condition operator:" + operator);
-  }
-
   private LicenseThreatGroup getLicenseThreatGroupById(Component component, String licenseThreatGroupId) {
     return component.getLicenseThreatGroups().stream().filter(ltg -> ltg.getId().equals(licenseThreatGroupId))
         .findFirst().get();
@@ -128,18 +115,5 @@ public class LicenseThreatGroupLevelConditionType
   public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
     return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex
         + ", new TriggerLicenseThreatGroupWithThreatLevel($licenseThreatGroup)));";
-  }
-
-  @Override
-  public String generateDroolsConditionCode(TransactionContext tx, Condition condition) {
-    return "$licenseThreatGroup : (LicenseThreatGroup (ConditionTypes." + getClass().getSimpleName()
-        + ".evaluateCondition(this, \"" + condition.getOperator() + "\", "
-        + generateDroolsConditionValue(tx, condition.getValue()) + ")) from $component.licenseThreatGroups)";
-  }
-
-  @Override
-  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
-    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex
-        + ", new TriggerLicenseThreatGroup($licenseThreatGroup)));";
   }
 }

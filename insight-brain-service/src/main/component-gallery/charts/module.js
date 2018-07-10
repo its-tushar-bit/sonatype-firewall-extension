@@ -1,10 +1,11 @@
 import lineChart from './lineChart/lineChart';
 import stackedBarChart from './stackedBarChart/stackedBarChart';
 import combinedChart from './combinedChart/combinedChart';
+import violationTrendsModule from './violationTrends/module';
 
 import renderPlottable from './renderPlottable';
 
-export default angular.module('charts', [])
+export default angular.module('charts', [violationTrendsModule.name])
     .component('lineChart', lineChart)
     .component('stackedBarChart', stackedBarChart)
     .component('combinedChart', combinedChart)
@@ -23,5 +24,9 @@ export default angular.module('charts', [])
           .state('Combined chart', {
             url: '/Combined chart',
             template: '<combined-chart></combined-chart>'
+          })
+          .state('Violation Trends', {
+            url: '/Violation Trends',
+            template: '<violation-trends></violation-trends>'
           });
     });

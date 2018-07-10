@@ -121,7 +121,7 @@ public class TelemetrySenderTest
     RuntimeException exception = new RuntimeException();
     doThrow(exception).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
-    telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS, System.currentTimeMillis()));
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS));
 
     logOutput.assertDebug(containsString("Failed to send telemetry."), exception);
   }
@@ -133,8 +133,7 @@ public class TelemetrySenderTest
     doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
         eq(clientUserAgent));
 
-    telemetrySender.send(new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION, System.currentTimeMillis()),
-        clientUserAgent);
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION), clientUserAgent);
 
     // If invocation[0] is not null, then the mock was called with the right client user agent value.
     assertThat(invocation[0], is(notNullValue()));

@@ -90,8 +90,7 @@ public class AutomaticApplicationsConfigurationService
       return;
     }
 
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
-        System.currentTimeMillis());
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
     telemetryData.getAttributes().put(AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR, String.valueOf(isEnabledNow));
 
     telemetrySender.send(telemetryData);

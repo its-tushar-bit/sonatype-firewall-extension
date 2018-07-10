@@ -163,8 +163,7 @@ public class ApplicationSummaryService
   }
 
   private void sendApplicationCreatedTelemetryData(boolean appCreatedAutomatically, String clientUserAgent) {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
-        System.currentTimeMillis());
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
     telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
         String.valueOf(appCreatedAutomatically));
 

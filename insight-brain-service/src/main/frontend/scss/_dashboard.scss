@@ -47,7 +47,7 @@ $iq-cell-affected-apps-width: 109px;
   .iq-table-row {
     display: block;
     
-    td {
+    .iq-cell {
       border-top: none;
     }
   }
@@ -103,7 +103,7 @@ $iq-cell-affected-apps-width: 109px;
 // override default :hover states for table rows because we have gaps between our rows here
 .iq-components-results, .iq-applications-results {
   .iq-table-row.iq-clickable {
-    td {
+    .iq-cell {
       border-top: none;
       border-bottom: none;
 
@@ -113,19 +113,23 @@ $iq-cell-affected-apps-width: 109px;
     }
 
     &:hover {
-      + tr td {
+      .iq-cell {
+        border-top: none;
+      }
+      
+      + .iq-table-row .iq-cell {
         border-top: none;
       }
 
       &:last-child {
-        td {
+        .iq-cell {
           border-bottom: none;
         }
       }
     }
   }
 
-  td {
+  .iq-cell {
     &.iq-cell--heatmap {
       @include semi-bold();
 
@@ -149,7 +153,7 @@ $iq-cell-affected-apps-width: 109px;
   width: $iq-cell-chevron-width;
   max-width: $iq-cell-chevron-width;
 
-  tr:hover & {
+  .iq-table-row:hover & {
     color: $iq-off-black;
   }
 }

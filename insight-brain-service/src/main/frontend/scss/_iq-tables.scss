@@ -17,29 +17,25 @@ thead {
 }
 
 .iq-table-row {
-  td {
-    border-top: 1px solid $iq-grey-1;
-  }
-
   &:last-child {
-    td {
+    .iq-cell {
       border-bottom: 1px solid $iq-grey-1;
     }
   }
 
   &.iq-clickable {
     &:last-child {
-      &:hover td {
+      &:hover .iq-cell {
         border-bottom: 1px solid $iq-grey-4;
       }
     }
 
     &:hover {
-      td {
+      .iq-cell {
         border-top: 1px solid $iq-grey-4;
       }
 
-      + tr td {
+      + .iq-table-row .iq-cell {
         border-top: 1px solid $iq-grey-4;
       }
 
@@ -47,7 +43,7 @@ thead {
         color: $iq-off-black;
       }
     }
-    
+  
     .iq-cell--label {
       @include semi-bold();
 
@@ -59,6 +55,7 @@ thead {
 .iq-cell {
   @extend .truncate-ellipsis;
   
+  border-top: 1px solid $iq-grey-1;
   color: $iq-off-black;
   display: table-cell;
   height: 40px;
@@ -69,6 +66,7 @@ thead {
 
 .iq-cell--header {
   background-color: $iq-grey-1;
+  border-top: none;
   border-left: 1px solid $iq-grey-2;
   color: $iq-slate;
   position: relative;

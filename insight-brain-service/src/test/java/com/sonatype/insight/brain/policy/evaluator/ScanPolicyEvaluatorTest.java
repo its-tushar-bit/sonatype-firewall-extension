@@ -479,7 +479,6 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryData.getAttributes(), is(expectedAttributes));
   }
 
-  private File createScanFile(Application app, String scanId) {
   @Test
   public void testEvaluate_BeforeAndAfterAddingConditionTriggerData() throws Exception {
     // Add a policy

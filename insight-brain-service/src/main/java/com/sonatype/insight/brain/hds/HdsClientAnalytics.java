@@ -73,7 +73,7 @@ public class HdsClientAnalytics
   /**
    * @since 1.20
    */
-  private static String obfuscate(String source) {
+  public static String obfuscate(String source) {
     return HashUtils.hash(source, HashUtils.SHA1);
   }
 }

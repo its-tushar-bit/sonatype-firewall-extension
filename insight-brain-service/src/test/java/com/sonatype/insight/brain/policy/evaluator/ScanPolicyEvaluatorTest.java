@@ -10,17 +10,22 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -28,24 +33,33 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Injector;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class ScanPolicyEvaluatorTest
     extends AbstractBrainServiceTest
@@ -59,6 +73,14 @@ public class ScanPolicyEvaluatorTest
   private TestEventHandler<ApplicationEvaluationEvent> handler;
 
   private InsightWork insightWork;
+  
+  private ReportService reportService;
+  
+  private PolicyThreatsAdapter policyThreatsAdapter;
+  
+  private ComponentPolicyEvaluator componentPolicyEvaluator;
+  
+  private ApplicationEvaluationEventService applicationEvaluationEventService;
 
   @After
   public void after() {
@@ -76,6 +98,10 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator = injector.getInstance(ScanPolicyEvaluator.class);
     asyncEventBus = injector.getInstance(AsyncEventBus.class);
     insightWork = injector.getInstance(InsightWork.class);
+    reportService = injector.getInstance(ReportService.class);
+    policyThreatsAdapter = injector.getInstance(PolicyThreatsAdapter.class);
+    componentPolicyEvaluator = injector.getInstance(ComponentPolicyEvaluator.class);
+    applicationEvaluationEventService = injector.getInstance(ApplicationEvaluationEventService.class);
   }
 
   @Test
@@ -340,6 +366,111 @@ public class ScanPolicyEvaluatorTest
     assertThat(waivedViolation.getPolicyWaiverComment(), is(nullValue()));
 
     assertThat(new PolicyViolationDAO().getByApplicationId(application.getId()), hasSize(8));
+  }
+
+  @Test
+  public void testEvaluate_ApplicationStageComponentCounts() throws Exception {
+    TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
+    String scanId = "scanId";
+    Stage stage = new Stage(Stage.ID_BUILD);
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(insightWork, reportService, policyThreatsAdapter,
+        componentPolicyEvaluator, applicationEvaluationEventService, mockTelemetrySender);
+
+    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("stage_id", Stage.ID_BUILD);
+    expectedAttributes.put("number_of_maven_components", "28");
+    expectedAttributes.put("number_of_components", "28");
+    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+  }
+
+  @Test
+  public void testSendApplicationStageComponentCounts_NoComponents() {
+    TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null, mockTelemetrySender);
+
+    scanPolicyEvaluator.sendApplicationStageComponentCounts("applicationId", "stageId", new ArrayList<>());
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
+    expectedAttributes.put("stage_id", "stageId");
+    expectedAttributes.put("number_of_components", "0");
+    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+  }
+
+  @Test
+  public void testSendApplicationStageComponentCounts() {
+    TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null,
+        mockTelemetrySender);
+    Object[] formatsAndCounts = new Object[]{
+        "unknown", 1, ComponentIdentifier.FORMAT_MAVEN, 2, ComponentIdentifier.FORMAT_NPM, 3,
+        ComponentIdentifier.FORMAT_NUGET, 4, ComponentIdentifier.FORMAT_ANAME, 5, ComponentIdentifier.FORMAT_PYPI, 6,
+        ComponentIdentifier.FORMAT_RPM, 7, ComponentIdentifier.FORMAT_RUBYGEMS, 8
+    };
+    
+    scanPolicyEvaluator.sendApplicationStageComponentCounts("applicationId", "stageId", components(formatsAndCounts));
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
+    expectedAttributes.put("stage_id", "stageId");
+    expectedAttributes.put("number_of_unknown_components", "1");
+    expectedAttributes.put("number_of_maven_components", "2");
+    expectedAttributes.put("number_of_npm_components", "3");
+    expectedAttributes.put("number_of_nuget_components", "4");
+    expectedAttributes.put("number_of_aname_components", "5");
+    expectedAttributes.put("number_of_pypi_components", "6");
+    expectedAttributes.put("number_of_rpm_components", "7");
+    expectedAttributes.put("number_of_gem_components", "8");
+    expectedAttributes.put("number_of_components", "36");
+    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+  }
+
+  private List<Component> components(Object[] formatsAndCounts) {
+    List<Component> components = new ArrayList<>();
+    for (int formatAndCountIndex = 0; formatAndCountIndex < formatsAndCounts.length; formatAndCountIndex += 2) {
+      for (int count = 0; count < (int) formatsAndCounts[formatAndCountIndex + 1]; count++) {
+        components.add(component((String) formatsAndCounts[formatAndCountIndex]));
+      }
+    }
+    return components;
+  }
+
+  private Component component(String format) {
+    switch (format) {
+      case ComponentIdentifier.FORMAT_MAVEN:
+        return new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+      case ComponentIdentifier.FORMAT_NPM:
+        return new Component(ComponentIdentifier.createNpmCoordinates("p", "v"));
+      case ComponentIdentifier.FORMAT_NUGET:
+        return new Component(ComponentIdentifier.createNugetCoordinates("p", "v"));
+      case ComponentIdentifier.FORMAT_ANAME:
+        return new Component(ComponentIdentifier.createAnameCoordinates("n", "q", "v"));
+      case ComponentIdentifier.FORMAT_PYPI:
+        return new Component(ComponentIdentifier.createPypiCoordinates("n", "v", "q", "e"));
+      case ComponentIdentifier.FORMAT_RPM:
+        return new Component(ComponentIdentifier.createRpmCoordinates("n", "v", "a"));
+      case ComponentIdentifier.FORMAT_RUBYGEMS:
+        return new Component(ComponentIdentifier.createRubyGemsCoordinates("n", "v", "p"));
+      default:
+        return new Component();
+    }
+  }
+
+  private void assertApplicationStageAttributes(TelemetryData telemetryData, Map<String, Object> expectedAttributes) {
+    assertThat(telemetryData, is(notNullValue()));
+    assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS));
+    assertThat(telemetryData.getTimestamp(), is(lessThanOrEqualTo(System.currentTimeMillis())));
+    assertThat(telemetryData.getAttributes(), is(expectedAttributes));
   }
 
   private File createScanFile(Application app, String scanId) {

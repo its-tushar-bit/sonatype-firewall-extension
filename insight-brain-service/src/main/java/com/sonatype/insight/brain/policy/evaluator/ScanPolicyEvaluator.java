@@ -9,12 +9,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
@@ -45,11 +49,15 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +71,8 @@ public class ScanPolicyEvaluator
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
 
   private static final ConcurrentMap<String, String> PERSISTENCE_LOCKS_BY_APPID = new ConcurrentHashMap<>();
+
+  private static final String UNKNOWN = "unknown";
 
   private final InsightWork work;
 
@@ -80,18 +90,22 @@ public class ScanPolicyEvaluator
 
   private final ApplicationEvaluationEventService applicationEvaluationEventService;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ScanPolicyEvaluator(final InsightWork insightWork,
                              final ReportService reportService,
                              final PolicyThreatsAdapter policyThreatsAdapter,
                              final ComponentPolicyEvaluator componentPolicyEvaluator,
-                             final ApplicationEvaluationEventService applicationEvaluationEventService)
+                             final ApplicationEvaluationEventService applicationEvaluationEventService,
+                             final TelemetrySender telemetrySender)
   {
     this.work = insightWork;
     this.reportService = reportService;
     this.policyThreatsAdapter = policyThreatsAdapter;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
+    this.telemetrySender = telemetrySender;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final String applicationPublicId, final String scanId, final Stage stage)
@@ -132,6 +146,8 @@ public class ScanPolicyEvaluator
     // Load data about components
     final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
+
+    sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 
     // Evaluate the policies
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, components, forMonitoring);
@@ -431,5 +447,34 @@ public class ScanPolicyEvaluator
       }
     }
     return lock;
+  }
+
+  @VisibleForTesting
+  void sendApplicationStageComponentCounts(String applicationId, String stageId, Collection<Component> components) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+    telemetryData.setAttributes(getApplicationStageComponentCountsAttributes(applicationId, stageId, components));
+    telemetrySender.send(telemetryData);
+  }
+
+  private Map<String, Object> getApplicationStageComponentCountsAttributes(String applicationId,
+                                                                           String stageId,
+                                                                           Collection<Component> components)
+  {
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    attributes.put("stage_id", stageId);
+    Map<String, Long> componentCounts = getComponentCounts(components);
+    for (String format : componentCounts.keySet()) {
+      attributes
+          .put("number_of_" + format.replace("-", "") + "_components", String.valueOf(componentCounts.get(format)));
+    }
+    attributes.put("number_of_components", String.valueOf(components.size()));
+    return attributes;
+  }
+
+  private Map<String, Long> getComponentCounts(Collection<Component> components) {
+    return components.stream().map(Component::getComponentIdentifier)
+        .map(componentIdentifier -> componentIdentifier == null ? UNKNOWN : componentIdentifier.getFormat())
+        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
   }
 }

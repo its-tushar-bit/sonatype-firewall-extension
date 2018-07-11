@@ -16,6 +16,18 @@ $chart-height: 292px;
   .inactive {
     opacity: 0.3;
   }
+  
+  thead {
+    .iq-table-row {
+      border-top: 0;
+      border-bottom: 0;
+     
+      .iq-cell {
+        border-top: 0;
+        border-bottom: 0;
+      }
+    }
+  }
 
   h4 {
     color: #070707;
@@ -35,14 +47,14 @@ $chart-height: 292px;
   }
 
   .iq-table-row {
-    td {
+    .iq-cell {
       border: none;
       margin: unset;
       padding: unset;
+    }
     
-      &:last-child {
-        border: none;
-      }
+    &:last-child {
+      border: none;
     }
 
     .iq-cell--pvt-row-label {

@@ -210,6 +210,44 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_GrandfatherOnlyOnFirstEvaluation() throws Exception {
+    application = tempEntity.newApplicationWithParent();
+    newSecurityPolicy();
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    // This is the first evaluation. All policy violations should be grandfathered.
+    String scanId1 = "scanId1";
+    Stage stage1 = new Stage(Stage.ID_BUILD);
+    mockReport(scanId1, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage1);
+    assertThat(results.activeViolations, hasSize(0));
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations, hasSize(36));
+    for (PolicyViolation inactiveViolation : inactiveViolations) {
+      assertThat(inactiveViolation.getGrandfatherTime(), is(results.evaluation.getTime()));
+      assertThat(inactiveViolation.isWaived(), is(false));
+    }
+
+    // Delete all violations
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    inactiveViolations.forEach(inactiveViolation -> policyViolationDAO.delete(inactiveViolation));
+
+    // Evaluate again. No policy violations should be grandfathered.
+    String scanId2 = "scanId2";
+    mockReport(scanId2, "/ScanPolicyEvaluatorTest/report.zip");
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId2, stage1);
+    assertThat(results.activeViolations, hasSize(36));
+
+    // Evaluate for a different stage. No policy violations should be grandfathered.
+    String scanId3 = "scanId3";
+    Stage stage2 = new Stage(Stage.ID_RELEASE);
+    mockReport(scanId3, "/ScanPolicyEvaluatorTest/report.zip");
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId3, stage2);
+    assertThat(results.activeViolations, hasSize(36));
+  }
+
+  @Test
   public void testEvaluate_Results_NotifiableViolations() throws Exception {
     newRelativePopularityPolicy();
 
@@ -596,9 +634,7 @@ public class ScanPolicyEvaluatorTest
     Date evaluationTimeStage2 = resultsStage2.evaluation.getTime();
     assertThat(resultsStage1.activeViolations, hasSize(36));
 
-    // Enable grandfathering and grandfather a violation in one stage.
-    application.setPolicyViolationGrandfatheringEnabled(true);
-    new ApplicationDAO().update(application);
+    // Grandfather a violation in one stage.
     PolicyViolation grandfatheredViolation = resultsStage1.activeViolations.get(0);
     Date grandfatherTime = new Date();
     grandfatheredViolation.setGrandfatherTime(grandfatherTime);

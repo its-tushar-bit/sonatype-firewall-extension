@@ -255,9 +255,15 @@ public class PolicyEvaluationDAO
   }
 
   public int getCountByApplicationId(String appId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getCountByApplicationId(tx, appId);
+    }
+  }
+
+  public int getCountByApplicationId(TransactionContext tx, String appId) {
     String sQuery = "SELECT COUNT(entity.id) FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1";
 
-    return getSingle(Number.class, sQuery, appId).intValue();
+    return getSingle(tx, Number.class, sQuery, appId).intValue();
   }
 }

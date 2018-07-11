@@ -260,9 +260,7 @@ public class ScanPolicyEvaluator
           }
         }
 
-        boolean isFirstEvaluation = lastPrimaryPolicyEvaluation == null;
-        setGrandfatheredPolicyViolations(tx, app, isFirstEvaluation, policyEvaluation.getTime(),
-            results.allViolations);
+        setGrandfatheredPolicyViolations(tx, app, policyEvaluation.getTime(), results.allViolations);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
@@ -326,7 +324,7 @@ public class ScanPolicyEvaluator
 
         results.activeViolations = results.allViolations.stream().filter(PolicyViolation::isActive).collect(toList());
 
-        if (!isReevaluation && !isFirstEvaluation) {
+        if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
           String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
           deletePreviousScanFile(appId, stage, previousScanId);
         }
@@ -341,19 +339,18 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * If policy violation grandfathering is enabled for the specified application, then it updates the grandfathered
-   * policy violations:
-   * - if this is the first policy evaluation, then all policy violations are marked as grandfathered
-   * - if this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
+   * If this is the first policy evaluation and grandfathering is enabled for the application, then all policy
+   * violations are marked as grandfathered.
+   * If this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
    * existing grandfathered policy violations (across all stages).
    */
   private void setGrandfatheredPolicyViolations(TransactionContext tx,
                                                 Application app,
-                                                boolean isFirstEvaluationForStage,
                                                 Date policyEvaluationTime,
                                                 List<PolicyViolation> policyViolations)
   {
-    if (isFirstEvaluationForStage && isPolicyViolationGrandfatheringEnabled(app)) {
+    // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
+    if (isPolicyViolationGrandfatheringEnabled(app) && isFirstEvaluation(tx, app)) {
       // Only policy violations with threat level <= 8 should be grandfathered.
       policyViolations.stream().filter(policyViolation -> policyViolation.getThreatLevel() <= 8)
           .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
@@ -369,6 +366,11 @@ public class ScanPolicyEvaluator
                 .setGrandfatherTime(grandfatheredPolicyViolation.getGrandfatherTime()));
       }
     }
+  }
+
+  private boolean isFirstEvaluation(TransactionContext tx, Application app) {
+    // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
+    return new PolicyEvaluationDAO().getCountByApplicationId(tx, app.getId()) == 1;
   }
 
   private boolean isPolicyViolationGrandfatheringEnabled(Application app) {

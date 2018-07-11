@@ -77,8 +77,16 @@ public class ScanScrubberTest
     assertMatchesAndChanged(map, "dir2/dir2a/file.js", "\\w+/\\w+/\\w+\\.js");
     assertMatchesAndChanged(map, "dir2/dir2b/file.js", "\\w+/\\w+/\\w+\\.js");
 
+    // version
+    assertThat(map.get("1.0.0"), is("1.0.0"));
+
+    // component separator? version
+    assertThat(map.get("component 1.0.0"), is("component 1.0.0"));
+    assertMatchesAndChanged(map, "dir10/component 1.0.0", "\\w+/component 1.0.0");
+    assertMatchesAndChanged(map, "dir10/component 1.0.0/dir10/component-2.0.0",
+        "\\w+/component 1.0.0/\\w+/component-2.0.0");
+
     // component/version
-    assertMatchesAndChanged(map, "1.0.0", "\\w+\\.0");
     assertThat(map.get("dir3/1.0.0"), is("dir3/1.0.0"));
     assertThat(map.get("dir3/dir3/1.0.0"), is("dir3/dir3/1.0.0"));
 

@@ -61,7 +61,8 @@ public class ScanScrubber
 
   @VisibleForTesting
   static final List<String> JAVASCRIPT_PATHNAME_SUFFIX_EXCLUDES = Arrays.asList( //
-      "[^/]+/[0-9]+\\.[0-9]+\\.[0-9]+[^/]*/", // js package name i.e. [component name]/version
+      "[^/]+/[0-9]+\\.[0-9]+\\.[0-9]+[^/]*/", // js package name i.e. [component name]/[version]
+      "[^/]*[0-9]+\\.[0-9]+\\.[0-9]+[^/]*/", // js package name i.e. [component name?][separator?][version]
       "node_modules/", // js package container name
       "bower_components/", // js package container name
       "package/", // js package name

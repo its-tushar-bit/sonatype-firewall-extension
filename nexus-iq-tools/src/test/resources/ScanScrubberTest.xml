@@ -52,6 +52,10 @@
       </ids>
     </dir>
   </dir>
+
+  <item path="component 1.0.0/file.js"/>
+  <item path="dir10/component 1.0.0/file.js"/>
+  <item path="dir10/component 1.0.0/dir10/component-2.0.0/file.js"/>
   
   <configuration>
     <properties>

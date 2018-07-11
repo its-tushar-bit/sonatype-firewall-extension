@@ -1,9 +1,10 @@
 /* global inject, beforeEach, it, describe, expect */
+import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
+
 describe('summaryStatementTileSpec', function() {
 
   beforeEach(function() {
-    module('utility.services');
-    module('successMetricsModule');
+    angular.mock.module(successMetricsModule.name);
   });
 
   var getVm,

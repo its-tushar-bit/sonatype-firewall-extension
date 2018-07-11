@@ -1,5 +1,7 @@
+import successMetricsModule from '../../../../main/frontend/labs/successMetrics/module';
+
 describe('successMetricsReportList component', function() {
-  beforeEach(module('successMetricsModule'));
+  beforeEach(angular.mock.module(successMetricsModule.name));
 
   var vm,
       $state,

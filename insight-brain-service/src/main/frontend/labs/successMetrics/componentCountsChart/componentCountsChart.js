@@ -4,7 +4,7 @@
  * 'Sonatype' is a trademark of Sonatype, Inc.
  */
 
-/* global Plottable */
+import Plottable from 'plottable';
 import template from './componentCountsChart.html';
 
 export default {

@@ -126,3 +126,5 @@ var PolicyViolationAggregationResourceMockData = {
     };
   }
 };
+
+export default PolicyViolationAggregationResourceMockData;

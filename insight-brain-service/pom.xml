@@ -777,6 +777,7 @@
                 <exclude>frontend/brain-client/**/*.js</exclude>
                 <exclude>frontend/version-graph/**/*.js</exclude>
                 <exclude>frontend/owner.manager/**/*.js</exclude>
+                <exclude>frontend/labs/**/*.js</exclude>
               </specExcludes>
               <fileSystemReporters>
                 <reporter>

@@ -15,6 +15,7 @@ import 'ngUpload/ng-upload';
 import 'es6-collections';
 import '../../main/frontend/lib/bootstrap-loader';
 import '../../main/frontend/utility/Polyfills';
+import * as d3 from 'd3/index.js';
 
 import 'angular-mocks/ngMock';
 
@@ -31,3 +32,6 @@ import './mock.data/jira.service.mock.data';
 import './assets/MockData';
 
 importAll(require.context('./owner.manager', true, /[sS]pec\.js$/));
+importAll(require.context('./labs', true, /[sS]pec\.js$/));
+
+window.d3 = d3;

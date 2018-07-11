@@ -1,4 +1,7 @@
-/* global inject, beforeEach, afterEach, it, describe, expect, PolicyViolationAggregationResourceMockData */
+/* global inject, beforeEach, afterEach, it, describe, expect */
+import successMetricsModule from '../../../../main/frontend/labs/successMetrics/module';
+import PolicyViolationAggregationResourceMockData from './mock.data/policy.violation.aggregation.mock.data';
+
 describe('successMetricsDataService', function() {
   var $httpBackend,
       successMetricsDataService,
@@ -12,9 +15,9 @@ describe('successMetricsDataService', function() {
         }
       };
 
-  beforeEach(module('successMetricsModule', 'Stores'));
+  beforeEach(angular.mock.module(successMetricsModule.name));
 
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(function($provide) {
     $provide.value('ApplicationStore', mockApplicationStore);
   }));
 

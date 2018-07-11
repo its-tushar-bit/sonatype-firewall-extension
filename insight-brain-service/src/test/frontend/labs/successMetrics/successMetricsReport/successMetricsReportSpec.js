@@ -1,9 +1,10 @@
-/* global PolicyViolationAggregationResourceMockData */
+import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
+import PolicyViolationAggregationResourceMockData from '../mock.data/policy.violation.aggregation.mock.data';
+
 describe('successMetricsReportSpec', function() {
 
   beforeEach(function() {
-    module('utility.services');
-    module('successMetricsModule');
+    angular.mock.module(successMetricsModule.name);
   });
 
   var vm,

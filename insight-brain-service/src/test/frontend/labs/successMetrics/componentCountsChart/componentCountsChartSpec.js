@@ -1,6 +1,8 @@
 /* global describe, beforeEach, it, expect, inject */
+import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
+
 describe('componentCountsChart', function() {
-  beforeEach(module('successMetricsModule', 'legacyConfiguration', 'Stores'));
+  beforeEach(angular.mock.module(successMetricsModule.name, 'legacyConfiguration', 'Stores'));
 
   var getVm,
       mockComponentData = {

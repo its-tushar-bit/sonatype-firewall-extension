@@ -1,6 +1,10 @@
-/* global describe, beforeEach, it, expect, inject, Plottable */
+/* global describe, beforeEach, it, expect, inject */
+import Plottable from 'plottable';
+import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
+import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
+
 describe('violation-averages-chart component', function() {
-  beforeEach(module('successMetricsModule', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
 
   var getVm;
 

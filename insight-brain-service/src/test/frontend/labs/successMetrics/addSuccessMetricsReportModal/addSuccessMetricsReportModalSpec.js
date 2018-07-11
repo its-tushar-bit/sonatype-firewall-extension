@@ -1,3 +1,5 @@
+import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
+
 describe('addSuccessMetricsReportModal', function() {
   var getVm,
       applicationStoreDeferred,
@@ -15,7 +17,7 @@ describe('addSuccessMetricsReportModal', function() {
       $rootScope,
       $q;
 
-  beforeEach(module('successMetricsModule', 'Stores'));
+  beforeEach(angular.mock.module(successMetricsModule.name, 'Stores'));
 
   beforeEach(inject(function(_$q_, $componentController, _$rootScope_) {
     $rootScope = _$rootScope_;

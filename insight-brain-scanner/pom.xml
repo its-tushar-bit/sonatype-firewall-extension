@@ -156,39 +156,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>uber-jar-fixes</id>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <copy todir="${project.build.directory}/uberjar">
-                  <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="META-INF/services/**" />
-                  <firstmatchmapper>
-                    <regexpmapper from="META-INF/services/((?:java)\..+)" to="META-INF/services/\1" handledirsep="true" />
-                  </firstmatchmapper>
-                  <filterchain>
-                    <tokenfilter>
-                      <replaceregex pattern="(?:com|org)\.[^,]+" replace="zz.\0" flags="gim" />
-                    </tokenfilter>
-                  </filterchain>
-                </copy>
-                <move file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/${project.build.finalName}-shade.jar" />
-                <jar destfile="${project.build.directory}/${project.build.finalName}.jar" filesetmanifest="merge">
-                  <zipfileset src="${project.build.directory}/${project.build.finalName}-shade.jar" excludes="META-INF/services/**" />
-                  <fileset dir="${project.build.directory}/uberjar" />
-                </jar>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <!-- We run the tests using maven-failsafe-plugin because we want to run them
            after the obfuscation was done and to use the artifact jar, not the classes. 
            (The obfuscation may break things in unexpected ways.)  -->

@@ -36,5 +36,6 @@ make(
             '**/*proguard*',
             '**/original-*'
         ]
-    ]
+    ],
+    usePMD: true
 )

@@ -61,7 +61,6 @@
   </scm>
 
   <modules>
-    <module>pmd-ruleset</module>
     <module>hds-mock-server</module>
     <module>insight-json-store</module>
     <module>insight-brain-common</module>
@@ -865,9 +864,9 @@
           </executions>
           <dependencies>
             <dependency>
-              <groupId>com.sonatype.insight.brain</groupId>
+              <groupId>com.sonatype</groupId>
               <artifactId>pmd-ruleset</artifactId>
-              <version>${project.version}</version>
+              <version>1</version>
             </dependency>
           </dependencies>
         </plugin>

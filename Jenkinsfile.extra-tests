@@ -48,6 +48,12 @@ def captureResultsAndCleanup() {
 
 pipeline {
   agent { label agentLabel }
+  options {
+    buildDiscarder(
+        logRotator(numToKeepStr: '100', daysToKeepStr: '14', artifactNumToKeepStr: '20', artifactDaysToKeepStr: '10')
+    )
+    timestamps()
+  }
   stages {
     stage('Parallel Test Groups') {
       parallel {

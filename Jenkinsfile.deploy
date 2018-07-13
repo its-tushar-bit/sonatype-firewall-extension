@@ -13,6 +13,7 @@ pipeline {
     buildDiscarder(
         logRotator(numToKeepStr: '100', artifactNumToKeepStr: '20')
     )
+    timestamps()
   }
   stages {
     stage('Export Variables') {

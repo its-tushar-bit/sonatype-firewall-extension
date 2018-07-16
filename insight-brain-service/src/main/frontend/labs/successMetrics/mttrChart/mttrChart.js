@@ -97,7 +97,7 @@ function controller(chartUtilsService) {
       return new Plottable.Components.Group([linePlot, scatterPlot]);
     }
 
-    const xAxis = new Plottable.Axes.Category(xScale, 'bottom');
+    const xAxis = new Plottable.Axes.Category(xScale, 'bottom').addClass('visual-testing-ignore');
 
     const yAxis = new Plottable.Axes.Numeric(yScale, 'left').endTickLength(0);
 

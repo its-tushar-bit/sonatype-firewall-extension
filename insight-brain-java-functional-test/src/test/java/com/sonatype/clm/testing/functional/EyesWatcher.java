@@ -16,6 +16,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.internal.WrapsDriver;
 
 public class EyesWatcher
@@ -94,10 +95,10 @@ public class EyesWatcher
 
       eyes.open(remoteDriver, "IQ Server", testName);
     }
-    By iqVersion = By.cssSelector(".iq-title__version");
+    By ignoreRegion = By.className("visual-testing-ignore");
     SeleniumCheckSettings settings = Target.window();
-    if (!WebDriverRunner.getWebDriver().findElements(iqVersion).isEmpty()) {
-      settings = settings.ignore(iqVersion);
+    for (WebElement element : WebDriverRunner.getWebDriver().findElements(ignoreRegion)) {
+      settings = settings.ignore(element);
     }
     
     eyes.check(tag, settings.ignoreCaret());

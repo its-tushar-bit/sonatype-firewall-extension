@@ -33,8 +33,7 @@
         frontend: 'src/main/frontend',
         test: 'src/test/frontend',
         generated: 'target/classes/assets',
-        temp: '.tmp',
-        templates: '**/*.tpl.html'
+        temp: '.tmp'
       },
       configure_override: {
         build: {
@@ -62,7 +61,6 @@
           cwd: '<%= config.frontend %>',
           src: [
             '**/*.{html,ttf,woff,woff2,png,gif,jpg,ico}',
-            '!<%= config.templates %>',
             '!lib/**'
           ],
           dest: '<%= config.generated %>'

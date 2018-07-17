@@ -5,9 +5,10 @@
  */
 
 import Plottable from 'plottable';
+import template from './applicationCountsChart.html';
 
 export default {
-  templateUrl: 'labs/successMetrics/applicationCountsChart/applicationCountsChart.html?' + clmBuildTimestamp,
+  template,
   controller: applicationCountsChartController,
   controllerAs: 'vm',
   bindings: {

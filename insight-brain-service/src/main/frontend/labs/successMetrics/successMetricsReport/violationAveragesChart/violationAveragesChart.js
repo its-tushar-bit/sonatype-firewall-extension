@@ -5,9 +5,10 @@
  */
 
 import Plottable from 'plottable';
+import template from './violationAveragesChart.html';
 
 export default {
-  templateUrl: 'labs/successMetrics/violationAveragesChart/violationAveragesChart.html?' + clmBuildTimestamp,
+  template,
   controller: violationAveragesChartController,
   controllerAs: 'vm',
   bindings: {

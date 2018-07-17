@@ -77,6 +77,16 @@ public class ScanScrubberTest
     assertMatchesAndChanged(map, "dir2/dir2a/file.js", "\\w+/\\w+/\\w+\\.js");
     assertMatchesAndChanged(map, "dir2/dir2b/file.js", "\\w+/\\w+/\\w+\\.js");
 
+    // test or example directories
+    assertMatchesAndChanged(map, "test/dir11/test", "test/\\w+/test");
+    assertMatchesAndChanged(map, "tests/dir11/tests", "tests/\\w+/tests");
+    assertMatchesAndChanged(map, "example/dir11/example", "example/\\w+/example");
+    assertMatchesAndChanged(map, "examples/dir11/examples", "examples/\\w+/examples");
+    assertMatchesAndChanged(map, "fixture/dir11/fixture", "fixture/\\w+/fixture");
+    assertMatchesAndChanged(map, "fixtures/dir11/fixtures", "fixtures/\\w+/fixtures");
+    assertMatchesAndChanged(map, "spec/dir11/spec", "spec/\\w+/spec");
+    assertMatchesAndChanged(map, "specs/dir11/specs", "specs/\\w+/specs");
+
     // version
     assertThat(map.get("1.0.0"), is("1.0.0"));
 

@@ -56,6 +56,15 @@
   <item path="component 1.0.0/file.js"/>
   <item path="dir10/component 1.0.0/file.js"/>
   <item path="dir10/component 1.0.0/dir10/component-2.0.0/file.js"/>
+
+  <item path="test/dir11/test/file.js"/>
+  <item path="tests/dir11/tests/file.js"/>
+  <item path="example/dir11/example/file.js"/>
+  <item path="examples/dir11/examples/file.js"/>
+  <item path="fixture/dir11/fixture/file.js"/>
+  <item path="fixtures/dir11/fixtures/file.js"/>
+  <item path="spec/dir11/spec/file.js"/>
+  <item path="specs/dir11/specs/file.js"/>
   
   <configuration>
     <properties>

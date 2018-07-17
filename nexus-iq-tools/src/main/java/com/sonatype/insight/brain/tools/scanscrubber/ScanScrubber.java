@@ -68,6 +68,7 @@ public class ScanScrubber
       "package/", // js package name
       "package\\.json", // js package file
       "bower\\.json", // js package file
+      "(?:tests?|specs?|examples?|fixtures?)/", // directories that may contain bogus js package files
       "@([^/]+)/", // keep @ character indicating an npm scoped package
       "([^/]*)\\.\\w{1,5}/?"); // keep file suffixes
 

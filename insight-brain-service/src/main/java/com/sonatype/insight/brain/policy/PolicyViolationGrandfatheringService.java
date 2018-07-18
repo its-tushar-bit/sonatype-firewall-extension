@@ -11,8 +11,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -29,16 +32,20 @@ public class PolicyViolationGrandfatheringService
 
   private final ApplicationDAO applicationDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final PolicyViolationDAO policyViolationDAO;
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
 
   @Inject
   public PolicyViolationGrandfatheringService(ApplicationDAO applicationDAO,
+                                              OrganizationDAO organizationDAO,
                                               PolicyViolationDAO policyViolationDAO,
                                               PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
   {
     this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
@@ -63,5 +70,96 @@ public class PolicyViolationGrandfatheringService
         tx.commit();
       }
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public PolicyViolationGrandfatheringDTO getGrandfathering(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+                                                            @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  {
+    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = new PolicyViolationGrandfatheringDTO();
+    policyViolationGrandfatheringDTO.allowChange = true;
+
+    String parentOrgId;
+    switch (ownerType) {
+      case APPLICATION:
+        Application app = applicationDAO.getByPublicIdNotNull(ownerId);
+        policyViolationGrandfatheringDTO.enabled = app.isPolicyViolationGrandfatheringEnabled();
+        parentOrgId = app.getOrganizationId();
+        break;
+      case ORGANIZATION:
+        Organization org = organizationDAO.getByIdNotNull(ownerId);
+        policyViolationGrandfatheringDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
+        policyViolationGrandfatheringDTO.allowOverride = org.isAllowPolicyViolationGrandfatheringOverride();
+        parentOrgId = org.getParentOrganizationId();
+        break;
+      default:
+        throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
+
+    while (parentOrgId != null) {
+      Organization org = organizationDAO.getByIdNotNull(parentOrgId);
+
+      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
+        policyViolationGrandfatheringDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
+        policyViolationGrandfatheringDTO.inheritedFromOrganizationName = org.getName();
+        policyViolationGrandfatheringDTO.allowChange = false;
+      }
+      else if (policyViolationGrandfatheringDTO.enabled == null) {
+        policyViolationGrandfatheringDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
+        policyViolationGrandfatheringDTO.inheritedFromOrganizationName = org.getName();
+      }
+
+      parentOrgId = org.getParentOrganizationId();
+    }
+
+    return policyViolationGrandfatheringDTO;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public PolicyViolationGrandfatheringDTO setGrandfathering(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+                                                            @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                                                            PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
+  {
+    switch (ownerType) {
+      case APPLICATION:
+        Application app = applicationDAO.getByPublicIdNotNull(ownerId);
+        app.setPolicyViolationGrandfatheringEnabled(policyViolationGrandfatheringDTO.enabled);
+        applicationDAO.update(app);
+        break;
+      case ORGANIZATION:
+        Organization org = organizationDAO.getByIdNotNull(ownerId);
+        org.setPolicyViolationGrandfatheringEnabled(policyViolationGrandfatheringDTO.enabled);
+        org.setAllowPolicyViolationGrandfatheringOverride(policyViolationGrandfatheringDTO.allowOverride);
+        organizationDAO.update(org);
+        break;
+      default:
+        throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
+
+    return policyViolationGrandfatheringDTO;
+  }
+
+  public static class PolicyViolationGrandfatheringDTO
+  {
+    /**
+     * Whether grandfathering is enabled for this org/app. If null, then grandfathering was never set for this org/app.
+     */
+    public Boolean enabled;
+
+    /**
+     * The name of the organization the grandfathering status is inherited from or null if it isn't inherited.
+     */
+    public String inheritedFromOrganizationName;
+
+    /**
+     * Whether children (orgs and apps) are allowed to override the grandfathering status.
+     */
+    public boolean allowOverride;
+
+    /**
+     * Whether the grandfathering status can be changed for this org/app (a parent org may not allow it to be
+     * overridden).
+     */
+    public boolean allowChange;
   }
 }

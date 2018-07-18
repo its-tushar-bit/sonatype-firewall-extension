@@ -19,6 +19,8 @@ CREATE TABLE organization (
   parent_organization_id varchar(50) NULL,
   name varchar(200) NOT NULL,
   name_lowercase_no_whitespace varchar(200) NOT NULL,
+  policy_violation_grandfathering_enabled boolean,
+  allow_policy_violation_grandfathering_override boolean DEFAULT true NOT NULL, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)

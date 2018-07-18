@@ -69,6 +69,7 @@ import ImportPolicyModalController from './utility/services/import.policy.modal.
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
+import PolicyViolationGrandfatheringModule from './policyViolationGrandfathering/module';
 
 export default
 angular.module('owner.manager.module',
@@ -76,7 +77,7 @@ angular.module('owner.manager.module',
       storesModule.name, labelsModule.name, tagsModule.name, licenseThreatGroupModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name,
       formsModule.name, utilityModule.name, utilityDirectivesModule.name, permissionServiceModule.name, policyModule.name,
       CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, roleMembershipModule.name,
-      moveApplicationModule.name, ProductFeaturesModule.name
+      moveApplicationModule.name, ProductFeaturesModule.name, PolicyViolationGrandfatheringModule.name
     ])
     .component('ownerPolicyList', ownerPolicyList)
     .controller('access.editor.controller', AccessEditorController)
@@ -293,6 +294,16 @@ angular.module('owner.manager.module',
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+              }
+            }
+          }).state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
+            url: '/grandfathering',
+            data: {
+              title: ownerType.name + ' Violation Grandfathering'
+            },
+            views: {
+              '@management.edit': {
+                component: 'policyViolationGrandfatheringEditor'
               }
             }
           }).state('management.edit.' + ownerType.type + '.monitor-policy', {

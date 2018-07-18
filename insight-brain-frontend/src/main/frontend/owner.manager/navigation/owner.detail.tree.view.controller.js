@@ -11,6 +11,7 @@ function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, 
   vm.areAnyCategoriesDefined = undefined;
   vm.isMonitoringSupported = undefined;
   vm.isApp = CLMContextLocations.isApplication();
+  vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRepositories = CLMContextLocations.isRepositories();
   vm.state = $state;
   vm.ownerName = undefined;

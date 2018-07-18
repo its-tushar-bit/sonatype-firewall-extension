@@ -168,7 +168,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
-      detailGroup.items().shouldHaveSize(5);
+      detailGroup.items().shouldHaveSize(6);
       detailGroup.item(0).shouldBe(visible).click();
       detailGroup.item(0).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner));

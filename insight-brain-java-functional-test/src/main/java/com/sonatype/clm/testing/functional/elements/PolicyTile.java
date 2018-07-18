@@ -50,6 +50,10 @@ public class PolicyTile
     return children("table tr > .policy-list__name-column").findBy(text(policyName));
   }
 
+  public SelenideElement violationGrandfathering() {
+    return $("#violation-grandfathering div");
+  }
+
   public SelenideElement monitoredStage() {
     return $("#continuous-monitoring div");
   }

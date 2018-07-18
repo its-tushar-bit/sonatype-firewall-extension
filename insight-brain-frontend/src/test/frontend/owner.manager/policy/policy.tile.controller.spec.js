@@ -13,6 +13,7 @@ describe('policy.tile.controller.spec.js', function() {
       $httpBackend,
       $timeout,
       $rootScope,
+      $controller,
       mockPolicyHierarchyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
       mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyTileMockData
           .getApplicablePolicies(), 'policiesByOwner'),
@@ -21,29 +22,36 @@ describe('policy.tile.controller.spec.js', function() {
       MonitoredStageService,
       mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
       CLMLocations,
+      CLMContextLocations,
       mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigHierarchyStore'),
       mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(ProprietaryMockData
-          .getProprietaryConfigurationStoreMockData(), 'proprietaryConfigByOwners');
+          .getProprietaryConfigurationStoreMockData(), 'proprietaryConfigByOwners'),
+      getGrandfatheringDefer,
+      mockPolicyViolationGrandfatheringService;
 
   beforeEach(inject(['monitored.stage.service', function(_MonitoredStageService_) {
     MonitoredStageService = _MonitoredStageService_;
   }]));
 
-  beforeEach(inject(function(_$rootScope_, $injector, $q, $controller, _$timeout_, _$httpBackend_, StageTypeStore,
-                             _CLMLocations_) {
+  beforeEach(inject(function(_$rootScope_, $injector, $q, _$controller_, _$timeout_, _$httpBackend_, StageTypeStore,
+                             _CLMLocations_, _CLMContextLocations_) {
     $rootScope = _$rootScope_;
     scope = $rootScope.$new();
     $httpBackend = _$httpBackend_;
     $timeout = _$timeout_;
+    $controller = _$controller_;
     CLMLocations = _CLMLocations_;
+    CLMContextLocations = _CLMContextLocations_;
     EventNameConstant = $injector.get('event.name.constant');
     stageTypeStoreDefer = $q.defer();
+    getGrandfatheringDefer = $q.defer();
+    mockPolicyViolationGrandfatheringService = {
+      getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise),
+      getStatusMessage: JSON.stringify
+    };
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
     spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
-    vm = $controller('policy.tile.controller', {
-      $scope: scope
-    });
   }));
 
   afterEach(function() {
@@ -52,6 +60,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Properly Loading Owner Policies', function() {
+    createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue({ stageName: 'Develop', stageTypeId: 'develop' });
@@ -77,6 +86,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Uses the placeholder value for monitored stage if one is not inherited', function() {
+    createController();
     spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue(undefined);
     spyOn(MonitoredStageService, 'createInheritOrNoMonitorOption').and.returnValue({stageName: 'Do not monitor'});
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
@@ -90,6 +100,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Missing Owner Policies', function() {
+    createController();
     mockPolicyHierarchyStore.rejectGet('dagnabbit');
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
@@ -111,6 +122,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Reloads on broadcasted owner summary reload event', function() {
+    createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     $timeout.flush();
@@ -124,6 +136,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {
+    createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     $timeout.flush();
@@ -137,6 +150,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Proprietary config counts properly updated', function() {
+    createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
@@ -148,8 +162,83 @@ describe('policy.tile.controller.spec.js', function() {
     expect(vm.inheritedProprietaryCount).toEqual(1);
   });
 
+  it('does not load the grandfathering configuration if not an application or organization', function() {
+    spyOn(CLMContextLocations, 'isApplication').and.returnValue(false);
+    spyOn(CLMContextLocations, 'isOrganization').and.returnValue(false);
+
+    createController();
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
+    getGrandfatheringDefer.resolve({});
+
+    $httpBackend.flush();
+
+    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).not.toHaveBeenCalled();
+    expect(vm.grandfatheringStatusMessage).toBe(undefined);
+  });
+
+  it('loads and displays the grandfathering configuration for applications', function() {
+    const config = {
+      enabled: true,
+      calculatedEnabled: true,
+      inheritedFromOrganizationName: null,
+      allowChange: true,
+      allowOverride: true
+    };
+
+    spyOn(CLMContextLocations, 'isApplication').and.returnValue(true);
+    spyOn(CLMContextLocations, 'isOrganization').and.returnValue(false);
+
+    createController();
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
+    getGrandfatheringDefer.resolve(config);
+
+    $httpBackend.flush();
+
+    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
+    expect(vm.grandfatheringStatusMessage).toBe(JSON.stringify(config));
+  });
+
+  it('loads and displays the grandfathering configuration for organizations', function() {
+    const config = {
+      enabled: true,
+      calculatedEnabled: true,
+      inheritedFromOrganizationName: null,
+      allowChange: true,
+      allowOverride: true
+    };
+
+    spyOn(CLMContextLocations, 'isApplication').and.returnValue(false);
+    spyOn(CLMContextLocations, 'isOrganization').and.returnValue(true);
+
+    createController();
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
+    getGrandfatheringDefer.resolve(config);
+
+    $httpBackend.flush();
+
+    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
+    expect(vm.grandfatheringStatusMessage).toBe(JSON.stringify(config));
+  });
+
   function resolveStageTypeStore(value) {
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
     stageTypeStoreDefer.resolve(value);
+  }
+
+  function createController() {
+    vm = $controller('policy.tile.controller', {
+      $scope: scope,
+      policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService
+    });
+    vm.$onInit();
   }
 });

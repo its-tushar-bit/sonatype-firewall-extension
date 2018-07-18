@@ -13,6 +13,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
 
   vm.error = undefined;
   vm.isApp = CLMContextLocations.isApplication();
+  vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.owner = undefined;
   vm.stages = undefined;

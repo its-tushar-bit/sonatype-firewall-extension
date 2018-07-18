@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -182,7 +183,10 @@ public class ScanPolicyEvaluatorTest
   private void testEvaluate_GrandfatheredViolations(int policyThreatLevel, boolean expectGrandfatheredViolations)
       throws Exception
   {
-    application = tempEntity.newApplicationWithParent();
+    Organization org = tempEntity.newOrganization();
+    org.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(org);
+    application = tempEntity.newApplication(org.getId());
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");

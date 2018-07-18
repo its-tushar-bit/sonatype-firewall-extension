@@ -8,7 +8,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
                                 OrganizationStore, CLMLocations, CLMContextLocations, StageTypeStore,
                                 DeleteModalService, SelectApplicationContactService, EvaluateApplicationModalService,
                                 ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant,
-                                ChangeApplicationIdService, PermissionService) {
+                                ChangeApplicationIdService, PermissionService, RevokeGrandfatheringModalService) {
   var vm = this;
 
   vm.error = undefined;
@@ -22,6 +22,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   vm.evaluateApp = evaluateApp;
   vm.importPolicy = importPolicy;
   vm.deleteOwner = deleteOwner;
+  vm.revokeGrandfathering = revokeGrandfathering;
   vm.getShortTypeName = getShortTypeName;
   vm.getResourceTypeName = getResourceTypeName;
   vm.openReport = openReport;
@@ -123,6 +124,10 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
     });
   }
 
+  function revokeGrandfathering() {
+    RevokeGrandfatheringModalService.open(vm.owner);
+  }
+
   function getShortTypeName() {
     return vm.isApp ? 'App' : 'Org';
   }
@@ -155,5 +160,5 @@ OwnerSummaryController.$inject = [
   'OrganizationStore', 'CLMLocations', 'CLMContextLocations', 'StageTypeStore', 'DeleteModalService',
   'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
   'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service',
-  'PermissionService'
+  'PermissionService', 'RevokeGrandfatheringModalService'
 ];

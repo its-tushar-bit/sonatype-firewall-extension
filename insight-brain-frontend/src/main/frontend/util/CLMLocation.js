@@ -306,6 +306,10 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/config/systemConfigurationProperty';
       },
 
+      getRevokeGrandfatheringUrl: function(applicationPublicId) {
+        return `${baseUrl.get()}/rest/policyViolationGrandfathering/revoke/${encodeURIComponent(applicationPublicId)}`;
+      },
+
       getSuccessMetricsChartDataUrl: successMetricsReportId =>
         `${baseUrl.get()}/rest/aggregation/policyViolation/${encodeURIComponent(successMetricsReportId)}`,
 

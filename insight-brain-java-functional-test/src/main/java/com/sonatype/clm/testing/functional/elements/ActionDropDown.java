@@ -45,6 +45,10 @@ public class ActionDropDown
     return $("#delete-owner-link");
   }
 
+  public static SelenideElement revokeGrandfathered() {
+    return $("#revoke-grandfathering-link");
+  }
+
   public static SelenideElement evaluateBinaryButton() {
     return $("#eval-binary-link");
   }

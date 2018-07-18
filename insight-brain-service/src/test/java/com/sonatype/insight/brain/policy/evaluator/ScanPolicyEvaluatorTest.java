@@ -186,6 +186,10 @@ public class ScanPolicyEvaluatorTest
   private void testEvaluate_GrandfatheredViolations(int policyThreatLevel, boolean expectGrandfatheredViolations)
       throws Exception
   {
+    Organization org = tempEntity.newOrganization();
+    org.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(org);
+    application = tempEntity.newApplication(org.getId());
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");

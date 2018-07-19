@@ -29,6 +29,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -350,7 +352,7 @@ public class ScanPolicyEvaluator
                                                 List<PolicyViolation> policyViolations)
   {
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
-    if (isPolicyViolationGrandfatheringEnabled(app) && isFirstEvaluation(tx, app)) {
+    if (isPolicyViolationGrandfatheringEnabled(tx, app.getId()) && isFirstEvaluation(tx, app)) {
       // Only policy violations with threat level <= 8 should be grandfathered.
       policyViolations.stream().filter(policyViolation -> policyViolation.getThreatLevel() <= 8)
           .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
@@ -373,8 +375,30 @@ public class ScanPolicyEvaluator
     return new PolicyEvaluationDAO().getCountByApplicationId(tx, app.getId()) == 1;
   }
 
-  private boolean isPolicyViolationGrandfatheringEnabled(Application app) {
-    return Boolean.TRUE.equals(app.isPolicyViolationGrandfatheringEnabled());
+  private boolean isPolicyViolationGrandfatheringEnabled(TransactionContext tx, String appId) {
+    Application app = applicationDAO.getById(tx, appId);
+    Boolean enabled = app.isPolicyViolationGrandfatheringEnabled();
+
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    String parentOrgId = app.getOrganizationId();
+    while (parentOrgId != null) {
+      Organization org = orgDAO.getById(tx, parentOrgId);
+
+      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
+        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      }
+      else if (enabled == null) {
+        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      }
+
+      parentOrgId = org.getParentOrganizationId();
+    }
+
+    if (enabled == null) {
+      enabled = false;
+    }
+
+    return enabled;
   }
 
   private String getFilename(ComponentFact componentFact) {

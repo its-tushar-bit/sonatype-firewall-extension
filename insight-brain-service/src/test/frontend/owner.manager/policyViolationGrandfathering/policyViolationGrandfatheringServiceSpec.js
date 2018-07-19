@@ -165,7 +165,7 @@ describe('PolicyViolationGrandfatheringService', function() {
         allowOverride: false
       });
 
-      expect(result).toBe('Inherit from Test Organization (Grandfathering is disabled, overrides are disabled)');
+      expect(result).toBe('Inherit from Test Organization (Grandfathering is disabled)');
     });
 
     it('builds an appropriate summary when grandfathering is enabled', function() {
@@ -175,7 +175,7 @@ describe('PolicyViolationGrandfatheringService', function() {
         allowOverride: false
       });
 
-      expect(result).toBe('Grandfathering is enabled, overrides are disabled');
+      expect(result).toBe('Grandfathering is enabled');
     });
 
     it('builds an appropriate summary when overrides are enabled', function() {
@@ -185,7 +185,7 @@ describe('PolicyViolationGrandfatheringService', function() {
         allowOverride: true
       });
 
-      expect(result).toBe('Grandfathering is disabled, overrides are enabled');
+      expect(result).toBe('Grandfathering is disabled');
     });
   });
 });

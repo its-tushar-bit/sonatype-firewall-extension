@@ -69,8 +69,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = policyViolationGrandfatheringService
         .getGrandfathering(currentOwner.getType(), currentOwner.getPublicId());
     String summaryText = PolicyViolationGrandfatheringEditorPage.statusMessageText(
-        policyViolationGrandfatheringDTO.inheritedFromOrganizationName, policyViolationGrandfatheringDTO.enabled,
-        policyViolationGrandfatheringDTO.allowOverride);
+        policyViolationGrandfatheringDTO.inheritedFromOrganizationName, policyViolationGrandfatheringDTO.enabled);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
@@ -119,8 +118,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = policyViolationGrandfatheringService
         .getGrandfathering(currentOwner.getType(), currentOwner.getPublicId());
     String summaryText = PolicyViolationGrandfatheringEditorPage.statusMessageText(
-        policyViolationGrandfatheringDTO.inheritedFromOrganizationName, policyViolationGrandfatheringDTO.enabled,
-        policyViolationGrandfatheringDTO.allowOverride);
+        policyViolationGrandfatheringDTO.inheritedFromOrganizationName, policyViolationGrandfatheringDTO.enabled);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 

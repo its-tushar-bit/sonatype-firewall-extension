@@ -44,7 +44,6 @@ function PolicyViolationGrandfatheringService($http, CLMContextLocations) {
       msg += `Inherit from ${configuration.inheritedFromOrganizationName} (`;
     }
     msg += 'Grandfathering is ' + (configuration.calculatedEnabled ? 'enabled' : 'disabled');
-    msg += ', overrides are ' + (configuration.allowOverride ? 'enabled' : 'disabled');
     if (configuration.inheritedFromOrganizationName !== null) {
       msg += ')';
     }

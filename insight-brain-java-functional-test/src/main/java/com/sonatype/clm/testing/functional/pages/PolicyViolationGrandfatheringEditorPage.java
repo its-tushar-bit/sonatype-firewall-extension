@@ -31,7 +31,7 @@ public class PolicyViolationGrandfatheringEditorPage
     return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/grandfathering", ownerType, ownerId);
   }
 
-  public static String statusMessageText(String inheritedFromName, Boolean grandfathering, Boolean overrides) {
+  public static String statusMessageText(String inheritedFromName, Boolean grandfathering) {
     StringBuilder sb = new StringBuilder();
     if (inheritedFromName != null) {
       sb.append("Inherit from ");
@@ -40,8 +40,6 @@ public class PolicyViolationGrandfatheringEditorPage
     }
     sb.append("Grandfathering is ");
     sb.append(Boolean.TRUE.equals(grandfathering) ? "enabled" : "disabled");
-    sb.append(", overrides are ");
-    sb.append(Boolean.TRUE.equals(overrides) ? "enabled" : "disabled");
     if (inheritedFromName != null) {
       sb.append(")");
     }

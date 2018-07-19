@@ -3,10 +3,6 @@
   width: 10px;
 }
 
-// name, foreground, background
-$threat-bars: ("ignore", #FFF, $iq-threat-color-ignore),
-        ("unspecified", #FFF, $iq-threat-color-unspecified);
-
 @each $threatdef in join($threat-levels, $threat-bars) {
   .iq-threat-indication, .clm-bar {
     &.#{nth($threatdef, 1)} {

@@ -59,7 +59,8 @@ export default angular.module('config',
       'iq-list--clickable': 'styles/iq-list--clickable.html',
       'iq-threat-indicators': 'styles/iq-threat-indicators.html',
       'iq-counter': 'styles/iq-counter.html',
-      'iq-text-indicators': 'styles/iq-text-indicators.html'
+      'iq-text-indicators': 'styles/iq-text-indicators.html',
+      'iq-threat-bar': 'styles/iq-threat-bar.html'
     })
 
     .constant('htmlConfig', {

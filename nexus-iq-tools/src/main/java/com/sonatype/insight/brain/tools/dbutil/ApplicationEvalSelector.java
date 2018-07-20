@@ -24,10 +24,7 @@ public class ApplicationEvalSelector
 
   protected static final String SCAN_REPLACEMENT_KEY = "{scanId}";
 
-  @Override
-  protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
-
-    // top apps:
+  protected String buildMostViolationsAppQuery(DbUtilParameters params, boolean limit) {
     String queryApps = "" //
         + "SELECT app.application_id," //
         + " (SELECT count(*)" //
@@ -36,9 +33,11 @@ public class ApplicationEvalSelector
         + " ) AS total_violations" //
         + " FROM insight_brain_ods.application app" //
         + " ORDER BY total_violations DESC, application_id ASC" //
-        + " LIMIT " + params.getMaxApplications();
+        + (limit ? " LIMIT " + params.getMaxApplications() : "");
+    return queryApps;
+  }
 
-    // eval details:
+  protected String buildEvalDetailsQuery(DbUtilParameters params, boolean limit) {
     String appEvalDetails = "" //
         + "SELECT app.public_id, eval.application_id, eval.policy_evaluation_id, eval.scan_id, eval.stage_type_id, eval.time" //
         + " FROM insight_brain_ods.policy_evaluation eval, insight_brain_ods.application app" //
@@ -46,7 +45,16 @@ public class ApplicationEvalSelector
         + " AND " + getStageClause("eval.stage_type_id", params) //
         + " AND app.application_id = '" + APPLICATION_REPLACEMENT_KEY + "'" //
         + " ORDER BY eval.time DESC" //
-        + " LIMIT " + params.getMaxEvaluations();
+        + (limit ? " LIMIT " + params.getMaxEvaluations() : "");
+    return appEvalDetails;
+  }
+
+  @Override
+  protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
+
+    String queryApps = buildMostViolationsAppQuery(params, true);
+
+    String appEvalDetails = buildEvalDetailsQuery(params, true);
 
     List<String> topApplicationIds = new ArrayList<>();
 

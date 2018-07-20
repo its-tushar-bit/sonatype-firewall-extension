@@ -17,12 +17,15 @@ public class Replacer
 {
   protected static final String REPLACE_KEY = "{";
 
+  protected static final String REPLACE_KEY_JSON = "\"{";
+
   public static final Replacer DIRECT_URLS = new Replacer()
   {
     @Override
     public List<TestUrl> generateUrls(TestUrl url) {
       List<TestUrl> direct = new ArrayList<>();
-      if (!url.getUrl().contains(REPLACE_KEY)) {
+      if (!url.getUrl().contains(REPLACE_KEY)
+          && (url.getPayload() == null || !url.getPayload().contains(REPLACE_KEY_JSON))) {
         direct.add(url);
       }
       return direct;
@@ -41,7 +44,7 @@ public class Replacer
 
   private final int replacementCount;
 
-  private Replacer() {
+  Replacer() {
     replacements = null;
     replacementCount = 0;
   }
@@ -57,9 +60,14 @@ public class Replacer
     }
   }
 
-  private TestUrl buildUrl(TestUrl source, String newUrl) {
+  TestUrl buildUrl(TestUrl source, String newUrl) {
+    return buildUrl(source, newUrl, source.getPayload());
+  }
+
+  TestUrl buildUrl(TestUrl source, String newUrl, String newPayload) {
     TestUrl cloned = (TestUrl) source.clone();
     cloned.setUrl(newUrl);
+    cloned.setPayload(newPayload);
     return cloned;
   }
 

@@ -93,6 +93,7 @@ public class DbUtil
     replaceSources.add(new OrganizationSelector());
     replaceSources.add(new ApplicationEvalSelector());
     replaceSources.add(new StageComponentSelector());
+    replaceSources.add(new CompoundSelector(new ApplicationListSelector(), new OrganizationListSelector()));
     return replaceSources;
   }
 

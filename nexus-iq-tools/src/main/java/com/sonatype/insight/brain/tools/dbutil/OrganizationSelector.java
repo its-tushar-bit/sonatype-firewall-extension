@@ -18,9 +18,7 @@ public class OrganizationSelector
 {
   protected static final String REPLACEMENT_KEY = "{organizationId}";
 
-  @Override
-  protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
-
+  protected String buildOrgsByMostEvalsQuery(DbUtilParameters params, boolean limit) {
     String query = "" //
         + "SELECT app.organization_id, count(peval.policy_evaluation_id) AS stage_evals," //
         + " (SELECT count(*) FROM application appx WHERE appx.organization_id = app.organization_id) AS app_count" //
@@ -29,7 +27,14 @@ public class OrganizationSelector
         + " AND " + getStageClause("peval.stage_type_id", params) //
         + " GROUP BY (app.organization_id)" //
         + " ORDER BY stage_evals DESC" //
-        + " LIMIT " + params.getMaxOrganizations();
+        + (limit ? " LIMIT " + params.getMaxOrganizations() : "");
+    return query;
+  }
+
+  @Override
+  protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
+
+    String query = buildOrgsByMostEvalsQuery(params, true);
 
     List<String> orgIds = new ArrayList<>();
     try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {

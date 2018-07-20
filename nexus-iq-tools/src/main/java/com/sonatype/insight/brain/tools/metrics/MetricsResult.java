@@ -21,6 +21,7 @@ public class MetricsResult
     this.metricsValues = metricsValues;
   }
 
+  @SuppressWarnings("unchecked")
   private Map<String, Object> getGauges() {
     return (Map<String, Object>) metricsValues.get("gauges");
   }
@@ -32,6 +33,7 @@ public class MetricsResult
       log.error("No gauges configured");
       return gaugeValue;
     }
+    @SuppressWarnings("rawtypes")
     Map<?, ?> specificGauge = (Map) gauges.get(gaugeName);
     if (specificGauge != null) {
       Object specificValue = specificGauge.get("value");

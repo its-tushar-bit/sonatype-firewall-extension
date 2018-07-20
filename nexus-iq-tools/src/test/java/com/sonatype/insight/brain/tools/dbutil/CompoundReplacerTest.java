@@ -65,6 +65,9 @@ public class CompoundReplacerTest
       assertThat(allPayloads, hasItem(buildFullPayload(org, "APP_LIST_4")));
     }
     assertThat(testUrls, hasSize(16));
+
+    TestUrl directtUrl = getBasicTestUrl("{}");
+    assertThat(replacer.generateUrls(directtUrl), hasSize(0));
   }
 
   @Test

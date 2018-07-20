@@ -25,14 +25,16 @@ public class CompoundReplacer
   public List<TestUrl> generateUrls(TestUrl url) {
     List<TestUrl> source = new ArrayList<>();
     source.add(url);
+    boolean replacementsMade = false;
 
     for (Replacer r : replacers) {
       List<TestUrl> intermediary = source.stream().map(r::generateUrls).flatMap(List::stream).collect(toList());
       if (!intermediary.isEmpty()) {
         source = intermediary;
+        replacementsMade = true;
       }
     }
 
-    return source;
+    return replacementsMade ? source: new ArrayList<>();
   }
 }

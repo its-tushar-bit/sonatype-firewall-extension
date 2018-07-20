@@ -29,6 +29,7 @@ public class StageComponentSelector
     return exclusions;
   }
 
+  @Override
   protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
 
     String hashListQuery = "" //

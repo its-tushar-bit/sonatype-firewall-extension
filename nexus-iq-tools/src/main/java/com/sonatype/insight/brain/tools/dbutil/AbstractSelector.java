@@ -22,6 +22,7 @@ public abstract class AbstractSelector
     return "'" + val + "'";
   }
 
+  @Override
   public Replacer buildReplacer(Connection conn, DbUtilParameters params) throws Exception {
     return new Replacer(loadSelections(conn, params));
   }

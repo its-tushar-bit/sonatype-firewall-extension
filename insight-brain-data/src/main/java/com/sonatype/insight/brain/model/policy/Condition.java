@@ -20,7 +20,7 @@ public class Condition
   /**
    * The condition index in the policy constraint.
    * 
-   * @since NEW_POLICY_VIOLATION_COMPARISON_VERSION
+   * @since 1.50
    */
   private int conditionIndex;
 

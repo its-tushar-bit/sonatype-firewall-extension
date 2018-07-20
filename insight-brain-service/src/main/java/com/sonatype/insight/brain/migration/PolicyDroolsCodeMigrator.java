@@ -33,7 +33,7 @@ public class PolicyDroolsCodeMigrator
 
   // v2 since 1.16
   // v3 since 1.32
-  // v4 since NEW_POLICY_VIOLATION_COMPARISON_VERSION
+  // v4 since 1.50
   static final int DROOLS_CODE_VERSION = 4;
 
   @Inject

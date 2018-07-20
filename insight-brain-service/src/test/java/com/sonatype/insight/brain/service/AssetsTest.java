@@ -31,9 +31,8 @@ public class AssetsTest
 
   @Test
   public void testCssUrlsRelative() throws Exception {
-    final List<String> CSS_PATHS = Arrays.asList("audit-report/audit-report.css", "cip/cip.css",
-        "css/style-1.css", "css/style-2.css", "policy/css/cip-loader.css",
-        "version-graph/version.graph.app.css", "version-graph/viewdetails.css");
+    final List<String> CSS_PATHS = Arrays.asList("audit-report.css", "cip.css", "style-1.css", "style-2.css",
+        "cip-loader.css", "version.graph.app.css", "viewdetails.css");
     final List<String> failingCssPaths = new ArrayList<>();
     for (String cssPath : CSS_PATHS) {
       HttpResponse response = restRequest().path(cssPath).get();
@@ -52,7 +51,7 @@ public class AssetsTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is(equalToIgnoringCase("text/html;charset=UTF-8")));
 
-    response = restRequest().path("css/style-1.css").get();
+    response = restRequest().path("style-1.css").get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is(equalToIgnoringCase("text/css;charset=UTF-8")));
 

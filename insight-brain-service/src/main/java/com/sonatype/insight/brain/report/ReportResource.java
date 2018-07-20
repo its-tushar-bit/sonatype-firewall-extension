@@ -556,6 +556,12 @@ public class ReportResource
   }
 
   @GET
+  @Path("brain/policy-assets/js/{path:.*}")
+  public Response brainGetJs(final @PathParam("path") String path) {
+    return redirectToBrainJs(baseUrl, path);
+  }
+
+  @GET
   @Path("brain/{path:.*}")
   public Response brainGet(final @PathParam("path") String path) {
     return redirectToBrain(baseUrl, path);
@@ -577,6 +583,12 @@ public class ReportResource
   @Path("brain/{path:.*}")
   public Response brainDelete(final @PathParam("path") String path) {
     return redirectToBrain(baseUrl, path);
+  }
+
+  private static Response redirectToBrainJs(final BaseUrl baseUrl, final String path) {
+    UriBuilder uriBuilder = baseUrl.redirect().path("assets").path(path);
+
+    return Response.temporaryRedirect(uriBuilder.build()).build();
   }
 
   private static Response redirectToBrain(final BaseUrl baseUrl, final String path) {

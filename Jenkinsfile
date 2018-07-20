@@ -18,7 +18,7 @@ make(
           iqScanPatterns: [[scanPattern: '**/target/*.jar']],
           failBuildOnNetworkError: true
       nexusPolicyEvaluation iqStage: stage, iqApplication: 'iq-server-frontend-assets',
-          iqScanPatterns: [[scanPattern: 'insight-brain-service/target/webpack-modules']],
+          iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
           moduleExcludes: [[moduleExclude: '**']],
           failBuildOnNetworkError: true
     },

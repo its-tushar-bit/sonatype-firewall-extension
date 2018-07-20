@@ -17,22 +17,9 @@
   <name>Insight Brain Service</name>
 
   <properties>
-    <node.version>v6.9.3</node.version>
-    <npm.version>5.6.0</npm.version>
     <freemarker.version>2.3.19</freemarker.version>
     <licensing.version>1.4</licensing.version>
-    <jasmine.version>2.2</jasmine.version>
-    <saga.version>1.5.2</saga.version>
     <truezipVersion>7.6.6</truezipVersion>
-    <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
-    <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
-    <jasmine.audit.id>test-audit-assets</jasmine.audit.id>
-    <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
-    <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
-    <grunt.task>build</grunt.task>
-    <grunt.task.obfuscate>build-prod</grunt.task.obfuscate>
-    <angular.debug>false</angular.debug>
-    <grunt.tests.skip>${skip.grunt}</grunt.tests.skip>
   </properties>
 
   <dependencies>
@@ -93,6 +80,10 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-event</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-frontend</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
@@ -587,28 +578,6 @@
   </dependencies>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>${project.build.directory}/generated</directory>
-      </resource>
-      <resource>
-        <directory>src/main/filtered-resources</directory>
-        <filtering>true</filtering>
-      </resource>
-      <resource>
-        <directory>src/main/brain-client</directory>
-        <filtering>true</filtering>
-        <targetPath>${project.build.outputDirectory}/assets/policy/js/</targetPath>
-      </resource>
-      <resource>
-        <directory>src/main/brain-client</directory>
-        <filtering>true</filtering>
-        <targetPath>${project.build.outputDirectory}/assets/assets/js/</targetPath>
-      </resource>
-    </resources>
     <plugins>
       <!-- We run the tests using maven-failsafe-plugin because we want to run them
            after the obfuscation was done and to use the artifact jar, not the classes. 
@@ -658,236 +627,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.github.klieber</groupId>
-        <artifactId>phantomjs-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>com.github.searls</groupId>
-        <artifactId>jasmine-maven-plugin</artifactId>
-        <version>${jasmine.version}</version>
-        <extensions>true</extensions>
-        <!-- Only the last execution of this plugin is subject to collection of coverage information, unfortunately. -->
-        <executions>
-          <execution>
-            <id>${jasmine.cip.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>resources/assets/cip/cip-test-util.js</source>
-                <include>node_modules/jquery/dist/jquery.js</include>
-                <source>root/target/classes/assets/policy/js/cip-loader.js</source>
-                <source>node_modules/es6-collections/es6-collections.js</source>
-                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>brain-client/*.js</include>
-              </sourceIncludes>
-              <sourceExcludes>
-                <exclude>frontend/lib/bootstrap-sass-official/**/*.js</exclude>
-              </sourceExcludes>
-              <specIncludes>
-                <include>frontend/SpecUtil.js</include>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
-                <include>resources/assets/cip/**/*.js</include>
-                <include>resources/assets/**/cip*.js</include>
-                <include>resources/assets/**/CIP*.js</include>
-                <include>resources/assets/brain-client/*.js</include>
-              </specIncludes>
-              <fileSystemReporters>
-                <reporter>
-                  <fileName>TEST-cip.xml</fileName>
-                  <reporterName>JUNIT_XML</reporterName>
-                </reporter>
-              </fileSystemReporters>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.audit.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>resources/assets/cip/cip-test-util.js</source>
-                <include>node_modules/jquery/dist/jquery.js</include>
-                <include>node_modules/angular/angular.js</include>
-                <include>frontend/lib/protovis/protovis.min.js</include>
-                <include>node_modules/angular-ui-bootstrap/ui-bootstrap-tpls.js</include>
-                <source>root/target/classes/assets/audit-report/audit-report.js</source>
-                <source>root/target/classes/assets/cip/cip.js</source>
-                <source>node_modules/es6-collections/es6-collections.js</source>
-                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>brain-client/*.js</include>
-                <include>frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</include>
-              </sourceIncludes>
-              <sourceExcludes>
-                <exclude>frontend/lib/bootstrap-sass-official/**/*.js</exclude>
-              </sourceExcludes>
-              <specIncludes>
-                <include>frontend/SpecUtil.js</include>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
-                <include>resources/assets/audit-report/*.js</include>
-              </specIncludes>
-              <fileSystemReporters>
-                <reporter>
-                  <fileName>TEST-audit.xml</fileName>
-                  <reporterName>JUNIT_XML</reporterName>
-                </reporter>
-              </fileSystemReporters>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.brain.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>frontend/SpecUtil.js</source>
-                <source>root/target/classes/assets/bundle.js</source>
-                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
-              </preloadSources>
-              <sourceIncludes>
-              </sourceIncludes>
-              <sourceExcludes>
-              </sourceExcludes>
-              <specIncludes>
-                <include>frontend/**/*utils.js</include>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
-                <include>frontend/**/*.mock.data.js</include>
-                <include>frontend/**/*-spec.js</include>
-                <include>frontend/**/*.spec.js</include>
-                <include>frontend/**/*Spec.js</include>
-              </specIncludes>
-              <specExcludes>
-                <exclude>frontend/**/cip*.js</exclude>
-                <exclude>frontend/**/CIP*.js</exclude>
-                <exclude>frontend/brain-client/**/*.js</exclude>
-                <exclude>frontend/version-graph/**/*.js</exclude>
-                <exclude>frontend/owner.manager/**/*.js</exclude>
-                <exclude>frontend/labs/**/*.js</exclude>
-              </specExcludes>
-              <fileSystemReporters>
-                <reporter>
-                  <fileName>TEST-server.xml</fileName>
-                  <reporterName>JUNIT_XML</reporterName>
-                </reporter>
-              </fileSystemReporters>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.version.graph.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>root/target/classes/assets/version-graph/version.graph.app.js</source>
-                <source>node_modules/es6-collections/es6-collections.js</source>
-                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>brain-client/*.js</include>
-              </sourceIncludes>
-              <specIncludes>
-                <include>frontend/**/lib/*.js</include>
-                <include>resources/assets/version-graph/VersionGraphSpec.js</include>
-              </specIncludes>
-              <fileSystemReporters>
-                <reporter>
-                  <fileName>TEST-version-graph.xml</fileName>
-                  <reporterName>JUNIT_XML</reporterName>
-                </reporter>
-              </fileSystemReporters>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.view.details.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>root/target/classes/assets/version-graph/viewdetails.js</source>
-                <source>node_modules/es6-collections/es6-collections.js</source>
-                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>brain-client/*.js</include>
-              </sourceIncludes>
-              <specIncludes>
-                <include>frontend/**/lib/*.js</include>
-                <include>resources/assets/version-graph/ViewDetailsSpec.js</include>
-              </specIncludes>
-              <fileSystemReporters>
-                <reporter>
-                  <fileName>TEST-view-details.xml</fileName>
-                  <reporterName>JUNIT_XML</reporterName>
-                </reporter>
-              </fileSystemReporters>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <jasmineTargetDir>${project.build.directory}${file.separator}jasmine-reports</jasmineTargetDir>
-          <jsSrcDir>${project.basedir}/src/main</jsSrcDir>
-          <jsTestSrcDir>${project.basedir}/src/test</jsTestSrcDir>
-          <keepServerAlive>true</keepServerAlive>
-          <webDriverClassName>org.openqa.selenium.phantomjs.PhantomJSDriver</webDriverClassName>
-          <webDriverCapabilities>
-            <capability>
-              <name>phantomjs.binary.path</name>
-              <value>${phantomjs.binary}</value>
-            </capability>
-          </webDriverCapabilities>
-          <additionalContexts>
-            <context>
-              <contextRoot>root</contextRoot>
-              <directory>${project.basedir}</directory>
-            </context>
-          </additionalContexts>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.github.timurstrekalov</groupId>
-        <artifactId>saga-maven-plugin</artifactId>
-        <version>${saga.version}</version>
-        <executions>
-          <execution>
-            <id>jasmine-coverage</id>
-            <phase>test</phase>
-            <goals>
-              <goal>coverage</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <baseDir>http://localhost:${jasmine.serverPort}</baseDir>
-          <backgroundJavaScriptTimeout>1000</backgroundJavaScriptTimeout>
-          <outputDir>${project.build.directory}/coverage</outputDir>
-          <sortBy>file</sortBy>
-          <noInstrumentPatterns>
-            <pattern>.*/SpecUtil\.js</pattern>
-            <pattern>.*/lib/.*\.js</pattern>
-            <pattern>.*/.*MockData\.js</pattern>
-            <pattern>.*/.*-spec\.js</pattern>
-            <pattern>.*/.*Spec\.js</pattern>
-          </noInstrumentPatterns>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -963,51 +702,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.0</version>
-        <executions>
-          <execution>
-            <id>install-node-and-npm</id>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <configuration>
-              <nodeVersion>${node.version}</nodeVersion>
-              <npmVersion>${npm.version}</npmVersion>
-            </configuration>
-          </execution>
-          <execution>
-            <id>npm-install</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>grunt-build</id>
-            <goals>
-              <goal>grunt</goal>
-            </goals>
-            <configuration>
-              <srcdir>${basedir}/src/main/frontend</srcdir>
-              <arguments>${grunt.task}</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>grunt-test</id>
-            <phase>test</phase>
-            <goals>
-              <goal>grunt</goal>
-            </goals>
-            <configuration>
-              <skip>${grunt.tests.skip}</skip>
-              <srcdir>${basedir}/src/main/frontend</srcdir>
-              <arguments>test</arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
@@ -1049,38 +743,11 @@
               <pluginExecutions>
                 <pluginExecution>
                   <pluginExecutionFilter>
-                    <groupId>com.github.searls</groupId>
-                    <artifactId>jasmine-maven-plugin</artifactId>
-                    <versionRange>[1.2.0.0,)</versionRange>
-                    <goals>
-                      <goal>test</goal>
-                      <goal>testResources</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
                     <groupId>org.sonatype.plugins</groupId>
                     <artifactId>sisu-maven-plugin</artifactId>
                     <versionRange>[1.0,)</versionRange>
                     <goals>
                       <goal>index</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.github.klieber</groupId>
-                    <artifactId>phantomjs-maven-plugin</artifactId>
-                    <versionRange>[0.1,)</versionRange>
-                    <goals>
-                      <goal>install</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>
@@ -1100,36 +767,6 @@
       To execute just the Jasmine tests run mvn phantomjs:install jasmine:test -P <test profile>
       E.g. mvn phantomjs:install jasmine:test -P test-brain
     -->
-    <profile>
-      <id>test-cip</id>
-      <properties>
-        <jasmine.cip.id>default-cli</jasmine.cip.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-audit</id>
-      <properties>
-        <jasmine.audit.id>default-cli</jasmine.audit.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-brain</id>
-      <properties>
-        <jasmine.brain.id>default-cli</jasmine.brain.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-version-graph</id>
-      <properties>
-        <jasmine.version.graph.id>default-cli</jasmine.version.graph.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-view-details</id>
-      <properties>
-        <jasmine.view.details.id>default-cli</jasmine.view.details.id>
-      </properties>
-    </profile>
     <profile>
       <id>m2e</id>
       <activation>
@@ -1158,35 +795,6 @@
       </properties>
     </profile>
     <profile>
-      <id>obfuscate</id>
-      <activation>
-        <property>
-          <name>!skip-obfuscate</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.github.eirslett</groupId>
-            <artifactId>frontend-maven-plugin</artifactId>
-            <version>1.0</version>
-            <executions>
-              <execution>
-                <id>grunt-build</id>
-                <goals>
-                  <goal>grunt</goal>
-                </goals>
-                <configuration>
-                  <srcdir>${basedir}/src/main/frontend</srcdir>
-                  <arguments>${grunt.task.obfuscate}</arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>test-only-properties</id>
       <activation>
         <property>
@@ -1196,26 +804,6 @@
       <properties>
         <build.number>build-number</build.number>
       </properties>
-    </profile>
-    <profile>
-      <id>clean-node</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-clean-plugin</artifactId>
-            <configuration>
-              <filesets>
-                <fileset>
-                  <directory>node</directory>
-                </fileset>
-                <fileset>
-                  <directory>node_modules</directory>
-                </fileset>
-              </filesets>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 </project>

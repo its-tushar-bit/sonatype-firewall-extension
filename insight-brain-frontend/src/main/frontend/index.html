@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<!--[if IE 9]>
+  <html class="ie9" lang="en" ng-app="managementApp" ng-strict-di>
+<![endif]-->
+
+<!--[if !IE]> -->
+  <html lang="en" ng-app="managementApp" ng-strict-di>
+<!-- <![endif]-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title ng-bind="'IQ Server - ' + ($state.current.data.title ? $state.current.data.title : '')">IQ Server - Management</title>
+    <link rel='shortcut icon' href='favicon.ico'/>
+    <script type='text/javascript'>
+        var clmBuildTimestamp = '<%= config.buildTimestamp %>', clmServerVersion = '<%= config.pom.clmVersion %>',
+            angularDebug = <%= config.angularDebug %>;
+    </script>
+
+  <link href="style-1.css?<%= config.buildTimestamp %>" rel="stylesheet">
+  <link href="style-2.css?<%= config.buildTimestamp %>" rel="stylesheet">
+
+  <script src="bundle.js?<%= config.buildTimestamp %>"></script>
+
+</head>
+<body class="iq-body">
+  <main-header product-edition="{{productEdition}}"></main-header>
+  <div ng-show='!error' class="iq-main-view">
+    <system-notice></system-notice>
+    <change-default-admin-password-notice></change-default-admin-password-notice>
+    <div ui-view>
+      <div id="login-body-container" class="iq-body-container iq-body-container--single-pane" maximize-container-height>
+        <!--
+          This element just makes an empty single-pane page behind the login modal. It gets deleted by 
+          angular-ui-router after login completes
+        -->
+      </div>
+    </div>
+  </div>
+  <div ng-cloak ng-if="error" class="iq-alert iq-alert--error" style="margin:86px auto;width:50%;max-width:400px">
+    <i class="fa fa-warning"></i><strong>Error</strong>
+    <p>An unrecoverable error has occurred while loading the page.</p>
+    <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
+  </div>
+  <script type="text/ng-template" id="unsaved-modal">
+    <div class="iq-modal unsaved-modal">
+      <div class="iq-modal-header"><h2>Unsaved Changes</h2></div>
+      <div class="iq-modal-content">
+        <div class="iq-alert">
+          <i class="fa fa-warning"></i>The page may contain unsaved changes, continuing will discard them.
+        </div>
+      </div>
+      <div class='iq-modal-footer'>
+        <button class='btn btn-primary' ng-click="$close()">Continue</button>
+        <button class='btn' ng-click="$dismiss()">Cancel</button>
+      </div>
+    </div>
+  </script>
+</body>
+</html>

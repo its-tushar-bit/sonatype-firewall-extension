@@ -37,7 +37,7 @@ public class PolicyThreatsAdapter
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations);
 
     PolicyThreats policyThreats = new PolicyThreats();
-    policyThreats.version = 2;
+    policyThreats.version = 3;
     policyThreats.aaData = new ArrayList<>(components.values());
 
     return policyThreats;
@@ -58,8 +58,11 @@ public class PolicyThreatsAdapter
           components.put(component.hash, component);
         }
 
+        PolicyThreats.PolicyViolation policyThreatsPolicyViolation = toPolicyThreatsPolicyViolation(violation);
+        component.allViolations.add(policyThreatsPolicyViolation);
+
         if (!violation.isWaived()) {
-          component.activeViolations.add(toPolicyThreatsPolicyViolation(violation));
+          component.activeViolations.add(policyThreatsPolicyViolation);
           if (violation.getThreatLevel() > component.policyThreatLevel || component.policyId == null) {
             component.policyId = violation.getPolicyId();
             component.policyName = violation.getPolicyName();
@@ -67,7 +70,7 @@ public class PolicyThreatsAdapter
           }
         }
         else {
-          component.waivedViolations.add(toPolicyThreatsPolicyViolation(violation));
+          component.waivedViolations.add(policyThreatsPolicyViolation);
         }
       }
     }
@@ -80,6 +83,7 @@ public class PolicyThreatsAdapter
     result.policyId = violation.getPolicyId();
     result.policyName = violation.getPolicyName();
     result.policyThreatLevel = violation.getThreatLevel();
+    result.waived = violation.isWaived();
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
     return result;

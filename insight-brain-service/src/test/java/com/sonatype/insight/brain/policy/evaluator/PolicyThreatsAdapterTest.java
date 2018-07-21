@@ -163,7 +163,7 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(null);
 
     Assert.assertThat(threats.aaData, hasSize(0));
-    Assert.assertThat(threats.version, is(2));
+    Assert.assertThat(threats.version, is(3));
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,
@@ -200,6 +200,7 @@ public class PolicyThreatsAdapterTest
       assertPolicyThreatsComponent(component, violations);
       assertPolicyThreatsPolicyViolations(component.activeViolations, violations);
       assertPolicyThreatsPolicyViolations(component.waivedViolations, violations);
+      assertPolicyThreatsPolicyViolations(component.allViolations, violations);
     }
   }
 
@@ -264,6 +265,7 @@ public class PolicyThreatsAdapterTest
   {
     Assert.assertThat(policyViolation.policyId, is(violation.getPolicyId()));
     Assert.assertThat(policyViolation.policyName, is(violation.getPolicyName()));
+    Assert.assertThat(policyViolation.waived, is(violation.isWaived()));
 
     for (PolicyThreats.PolicyAction action : policyViolation.actions) {
       Assert.assertThat(action.actionType, is(violation.getActionTypeId()));

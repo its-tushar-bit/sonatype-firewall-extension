@@ -51,16 +51,21 @@ public class ResultDiff
 
     String url;
 
+    @SuppressWarnings("unused")
     String payload;
 
     Long ms;
 
+    @SuppressWarnings("unused")
     String httpCode;
 
+    @SuppressWarnings("unused")
     Long size;
 
+    @SuppressWarnings("unused")
     String md5;
 
+    @SuppressWarnings("unused")
     String record;
 
     Integer over;
@@ -110,7 +115,7 @@ public class ResultDiff
   }
 
   @VisibleForTesting
-  static void validateFiles(List<File> files) throws Exception {
+  static void validateFiles(List<File> files) {
     String error;
     if (files.size() < 2) {
       error = ERROR_MIN_FILES;
@@ -125,7 +130,7 @@ public class ResultDiff
     }
   }
 
-  private Map<String, List<Result>> loadResults(List<File> files) throws Exception {
+  private Map<String, List<Result>> loadResults(List<File> files) {
     return files.stream().collect(Collectors.toMap(File::getName, this::parseResults));
   }
 

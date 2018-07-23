@@ -75,7 +75,16 @@ public class PolicyThreats
     public String policyId;
     public String policyName;
     public int policyThreatLevel;
+    
+    /**
+     * @since POLICY_VIOLATION_GRANDFATHERING_TWO
+     */
     public boolean waived;
+    
+    /**
+     * @since POLICY_VIOLATION_GRANDFATHERING_TWO
+     */
+    public boolean grandfathered;
 
     public List<PolicyAction> actions = new ArrayList<>();
 

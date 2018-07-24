@@ -474,8 +474,6 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testPolicyThreatLevelCounts() throws Exception {
-    final String scanId = "PolicyThreatCountResourceTest_ScanId";
-
     final Constraint constraint = new Constraint("C1", "PolicyThreatCountResourceTest constraint 1",
         LogicalOperator.AND);
     final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
@@ -488,15 +486,11 @@ public class PolicyEvaluateResourceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    // The report file is not available yet
-    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
-    assertResponseStatus(404, response);
-
     // Simulate that the report is available
-    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
+    String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
 
     // Threat Level 1 Should not show up in any counts
-    response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
@@ -505,9 +499,14 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
     Assert.assertEquals(0, policyEval.getSevereComponentCount());
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    Assert.assertEquals(0, policyEval.getCriticalPolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     policy.setThreatLevel(2);
     policyDAO.update(policy);
+    scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
 
     // Threat Level 2 should show up as moderate
     response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -518,9 +517,14 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
     Assert.assertEquals(0, policyEval.getSevereComponentCount());
     Assert.assertEquals(7, policyEval.getModerateComponentCount());
+    Assert.assertEquals(0, policyEval.getCriticalPolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    Assert.assertEquals(36, policyEval.getModeratePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     policy.setThreatLevel(4);
     policyDAO.update(policy);
+    scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
 
     // Threat Level 4 should show up as severe
     response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -531,9 +535,14 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
     Assert.assertEquals(7, policyEval.getSevereComponentCount());
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    Assert.assertEquals(0, policyEval.getCriticalPolicyViolationCount());
+    Assert.assertEquals(36, policyEval.getSeverePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     policy.setThreatLevel(8);
     policyDAO.update(policy);
+    scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
 
     // Threat Level 8 should show up as severe
     response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -544,6 +553,30 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(7, policyEval.getCriticalComponentCount());
     Assert.assertEquals(0, policyEval.getSevereComponentCount());
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    Assert.assertEquals(36, policyEval.getCriticalPolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
+
+    // Grandfather one violation
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyViolation policyViolation = policyViolationDAO
+        .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
+    policyViolation.setGrandfatherTime(new Date());
+    policyViolationDAO.update(policyViolation);
+    scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
+    response = evalRequest(applicationPublicId, scanId, stage).post();
+    assertResponseStatus(200, response);
+    policyEval = response.getBody(PolicyEvaluationResult.class);
+    Assert.assertNotNull(policyEval);
+    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
+    Assert.assertEquals(7, policyEval.getCriticalComponentCount());
+    Assert.assertEquals(0, policyEval.getSevereComponentCount());
+    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    Assert.assertEquals(35, policyEval.getCriticalPolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    Assert.assertEquals(1, policyEval.getGrandfatheredPolicyViolationCount());
   }
 
   @Test

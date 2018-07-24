@@ -106,15 +106,17 @@ public class DbModifier
 
   private void runUpdateQuery(TableAndColumns tableAndColumns, int numDays) {
     final String table = tableAndColumns.table;
-    tableAndColumns.columns.forEach(column -> {
-      String sql = "UPDATE " + table + " SET \"" + column + "\" = DATEADD('day', " + numDays + ", \"" + column + "\");";
-      try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
-        statement.executeUpdate(sql);
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
+    String sql = "UPDATE " + table + " SET ";
+    sql += tableAndColumns.columns.stream()
+        .map(column -> "\"" + column + "\" = DATEADD('day', " + numDays + ", \"" + column + "\")")
+        .collect(Collectors.joining(", "));
+    sql += ";";
+    try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+      statement.executeUpdate(sql);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -217,6 +219,15 @@ public class DbModifier
   private String getSqlForTimestampColumns(final String tableName) {
     return "SELECT COLUMN_NAME FROM \"INFORMATION_SCHEMA\".\"COLUMNS\" WHERE TABLE_SCHEMA = '" + schemaName +
         "' AND TABLE_NAME = '" + tableName + "' AND TYPE_NAME = 'TIMESTAMP'";
+  }
+
+  public void compact() {
+    try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+      statement.execute("SHUTDOWN COMPACT");
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @VisibleForTesting

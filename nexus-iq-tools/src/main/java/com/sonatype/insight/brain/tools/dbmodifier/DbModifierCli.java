@@ -52,6 +52,9 @@ public final class DbModifierCli
   @Parameter(names = {"-v", "-verbose"}, description = "Provide extended output.")
   private boolean verbose;
 
+  @Parameter(names = {"-c", "-compact"}, description = "Compact db, can be run alone or with date change")
+  private boolean compact;
+
   private static void noArgsCheck(int argCount) {
     if (argCount == 0) {
       printUsage();
@@ -64,10 +67,14 @@ public final class DbModifierCli
       if (verbose) {
         printTableInfo(dbmod.getDateInfo());
       }
-      else {
-        log.info("SUCCESS");
-      }
     }
+    if (compact) {
+      if (!quiet) {
+        log.info("Starting DB Compaction");
+      }
+      dbmod.compact();
+    }
+    log.info("SUCCESS");
   }
 
   private static void onError(DbModifierCli cli, Exception ex) {
@@ -150,6 +157,9 @@ public final class DbModifierCli
     else if (maxDate != null) {
       dbmod.shiftToDate(mapDate(maxDate));
       onSuccess(dbmod);
+    }
+    else if (compact) {
+      dbmod.compact();
     }
     else {
       printUsage();

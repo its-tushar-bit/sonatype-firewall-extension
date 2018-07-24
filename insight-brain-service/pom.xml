@@ -763,32 +763,6 @@
   </build>
 
   <profiles>
-    <!--
-      To execute just the Jasmine tests run mvn phantomjs:install jasmine:test -P <test profile>
-      E.g. mvn phantomjs:install jasmine:test -P test-brain
-    -->
-    <profile>
-      <id>m2e</id>
-      <activation>
-        <property>
-          <name>m2e.version</name>
-        </property>
-      </activation>
-      <properties>
-        <angular.debug>true</angular.debug>
-        <grunt.task>m2e</grunt.task>
-        <!-- As obfuscate profile is default enabled the frontend plugin uses the grunt obfuscate task -->
-        <grunt.task.obfuscate>m2e</grunt.task.obfuscate>
-        <grunt.tests.skip>true</grunt.tests.skip>
-      </properties>
-    </profile>
-    <profile>
-      <id>m2e-ui-dev</id>
-      <properties>
-        <!-- As obfuscate profile is default enabled the frontend plugin uses the grunt obfuscate task -->
-        <grunt.task.obfuscate>m2e-ui-dev</grunt.task.obfuscate>
-      </properties>
-    </profile>
     <profile>
       <id>idea</id>
       <properties>

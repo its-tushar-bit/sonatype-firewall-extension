@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.component.HashComponentIdentifierDTO;
 import com.sonatype.insight.brain.component.HashComponentIdentifierResource;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -59,6 +60,8 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -102,7 +105,7 @@ public class ReportResourceTest
   private Application app;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     app = tempEntity.newApplicationWithParent("ReportResourceTest_AppId");
   }
 
@@ -404,8 +407,30 @@ public class ReportResourceTest
     String reportResource = "/ReportResourceTest/report";
     mockReport(scanId, reportResource);
 
+    //This will trigger two grandfathered policy violations upon evaluation.
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(app);
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match",
+        ComponentIdentifier.FORMAT_MAVEN + ":tomcat:tomcat-util:5.5.23");
+    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match",
+        ComponentIdentifier.FORMAT_MAVEN + ":commons-pool:commons-pool:1.4");
+    constraint.addCondition(condition1);
+    constraint.addCondition(condition2);
+    Policy policy = new Policy();
+    policy.setOwnerId(app.getId());
+    policy.addConstraint(constraint);
+    policy.setName("testPolicy");
+    policy.setAction(BuildStageType.ID, WarnActionType.ID);
+    tempEntity.newPolicy(policy);
+
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(app.getPublicId()).body(new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
     URL reportResourceUrl = getClass().getResource(reportResource);
     File reportResourceDir = new File(reportResourceUrl.toURI());
+
     int verifiedFileCount = 0;
     for (File file : reportResourceDir.listFiles()) {
       if (file.isDirectory()) {
@@ -415,7 +440,7 @@ public class ReportResourceTest
       verifiedFileCount++;
 
       String entry = file.getName();
-      final HttpResponse response = request.subpath(entry).get();
+      response = request.subpath(entry).get();
       assertResponseStatus(200, response);
 
       final String contentType = response.getContentType().replace(" ", "");
@@ -1254,8 +1279,9 @@ public class ReportResourceTest
     assertEquals(8, data.get("insecureArtifactCount").asInt());
     assertEquals("[0,4,0,0,2,13,15,2,0,1]", data.get("securityCounts").toString());
 
-    assertEquals("[0,0,0,0,0,0,0,0,0,0,0]", data.get("policyCounts").toString());
-    assertEquals(0, data.get("policyComponentCount").asInt());
+    assertEquals("[0,0,0,0,0,2,0,0,0,0,0]", data.get("policyCounts").toString());
+    assertEquals(2, data.get("policyComponentCount").asInt());
+    assertEquals(2, data.get("grandfatheredPolicyViolationCount").asInt());
 
     assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
     assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());

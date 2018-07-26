@@ -65,7 +65,7 @@ public class PolicyThreats
     public List<PolicyViolation> waivedViolations = new ArrayList<>();
 
     /**
-     * @since POLICY_VIOLATION_GRANDFATHERING_TWO
+     * @since 1.50
      */
     public List<PolicyViolation> allViolations = new ArrayList<>();
   }
@@ -77,12 +77,12 @@ public class PolicyThreats
     public int policyThreatLevel;
     
     /**
-     * @since POLICY_VIOLATION_GRANDFATHERING_TWO
+     * @since 1.50
      */
     public boolean waived;
     
     /**
-     * @since POLICY_VIOLATION_GRANDFATHERING_TWO
+     * @since 1.50
      */
     public boolean grandfathered;
 

@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.Po
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since POLICY_VIOLATION_GRANDFATHERING
+ * @since 1.50
  */
 @Named
 @Timed

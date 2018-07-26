@@ -44,7 +44,7 @@ public class Application
   private String contactInternalName;
 
   /**
-   * @since POLICY_VIOLATION_GRANDFATHERING
+   * @since 1.50
    */
   @Column(name = "policy_violation_grandfathering_enabled")
   private Boolean policyViolationGrandfatheringEnabled;

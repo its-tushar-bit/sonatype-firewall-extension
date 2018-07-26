@@ -35,13 +35,13 @@ public class Organization
   private String nameLowercaseNoWhitespace;
 
   /**
-   * @since POLICY_VIOLATION_GRANDFATHERING
+   * @since 1.50
    */
   @Column(name = "policy_violation_grandfathering_enabled")
   private Boolean policyViolationGrandfatheringEnabled;
 
   /**
-   * @since POLICY_VIOLATION_GRANDFATHERING
+   * @since 1.50
    */
   @Column(name = "allow_policy_violation_grandfathering_override")
   private boolean allowPolicyViolationGrandfatheringOverride = true;

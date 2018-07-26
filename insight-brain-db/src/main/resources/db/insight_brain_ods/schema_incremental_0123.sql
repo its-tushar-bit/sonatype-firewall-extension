@@ -1,4 +1,4 @@
--- Since POLICY_VIOLATION_GRANDFATHERING
+-- Since 1.50
 SET SCHEMA insight_brain_ods;
 
 ALTER TABLE organization ADD COLUMN (

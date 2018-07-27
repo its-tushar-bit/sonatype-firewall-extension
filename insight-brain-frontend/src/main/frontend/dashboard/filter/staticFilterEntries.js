@@ -38,6 +38,9 @@ export const policyViolationStates = [
   }, {
     id: 'WAIVED',
     name: 'Waived'
+  }, {
+    id: 'GRANDFATHERED',
+    name: 'Grandfathered'
   }
 ];
 

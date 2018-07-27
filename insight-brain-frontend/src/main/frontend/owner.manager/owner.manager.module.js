@@ -59,14 +59,17 @@ import OwnerImageDirective from './summary/owner.image.directive';
 import SelectApplicationContactService from './summary/select.application.contact.service';
 import OwnerSummaryController from './summary/owner.summary.controller';
 import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
+import RevokeGrandfatheringModalService from './utility/services/revokeGrandfatheringModalService';
 import ImportPolicyModalService from './utility/services/import.policy.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
 import ChangeApplicationIdService from './summary/change.application.id.service';
 import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
+import RevokeGrandfatheringModalController from './utility/services/revokeGrandfatheringModalController';
 import ImportPolicyModalController from './utility/services/import.policy.modal.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
+import PolicyViolationGrandfatheringModule from './policyViolationGrandfathering/module';
 
 export default
 angular.module('owner.manager.module',
@@ -74,7 +77,7 @@ angular.module('owner.manager.module',
       storesModule.name, labelsModule.name, tagsModule.name, licenseThreatGroupModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name,
       formsModule.name, utilityModule.name, utilityDirectivesModule.name, permissionServiceModule.name, policyModule.name,
       CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, roleMembershipModule.name,
-      moveApplicationModule.name, ProductFeaturesModule.name
+      moveApplicationModule.name, ProductFeaturesModule.name, PolicyViolationGrandfatheringModule.name
     ])
     .component('ownerPolicyList', ownerPolicyList)
     .controller('access.editor.controller', AccessEditorController)
@@ -114,10 +117,12 @@ angular.module('owner.manager.module',
     .service('SelectApplicationContactService', SelectApplicationContactService)
     .controller('OwnerSummaryController', OwnerSummaryController)
     .service('evaluate.application.modal.service', EvaluateApplicationModalService)
+    .service('RevokeGrandfatheringModalService', RevokeGrandfatheringModalService)
     .service('import.policy.modal.service', ImportPolicyModalService)
     .controller('select.application.contact.controller', SelectApplicationContactController)
     .service('change.application.id.service', ChangeApplicationIdService)
     .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
+    .controller('RevokeGrandfatheringModalController', RevokeGrandfatheringModalController)
     .controller('import.policy.modal.controller', ImportPolicyModalController)
     .directive('numberInputWithStringValue', NumberInputWithStringValue)
     .directive('sameOwnerEditSref', SameOwnerEditSref)
@@ -289,6 +294,16 @@ angular.module('owner.manager.module',
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+              }
+            }
+          }).state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
+            url: '/grandfathering',
+            data: {
+              title: ownerType.name + ' Violation Grandfathering'
+            },
+            views: {
+              '@management.edit': {
+                component: 'policyViolationGrandfatheringEditor'
               }
             }
           }).state('management.edit.' + ownerType.type + '.monitor-policy', {

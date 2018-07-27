@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -44,6 +47,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -129,24 +133,17 @@ public class ScanPolicyEvaluatorTest
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
-    Policy policy = newSecurityPolicy();
-    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
+    newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
     assertThat(results.allViolations, hasSize(36));
     assertThat(results.allViolations.stream().filter(PolicyViolation::isFixed).collect(toList()), hasSize(0));
-    List<PolicyViolation> waivedViolations = new ArrayList<>(results.allViolations);
-    waivedViolations.removeAll(results.activeViolations);
-    assertThat(waivedViolations, hasSize(3));
-    assertThat(waivedViolations.get(0).getHash(), is(waiver.getHash()));
-    assertThat(waivedViolations.get(0).getWaiveTime(), is(not(nullValue())));
-    assertThat(waivedViolations.get(0).getPolicyWaiverId(), is(waiver.getId()));
-    assertThat(waivedViolations.get(0).getPolicyWaiverComment(), is(waiver.getComment()));
+    assertThat(results.activeViolations, hasSize(36));
   }
 
   @Test
-  public void testEvaluate_Results_ActiveViolations() throws Exception {
+  public void testEvaluate_Results_WaivedViolations() throws Exception {
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
@@ -158,10 +155,97 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations, hasSize(33));
     for (PolicyViolation violation : results.activeViolations) {
       assertThat(violation.getHash(), is(not(waiver.getHash())));
+      assertThat(violation.getGrandfatherTime(), is(nullValue()));
       assertThat(violation.getWaiveTime(), is(nullValue()));
       assertThat(violation.getPolicyWaiverId(), is(nullValue()));
       assertThat(violation.getPolicyWaiverComment(), is(nullValue()));
     }
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations, hasSize(3));
+    for (PolicyViolation inactiveViolation : inactiveViolations) {
+      assertThat(inactiveViolation.getHash(), is(waiver.getHash()));
+      assertThat(inactiveViolation.isGrandfathered(), is(false));
+      assertThat(inactiveViolation.getWaiveTime(), is(not(nullValue())));
+      assertThat(inactiveViolation.getPolicyWaiverId(), is(waiver.getId()));
+      assertThat(inactiveViolation.getPolicyWaiverComment(), is(waiver.getComment()));
+    }
+  }
+
+  @Test
+  public void testEvaluate_Results_GrandfatheredViolations() throws Exception {
+    for (int policyThreatLevel = 0; policyThreatLevel <= 10; policyThreatLevel++) {
+      application = tempEntity.newApplicationWithParent();
+      application.setPolicyViolationGrandfatheringEnabled(true);
+      new ApplicationDAO().update(application);
+
+      boolean expectGrandfatheredViolations = policyThreatLevel <= 8;
+      testEvaluate_GrandfatheredViolations(policyThreatLevel, expectGrandfatheredViolations);
+    }
+  }
+
+  private void testEvaluate_GrandfatheredViolations(int policyThreatLevel, boolean expectGrandfatheredViolations)
+      throws Exception
+  {
+    String scanId = "scanId";
+    Stage stage = new Stage(Stage.ID_BUILD);
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
+    newSecurityPolicy(policyThreatLevel);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    if (expectGrandfatheredViolations) {
+      assertThat(results.activeViolations, hasSize(0));
+      List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+      assertThat(inactiveViolations, hasSize(36));
+      for (PolicyViolation inactiveViolation : inactiveViolations) {
+        assertThat(inactiveViolation.getGrandfatherTime(), is(results.evaluation.getTime()));
+        assertThat(inactiveViolation.isWaived(), is(false));
+      }
+    }
+    else {
+      assertThat(results.activeViolations, hasSize(36));
+      for (PolicyViolation activeViolation : results.activeViolations) {
+        assertThat(activeViolation.isGrandfathered(), is(false));
+      }
+    }
+  }
+
+  @Test
+  public void testEvaluate_GrandfatherOnlyOnFirstEvaluation() throws Exception {
+    application = tempEntity.newApplicationWithParent();
+    newSecurityPolicy();
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    // This is the first evaluation. All policy violations should be grandfathered.
+    String scanId1 = "scanId1";
+    Stage stage1 = new Stage(Stage.ID_BUILD);
+    mockReport(scanId1, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage1);
+    assertThat(results.activeViolations, hasSize(0));
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations, hasSize(36));
+    for (PolicyViolation inactiveViolation : inactiveViolations) {
+      assertThat(inactiveViolation.getGrandfatherTime(), is(results.evaluation.getTime()));
+      assertThat(inactiveViolation.isWaived(), is(false));
+    }
+
+    // Delete all violations
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    inactiveViolations.forEach(inactiveViolation -> policyViolationDAO.delete(inactiveViolation));
+
+    // Evaluate again. No policy violations should be grandfathered.
+    String scanId2 = "scanId2";
+    mockReport(scanId2, "/ScanPolicyEvaluatorTest/report.zip");
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId2, stage1);
+    assertThat(results.activeViolations, hasSize(36));
+
+    // Evaluate for a different stage. No policy violations should be grandfathered.
+    String scanId3 = "scanId3";
+    Stage stage2 = new Stage(Stage.ID_RELEASE);
+    mockReport(scanId3, "/ScanPolicyEvaluatorTest/report.zip");
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId3, stage2);
+    assertThat(results.activeViolations, hasSize(36));
   }
 
   @Test
@@ -380,8 +464,11 @@ public class ScanPolicyEvaluatorTest
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
+    PolicyViolationPersistenceLocks policyViolationPersistenceLocks = getCLMServer().getInjector()
+        .getInstance(PolicyViolationPersistenceLocks.class);
     ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(insightWork, reportService, policyThreatsAdapter,
-        componentPolicyEvaluator, applicationEvaluationEventService, mockTelemetrySender);
+        componentPolicyEvaluator, applicationEvaluationEventService, mockTelemetrySender,
+        policyViolationPersistenceLocks);
 
     scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
@@ -398,7 +485,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testSendApplicationStageComponentCounts_NoComponents() {
     TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
-    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null, mockTelemetrySender);
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null, mockTelemetrySender,
+        null);
 
     scanPolicyEvaluator.sendApplicationStageComponentCounts("applicationId", "stageId", new ArrayList<>());
 
@@ -414,8 +502,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testSendApplicationStageComponentCounts() {
     TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
-    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null,
-        mockTelemetrySender);
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null, mockTelemetrySender,
+        null);
     Object[] formatsAndCounts = new Object[]{
         "unknown", 1, ComponentIdentifier.FORMAT_MAVEN, 2, ComponentIdentifier.FORMAT_NPM, 3,
         ComponentIdentifier.FORMAT_NUGET, 4, ComponentIdentifier.FORMAT_ANAME, 5, ComponentIdentifier.FORMAT_PYPI, 6,
@@ -526,6 +614,122 @@ public class ScanPolicyEvaluatorTest
     assertThat(constraintFact.getConditionFacts().get(1).getConditionIndex(), is(1));
   }
 
+  @Test
+  public void testEvaluate_UpdateGrandfatheredViolations() throws Exception {
+    newSecurityPolicy();
+
+    // Evaluate policies for two stages.
+    String scanIdStage1 = "scanIdStage1";
+    Stage stage1 = new Stage(Stage.ID_BUILD);
+    mockReport(scanIdStage1, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults resultsStage1 = scanPolicyEvaluator.evaluate(application.getPublicId(), scanIdStage1,
+        stage1);
+    Date evaluationTimeStage1 = resultsStage1.evaluation.getTime();
+    assertThat(resultsStage1.activeViolations, hasSize(36));
+
+    String scanIdStage2 = "scanIdStage2";
+    Stage stage2 = new Stage(Stage.ID_RELEASE);
+    mockReport(scanIdStage2, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults resultsStage2 = scanPolicyEvaluator.evaluate(application.getPublicId(), scanIdStage2,
+        stage2);
+    Date evaluationTimeStage2 = resultsStage2.evaluation.getTime();
+    assertThat(resultsStage1.activeViolations, hasSize(36));
+
+    // Grandfather a violation in one stage.
+    PolicyViolation grandfatheredViolation = resultsStage1.activeViolations.get(0);
+    Date grandfatherTime = new Date();
+    grandfatheredViolation.setGrandfatherTime(grandfatherTime);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    policyViolationDAO.update(grandfatheredViolation);
+
+    // Evaluate again for the same stage. The violation should remain grandfathered.
+    String scanIdStage1New = "scanIdStage1New";
+    mockReport(scanIdStage1New, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults resultsStage1New = scanPolicyEvaluator.evaluate(application.getPublicId(),
+        scanIdStage1New, stage1);
+    assertThat(resultsStage1New.activeViolations, hasSize(35));
+    List<PolicyViolation> grandfatheredViolations1 = getInactiveViolations(resultsStage1New);
+    assertThat(grandfatheredViolations1, hasSize(1));
+    assertThat(grandfatheredViolations1.get(0).getId(), is(grandfatheredViolation.getId()));
+    assertThat(grandfatheredViolations1.get(0).getGrandfatherTime(), is(grandfatherTime));
+    assertThat(grandfatheredViolations1.get(0).getOpenTime(), is(evaluationTimeStage1));
+    assertThat(grandfatheredViolations1.get(0).getFixTime(), is(nullValue()));
+
+    // Evaluate again for the other stage.
+    // The violation should be grandfathered (because grandfathering works across stages).
+    String scanIdStage2New = "scanIdStage2New";
+    mockReport(scanIdStage2New, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults resultsStage2New = scanPolicyEvaluator.evaluate(application.getPublicId(),
+        scanIdStage2New, stage2);
+    assertThat(resultsStage2New.activeViolations, hasSize(35));
+    List<PolicyViolation> grandfatheredViolations2 = getInactiveViolations(resultsStage2New);
+    assertThat(grandfatheredViolations2, hasSize(1));
+    assertThat(PolicyViolationComparator.COMPARATOR.compare(grandfatheredViolations2.get(0), grandfatheredViolation),
+        is(0));
+    assertThat(grandfatheredViolations2.get(0).getId(), is(not(grandfatheredViolation.getId())));
+    assertThat(grandfatheredViolations2.get(0).getId(), is(resultsStage2.activeViolations.get(0).getId()));
+    assertThat(grandfatheredViolations2.get(0).getGrandfatherTime(), is(grandfatherTime));
+    assertThat(grandfatheredViolations2.get(0).getOpenTime(), is(evaluationTimeStage2));
+    assertThat(grandfatheredViolations2.get(0).getFixTime(), is(nullValue()));
+
+    // Disable grandfathering and evaluate policies again for the first stage.
+    // The grandfathered violation should remain grandfathered.
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+    String scanIdStage1New1 = "scanIdStage1New1";
+    mockReport(scanIdStage1New1, "/ScanPolicyEvaluatorTest/report.zip");
+    ScanPolicyEvaluatorResults resultsStage1New1 = scanPolicyEvaluator.evaluate(application.getPublicId(),
+        scanIdStage1New1, stage1);
+    assertThat(resultsStage1New1.activeViolations, hasSize(35));
+    List<PolicyViolation> grandfatheredViolations3 = getInactiveViolations(resultsStage1New1);
+    assertThat(grandfatheredViolations3, hasSize(1));
+    assertThat(grandfatheredViolations3.get(0).getId(), is(grandfatheredViolation.getId()));
+    grandfatheredViolation = new PolicyViolationDAO().getById(grandfatheredViolation.getId());
+    assertThat(grandfatheredViolation.isFixed(), is(false));
+    assertThat(grandfatheredViolation.getGrandfatherTime(), is(grandfatherTime));
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationGrandfatheringEnabledAtDifferentLevels() throws Exception {
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    Organization organization = tempEntity.newOrganization();
+
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      // Grandfathering is not configured for app or org.
+      organization.setPolicyViolationGrandfatheringEnabled(null);
+      organization.setAllowPolicyViolationGrandfatheringOverride(true);
+      organizationDAO.update(organization);
+      application = tempEntity.newApplication(organization.getId());
+      application.setPolicyViolationGrandfatheringEnabled(null);
+      applicationDAO.update(application);
+      testEvaluate_GrandfatheredViolations(5, false);
+
+      // The app can override grandfathering and grandfathering is enabled for app.
+      application = tempEntity.newApplication(organization.getId());
+      application.setPolicyViolationGrandfatheringEnabled(true);
+      applicationDAO.update(application);
+      testEvaluate_GrandfatheredViolations(5, true);
+
+      // The app cannot override grandfathering and grandfathering is disabled for org.
+      organization.setAllowPolicyViolationGrandfatheringOverride(false);
+      organizationDAO.update(organization);
+      application = tempEntity.newApplication(organization.getId());
+      application.setPolicyViolationGrandfatheringEnabled(true);
+      applicationDAO.update(application);
+      testEvaluate_GrandfatheredViolations(5, false);
+
+      // The app cannot override grandfathering and grandfathering is enabled for org.
+      organization.setPolicyViolationGrandfatheringEnabled(true);
+      organization.setAllowPolicyViolationGrandfatheringOverride(false);
+      organizationDAO.update(organization);
+      application = tempEntity.newApplication(organization.getId());
+      application.setPolicyViolationGrandfatheringEnabled(false);
+      applicationDAO.update(application);
+      testEvaluate_GrandfatheredViolations(5, true);
+    }
+  }
+
   private File createScanFile(Application app, String scanId) {
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     scanFile.delete();
@@ -546,8 +750,12 @@ public class ScanPolicyEvaluatorTest
   }
 
   private Policy newSecurityPolicy() {
+    return newSecurityPolicy(5);
+  }
+
+  private Policy newSecurityPolicy(int policyThreatLevel) {
     Policy policy = new Policy(null, "Test Policy");
-    policy.setThreatLevel(5);
+    policy.setThreatLevel(policyThreatLevel);
     policy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -565,5 +773,11 @@ public class ScanPolicyEvaluatorTest
     policy.addConstraint(constraint);
     new PolicyDAO().insert(policy);
     return policy;
+  }
+
+  private List<PolicyViolation> getInactiveViolations(ScanPolicyEvaluatorResults scanPolicyEvaluatorResults) {
+    List<PolicyViolation> inactiveViolations = new ArrayList<>(scanPolicyEvaluatorResults.allViolations);
+    inactiveViolations.removeAll(scanPolicyEvaluatorResults.activeViolations);
+    return inactiveViolations;
   }
 }

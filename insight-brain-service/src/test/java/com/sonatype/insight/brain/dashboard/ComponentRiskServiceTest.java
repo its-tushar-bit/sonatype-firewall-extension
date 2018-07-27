@@ -285,12 +285,22 @@ public class ComponentRiskServiceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    PolicyViolation violation = policyViolationDAO.getById(waivedViolation.getId());
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
-        null, null, new PolicyViolationStateFilter(PolicyViolationState.WAIVED));
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService
+        .getPolicyViolations(null, null, null, null, null, null,
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED));
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, waivedViolation, app1, app1PolicyEvaluation, app1Policy);
+
+    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1.getId(), "policy Grandfather", 5);
+    PolicyViolation grandfatherViolation = tempEntity
+        .newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
+            ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
+        new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED));
+    assertThat(policyViolationDTOs, hasSize(1));
+    assertPolicyViolationDTO(policyViolationDTOs, grandfatherViolation, app1, app1PolicyEvaluation,
+        app1GrandfatherPolicy);
+
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.OPEN));
@@ -300,12 +310,15 @@ public class ComponentRiskServiceTest
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN));
-    assertThat(policyViolationDTOs, hasSize(4));
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
+            PolicyViolationState.OPEN));
+    assertThat(policyViolationDTOs, hasSize(5));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, waivedViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, grandfatherViolation, app1, app1PolicyEvaluation,
+        app1GrandfatherPolicy);
   }
 
   @Test

@@ -80,6 +80,12 @@
        --><span class="iq-tree-view__text">{{ policy.name }}</span>
         </a>
         <a class="iq-tree-view__child owner-tree-view__row owner-tree-view__row--child"
+           ng-if="(vm.isApp || vm.isOrg) && (vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy'))"
+           ui-sref=".violation-grandfathering-policy"
+           ui-sref-active="selected">
+          <i class="fa fa-history size-16px size-fw owner-tree-view__icon"></i>Policy Violation Grandfathering
+        </a>
+        <a class="iq-tree-view__child owner-tree-view__row owner-tree-view__row--child"
            ng-if="vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy')"
            ui-sref=".monitor-policy"
            ui-sref-active="selected"

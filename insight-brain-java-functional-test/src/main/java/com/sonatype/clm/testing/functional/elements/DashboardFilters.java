@@ -368,5 +368,9 @@ public class DashboardFilters
     public IqCheckbox waived() {
       return checkboxItem(3);
     }
+
+    public IqCheckbox grandfathered() {
+      return checkboxItem(4);
+    }
   }
 }

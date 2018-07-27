@@ -113,6 +113,17 @@ public class OrganizationDAOTest
   }
 
   @Test
+  public void testInsert_AllowPolicyViolationGrandfatheringOverride_DefaultsToTrue() {
+    organization = new Organization("OrganizationDAOTest");
+    assertThat(organization.isAllowPolicyViolationGrandfatheringOverride(), is(true));
+
+    dao.insert(organization);
+    tempEntity.register(organization);
+    organization = dao.getById(organization.getId());
+    assertThat(organization.isAllowPolicyViolationGrandfatheringOverride(), is(true));
+  }
+
+  @Test
   public void testGetAll() throws Exception {
     // Create a few orgs
     int orgCount = 3;

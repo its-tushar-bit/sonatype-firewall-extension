@@ -34,6 +34,18 @@ public class Organization
   @Column(name = "name_lowercase_no_whitespace")
   private String nameLowercaseNoWhitespace;
 
+  /**
+   * @since POLICY_VIOLATION_GRANDFATHERING
+   */
+  @Column(name = "policy_violation_grandfathering_enabled")
+  private Boolean policyViolationGrandfatheringEnabled;
+
+  /**
+   * @since POLICY_VIOLATION_GRANDFATHERING
+   */
+  @Column(name = "allow_policy_violation_grandfathering_override")
+  private boolean allowPolicyViolationGrandfatheringOverride = true;
+
   public Organization() {
   }
 
@@ -108,6 +120,22 @@ public class Organization
   @JsonIgnore
   public String getParentOwnerId() {
     return parentOrganizationId;
+  }
+
+  public Boolean isPolicyViolationGrandfatheringEnabled() {
+    return policyViolationGrandfatheringEnabled;
+  }
+
+  public void setPolicyViolationGrandfatheringEnabled(Boolean policyViolationGrandfatheringEnabled) {
+    this.policyViolationGrandfatheringEnabled = policyViolationGrandfatheringEnabled;
+  }
+
+  public boolean isAllowPolicyViolationGrandfatheringOverride() {
+    return allowPolicyViolationGrandfatheringOverride;
+  }
+
+  public void setAllowPolicyViolationGrandfatheringOverride(boolean allowPolicyViolationGrandfatheringOverride) {
+    this.allowPolicyViolationGrandfatheringOverride = allowPolicyViolationGrandfatheringOverride;
   }
 
   @Override

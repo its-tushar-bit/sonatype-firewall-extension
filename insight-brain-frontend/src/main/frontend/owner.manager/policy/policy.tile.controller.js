@@ -6,8 +6,10 @@
 export default
 function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                               PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                              ProprietaryConfigHierarchyStore, CLMContextLocations, ProductFeatures) {
+                              ProprietaryConfigHierarchyStore, CLMContextLocations, ProductFeatures,
+                              PolicyViolationGrandfatheringService) {
   var vm = this;
+  vm.isAppOrOrg = CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
   vm.ownerName = undefined;
   vm.policiesByOwner = undefined;
   vm.error = undefined;
@@ -15,25 +17,33 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
   vm.monitoredStage = undefined;
   vm.localProprietaryCount = 0;
   vm.inheritedProprietaryCount = 0;
+  vm.grandfatheringStatusMessage = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
 
-  vm.doLoad();
+  vm.$onInit = function() {
+    vm.doLoad();
+  };
 
   $scope.$on('policy.imported', doLoad);
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
-    $q.all([
+    const promises = [
       PolicyHierarchyStore.get(),
       StageTypeStore.getActionStages(),
       PolicyMonitoringStore.getApplicable(),
       ProprietaryConfigHierarchyStore.get(),
       ProductFeatures.load()
-    ]).then(function(results) {
+    ];
+    if (vm.isAppOrOrg) {
+      promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
+    }
+
+    $q.all(promises).then(function(results) {
       vm.policiesByOwner = results[0];
       vm.actionStages = results[1];
 
@@ -72,6 +82,10 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
       });
 
       vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+
+      if (vm.isAppOrOrg) {
+        vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[5]);
+      }
     }, function(error) {
       vm.error = error;
     });
@@ -91,5 +105,6 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
 PolicyTileController.$inject = [
   '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
   'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
-  'ProprietaryConfigHierarchyStore', 'CLMContextLocations', 'ProductFeatures'
+  'ProprietaryConfigHierarchyStore', 'CLMContextLocations', 'ProductFeatures',
+  'policyViolationGrandfatheringService'
 ];

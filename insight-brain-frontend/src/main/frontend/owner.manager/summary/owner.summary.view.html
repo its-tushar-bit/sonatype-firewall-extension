@@ -44,6 +44,13 @@
               </a>
               <div ng-if="vm.isApp" class="divider"></div>
               <a ng-if="vm.isApp"
+                 id="revoke-grandfathering-link"
+                 ng-click="vm.revokeGrandfathering()"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-history"/>Revoke All Grandfathered
+              </a>
+              <div ng-if="vm.isApp" class="divider"></div>
+              <a ng-if="vm.isApp"
                  id="eval-binary-link"
                  ng-click="vm.evaluateApp()"
                  class="btn iq-btn--dropdown"
@@ -181,6 +188,19 @@
                              action-stages="vm.actionStages"
                              on-policy-click="vm.editPolicy(policyId)">
           </owner-policy-list>
+          <div ng-if="vm.isAppOrOrg" class="simple-list" id="violation-grandfathering">
+            <h4 class="subsection-header">
+              Policy Violation Grandfathering
+            </h4>
+            <ul>
+              <li class="simple clickable" same-owner-edit-sref="violation-grandfathering-policy">
+                <div class="title single-row-text">
+                  {{vm.grandfatheringStatusMessage}}
+                </div>
+                <i class="fa fa-chevron-right"></i>
+              </li>
+            </ul>
+          </div>
           <div class="simple-list" id="continuous-monitoring">
             <h4 class="subsection-header">
               Continuous monitoring

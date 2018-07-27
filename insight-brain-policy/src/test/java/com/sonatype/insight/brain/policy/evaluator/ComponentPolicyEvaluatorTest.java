@@ -876,3 +876,4 @@ public class ComponentPolicyEvaluatorTest
 
   }
 }
+

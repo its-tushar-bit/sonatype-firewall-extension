@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -24,6 +22,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;

@@ -223,6 +223,10 @@ locationModule.factory('CLMContextLocations', [
 
       getLdapConfig,
 
+      getGrandfatheringUrl: function() {
+        return `${baseUrl.get()}/rest/policyViolationGrandfathering/${getServicePathWithId()}`;
+      },
+
       isApplication: isApplication,
       isOrganization: isOrganization,
       isRootOrg: isRootOrg,

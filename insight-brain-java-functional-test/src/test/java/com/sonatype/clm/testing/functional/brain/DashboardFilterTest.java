@@ -179,6 +179,10 @@ public class DashboardFilterTest
     PolicyWaiver policyWaiver = staticTempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
     staticTempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
+
+    Policy grandfatherPolicy = staticTempEntity.newPolicy(org.getId(), "GrandfatherTestPolicy");
+    staticTempEntity.newGrandfatheredPolicyViolation(secondPolicyEvaluation, grandfatherPolicy,
+        ComponentIdentifier.createMavenCoordinates("Group3", "ArtifactGrandfather", "Version3"), "hash-grandfathered");
   }
 
   /**
@@ -315,7 +319,7 @@ public class DashboardFilterTest
         "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
         "  \"stageTypeFilters\" : [ \"release\" ],\n" +
         "  \"maxDaysOld\" : 30,\n" +
-        "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\" ]\n" +
+        "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ]\n" +
         "}"));
 
     // assert applied filters
@@ -426,6 +430,36 @@ public class DashboardFilterTest
     waivedViolation.component().shouldHave(text("Artifact2"));
 
     // applications tab should have only waived violation app
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
+    DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
+
+    // reset
+    DashboardFilters.clearButton().click();
+    assertInitialFilterState();
+
+    // filter GRANDFATHERED only
+    DashboardPage.componentsTab().click();
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.policyViolationStateFilter().open().click();
+    DashboardFilters.policyViolationStateFilter().grandfathered().click();
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardPage.componentsView().results().mask().shouldBe(visible);
+
+    DashboardFilters.apply();
+    DashboardPage.componentsView().results().mask().shouldBe(hidden);
+
+    // components tab should have only grandfathered component
+    DashboardPage.componentsView().results().components().shouldHaveSize(1);
+    DashboardPage.componentsView().results().firstComponent().shouldHave(text("ArtifactGrandfather"));
+
+    // violations tab should have only grandfathered violation
+    DashboardPage.violationsTab().click();
+    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    ViolationTile grandfatheredViolation = DashboardPage.violationsView().results().firstViolation();
+    grandfatheredViolation.component().shouldHave(text("ArtifactGrandfather"));
+
+    // applications tab should have only grandfathered violation app
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
@@ -911,6 +945,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
+    DashboardFilters.policyViolationStateFilter().grandfathered().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 7);
@@ -1009,13 +1044,14 @@ public class DashboardFilterTest
 
   private void assertPolicyViolationStateFilterInitialState() {
     PolicyViolationStateFilter policyViolationStateFilter = DashboardFilters.policyViolationStateFilter();
-    policyViolationStateFilter.counter().shouldBe(visible).shouldHave(text("1 of 2"));
+    policyViolationStateFilter.counter().shouldBe(visible).shouldHave(text("1 of 3"));
     policyViolationStateFilter.multiSelectList().shouldBe(empty);
     policyViolationStateFilter.twisty().shouldBe(visible).click();
-    policyViolationStateFilter.multiSelectList().shouldHave(size(3));
+    policyViolationStateFilter.multiSelectList().shouldHave(size(4));
     policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     policyViolationStateFilter.open().shouldBe(selected).label().shouldHave(text("Open"));
     policyViolationStateFilter.waived().shouldNotBe(selected).label().shouldHave(text("Waived"));
+    policyViolationStateFilter.grandfathered().shouldNotBe(selected).label().shouldHave(text("Grandfathered"));
     policyViolationStateFilter.twisty().click();
   }
 
@@ -1024,7 +1060,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 3"));
     DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
-    DashboardFilters.policyViolationStateFilter().counter().shouldBe(ACTIVE).shouldHave(text("2 of 2"));
+    DashboardFilters.policyViolationStateFilter().counter().shouldBe(ACTIVE).shouldHave(text("3 of 3"));
     DashboardFilters.policyThreatLevelFilter().counter().shouldHave(text("2 – 7"));
   }
 

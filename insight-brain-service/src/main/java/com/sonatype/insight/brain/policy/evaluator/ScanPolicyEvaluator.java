@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,6 +29,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -38,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -61,6 +62,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toList;
+
 @Named
 public class ScanPolicyEvaluator
 {
@@ -70,7 +73,7 @@ public class ScanPolicyEvaluator
 
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
 
-  private static final ConcurrentMap<String, String> PERSISTENCE_LOCKS_BY_APPID = new ConcurrentHashMap<>();
+  private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
 
   private static final String UNKNOWN = "unknown";
 
@@ -98,7 +101,8 @@ public class ScanPolicyEvaluator
                              final PolicyThreatsAdapter policyThreatsAdapter,
                              final ComponentPolicyEvaluator componentPolicyEvaluator,
                              final ApplicationEvaluationEventService applicationEvaluationEventService,
-                             final TelemetrySender telemetrySender)
+                             final TelemetrySender telemetrySender,
+                             final PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -106,6 +110,7 @@ public class ScanPolicyEvaluator
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.telemetrySender = telemetrySender;
+    this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final String applicationPublicId, final String scanId, final Stage stage)
@@ -153,31 +158,48 @@ public class ScanPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, components, forMonitoring);
 
     // Save the policy evaluation and violations
-    ScanPolicyEvaluatorResults results = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults,
-        components);
-    final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage,
+        forMonitoring, policyResults, components);
 
-    byte[] alertsFileContent = JsonUtils.generate(JsonUtils.aaData(alerts));
-    Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
-
-    Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreatsAdapter
-        .createPolicyThreats(results.allViolations)));
-
+    createReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 
-    postEvaluateEvent(results.evaluation, results.activeViolations);
+    postEvaluateEvent(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
 
-    return results;
+    return scanPolicyEvaluatorResults;
   }
 
-  private ScanPolicyEvaluatorResults persistPolicyResults(String appId,
+  private void createReportFiles(File reportFile,
+                                 ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
+                                 Stage stage,
+                                 boolean forMonitoring)
+      throws IOException
+  {
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(scanPolicyEvaluatorResults.activeViolations,
+        stage.getStageTypeId(), forMonitoring);
+    Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
+
+    PolicyThreats policyThreats = policyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
+    Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
+  }
+
+  /**
+   * Processes the raw policy evaluation results:
+   * - persists policy evaluation
+   * - persists policy violation data and component data if this is an evaluation for the most recent scan for the
+   * specified stage
+   * - set or updates the grandfathered status on policy violations
+   * - determines the policy violations for which notifications should be sent
+   */
+  private ScanPolicyEvaluatorResults processPolicyResults(Application app,
                                                           String scanId,
                                                           Stage stage,
                                                           boolean forMonitoring,
                                                           PolicyResults policyResults,
                                                           List<Component> components)
   {
-    Object lock = getPersistenceLock(appId);
+    String appId = app.getId();
+    Object lock = policyViolationPersistenceLocks.getLock(appId);
     synchronized (lock) {
       long start = System.currentTimeMillis();
       PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
@@ -200,7 +222,6 @@ public class ScanPolicyEvaluator
         ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
         results.evaluation = policyEvaluation;
         results.allViolations = new ArrayList<>();
-        results.activeViolations = new ArrayList<>();
         results.notifiableViolations = isReevaluation ? null : new ArrayList<>();
 
         // Convert the policy alerts into policy violations
@@ -237,12 +258,11 @@ public class ScanPolicyEvaluator
               policyViolation.setPolicyWaiverId(policyWaiver.getId());
               policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
             }
-            else {
-              results.activeViolations.add(policyViolation);
-            }
             results.allViolations.add(policyViolation);
           }
         }
+
+        setGrandfatheredPolicyViolations(tx, app, policyEvaluation.getTime(), results.allViolations);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
@@ -252,20 +272,24 @@ public class ScanPolicyEvaluator
           PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
               .digestPolicyViolations(oldPolicyViolations, results.allViolations);
 
+          // New policy violations.
           for (PolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
             if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
               results.notifiableViolations.add(newPolicyViolation);
             }
             policyViolationDAO.insert(tx, newPolicyViolation);
           }
+          // Fixed policy violations.
           for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
             oldPolicyViolation.setFixTime(policyEvaluation.getTime());
             policyViolationDAO.update(tx, oldPolicyViolation);
           }
+          // Existing policy violations.
           for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
             PolicyViolation oldPolicyViolation = entry.getKey();
             PolicyViolation newPolicyViolation = entry.getValue();
             if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
+              // The policy violation was un-waived.
               oldPolicyViolation.setFixTime(policyEvaluation.getTime());
               policyViolationDAO.update(tx, oldPolicyViolation);
               if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -286,7 +310,12 @@ public class ScanPolicyEvaluator
                 oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
                 oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
               }
+              oldPolicyViolation.setGrandfatherTime(newPolicyViolation.getGrandfatherTime());
               policyViolationDAO.update(tx, oldPolicyViolation);
+
+              // Update the violation in the list of all violation to be the one actually saved to the db.
+              results.allViolations.remove(newPolicyViolation);
+              results.allViolations.add(oldPolicyViolation);
             }
           }
 
@@ -294,6 +323,8 @@ public class ScanPolicyEvaluator
         }
 
         tx.commit();
+
+        results.activeViolations = results.allViolations.stream().filter(PolicyViolation::isActive).collect(toList());
 
         if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
           String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
@@ -309,6 +340,67 @@ public class ScanPolicyEvaluator
     }
   }
 
+  /**
+   * If this is the first policy evaluation and grandfathering is enabled for the application, then all policy
+   * violations are marked as grandfathered.
+   * If this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
+   * existing grandfathered policy violations (across all stages).
+   */
+  private void setGrandfatheredPolicyViolations(TransactionContext tx,
+                                                Application app,
+                                                Date policyEvaluationTime,
+                                                List<PolicyViolation> policyViolations)
+  {
+    // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
+    if (isPolicyViolationGrandfatheringEnabled(tx, app.getId()) && isFirstEvaluation(tx, app)) {
+      // Only policy violations with threat level <= 8 should be grandfathered.
+      policyViolations.stream().filter(policyViolation -> policyViolation.getThreatLevel() <= 8)
+          .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
+    }
+    else {
+      List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
+          .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+      if (!grandfatheredPolicyViolations.isEmpty()) {
+        PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
+            .digestPolicyViolations(grandfatheredPolicyViolations, policyViolations);
+        policyViolationDiff.getSame().forEach( //
+            (grandfatheredPolicyViolation, newPolicyViolation) -> newPolicyViolation
+                .setGrandfatherTime(grandfatheredPolicyViolation.getGrandfatherTime()));
+      }
+    }
+  }
+
+  private boolean isFirstEvaluation(TransactionContext tx, Application app) {
+    // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
+    return new PolicyEvaluationDAO().getCountByApplicationId(tx, app.getId()) == 1;
+  }
+
+  private boolean isPolicyViolationGrandfatheringEnabled(TransactionContext tx, String appId) {
+    Application app = applicationDAO.getById(tx, appId);
+    Boolean enabled = app.isPolicyViolationGrandfatheringEnabled();
+
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    String parentOrgId = app.getOrganizationId();
+    while (parentOrgId != null) {
+      Organization org = orgDAO.getById(tx, parentOrgId);
+
+      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
+        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      }
+      else if (enabled == null) {
+        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      }
+
+      parentOrgId = org.getParentOrganizationId();
+    }
+
+    if (enabled == null) {
+      enabled = false;
+    }
+
+    return enabled;
+  }
+
   private String getFilename(ComponentFact componentFact) {
     return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
   }
@@ -321,7 +413,7 @@ public class ScanPolicyEvaluator
     if (isReevaluation && !forMonitoring) {
       return false;
     }
-    boolean active = !newPolicyViolation.isWaived();
+    boolean active = newPolicyViolation.isActive();
     boolean wasSeen;
     if (oldPolicyViolation == null) {
       wasSeen = false;
@@ -436,17 +528,6 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-  }
-
-  private static Object getPersistenceLock(String appId) {
-    Object lock = PERSISTENCE_LOCKS_BY_APPID.get(appId);
-    if (lock == null) {
-      lock = PERSISTENCE_LOCKS_BY_APPID.putIfAbsent(appId, appId);
-      if (lock == null) {
-        lock = appId;
-      }
-    }
-    return lock;
   }
 
   @VisibleForTesting

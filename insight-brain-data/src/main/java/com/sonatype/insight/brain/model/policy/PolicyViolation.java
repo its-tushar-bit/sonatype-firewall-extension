@@ -12,6 +12,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -44,6 +45,9 @@ public class PolicyViolation
 
   @Column(name = "waive_time")
   private Date waiveTime;
+
+  @Column(name = "grandfather_time")
+  private Date grandfatherTime;
 
   @Column(name = "fix_time")
   private Date fixTime;
@@ -165,6 +169,18 @@ public class PolicyViolation
     this.waiveTime = waiveTime;
   }
 
+  public boolean isGrandfathered() {
+    return grandfatherTime != null;
+  }
+
+  public Date getGrandfatherTime() {
+    return grandfatherTime;
+  }
+
+  public void setGrandfatherTime(Date grandfatherTime) {
+    this.grandfatherTime = grandfatherTime;
+  }
+
   public boolean isFixed() {
     return getFixTime() != null;
   }
@@ -210,6 +226,11 @@ public class PolicyViolation
 
   public void setSeenByMonitoringEvaluation(boolean seenByMonitoringEvaluation) {
     this.seenByMonitoringEvaluation = seenByMonitoringEvaluation;
+  }
+
+  @Transient
+  public boolean isActive() {
+    return !isFixed() && !isWaived() && !isGrandfathered();
   }
 
   @Override

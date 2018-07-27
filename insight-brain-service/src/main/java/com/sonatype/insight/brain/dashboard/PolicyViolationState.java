@@ -16,5 +16,5 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
  */
 public enum PolicyViolationState
 {
-  OPEN, WAIVED;
+  OPEN, WAIVED, GRANDFATHERED
 }

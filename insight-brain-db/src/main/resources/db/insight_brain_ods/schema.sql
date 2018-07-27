@@ -19,6 +19,8 @@ CREATE TABLE organization (
   parent_organization_id varchar(50) NULL,
   name varchar(200) NOT NULL,
   name_lowercase_no_whitespace varchar(200) NOT NULL,
+  policy_violation_grandfathering_enabled boolean,
+  allow_policy_violation_grandfathering_override boolean DEFAULT true NOT NULL, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -34,6 +36,7 @@ CREATE TABLE application (
   name_lowercase_no_whitespace varchar(200) NOT NULL,
   organization_id varchar(50) NOT NULL,
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
+  policy_violation_grandfathering_enabled boolean,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase),
   CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
@@ -375,9 +378,10 @@ CREATE TABLE policy_violation (
   action_type_id varchar(20), 
 
   -- timestamps recording the state and transitions thereof for the violation
-  open_time datetime NOT NULL, -- when the violation first occurred
-  waive_time datetime NULL,    -- when the violation was waived
-  fix_time datetime NULL,      -- when the violation disappeared entirely
+  open_time datetime NOT NULL,    -- when the violation first occurred
+  waive_time datetime NULL,       -- when the violation was waived
+  grandfather_time datetime NULL, -- when the violation was grandfathered
+  fix_time datetime NULL,         -- when the violation disappeared entirely
 
   -- details of the waiver that suppressed this violation
   policy_waiver_id varchar(50) NULL,  -- no foreign key constraint to policy_waiver, waivers can be deleted at any time

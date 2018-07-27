@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional;
 
-import java.util.Date;
-
 import com.applitools.eyes.BatchInfo;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
@@ -31,15 +29,19 @@ public class EyesWatcher
   private static final String APPLITOOLS_KEY = System.getProperty("applitoolsKey");
 
   static {
-    String localBranchName = System.getProperty("branchName", System.getenv("bamboo_planRepository_branchName"));
+    String localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
     eyes.setIsDisabled(APPLITOOLS_KEY == null);
 
     if (!eyes.getIsDisabled() && localBranchName != null) {
-      String buildNumber = System.getenv("bamboo_buildNumber");
-      batch = new BatchInfo(localBranchName + (buildNumber != null ? " #" + buildNumber : ""));
+      String batchName = System.getenv("APPLITOOLS_BATCH_NAME"); // batch name set by Applitools jenkins plugin
+      String batchId = System.getenv("APPLITOOLS_BATCH_ID"); // batch id set by Applitools jenkins plugin
 
-      // Aggregates tests under the same batch when tests are run in different processes (e.g. split tests in bamboo).
-      batch.setId(buildNumber != null ? batch.getName() : batch.getName() + new Date().toString());
+      // Set only once per Jenkins job
+      batch = new BatchInfo(batchName != null ? batchName : localBranchName);
+      if (batchId != null) { // no need to set the id for local testing
+        batch.setId(batchId);
+      }
+
       eyes.setApiKey(APPLITOOLS_KEY);
       eyes.setBatch(batch);
 

@@ -32,7 +32,9 @@ def functionalTests(String browser, String testRegex) {
   mavenOptions += " -Dbrowser=${browser}"
   mavenOptions += ' -DapplitoolsKey=bg21K3t6KY1073109q6J9lZzCQBfxEDGh5tHgYR9wl1kHxk110'
   def testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
-  mvn testConfig, 'clean verify'
+  Applitools('https://eyes.applitools.com') {
+    mvn testConfig, 'clean verify'
+  }
 }
 
 def unitTests() {
@@ -70,10 +72,6 @@ pipeline {
         }
         stage('Java Functional Tests - (Chrome) A') {
           agent { label agentLabel }
-          environment {
-            bamboo_planRepository_branchName = "${gitBranch(env)}"
-            bamboo_buildNumber = "${env.BUILD_NUMBER}"
-          }
           steps {
             functionalTests('chrome', '.*/[A-M].*Test.class')
           }
@@ -85,10 +83,6 @@ pipeline {
         }
         stage('Java Functional Tests - (Chrome) B') {
           agent { label agentLabel }
-          environment {
-            bamboo_planRepository_branchName = "${gitBranch(env)}"
-            bamboo_buildNumber = "${env.BUILD_NUMBER}"
-          }
           steps {
             functionalTests('chrome', '.*/[N-Z].*Test.class')
           }

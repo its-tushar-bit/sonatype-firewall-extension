@@ -279,6 +279,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1));
 
+    newSecurityPolicy(5);
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -287,7 +288,7 @@ public class ScanPolicyEvaluatorTest
 
     asyncEventBus.register(handler);
 
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
     ApplicationEvaluationEvent event = handler.getEvent();
@@ -295,6 +296,13 @@ public class ScanPolicyEvaluatorTest
     assertThat(event.stageTypeId, is(Stage.ID_BUILD));
     assertThat(event.ownerId, is(application.getId()));
     assertThat(event.initiator, is("system"));
+    assertThat(event.policyEvaluationId, is(scanPolicyEvaluatorResults.evaluation.getId()));
+    assertThat(event.evaluationDate, is(scanPolicyEvaluatorResults.evaluation.getTime()));
+    assertThat(event.affectedComponentCount, is(7));
+    assertThat(event.criticalComponentCount, is(0));
+    assertThat(event.severeComponentCount, is(7));
+    assertThat(event.moderateComponentCount, is(0));
+    assertThat(event.outcome, is(ApplicationEvaluationEvent.ACTION_ID_NONE));
   }
 
   @Test

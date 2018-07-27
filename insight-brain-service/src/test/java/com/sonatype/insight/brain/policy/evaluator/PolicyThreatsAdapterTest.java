@@ -36,9 +36,9 @@ public class PolicyThreatsAdapterTest
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
     PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
     PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
@@ -53,13 +53,13 @@ public class PolicyThreatsAdapterTest
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
     PolicyViolation mavenViolation10 = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
     PolicyViolation mavenViolation1 = buildPolicyViolation("policy2", "hash1", 1, mavenIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
     PolicyViolation nugetViolation10 = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
     PolicyViolation nugetViolation1 = buildPolicyViolation("policy2", "hash2", 1, nugetIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation10, mavenViolation1, nugetViolation10,
         nugetViolation1);
@@ -93,8 +93,10 @@ public class PolicyThreatsAdapterTest
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
-    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true, Action.ID_FAIL);
-    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, true, Action.ID_FAIL);
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true, 
+        false, Action.ID_FAIL);
+    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, true,
+        false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
@@ -107,14 +109,37 @@ public class PolicyThreatsAdapterTest
 
     assertPolicyThreats(threats, violations);
   }
+  
+  @Test
+  public void testCreatePolicyThreats_Grandfathered() {
+    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
+
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
+        true, Action.ID_FAIL);
+    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false,
+        true, Action.ID_FAIL);
+    
+    List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
+
+    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+
+    for (PolicyThreats.Component component : threats.aaData) {
+      Assert.assertThat(component.allViolations, hasSize(1));
+    }
+
+    assertPolicyThreats(threats, violations);
+  }
 
   @Test
   public void testCreatePolicyThreats_AllWaivedButTopViolationExists() {
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
-    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true, Action.ID_FAIL);
-    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, true, Action.ID_FAIL);
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true,
+        false, Action.ID_FAIL);
+    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, true,
+        false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
@@ -137,9 +162,9 @@ public class PolicyThreatsAdapterTest
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
     PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
     PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false,
-        Action.ID_FAIL);
+        false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
@@ -163,7 +188,7 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(null);
 
     Assert.assertThat(threats.aaData, hasSize(0));
-    Assert.assertThat(threats.version, is(2));
+    Assert.assertThat(threats.version, is(3));
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,
@@ -171,6 +196,7 @@ public class PolicyThreatsAdapterTest
                                                int threatLevel,
                                                ComponentIdentifier componentIdentifier,
                                                boolean waived,
+                                               boolean grandfathered,
                                                String actionType)
   {
     PolicyEvaluation evaluation = new PolicyEvaluation("applicationId1", "stageId1", "scanId1");
@@ -180,6 +206,9 @@ public class PolicyThreatsAdapterTest
         PolicyThreatCategory.OTHER, hash, componentIdentifier, buildConstraintFact(policyId), null);
     if (waived) {
       violation.setWaiveTime(violation.getOpenTime());
+    }
+    if (grandfathered) {
+      violation.setGrandfatherTime(new Date());
     }
     violation.setActionTypeId(actionType);
 
@@ -200,6 +229,7 @@ public class PolicyThreatsAdapterTest
       assertPolicyThreatsComponent(component, violations);
       assertPolicyThreatsPolicyViolations(component.activeViolations, violations);
       assertPolicyThreatsPolicyViolations(component.waivedViolations, violations);
+      assertPolicyThreatsPolicyViolations(component.allViolations, violations);
     }
   }
 
@@ -264,6 +294,8 @@ public class PolicyThreatsAdapterTest
   {
     Assert.assertThat(policyViolation.policyId, is(violation.getPolicyId()));
     Assert.assertThat(policyViolation.policyName, is(violation.getPolicyName()));
+    Assert.assertThat(policyViolation.waived, is(violation.isWaived()));
+    Assert.assertThat(policyViolation.grandfathered, is(violation.isGrandfathered()));
 
     for (PolicyThreats.PolicyAction action : policyViolation.actions) {
       Assert.assertThat(action.actionType, is(violation.getActionTypeId()));

@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -324,7 +325,7 @@ public class ScanPolicyEvaluator
 
         tx.commit();
 
-        results.activeViolations = results.allViolations.stream().filter(PolicyViolation::isActive).collect(toList());
+        results.activeViolations = filterActivePolicyViolations(results.allViolations);
 
         if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
           String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
@@ -473,32 +474,69 @@ public class ScanPolicyEvaluator
   private void calculateCounters(PolicyEvaluationResult policyEvaluationResult, List<PolicyViolation> policyViolations)
   {
     final Map<String, Integer> componentThreatLevels = new HashMap<>();
+    int criticalPolicyViolationCount = 0;
+    int severePolicyViolationCount = 0;
+    int moderatePolicyViolationCount = 0;
+    int grandfatheredPolicyViolationCount = 0;
     for (PolicyViolation policyViolation : policyViolations) {
-      final int policyThreatLevel = policyViolation.getThreatLevel();
-      final String id = policyViolation.getHash();
-      final Integer level = componentThreatLevels.get(id);
-      if (level == null || level < policyThreatLevel) {
-        componentThreatLevels.put(id, policyThreatLevel);
+      if (policyViolation.isActive()) {
+        final int policyThreatLevelNumber = policyViolation.getThreatLevel();
+        final String id = policyViolation.getHash();
+        final Integer policyThreatLevelForComponent = componentThreatLevels.get(id);
+        if (policyThreatLevelForComponent == null || policyThreatLevelForComponent < policyThreatLevelNumber) {
+          componentThreatLevels.put(id, policyThreatLevelNumber);
+        }
+  
+        ThreatLevel policyThreatLevel = ThreatLevel.from(policyThreatLevelNumber);
+        switch (policyThreatLevel) {
+          case CRITICAL:
+            criticalPolicyViolationCount++;
+            break;
+          case SEVERE:
+            severePolicyViolationCount++;
+            break;
+          case MODERATE:
+            moderatePolicyViolationCount++;
+            break;
+          case LOW:
+            // We don't count for LOW
+            break;
+        }
+      }
+      else if (policyViolation.isGrandfathered()) {
+        grandfatheredPolicyViolationCount++;
       }
     }
 
-    int criticalCount = 0, severeCount = 0, moderateCount = 0;
-    for (final int level : componentThreatLevels.values()) {
-      if (level >= 8) {
-        criticalCount++;
-      }
-      else if (level >= 4) {
-        severeCount++;
-      }
-      else if (level >= 2) {
-        moderateCount++;
+    int criticalComponentCount = 0, severeComponentCount = 0, moderateComponentCount = 0;
+    for (final int policyThreatLevelForComponent : componentThreatLevels.values()) {
+      ThreatLevel policyThreatLevel = ThreatLevel.from(policyThreatLevelForComponent);
+      switch (policyThreatLevel) {
+        case CRITICAL:
+          criticalComponentCount++;
+          break;
+        case SEVERE:
+          severeComponentCount++;
+          break;
+        case MODERATE:
+          moderateComponentCount++;
+          break;
+        case LOW:
+          // We don't count for LOW
+          break;
       }
     }
 
-    policyEvaluationResult.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
-    policyEvaluationResult.setCriticalComponentCount(criticalCount);
-    policyEvaluationResult.setSevereComponentCount(severeCount);
-    policyEvaluationResult.setModerateComponentCount(moderateCount);
+    policyEvaluationResult
+        .setAffectedComponentCount(criticalComponentCount + severeComponentCount + moderateComponentCount);
+    policyEvaluationResult.setCriticalComponentCount(criticalComponentCount);
+    policyEvaluationResult.setSevereComponentCount(severeComponentCount);
+    policyEvaluationResult.setModerateComponentCount(moderateComponentCount);
+
+    policyEvaluationResult.setCriticalPolicyViolationCount(criticalPolicyViolationCount);
+    policyEvaluationResult.setSeverePolicyViolationCount(severePolicyViolationCount);
+    policyEvaluationResult.setModeratePolicyViolationCount(moderatePolicyViolationCount);
+    policyEvaluationResult.setGrandfatheredPolicyViolationCount(grandfatheredPolicyViolationCount);
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
@@ -514,11 +552,16 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
-      List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(policyViolations,
+      List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
+      List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(activePolicyViolations,
           policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
       policyEvaluationResult.setAlerts(policyAlerts);
     }
     return policyEvaluationResult;
+  }
+
+  private List<PolicyViolation> filterActivePolicyViolations(List<PolicyViolation> policyViolations) {
+    return policyViolations.stream().filter(PolicyViolation::isActive).collect(toList());
   }
 
   /**

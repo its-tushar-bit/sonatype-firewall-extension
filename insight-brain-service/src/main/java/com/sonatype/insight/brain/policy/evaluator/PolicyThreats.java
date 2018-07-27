@@ -60,9 +60,14 @@ public class PolicyThreats
     public String policyName;
     public int policyThreatLevel;
 
-    // active and waived violations, in no particular order
+    // active and waived violations, in no particular order, for backward compatibility
     public List<PolicyViolation> activeViolations = new ArrayList<>();
     public List<PolicyViolation> waivedViolations = new ArrayList<>();
+
+    /**
+     * @since 1.50
+     */
+    public List<PolicyViolation> allViolations = new ArrayList<>();
   }
 
   public static class PolicyViolation
@@ -70,6 +75,16 @@ public class PolicyThreats
     public String policyId;
     public String policyName;
     public int policyThreatLevel;
+    
+    /**
+     * @since 1.50
+     */
+    public boolean waived;
+    
+    /**
+     * @since 1.50
+     */
+    public boolean grandfathered;
 
     public List<PolicyAction> actions = new ArrayList<>();
 

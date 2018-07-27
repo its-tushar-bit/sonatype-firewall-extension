@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -38,6 +37,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -215,6 +215,12 @@ public abstract class AbstractBrainServiceTest
 
   protected void mockScanReceipt(ScanReceipt scanReceipt) {
     setHdsResponseForURI("rest/application/analysis", scanReceipt, 200);
+  }
+
+  protected String mockReport(String resourceName) {
+    String scanId = tempEntity.uuid();
+    mockReport(scanId, resourceName);
+    return scanId;
   }
 
   protected void mockReport(String scanId, String resourceName) {

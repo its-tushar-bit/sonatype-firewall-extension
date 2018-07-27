@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -175,16 +176,23 @@ public final class Report
 
     int policyComponentCount = 0;
     int insecureArtifactCount = 0;
+    int grandfatheredPolicyViolationCount = 0;
 
     final ArrayList<int[]> securityPunchCard = new ArrayList<>();
     final ArrayList<int[]> licensePunchCard = new ArrayList<>();
 
     if (policyReportEntry != null) {
       for (final JsonNode row : JsonUtils.parse(policyReportEntry.buf).get("aaData")) {
-        final int level = row.path("policyThreatLevel").asInt();
+        PolicyThreats.Component component = JsonUtils.asPojo(row, PolicyThreats.Component.class);
+        final int level = component.policyThreatLevel;
         policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
         if (level >= 2) {
           policyComponentCount++;
+        }
+        for (PolicyThreats.PolicyViolation policyViolation : component.allViolations) {
+          if (policyViolation.grandfathered) {
+            grandfatheredPolicyViolationCount++;
+          }
         }
       }
     }
@@ -249,6 +257,7 @@ public final class Report
     fill(data.putArray("policyCounts"), policyCounts);
     data.put("policyComponentCount", policyComponentCount);
     fill(data.putArray("securityCounts"), securityCounts);
+    data.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
     data.put("insecureArtifactCount", insecureArtifactCount);
     fill(data.putArray("effectiveLicenseCounts"), licenseCounts);
     fill(data.putArray("securityPunchCard"), securityPunchCard);

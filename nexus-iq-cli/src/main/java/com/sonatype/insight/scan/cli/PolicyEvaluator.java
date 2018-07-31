@@ -45,8 +45,12 @@ abstract class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
     log.info("*********************************************************************************************");
     log.info("Policy Action: {}", outcome);
     log.info("Stage: {}", params.getStage().getStageTypeId());
-    log.info("Summary of policy violations: {} critical, {} severe, {} moderate", eval.getCriticalComponentCount(),
+    log.info("Number of components affected: {} critical, {} severe, {} moderate", eval.getCriticalComponentCount(),
         eval.getSevereComponentCount(), eval.getModerateComponentCount());
+    log.info("Number of open policy violations: {} critical, {} severe, {} moderate",
+        eval.getCriticalPolicyViolationCount(), eval.getSeverePolicyViolationCount(),
+        eval.getModeratePolicyViolationCount());
+    log.info("Number of grandfathered policy violations: {}", eval.getGrandfatheredPolicyViolationCount());
     log.info("The detailed report can be viewed online at {}", reportUrl);
     log.info("*********************************************************************************************");
 

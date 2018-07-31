@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
@@ -119,5 +120,20 @@ public abstract class AbstractPolicyEvaluatorTest
     ApplicationSummaryList appSummaryList = new ApplicationSummaryList();
     appSummaryList.getApplicationSummaries().add(appSummary);
     return appSummaryList;
+  }
+
+  protected void assertLogSummary(PolicyEvaluationResult expectedPolicyEvalutionResult) {
+    logOutput.assertInfo(String
+        .format("Number of components affected: %s critical, %s severe, %s moderate",
+            expectedPolicyEvalutionResult.getCriticalComponentCount(),
+            expectedPolicyEvalutionResult.getSevereComponentCount(),
+            expectedPolicyEvalutionResult.getModerateComponentCount()));
+    logOutput.assertInfo(String
+        .format("Number of open policy violations: %s critical, %s severe, %s moderate",
+            expectedPolicyEvalutionResult.getCriticalPolicyViolationCount(),
+            expectedPolicyEvalutionResult.getSeverePolicyViolationCount(),
+            expectedPolicyEvalutionResult.getModeratePolicyViolationCount()));
+    logOutput.assertInfo(String.format("Number of grandfathered policy violations: %s",
+        expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()));
   }
 }

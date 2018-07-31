@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ResultData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -147,7 +148,7 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     evaluator.run(params);
-    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    assertLogSummary(new PolicyEvaluationResult());
   }
 
   @Test
@@ -161,7 +162,10 @@ public class DefaultPolicyEvaluatorTest
     evaluator.run(params);
 
     logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
+    expectedPolicyEvaluationResult.setCriticalComponentCount(4);
+    expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
+    assertLogSummary(expectedPolicyEvaluationResult);
     logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(Policy Name)"));
   }
 
@@ -184,7 +188,12 @@ public class DefaultPolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
     logOutput.assertInfo("Policy Action: Failure");
-    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
+    expectedPolicyEvaluationResult.setCriticalComponentCount(4);
+    expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
+    expectedPolicyEvaluationResult.setSeverePolicyViolationCount(4);
+    expectedPolicyEvaluationResult.setModeratePolicyViolationCount(4);
+    assertLogSummary(expectedPolicyEvaluationResult);
     logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(Policy 1)"));
     logOutput.assertError(startsWith("The IQ Server reports policy failing due to \nPolicy(Policy 2)"));
     logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(Policy 3)"));
@@ -200,7 +209,10 @@ public class DefaultPolicyEvaluatorTest
         "src/test/data/artifact.jar");
     evaluator.run(params);
     logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
+    expectedPolicyEvaluationResult.setCriticalComponentCount(4);
+    expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
+    assertLogSummary(expectedPolicyEvaluationResult);
     logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(TestPolicy)"));
 
     logOutput.clear();
@@ -217,7 +229,7 @@ public class DefaultPolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
     logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    assertLogSummary(expectedPolicyEvaluationResult);
     logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(TestPolicy)"));
   }
 
@@ -441,7 +453,7 @@ public class DefaultPolicyEvaluatorTest
         "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "@" + paramFile1.getAbsolutePath(), "@" + paramFile2.getAbsolutePath());
     evaluator.run(params);
-    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    assertLogSummary(new PolicyEvaluationResult());
   }
 
   @Test
@@ -461,7 +473,7 @@ public class DefaultPolicyEvaluatorTest
     assertThat(app, is(notNullValue()));
     appDAO.delete(app);
 
-    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    assertLogSummary(new PolicyEvaluationResult());
   }
 
   @Test

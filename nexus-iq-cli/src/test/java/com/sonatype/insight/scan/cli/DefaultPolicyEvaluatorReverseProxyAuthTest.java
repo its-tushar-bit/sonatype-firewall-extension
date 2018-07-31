@@ -8,6 +8,7 @@ package com.sonatype.insight.scan.cli;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -74,7 +75,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
 
     if (rutEnabled || anonymousAllowed) {
       evaluator.run(params);
-      logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+      assertLogSummary(new PolicyEvaluationResult());
     }
     else {
       try {
@@ -108,7 +109,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     createAppAndAuthorizedUser("another_app", "mrbasic", "secret");
 
     evaluator.run(params);
-    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    assertLogSummary(new PolicyEvaluationResult());
   }
 
   @Test

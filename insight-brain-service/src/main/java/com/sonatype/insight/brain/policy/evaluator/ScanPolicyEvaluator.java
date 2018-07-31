@@ -64,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @Named
 public class ScanPolicyEvaluator
@@ -156,10 +157,11 @@ public class ScanPolicyEvaluator
     sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 
     // Evaluate the policies
-    PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, components, forMonitoring);
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(appId);
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
     // Save the policy evaluation and violations
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage,
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
         forMonitoring, policyResults, components);
 
     createReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
@@ -195,6 +197,7 @@ public class ScanPolicyEvaluator
   private ScanPolicyEvaluatorResults processPolicyResults(Application app,
                                                           String scanId,
                                                           Stage stage,
+                                                          List<Policy> policies,
                                                           boolean forMonitoring,
                                                           PolicyResults policyResults,
                                                           List<Component> components)
@@ -263,7 +266,7 @@ public class ScanPolicyEvaluator
           }
         }
 
-        setGrandfatheredPolicyViolations(tx, app, policyEvaluation.getTime(), results.allViolations);
+        setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
@@ -342,20 +345,24 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * If this is the first policy evaluation and grandfathering is enabled for the application, then all policy
-   * violations are marked as grandfathered.
+   * If this is the first policy evaluation and grandfathering is enabled for the application, then policy
+   * violations are marked as grandfathered for the policies that are enabled for grandfathering.
    * If this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
    * existing grandfathered policy violations (across all stages).
    */
   private void setGrandfatheredPolicyViolations(TransactionContext tx,
                                                 Application app,
+                                                List<Policy> policies,
                                                 Date policyEvaluationTime,
                                                 List<PolicyViolation> policyViolations)
   {
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
     if (isPolicyViolationGrandfatheringEnabled(tx, app.getId()) && isFirstEvaluation(tx, app)) {
+      Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
       // Only policy violations with threat level <= 8 should be grandfathered.
-      policyViolations.stream().filter(policyViolation -> policyViolation.getThreatLevel() <= 8)
+      policyViolations.stream() //
+          .filter(policyViolation -> policiesById.get(policyViolation.getPolicyId())
+              .isPolicyViolationGrandfatheringAllowed())
           .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
     }
     else {

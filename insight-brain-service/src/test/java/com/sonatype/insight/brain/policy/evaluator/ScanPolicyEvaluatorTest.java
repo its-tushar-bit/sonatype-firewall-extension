@@ -173,23 +173,28 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_GrandfatheredViolations() throws Exception {
-    for (int policyThreatLevel = 0; policyThreatLevel <= 10; policyThreatLevel++) {
-      application = tempEntity.newApplicationWithParent();
-      application.setPolicyViolationGrandfatheringEnabled(true);
-      new ApplicationDAO().update(application);
-
-      boolean expectGrandfatheredViolations = policyThreatLevel <= 8;
-      testEvaluate_GrandfatheredViolations(policyThreatLevel, expectGrandfatheredViolations);
-    }
+    application = tempEntity.newApplicationWithParent();
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    boolean grandfatherViolations = true;
+    testEvaluate_GrandfatheredViolations(grandfatherViolations);
+    
+    application = tempEntity.newApplicationWithParent();
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    grandfatherViolations = false;
+    testEvaluate_GrandfatheredViolations(grandfatherViolations);
   }
 
-  private void testEvaluate_GrandfatheredViolations(int policyThreatLevel, boolean expectGrandfatheredViolations)
+  private void testEvaluate_GrandfatheredViolations(boolean expectGrandfatheredViolations)
       throws Exception
   {
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
-    newSecurityPolicy(policyThreatLevel);
+    Policy policy = newSecurityPolicy(5);
+    policy.setPolicyViolationGrandfatheringAllowed(expectGrandfatheredViolations);
+    new PolicyDAO().update(policy);
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
@@ -213,7 +218,9 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_GrandfatherOnlyOnFirstEvaluation() throws Exception {
     application = tempEntity.newApplicationWithParent();
-    newSecurityPolicy();
+    Policy policy = newSecurityPolicy();
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
@@ -711,13 +718,13 @@ public class ScanPolicyEvaluatorTest
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(null);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(5, false);
+      testEvaluate_GrandfatheredViolations(false);
 
       // The app can override grandfathering and grandfathering is enabled for app.
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(true);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(5, true);
+      testEvaluate_GrandfatheredViolations(true);
 
       // The app cannot override grandfathering and grandfathering is disabled for org.
       organization.setAllowPolicyViolationGrandfatheringOverride(false);
@@ -725,7 +732,7 @@ public class ScanPolicyEvaluatorTest
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(true);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(5, false);
+      testEvaluate_GrandfatheredViolations(false);
 
       // The app cannot override grandfathering and grandfathering is enabled for org.
       organization.setPolicyViolationGrandfatheringEnabled(true);
@@ -734,7 +741,7 @@ public class ScanPolicyEvaluatorTest
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(false);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(5, true);
+      testEvaluate_GrandfatheredViolations(true);
     }
   }
 

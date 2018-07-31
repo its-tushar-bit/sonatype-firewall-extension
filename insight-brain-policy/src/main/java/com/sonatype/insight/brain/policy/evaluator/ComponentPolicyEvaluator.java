@@ -103,11 +103,11 @@ public class ComponentPolicyEvaluator
     return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
   }
 
-  private PolicyResults evaluate(final String ownerId,
-                                 final Stage stage,
-                                 final List<Policy> policies,
-                                 final List<Component> components,
-                                 boolean forMonitoring)
+  public PolicyResults evaluate(final String ownerId,
+                                final Stage stage,
+                                final List<Policy> policies,
+                                final List<Component> components,
+                                boolean forMonitoring)
   {
     final long start = System.currentTimeMillis();
 

@@ -105,6 +105,7 @@ CREATE TABLE policy (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint(2) NOT NULL,
+  policy_violation_grandfathering_allowed boolean NOT NULL,
   content CLOB NOT NULL,
   drools_code CLOB NOT NULL,
   CONSTRAINT policy_pk PRIMARY KEY (policy_id),

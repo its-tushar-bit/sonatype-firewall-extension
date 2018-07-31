@@ -50,6 +50,12 @@ public class PolicyInternal
   @Column(name = "threat_level")
   private int threatLevel = 5;
 
+  /**
+   * @since 50
+   */
+  @Column(name = "policy_violation_grandfathering_allowed")
+  private boolean policyViolationGrandfatheringAllowed;
+
   @Column(name = "content")
   private String content;
 
@@ -107,6 +113,14 @@ public class PolicyInternal
     this.threatLevel = threatLevel;
   }
 
+  public boolean isPolicyViolationGrandfatheringAllowed() {
+    return policyViolationGrandfatheringAllowed;
+  }
+
+  public void setPolicyViolationGrandfatheringAllowed(boolean policyViolationGrandfatheringAllowed) {
+    this.policyViolationGrandfatheringAllowed = policyViolationGrandfatheringAllowed;
+  }
+
   public String getContent() {
     return content;
   }
@@ -133,6 +147,7 @@ public class PolicyInternal
     result.setName(policy.getName());
     result.setOwnerId(policy.getOwnerId());
     result.setThreatLevel(policy.getThreatLevel());
+    result.setPolicyViolationGrandfatheringAllowed(policy.isPolicyViolationGrandfatheringAllowed());
     result.setContent(JsonUtils.format(policy));
     result.setDroolsCode(policy.getDroolsCode());
 
@@ -152,6 +167,7 @@ public class PolicyInternal
     result.setName(name);
     result.setOwnerId(ownerId);
     result.setThreatLevel(threatLevel);
+    result.setPolicyViolationGrandfatheringAllowed(policyViolationGrandfatheringAllowed);
     result.setDroolsCode(droolsCode);
 
     return result;

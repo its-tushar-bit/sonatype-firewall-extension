@@ -44,6 +44,11 @@ public class Policy
 
   private int threatLevel = 5;
 
+  /**
+   * @since 50
+   */
+  private boolean policyViolationGrandfatheringAllowed;
+
   private List<Constraint> constraints;
 
   private Map<String, String> actions = new HashMap<>();
@@ -90,6 +95,14 @@ public class Policy
 
   public void setThreatLevel(final int threatLevel) {
     this.threatLevel = threatLevel;
+  }
+
+  public boolean isPolicyViolationGrandfatheringAllowed() {
+    return policyViolationGrandfatheringAllowed;
+  }
+
+  public void setPolicyViolationGrandfatheringAllowed(boolean policyViolationGrandfatheringAllowed) {
+    this.policyViolationGrandfatheringAllowed = policyViolationGrandfatheringAllowed;
   }
 
   public List<Constraint> getConstraints() {

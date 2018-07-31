@@ -422,6 +422,7 @@ public class ReportResourceTest
     policy.addConstraint(constraint);
     policy.setName("testPolicy");
     policy.setAction(BuildStageType.ID, WarnActionType.ID);
+    policy.setPolicyViolationGrandfatheringAllowed(true);
     tempEntity.newPolicy(policy);
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)

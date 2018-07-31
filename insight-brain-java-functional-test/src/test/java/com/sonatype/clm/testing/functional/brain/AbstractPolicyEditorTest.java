@@ -767,7 +767,7 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().val("New Policy");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
-    changeThreatLevel(6);
+    changeThreatLevel(9);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
   }
 

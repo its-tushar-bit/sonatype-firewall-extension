@@ -21,4 +21,8 @@ public class SummarySection
   public SelenideElement policyName() {
     return child("#editor-policy-name");
   }
+
+  public IqCheckbox policyViolationGrandfatheringCheckbox() {
+    return new IqCheckbox(child("iq-checkbox"));
+  }
 }

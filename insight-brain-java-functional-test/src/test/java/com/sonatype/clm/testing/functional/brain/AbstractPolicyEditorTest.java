@@ -229,7 +229,7 @@ public abstract class AbstractPolicyEditorTest
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false);
 
-    testEditPolicy_summarySection();
+    testEditPolicy_summarySection(policy.getId());
     testEditPolicy_inheritanceSection();
     testEditPolicy_constraintSection(policy);
     testEditPolicy_actionsSection(policy);
@@ -417,9 +417,15 @@ public abstract class AbstractPolicyEditorTest
     return policy;
   }
 
-  private void testEditPolicy_summarySection() {
+  private void testEditPolicy_summarySection(String policyId) {
+    Policy policy = policyDAO.getById(policyId);
+    // Sanity check to verify that the initial value is as expected.
+    assertThat(policy.isPolicyViolationGrandfatheringAllowed(), is(false));
+
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("updated name");
+    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldBe(selected);
+    summary.policyViolationGrandfatheringCheckbox().click();
     PolicyEditorPage.savePolicy();
 
     changeThreatLevel(6);
@@ -429,8 +435,14 @@ public abstract class AbstractPolicyEditorTest
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
     summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
+    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldNotBe(selected);
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
+
+    Policy updatedPolicy = policyDAO.getById(policy.getId());
+    assertThat(updatedPolicy.getName(), is("updated name"));
+    assertThat(updatedPolicy.isPolicyViolationGrandfatheringAllowed(), is(true));
+    assertThat(updatedPolicy.getThreatLevel(), is(6));
   }
 
   private void testEditPolicy_constraintSection(Policy policy) {

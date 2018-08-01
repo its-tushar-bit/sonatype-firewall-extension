@@ -6,31 +6,32 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.mock.hds.HdsMockServer;
+import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.junit.After;
 import org.junit.Test;
@@ -192,7 +193,7 @@ public class NewInstancePopulatorTest
       public void configure(HdsMockServer hdsServer) {
         Class<?> cls = getClass();
 
-        hdsServer.setResponseForURI("rest/referencePolicies/v2",
+        hdsServer.setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH,
             cls.getResource("/NewInstancePopulatorTest/referencePolicies.json"), 200);
         hdsServer.setResponseForURI("rest/license", cls.getResource("/NewInstancePopulatorTest/licenses.json"), 200);
       }

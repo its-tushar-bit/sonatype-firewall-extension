@@ -13,9 +13,9 @@ import com.sonatype.insight.brain.policy.PolicyExportResult;
 @Named
 public class ReferencePolicyFetcher
 {
-  private static final int REFERENCE_POLICY_VERSION = 2;
+  public static final int REFERENCE_POLICY_VERSION = 3;
 
-  private static final String REFERENCE_POLICY_PATH = "rest/referencePolicies/v" + REFERENCE_POLICY_VERSION;
+  public static final String REFERENCE_POLICY_PATH = "rest/referencePolicies/v" + REFERENCE_POLICY_VERSION;
 
   private final HdsClient hdsClient;
 

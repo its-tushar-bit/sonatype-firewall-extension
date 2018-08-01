@@ -6,6 +6,7 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "enabled": true,
       "threatLevel": 1,
+      "policyViolationGrandfatheringAllowed": true,
       "constraints": [
         {
           "id": "07a1317eb3ee40e48129c6eb8e5317ba",
@@ -49,6 +50,7 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "enabled": true,
       "threatLevel": 1,
+      "policyViolationGrandfatheringAllowed": true,
       "constraints": [
         {
           "id": "15397d9327fb4d71a1ff3fd7ac5a1627",

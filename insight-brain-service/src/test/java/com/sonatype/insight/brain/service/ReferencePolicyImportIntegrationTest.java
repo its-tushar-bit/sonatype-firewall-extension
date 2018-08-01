@@ -8,14 +8,13 @@ package com.sonatype.insight.brain.service;
 import java.net.URL;
 import java.util.Collection;
 
-import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -23,6 +22,8 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.mock.hds.HdsMockServer;
+import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -55,7 +56,8 @@ public class ReferencePolicyImportIntegrationTest
 
   private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
-  private final URL referencePolicyUrl = getClass().getResource("/reference-policies-v2.json");
+  private final URL referencePolicyUrl = getClass()
+      .getResource("/reference-policies-v" + ReferencePolicyFetcher.REFERENCE_POLICY_VERSION + ".json");
 
   @Before
   @After
@@ -104,7 +106,7 @@ public class ReferencePolicyImportIntegrationTest
     {
       @Override
       public void configure(HdsMockServer hdsServer) {
-        hdsServer.setResponseForURI("rest/referencePolicies/v2", referencePolicyUrl, 200);
+        hdsServer.setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH, referencePolicyUrl, 200);
       }
     };
 

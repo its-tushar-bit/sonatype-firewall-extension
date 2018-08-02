@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
@@ -61,6 +63,8 @@ import org.mockito.ArgumentCaptor;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -68,6 +72,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ScanPolicyEvaluatorTest
@@ -177,24 +182,31 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
     boolean grandfatherViolations = true;
-    testEvaluate_GrandfatheredViolations(grandfatherViolations);
+    testEvaluate_GrandfatheredViolations(grandfatherViolations, true);
     
     application = tempEntity.newApplicationWithParent();
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
     grandfatherViolations = false;
-    testEvaluate_GrandfatheredViolations(grandfatherViolations);
+    testEvaluate_GrandfatheredViolations(grandfatherViolations, true);
   }
 
-  private void testEvaluate_GrandfatheredViolations(boolean expectGrandfatheredViolations)
-      throws Exception
+  private void testEvaluate_GrandfatheredViolations(boolean expectGrandfatheredViolations,
+                                                    boolean grandfatheringEnabled) throws Exception
   {
+    TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
+    PolicyViolationPersistenceLocks policyViolationPersistenceLocks = getCLMServer().getInjector()
+        .getInstance(PolicyViolationPersistenceLocks.class);
     Policy policy = newSecurityPolicy(5);
     policy.setPolicyViolationGrandfatheringAllowed(expectGrandfatheredViolations);
     new PolicyDAO().update(policy);
+
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(insightWork, reportService, policyThreatsAdapter,
+        componentPolicyEvaluator, applicationEvaluationEventService, mockTelemetrySender,
+        policyViolationPersistenceLocks);
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
@@ -213,6 +225,24 @@ public class ScanPolicyEvaluatorTest
         assertThat(activeViolation.isGrandfathered(), is(false));
       }
     }
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("enabled", String.valueOf(grandfatheringEnabled));
+    expectedAttributes.put("total", expectGrandfatheredViolations ? "36" : "0");
+    if (expectGrandfatheredViolations) {
+      expectedAttributes.put("number_of_low_threat_levels", "0");
+      expectedAttributes.put("number_of_moderate_threat_levels", "0");
+      expectedAttributes.put("number_of_severe_threat_levels", "36");
+      expectedAttributes.put("number_of_critical_threat_levels", "0");
+      expectedAttributes.put("number_of_security_policy_threat_categories", "36");
+      expectedAttributes.put("number_of_license_policy_threat_categories", "0");
+      expectedAttributes.put("number_of_quality_policy_threat_categories", "0");
+      expectedAttributes.put("number_of_other_policy_threat_categories", "0");
+    }
+    assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getAllValues().get(1), expectedAttributes);
   }
 
   @Test
@@ -488,13 +518,13 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
     expectedAttributes.put("stage_id", Stage.ID_BUILD);
     expectedAttributes.put("number_of_maven_components", "28");
     expectedAttributes.put("number_of_components", "28");
-    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getAllValues().get(0), expectedAttributes);
   }
 
   @Test
@@ -544,6 +574,86 @@ public class ScanPolicyEvaluatorTest
     assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 
+  @Test
+  public void testSendGrandfatheredViolationCounts_NoGrandfatheredViolations() {
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null, mockTelemetrySender,
+        null);
+
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), "stageId", "scanId");
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, false));
+    policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, false));
+    policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
+    policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
+
+    scanPolicyEvaluator.sendGrandfatheredViolationTelemetryData(application.getId(), policyViolations);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("enabled", "true");
+    expectedAttributes.put("total", "0");
+    assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+  }
+
+  @Test
+  public void testSendGrandfatheredViolationCounts() {
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
+    ScanPolicyEvaluator scanPolicyEvaluator = new ScanPolicyEvaluator(null, null, null, null, null, mockTelemetrySender,
+        null);
+
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), "stageId", "scanId");
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, true));
+    policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, true));
+    policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, true));
+    policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, true));
+    policyViolations.add(policyViolation(policyEvaluation, 9, PolicyThreatCategory.LICENSE, true));
+    policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, false));
+    policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, false));
+    policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
+    policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
+
+    scanPolicyEvaluator.sendGrandfatheredViolationTelemetryData(application.getId(), policyViolations);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("enabled", "true");
+    expectedAttributes.put("total", "5");
+    expectedAttributes.put("number_of_low_threat_levels", "1");
+    expectedAttributes.put("number_of_moderate_threat_levels", "1");
+    expectedAttributes.put("number_of_severe_threat_levels", "2");
+    expectedAttributes.put("number_of_critical_threat_levels", "1");
+    expectedAttributes.put("number_of_security_policy_threat_categories", "1");
+    expectedAttributes.put("number_of_license_policy_threat_categories", "2");
+    expectedAttributes.put("number_of_quality_policy_threat_categories", "1");
+    expectedAttributes.put("number_of_other_policy_threat_categories", "1");
+    assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+  }
+
+  private PolicyViolation policyViolation(PolicyEvaluation policyEvaluation,
+                                          int threatLevel,
+                                          PolicyThreatCategory policyThreatCategory,
+                                          boolean grandfathered)
+  {
+    PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, "policyId", "policyName", threatLevel,
+        policyThreatCategory, "hash", null, "json", "filename");
+    if (grandfathered) {
+      policyViolation.setGrandfatherTime(new Date());
+    }
+    return policyViolation;
+  }
+
   private List<Component> components(Object[] formatsAndCounts) {
     List<Component> components = new ArrayList<>();
     for (int formatAndCountIndex = 0; formatAndCountIndex < formatsAndCounts.length; formatAndCountIndex += 2) {
@@ -582,6 +692,18 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryData.getAttributes(), is(expectedAttributes));
   }
 
+  private void assertGrandfatheredViolationAttributes(TelemetryData telemetryData,
+                                                      Map<String, Object> expectedAttributes)
+  {
+    assertThat(telemetryData, is(notNullValue()));
+    assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.APPLICATION_EVALUATION_GRANDFATHERED_VIOLATION_COUNTS));
+    assertThat(telemetryData.getTimestamp(), is(lessThanOrEqualTo(System.currentTimeMillis())));
+    assertThat(telemetryData.getAttributes().keySet(), containsInAnyOrder(expectedAttributes.keySet().toArray()));
+    for (Entry<String, Object> entry : expectedAttributes.entrySet()) {
+      assertThat(telemetryData.getAttributes(), hasEntry(entry.getKey(), entry.getValue()));
+    }
+  }
+  
   @Test
   public void testEvaluate_BeforeAndAfterAddingConditionTriggerData() throws Exception {
     // Add a policy
@@ -718,13 +840,13 @@ public class ScanPolicyEvaluatorTest
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(null);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(false);
+      testEvaluate_GrandfatheredViolations(false, false);
 
       // The app can override grandfathering and grandfathering is enabled for app.
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(true);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(true);
+      testEvaluate_GrandfatheredViolations(true, true);
 
       // The app cannot override grandfathering and grandfathering is disabled for org.
       organization.setAllowPolicyViolationGrandfatheringOverride(false);
@@ -732,7 +854,7 @@ public class ScanPolicyEvaluatorTest
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(true);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(false);
+      testEvaluate_GrandfatheredViolations(false, false);
 
       // The app cannot override grandfathering and grandfathering is enabled for org.
       organization.setPolicyViolationGrandfatheringEnabled(true);
@@ -741,7 +863,7 @@ public class ScanPolicyEvaluatorTest
       application = tempEntity.newApplication(organization.getId());
       application.setPolicyViolationGrandfatheringEnabled(false);
       applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(true);
+      testEvaluate_GrandfatheredViolations(true, true);
     }
   }
 

@@ -13,7 +13,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -163,6 +165,8 @@ public class ScanPolicyEvaluator
     // Save the policy evaluation and violations
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
         forMonitoring, policyResults, components);
+
+    sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
 
     createReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
@@ -381,6 +385,16 @@ public class ScanPolicyEvaluator
   private boolean isFirstEvaluation(TransactionContext tx, Application app) {
     // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
     return new PolicyEvaluationDAO().getCountByApplicationId(tx, app.getId()) == 1;
+  }
+
+  /**
+   * @since 50
+   */
+  private boolean isPolicyViolationGrandfatheringEnabled(String appId) {
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+      return isPolicyViolationGrandfatheringEnabled(tx, appId);
+    }
   }
 
   private boolean isPolicyViolationGrandfatheringEnabled(TransactionContext tx, String appId) {
@@ -607,5 +621,60 @@ public class ScanPolicyEvaluator
     return components.stream().map(Component::getComponentIdentifier)
         .map(componentIdentifier -> componentIdentifier == null ? UNKNOWN : componentIdentifier.getFormat())
         .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+  }
+
+  /**
+   * @since 50
+   */
+  void sendGrandfatheredViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations) {
+    TelemetryData telemetryData = new TelemetryData(
+        TelemetryPurpose.APPLICATION_EVALUATION_GRANDFATHERED_VIOLATION_COUNTS);
+    telemetryData.setAttributes(getGrandfatheredViolationCountsAttributes(applicationId, policyViolations));
+    telemetrySender.send(telemetryData);
+  }
+
+  /**
+   * @since 50
+   */
+  private Map<String, Object> getGrandfatheredViolationCountsAttributes(String applicationId,
+                                                                        List<PolicyViolation> policyViolations)
+  {
+    Map<ThreatLevel, Long> threatLevels = new HashMap<>();
+    for (ThreatLevel threatLevel : ThreatLevel.values()) {
+      threatLevels.put(threatLevel, 0L);
+    }
+    Map<PolicyThreatCategory, Long> policyThreatCategories = new HashMap<>();
+    for (PolicyThreatCategory policyThreatCategory : PolicyThreatCategory.values()) {
+      policyThreatCategories.put(policyThreatCategory, 0L);
+    }
+
+    int grandfatheredPolicyViolationCount = 0;
+    for (PolicyViolation policyViolation : policyViolations) {
+      if (policyViolation.isGrandfathered()) {
+        ThreatLevel threatLevel = ThreatLevel.from(policyViolation.getThreatLevel());
+        threatLevels.put(threatLevel, threatLevels.get(threatLevel) + 1);
+
+        PolicyThreatCategory policyThreatCategory = policyViolation.getThreatCategory();
+        policyThreatCategories.put(policyThreatCategory, policyThreatCategories.get(policyThreatCategory) + 1);
+
+        grandfatheredPolicyViolationCount++;
+      }
+    }
+
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    attributes.put("enabled", String.valueOf(isPolicyViolationGrandfatheringEnabled(applicationId)));
+    attributes.put("total", String.valueOf(grandfatheredPolicyViolationCount));
+    if (grandfatheredPolicyViolationCount > 0) {
+      for (Entry<ThreatLevel, Long> entry : threatLevels.entrySet()) {
+        attributes.put("number_of_" + entry.getKey().name().toLowerCase(Locale.ENGLISH) + "_threat_levels",
+            String.valueOf(entry.getValue()));
+      }
+      for (Entry<PolicyThreatCategory, Long> entry : policyThreatCategories.entrySet()) {
+        attributes.put("number_of_" + entry.getKey().name().toLowerCase(Locale.ENGLISH) + "_policy_threat_categories",
+            String.valueOf(entry.getValue()));
+      }
+    }
+    return attributes;
   }
 }

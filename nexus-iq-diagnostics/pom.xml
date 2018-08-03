@@ -89,6 +89,14 @@
                     <exclude>**/package.html</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <!-- Exclude classes vulnerable to CVE-2018-14335.  See CLM-10571 -->
+                  <artifact>*:h2</artifact>
+                  <excludes>
+                    <exclude>org/h2/tools/Console*</exclude>
+                    <exclude>org/h2/tools/Backup*</exclude>
+                  </excludes>
+                </filter>
               </filters>
             </configuration>
           </execution>

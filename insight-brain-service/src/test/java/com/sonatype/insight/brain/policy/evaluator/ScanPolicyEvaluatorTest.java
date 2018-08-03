@@ -230,17 +230,17 @@ public class ScanPolicyEvaluatorTest
     verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
-    expectedAttributes.put("enabled", String.valueOf(grandfatheringEnabled));
-    expectedAttributes.put("total", expectGrandfatheredViolations ? "36" : "0");
+    expectedAttributes.put("grandfathering_enabled", String.valueOf(grandfatheringEnabled));
+    expectedAttributes.put("number_of_grandfathered_violations", expectGrandfatheredViolations ? "36" : "0");
     if (expectGrandfatheredViolations) {
-      expectedAttributes.put("number_of_low_threat_levels", "0");
-      expectedAttributes.put("number_of_moderate_threat_levels", "0");
-      expectedAttributes.put("number_of_severe_threat_levels", "36");
-      expectedAttributes.put("number_of_critical_threat_levels", "0");
-      expectedAttributes.put("number_of_security_policy_threat_categories", "36");
-      expectedAttributes.put("number_of_license_policy_threat_categories", "0");
-      expectedAttributes.put("number_of_quality_policy_threat_categories", "0");
-      expectedAttributes.put("number_of_other_policy_threat_categories", "0");
+      expectedAttributes.put("number_of_grandfathered_violations_with_low_threat_level", "0");
+      expectedAttributes.put("number_of_grandfathered_violations_with_moderate_threat_level", "0");
+      expectedAttributes.put("number_of_grandfathered_violations_with_severe_threat_level", "36");
+      expectedAttributes.put("number_of_grandfathered_violations_with_critical_threat_level", "0");
+      expectedAttributes.put("number_of_grandfathered_violations_in_security_policy_threat_category", "36");
+      expectedAttributes.put("number_of_grandfathered_violations_in_license_policy_threat_category", "0");
+      expectedAttributes.put("number_of_grandfathered_violations_in_quality_policy_threat_category", "0");
+      expectedAttributes.put("number_of_grandfathered_violations_in_other_policy_threat_category", "0");
     }
     assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getAllValues().get(1), expectedAttributes);
   }
@@ -596,8 +596,8 @@ public class ScanPolicyEvaluatorTest
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
-    expectedAttributes.put("enabled", "true");
-    expectedAttributes.put("total", "0");
+    expectedAttributes.put("grandfathering_enabled", "true");
+    expectedAttributes.put("number_of_grandfathered_violations", "0");
     assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 
@@ -628,16 +628,16 @@ public class ScanPolicyEvaluatorTest
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
-    expectedAttributes.put("enabled", "true");
-    expectedAttributes.put("total", "5");
-    expectedAttributes.put("number_of_low_threat_levels", "1");
-    expectedAttributes.put("number_of_moderate_threat_levels", "1");
-    expectedAttributes.put("number_of_severe_threat_levels", "2");
-    expectedAttributes.put("number_of_critical_threat_levels", "1");
-    expectedAttributes.put("number_of_security_policy_threat_categories", "1");
-    expectedAttributes.put("number_of_license_policy_threat_categories", "2");
-    expectedAttributes.put("number_of_quality_policy_threat_categories", "1");
-    expectedAttributes.put("number_of_other_policy_threat_categories", "1");
+    expectedAttributes.put("grandfathering_enabled", "true");
+    expectedAttributes.put("number_of_grandfathered_violations", "5");
+    expectedAttributes.put("number_of_grandfathered_violations_with_low_threat_level", "1");
+    expectedAttributes.put("number_of_grandfathered_violations_with_moderate_threat_level", "1");
+    expectedAttributes.put("number_of_grandfathered_violations_with_severe_threat_level", "2");
+    expectedAttributes.put("number_of_grandfathered_violations_with_critical_threat_level", "1");
+    expectedAttributes.put("number_of_grandfathered_violations_in_security_policy_threat_category", "1");
+    expectedAttributes.put("number_of_grandfathered_violations_in_license_policy_threat_category", "2");
+    expectedAttributes.put("number_of_grandfathered_violations_in_quality_policy_threat_category", "1");
+    expectedAttributes.put("number_of_grandfathered_violations_in_other_policy_threat_category", "1");
     assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 

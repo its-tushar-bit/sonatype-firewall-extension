@@ -663,16 +663,16 @@ public class ScanPolicyEvaluator
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
-    attributes.put("enabled", String.valueOf(isPolicyViolationGrandfatheringEnabled(applicationId)));
-    attributes.put("total", String.valueOf(grandfatheredPolicyViolationCount));
+    attributes.put("grandfathering_enabled", String.valueOf(isPolicyViolationGrandfatheringEnabled(applicationId)));
+    attributes.put("number_of_grandfathered_violations", String.valueOf(grandfatheredPolicyViolationCount));
     if (grandfatheredPolicyViolationCount > 0) {
       for (Entry<ThreatLevel, Long> entry : threatLevels.entrySet()) {
-        attributes.put("number_of_" + entry.getKey().name().toLowerCase(Locale.ENGLISH) + "_threat_levels",
-            String.valueOf(entry.getValue()));
+        attributes.put("number_of_grandfathered_violations_with_" + entry.getKey().name().toLowerCase(Locale.ENGLISH)
+            + "_threat_level", String.valueOf(entry.getValue()));
       }
       for (Entry<PolicyThreatCategory, Long> entry : policyThreatCategories.entrySet()) {
-        attributes.put("number_of_" + entry.getKey().name().toLowerCase(Locale.ENGLISH) + "_policy_threat_categories",
-            String.valueOf(entry.getValue()));
+        attributes.put("number_of_grandfathered_violations_in_" + entry.getKey().name().toLowerCase(Locale.ENGLISH)
+            + "_policy_threat_category", String.valueOf(entry.getValue()));
       }
     }
     return attributes;

@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 public class ComponentInfoServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -53,9 +53,9 @@ public class ComponentInfoServiceAuthzTest
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
     componentDetailsList.setList(new ArrayList<ComponentDetails>());
-    when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class))).thenReturn(
+    lenient().when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class))).thenReturn(
         componentDetailsList);
-    when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
+    lenient().when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
         .thenReturn(namedComponentDetails);
   }
 

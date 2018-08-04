@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static com.sonatype.insight.brain.jira.JiraField.DESCRIPTION;
 import static com.sonatype.insight.brain.jira.JiraField.ISSUETYPE;
@@ -30,12 +31,13 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class JiraServiceTest
 {
   @Rule
-  public MockitoRule mockito = MockitoJUnit.rule();
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private InsightConfig insightConfig;
@@ -59,8 +61,8 @@ public class JiraServiceTest
     Map<String, Object> customFields = new HashMap<>();
     customFields.put(REPORTER, reporterMap);
 
-    when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
-    when(jiraConfig.getCustomFields()).thenReturn(customFields);
+    lenient().when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
+    lenient().when(jiraConfig.getCustomFields()).thenReturn(customFields);
 
     underTest = new JiraService(insightConfig, jiraClientFactory);
   }

@@ -5,41 +5,18 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.net.URI;
-
 import javax.inject.Inject;
-import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 
-import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import org.mockito.Mock;
-
-import static org.mockito.Mockito.when;
 
 public class PolicyImportExportAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private PolicyImportExport policyImportExport;
-
-  @Mock
-  private UriInfo uriInfo;
-
-  private InsightConfig insightConfig;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    insightConfig = new InsightConfig();
-    insightConfig.setBaseUrl("base");
-    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
-    binder.bind(BaseUrl.class).toInstance(new BaseUrl(insightConfig, uriInfo, null));
-  }
 
   @Test(expected = UnauthorizedException.class)
   public void testExportApplication_Unauthorized() throws Exception {

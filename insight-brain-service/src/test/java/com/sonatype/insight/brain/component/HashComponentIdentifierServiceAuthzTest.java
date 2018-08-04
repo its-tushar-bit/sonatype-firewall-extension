@@ -24,8 +24,7 @@ import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 public class HashComponentIdentifierServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -54,8 +53,7 @@ public class HashComponentIdentifierServiceAuthzTest
 
   @Before
   public void resetMockHdsClient() throws Exception {
-    reset(mockHdsClient);
-    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+    lenient().when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
         .thenReturn(componentSummary);
   }
 

@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -51,7 +51,7 @@ public class PolicyMonitorSchedulerTest
   @Before
   public void init() {
     scheduler = spy(scheduler);
-    doReturn(executor).when(scheduler).newExecutor();
+    lenient().doReturn(executor).when(scheduler).newExecutor();
   }
 
   @Test

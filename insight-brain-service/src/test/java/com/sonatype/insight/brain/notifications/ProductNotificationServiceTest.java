@@ -127,7 +127,6 @@ public class ProductNotificationServiceTest
   @Test
   public void testSetNotificationViewed_SameNotificationTwice() {
     List<ProductNotification> notifications = createNotification(1);
-    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
         Collections.<String> emptySet());

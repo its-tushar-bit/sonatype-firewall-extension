@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.mockito.Mockito.doThrow;
 
@@ -20,7 +21,7 @@ public abstract class AbstractServiceNotLicensedTest
     extends InjectedTest
 {
   @Rule
-  public MockitoRule mockito = MockitoJUnit.rule();
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private DashboardUtils dashboardUtils;

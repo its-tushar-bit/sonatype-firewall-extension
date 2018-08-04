@@ -43,7 +43,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
 public class ApiComponentDetailsServiceV2Test
     extends AbstractComponentTest
@@ -84,9 +84,9 @@ public class ApiComponentDetailsServiceV2Test
   private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult)
       throws IOException
   {
-    when(
-        client.post(eq(ComponentEvaluationDataList.class), eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH),
-            eq(hdsRequest), eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION))).thenReturn(hdsResult);
+    doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
+        eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
   }
 
   @Test

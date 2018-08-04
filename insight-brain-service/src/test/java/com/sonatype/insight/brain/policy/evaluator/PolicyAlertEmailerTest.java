@@ -83,6 +83,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -122,8 +123,8 @@ public class PolicyAlertEmailerTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    when(mailer.getServer()).thenReturn("localhost:587");
-    when(mailer.getCdnUrl()).thenReturn("http://localhost");
+    lenient().when(mailer.getServer()).thenReturn("localhost:587");
+    lenient().when(mailer.getCdnUrl()).thenReturn("http://localhost");
     binder.bind(InsightMail.class).toInstance(mailer);
   }
 

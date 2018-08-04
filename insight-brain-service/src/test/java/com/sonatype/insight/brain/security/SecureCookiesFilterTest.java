@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,7 +38,7 @@ public class SecureCookiesFilterTest
   private static String COOKIE_4_SECURE = "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
   @Rule
-  public MockitoRule mockito = MockitoJUnit.rule();
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private HttpServletResponse response;
@@ -75,7 +76,6 @@ public class SecureCookiesFilterTest
   @Test
   public void testIfRequestIsNotSecureDoNotChangeCookieAttributes() throws Exception {
     when(request.isSecure()).thenReturn(false);
-    when(response.getHeaders("Set-Cookie")).thenReturn(asList(COOKIE_1_INSECURE, COOKIE_3_SECURE));
 
     cookieFilter.doFilter(request, response, filterChain);
 

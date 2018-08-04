@@ -15,13 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.mockito.Mockito.when;
 
 public class ComponentDetailsServiceLicenseTest
 {
   @Rule
-  public MockitoRule mockito = MockitoJUnit.rule();
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @InjectMocks
   private ComponentDetailService componentDetailsService;

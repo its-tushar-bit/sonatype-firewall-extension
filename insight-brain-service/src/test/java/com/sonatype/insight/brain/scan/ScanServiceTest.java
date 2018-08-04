@@ -37,7 +37,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Also see {@link ScanServiceUnitTest}.
@@ -72,8 +72,8 @@ public class ScanServiceTest
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
-    when(scanUploader.upload((File) any(), any(Application.class))).thenReturn(receipt);
-    when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
+    lenient().when(scanUploader.upload((File) any(), any(Application.class))).thenReturn(receipt);
+    lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
         new Answer<Boolean>()
         {
           @Override

@@ -30,11 +30,12 @@ import org.junit.rules.TestName;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Support class for tests of Sisu components.
@@ -54,7 +55,7 @@ public class AbstractComponentTest
   public TestName testName = new TestName();
 
   @Rule
-  public MockitoRule mockito = MockitoJUnit.rule();
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   protected static final String USERNAME = "testuser";
 
@@ -83,8 +84,8 @@ public class AbstractComponentTest
   }
 
   protected void setUpSecurity() {
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", true));
-    when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
+    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", true));
+    lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);
   }

@@ -9,7 +9,6 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -32,10 +31,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.when;
 
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -374,10 +369,6 @@ public class RepositoryServiceAuthzTest
   public void testReevaluateComponent_Authorized() {
     Repository repo = createRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
-
-    when(repositoryPolicyEvaluator.evaluate(eq(repo), isA(RepositoryComponentEvaluationDataRequestList.class),
-        eq(false), isNull())).thenReturn(null);
-
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.reevaluateComponent(repo.getId(), component.getHash(), null);
   }

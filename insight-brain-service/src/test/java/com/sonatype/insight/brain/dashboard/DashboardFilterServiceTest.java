@@ -43,6 +43,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -436,7 +437,8 @@ public class DashboardFilterServiceTest
         currentUserMock, dashboardUtilsMock, insightConfig);
 
     when(currentUserMock.getUsername()).thenReturn(USERNAME);
-    when(dashboardFilterDaoSpy.getByUsernameAndName(USERNAME, filterName1)).thenReturn(dashboardFilter1);
+    doReturn(null).when(dashboardFilterDaoSpy).getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
+    doReturn(dashboardFilter1).when(dashboardFilterDaoSpy).getByUsernameAndName(USERNAME, filterName1);
     doThrow(new RuntimeException("Something went wrong.")).when(dashboardFilterDaoSpy).delete(dashboardFilter1);
 
     List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);

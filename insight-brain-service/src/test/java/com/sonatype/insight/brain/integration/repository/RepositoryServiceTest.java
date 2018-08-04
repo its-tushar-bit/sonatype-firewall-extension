@@ -179,8 +179,6 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), pathname, null,
         null);
 
-    mockHdsRequestForComponent(repositoryComponent, true);
-
     try {
       repositoryService.unquarantineComponent(repository.getId(), pathname, null);
       fail("Expected BadRequestException");

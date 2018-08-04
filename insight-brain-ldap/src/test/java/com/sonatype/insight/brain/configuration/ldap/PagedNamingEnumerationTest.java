@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
 public class PagedNamingEnumerationTest
 {
   @Rule
-  public MockitoRule mockito = MockitoJUnit.rule();
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private LdapContext ctx;

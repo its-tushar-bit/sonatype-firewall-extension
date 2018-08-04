@@ -713,7 +713,6 @@ public class ComponentInfoServiceTest
     String hash = "01234567890123456789";
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setHash(hash);
-    mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application,
         null /* componentIdentifier */, MatchState.UNKNOWN.getId(), hash, true /* proprietary */, httpRequestMock);
     assertNotNull(componentDetails);

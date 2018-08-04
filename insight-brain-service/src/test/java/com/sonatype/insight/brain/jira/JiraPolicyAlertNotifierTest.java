@@ -45,6 +45,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,8 +73,8 @@ public class JiraPolicyAlertNotifierTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    when(jiraService.client()).thenReturn(jiraClient);
-    when(jiraService.isEnabled()).thenReturn(true);
+    lenient().when(jiraService.client()).thenReturn(jiraClient);
+    lenient().when(jiraService.isEnabled()).thenReturn(true);
 
     binder.bind(JiraService.class).toInstance(jiraService);
   }

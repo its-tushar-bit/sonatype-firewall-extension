@@ -102,18 +102,22 @@ public class ApiComponentEvaluationServiceV2Test
 
     int numChunks = 2;
     for (int chunk = 0; chunk < numChunks; chunk++) {
+      ApiComponentEvaluationRequestDTOV2 requestChunk = new ApiComponentEvaluationRequestDTOV2();
       ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
       componentEvaluationDataList.components = new ArrayList<>();
       for (int i = 0; i < CHUNK_SIZE; i++) {
-        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i,
-            "", "e" + i);
-        ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h" + i);
+        int componentIndex = request.components.size();
+        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g" + componentIndex,
+            "a" + componentIndex, "v" + componentIndex, "", "e" + componentIndex);
+        ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier,
+            "h" + componentIndex);
         request.components.add(component);
+        requestChunk.components.add(component);
         componentEvaluationDataList.components.add(componentEvaluationV2Helper.createComponentEvaluationData(
             componentIdentifier, component.hash, MatchState.EXACT, i, declaredLicenseSet, observedLicenseSet,
-            securityVulnerabilities, i /* popularity */));
+            securityVulnerabilities, componentIndex /* popularity */));
       }
-      mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(request), componentEvaluationDataList);
+      mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(requestChunk), componentEvaluationDataList);
     }
     int numComponents = CHUNK_SIZE * 2;
 
@@ -132,7 +136,7 @@ public class ApiComponentEvaluationServiceV2Test
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : details.results) {
       componentEvaluationV2Helper.assertComponentDetails(componentDetailsDTOV2, request.components.get(i),
           MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-          securityVulnerabilities, i % CHUNK_SIZE /* popularity */, policies);
+          securityVulnerabilities, i /* popularity */, policies);
       i++;
     }
   }

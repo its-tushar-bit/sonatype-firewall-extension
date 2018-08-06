@@ -105,7 +105,7 @@ public class ListReplacer
       }
     }
 
-    if (url.getPayload().contains(keyPrefix)) {
+    if (url.getPayload() != null && url.getPayload().contains(keyPrefix)) {
       if (generatedUrl.isEmpty()) {
         generatedUrl.add(url);
       }

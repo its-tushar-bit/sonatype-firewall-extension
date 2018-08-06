@@ -56,6 +56,10 @@ $iq-chart-horizontal-bar-min-width: 490px;
 .iq-tile-scroll-container--success-metrics {
   margin: 0;
   width: 100%;
+  
+  .iq-spinner__wrapper {
+    margin-left: 8px;
+  }
 }
 
 .iq-chart--horizontal-bar {

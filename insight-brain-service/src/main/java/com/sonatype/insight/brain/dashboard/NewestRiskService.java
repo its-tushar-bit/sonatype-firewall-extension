@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -37,6 +39,8 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.GENERAL_UTILITY_THREADS;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Named
@@ -93,41 +97,48 @@ public class NewestRiskService
 
     List<NewestRiskDTO> riskDTOs = new ArrayList<>();
 
-    int policyEvaluationCount = 0;
-    int policyViolationCount = 0;
+    final AtomicInteger policyEvaluationCount = new AtomicInteger(0);
+    final AtomicInteger policyViolationCount = new AtomicInteger(0);
 
-    for (ApplicationView appView : appViews) {
-      Application app = appView.getApplication();
-      List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
-      Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
+    List<CompletableFuture<List<NewestRiskDTO>>> dtoFutures = appViews.stream()
+        .map(appView -> CompletableFuture.supplyAsync(() -> {
 
-      for (ApplicationStageView appStageView : appView.getStageViews()) {
-        PolicyEvaluation policyEvaluation = appStageView.getLastEvaluation();
-        if (policyEvaluation != null) {
-          policyEvaluationCount++;
-        }
-        Collection<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
-        if (policyViolations.isEmpty()) {
-          continue;
-        }
-        policyViolationCount += policyViolations.size();
+          Application app = appView.getApplication();
+          List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
+          Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
 
-        PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
-            .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
-        for (PolicyViolation policyViolation : diff.getAppeared()) {
-          NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, policyEvaluation, policyViolation);
-          newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
-          riskDTOs.add(newestRiskDTO);
-        }
-        for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
-          NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
-          PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
-          addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
-        }
+          List<NewestRiskDTO> localDTOs = new ArrayList<>();
 
-        allUniqueAppPolicyViolations.addAll(diff.getAppeared());
-      }
-    }
+          for (ApplicationStageView appStageView : appView.getStageViews()) {
+            PolicyEvaluation policyEvaluation = appStageView.getLastEvaluation();
+            if (policyEvaluation != null) {
+              policyEvaluationCount.incrementAndGet();
+            }
+            Collection<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
+            if (policyViolations.isEmpty()) {
+              continue;
+            }
+            policyViolationCount.addAndGet(policyViolations.size());
+
+            PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
+                .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
+            for (PolicyViolation policyViolation : diff.getAppeared()) {
+              NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, policyEvaluation, policyViolation);
+              newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
+              localDTOs.add(newestRiskDTO);
+            }
+            for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
+              NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
+              PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
+              addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
+            }
+
+            allUniqueAppPolicyViolations.addAll(diff.getAppeared());
+          }
+          return localDTOs;
+        }, GENERAL_UTILITY_THREADS)).collect(toList());
+
+    dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
 
     if (maxDaysOld != null) {
       riskDTOs = filter(riskDTOs, maxDaysOld.intValue());

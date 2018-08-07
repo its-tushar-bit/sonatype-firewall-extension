@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.DAO_FORK_JOIN_POOL;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @since 1.11
@@ -164,17 +167,18 @@ public class PolicyViolationDAO
                                            Collection<String> applicationIds,
                                            Object... otherParameters)
   {
-    Object[] parameters = new Object[otherParameters.length + 1];
-    System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
     // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
     // has additional filter criteria like the fix_time), doing an expensive table scan instead.
     // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
-    List<PolicyViolation> violations = new ArrayList<>();
-    for (String applicationId : applicationIds) {
-      parameters[0] = applicationId;
-      violations.addAll(getList(sQuery, parameters));
-    }
-    return violations;
+
+    return CompletableFuture.supplyAsync(() -> {
+      return applicationIds.stream().parallel().map(applicationId -> {
+        Object[] parameters = new Object[otherParameters.length + 1];
+        System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
+        parameters[0] = applicationId;
+        return getList(sQuery, parameters);
+      }).flatMap(Collection::stream).collect(toList());
+    }, DAO_FORK_JOIN_POOL).join();
   }
 
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,

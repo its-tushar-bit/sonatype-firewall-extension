@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.GENERAL_UTILITY_THREADS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -68,43 +70,45 @@ public class PolicyViolationLoader
   {
     long start = System.currentTimeMillis();
 
-    if (stageTypes == null) {
-      stageTypes = Collections.emptyList();
-    }
     Set<String> applicationIds = applications.stream().map(Application::getId).collect(toSet());
-    Set<String> stageTypeIds = stageTypes.stream().map(StageType::getId).collect(toSet());
+    Set<String> stageTypeIds = stageTypes == null ? Collections.emptySet()
+        : stageTypes.stream().map(StageType::getId).collect(toSet());
 
-    Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds);
-    if (minDate != null) {
-      evaluations = evaluations.stream().filter(e -> !e.getTime().before(minDate)).collect(toList());
-    }
+    Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds, minDate);
 
     applicationIds = evaluations.stream().map(e -> e.getApplicationId()).collect(toSet());
 
-    Map<String, ApplicationView> appViewsByAppId = new LinkedHashMap<>();
-    for (Application application : applications) {
-      ApplicationView appView = new ApplicationView();
-      appView.application = application;
-      appView.stageViewsByStageTypeId = new LinkedHashMap<>();
-      for (StageType stageType : (stageTypes.isEmpty() ? StageTypes.getAll() : stageTypes)) {
-        ApplicationStageView appStageView = new ApplicationStageView();
-        appStageView.stageType = stageType;
-        appStageView.filteredViolations = Collections.emptyList();
-        appView.stageViewsByStageTypeId.put(stageType.getId(), appStageView);
+    CompletableFuture<Map<String, ApplicationView>> appViewsByAppIdFuture = CompletableFuture.supplyAsync(() -> {
+      Collection<StageType> stageTypesToFill = stageTypes == null || stageTypes.isEmpty() ? StageTypes.getAll()
+          : stageTypes;
+      Map<String, ApplicationView> appViewsByAppId = new LinkedHashMap<>();
+      for (Application application : applications) {
+        ApplicationView appView = new ApplicationView();
+        appView.application = application;
+        appView.stageViewsByStageTypeId = new LinkedHashMap<>();
+        for (StageType stageType : stageTypesToFill) {
+          ApplicationStageView appStageView = new ApplicationStageView();
+          appStageView.stageType = stageType;
+          appStageView.filteredViolations = Collections.emptyList();
+          appView.stageViewsByStageTypeId.put(stageType.getId(), appStageView);
+        }
+        appViewsByAppId.put(application.getId(), appView);
       }
-      appViewsByAppId.put(application.getId(), appView);
-    }
 
-    for (PolicyEvaluation evaluation : evaluations) {
-      ApplicationView appView = appViewsByAppId.get(evaluation.getApplicationId());
-      ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(evaluation.getStageTypeId());
-      appStageView.lastEvaluation = evaluation;
-      appStageView.filteredViolations = new ArrayList<>();
-    }
-
+      for (PolicyEvaluation evaluation : evaluations) {
+        ApplicationView appView = appViewsByAppId.get(evaluation.getApplicationId());
+        ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(evaluation.getStageTypeId());
+        appStageView.lastEvaluation = evaluation;
+        appStageView.filteredViolations = new ArrayList<>();
+      }
+      return appViewsByAppId;
+    }, GENERAL_UTILITY_THREADS);
     Collection<PolicyViolation> violations = minDate != null
         ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly)
         : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly);
+
+    Map<String, ApplicationView> appViewsByAppId = appViewsByAppIdFuture.join();
+
     filterViolations(violations, violationFilter, appViewsByAppId);
 
     log.debug("Created policy violation views in {} ms", System.currentTimeMillis() - start);
@@ -113,7 +117,8 @@ public class PolicyViolationLoader
   }
 
   private Collection<PolicyEvaluation> loadEvaluations(Set<String> applicationIds,
-                                                       Set<String> stageTypeIds)
+                                                       Set<String> stageTypeIds,
+                                                       Date minDate)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyEvaluation> evaluations;
@@ -125,6 +130,16 @@ public class PolicyViolationLoader
     }
     log.debug("Loaded {} policy evaluations for {} applications across {} stages in {} ms", evaluations.size(),
         applicationIds.size(), stageTypeIds.isEmpty() ? "all" : stageTypeIds.size(), System.currentTimeMillis() - start);
+
+    if (minDate != null) {
+      start = System.currentTimeMillis();
+      int unfiltered = evaluations.size();
+
+      evaluations = evaluations.stream().filter(e -> !e.getTime().before(minDate)).collect(toList());
+      log.debug("Filtered {} policy evaluations out of {} in {} ms", evaluations.size(), unfiltered,
+          System.currentTimeMillis() - start);
+    }
+
     return evaluations;
   }
 

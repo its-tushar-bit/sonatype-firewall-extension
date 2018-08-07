@@ -21,15 +21,28 @@ public class ExecutorThreadPools
 
   private static int DEFAULT_UTILITY_THREADS = 20;
 
+  private static int DEFAULT_DAO_THREADS = 20;
+
   /**
    * This pool is intended for use ONLY with non-blocking calls and tasks that will not generate long pauses.
    */
   public static final ForkJoinPool GENERAL_UTILITY_THREADS;
 
+  /**
+   * Shared pool for DAO queries.
+   */
+  public static final ForkJoinPool DAO_FORK_JOIN_POOL;
+
   static {
     int utilThreads = Integer.getInteger("insight.threads.utility", DEFAULT_UTILITY_THREADS);
     GENERAL_UTILITY_THREADS = namedForkJoinPool(utilThreads, "insight-thread-utility-");
     log.info("insight.threads.utility pool-size: {}", utilThreads);
+  }
+
+  static {
+    int daoThreads = Integer.getInteger("insight.threads.dao", DEFAULT_DAO_THREADS);
+    DAO_FORK_JOIN_POOL = namedForkJoinPool(daoThreads, "insight-thread-dao-");
+    log.info("insight.threads.dao pool-size: {}", daoThreads);
   }
 
   private static ForkJoinPool namedForkJoinPool(int threadCount, String namePrefix) {

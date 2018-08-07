@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -55,6 +57,15 @@ public class PolicyViolationLoader
                                                    boolean activeViolationsOnly,
                                                    Predicate<PolicyViolation> violationFilter)
   {
+    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null);
+  }
+
+  public Collection<ApplicationView> getViolations(Collection<Application> applications,
+                                                   Collection<StageType> stageTypes,
+                                                   boolean activeViolationsOnly,
+                                                   Predicate<PolicyViolation> violationFilter,
+                                                   Date minDate)
+  {
     long start = System.currentTimeMillis();
 
     if (stageTypes == null) {
@@ -62,6 +73,13 @@ public class PolicyViolationLoader
     }
     Set<String> applicationIds = applications.stream().map(Application::getId).collect(toSet());
     Set<String> stageTypeIds = stageTypes.stream().map(StageType::getId).collect(toSet());
+
+    Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds);
+    if (minDate != null) {
+      evaluations = evaluations.stream().filter(e -> !e.getTime().before(minDate)).collect(toList());
+    }
+
+    applicationIds = evaluations.stream().map(e -> e.getApplicationId()).collect(toSet());
 
     Map<String, ApplicationView> appViewsByAppId = new LinkedHashMap<>();
     for (Application application : applications) {
@@ -77,8 +95,6 @@ public class PolicyViolationLoader
       appViewsByAppId.put(application.getId(), appView);
     }
 
-    Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds);
-
     for (PolicyEvaluation evaluation : evaluations) {
       ApplicationView appView = appViewsByAppId.get(evaluation.getApplicationId());
       ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(evaluation.getStageTypeId());
@@ -86,7 +102,9 @@ public class PolicyViolationLoader
       appStageView.filteredViolations = new ArrayList<>();
     }
 
-    Collection<PolicyViolation> violations = loadViolations(applicationIds, stageTypeIds, activeViolationsOnly);
+    Collection<PolicyViolation> violations = minDate != null
+        ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly)
+        : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly);
     filterViolations(violations, violationFilter, appViewsByAppId);
 
     log.debug("Created policy violation views in {} ms", System.currentTimeMillis() - start);
@@ -133,6 +151,35 @@ public class PolicyViolationLoader
       }
     }
     log.debug("Loaded {} policy violations in {} ms", violations.size(), System.currentTimeMillis() - start);
+    return violations;
+  }
+
+  private Collection<PolicyViolation> loadViolationsAfter(Set<String> applicationIds,
+                                                          Set<String> stageTypeIds,
+                                                          Date minDate,
+                                                          boolean activeViolationsOnly)
+  {
+    long start = System.currentTimeMillis();
+    Collection<PolicyViolation> violations;
+    if (stageTypeIds.isEmpty()) {
+      if (activeViolationsOnly) {
+        violations = policyViolationDAO.getActiveByApplicationIdsOpenedAfterDate(applicationIds, minDate);
+      }
+      else {
+        violations = policyViolationDAO.getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate);
+      }
+    }
+    else {
+      if (activeViolationsOnly) {
+        violations = policyViolationDAO.getActiveByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds,
+            stageTypeIds, minDate);
+      }
+      else {
+        violations = policyViolationDAO.getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds,
+            stageTypeIds, minDate);
+      }
+    }
+    log.debug("Loaded {} policy violations after date in {} ms", violations.size(), System.currentTimeMillis() - start);
     return violations;
   }
 

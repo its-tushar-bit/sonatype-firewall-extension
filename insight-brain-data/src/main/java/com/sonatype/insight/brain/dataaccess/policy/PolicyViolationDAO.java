@@ -66,6 +66,30 @@ public class PolicyViolationDAO
     return getList(sQuery, applicationId, stageTypeId, hash);
   }
 
+  public List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(Collection<String> applicationIds,
+                                                                         Date minDate)
+  {
+    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, false);
+  }
+
+  public List<PolicyViolation> getActiveByApplicationIdsOpenedAfterDate(Collection<String> applicationIds,
+                                                                        Date minDate)
+  {
+    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, true);
+  }
+
+  private List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(Collection<String> applicationIds,
+                                                                          Date minDate,
+                                                                          boolean onlyActiveViolations)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1" + //
+        " AND entity.openTime >= ?2" + //
+        " AND entity.fixTime IS NULL" + //
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL " : "");
+    return getUnfixed(sQuery, applicationIds, minDate);
+  }
+
   public List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds) {
     return getUnfixedByApplicationIds(applicationIds, false);
   }
@@ -83,6 +107,33 @@ public class PolicyViolationDAO
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
         (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds);
+  }
+
+  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,
+                                                                                    Collection<String> stageTypeIds,
+                                                                                    Date minDate)
+  {
+    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, false);
+  }
+
+  public List<PolicyViolation> getActiveByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,
+                                                                                   Collection<String> stageTypeIds,
+                                                                                   Date minDate)
+  {
+    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, true);
+  }
+
+  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,
+                                                                                     Collection<String> stageTypeIds,
+                                                                                     Date minDate,
+                                                                                     boolean onlyActiveViolations)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " AND entity.openTime >= ?3" + //
+        " AND entity.fixTime IS NULL" + //
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL " : "");
+    return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate);
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(Collection<String> applicationIds,

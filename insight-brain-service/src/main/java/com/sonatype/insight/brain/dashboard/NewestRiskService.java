@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +38,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 
 import com.google.common.base.Predicate;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +83,10 @@ public class NewestRiskService
   {
     dashboardUtils.validateDashboardLicensed();
 
+    if (maxDaysOld != null && maxDaysOld < 1) {
+      throw new IllegalArgumentException("Max Days Old must be a positive integer");
+    }
+
     long start = System.currentTimeMillis();
 
     NewestRiskDTOComparator comparator = new NewestRiskDTOComparator(orderBy);
@@ -93,7 +99,8 @@ public class NewestRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter);
+    Date minDate = (maxDaysOld == null) ? null : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
+    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter, minDate);
 
     List<NewestRiskDTO> riskDTOs = new ArrayList<>();
 
@@ -139,10 +146,6 @@ public class NewestRiskService
         }, GENERAL_UTILITY_THREADS)).collect(toList());
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
-
-    if (maxDaysOld != null) {
-      riskDTOs = filter(riskDTOs, maxDaysOld.intValue());
-    }
 
     Collections.sort(riskDTOs, comparator);
     DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
@@ -194,23 +197,5 @@ public class NewestRiskService
     if (newestRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
       newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
     }
-  }
-
-  /**
-   * Filters the given newestRiskDTOs to those that are newer than maxDaysOld
-   */
-  private static List<NewestRiskDTO> filter(List<NewestRiskDTO> newestRiskDTOs, int maxDaysOld) {
-    if (maxDaysOld < 1) {
-      throw new IllegalArgumentException("Max Days Old must be a positive integer");
-    }
-
-    List<NewestRiskDTO> filtered = new ArrayList<>();
-    long filterFromTime = new DateTime().minusDays(maxDaysOld).getMillis();
-    for (NewestRiskDTO newestRiskDTO : newestRiskDTOs) {
-      if (newestRiskDTO.firstOccurrenceTime > filterFromTime) {
-        filtered.add(newestRiskDTO);
-      }
-    }
-    return filtered;
   }
 }

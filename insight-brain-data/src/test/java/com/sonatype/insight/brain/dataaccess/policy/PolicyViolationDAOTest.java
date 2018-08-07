@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +26,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -340,6 +344,183 @@ public class PolicyViolationDAOTest
         containsInAnyOrder(openViolation.getId()));
   }
 
+  private String addViolation(PolicyViolationDAO dao,
+                              String stageTypeId,
+                              Date openTime,
+                              Date grandfatherTime,
+                              Date waiveTime,
+                              Date fixTime)
+  {
+    Policy policy = tempEntity.newPolicy(applicationId, "name" + tempEntity.uuid());
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, stageTypeId,
+        "scan-" + tempEntity.uuid(), openTime);
+    PolicyViolation violation;
+    if (waiveTime != null) {
+      violation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
+          tempEntity.newWaiver(policy.getId(), applicationId));
+    }
+    else {
+      violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    }
+    violation.setGrandfatherTime(grandfatherTime);
+    violation.setWaiveTime(waiveTime);
+    violation.setFixTime(fixTime);
+    dao.update(violation);
+
+    return violation.getId();
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdsOpenedAfterDate() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Instant reference = Instant.now();
+    Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
+    Date cutoff = new Date(reference.toEpochMilli());
+    Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
+    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
+    Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
+    Date notGrandfathered = null;
+    Date notWaived = null;
+    Date notFixed = null;
+
+    List<String> expectedIds = new ArrayList<>();
+
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
+
+    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed);
+    addViolation(dao, BuildStageType.ID, openBefore, notGrandfathered, notWaived, notFixed);
+
+    List<String> violationIds = dao.getActiveByApplicationIdsOpenedAfterDate(Arrays.asList(applicationId), cutoff)
+        .stream().map(PolicyViolation::getId).collect(toList());
+
+    assertThat(violationIds, containsInAnyOrder(expectedIds.stream().toArray()));
+  }
+
+  @Test
+  public void getUnfixedByApplicationIdsOpenedAfterDate() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Instant reference = Instant.now();
+    Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
+    Date cutoff = new Date(reference.toEpochMilli());
+    Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
+    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
+    Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
+    Date notGrandfathered = null;
+    Date notWaived = null;
+    Date notFixed = null;
+
+    List<String> expectedIds = new ArrayList<>();
+
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed));
+    expectedIds.add(addViolation(dao, ReleaseStageType.ID, cutoff, grandfatherTime, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, ReleaseStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed));
+    expectedIds.add(addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed));
+
+    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
+    addViolation(dao, BuildStageType.ID, openBefore, notGrandfathered, notWaived, notFixed);
+
+    List<String> violationIds = dao.getUnfixedByApplicationIdsOpenedAfterDate(Arrays.asList(applicationId), cutoff)
+        .stream().map(PolicyViolation::getId).collect(toList());
+
+    assertThat(violationIds, containsInAnyOrder(expectedIds.stream().toArray()));
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdsAndStageIdsOpenedAfterDate() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Instant reference = Instant.now();
+    Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
+    Date cutoff = new Date(reference.toEpochMilli());
+    Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
+    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
+    Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
+    Date notGrandfathered = null;
+    Date notWaived = null;
+    Date notFixed = null;
+
+    List<String> expectedIds = new ArrayList<>();
+
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
+
+    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed);
+    addViolation(dao, BuildStageType.ID, openBefore, notGrandfathered, notWaived, notFixed);
+    addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed);
+
+    List<String> violationIds = dao.getActiveByApplicationIdsAndStageIdsOpenedAfterDate(Arrays.asList(applicationId),
+        Arrays.asList(BuildStageType.ID), cutoff).stream().map(PolicyViolation::getId).collect(toList());
+
+    assertThat(violationIds, containsInAnyOrder(expectedIds.stream().toArray()));
+  }
+
+  @Test
+  public void getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Instant reference = Instant.now();
+    Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
+    Date cutoff = new Date(reference.toEpochMilli());
+    Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
+    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
+    Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
+    Date notGrandfathered = null;
+    Date notWaived = null;
+    Date notFixed = null;
+
+    List<String> expectedIds = new ArrayList<>();
+
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed));
+
+    addViolation(dao, BuildStageType.ID, openBefore, notGrandfathered, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
+    addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed);
+    addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed);
+    addViolation(dao, ReleaseStageType.ID, openAfter, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, fixTime);
+
+    List<String> violationIds = dao.getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(Arrays.asList(applicationId),
+        Arrays.asList(BuildStageType.ID), cutoff).stream().map(PolicyViolation::getId).collect(toList());
+
+    assertThat(violationIds, containsInAnyOrder(expectedIds.stream().toArray()));
+  }
+
   @Test
   public void testGetActiveByApplicationIdAndStageIdsAndTimeRange() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
@@ -405,7 +586,7 @@ public class PolicyViolationDAOTest
     PolicyViolation openedAndWaivedDuring = tempEntity.newPolicyViolation(policyEvalInDateRange, policy);
     openedAndWaivedDuring.setWaiveTime(during2);
     dao.update(openedAndWaivedDuring);
-    // opened and fixed during time range 
+    // opened and fixed during time range
     PolicyViolation openedAndFixedDuring = tempEntity.newPolicyViolation(policyEvalInDateRange, policy);
     openedAndFixedDuring.setFixTime(during2);
     dao.update(openedAndFixedDuring);

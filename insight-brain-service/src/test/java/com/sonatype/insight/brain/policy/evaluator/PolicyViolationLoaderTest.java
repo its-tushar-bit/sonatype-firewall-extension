@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -202,5 +204,35 @@ public class PolicyViolationLoaderTest
     assertThat(appStageView.getStageType(), is(StageTypes.BUILD));
     assertThat(appStageView.getLastEvaluation(), is(nullValue()));
     assertThat(appStageView.getFilteredViolations(), hasSize(0));
+  }
+
+  @Test
+  public void testGetViolations_OpenedAfterDate() {
+    Date beforeAppCreation = new Date(Instant.now().minus(Duration.ofMinutes(1)).toEpochMilli());
+
+    Application app = createApplication(StageTypes.BUILD);
+
+    Collection<ApplicationView> appViewsFilteredWithBeforeDate = loader.getViolations(Arrays.asList(app),
+        Arrays.asList(StageTypes.BUILD), false, violation -> true, beforeAppCreation);
+
+    assertThat(appViewsFilteredWithBeforeDate, hasSize(1));
+    ApplicationView appViewBefore = appViewsFilteredWithBeforeDate.iterator().next();
+    assertThat(appViewBefore.getApplication(), is(app));
+    assertThat(appViewBefore.getStageViews(), hasSize(1));
+    ApplicationStageView appStageViewBefore = appViewBefore.getStageViews().iterator().next();
+    assertThat(appStageViewBefore.getStageType(), is(StageTypes.BUILD));
+    assertThat(appStageViewBefore.getFilteredViolations(), hasSize(2));
+
+    Date afterAppCreation = new Date(Instant.now().plus(Duration.ofMinutes(1)).toEpochMilli());
+    Collection<ApplicationView> appViewsFilteredWithAfterDate = loader.getViolations(Arrays.asList(app),
+        Arrays.asList(StageTypes.BUILD), false, violation -> true, afterAppCreation);
+    assertThat(appViewsFilteredWithAfterDate, hasSize(1));
+    ApplicationView appViewAfter = appViewsFilteredWithAfterDate.iterator().next();
+    assertThat(appViewAfter.getApplication(), is(app));
+    assertThat(appViewAfter.getStageViews(), hasSize(1));
+    ApplicationStageView appStageViewAfter = appViewAfter.getStageViews().iterator().next();
+    assertThat(appStageViewAfter.getStageType(), is(StageTypes.BUILD));
+    assertThat(appStageViewAfter.getLastEvaluation(), is(nullValue()));
+    assertThat(appStageViewAfter.getFilteredViolations(), hasSize(0));
   }
 }

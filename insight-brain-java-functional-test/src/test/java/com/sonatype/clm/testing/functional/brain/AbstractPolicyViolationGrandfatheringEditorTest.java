@@ -77,6 +77,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     OwnerSummaryPage.policyTile().violationGrandfathering().shouldHave(text(summaryText)).click();
 
     PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
+    PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
       PolicyViolationGrandfatheringEditorPage.grandfatheringInherited().shouldNotBe(visible);
@@ -132,11 +133,13 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(selected);
       PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldNotBe(disabled);
       PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldNotBe(disabled);
+      PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
     }
     else {
       PolicyViolationGrandfatheringEditorPage.grandfatheringInherited().shouldBe(disabled);
       PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(disabled);
       PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldBe(disabled);
+      PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldBe(visible);
       if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
         PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldBe(disabled).shouldBe(visible);
       }

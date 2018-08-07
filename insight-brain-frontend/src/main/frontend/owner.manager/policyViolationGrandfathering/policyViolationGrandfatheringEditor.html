@@ -24,6 +24,11 @@
         mask-attach-to-body>
     <fieldset id="violation-grandfathering-enable-toggle-control-group" class="iq-radio-group iq-form-group">
       <legend>Enable Policy Violation Grandfathering</legend>
+      <div id="violation-grandfathering-disabled-message"
+           ng-if="!vm.currentConfiguration.allowChange"
+           class="iq-alert iq-alert--info iq-alert--form-item">
+        <i class="fa fa-info-circle"></i>The parent selection cannot be overridden.
+      </div>
       <iq-radio model="vm.currentConfiguration.enabled" 
                 value="null"
                 is-disabled="!vm.currentConfiguration.allowChange" 

@@ -81,4 +81,8 @@ public class PolicyViolationGrandfatheringEditorPage
   public static SelenideElement statusMessage() {
     return $(ROOT + " #violation-grandfathering-status-message");
   }
+
+  public static SelenideElement disabledMessage() {
+    return $(ROOT + " #violation-grandfathering-disabled-message");
+  }
 }

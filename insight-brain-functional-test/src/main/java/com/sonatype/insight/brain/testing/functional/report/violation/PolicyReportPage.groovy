@@ -179,7 +179,7 @@ extends Module
     created { cell(CREATED) }
     owner { cell(OWNER) }
     comment { cell(COMMENT) }
-    removeWaiverButton { cell(REMOVE_BUTTON).children('#remove-waiver') }
+    removeWaiverButton { cell(REMOVE_BUTTON).children('.tm-remove-waiver') }
   }
 
   void showRemoveWaiverModal() {

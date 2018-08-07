@@ -83,6 +83,9 @@
                 <include>resources/assets/**/CIP*.js</include>
                 <include>resources/assets/brain-client/*.js</include>
               </specIncludes>
+              <specExcludes>
+                <exclude>resources/assets/cip/pendo/sanitizeUrlServiceSpec.js</exclude>
+              </specExcludes>
               <fileSystemReporters>
                 <reporter>
                   <fileName>TEST-cip.xml</fileName>
@@ -122,6 +125,9 @@
                 <include>frontend/**/*MockData.js</include>
                 <include>resources/assets/audit-report/*.js</include>
               </specIncludes>
+              <specExcludes>
+                <exclude>resources/assets/cip/pendo/sanitizeUrlServiceSpec.js</exclude>
+              </specExcludes>
               <fileSystemReporters>
                 <reporter>
                   <fileName>TEST-audit.xml</fileName>
@@ -161,6 +167,7 @@
                 <exclude>frontend/brain-client/**/*.js</exclude>
                 <exclude>frontend/version-graph/**/*.js</exclude>
                 <exclude>frontend/owner.manager/**/*.js</exclude>
+                <exclude>frontend/pendo/sanitizeUrlServiceSpec.js</exclude>
                 <exclude>frontend/labs/**/*.js</exclude>
               </specExcludes>
               <fileSystemReporters>

@@ -30,14 +30,14 @@
             'fa-puzzle-piece': recipient.roleId }"></i><!--
             -->{{::vm.getDisplayName(recipient)}}
         </td>
-        <td ng-repeat="stage in vm.actionStages" class="iq-cell">
+        <td ng-repeat="stage in vm.actionStages" class="iq-cell tm-stage-{{::stage.stageTypeId}}">
           <iq-checkbox on-click="vm.toggleStage(recipient, stage.stageTypeId)"
                        is-checked="vm.hasStage(recipient, stage.stageTypeId)"
                        is-disabled="vm.disabled || !vm.isStageApplicable(recipient, stage.stageTypeId)"
                        tooltip="{{ !vm.isStageApplicable(recipient, stage.stageTypeId) ? 'Notifications for this type and stage are not available' : '' }}">
           </iq-checkbox>
         </td>
-        <td class="iq-cell">
+        <td class="iq-cell tm-continuous-monitoring">
           <iq-checkbox on-click="vm.toggleStage(recipient, 'continuous-monitoring')"
                        is-checked="vm.hasStage(recipient, 'continuous-monitoring')"
                        is-disabled="vm.disabled || !vm.isMonitoringSupported"
@@ -46,7 +46,7 @@
           </iq-checkbox>
         </td>
         <td class="iq-cell">
-          <button class="btn btn-tertiary btn-icon-only" type="button"
+          <button class="btn btn-tertiary btn-icon-only tm-delete-btn" type="button"
                   ng-click="vm.removeRecipient(recipient)" ng-disabled="vm.disabled"><!--
                  --><i class="fa fa-trash"></i>
           </button>
@@ -60,7 +60,7 @@
         <div class="field">
           <label for="recipient-type" ng-class="{ disabled: vm.disabled }">Recipient Type</label>
           <dropdown-selector id="recipient-type" class="editor-notification-type" ng-model="vm.recipientType"
-                             name="recipient-type" options="vm.recipientTypeOptions"
+                             name="recipient-type" options="vm.recipientTypeOptions" item-as-class="true"
                              ng-disabled="vm.disabled" ng-change="vm.resetNotifications()"></dropdown-selector>
         </div>
         <div class="field" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">

@@ -22,27 +22,15 @@ import template from './iqRadio.html';
  */
 var iqRadio = {
   bindings: {
-    inputId: '@',
     isDisabled: '<',
     model: '=',
     value: '<',
     onClick: '&'
   },
-  controller: IqRadioController,
+  controller: angular.noop,
   controllerAs: 'vm',
   template: template,
   transclude: true
 };
-
-function IqRadioController($scope) {
-  var vm = this;
-  vm.getId = getId;
-
-  function getId() {
-    return vm.inputId || 'iq_radio_' + $scope.$id;
-  }
-}
-
-IqRadioController.$inject = ['$scope'];
 
 export default iqRadio;

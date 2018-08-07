@@ -52,7 +52,7 @@
                 <h3>{{::permissionCategory.displayName}}</h3>
               </td>
             </tr>
-            <tr ng-repeat="permission in permissionCategory.permissions">
+            <tr ng-repeat="permission in permissionCategory.permissions" id="{{::permission.id}}">
               <td>
                 <div class="inline-control">
                   <div class="checkbox toggle-checkbox">

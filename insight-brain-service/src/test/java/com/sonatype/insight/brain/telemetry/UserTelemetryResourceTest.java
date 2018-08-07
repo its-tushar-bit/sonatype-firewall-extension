@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.telemetry;
+
+import javax.ws.rs.core.UriBuilder;
+
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+public class UserTelemetryResourceTest extends AbstractResourceTest
+{
+  @Before
+  public void setup() {
+    getCLMServer().getInjector().getInstance(PendoCache.class).invalidate();
+  }
+
+  @Test
+  public void testGetJavascript() throws Exception {
+    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "some javascript", 200);
+
+    HttpResponse response = restRequest()
+        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is("some javascript"));
+    assertThat(response.getHeader("Content-Type"), is("application/javascript"));
+  }
+
+  @Test
+  public void testGetJavascript_error() throws Exception {
+    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "some error message", 404);
+
+    HttpResponse response = restRequest()
+        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is(""));
+  }
+
+  @Test
+  public void testProxyGet() throws Exception {
+    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+
+    String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
+        .build("foo/bar").toString();
+    HttpResponse response = restRequest().path(url).get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is("some response"));
+  }
+
+  @Test
+  public void testProxyGet_error() throws Exception {
+    HttpResponse response = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events", "foo", "bar").get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is(""));
+  }
+
+  @Test
+  public void testProxyPost() throws Exception {
+    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+
+    String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
+        .build("foo/bar").toString();
+    HttpResponse response = restRequest().path(url).body("Foo").post();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is("some response"));
+  }
+
+  @Test
+  public void testProxyPost_error() throws Exception {
+    HttpResponse response = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events", "foo", "bar").post();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is(""));
+  }
+}

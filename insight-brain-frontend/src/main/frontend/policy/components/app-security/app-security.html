@@ -10,7 +10,7 @@
                      ldap-realm="context.ldapRealm">
       <div clm-alerts="alerts"></div>
       <button class="btn btn-primary" type="submit">Save</button>
-      <button class="btn" type="button" ng-click="cancel()">Cancel</button>
+      <button class="btn btn-dismiss" type="button" ng-click="cancel()">Cancel</button>
     </role-membership>
   </script>
   <div load-error="error" reload="doLoad()"></div>
@@ -27,7 +27,7 @@
   </div>
   <div class="iq-list">
     <ul class="accordion">
-      <li class="iq-list__item iq-list__item--expanding" ng-repeat="role in context.roles">
+      <li class="iq-list__item iq-list__item--expanding" ng-repeat="role in context.roles" id="{{::role.roleId}}">
         <div ng-if="!editMode">
           <div class="iq-list__row--admin-role">
             {{role.roleName}}

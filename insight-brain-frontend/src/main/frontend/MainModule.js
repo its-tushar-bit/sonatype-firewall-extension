@@ -18,6 +18,7 @@ import mainHeaderModule from './mainHeader/module';
 import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from './report/ReportController';
+import pendoModule from './pendo/module';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -35,7 +36,7 @@ export const InitModule = angular.module('InitModule', [
   'ui.router', 'ui.bootstrap', CLMLocationModule.name, commonServicesModule.name, 'ngAria',
   ReportModule.name, Report.name, mainHeaderModule.name, 'ngRoute', unauthenticatedResponseHttpInterceptor.name,
   'xeditable', productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, dashboardModule.name,
-  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name
+  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name
 ], [
   '$stateProvider', '$routeProvider', '$urlRouterProvider',
   function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -49,17 +50,8 @@ export const InitModule = angular.module('InitModule', [
         $rootScope.error = 'Unknown Address';
       }
     };
-    var removeErrorFunction = function($rootScope) {
-      if ($rootScope.error) {
-        delete $rootScope.error;
-      }
-    };
-    unknownErrorFunction.$inject = removeErrorFunction.$inject = ['$rootScope'];
+    unknownErrorFunction.$inject = ['$rootScope'];
 
-    // First remove any existing routing errors
-    $urlRouterProvider.rule(function ($injector) {
-      $injector.invoke(removeErrorFunction);
-    });
     // Show unknown routing error if route is unknown
     $urlRouterProvider.otherwise(function($injector) {
       $injector.invoke(unknownErrorFunction);
@@ -91,10 +83,10 @@ export const InitModule = angular.module('InitModule', [
 ]).service('initService', [
   'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
   '$q', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
-  'gettingStartedUsageTelemetryService',
+  'gettingStartedUsageTelemetryService', 'pendoService',
   function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
            $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService,
-           gettingStartedUsageTelemetryService) {
+           gettingStartedUsageTelemetryService, pendoService) {
     var savedState = null,
         stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
           //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
@@ -193,11 +185,14 @@ export const InitModule = angular.module('InitModule', [
         }
       });
 
-      $rootScope.$on('$stateChangeSuccess', function() {
+      function clearRootScopeError() {
         if ($rootScope.error) {
           delete $rootScope.error;
         }
-      });
+      }
+
+      $rootScope.$on('$locationChangeStart', clearRootScopeError);
+      $rootScope.$on('$stateChangeSuccess', clearRootScopeError);
 
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
         if (typeof error === 'string') {
@@ -266,6 +261,9 @@ export const InitModule = angular.module('InitModule', [
 
       // this causes the browser to notify the user that the page contains unsaved data
       $(window).bind('beforeunload', fn);
+
+      // start pendo
+      pendoService.start();
     }
 
     return {

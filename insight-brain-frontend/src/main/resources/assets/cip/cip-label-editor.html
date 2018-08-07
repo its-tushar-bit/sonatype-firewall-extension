@@ -44,7 +44,7 @@
       <div class="iq-modal-footer">
         <span class="alert alert-error" ng-show="labelAddError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelAddError}}</span>
         <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">Save</button>
-        <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="labelSaving">Cancel</button>
+        <button type='button' class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="labelSaving">Cancel</button>
       </div>
     </div>
   </script>
@@ -60,7 +60,7 @@
       <div class="iq-modal-footer">
         <span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
         <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
-        <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="labelDeleting">Cancel</button>
+        <button type='button' class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="labelDeleting">Cancel</button>
       </div>
     </div>
   </script>

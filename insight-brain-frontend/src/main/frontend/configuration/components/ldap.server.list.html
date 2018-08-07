@@ -4,10 +4,10 @@
   <div id="ldap-server-list" class="iq-tile iq-tile--sys-prefs">
     <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
       <div class="iq-tile__actions">
-        <button class="btn btn-tertiary" ng-click="vm.reorder()" ng-disabled="vm.ldapList.length <= 1">
+        <button class="btn btn-tertiary" id="reorder-ldap-button" ng-click="vm.reorder()" ng-disabled="vm.ldapList.length <= 1">
           <i class="fa fa-pencil"></i>Reorder List
         </button><!--
-     --><button class="btn btn-tertiary" ui-sref="create-ldap">
+     --><button class="btn btn-tertiary" id="add-ldap-button" ui-sref="create-ldap">
           <i class="fa fa-plus"></i>Add a Server
         </button>
       </div>

@@ -9,6 +9,13 @@ import commonServicesModule from '../util/CommonServices';
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {
+    function getUserTelemetryPrefix() {
+      const isRM = $window.clmEndpoint && $window.clmEndpoint.type === 'rm';
+
+      // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
+      return baseUrl.get() + (isRM ? '/rest/rm/user-telemetry' : '/rest/user-telemetry');
+    }
+
     return {
       getLicensesUrl: function() {
         return baseUrl.get() + '/rest/license';
@@ -65,6 +72,12 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       evaluatePolicyUrl: function(applicationPublicId, scanId) {
         return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;
       },
+
+      getUserTelemetryConfig: () => `${getUserTelemetryPrefix()}/config`,
+
+      getUserTelemetryJavascript: () => `${getUserTelemetryPrefix()}/javascript`,
+
+      getUserTelemetryProxy: () => `${getUserTelemetryPrefix()}/events`,
 
       getProprietaryConfig: function() {
         return baseUrl.get() + '/rest/config/proprietary';

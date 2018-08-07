@@ -67,7 +67,7 @@ public class ActionDropDown
   }
 
   public static ElementsCollection reportLinks() {
-    return root().findAll("#app-report-link");
+    return root().findAll("a.tm-app-report-link");
   }
 
   public static SelenideElement reportLink(int num) {

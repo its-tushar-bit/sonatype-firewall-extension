@@ -31,7 +31,7 @@ import org.apache.shiro.web.session.mgt.WebSessionManager;
 
 /**
  * Configures Shiro security.
- * 
+ *
  * @since 1.7
  */
 public class SecurityModule
@@ -101,6 +101,7 @@ public class SecurityModule
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth, will simply do
                                                                    // nothing if not authenticated
+    manager.createChain("/rest/user-telemetry/javascript", anonFilters); // user-telemetry javascript
     manager.createChain("/rest/product/version", anonFilters); // product version info
     manager.createChain("/rest/version", anonFilters); // product version info
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port

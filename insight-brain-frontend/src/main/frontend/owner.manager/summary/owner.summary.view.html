@@ -59,7 +59,7 @@
                 <i class="fa fa-upload fa-fw"/>Evaluate Binary
               </a>
               <div ng-repeat="stage in ::vm.stages">
-                <a id="app-report-link" class="link iq-dropdown-menu__link"
+                <a class="link iq-dropdown-menu__link tm-stage-{{::stage.stageTypeId}} tm-app-report-link"
                    ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
                    ng-click="vm.openReport(stage)">
                   <i class="fa fa-external-link fa-fw"/>View {{::stage.shortName | lowercase}} report

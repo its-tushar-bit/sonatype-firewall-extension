@@ -6,6 +6,7 @@
 /*global angular, angularDebug*/
 
 import legacyConfigurationModule from '../../LegacyConfigurationModule';
+import auditReportPendoModule from '../pendo/module';
 
 window.CLM = {
   path: '../../',
@@ -15,15 +16,16 @@ window.CLM = {
 (function () {
   'use strict';
   
-  function init($rootScope, ComponentUpdateService) {
+  function init($rootScope, ComponentUpdateService, pendoService) {
     $rootScope.$on('reevaluate.component', function (event, componentKey) {
       ComponentUpdateService.reevaluate(componentKey, true);
     });
     $rootScope.$on('reload.component', function (event, componentKey) {
       ComponentUpdateService.reevaluate(componentKey, false);
     });
+    pendoService.start();
   }
-  init.$inject = ['$rootScope', 'component.update.service'];
+  init.$inject = ['$rootScope', 'component.update.service', 'pendoService'];
 
   function config($compileProvider) {
     $compileProvider.debugInfoEnabled(angularDebug);
@@ -31,6 +33,8 @@ window.CLM = {
   config.$inject = ['$compileProvider'];
 
   angular.module('audit',
-          ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-              'component.information.panel', legacyConfigurationModule.name]).run(init).config(config);
+      ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
+        auditReportPendoModule.name, 'component.information.panel', legacyConfigurationModule.name])
+      .run(init)
+      .config(config);
 }());

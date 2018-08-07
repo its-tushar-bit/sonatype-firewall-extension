@@ -35,14 +35,14 @@
             </thead>
             <tbody vs-repeat vs-scroll-parent=".scrollable-container-inner">
             <tr ng-repeat='application in applications' ng-class="application.index % 2 == 0? 'even' : 'odd'">
-              <td>
+              <td class="tm-report-list-application">
                 <a ui-sref="management.view.application({applicationPublicId: application.publicId})">
                   <img ng-src='../rest/application/icon/{{::encodeURIComponent(application.publicId)}}'
                     onerror="this.src='img/defaulticon_application.png';"
                     class='image-thumbnail'/>{{::application.name}}
                 </a>
               </td>
-              <td ng-repeat='stage in stages | filterReportColumns'>
+              <td ng-repeat='stage in stages | filterReportColumns' class='tm-report-list-stage-{{::stage.stageTypeId}}'>
                 <div ng-if='application.policyEvaluationsResults[stage.stageTypeId]'>
                   <div>
                     <a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
@@ -65,7 +65,7 @@
                 </span>
                 <span>{{::application.contact.displayName || application.contact.internalName}}</span>
               </td>
-              <td>
+              <td class="tm-report-list-organization">
                 <a ui-sref="management.view.organization({organizationId: application.organizationId})">
                   {{::application.organizationName}}
                 </a>

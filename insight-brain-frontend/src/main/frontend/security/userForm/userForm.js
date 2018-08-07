@@ -26,6 +26,8 @@ function UserFormController($scope, UserStore, Dialog) {
   vm.user = (vm.user && vm.user.id) ? vm.user.$clone() : UserStore.create();
   vm.passwordValidate = '';
 
+  vm.identifier = Math.random();
+
   function isDirty() {
     return vm.user.isDirty();
   }

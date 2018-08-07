@@ -20,7 +20,6 @@ import template from './iqCheckbox.html';
  */
 var iqCheckbox = {
   bindings: {
-    inputId: '@',
     label: '@',
     onClick: '&',
     isChecked: '<',
@@ -32,21 +31,14 @@ var iqCheckbox = {
   transclude: true
 };
 
-function IqCheckboxController($scope) {
+function IqCheckboxController() {
   var vm = this;
 
-  vm.getId = getId;
   vm.hasLabel = hasLabel;
-
-  function getId() {
-    return vm.inputId || 'iq_checkbox_' + $scope.$id;
-  }
 
   function hasLabel() {
     return vm.label && vm.label.length;
   }
 }
-
-IqCheckboxController.$inject = ['$scope'];
 
 export default iqCheckbox;

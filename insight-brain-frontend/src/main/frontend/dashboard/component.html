@@ -38,7 +38,7 @@
         <tbody>
           <tr ng-repeat-start="applicationComponent in applicationComponents | orderBy:'risk':true"
               ng-class="{ expanded: applicationComponent.isExpanded }"
-              class="expandable-row" id="app-row-{{applicationComponent.application.id}}">
+              class="expandable-row app-row">
             <td>
               <div class="twisty-container" ng-click="applicationComponent.isExpanded = !applicationComponent.isExpanded"
                    data-toggle="collapse" data-target="#application-{{applicationComponent.application.id}}">
@@ -72,7 +72,7 @@
           </tr>
           <tr ng-repeat-end>
             <td colspan="{{4 + stageTypes.length}}" class="accordion-column">
-              <div id="application-{{applicationComponent.application.id}}" class="accordion-body collapse">
+              <div class="accordion-body collapse application-container">
                 <div class="component-violations-table">
                   <table class="table clm-table-stripe">
                     <tbody>

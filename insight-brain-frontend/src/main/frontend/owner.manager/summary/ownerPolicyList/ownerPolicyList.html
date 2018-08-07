@@ -23,7 +23,7 @@
         <th sort-column="name, -threatLevel" class="iq-cell iq-cell--header policy-list__name-column">
           <span class="header-text">NAME</span>
         </th>
-        <th class="iq-cell iq-cell--header policy-list__stage-column"
+        <th class="iq-cell iq-cell--header policy-list__stage-column tm-stage-{{::stage.stageTypeId}}"
             sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"
             ng-repeat="stage in vm.actionStages">
           <span class="header-text">{{::stage.shortName | uppercase}}</span>

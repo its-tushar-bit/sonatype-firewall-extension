@@ -21,6 +21,7 @@
           <h4 class="iq-list__title">Built-In</h4>       
           <ul id='builtin-roles'>
             <li ng-repeat="role in roles | filter:{ builtIn : true }"
+                id="{{::role.id}}"
                 ui-sref="roles.editor({roleId: role.id})"
                 class="iq-list__item">
               <i class="fa fa-chevron-right iq-pull-right"></i>

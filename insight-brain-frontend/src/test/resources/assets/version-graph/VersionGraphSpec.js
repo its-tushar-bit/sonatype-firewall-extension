@@ -8,11 +8,34 @@ var clmEndpointTemplate = {
   'use strict';
 
   describe('CIP Tests', function() {
-    beforeEach(module('version.graph.app'));
+    beforeEach(module('version.graph.app', function($provide) {
+      $provide.service('pendoService', function() {
+        return jasmine.createSpyObj(['start']);
+      });
+    }));
 
     afterEach(function() {
       clmEndpoint = angular.copy(clmEndpointTemplate);
       document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
+    });
+
+    describe('when in NXRM', function() {
+      var oldClmEndpointType;
+
+      beforeEach(module(function() {
+        oldClmEndpointType = clmEndpoint.type;
+
+        // this needs to be set before the `run` block runs, which is why we set it in a provider function
+        clmEndpoint.type = 'rm';
+      }));
+
+      afterEach(function() {
+        clmEndpoint.type = oldClmEndpointType;
+      });
+
+      it('starts pendo immediately', inject(function(pendoService) {
+        expect(pendoService.start).toHaveBeenCalled();
+      }));
     });
 
     describe('Rest endpoints use base url', function() {
@@ -215,6 +238,68 @@ var clmEndpointTemplate = {
       }));
     });
 
+    describe('setHeaders', function() {
+      var pendoService,
+          $httpBackend,
+          CLMLocations,
+          oldClmEndpointType,
+          authHeader = 'Basic asdf';
+
+      function headerExpectation(headers) {
+        return headers.Authorization === authHeader;
+      }
+
+      function setupLoginExpectations($httpBackend, CLMLocations) {
+        $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+        $httpBackend.expectPOST(CLMLocations.getSessionUrl(), undefined, headerExpectation).respond(200);
+      }
+
+      beforeEach(inject(function(_pendoService_, _$httpBackend_, _CLMLocations_) {
+        pendoService = _pendoService_;
+        $httpBackend = _$httpBackend_;
+        CLMLocations = _CLMLocations_;
+      }));
+
+      it('adds the specified headers to $http.defaults.headers.common', inject(function($http) {
+        setupLoginExpectations($httpBackend, CLMLocations);
+
+        // set up some pre-existing values
+        $http.defaults.headers.common = {
+          foo: 'bar',
+          baz: 'asdf'
+        };
+
+        Insight.setHeaders({
+          baz: 'qwerty',
+          Authorization: authHeader
+        });
+
+        expect($http.defaults.headers.common).toEqual({
+          foo: 'bar',
+          baz: 'qwerty',
+          Authorization: authHeader
+        });
+      }));
+
+      it('creates a login session and then starts pendo', inject(function($rootScope) {
+        setupLoginExpectations($httpBackend, CLMLocations);
+
+        Insight.setHeaders({
+          Authorization: authHeader
+        });
+
+        // process the logout
+        $httpBackend.flush(1);
+
+        expect(pendoService.start).not.toHaveBeenCalled();
+
+        // process the login
+        $httpBackend.flush();
+
+        expect(pendoService.start).toHaveBeenCalled();
+      }));
+    });
+
     describe('State', function() {
       describe('Insight.setError', function() {
         it('Invalid AppID', inject(function(State) {
@@ -328,7 +413,7 @@ var clmEndpointTemplate = {
               applications = data;
             });
 
-            $httpBackend.expectGET().respond(200, {
+            $httpBackend.expectGET(Brain.getIntegratorApplicationListUrl()).respond(200, {
               applicationSummaries: [
                 {
                   publicId: 'myAppId',

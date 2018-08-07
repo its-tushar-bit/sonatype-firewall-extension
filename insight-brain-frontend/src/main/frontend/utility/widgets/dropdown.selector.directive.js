@@ -12,6 +12,8 @@ export default function DropdownSelector() {
       selectedModel: '=ngModel',
       options: '=',
       optionNameParam: '@?', // One-time binding
+      classNameParam: '@?',
+      itemAsClass: '@?',
       emptyOptionString: '@?',
       undefinedOptionsString: '@?',
       noOptionsString: '@?',

@@ -1,7 +1,9 @@
 <label class="iq-checkbox__label"
-       ng-class="{'iq-checkbox--disabled': vm.isDisabled,'iq-checkbox__label--no-text': !vm.hasLabel()}">
+       ng-class="{'iq-checkbox--disabled': vm.isDisabled,
+                  'iq-checkbox__label--no-text': !vm.hasLabel(),
+                  'tm-checked':vm.isChecked,
+                  'tm-unchecked':!vm.isChecked}">
   <input type="checkbox"
-         id="{{::vm.getId()}}"
          class="iq-checkbox__input"
          ng-disabled="vm.isDisabled"
          ng-checked="vm.isChecked"

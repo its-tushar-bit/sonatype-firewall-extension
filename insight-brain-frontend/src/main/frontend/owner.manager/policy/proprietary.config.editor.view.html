@@ -75,7 +75,7 @@
               <label for="matcher-type">Matcher Type</label>
               <dropdown-selector id="matcher-type" class="editor-matcher-type" ng-model="vm.matcherType"
                                  name="matcher-type" options="vm.matcherTypeOptions" ng-change="vm.resetMatcher()"
-                                 ng-disabled="vm.disabled"></dropdown-selector>
+                                 item-as-class="true" ng-disabled="vm.disabled"></dropdown-selector>
             </div>
             <div class="field">
               <label for="matcher-value">Value</label>

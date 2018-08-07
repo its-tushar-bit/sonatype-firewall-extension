@@ -6,17 +6,26 @@
 package com.sonatype.insight.brain.hds;
 
 import java.util.EnumSet;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
+import com.sonatype.insight.brain.telemetry.PendoCache;
+import com.sonatype.insight.brain.telemetry.PendoService;
+import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 public class RepoManResourceTest
     extends AbstractResourceTest
@@ -74,5 +83,58 @@ public class RepoManResourceTest
       HttpResponse response = scanRequest("unknownappid").put();
       assertResponseStatus(404, response);
     }
+  }
+
+  @Test
+  public void testProxyTelemetry_Config() throws Exception {
+    HttpResponse response = restRequest().path(RepoManResource.RESOURCE_PATH)
+        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.CONFIG_PATH).get();
+
+    assertResponseStatus(200, response);
+
+    PendoConfig config = response.getBody(PendoConfig.class);
+    assertThat(config.visitor, is(not(nullValue())));
+    assertThat(config.account, is(not(nullValue())));
+  }
+
+  @Test
+  public void testProxyTelemetry_JavaScript() throws Exception {
+    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "some javascript", 200);
+
+    HttpResponse response = restRequest().path(RepoManResource.RESOURCE_PATH)
+        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.JAVASCRIPT_PATH).get();
+
+    assertResponseStatus(200, response);
+
+    String js = response.getBodyText();
+    assertThat(js, is("some javascript"));
+  }
+
+  @Test
+  public void testProxyTelemetry_EventsGet() throws Exception {
+    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+
+    String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
+        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH).build("/foo/bar")
+        .toString();
+
+    HttpResponse response = restRequest().path(url).get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is("some response"));
+  }
+
+  @Test
+  public void testProxyTelemetry_EventsPost() throws Exception {
+    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+
+    String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
+        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH).build("/foo/bar")
+        .toString();
+
+    HttpResponse response = restRequest().path(url).post();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBodyText(), is("some response"));
   }
 }

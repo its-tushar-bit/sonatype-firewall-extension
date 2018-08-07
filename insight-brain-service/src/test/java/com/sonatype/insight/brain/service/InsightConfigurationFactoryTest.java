@@ -28,11 +28,18 @@ import io.dropwizard.util.Duration;
 import io.dropwizard.setup.Environment;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
+import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
+
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+
+import ch.qos.logback.classic.Level;
 
 public class InsightConfigurationFactoryTest
 {
@@ -40,6 +47,32 @@ public class InsightConfigurationFactoryTest
       .asList(ConsoleAppenderFactory.class, FileAppenderFactory.class, SyslogAppenderFactory.class);
   
   private static final int DROPWIZARD_HTTPS_PORT = new HttpsConnectorFactory().getPort();
+
+  @Test
+  public void testBuild_ConfigRequestLogFilterFactories_UsesUserTelemetryRequestLoggingFilter() throws Exception {
+    InsightConfig insightConfig = build("config-without-logback-access-request-log-formats.yml");
+    DefaultServerFactory serverFactory = assertDefaultServerFactory(insightConfig);
+    LogbackAccessRequestLogFactory requestLogFactory =
+        (LogbackAccessRequestLogFactory) serverFactory.getRequestLogFactory();
+
+    assertAppenderFactoryFilterFactories(requestLogFactory, UserTelemetryRequestLoggingFilter.class);
+  }
+
+  @Test
+  public void testBuild_ConfigWithoutTelemetryClientLogger_SetsInfoLevel() throws Exception {
+    InsightConfig insightConfig = build("config-without-telemetry-client-logger.yml");
+    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+
+    assertLoggerLevel(loggingFactory, "com.sonatype.insight.brain.hds.UserTelemetryHdsClient", Level.INFO);
+  }
+
+  @Test
+  public void testBuild_ConfigWithTelemetryClientLogger_UsesGivenValue() throws Exception {
+    InsightConfig insightConfig = build("config-with-telemetry-client-logger.yml");
+    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+
+    assertLoggerLevel(loggingFactory, "com.sonatype.insight.brain.hds.UserTelemetryHdsClient", Level.DEBUG);
+  }
 
   @Test
   public void testBuild_ConfigWithLogbackAccessRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat()
@@ -220,5 +253,27 @@ public class InsightConfigurationFactoryTest
     HttpConnectorFactory connector = (HttpConnectorFactory) connectors.get(0);
     assertThat(connector.getPort(), is(port));
     assertThat(connector.getIdleTimeout(), is(idleTimeout));
+  }
+
+  /**
+   * assert that all appenders on this request log have a filter factory of the specified class
+   */
+  private void assertAppenderFactoryFilterFactories(LogbackAccessRequestLogFactory requestLogFactory,
+                                                    Class<?> filterFactoryClass)
+  {
+    for (AppenderFactory<?> appenderFac : requestLogFactory.getAppenders()) {
+      AbstractAppenderFactory<?> appenderFactory = (AbstractAppenderFactory<?>) appenderFac;
+
+      assertThat(appenderFactory.getFilterFactories(), hasItem(instanceOf(filterFactoryClass)));
+    }
+  }
+
+  private void assertLoggerLevel(DefaultLoggingFactory loggingFactory, String loggerName, Level expected) {
+    ImmutableMap<String, JsonNode> loggerLevels = loggingFactory.getLoggers();
+    JsonNode jsonNode = loggerLevels.get(loggerName);
+    String levelString = jsonNode.asText();
+    Level level = Level.valueOf(levelString);
+
+    assertThat(level, is(expected));
   }
 }

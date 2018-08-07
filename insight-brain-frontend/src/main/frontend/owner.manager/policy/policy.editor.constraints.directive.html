@@ -1,5 +1,5 @@
 <div load-wrapper="vm.loadError" loading="!vm.conditionTypesMap" reload="vm.doLoad()">
-  <div class="constraint" ng-repeat="constraint in vm.constraints">
+  <div class="constraint" ng-repeat="constraint in vm.constraints" ng-init="constraintIndex = $index">
     <div class="constraint-summary" ng-if="!vm.editConstraintMap[constraint.id]">
       <div class="button-container">
         <button class="btn btn-tertiary btn-icon-only edit-constraint-button" type="button"
@@ -49,7 +49,7 @@
                              name="constraint-operator-{{$index}}" ng-model="constraint.operator"
                              options="vm.constraintOperatorOptions" empty-option-string="-- Any or All --"
                              option-value-param="operator" option-name-param="name" clm-input
-                             required></dropdown-selector>
+                             class-name-param="operator" required></dropdown-selector>
           of the following are true:
 
           <div class="policy-conditions">
@@ -61,30 +61,30 @@
                 </button>
                 <div class="condition-type">
                     <dropdown-selector class="editor-condition-type" ng-model="condition.conditionTypeId"
-                                       name="condition-type-{{::constraint.id + $index}}" option-value-param="id"
-                                       options="vm.conditionTypes" option-name-param="name"
+                                       name="condition-type-{{::constraintIndex}}-{{::$index}}" option-value-param="id"
+                                       options="vm.conditionTypes" option-name-param="name" class-name-param="id" item-as-class="true"
                                        ng-change="vm.updateConditionType(condition)" clm-input required></dropdown-selector>
                 </div>
                 <div class="condition-operator">
                     <dropdown-selector class="editor-condition-operator" ng-model="condition.operator"
-                                       name="condition-operator-{{::constraint.id + $index}}"
+                                       name="condition-operator-{{::constraintIndex}}-{{::$index}}" item-as-class="true"
                                        options="vm.conditionTypesMap[condition.conditionTypeId].supportedOperators"></dropdown-selector>
                 </div>
                 <div class="condition-value">
                   <dropdown-selector ng-model="condition.value" option-value-param="id" required
                                      ng-if="vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues"
-                                     name="condition-value-{{::constraint.id + $index}}"
+                                     name="condition-value-{{::constraintIndex}}-{{::$index}}"
                                      no-options-string="No {{vm.conditionTypesMap[condition.conditionTypeId].name}}{{vm.conditionTypesMap[condition.conditionTypeId].name.endsWith('s') ? 'es' : 's'}} available"
                                      options="vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues"
                                      option-name-param="{{condition.conditionTypeId === 'Label' ? 'label' : condition.conditionTypeId === 'License' ? 'shortDisplayName' : 'name'}}"></dropdown-selector>
                   <div ng-if="!vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues" ng-switch
                        on="vm.conditionTypesMap[condition.conditionTypeId].valueTypeId">
                     <age-in-days-input ng-switch-when="AgeInDaysValueType" ng-model="condition.value"
-                                       name="condition-value-{{::constraint.id + $index}}"></age-in-days-input>
+                                       name="condition-value-{{::constraintIndex}}-{{::$index}}"></age-in-days-input>
 
                     <span ng-switch-when="CoordinatesValueType"><!--
                     --><coordinates-input value="condition.value"><!--
-                      --><dropdown-selector ng-model="vm.coordinates.format" required
+                      --><dropdown-selector ng-model="vm.coordinates.format" item-as-class="true" required
                                             options="['maven', 'a-name']"></dropdown-selector><!--
                       --><ng-switch on="vm.coordinates.format"><!--
                         --><span ng-switch-when="maven"><!--
@@ -132,15 +132,15 @@
                   --></span>
 
                     <input type="number" min="0" max="100" ng-model="condition.value"
-                           name="conditionPercentageValue-{{::constraint.id + $index}}" ng-switch-when="PercentageValueType"
+                           name="conditionPercentageValue-{{::constraintIndex}}-{{::$index}}" ng-switch-when="PercentageValueType"
                            ng-pattern="/^((\d{1,2})|(100))$/" messages="{pattern: 'Value must be from 0 to 100'}"
                            number-input-with-string-value clm-input required>
                     <span ng-switch-default ng-switch
                           on="vm.conditionTypesMap[condition.conditionTypeId].valueType.dataType">
-                      <input type="text" ng-model="condition.value" name="conditionStringValue-{{::constraint.id + $index}}"
+                      <input type="text" ng-model="condition.value" name="conditionStringValue-{{::constraintIndex}}-{{::$index}}"
                              ng-switch-when="String" clm-input required>
                       <input type="number" min="0" max="10" ng-model="condition.value"
-                             name="conditionIntegerValue-{{::constraint.id + $index}}" ng-switch-when="Integer"
+                             name="conditionIntegerValue-{{::constraintIndex}}-{{::$index}}" ng-switch-when="Integer"
                              ng-pattern="/^(\d|10)$/" messages="{pattern: 'Value must be from 0 to 10'}"
                              title="Please enter a whole number" number-input-with-string-value clm-input required>
                       <input type="number"
@@ -148,7 +148,7 @@
                              min="0"
                              max="10"
                              ng-model="condition.value"
-                             name="conditionFloatValue-{{::constraint.id + $index}}"
+                             name="conditionFloatValue-{{::constraintIndex}}-{{::$index}}"
                              ng-switch-when="Float"
                              ng-pattern="/^\d+(\.\d+)?$/"
                              messages="{pattern: 'Value must be from 0 to 10'}"

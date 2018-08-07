@@ -6,7 +6,10 @@
  -->{{vm.getSelectedViewValue()}}<span class="caret"></span><!--
 --></a>
   <ul class="dropdown-menu" ng-if="vm.options.length > 0">
-    <li ng-repeat="item in vm.options" ng-click="vm.selectItem(item)"><!--
+    <li ng-repeat="item in vm.options"
+        ng-click="vm.selectItem(item)"
+        class="{{::(vm.classNameParam && item[classNameParam].split(' ').join('-'))}}
+               {{::(vm.itemAsClass && item.split(' ').join('-'))}}"><!--
    -->{{vm.optionNameParam ? item[vm.optionNameParam] : item}}<!--
  --></li>
   </ul>

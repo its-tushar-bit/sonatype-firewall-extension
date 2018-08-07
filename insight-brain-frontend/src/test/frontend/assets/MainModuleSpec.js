@@ -2,7 +2,7 @@
 window.angularDebug = true;
 
 describe('mainModuleSpec', function() {
-  var scope, telemetryServiceMock;
+  var scope, telemetryServiceMock, pendoServiceMock;
 
   beforeEach(module('InitModule', function($provide, $stateProvider) {
     $provide.value('$window', {
@@ -15,6 +15,11 @@ describe('mainModuleSpec', function() {
     telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
     $provide.service('gettingStartedUsageTelemetryService', function() {
       return telemetryServiceMock;
+    });
+
+    pendoServiceMock = jasmine.createSpyObj('pendoService', ['start']);
+    $provide.service('pendoService', function() {
+      return pendoServiceMock;
     });
 
     $stateProvider.state('someOtherState', {
@@ -55,6 +60,8 @@ describe('mainModuleSpec', function() {
       expect($rootScope.username).toEqual('myname');
       expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
       expect($rootScope.initialized).toEqual(true);
+
+      expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
 
     it('validate state after license check fails because unlicensed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
@@ -68,6 +75,8 @@ describe('mainModuleSpec', function() {
       expect($window.location.replace).toHaveBeenCalled();
       expect($rootScope.initialized).toBeFalsy();
       expect($rootScope.username).toBe('myname');
+
+      expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
 
     it('validate state after logged in check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
@@ -77,6 +86,8 @@ describe('mainModuleSpec', function() {
       $httpBackend.flush();
       expect($rootScope.error).toBeDefined();
       expect($rootScope.initialized).toBeFalsy();
+
+      expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
 
     it('validate state after license check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
@@ -88,6 +99,8 @@ describe('mainModuleSpec', function() {
       $httpBackend.flush();
       expect($rootScope.error).toBeDefined();
       expect($rootScope.initialized).toBeFalsy();
+
+      expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
 
     it('validate state after product feature error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
@@ -99,6 +112,8 @@ describe('mainModuleSpec', function() {
       $httpBackend.flush();
       expect($rootScope.error).toBeDefined();
       expect($rootScope.initialized).toBeFalsy();
+
+      expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
   });
 

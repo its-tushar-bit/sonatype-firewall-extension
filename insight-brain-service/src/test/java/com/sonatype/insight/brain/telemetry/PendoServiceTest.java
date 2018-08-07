@@ -1,0 +1,153 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.telemetry;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.Collections;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.hds.UserTelemetryHdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
+import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
+
+import com.google.common.hash.Hashing;
+import com.google.inject.Binder;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class PendoServiceTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private PendoService pendoService;
+
+  @Inject
+  private TelemetryId telemetryId;
+
+  @Inject
+  private PendoCache pendoCache;
+
+  @Inject
+  private VersionService versionService;
+
+  @Mock
+  private HdsClient hdsClient;
+
+  @Mock
+  private UserTelemetryHdsClient userTelemetryHdsClient;
+
+  private String hashedVisitorId;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(UserTelemetryHdsClient.class).toInstance(userTelemetryHdsClient);
+  }
+
+  @Before
+  public void setup() {
+    pendoCache.invalidate();
+    hashedVisitorId = Hashing.sha256().hashUnencodedChars(telemetryId.getId() + USERNAME).toString();
+  }
+
+  @Test
+  public void testGetConfig() throws Exception {
+    CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
+    segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+
+    PendoConfig config = pendoService.getConfig();
+    assertThat(config.account, hasEntry("id", telemetryId.getId()));
+    assertThat(config.account, hasEntry("foo", "bar"));
+    assertThat(config.account, hasEntry("iq-server-version", versionService.getVersion()));
+
+    assertThat(config.visitor, hasEntry("id", hashedVisitorId));
+  }
+
+  @Test
+  public void testGetConfig_disabled() throws Exception {
+    CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(true);
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+
+    PendoConfig config = pendoService.getConfig();
+    assertThat(config.account.keySet(), empty());
+    assertThat(config.visitor.keySet(), empty());
+  }
+
+  @Test
+  public void testGetConfig_error() throws Exception {
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
+        .thenThrow(new NotFoundException("failed"));
+
+    PendoConfig config = pendoService.getConfig();
+
+    assertThat(config.visitor, hasEntry("id", hashedVisitorId));
+    assertThat(config.account, hasEntry("id", telemetryId.getId()));
+  }
+
+  @Test
+  public void testGetJavascript() throws Exception {
+    when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH))
+        .thenReturn(new ByteArrayInputStream("test".getBytes()));
+
+    File javascript = pendoService.getJavascript();
+    assertNotNull(javascript);
+    assertTrue(javascript.exists());
+    assertThat(FileUtils.readFileToString(javascript, Charset.defaultCharset()), is("test"));
+  }
+
+  @Test
+  public void testProxy() throws Exception {
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    InputStream result = mock(InputStream.class);
+
+    when(userTelemetryHdsClient.relay(eq(request), eq(InputStream.class),
+        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"))).thenReturn(result);
+
+    assertThat(pendoService.proxy(request, "foo/bar"), is(result));
+    verify(userTelemetryHdsClient).relay(eq(request), eq(InputStream.class),
+        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"));
+  }
+
+  @Test
+  public void testProxy_error() throws Exception {
+    HttpServletRequest request = mock(HttpServletRequest.class);
+
+    when(userTelemetryHdsClient.relay(eq(request), eq(InputStream.class),
+        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"))).thenThrow(new IOException());
+
+    try (InputStream in = pendoService.proxy(request, "foo/bar")) {
+      String result = IOUtils.toString(in, Charset.defaultCharset());
+      assertThat(result, is(""));
+    }
+  }
+}

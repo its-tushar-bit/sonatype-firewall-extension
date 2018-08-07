@@ -34,7 +34,7 @@
    --><button ng-if="vm.submitError" class="btn btn-error" type="submit" ng-disabled="!vm.isDirty()">
         <i class="fa fa-refresh"></i>Retry
       </button><!--
-   --><button class="btn" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">
+   --><button class="btn btn-dismiss" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">
       Cancel
       </button><!--
    --><button id="remove-contact-button" class='btn btn-tertiary' type="button" ng-click="vm.removeContact()" ng-if="vm.owner.contact">

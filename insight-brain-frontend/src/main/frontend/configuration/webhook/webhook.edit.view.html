@@ -43,7 +43,7 @@
           <div class="field" id="event-types">
             <label>Event Types</label>
             <div class="sub-label">which trigger this Webhook</div>
-            <div ng-repeat="eventType in ::vm.webhookEventTypes">
+            <div ng-repeat="eventType in ::vm.webhookEventTypes" id="{{::eventType.split(' ').join('-')}}">
               <iq-checkbox label="{{::eventType}}"
                            on-click="vm.toggleEventTypeSelected(eventType)"
                            is-checked="vm.hasEventTypeSelected(eventType)">
@@ -59,7 +59,7 @@
                   submit-type="vm.dirtyWebhook.id ? 'update' : 'create'">
             {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}
           </button>
-          <button class="btn" type="button" ui-sref="webhooks.list">Cancel</button>
+          <button class="btn btn-dismiss" type="button" ui-sref="webhooks.list">Cancel</button>
           <button id="delete-webhook-button"
                   class="btn btn-tertiary"
                   type="button"

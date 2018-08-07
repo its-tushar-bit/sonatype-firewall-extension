@@ -3,6 +3,10 @@ describe('reportApp', function() {
 
   beforeEach(module('ReportModule', 'MainModule', function($provide) {
     SpecUtil.mockNgRedux($provide);
+
+    $provide.service('pendoService', function() {
+      return jasmine.createSpyObj('pendoService', ['start']);
+    });
   }));
 
   beforeEach(inject(function($rootScope, $state, _$controller_, _$httpBackend_, _CLMLocations_) {

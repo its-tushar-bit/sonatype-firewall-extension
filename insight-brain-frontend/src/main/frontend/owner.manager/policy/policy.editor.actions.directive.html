@@ -14,7 +14,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr class="iq-table-row">
+      <tr class="iq-table-row tm-no-action-row">
         <td class="iq-cell action-name">No Action</td>
         <td ng-repeat="actionStage in vm.actionStages"
             class="action iq-cell {{::actionStage.shortName | lowercase}}"
@@ -26,7 +26,7 @@
         <td class="iq-cell"></td> <!--empty columns for alignment with notifications table-->
         <td class="iq-cell"></td>
       </tr>
-      <tr class="iq-table-row">
+      <tr class="iq-table-row tm-row-warn">
         <td class="iq-cell action-name">
           <i class="fa fa-exclamation-triangle warn size-16px"></i>Warn
         </td>
@@ -42,7 +42,7 @@
         <td class="iq-cell"></td>
         <td class="iq-cell"></td>
       </tr>
-      <tr class="iq-table-row">
+      <tr class="iq-table-row tm-fail-row">
         <td class="iq-cell action-name">
           <i class="fa fa-exclamation-circle fail size-16px"></i>Fail
         </td>

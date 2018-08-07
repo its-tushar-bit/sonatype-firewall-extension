@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import pendoModule from './pendo/module';
+
 /* global $, window, CLM, document, Insight, angular, Base64, Brain */
 (function() {
   'use strict';
@@ -127,6 +129,14 @@
       return deferred;
     };
   }
+
+  function startPendo(pendoService) {
+    pendoService.start();
+  }
+  startPendo.$inject = ['pendoService'];
+
+  const injector = angular.bootstrap(null, [pendoModule.name]);
+  injector.invoke(startPendo);
 
   var head = $('head'),
       styles = ['cip.css'];

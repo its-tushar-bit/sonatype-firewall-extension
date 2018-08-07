@@ -4,7 +4,7 @@
   <h2>Reset Password</h2>
 </div>
 <div ng-switch="state">
-  <div ng-switch-default>
+  <div ng-switch-default id="reset-password-modal">
     <div class="iq-modal-content">
       <div class="iq-alert">
         <i class="fa fa-warning"></i>Are you sure you want to reset the password for <strong>{{::user.username}}</strong>?
@@ -19,7 +19,7 @@
         <i class="fa fa-refresh"></i> Retry
       </button>
       <button ng-if="!error" class="btn btn-primary" ng-click="resetClick()">Reset</button>
-      <button class="btn" ng-click="cancelClick()">Cancel</button>
+      <button class="btn btn-dismiss" ng-click="cancelClick()">Cancel</button>
     </div>
   </div>
   <div ng-switch-when="pending">
@@ -67,20 +67,20 @@
             <li class="iq-list__item iq-list__item--expanding accordion-heading" ng-repeat='user in context.users'>
               <div class='btn-group floatRight'>
                 <button type='button'
-                        class="btn btn-mini user-button hover-buttons"
+                        class="btn btn-mini user-button hover-buttons tm-iq-user-edit"
                         title="Edit User"
                         ng-disabled='context.userEditMap[user.id]'
                         ng-click="editClick(user)">
                     <i class="icon-pencil"></i>
                 </button>
                 <button type='button'
-                        class="btn btn-mini user-button hover-buttons"
+                        class="btn btn-mini user-button hover-buttons tm-iq-user-reset-password"
                         title="Reset Password"
                         ng-click="resetPasswordClick(user)">
                   <i class="icon-reset-pw"></i>
                 </button>
                 <button type='button'
-                        class="btn btn-mini user-button hover-buttons"
+                        class="btn btn-mini user-button hover-buttons tm-iq-user-remove"
                         title="Remove User"
                         ng-click="removeClick(user)">
                   <i class="icon-trash"></i>

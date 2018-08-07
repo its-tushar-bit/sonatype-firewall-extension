@@ -30,20 +30,20 @@
     </div>
     <div class="iq-tree-view__child">
       <iq-checkbox label="all/none"
+                   class="tm-select-all"
                    on-click="vm.toggleSelectAll()"
                    is-checked="vm.allSelected()">
       </iq-checkbox>
     </div>
-    <div class="iq-tree-view__child"
+    <div class="iq-tree-view__child tm-select-entity"
          ng-repeat="entity in vm.available | fuzzy:vm.filter:'name' | orderBy: vm.sortEntities ? ['name'] : []">
-      <label class="iq-checkbox__label"
+      <label class="iq-checkbox__label" ng-class="{'tm-checked':vm.selected.has(entity.id),'tm-unchecked':!vm.selected.has(entity.id)}"
              tooltip="{{::(vm.tooltipGenerator({entity: entity}))}}"
              tooltip-append-to-body="true"
              data-tooltip-popup-delay="200"
              data-tooltip-placement="top-left"
              tooltip-class="filter-item-tooltip">
         <input type="checkbox"
-               id="{{::entity.id}}"
                class="iq-checkbox__input"
                ng-checked="vm.selected.has(entity.id)"
                ng-click="vm.toggle(entity.id)">

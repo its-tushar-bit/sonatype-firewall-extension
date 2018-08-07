@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -36,9 +37,12 @@ public class RepoManResource
 
   private final ScanHandler scanHandler;
 
+  private final UserTelemetryResource userTelemetryResource;
+
   @Inject
-  public RepoManResource(final ScanHandler scanHandler) {
+  public RepoManResource(final ScanHandler scanHandler, final UserTelemetryResource userTelemetryResource) {
     this.scanHandler = scanHandler;
+    this.userTelemetryResource = userTelemetryResource;
   }
 
   @PUT
@@ -48,5 +52,15 @@ public class RepoManResource
                                 @Context HttpServletRequest req) throws IOException
   {
     return scanHandler.handle(req, applicationPublicId, ClientScanType.SONATYPE);
+  }
+
+  /**
+   * Expose all user-telemetry endpoints here as well so that they can be reached from the version-graph when
+   * running in NXRM. NXRM has a whitelist of resource paths that it will allow to be proxied to IQ, which includes
+   * anything under /rest/rm
+   */
+  @Path(UserTelemetryResource.RESOURCE_SUBPATH)
+  public UserTelemetryResource proxyTelemetry() {
+    return userTelemetryResource;
   }
 }

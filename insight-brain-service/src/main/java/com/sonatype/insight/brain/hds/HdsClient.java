@@ -67,9 +67,10 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class HdsClient
 {
-  private static final Logger log = LoggerFactory.getLogger(HdsClient.class);
+  // Logger is instance variable so that subclasses will have a different one which can be configured differently
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final Configuration config;
+  protected final Configuration config;
 
   private final HttpClient client;
 
@@ -459,8 +460,6 @@ public class HdsClient
           req.setHeader(headerName, orig.getHeader(headerName));
         }
       }
-
-      setClientUserAgentHeader(req, getClientUserAgent(orig));
     }
     if (analytics != null) {
       req.setHeader(OWNER_TYPE_HEADER, analytics.getOwnerType().toString());
@@ -474,7 +473,8 @@ public class HdsClient
 
     req.setHeader("X-Brain-Version", version);
     req.setHeader("X-CLM-Token", licenseManager.getLicenseFingerprint());
-    req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());
+
+    populateUserAgents(orig, req);
   }
 
   public static String getClientUserAgent(HttpServletRequest request) {
@@ -487,6 +487,13 @@ public class HdsClient
       clientUserAgent = request.getHeader(HttpHeaders.USER_AGENT);
     }
     return clientUserAgent;
+  }
+
+  protected void populateUserAgents(HttpServletRequest orig, HttpUriRequest req) {
+    if (orig != null) {
+      setClientUserAgentHeader(req, getClientUserAgent(orig));
+    }
+    req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());
   }
 
   private void setClientUserAgentHeader(HttpUriRequest request, String clientUserAgent) {

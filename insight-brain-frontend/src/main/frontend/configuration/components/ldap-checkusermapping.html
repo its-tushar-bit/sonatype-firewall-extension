@@ -16,15 +16,25 @@
       </thead>
       <tbody>
         <tr class="iq-table-row" ng-repeat="user in users | orderBy: ['-fieldCount', 'username']">
-          <td class="iq-cell modal-ldap-user-list__username-column" title="{{::user.username}}">
-            {{::user.username}}
+          <td class="iq-cell modal-ldap-user-list__username-column">
+            <span iq-tooltip tooltip-text="{{::user.username}}">
+              {{::user.username}}
+            </span>
           </td>
-          <td class="iq-cell modal-ldap-user-list__name-column">{{::user.realName}}</td>
-          <td class="iq-cell modal-ldap-user-list__email-column" title="{{::user.email}}">
-            {{::user.email}}
+          <td class="iq-cell modal-ldap-user-list__name-column">
+            <span iq-tooltip tooltip-text="{{::user.realName}}">
+              {{::user.realName}}
+            </span>
           </td>
-          <td class="iq-cell modal-ldap-user-list__groups-column" title="{{::user.membership}}">
-            {{::user.membership}}
+          <td class="iq-cell modal-ldap-user-list__email-column">
+            <span iq-tooltip tooltip-text="{{::user.email}}">
+              {{::user.email}}
+            </span>
+          </td>
+          <td class="iq-cell modal-ldap-user-list__groups-column">
+            <span iq-tooltip tooltip-text="{{::user.membership}}">
+              {{::user.membership}}
+            </span>
           </td>
         </tr>
       </tbody>

@@ -38,7 +38,7 @@ public class PingHdsClientTest
     extends AbstractHdsClientTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(HdsClient.class);
+  public LogOutput logOutput = new LogOutput(PingHdsClient.class);
 
   @Override
   protected void initClient() {

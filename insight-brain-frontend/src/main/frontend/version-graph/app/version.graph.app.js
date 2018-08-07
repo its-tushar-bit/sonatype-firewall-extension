@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import versionGraphPendoModule from '../pendo/module';
+
 /*global $, angular, Insight, Brain, clmEndpoint, window */
 (function () {
   'use strict';
@@ -16,23 +18,46 @@
       authHandler = null,
       injectorTimeout = null;
 
-  angular.module('version.graph.app', ['version.graph']).run(['$rootScope', '$injector', 'ErrorMessage', function ($rootScope, $injector, errorMessage) {
-    injector = $injector;
-
-    $rootScope.setError = function (error) {
-      $rootScope.errorMessage = errorMessage(error);
+  function loginAndStartPendoService($http, CLMLocations, pendoService) {
+    return function loginAndStartPendo() {
+      // pendo writes img tags in order to send telemetry, and so won't get the benefit of the login
+      // headers set using Insight.setHeaders. Therefore we need to create an actual login session before
+      // starting it
+      $http.delete(CLMLocations.getSessionLogoutUrl())
+          .then(() => $http.post(CLMLocations.getSessionUrl()))
+          .then(pendoService.start);
     };
+  }
 
-    $rootScope.retryFn = function () {
-      $rootScope.errorMessage = null;
-      $rootScope.$broadcast('reload');
-    };
+  loginAndStartPendoService.$inject = ['$http', 'CLMLocations', 'pendoService'];
 
-    $rootScope.selectApplication = clmEndpoint.selectApplication;
-    $rootScope.migrateSupported = clmEndpoint.migrate;
-    $rootScope.viewDetailsSupported = clmEndpoint.viewDetails;
-    $rootScope.type = clmEndpoint.type;
-  }]);
+  angular.module('version.graph.app', ['version.graph', versionGraphPendoModule.name])
+      .service('loginAndStartPendo', loginAndStartPendoService)
+      .run(['$rootScope', '$injector', 'ErrorMessage', 'pendoService',
+        function($rootScope, $injector, errorMessage, pendoService) {
+          injector = $injector;
+
+          $rootScope.setError = function(error) {
+            $rootScope.errorMessage = errorMessage(error);
+          };
+
+          $rootScope.retryFn = function() {
+            $rootScope.errorMessage = null;
+            $rootScope.$broadcast('reload');
+          };
+
+          $rootScope.selectApplication = clmEndpoint.selectApplication;
+          $rootScope.migrateSupported = clmEndpoint.migrate;
+          $rootScope.viewDetailsSupported = clmEndpoint.viewDetails;
+          $rootScope.type = clmEndpoint.type;
+
+          if (clmEndpoint.type === 'rm') {
+            // In RM, everything is proxied through the RM server to which we are already logged in, so start pendo
+            // immediately
+            pendoService.start();
+          }
+        }
+      ]);
 
   /**
    * Waits on the AngularJS application to boot then calls the specified function
@@ -208,9 +233,10 @@
         }], true);
       },
       'setHeaders' : function (headers) {
-        waitOnInjector(['$http', '$rootScope', function ($http, $rootScope) {
+        waitOnInjector(['$http', '$rootScope', 'loginAndStartPendo', function ($http, $rootScope, loginAndStartPendo) {
           safeApply($rootScope, function () {
             angular.extend($http.defaults.headers.common, headers);
+            loginAndStartPendo();
           });
         }]);
       },

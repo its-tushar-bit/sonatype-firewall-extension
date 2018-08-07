@@ -6,16 +6,30 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.validation.Validator;
 
+import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
+
+import ch.qos.logback.access.spi.IAccessEvent;
+import ch.qos.logback.classic.Level;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.YamlConfigurationFactory;
 import io.dropwizard.logging.AbstractAppenderFactory;
 import io.dropwizard.logging.AppenderFactory;
+import io.dropwizard.logging.DefaultLoggingFactory;
+import io.dropwizard.logging.filter.FilterFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
@@ -46,16 +60,20 @@ public class InsightConfigurationFactory
       throws IOException, ConfigurationException
   {
     InsightConfig insightConfig = super.build(provider, path);
-    setDefaultRequestLogFormat(insightConfig);
+    setDefaultRequestLogSettings(insightConfig);
+    setDefaultLogSettings(insightConfig);
     return insightConfig;
   }
 
-  private void setDefaultRequestLogFormat(InsightConfig insightConfig) {
+  private void setDefaultRequestLogSettings(InsightConfig insightConfig) {
     RequestLogFactory<?> requestLogFactory = ((AbstractServerFactory) insightConfig.getServerFactory())
         .getRequestLogFactory();
     if (requestLogFactory instanceof LogbackAccessRequestLogFactory) {
-      setAppenderFactoriesLogFormats(((LogbackAccessRequestLogFactory) requestLogFactory).getAppenders(),
-          AbstractAppenderFactory.class, DEFAULT_REQUEST_LOG_FORMAT);
+      LogbackAccessRequestLogFactory logbackRequestLogFactory = (LogbackAccessRequestLogFactory) requestLogFactory;
+      Collection<? extends AppenderFactory<IAccessEvent>> appenderFactories = logbackRequestLogFactory.getAppenders();
+
+      setAppenderFactoriesLogFormats(appenderFactories, AbstractAppenderFactory.class, DEFAULT_REQUEST_LOG_FORMAT);
+      setDefaultRequestLogFilterFactory(appenderFactories, new UserTelemetryRequestLoggingFilter());
     }
   }
 
@@ -66,5 +84,28 @@ public class InsightConfigurationFactory
     appenderFactories.stream().filter(appenderFactoryType::isInstance).map(appenderFactoryType::cast)
         .filter(abtractAppenderFactory -> abtractAppenderFactory.getLogFormat() == null)
         .forEach(abtractAppenderFactory -> abtractAppenderFactory.setLogFormat(logFormat));
+  }
+
+  private void setDefaultRequestLogFilterFactory(Collection<? extends AppenderFactory<IAccessEvent>> appenderFactories,
+                                                 FilterFactory<IAccessEvent> filterFactory) {
+    for (AppenderFactory<IAccessEvent> appenderFac : appenderFactories) {
+      AbstractAppenderFactory<IAccessEvent> appenderFactory = (AbstractAppenderFactory<IAccessEvent>) appenderFac;
+      ImmutableList<FilterFactory<IAccessEvent>> existingFilters = appenderFactory.getFilterFactories();
+      List<FilterFactory<IAccessEvent>> filters = new ArrayList<>(existingFilters);
+
+      filters.add(filterFactory);
+
+      appenderFactory.setFilterFactories(filters);
+    }
+  }
+
+  private void setDefaultLogSettings(InsightConfig insightConfig) {
+    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    ImmutableMap<String, JsonNode> loggerLevels = loggingFactory.getLoggers();
+    Map<String, JsonNode> newLoggerLevels = new HashMap<>(loggerLevels);
+    newLoggerLevels.putIfAbsent("com.sonatype.insight.brain.hds.UserTelemetryHdsClient",
+        new TextNode(Level.INFO.toString()));
+
+    loggingFactory.setLoggers(newLoggerLevels);
   }
 }

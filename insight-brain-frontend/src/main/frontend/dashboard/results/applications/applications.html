@@ -67,7 +67,7 @@
             </td>
           </tr>
           <tr id="app{{$parent.$index}}_stage{{$index}}"
-              class="iq-table-row applications-row stage-application-risks"
+              class="iq-table-row applications-row stage-application-risks tm-stage-{{::stage.stageTypeId}}"
               ng-repeat-end ng-repeat="stage in application.stageRisks">
             <td class="iq-cell iq-cell--label iq-cell--application-name">
               <a title="View application report"

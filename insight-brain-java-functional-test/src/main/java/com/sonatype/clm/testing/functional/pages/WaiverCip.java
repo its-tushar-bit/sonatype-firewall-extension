@@ -114,7 +114,7 @@ public class WaiverCip
     }
 
     public SelenideElement removeButton() {
-      return element.find("#remove-waiver");
+      return element.find(".tm-remove-waiver");
     }
   }
 

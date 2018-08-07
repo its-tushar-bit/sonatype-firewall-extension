@@ -1,4 +1,4 @@
-<form id='{{vm.user.id}}user-form'
+<form id='{{vm.identifier}}user-form'
       name="userForm"
       class='clm-form well clm-well'
       ng-submit="vm.saveClick(vm.user)"
@@ -75,14 +75,14 @@
     </div>
   </div>
   <div clm-alerts="vm.alerts" no-close="true"></div>
-  <button id='{{vm.user.id}}user-form-save'
+  <button id='{{vm.identifier}}user-form-save'
           class='btn btn-primary'
           type='button'
           ng-click='vm.saveClick(vm.user)'
           ng-disabled='userForm.$invalid || userForm.$pristine || vm.saving'>
     Save
   </button>
-  <button id='{{vm.user.id}}user-form-cancel'
+  <button id='{{vm.identifier}}user-form-cancel'
           type="button"
           class='btn btn-link btn-cancel'
           type='button'

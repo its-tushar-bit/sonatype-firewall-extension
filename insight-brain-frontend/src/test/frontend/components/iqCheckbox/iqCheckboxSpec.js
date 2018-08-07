@@ -10,17 +10,6 @@ describe('iq-checkbox component', function() {
     };
   }));
 
-  describe('getId()', function() {
-    it('uses scope id if inputId was not provided', function() {
-      $scope.$id = 123123;
-      expect(getVm().getId()).toBe('iq_checkbox_123123');
-    });
-
-    it('returns provided inputId', function() {
-      expect(getVm({inputId: 'testId123'}).getId()).toBe('testId123');
-    });
-  });
-
   describe('hasLabel()', function() {
 
     it('is truthy if label is provided', function() {

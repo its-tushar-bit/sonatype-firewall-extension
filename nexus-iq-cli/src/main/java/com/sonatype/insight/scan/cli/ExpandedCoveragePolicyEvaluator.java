@@ -103,6 +103,7 @@ public class ExpandedCoveragePolicyEvaluator
           log.warn(e.getMessage(), e);
         }
         List<Dependency> xcItems = Arrays.asList(engine.getDependencies());
+        xcItems.forEach(this::fixCMakeAnalyzerDisplayName);
         log.info("Found {} items.", xcItems.size());
 
         ExpandedCoverage expandedCoverage = new ExpandedCoverage();
@@ -119,6 +120,25 @@ public class ExpandedCoveragePolicyEvaluator
     catch (Exception e) {
       log.error("The scan could not be performed: " + e.getMessage(), e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+  }
+
+  // Temporary fix for CMakeAnalyzer dependency regression showing "CMakeLists.txt" instead of name & version in v3.3.1
+  @VisibleForTesting
+  void fixCMakeAnalyzerDisplayName(Dependency dependency) {
+    String displayFileName = dependency.getDisplayFileName();
+    if (displayFileName == null) {
+      return;
+    }
+    if (displayFileName.matches("CMakeLists\\.txt|.*\\.cmake")) {
+      if (dependency.getName() == null) {
+        return;
+      }
+      if (dependency.getVersion() == null) {
+        dependency.setDisplayFileName(dependency.getName());
+        return;
+      }
+      dependency.setDisplayFileName(dependency.getName() + ":" + dependency.getVersion());
     }
   }
 
@@ -162,9 +182,11 @@ public class ExpandedCoveragePolicyEvaluator
     settings.setBoolean(KEYS.ANALYZER_RETIRED_ENABLED, true);
     // Disable analyzers that connect to external resources.
     settings.setBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED, false);
+    settings.setBoolean(Settings.KEYS.ANALYZER_ARTIFACTORY_ENABLED, false);
     settings.setBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED, false);
     settings.setBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED, false);
     settings.setBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED, false);
+    settings.setBoolean(Settings.KEYS.ANALYZER_RETIREJS_ENABLED, false);
     return settings;
   }
 

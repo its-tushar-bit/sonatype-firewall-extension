@@ -46,9 +46,11 @@ import org.owasp.dependencycheck.analyzer.ComposerLockAnalyzer;
 import org.owasp.dependencycheck.analyzer.DependencyMergingAnalyzer;
 import org.owasp.dependencycheck.analyzer.FileNameAnalyzer;
 import org.owasp.dependencycheck.analyzer.JarAnalyzer;
+import org.owasp.dependencycheck.analyzer.MSBuildProjectAnalyzer;
 import org.owasp.dependencycheck.analyzer.NexusAnalyzer;
 import org.owasp.dependencycheck.analyzer.NodePackageAnalyzer;
 import org.owasp.dependencycheck.analyzer.NspAnalyzer;
+import org.owasp.dependencycheck.analyzer.NugetconfAnalyzer;
 import org.owasp.dependencycheck.analyzer.NuspecAnalyzer;
 import org.owasp.dependencycheck.analyzer.OpenSSLAnalyzer;
 import org.owasp.dependencycheck.analyzer.PythonDistributionAnalyzer;
@@ -73,6 +75,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -104,8 +107,8 @@ public class ExpandedCoveragePolicyEvaluatorTest
     logOutput.assertInfo("Found 3 items.");
     assertThat(dependencies, hasSize(3));
     assertThat(dependencies, hasItems(dependencyWithName("uber-1.0-SNAPSHOT.jar"),
-        dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/com.example/uber/pom.xml"),
-        dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/org.apache.commons/commons-lang3/pom.xml")));
+        dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)"),
+        dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)")));
   }
 
   @Test
@@ -121,14 +124,14 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 14 items.");
-    assertThat(dependencies, hasSize(14));
+    logOutput.assertInfo("Found 18 items.");
+    assertThat(dependencies, hasSize(18));
     assertThat(dependencies, hasItem(dependencyWithName("zlib")));
     assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
     assertThat(dependencies,
-        hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/com.example/uber/pom.xml")));
+        hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)")));
     assertThat(dependencies,
-        hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/org.apache.commons/commons-lang3/pom.xml")));
+        hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)")));
     assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg")));
     assertThat(dependencies, hasItem(dependencyWithName("ActionSheet:1.0.0")));
     assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.dll")));
@@ -139,9 +142,13 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThat(dependencies, hasItem(dependencyWithName("test/opensslv.h")));
     assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar")));
     assertThat(dependencies, hasItem(dependencyWithName(
-        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar/META-INF/maven/com.example/uber/pom.xml")));
+        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar (shaded: com.example:uber:1.1-SNAPSHOT)")));
     assertThat(dependencies, hasItem(dependencyWithName(
-        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar/META-INF/maven/org.apache.commons/commons-lang3/pom.xml")));
+        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)")));
+    assertThat(dependencies, hasItem(dependencyWithName("test.csproj")));
+    assertThat(dependencies, hasItem(dependencyWithName("Microsoft.AspNetCore.All:2.0.5")));
+    assertThat(dependencies, hasItem(dependencyWithName("packages.config")));
+    assertThat(dependencies, hasItem(dependencyWithName("Microsoft.AspNet.WebApi.Core:5.2.4")));
   }
 
   @Test
@@ -169,6 +176,81 @@ public class ExpandedCoveragePolicyEvaluatorTest
     evaluator.run(params);
     verify(restClient).uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE));
     verify(restClient).prepareExpandedCoverageReport(eq("the-app-id"), eq("the-scan-id"));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_NullDisplayFileName() {
+    Dependency dependency = new Dependency();
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is(nullValue()));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_NotMatchingDisplayFileName() {
+    Dependency dependency = new Dependency();
+    dependency.setDisplayFileName("NotCMakeLists.txt");
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is("NotCMakeLists.txt"));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_MatchesNullNameAndNullVersion() {
+    Dependency dependency = new Dependency();
+    dependency.setDisplayFileName("CMakeLists.txt");
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is("CMakeLists.txt"));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_MatchesNullName() {
+    Dependency dependency = new Dependency();
+    dependency.setDisplayFileName("CMakeLists.txt");
+    dependency.setVersion("version");
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is("CMakeLists.txt"));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_MatchesNullVersion() {
+    Dependency dependency = new Dependency();
+    dependency.setDisplayFileName("CMakeLists.txt");
+    dependency.setName("name");
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is("name"));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_MatchesCmakeLists() {
+    Dependency dependency = new Dependency();
+    dependency.setDisplayFileName("CMakeLists.txt");
+    dependency.setName("name");
+    dependency.setVersion("version");
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is("name:version"));
+  }
+
+  @Test
+  public void testFixCMakeAnalyzerDisplayName_MatchesCmake() {
+    Dependency dependency = new Dependency();
+    dependency.setDisplayFileName("file.cmake");
+    dependency.setName("name");
+    dependency.setVersion("version");
+
+    evaluator.fixCMakeAnalyzerDisplayName(dependency);
+
+    assertThat(dependency.getDisplayFileName(), is("name:version"));
   }
 
   private Matcher<Dependency> dependencyWithName(final String name) {
@@ -233,9 +315,11 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_EXPERIMENTAL_ENABLED), is(true));
     assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIRED_ENABLED), is(true));
     assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_ARTIFACTORY_ENABLED), is(false));
     assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
     assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
     assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIREJS_ENABLED), is(false));
   }
 
   @Test
@@ -252,7 +336,9 @@ public class ExpandedCoveragePolicyEvaluatorTest
             DependencyMergingAnalyzer.class, //
             FileNameAnalyzer.class, //
             JarAnalyzer.class, //
+            MSBuildProjectAnalyzer.class, //
             NodePackageAnalyzer.class, //
+            NugetconfAnalyzer.class, //
             NuspecAnalyzer.class, //
             OpenSSLAnalyzer.class, //
             PythonDistributionAnalyzer.class, //

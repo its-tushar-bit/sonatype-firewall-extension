@@ -19,7 +19,7 @@
   <artifactId>nexus-iq-cli</artifactId>
 
   <properties>
-    <dependency-check-version>3.2.1</dependency-check-version>
+    <dependency-check-version>3.3.1</dependency-check-version>
   </properties>
 
   <dependencies>

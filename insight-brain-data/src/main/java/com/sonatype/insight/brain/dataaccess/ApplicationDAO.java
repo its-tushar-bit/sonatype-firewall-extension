@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -363,12 +362,10 @@ public class ApplicationDAO
 
     // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
     PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
-    PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO = new PolicyViolationResolutionStateDAO();
     try (TransactionContext aggregationTx = policyViolationAggregationDAO.createTransactionContext()) {
       aggregationTx.begin();
 
       policyViolationAggregationDAO.deleteByApplicationId(aggregationTx, application.getId());
-      policyViolationResolutionStateDAO.deleteByApplicationId(aggregationTx, application.getId());
 
       aggregationTx.commit();
     }

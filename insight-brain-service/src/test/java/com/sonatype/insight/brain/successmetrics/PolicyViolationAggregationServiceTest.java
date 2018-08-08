@@ -6,14 +6,12 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -21,7 +19,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
@@ -29,7 +26,6 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -41,9 +37,6 @@ public class PolicyViolationAggregationServiceTest
 
   @Inject
   private PolicyViolationDAO violationDAO;
-
-  @Inject
-  private PolicyViolationResolutionStateDAO resolutionStateDAO;
 
   @Inject
   private PolicyViolationAggregationDAO aggregationDAO;
@@ -76,8 +69,6 @@ public class PolicyViolationAggregationServiceTest
     violationDAO.update(violation3);
 
     service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
-
-    assertThat(resolutionStateDAO.getByApplicationId(app.getId()), hasSize(0));
 
     PolicyViolationAggregation aggregation = aggregationDAO.getMostRecentByApplicationId(app.getId());
 
@@ -128,15 +119,6 @@ public class PolicyViolationAggregationServiceTest
     violationDAO.update(violation1);
 
     service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
-
-    List<PolicyViolationResolutionState> resolutionStates = resolutionStateDAO.getByApplicationId(app.getId());
-    assertThat(resolutionStates, hasSize(1));
-    PolicyViolationResolutionState resolutionState = resolutionStates.get(0);
-    assertThat(resolutionState.getFirstOccurrenceTime(), is(eval1.getTime()));
-    assertThat(resolutionState.getPolicyId(), is(policy.getId()));
-    assertThat(resolutionState.getHash(), is(violation1.getHash()));
-    assertThat(resolutionState.getComponentIdentifier(), is(violation1.getComponentIdentifier()));
-    assertThat(resolutionState.getBuildStageType(), is(true));
 
     PolicyViolationAggregation aggregation = aggregationDAO.getMostRecentByApplicationId(app.getId());
 

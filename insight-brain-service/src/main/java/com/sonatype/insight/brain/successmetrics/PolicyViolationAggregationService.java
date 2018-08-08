@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +20,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,7 +30,6 @@ import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -35,13 +37,13 @@ import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.CacheBuilder;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -71,8 +73,6 @@ class PolicyViolationAggregationService
 
   private final PolicyViolationAggregationDAO violationAggregationDAO;
 
-  private final PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO;
-
   private final StageTypeService stageTypeService;
 
   private final DashboardUtils dashboardUtils;
@@ -85,13 +85,11 @@ class PolicyViolationAggregationService
                                            PolicyEvaluationDAO policyEvaluationDAO,
                                            PolicyViolationDAO policyViolationDAO,
                                            PolicyViolationAggregationDAO violationAggregationDAO,
-                                           PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO,
                                            DashboardUtils dashboardUtils)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.violationAggregationDAO = violationAggregationDAO;
-    this.policyViolationResolutionStateDAO = policyViolationResolutionStateDAO;
     this.stageTypeService = stageTypeService;
     this.dashboardUtils = dashboardUtils;
   }
@@ -153,79 +151,6 @@ class PolicyViolationAggregationService
   }
 
   /**
-   * A container for DescriptiveStatistics objects for MTTRs at each threat level category
-   */
-  private static class MttrStats
-  {
-    final DescriptiveStatistics mttrLowThreatStats = new DescriptiveStatistics();
-    final DescriptiveStatistics mttrModerateThreatStats = new DescriptiveStatistics();
-    final DescriptiveStatistics mttrSevereThreatStats = new DescriptiveStatistics();
-    final DescriptiveStatistics mttrCriticalThreatStats = new DescriptiveStatistics();
-
-    void addViolation(PolicyViolationComparable violation,
-                      Date violationFirstOccurrenceTimestamp,
-                      Date violationResolutionTimestamp)
-    {
-      long timeToResolve = violationResolutionTimestamp.getTime() - violationFirstOccurrenceTimestamp.getTime();
-      int threatLevel = violation.getThreatLevel();
-      DescriptiveStatistics statsToUpdate;
-
-      // NOTE: the thresholds between the different threat level categories are codified in at least four different
-      // places throughout the app and ought to be centralized
-      if (threatLevel >= 8) {
-        statsToUpdate = mttrCriticalThreatStats;
-      }
-      else if (threatLevel >= 4) {
-        statsToUpdate = mttrSevereThreatStats;
-      }
-      else if (threatLevel >= 2) {
-        statsToUpdate = mttrModerateThreatStats;
-      }
-      else {
-        statsToUpdate = mttrLowThreatStats;
-      }
-
-      statsToUpdate.addValue(timeToResolve);
-    }
-  }
-
-  private static class DiscoveredStats
-  {
-    final Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> threatCategoryToThreatLevelToCounts = new EnumMap<>(
-        PolicyThreatCategory.class);
-    int evaluationCount = 0;
-
-    public DiscoveredStats() {
-      for (PolicyThreatCategory threatCategory : PolicyThreatCategory.values()) {
-        EnumMap<ThreatLevel, Integer> threatLevelToCount = new EnumMap<>(ThreatLevel.class);
-        threatCategoryToThreatLevelToCounts.put(threatCategory, threatLevelToCount);
-        for (ThreatLevel threatLevel : ThreatLevel.values()) {
-          threatLevelToCount.put(threatLevel, 0);
-        }
-      }
-    }
-
-    void addViolation(PolicyViolationResolutionState violation) {
-      ThreatLevel threatLevel = ThreatLevel.from(violation.getThreatLevel());
-      PolicyThreatCategory threatCategory = violation.getThreatCategory();
-      threatCategoryToThreatLevelToCounts.get(threatCategory)
-          .put(threatLevel, getCount(threatCategory, threatLevel) + 1);
-    }
-
-    int getCount(PolicyThreatCategory threatCategory, ThreatLevel threatLevel) {
-      return threatCategoryToThreatLevelToCounts.get(threatCategory).get(threatLevel);
-    }
-    
-    public void incrementEvaluationCount() {
-      evaluationCount++;
-    }
-
-    public int getEvaluationCount() {
-      return evaluationCount;
-    }
-  }
-
-  /**
    * Generate the newer PolicyViolationAggregation rows for the given application
    */
   private void generatePolicyViolationAggregations(String applicationId,
@@ -262,16 +187,14 @@ class PolicyViolationAggregationService
       return;
     }
 
-    List<EvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds,
+    List<ProcessableEvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds,
         localDateToTimestamp(startOfNewAggregation), currentDateTime.toDate());
 
     MttrStats mttrStats = new MttrStats();
     DiscoveredStats discoveredStats = new DiscoveredStats();
 
     if (!events.isEmpty()) {
-      SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates =
-          getPolicyViolationResolutionStates(applicationId);
-      for (EvaluationEvent event : events) {
+      for (ProcessableEvaluationEvent event : events) {
         while (new LocalDate(event.time).compareTo(startOfNextAggregation) >= 0) {
           // event is too recent for the current aggregation record, start a new one
           saveViolationAggregation(applicationId, startOfNewAggregation, null, mttrStats, discoveredStats);
@@ -281,7 +204,7 @@ class PolicyViolationAggregationService
           mttrStats = new MttrStats();
           discoveredStats = new DiscoveredStats();
         }
-        event.process(mttrStats, discoveredStats, resolutionStates);
+        event.process(mttrStats, discoveredStats);
       }
     }
 
@@ -326,16 +249,14 @@ class PolicyViolationAggregationService
     Date from = partialAggregation.getTimePeriodEnd();
     Date upTo = new LocalDate(from).plusMonths(1).withDayOfMonth(1).toDateTimeAtStartOfDay().toDate();
 
-    List<EvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds, from, upTo);
+    List<ProcessableEvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds, from, upTo);
 
     MttrStats mttrStats = recreateMttrStats(partialAggregation);
     DiscoveredStats discoveredStats = recreateDiscoveredStats(partialAggregation);
 
     if (!events.isEmpty()) {
-      SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates =
-          getPolicyViolationResolutionStates(applicationId);
-      for (EvaluationEvent event : events) {
-        event.process(mttrStats, discoveredStats, resolutionStates);
+      for (ProcessableEvaluationEvent event : events) {
+        event.process(mttrStats, discoveredStats);
       }
     }
     LocalDate timePeriodStart = new LocalDate(partialAggregation.getTimePeriodStart());
@@ -378,10 +299,10 @@ class PolicyViolationAggregationService
     return result;
   }
 
-  private List<EvaluationEvent> createSortedEvaluationEvents(String applicationId,
-                                                             Set<String> stageTypeIds,
-                                                             Date from,
-                                                             Date upTo)
+  private List<ProcessableEvaluationEvent> createSortedEvaluationEvents(String applicationId,
+                                                                        Set<String> stageTypeIds,
+                                                                        Date from,
+                                                                        Date upTo)
   {
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getBetweenDatesByApplicationIdAndStageIds(from, upTo,
         applicationId, stageTypeIds);
@@ -391,6 +312,10 @@ class PolicyViolationAggregationService
 
     List<PolicyViolation> violations = policyViolationDAO.getActiveByApplicationIdAndStageIdsAndTimeRange(applicationId,
         stageTypeIds, from, upTo);
+
+    List<PolicyViolation> violationsActiveAtBeginning = violations.stream()
+        .filter(v -> v.getOpenTime().compareTo(from) < 0)
+        .collect(Collectors.toList());
 
     SortedMap<PolicyViolationComparable, List<PolicyViolation>> violationMap = new TreeMap<>(
         PolicyViolationComparator.COMPARATOR);
@@ -409,16 +334,112 @@ class PolicyViolationAggregationService
     }
     for (PolicyViolation violation : violations) {
       if (from.compareTo(violation.getOpenTime()) <= 0) {
-        events.add(new ViolationDiscoveredEvent(violation));
+        events.add(new ViolationDiscoveredInStageEvent(violation));
       }
       Date resolveTime = getResolveTime(violation);
       if (resolveTime != null && resolveTime.compareTo(upTo) < 0
           && !isViolationWithUnresolvedDuplicate(violation, resolveTime, violationMap.get(violation))) {
-        events.add(new ViolationResolvedEvent(violation, resolveTime));
+        events.add(new ViolationResolvedInStageEvent(violation, resolveTime));
       }
     }
     events.sort(null);
-    return events;
+
+    return handleViolationStages(violationsActiveAtBeginning, events);
+  }
+
+  /**
+   * Keep track of the stages involved in each ViolationResolvedInStageEvent and ViolationDiscoveredInStageEvent and
+   * transform them into ViolationDiscoveredEvent and ViolationResolvedEvents as appropriate. Other types of
+   * ProcessableEvaluationEvents are passed through unchanged
+   *
+   * @param initialActiveViolations collection of PolicyViolations that are already active at the beginning of the
+   * time period that these evaluationEvents traverse
+   * @param evaluationEvents a chronologically ordered list of EvaluationEvents
+   */
+  private List<ProcessableEvaluationEvent> handleViolationStages(Collection<PolicyViolation> initialActiveViolations,
+                                                                 List<EvaluationEvent> evaluationEvents)
+  {
+    // A map from violation to the stages in which that violation is currently active
+    Multimap<PolicyViolation, String> violationActiveStages = createActiveStagesMap(initialActiveViolations);
+
+    // A map from violation to its first occurrence time across all stages
+    Map<PolicyViolation, Date> firstOccurrenceDates = createFirstOccurrencesMap(initialActiveViolations);
+
+    List<ProcessableEvaluationEvent> retval = new LinkedList<>();
+
+    for (EvaluationEvent evaluationEvent : evaluationEvents) {
+      if (evaluationEvent instanceof ProcessableEvaluationEvent) {
+        retval.add((ProcessableEvaluationEvent) evaluationEvent);
+      }
+      else if (evaluationEvent instanceof ViolationDiscoveredInStageEvent) {
+        PolicyViolation violation = ((ViolationDiscoveredInStageEvent) evaluationEvent).violation;
+
+        // only add a ViolationDiscoveredEvent if it isn't already active in other stages (or in this stage from a
+        // duplicate)
+        if (!violationActiveStages.containsKey(violation)) {
+          retval.add(new ViolationDiscoveredEvent(violation));
+        }
+
+        violationActiveStages.put(violation, violation.getStageTypeId());
+        firstOccurrenceDates.putIfAbsent(violation, violation.getOpenTime());
+      }
+      else if (evaluationEvent instanceof ViolationResolvedInStageEvent) {
+        ViolationResolvedInStageEvent event = (ViolationResolvedInStageEvent) evaluationEvent;
+        PolicyViolation violation = event.violation;
+
+        // NOTE: removed can be false in the case of multiple duplicate violations getting resolved
+        // at the same time. After the first one, successive ones should have no effect
+        boolean removed = violationActiveStages.remove(violation, violation.getStageTypeId());
+
+        // only add a ViolationResolvedEvent if it isn't still active in other stages
+        if (removed && !violationActiveStages.containsKey(violation)) {
+
+          Date firstOccurrence = firstOccurrenceDates.remove(violation);
+
+          if (firstOccurrence == null) {
+            throw new IllegalStateException("Unable to find first occurrence of Policy Violation");
+          }
+          else {
+            retval.add(new ViolationResolvedEvent(violation, firstOccurrence, event.time));
+          }
+        }
+      }
+      else {
+        throw new IllegalArgumentException("Unexpected EvaluationEvent");
+      }
+    }
+
+    return retval;
+  }
+
+  /**
+   * From a list of currently-active violations, create a multimap from violation to stages in which it (or an
+   * equivalent violation) is currently active.
+   */
+  private Multimap<PolicyViolation, String> createActiveStagesMap(Collection<PolicyViolation> violations) {
+    Multimap<PolicyViolation, String> retval =
+        TreeMultimap.create(PolicyViolationComparator.COMPARATOR, Comparator.naturalOrder());
+
+    for (PolicyViolation violation : violations) {
+      retval.put(violation, violation.getStageTypeId());
+    }
+
+    return retval;
+  }
+
+  /**
+   * @return a map from violation to the earliest date at which it, or another comparator-equivalent violation in the
+   * collection, was opened
+   */
+  private Map<PolicyViolation, Date> createFirstOccurrencesMap(Collection<PolicyViolation> violations) {
+    Map<PolicyViolation, Date> retval = new TreeMap<>(PolicyViolationComparator.COMPARATOR);
+
+    for (PolicyViolation violation : violations) {
+      retval.merge(violation, violation.getOpenTime(),
+          (date1, date2) -> new Date(Math.min(date1.getTime(), date2.getTime())));
+    }
+
+    return retval;
   }
 
   private Date getResolveTime(PolicyViolation violation) {
@@ -452,118 +473,11 @@ class PolicyViolationAggregationService
     return false;
   }
 
-  private abstract class EvaluationEvent
-      implements Comparable<EvaluationEvent>
-  {
-    final Date time;
-
-    EvaluationEvent(Date time) {
-      this.time = time;
-    }
-
-    @Override
-    public int compareTo(EvaluationEvent other) {
-      return time.compareTo(other.time);
-    }
-
-    abstract void process(MttrStats mttrStats,
-                          DiscoveredStats discoveredStats,
-                          SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates);
-  }
-
-  private class EvaluationPerformedEvent
-      extends EvaluationEvent
-  {
-    public EvaluationPerformedEvent(PolicyEvaluation evaluation) {
-      super(evaluation.getTime());
-    }
-
-    @Override
-    void process(MttrStats mttrStats,
-                 DiscoveredStats discoveredStats,
-                 SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates)
-    {
-      discoveredStats.incrementEvaluationCount();
-    }
-  }
-
-  private class ViolationDiscoveredEvent
-      extends EvaluationEvent
-  {
-    private final PolicyViolation violation;
-
-    ViolationDiscoveredEvent(PolicyViolation violation) {
-      super(violation.getOpenTime());
-      this.violation = violation;
-    }
-
-    @Override
-    void process(MttrStats mttrStats,
-                 DiscoveredStats discoveredStats,
-                 SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates)
-    {
-      PolicyViolationResolutionState newResolutionState = new PolicyViolationResolutionState(violation);
-      PolicyViolationResolutionState oldResolutionState = resolutionStates.putIfAbsent(newResolutionState,
-          newResolutionState);
-      if (oldResolutionState == null) {
-        newResolutionState.setStageTypeById(violation.getStageTypeId());
-        discoveredStats.addViolation(newResolutionState);
-        policyViolationResolutionStateDAO.insert(newResolutionState);
-      }
-      else {
-        oldResolutionState.setStageTypeById(violation.getStageTypeId());
-        policyViolationResolutionStateDAO.update(oldResolutionState);
-      }
-    }
-  }
-
-  private class ViolationResolvedEvent
-      extends EvaluationEvent
-  {
-    private final PolicyViolation violation;
-
-    ViolationResolvedEvent(PolicyViolation violation, Date resolveTime) {
-      super(resolveTime);
-      this.violation = violation;
-    }
-
-    @Override
-    void process(MttrStats mttrStats,
-                 DiscoveredStats discoveredStats,
-                 SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates)
-    {
-      PolicyViolationResolutionState resolutionState = resolutionStates.get(violation);
-      if (resolutionState == null) {
-        return;
-      }
-      resolutionState.setStageTypeById(violation.getStageTypeId(), false);
-      if (resolutionState.isClearedInAllStages()) {
-        resolutionStates.remove(resolutionState);
-        policyViolationResolutionStateDAO.delete(resolutionState);
-        mttrStats.addViolation(violation, resolutionState.getFirstOccurrenceTime(), time);
-      }
-    }
-  }
-
   private static Date localDateToTimestamp(LocalDate date) {
     if (date == null) {
       return null;
     }
     return date.toDateTimeAtStartOfDay().toDate();
-  }
-
-  /**
-   * Get the PolicyViolationResolutionState entries for the specified applicationId, as a map based on
-   * PolicyViolationComparator
-   */
-  private SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> getPolicyViolationResolutionStates(String applicationId) {
-    SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates = new TreeMap<>(
-        PolicyViolationComparator.COMPARATOR);
-    for (PolicyViolationResolutionState resolutionState : policyViolationResolutionStateDAO
-        .getByApplicationId(applicationId)) {
-      resolutionStates.put(resolutionState, resolutionState);
-    }
-    return resolutionStates;
   }
 
   private PolicyViolationAggregation saveViolationAggregation(String applicationId,

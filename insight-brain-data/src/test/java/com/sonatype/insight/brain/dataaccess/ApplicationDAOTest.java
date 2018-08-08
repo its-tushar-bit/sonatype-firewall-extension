@@ -26,7 +26,6 @@ import javax.imageio.ImageIO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -47,14 +46,12 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -945,21 +942,6 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertThat(policyViolationAggregationDAO.getById(aggregation.getId()), is(nullValue()));
-  }
-
-  @Test
-  public void testCascadeDeleteToPolicyViolationResolutionStates() {
-    PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO = new PolicyViolationResolutionStateDAO();
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1",
-        new Date());
-    Policy policy = tempEntity.newPolicy(application.getId(), "policy1", 5);
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    PolicyViolationResolutionState resolutionState = tempEntity.newPolicyViolationResolutionState(policyViolation,
-        BuildStageType.ID);
-
-    applicationDAO.delete(application);
-
-    assertThat(policyViolationResolutionStateDAO.getById(resolutionState.getId()), is(nullValue()));
   }
 
   @Test

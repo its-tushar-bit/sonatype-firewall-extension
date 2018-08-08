@@ -413,8 +413,8 @@ public class SuccessMetricsReportDataServiceTest
     assertMttrDTOs(results, expected);
   }
 
-  // simulate multiple runs of getMttrs at different points in time to ensure that the
-  // PolicyViolationResolutionState mechanism is working correctly
+  // simulate multiple runs of getMttrs at different points in time to ensure that tracking violations across multiple
+  // aggregation runs is working correctly
   @Test
   public void testGetChartData_Mttrs_GenerateAggregationsInMultipleBatches() {
     LocalDate today = new LocalDate();

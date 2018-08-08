@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
@@ -103,7 +102,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
@@ -211,8 +209,6 @@ public class TemporaryEntity
 
   private final PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
 
-  private final PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO = new PolicyViolationResolutionStateDAO();
-
   private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
 
   private final SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
@@ -263,8 +259,6 @@ public class TemporaryEntity
 
   private Collection<PolicyViolationAggregation> policyViolationAggregations;
 
-  private Collection<PolicyViolationResolutionState> policyViolationResolutionStates;
-
   private Collection<SuccessMetricsReport> successMetricsReports;
 
   private Collection<SuccessMetricsReportData> successMetricsReportDatas;
@@ -294,7 +288,6 @@ public class TemporaryEntity
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
-    policyViolationResolutionStates = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     systemConfigurationProperties = new ArrayList<>();
@@ -330,7 +323,6 @@ public class TemporaryEntity
     delete(repositoryManagers, repositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
-    delete(policyViolationResolutionStates, policyViolationResolutionStateDAO);
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
     delete(successMetricsReports, successMetricsReportDAO);
 
@@ -1599,20 +1591,6 @@ public class TemporaryEntity
     aggregation.setDiscoveredCount(threatCategory, MODERATE, violationCounts.get(1));
     aggregation.setDiscoveredCount(threatCategory, SEVERE, violationCounts.get(2));
     aggregation.setDiscoveredCount(threatCategory, CRITICAL, violationCounts.get(3));
-  }
-
-  public PolicyViolationResolutionState newPolicyViolationResolutionState(PolicyViolation policyViolation,
-                                                                          String stageTypeId)
-  {
-    PolicyViolationResolutionState resolutionState = new PolicyViolationResolutionState(policyViolation);
-
-    // at least one stage type must be set
-    resolutionState.setStageTypeById(stageTypeId);
-
-    policyViolationResolutionStateDAO.insert(resolutionState);
-    policyViolationResolutionStates.add(resolutionState);
-
-    return resolutionState;
   }
 
   public SuccessMetricsReport newSuccessMetricsReport(String username,

@@ -64,6 +64,10 @@
           <groupId>com.h2database</groupId>
           <artifactId>h2</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.h3xstream.retirejs</groupId>
+          <artifactId>retirejs-core</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

@@ -93,7 +93,6 @@ public class PolicyJsonMigrator
     PolicyV0 legacyPolicy = JsonUtils.asPojo(policyJson, PolicyV0.class);
     Policy policy = new Policy(legacyPolicy.id, legacyPolicy.name);
     policy.setOwnerId(legacyPolicy.ownerId);
-    policy.setEnabled(legacyPolicy.enabled);
     policy.setThreatLevel(legacyPolicy.threatLevel);
     policy.setConstraints(legacyPolicy.constraints);
     Map<String, Notification> notificationsByTarget = new HashMap<>();

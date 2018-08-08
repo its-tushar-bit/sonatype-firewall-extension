@@ -432,7 +432,6 @@ public class PolicyDAOTest
     Assert.assertEquals(expected.getId(), actual.getId());
     Assert.assertEquals(expected.getName(), actual.getName());
     Assert.assertEquals(expected.getOwnerId(), actual.getOwnerId());
-    Assert.assertEquals(expected.isEnabled(), actual.isEnabled());
     Assert.assertEquals(expected.getThreatLevel(), actual.getThreatLevel());
     assertThat(actual.getDroolsCode(), is(notNullValue()));
     assertThat(actual.getDroolsCode(), containsString("// Begin policy: " + expected.getName()));

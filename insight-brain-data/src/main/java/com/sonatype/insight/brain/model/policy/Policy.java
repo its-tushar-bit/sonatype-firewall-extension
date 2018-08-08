@@ -40,8 +40,6 @@ public class Policy
    */
   private String ownerId;
 
-  private boolean enabled = true;
-
   private int threatLevel = 5;
 
   /**
@@ -79,14 +77,6 @@ public class Policy
 
   public void setName(final String name) {
     this.name = name;
-  }
-
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(final boolean enabled) {
-    this.enabled = enabled;
   }
 
   public int getThreatLevel() {

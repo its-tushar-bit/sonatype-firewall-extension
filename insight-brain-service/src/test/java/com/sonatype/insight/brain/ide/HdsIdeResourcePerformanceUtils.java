@@ -87,7 +87,6 @@ public class HdsIdeResourcePerformanceUtils
 
   static Policy createSvPolicy() {
     Policy policy = new Policy();
-    policy.setEnabled(true);
     policy.setName("NoSV" + (counter++));
     Constraint constraint = new Constraint();
     constraint.setName("NoSV");

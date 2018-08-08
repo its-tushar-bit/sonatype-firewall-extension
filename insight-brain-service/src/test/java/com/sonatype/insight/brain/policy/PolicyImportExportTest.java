@@ -646,7 +646,6 @@ public class PolicyImportExportTest
     policy.setId("policyId");
     policy.setName("DummyPolicy");
     policy.setOwnerId(toOrg.getId());
-    policy.setEnabled(true);
     policy.setThreatLevel(5);
     List<Constraint> constraints = new ArrayList<>();
     Constraint constraint = new Constraint();

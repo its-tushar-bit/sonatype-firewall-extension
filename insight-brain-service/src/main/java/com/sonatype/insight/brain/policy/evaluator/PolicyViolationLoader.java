@@ -30,7 +30,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.GENERAL_UTILITY_THREADS;
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -102,7 +103,7 @@ public class PolicyViolationLoader
         appStageView.filteredViolations = new ArrayList<>();
       }
       return appViewsByAppId;
-    }, GENERAL_UTILITY_THREADS);
+    }, getThreadPool(THREAD_POOLS.GENERAL));
     Collection<PolicyViolation> violations = minDate != null
         ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly)
         : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly);

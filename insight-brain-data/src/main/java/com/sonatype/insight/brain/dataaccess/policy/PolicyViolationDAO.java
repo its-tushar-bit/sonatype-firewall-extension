@@ -14,7 +14,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.DAO_FORK_JOIN_POOL;
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -178,7 +179,7 @@ public class PolicyViolationDAO
         parameters[0] = applicationId;
         return getList(sQuery, parameters);
       }).flatMap(Collection::stream).collect(toList());
-    }, DAO_FORK_JOIN_POOL).join();
+    }, getThreadPool(THREAD_POOLS.DAO)).join();
   }
 
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,

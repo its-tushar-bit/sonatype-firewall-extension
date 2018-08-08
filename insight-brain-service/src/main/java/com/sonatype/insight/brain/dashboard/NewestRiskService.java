@@ -41,7 +41,8 @@ import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.GENERAL_UTILITY_THREADS;
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
+import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
@@ -143,7 +144,7 @@ public class NewestRiskService
             allUniqueAppPolicyViolations.addAll(diff.getAppeared());
           }
           return localDTOs;
-        }, GENERAL_UTILITY_THREADS)).collect(toList());
+        }, getThreadPool(THREAD_POOLS.GENERAL))).collect(toList());
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
 

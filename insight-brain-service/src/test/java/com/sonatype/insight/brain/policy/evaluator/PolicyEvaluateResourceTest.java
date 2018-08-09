@@ -22,7 +22,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -35,7 +34,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -145,7 +143,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraintSV);
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
     constraintLicense = policy1.getConstraints().get(0);
     constraintSV = policy1.getConstraints().get(1);
 
@@ -208,7 +206,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint1);
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -217,16 +215,11 @@ public class PolicyEvaluateResourceTest
     String groupId = "G";
     String artifactId = "A";
     String version = "V";
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash,
-        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
-    hashComponentIdentifier.setCreateTime(new Date());
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+    tempEntity.newClaimedComponent(hash, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
-    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     assertNotNull(policyEval);
@@ -272,7 +265,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint1);
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -344,7 +337,7 @@ public class PolicyEvaluateResourceTest
     policy1.getNotifications().add(new JiraNotification("projectKey1", 1, Stage.ID_BUILD));
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
 
     final Constraint constraint2 = new Constraint("C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND);
     final Condition condition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
@@ -357,7 +350,7 @@ public class PolicyEvaluateResourceTest
     policy2.getNotifications().add(new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE));
     policy2.getNotifications().add(new JiraNotification("projectKey2", 2, Stage.ID_RELEASE));
     policy2.setAction(Stage.ID_RELEASE, Action.ID_FAIL);
-    policyDAO.insert(policy2);
+    tempEntity.newPolicy(policy2);
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -477,7 +470,7 @@ public class PolicyEvaluateResourceTest
     policy.setThreatLevel(1);
     policy.addConstraint(constraint);
     policy.setOwnerId(app.getId());
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -587,7 +580,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint1);
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -631,7 +624,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint2);
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
     constraint1 = policy1.getConstraints().get(0);
     constraint2 = policy1.getConstraints().get(1);
 
@@ -698,7 +691,7 @@ public class PolicyEvaluateResourceTest
     policy.addConstraint(constraint);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy.setOwnerId(app.getId());
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
     constraint = policy.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -737,7 +730,7 @@ public class PolicyEvaluateResourceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
 
     final Constraint constraint2 = new Constraint("C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat"));
@@ -745,7 +738,7 @@ public class PolicyEvaluateResourceTest
     policy2.setThreatLevel(4);
     policy2.addConstraint(constraint2);
     policy2.setOwnerId(app.getId());
-    policyDAO.insert(policy2);
+    tempEntity.newPolicy(policy2);
 
     final Constraint constraint3 = new Constraint("C3", "PolicyEvaluateResourceTest constraint 3", LogicalOperator.AND);
     constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:org.*"));
@@ -753,7 +746,7 @@ public class PolicyEvaluateResourceTest
     policy3.setThreatLevel(3);
     policy3.addConstraint(constraint3);
     policy3.setOwnerId(app.getId());
-    policyDAO.insert(policy3);
+    tempEntity.newPolicy(policy3);
 
     final Constraint constraint4 = new Constraint("C4", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
     constraint4.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<", "5"));
@@ -761,7 +754,7 @@ public class PolicyEvaluateResourceTest
     policy4.setThreatLevel(0);
     policy4.addConstraint(constraint4);
     policy4.setOwnerId(app.getId());
-    policyDAO.insert(policy4);
+    tempEntity.newPolicy(policy4);
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -823,7 +816,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint1);
     policy1.getNotifications().add(new UserNotification("manager@test.corp", Stage.ID_BUILD));
     policy1.setOwnerId(app.getId());
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -894,7 +887,7 @@ public class PolicyEvaluateResourceTest
     policy.setThreatLevel(8);
     policy.addConstraint(constraint1);
     policy.setOwnerId(app.getId());
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -948,7 +941,7 @@ public class PolicyEvaluateResourceTest
     policy.setThreatLevel(8);
     policy.addConstraint(constraint1);
     policy.setOwnerId(app.getId());
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     // Evaluate policy for the Build stage
     String scanBuildId = "scanBuildId";
@@ -1103,7 +1096,7 @@ public class PolicyEvaluateResourceTest
     policy.addConstraint(constraint);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy.setOwnerId(app.getId());
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     String componentHash = "f2e35e4a21f07d25710f";
     PolicyWaiver policyWaiver = tempEntity.newWaiver(componentHash, policy.getId(), app.getId(), "Waiver comment here");

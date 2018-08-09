@@ -49,13 +49,13 @@ public class ExecutorThreadPools
   private static final ForkJoinPool DAO_FORK_JOIN_POOL;
 
   static {
-    int utilThreads = Integer.getInteger("insight.threads.utility", DEFAULT_UTILITY_THREADS);
+    int utilThreads = Math.max(SINGLE_THREAD_COUNT, Integer.getInteger("insight.threads.utility", DEFAULT_UTILITY_THREADS));
     GENERAL_UTILITY_THREADS = namedForkJoinPool(utilThreads, "insight-thread-utility-");
     log.info("insight.threads.utility pool-size: {}", utilThreads);
   }
 
   static {
-    int daoThreads = Integer.getInteger("insight.threads.dao", DEFAULT_DAO_THREADS);
+    int daoThreads = Math.max(SINGLE_THREAD_COUNT, Integer.getInteger("insight.threads.dao", DEFAULT_DAO_THREADS));
     DAO_FORK_JOIN_POOL = namedForkJoinPool(daoThreads, "insight-thread-dao-");
     log.info("insight.threads.dao pool-size: {}", daoThreads);
   }

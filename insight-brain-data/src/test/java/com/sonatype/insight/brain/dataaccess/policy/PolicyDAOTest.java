@@ -448,7 +448,6 @@ public class PolicyDAOTest
   private static void assertConstraint(Constraint expected, Constraint actual) {
     Assert.assertEquals(expected.getId(), actual.getId());
     Assert.assertEquals(expected.getName(), actual.getName());
-    Assert.assertEquals(expected.isEnabled(), actual.isEnabled());
     Assert.assertEquals(expected.getOperator(), actual.getOperator());
 
     List<Condition> expectedConditions = expected.getConditions();

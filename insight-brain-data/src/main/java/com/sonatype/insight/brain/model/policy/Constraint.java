@@ -17,8 +17,6 @@ public class Constraint
 
   private String name;
 
-  private boolean enabled = true;
-
   private LogicalOperator operator = LogicalOperator.AND;
 
   private List<Condition> conditions;
@@ -48,14 +46,6 @@ public class Constraint
 
   public void setName(final String name) {
     this.name = name;
-  }
-
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(final boolean enabled) {
-    this.enabled = enabled;
   }
 
   public LogicalOperator getOperator() {
@@ -108,6 +98,6 @@ public class Constraint
 
   @Override
   public String toString() {
-    return "Constraint [id=" + id + ", name=" + name + ", enabled=" + enabled + ", operator=" + operator + "]";
+    return "Constraint [id=" + id + ", name=" + name + ", operator=" + operator + "]";
   }
 }

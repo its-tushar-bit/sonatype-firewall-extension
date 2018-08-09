@@ -651,7 +651,6 @@ public class PolicyImportExportTest
     Constraint constraint = new Constraint();
     constraint.setId("constraintId");
     constraint.setName("DummyConstraint");
-    constraint.setEnabled(true);
     List<Condition> conditions = new ArrayList<>();
     Condition condition = new Condition("License Threat Group", "is", licenseThreatGroup.getId());
     conditions.add(condition);

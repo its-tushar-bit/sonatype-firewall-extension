@@ -8,7 +8,6 @@
       {
         "id": "dfaa4e0f4be94ee1bc9e450517d35938",
         "name": "CVSS >=7",
-        "enabled": true,
         "operator": "AND",
         "conditions": [
           {
@@ -40,7 +39,6 @@
       {
         "id": "d2b9eeed3a4a432c9f8e1e0d51a775d6",
         "name": "CVSS >=4 and <7",
-        "enabled": true,
         "operator": "AND",
         "conditions": [
           {
@@ -83,7 +81,6 @@
       {
         "id": "a9b684e81f684263801a4e9feaa35d37",
         "name": "Copyleft",
-        "enabled": true,
         "operator": "OR",
         "conditions": [
           {
@@ -105,7 +102,6 @@
       {
         "id": "d8c3bb18323548ef884c3d151a165bd1",
         "name": "Old",
-        "enabled": true,
         "operator": "OR",
         "conditions": [
           {
@@ -118,7 +114,6 @@
       {
         "id": "00fae789fff949768bf4ffcb264324b1",
         "name": "Unpopular",
-        "enabled": true,
         "operator": "OR",
         "conditions": [
           {
@@ -131,7 +126,6 @@
       {
         "id": "c4aa11e3ec5e4989b5d907b6f147ecc3",
         "name": "New",
-        "enabled": true,
         "operator": "OR",
         "conditions": [
           {

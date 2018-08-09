@@ -10,7 +10,6 @@
         {
           "id": "07a1317eb3ee40e48129c6eb8e5317ba",
           "name": "Test components",
-          "enabled": true,
           "operator": "OR",
           "conditions": [
             {
@@ -53,7 +52,6 @@
         {
           "id": "15397d9327fb4d71a1ff3fd7ac5a1627",
           "name": "Version is old",
-          "enabled": true,
           "operator": "OR",
           "conditions": [
             {
@@ -66,7 +64,6 @@
         {
           "id": "82341a9aa7ae4c8f9377222835efb6c2",
           "name": "Version is unpopular",
-          "enabled": true,
           "operator": "OR",
           "conditions": [
             {

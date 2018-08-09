@@ -9,7 +9,6 @@
         {
           "id": "5c983f7fd126453abcd679377adbd9b8",
           "name": "Old",
-          "enabled": true,
           "operator": "OR",
           "conditions": [
             {

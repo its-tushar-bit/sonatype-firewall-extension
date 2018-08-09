@@ -52,10 +52,6 @@ public class DroolsGenerator
         .append(")\n");
 
     for (final Constraint constraint : policy.getConstraints()) {
-      if (!constraint.isEnabled()) {
-        continue;
-      }
-
       droolsCode.append("// Begin constraint: ").append(constraint.getName()).append(" (Id=")
           .append(constraint.getId()).append(")\n");
 

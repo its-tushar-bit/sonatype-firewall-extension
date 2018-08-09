@@ -149,13 +149,9 @@ public class PolicyEvaluateResourceTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    // The report file is not available yet
-    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
-    assertResponseStatus(404, response);
-
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report");
-    response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -224,13 +220,10 @@ public class PolicyEvaluateResourceTest
     hashComponentIdentifier.setCreateTime(new Date());
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
-    // The report file is not available yet
-    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
-    assertResponseStatus(404, response);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
-    response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
@@ -597,13 +590,9 @@ public class PolicyEvaluateResourceTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    // The report file is not available yet
-    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
-    assertResponseStatus(404, response);
-
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
-    response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);

@@ -54,7 +54,7 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testJsCache_telemetryDisabled() throws IOException {
+  public void testJsCache_telemetryDisabled() {
     CustomerTelemetryProperties properties = new CustomerTelemetryProperties(true);
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(properties);
     pendoCache.getCustomerTelemetryProperties();
@@ -65,14 +65,14 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testJsCache_error() throws IOException {
+  public void testJsCache_error() {
     when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH)).thenThrow(new NotFoundException(""));
 
     assertNull(pendoCache.getJs());
   }
 
   @Test
-  public void testGetCustomerTelemetryProperties() throws IOException {
+  public void testGetCustomerTelemetryProperties() {
     CustomerTelemetryProperties properties = new CustomerTelemetryProperties(true);
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(properties);
 
@@ -80,7 +80,7 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testGetCustomerTelemetryProperties_error() throws IOException {
+  public void testGetCustomerTelemetryProperties_error() {
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
         .thenThrow(new BadGatewayException(""));
 

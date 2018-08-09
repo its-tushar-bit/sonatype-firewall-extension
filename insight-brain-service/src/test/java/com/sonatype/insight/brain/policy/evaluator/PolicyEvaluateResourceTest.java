@@ -65,7 +65,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -81,7 +80,10 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
@@ -154,14 +156,14 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(3, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(3, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    assertNotNull(policyEval);
+    assertEquals(3, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(3, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(9, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(9, policyAlerts.size());
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -227,14 +229,14 @@ public class PolicyEvaluateResourceTest
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(1, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(1, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    assertNotNull(policyEval);
+    assertEquals(1, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(1, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
     Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
@@ -309,9 +311,9 @@ public class PolicyEvaluateResourceTest
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndScanId(applicationId, scanId);
-    Assert.assertNotNull(policyEvaluation);
-    Assert.assertEquals(isReevaluation, policyEvaluation.isReevaluation());
-    Assert.assertEquals(isForObsoleteScan, policyEvaluation.isForObsoleteScan());
+    assertNotNull(policyEvaluation);
+    assertEquals(isReevaluation, policyEvaluation.isReevaluation());
+    assertEquals(isForObsoleteScan, policyEvaluation.isForObsoleteScan());
   }
 
   @Test
@@ -375,14 +377,14 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(7, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(0, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    assertNotNull(policyEval);
+    assertEquals(7, policyEval.getAffectedComponentCount());
+    assertEquals(7, policyEval.getCriticalComponentCount());
+    assertEquals(0, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(72, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(72, policyAlerts.size());
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -408,18 +410,18 @@ public class PolicyEvaluateResourceTest
         .parameter(applicationPublicId, scanId).get();
     assertResponseStatus(200, response);
     final JsonNode policyThreats = JsonUtils.parse(response.getBodyText()).get("aaData");
-    Assert.assertNotNull(policyThreats);
-    Assert.assertTrue(policyThreats.size() > 0);
-    Assert.assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
+    assertNotNull(policyThreats);
+    assertTrue(policyThreats.size() > 0);
+    assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
 
     // check components are associated with the application and stage
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()), hasSize(28));
 
     // notification message should also have been sent
     assertNotifications(messagesA, 1, 5000);
-    Assert.assertTrue(messagesA.get(0).getSubject().contains("Policy"));
+    assertTrue(messagesA.get(0).getSubject().contains("Policy"));
     assertNotifications(messagesB, 1, 5000);
-    Assert.assertTrue(messagesB.get(0).getSubject().contains("Policy"));
+    assertTrue(messagesB.get(0).getSubject().contains("Policy"));
 
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
@@ -438,10 +440,10 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
+    assertNotNull(policyEval);
     policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(72, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(72, policyAlerts.size());
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -487,15 +489,15 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(200, response);
 
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(0, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(0, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalPolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
+    assertNotNull(policyEval);
+    assertEquals(0, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(0, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
+    assertEquals(0, policyEval.getCriticalPolicyViolationCount());
+    assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     policy.setThreatLevel(2);
     policyDAO.update(policy);
@@ -505,15 +507,15 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(0, policyEval.getSevereComponentCount());
-    Assert.assertEquals(7, policyEval.getModerateComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalPolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
-    Assert.assertEquals(36, policyEval.getModeratePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
+    assertNotNull(policyEval);
+    assertEquals(7, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(0, policyEval.getSevereComponentCount());
+    assertEquals(7, policyEval.getModerateComponentCount());
+    assertEquals(0, policyEval.getCriticalPolicyViolationCount());
+    assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    assertEquals(36, policyEval.getModeratePolicyViolationCount());
+    assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     policy.setThreatLevel(4);
     policyDAO.update(policy);
@@ -523,15 +525,15 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(7, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalPolicyViolationCount());
-    Assert.assertEquals(36, policyEval.getSeverePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
+    assertNotNull(policyEval);
+    assertEquals(7, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(7, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
+    assertEquals(0, policyEval.getCriticalPolicyViolationCount());
+    assertEquals(36, policyEval.getSeverePolicyViolationCount());
+    assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     policy.setThreatLevel(8);
     policyDAO.update(policy);
@@ -541,15 +543,15 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(7, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(0, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
-    Assert.assertEquals(36, policyEval.getCriticalPolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
+    assertNotNull(policyEval);
+    assertEquals(7, policyEval.getAffectedComponentCount());
+    assertEquals(7, policyEval.getCriticalComponentCount());
+    assertEquals(0, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
+    assertEquals(36, policyEval.getCriticalPolicyViolationCount());
+    assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    assertEquals(0, policyEval.getGrandfatheredPolicyViolationCount());
 
     // Grandfather one violation
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
@@ -561,15 +563,15 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(7, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(0, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
-    Assert.assertEquals(35, policyEval.getCriticalPolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getSeverePolicyViolationCount());
-    Assert.assertEquals(0, policyEval.getModeratePolicyViolationCount());
-    Assert.assertEquals(1, policyEval.getGrandfatheredPolicyViolationCount());
+    assertNotNull(policyEval);
+    assertEquals(7, policyEval.getAffectedComponentCount());
+    assertEquals(7, policyEval.getCriticalComponentCount());
+    assertEquals(0, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
+    assertEquals(35, policyEval.getCriticalPolicyViolationCount());
+    assertEquals(0, policyEval.getSeverePolicyViolationCount());
+    assertEquals(0, policyEval.getModeratePolicyViolationCount());
+    assertEquals(1, policyEval.getGrandfatheredPolicyViolationCount());
   }
 
   @Test
@@ -595,14 +597,14 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(3, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(3, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    assertNotNull(policyEval);
+    assertEquals(3, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(3, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(3, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(3, policyAlerts.size());
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -646,14 +648,14 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(1, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(1, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    assertNotNull(policyEval);
+    assertEquals(1, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(1, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(2, policyAlerts.size());
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -673,14 +675,14 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(0, policyEval.getAffectedComponentCount());
-    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
-    Assert.assertEquals(0, policyEval.getSevereComponentCount());
-    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    assertNotNull(policyEval);
+    assertEquals(0, policyEval.getAffectedComponentCount());
+    assertEquals(0, policyEval.getCriticalComponentCount());
+    assertEquals(0, policyEval.getSevereComponentCount());
+    assertEquals(0, policyEval.getModerateComponentCount());
     policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(0, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(0, policyAlerts.size());
   }
 
   @Test
@@ -779,21 +781,21 @@ public class PolicyEvaluateResourceTest
     PolicyAlertEmailer emailer = getCLMServer().getInjector().getInstance(PolicyAlertEmailer.class);
 
     Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyFacts);
-    Assert.assertNotNull(model);
-    Assert.assertEquals(policyFacts, model.get("policyFacts"));
-    Assert.assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
-    Assert.assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId),
+    assertNotNull(model);
+    assertEquals(policyFacts, model.get("policyFacts"));
+    assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
+    assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId),
         model.get("detailedReportUrl"));
-    Assert.assertEquals(18, model.get("policyThreatRedCount"));
-    Assert.assertEquals(3, model.get("policyThreatOrangeCount"));
-    Assert.assertEquals(13, model.get("policyThreatYellowCount"));
-    Assert.assertEquals(18, model.get("policyThreatBlueCount"));
-    Assert.assertEquals("Build", model.get("policyThreatStage"));
-    Assert.assertEquals(applicationPublicId, model.get("policyThreatApp"));
-    Assert.assertEquals("Admin BuiltIn", model.get("applicationContactName"));
-    Assert.assertEquals("admin@localhost", model.get("applicationContactEmail"));
-    Assert.assertNotNull(model.get("policyThreatTime"));
-    Assert.assertEquals("APP ID", model.get("ownerIdLabel"));
+    assertEquals(18, model.get("policyThreatRedCount"));
+    assertEquals(3, model.get("policyThreatOrangeCount"));
+    assertEquals(13, model.get("policyThreatYellowCount"));
+    assertEquals(18, model.get("policyThreatBlueCount"));
+    assertEquals("Build", model.get("policyThreatStage"));
+    assertEquals(applicationPublicId, model.get("policyThreatApp"));
+    assertEquals("Admin BuiltIn", model.get("applicationContactName"));
+    assertEquals("admin@localhost", model.get("applicationContactEmail"));
+    assertNotNull(model.get("policyThreatTime"));
+    assertEquals("APP ID", model.get("ownerIdLabel"));
   }
 
   @Test
@@ -806,7 +808,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(400, response);
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
-    Assert.assertNull(eval);
+    assertNull(eval);
   }
 
   @Test
@@ -835,10 +837,10 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEvaluationResult);
+    assertNotNull(policyEvaluationResult);
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(36, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(36, policyAlerts.size());
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // Notification message should have been sent
@@ -853,8 +855,8 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEvaluationResult);
-    Assert.assertEquals(36, policyAlerts.size());
+    assertNotNull(policyEvaluationResult);
+    assertEquals(36, policyAlerts.size());
     assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation
@@ -870,7 +872,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(404, response);
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
-    Assert.assertNull(eval);
+    assertNull(eval);
   }
 
   private List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
@@ -1069,7 +1071,7 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId1, stage).post();
     assertResponseStatus(200, response);
     policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEvaluationResult);
+    assertNotNull(policyEvaluationResult);
     assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
   }
 

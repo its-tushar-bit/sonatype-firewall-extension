@@ -473,7 +473,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testPolicyThreatLevelCounts() throws Exception {
+  public void testEvaluate_PolicyThreatLevelCounts() throws Exception {
     final Constraint constraint = new Constraint("C1", "PolicyThreatCountResourceTest constraint 1",
         LogicalOperator.AND);
     final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
@@ -737,7 +737,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testNotificationEmailModel() throws Exception {
+  public void testEvaluate_NotificationEmailModel() throws Exception {
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
@@ -821,7 +821,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testReEvaluate_Notifications() throws Exception {
+  public void testEvaluate_ReEvaluateNotifications() throws Exception {
     String scanId = "testReEvaluation";
 
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
@@ -873,7 +873,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testEvaluate_NoPolicyEvalAuditEntryCreatedIfReportMissing() throws Exception {
+  public void testEvaluate_MissingReport() throws Exception {
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     setHdsResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
@@ -891,8 +891,8 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testEvaluate_FirstOccurrencePolicyViolations_OneStage() throws Exception {
-    String scanId = "testEvaluateFirstOccurrencePolicyViolations";
+  public void testEvaluate_OneStage() throws Exception {
+    String scanId = "scanId";
 
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat:tomcat-util:5.5.23");
@@ -949,7 +949,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testEvaluate_FirstOccurrencePolicyViolations_TwoStages() throws Exception {
+  public void testEvaluate_TwoStages() throws Exception {
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
     constraint1.addCondition(condition1);
@@ -1053,7 +1053,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testReEvaluate_ObsoleteScan() throws Exception {
+  public void testEvaluate_ReEvaluateObsoleteScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
     // Evaluate policy for scanId1
@@ -1093,7 +1093,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testInvalidStage() throws Exception {
+  public void testEvaluate_InvalidStage() throws Exception {
     HttpResponse response = evalRequest(applicationPublicId, "scanid", new Stage("foobar")).post();
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
     assertEquals("Invalid stage id=foobar", response.getBodyText());

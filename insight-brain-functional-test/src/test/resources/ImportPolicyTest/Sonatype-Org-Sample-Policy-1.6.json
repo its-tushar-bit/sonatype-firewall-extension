@@ -3,7 +3,6 @@
     "id": "fc0423e9f3784dc29afb9befa1511ef7",
     "name": "Security-High",
     "ownerId": "6c0a425633cd4bb0be0598f4010a1345",
-    "enabled": true,
     "threatLevel": 9,
     "constraints": [
       {
@@ -36,7 +35,6 @@
     "id": "beaa151de80f4a15aeb86235216c85f6",
     "name": "Security-Medium",
     "ownerId": "6c0a425633cd4bb0be0598f4010a1345",
-    "enabled": true,
     "threatLevel": 7,
     "constraints": [
       {
@@ -80,7 +78,6 @@
     "id": "ea4f4a60141a4fb5b845453f4d4b8e1f",
     "name": "License-Copyleft",
     "ownerId": "6c0a425633cd4bb0be0598f4010a1345",
-    "enabled": true,
     "threatLevel": 8,
     "constraints": [
       {
@@ -103,7 +100,6 @@
     "id": "1145d28ffd5343b7a00a5eb56fb873dd",
     "name": "Architecture-Quality",
     "ownerId": "6c0a425633cd4bb0be0598f4010a1345",
-    "enabled": true,
     "threatLevel": 1,
     "constraints": [
       {

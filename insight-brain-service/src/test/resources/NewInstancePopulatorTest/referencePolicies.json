@@ -4,7 +4,6 @@
       "id": "policy1",
       "name": "policy1",
       "ownerId": "ROOT_ORGANIZATION_ID",
-      "enabled": true,
       "threatLevel": 1,
       "policyViolationGrandfatheringAllowed": true,
       "constraints": [
@@ -48,7 +47,6 @@
       "id": "policy2",
       "name": "policy2",
       "ownerId": "ROOT_ORGANIZATION_ID",
-      "enabled": true,
       "threatLevel": 1,
       "policyViolationGrandfatheringAllowed": true,
       "constraints": [

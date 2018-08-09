@@ -4,7 +4,6 @@
       "id": "c918615a10e34c1b9207937cd16811b9",
       "name": "Test",
       "ownerId": "3db9c97ec296409292e02b90e07fb1b7",
-      "enabled": true,
       "threatLevel": 5,
       "constraints": [
         {

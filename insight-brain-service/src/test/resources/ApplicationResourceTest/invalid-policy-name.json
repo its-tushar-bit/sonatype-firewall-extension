@@ -6,7 +6,6 @@
   "data" : [ {
     "id" : "1c25d5182bd24d46b6e83db428171554",
     "name" : "Legacy Policy  with invalid name !?",
-    "enabled" : true,
     "threatLevel" : 4,
     "constraints" : [ {
       "id" : "3004fda915214e99a9cd004a046574e9",

@@ -272,8 +272,8 @@ public class ApplicationResource
       for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
         // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
         // they are also time-consuming when we deal with thousands of applications/evaluations
-        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(
-            policyEvaluation, false);
+        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
+            .createPolicyEvaluationResult(policyEvaluation);
 
         policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
       }

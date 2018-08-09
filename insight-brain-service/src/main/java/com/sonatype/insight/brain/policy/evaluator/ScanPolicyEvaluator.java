@@ -560,10 +560,10 @@ public class ScanPolicyEvaluator
     policyEvaluationResult.setGrandfatheredPolicyViolationCount(grandfatheredPolicyViolationCount);
   }
 
-  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
+  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation) {
     List<PolicyViolation> policyViolations = policyViolationDAO
         .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
-    return createPolicyEvaluationResult(policyEvaluation, policyViolations, createAlerts);
+    return createPolicyEvaluationResult(policyEvaluation, policyViolations, false /* createAlerts */);
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation,

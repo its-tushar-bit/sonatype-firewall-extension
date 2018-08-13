@@ -37,8 +37,8 @@ extends BaseSpec {
     app = temporaryEntity.newApplication(temporaryEntity.newOrganization().getId())
 
     // create policy
-    createNoLGPL("LGPL-3.0", "lgpl") //  expected to affect 1 artifact
-    createNoLGPL("UNKNOWN", 'NonStandard') // expected to affect 1 artifact
+    createLicenseNotAllowedPolicy("LGPL-3.0", "lgpl") //  expected to affect 1 artifact
+    createLicenseNotAllowedPolicy("UNKNOWN", 'NonStandard') // expected to affect 1 artifact
     Policy policy = createNoSVPolicy() // expected to affect 2 artifacts
 
     // add waivers
@@ -100,7 +100,7 @@ extends BaseSpec {
    * Creates a policy against presence of a license
    */
 
-  private static Policy createNoLGPL(String license, String name) {
+  private static Policy createLicenseNotAllowedPolicy(String license, String name) {
     Policy policy = new Policy(name: "No$name", ownerId: app.id, threatLevel: 7,
     constraints: [new Constraint(name: "No$name", operator: LogicalOperator.AND,
       conditions: [new Condition(LicenseConditionType.ID, 'is', license)])])

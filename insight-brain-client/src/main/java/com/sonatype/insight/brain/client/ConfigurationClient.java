@@ -127,11 +127,6 @@ public class ConfigurationClient
     return parseResult(result, ProprietaryConfig.class);
   }
 
-  public void validateAuthentication() throws IOException {
-    final Result result = postRequest(path("rest/user/session"), null);
-    verifyStatusCode(result);
-  }
-
   /**
    * @since 1.35
    */

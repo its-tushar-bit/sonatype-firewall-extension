@@ -412,56 +412,6 @@ public class ConfigurationClientTest
     assertEquals(regexes, config.getRegexes());
   }
 
-  @Test
-  public void testValidateAuthentication_ValidLogin() throws Exception {
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    ConfigurationClient client = new ConfigurationClient(config);
-    client.validateAuthentication();
-  }
-
-  @Test
-  public void testValidateAuthentication_InvalidPassword() throws Exception {
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(SimpleAuthentication.parse("admin:invalidpassword"));
-    ConfigurationClient client = new ConfigurationClient(config);
-    try {
-      client.validateAuthentication();
-      fail("Expected an HttpResponseException for Unauthorized");
-    }
-    catch (HttpResponseException e) {
-      MatcherAssert.assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
-    }
-  }
-
-  @Test
-  public void testValidateAuthentication_InvalidUser() throws Exception {
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(SimpleAuthentication.parse("invaliduser:invalidpassword"));
-    ConfigurationClient client = new ConfigurationClient(config);
-    try {
-      client.validateAuthentication();
-      fail("Expected an HttpResponseException for Unauthorized");
-    }
-    catch (HttpResponseException e) {
-      MatcherAssert.assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
-    }
-  }
-
-  @Test
-  public void testValidateAuthentication_NoAuthProvided() throws Exception {
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(null);
-    ConfigurationClient client = new ConfigurationClient(config);
-    try {
-      client.validateAuthentication();
-      fail("Expected an HttpResponseException for Unauthorized");
-    }
-    catch (HttpResponseException e) {
-      MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
-    }
-  }
-
   private Configuration createConfigForPerm(String applicationId, Permission permission) {
     User user = tempEntity.newUser("username");
     Role role = tempEntity.newRole(false /* global */, permission);

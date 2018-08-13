@@ -124,10 +124,6 @@ public class RestClientFactory
       new ReportClient(config, appId, scanId).prepareExpandedCoverageReport();
     }
 
-    public void validateAuthentication() throws IOException {
-      new ConfigurationClient(config).validateAuthentication();
-    }
-
     public void saveResults(String appId, File resultFile, ScanReceipt receipt) throws IOException {
       new ScanClient(config, appId).saveResultData(resultFile, receipt);
     }

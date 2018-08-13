@@ -105,46 +105,30 @@ public class ReportServiceTest
 
   @Test
   public void testFetchReport_WithWaitForReport_DoesNotExist() throws Exception {
-    ReportDownloader reportDownloader = mock(ReportDownloader.class);
-    when(reportDownloader.downloadReport(eq(scanId), (File) any(), anyInt(), anyInt())).then(new Answer<Boolean>()
-    {
-      @Override
-      public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        File reportFile = (File) invocation.getArguments()[1];
-        FileUtils.copyURLToFile(getClass().getResource("/ReportServiceTest/report.zip"), reportFile);
-        return true;
-      }
-    });
+    MockReportDownloader mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report.zip");
 
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
-        applicationDAO);
+    ReportService reportService = new ReportService(insightWork, mockReportDownloader.getMock(), policyEvaluationDAO,
+        insightConfig, applicationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
     assertThat(report.getName(), is("report.zip"));
-    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(900), eq(5));
+    verify(mockReportDownloader.getMock()).downloadReport(eq(scanId), any(File.class), eq(900), eq(5));
   }
 
   @Test
   public void testFetchReport_WithoutWaitingForReport_DoesNotExist() throws Exception {
-    ReportDownloader reportDownloader = mock(ReportDownloader.class);
-    when(reportDownloader.downloadReport(eq(scanId), (File) any(), anyInt(), anyInt())).then(new Answer<Boolean>()
-    {
-      @Override
-      public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        File reportFile = (File) invocation.getArguments()[1];
-        FileUtils.copyURLToFile(getClass().getResource("/ReportServiceTest/report.zip"), reportFile);
-        return true;
-      }
-    });
+    MockReportDownloader mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report.zip");
 
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
-        applicationDAO);
+    ReportService reportService = new ReportService(insightWork, mockReportDownloader.getMock(), policyEvaluationDAO,
+        insightConfig, applicationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, false /* waitForReport */);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
     assertThat(report.getName(), is("report.zip"));
-    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(0), eq(5));
+    verify(mockReportDownloader.getMock()).downloadReport(eq(scanId), any(File.class), eq(0), eq(5));
   }
 
   @Test

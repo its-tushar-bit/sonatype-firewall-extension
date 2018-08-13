@@ -9,7 +9,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -29,21 +28,8 @@ public class PolicyEvaluateResourceAuthzTest
   }
 
   @Test
-  public void testEvaluate_Authorized() throws Exception {
-    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-
-    String scanId = "testEvaluate";
-    // Simulate that the report is available
-    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
-
-    // Evaluate the policy
-    Stage stage = new Stage(BuildStageType.ID);
-    testAuthzPost(evalRequest(scanId, stage));
-  }
-
-  @Test
-  public void testEvaluate_UnauthorizedAnonymousNotAllowed() throws Exception {
-    String scanId = "testEvaluate_UnauthorizedAnonymousNotAllowed";
+  public void testEvaluate_Unauthenticated_AnonymousNotAllowed() throws Exception {
+    String scanId = "scanId";
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
@@ -53,14 +39,14 @@ public class PolicyEvaluateResourceAuthzTest
 
   @Test
   @ManualServerInit
-  public void testEvaluate_UnauthorizedAnonymousAllowed_AnonymousClientAccessAllowed() throws Exception {
+  public void testEvaluate_Unauthenticated_AnonymousAllowed() throws Exception {
     initServer(new Configurator() {
       @Override
       public void configure(final InsightConfig config) {
         config.setAnonymousClientAccessAllowed(true);
       }
     });
-    String scanId = "testEvaluate_UnauthorizedAnonymousAllowed";
+    String scanId = "scanId";
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
@@ -68,15 +54,5 @@ public class PolicyEvaluateResourceAuthzTest
     Stage stage = new Stage(BuildStageType.ID);
     HttpResponse response = evalRequest(scanId, stage).anon().post();
     assertResponseStatus(200, response);
-  }
-
-  @Test
-  public void testEvaluate_Unauthorized() throws Exception {
-    String scanId = "testEvaluate_UnauthorizedAnonymousAllowed";
-
-    // Evaluate the policy
-    Stage stage = new Stage(BuildStageType.ID);
-    HttpResponse response = evalRequest(scanId, stage).auth("unknownUser", "unknownPassword").post();
-    assertResponseStatus(401, response);
   }
 }

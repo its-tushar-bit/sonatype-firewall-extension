@@ -125,7 +125,7 @@ public class ScanPolicyEvaluatorTest
 
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.evaluation, is(notNullValue()));
     assertThat(results.evaluation.getApplicationId(), is(application.getId()));
@@ -140,7 +140,7 @@ public class ScanPolicyEvaluatorTest
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
     newSecurityPolicy();
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.allViolations, hasSize(36));
     assertThat(results.allViolations.stream().filter(PolicyViolation::isFixed).collect(toList()), hasSize(0));
@@ -155,7 +155,7 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newSecurityPolicy();
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.activeViolations, hasSize(33));
     for (PolicyViolation violation : results.activeViolations) {
@@ -208,7 +208,7 @@ public class ScanPolicyEvaluatorTest
         componentPolicyEvaluator, applicationEvaluationEventService, mockTelemetrySender,
         policyViolationPersistenceLocks);
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     if (expectGrandfatheredViolations) {
       assertThat(results.activeViolations, hasSize(0));
@@ -258,7 +258,7 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = "scanId1";
     Stage stage1 = new Stage(Stage.ID_BUILD);
     mockReport(scanId1, "/ScanPolicyEvaluatorTest/report.zip");
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage1);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(results.activeViolations, hasSize(0));
     List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
     assertThat(inactiveViolations, hasSize(36));
@@ -274,14 +274,14 @@ public class ScanPolicyEvaluatorTest
     // Evaluate again. No policy violations should be grandfathered.
     String scanId2 = "scanId2";
     mockReport(scanId2, "/ScanPolicyEvaluatorTest/report.zip");
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId2, stage1);
+    results = scanPolicyEvaluator.evaluate(application, scanId2, stage1);
     assertThat(results.activeViolations, hasSize(36));
 
     // Evaluate for a different stage. No policy violations should be grandfathered.
     String scanId3 = "scanId3";
     Stage stage2 = new Stage(Stage.ID_RELEASE);
     mockReport(scanId3, "/ScanPolicyEvaluatorTest/report.zip");
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId3, stage2);
+    results = scanPolicyEvaluator.evaluate(application, scanId3, stage2);
     assertThat(results.activeViolations, hasSize(36));
   }
 
@@ -294,12 +294,12 @@ public class ScanPolicyEvaluatorTest
 
     // 1st evaluation. The report contains one component that triggers the policy, so there is one notifiable violation.
     mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_Results_NotifiableViolations/before");
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(results.activeViolations, hasSize(1));
     assertThat(results.notifiableViolations, hasSize(1));
 
     // 2nd evaluation. Nothing changed, so there are no new violations, so no notifiable violations.
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(results.activeViolations, hasSize(1));
     assertThat(results.notifiableViolations, is(nullValue()));
 
@@ -307,7 +307,7 @@ public class ScanPolicyEvaluatorTest
     // violation.
     scanId = "newScanId";
     mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_Results_NotifiableViolations/after");
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(results.activeViolations, hasSize(2));
     assertThat(results.notifiableViolations, hasSize(1));
   }
@@ -325,7 +325,7 @@ public class ScanPolicyEvaluatorTest
 
     asyncEventBus.register(handler);
 
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
     ApplicationEvaluationEvent event = handler.getEvent();
@@ -349,7 +349,7 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = "scanId1";
     File scanFile1 = createScanFile(application, scanId1);
     mockReport(scanId1, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage);
     assertThat(scanFile1.exists(), is(true));
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -358,7 +358,7 @@ public class ScanPolicyEvaluatorTest
     String scanId2 = "scanId2";
     File scanFile2 = createScanFile(application, scanId2);
     mockReport(scanId2, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId2, stage);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage);
     assertThat(scanFile1.exists(), is(false));
     assertThat(scanFile2.exists(), is(true));
   }
@@ -370,13 +370,13 @@ public class ScanPolicyEvaluatorTest
     String scanId = "scanId";
     File scanFile = createScanFile(application, scanId);
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(scanFile.exists(), is(true));
 
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
 
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(scanFile.exists(), is(true));
   }
 
@@ -387,7 +387,7 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = "scanId1";
     File scanFile1 = createScanFile(application, scanId1);
     mockReport(scanId1, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage1);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(scanFile1.exists(), is(true));
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -397,7 +397,7 @@ public class ScanPolicyEvaluatorTest
     String scanId2 = "scanId2";
     File scanFile2 = createScanFile(application, scanId2);
     mockReport(scanId2, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId2, stage2);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage2);
     assertThat(scanFile1.exists(), is(true));
     assertThat(scanFile2.exists(), is(true));
   }
@@ -409,7 +409,7 @@ public class ScanPolicyEvaluatorTest
     String scanId1 = "scanId1";
     File scanFile1 = createScanFile(application, scanId1);
     mockReport(scanId1, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage);
 
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
@@ -417,12 +417,12 @@ public class ScanPolicyEvaluatorTest
     String scanId2 = "scanId2";
     createScanFile(application, scanId2);
     mockReport(scanId2, "/ScanPolicyEvaluatorTest/report.zip");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId2, stage);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage);
 
     // The first scan file was deleted by the second policy evaluation.
     // A re-evaluation of the first scan doesn't need the scan so it should succeed.
     assertThat(scanFile1.exists(), is(false));
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage);
   }
 
   @Test
@@ -432,13 +432,13 @@ public class ScanPolicyEvaluatorTest
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
     Policy policy = newSecurityPolicy();
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.allViolations, hasSize(36));
 
     new PolicyDAO().delete(policy);
 
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.allViolations, hasSize(0));
     List<PolicyViolation> allViolations = new PolicyViolationDAO().getByApplicationId(application.getId());
@@ -457,14 +457,14 @@ public class ScanPolicyEvaluatorTest
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
     Policy policy = newSecurityPolicy();
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     Date openTime = results.evaluation.getTime();
 
     assertThat(results.activeViolations, hasSize(36));
 
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
 
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.activeViolations, hasSize(33));
     List<PolicyViolation> waivedViolations = new PolicyViolationDAO()
@@ -482,7 +482,7 @@ public class ScanPolicyEvaluatorTest
 
     new PolicyWaiverDAO().delete(waiver);
 
-    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.activeViolations, hasSize(36));
     List<PolicyViolation> unfixedViolations = new PolicyViolationDAO()
@@ -515,7 +515,7 @@ public class ScanPolicyEvaluatorTest
         componentPolicyEvaluator, applicationEvaluationEventService, mockTelemetrySender,
         policyViolationPersistenceLocks);
 
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
@@ -736,7 +736,7 @@ public class ScanPolicyEvaluatorTest
     // Evaluate the policy.
     String scanId = "scanId";
     mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/report");
-    scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     // There should be only one policy violation (the existing one).
     List<PolicyViolation> policyViolationsAfter = new PolicyViolationDAO().getByApplicationId(application.getId());
@@ -759,7 +759,7 @@ public class ScanPolicyEvaluatorTest
     String scanIdStage1 = "scanIdStage1";
     Stage stage1 = new Stage(Stage.ID_BUILD);
     mockReport(scanIdStage1, "/ScanPolicyEvaluatorTest/report.zip");
-    ScanPolicyEvaluatorResults resultsStage1 = scanPolicyEvaluator.evaluate(application.getPublicId(), scanIdStage1,
+    ScanPolicyEvaluatorResults resultsStage1 = scanPolicyEvaluator.evaluate(application, scanIdStage1,
         stage1);
     Date evaluationTimeStage1 = resultsStage1.evaluation.getTime();
     assertThat(resultsStage1.activeViolations, hasSize(36));
@@ -767,7 +767,7 @@ public class ScanPolicyEvaluatorTest
     String scanIdStage2 = "scanIdStage2";
     Stage stage2 = new Stage(Stage.ID_RELEASE);
     mockReport(scanIdStage2, "/ScanPolicyEvaluatorTest/report.zip");
-    ScanPolicyEvaluatorResults resultsStage2 = scanPolicyEvaluator.evaluate(application.getPublicId(), scanIdStage2,
+    ScanPolicyEvaluatorResults resultsStage2 = scanPolicyEvaluator.evaluate(application, scanIdStage2,
         stage2);
     Date evaluationTimeStage2 = resultsStage2.evaluation.getTime();
     assertThat(resultsStage1.activeViolations, hasSize(36));
@@ -782,8 +782,7 @@ public class ScanPolicyEvaluatorTest
     // Evaluate again for the same stage. The violation should remain grandfathered.
     String scanIdStage1New = "scanIdStage1New";
     mockReport(scanIdStage1New, "/ScanPolicyEvaluatorTest/report.zip");
-    ScanPolicyEvaluatorResults resultsStage1New = scanPolicyEvaluator.evaluate(application.getPublicId(),
-        scanIdStage1New, stage1);
+    ScanPolicyEvaluatorResults resultsStage1New = scanPolicyEvaluator.evaluate(application, scanIdStage1New, stage1);
     assertThat(resultsStage1New.activeViolations, hasSize(35));
     List<PolicyViolation> grandfatheredViolations1 = getInactiveViolations(resultsStage1New);
     assertThat(grandfatheredViolations1, hasSize(1));
@@ -796,8 +795,7 @@ public class ScanPolicyEvaluatorTest
     // The violation should be grandfathered (because grandfathering works across stages).
     String scanIdStage2New = "scanIdStage2New";
     mockReport(scanIdStage2New, "/ScanPolicyEvaluatorTest/report.zip");
-    ScanPolicyEvaluatorResults resultsStage2New = scanPolicyEvaluator.evaluate(application.getPublicId(),
-        scanIdStage2New, stage2);
+    ScanPolicyEvaluatorResults resultsStage2New = scanPolicyEvaluator.evaluate(application, scanIdStage2New, stage2);
     assertThat(resultsStage2New.activeViolations, hasSize(35));
     List<PolicyViolation> grandfatheredViolations2 = getInactiveViolations(resultsStage2New);
     assertThat(grandfatheredViolations2, hasSize(1));
@@ -815,8 +813,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
     String scanIdStage1New1 = "scanIdStage1New1";
     mockReport(scanIdStage1New1, "/ScanPolicyEvaluatorTest/report.zip");
-    ScanPolicyEvaluatorResults resultsStage1New1 = scanPolicyEvaluator.evaluate(application.getPublicId(),
-        scanIdStage1New1, stage1);
+    ScanPolicyEvaluatorResults resultsStage1New1 = scanPolicyEvaluator.evaluate(application, scanIdStage1New1, stage1);
     assertThat(resultsStage1New1.activeViolations, hasSize(35));
     List<PolicyViolation> grandfatheredViolations3 = getInactiveViolations(resultsStage1New1);
     assertThat(grandfatheredViolations3, hasSize(1));

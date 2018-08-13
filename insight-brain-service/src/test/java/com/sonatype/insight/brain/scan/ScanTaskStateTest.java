@@ -28,7 +28,6 @@ import org.mockito.stubbing.Answer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -103,7 +102,7 @@ public class ScanTaskStateTest
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(uploader.upload((File) any(), any(Application.class))).thenReturn(scanReciept);
 
-    when(scanPolicyEvaluator.evaluate(anyString(), (String) any(), (Stage) any())).then(captureState);
+    when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any())).then(captureState);
 
     task.run();
 

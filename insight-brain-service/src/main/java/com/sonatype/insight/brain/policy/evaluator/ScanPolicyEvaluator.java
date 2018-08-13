@@ -117,19 +117,19 @@ public class ScanPolicyEvaluator
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
 
-  public ScanPolicyEvaluatorResults evaluate(final String applicationPublicId, final String scanId, final Stage stage)
+  public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
       throws IOException
   {
-    return evaluate(applicationPublicId, scanId, stage, false /* forMonitoring */);
+    return evaluate(application, scanId, stage, false /* forMonitoring */);
   }
 
-  public ScanPolicyEvaluatorResults evaluateForMonitoring(String applicationPublicId, String scanId, Stage stage)
+  public ScanPolicyEvaluatorResults evaluateForMonitoring(Application application, String scanId, Stage stage)
       throws IOException
   {
-    return evaluate(applicationPublicId, scanId, stage, true /* forMonitoring */);
+    return evaluate(application, scanId, stage, true /* forMonitoring */);
   }
 
-  private ScanPolicyEvaluatorResults evaluate(final String applicationPublicId,
+  private ScanPolicyEvaluatorResults evaluate(final Application application,
                                               final String scanId,
                                               final Stage stage,
                                               boolean forMonitoring)
@@ -139,7 +139,6 @@ public class ScanPolicyEvaluator
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
     }
 
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
     final File reportFile = reportService.fetchReport(work, appId, scanId, true);

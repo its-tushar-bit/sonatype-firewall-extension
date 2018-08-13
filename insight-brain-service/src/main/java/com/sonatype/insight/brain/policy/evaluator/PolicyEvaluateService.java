@@ -49,7 +49,7 @@ public class PolicyEvaluateService
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
 

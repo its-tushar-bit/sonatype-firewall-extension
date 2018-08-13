@@ -284,7 +284,7 @@ public class ReportResource
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
-    scanPolicyEvaluator.evaluate(applicationPublicId, scanId, new Stage(policyEvaluation.getStageTypeId()));
+    scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()));
 
     return Response.ok().build();
   }

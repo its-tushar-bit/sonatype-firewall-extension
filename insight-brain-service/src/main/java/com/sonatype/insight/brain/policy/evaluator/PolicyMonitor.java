@@ -169,7 +169,7 @@ public class PolicyMonitor
 
     // Evaluate policies and send notifications
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(), newScanId, stage);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(app, newScanId, stage);
     policyAlertNotifier.sendNotifications(app, results.evaluation, results.notifiableViolations);
 
     log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()

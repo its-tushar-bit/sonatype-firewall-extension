@@ -206,7 +206,7 @@ class ScanTask
       // get report/perform evaluation
       state = State.EVALUATING_POLICY;
       // The ScanPolicyEvaluator will fetch the report if it's not there
-      ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(appPublicId, scanReceipt.getScanId(), stage);
+      ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
         policyAlertNotifier.sendNotifications(app, results.evaluation, results.notifiableViolations);
       }

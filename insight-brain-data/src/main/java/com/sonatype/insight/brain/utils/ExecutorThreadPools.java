@@ -10,6 +10,9 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Executor;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +68,9 @@ public class ExecutorThreadPools
     log.info("insight.threads.disabled: {}", THREADING_DISABLED);
   }
 
+  private static LoadingCache<Thread, ForkJoinPool> SINGLE_THREADED_POOL_CACHE = CacheBuilder.newBuilder().weakKeys()
+      .build(CacheLoader.from(key -> namedForkJoinPool(SINGLE_THREAD_COUNT, SINGLE_THREAD_PREFIX)));
+
   private static ForkJoinPool namedForkJoinPool(int threadCount, String namePrefix) {
     final ForkJoinWorkerThreadFactory factory = (pool) -> {
       final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
@@ -77,7 +83,7 @@ public class ExecutorThreadPools
 
   public static Executor getThreadPool(THREAD_POOLS pool) {
     if (THREADING_DISABLED) {
-      return namedForkJoinPool(SINGLE_THREAD_COUNT, SINGLE_THREAD_PREFIX);
+      return SINGLE_THREADED_POOL_CACHE.getUnchecked(Thread.currentThread());
     }
 
     switch (pool) {
@@ -86,7 +92,7 @@ public class ExecutorThreadPools
       case GENERAL:
         return GENERAL_UTILITY_THREADS;
       default:
-        return namedForkJoinPool(SINGLE_THREAD_COUNT, SINGLE_THREAD_PREFIX);
+        return SINGLE_THREADED_POOL_CACHE.getUnchecked(Thread.currentThread());
     }
   }
 }

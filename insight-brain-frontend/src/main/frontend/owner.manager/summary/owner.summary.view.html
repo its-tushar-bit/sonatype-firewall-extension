@@ -44,7 +44,7 @@
               </a>
               <div ng-if="vm.isApp" class="divider"></div>
               <a ng-if="vm.isApp"
-                 id="revoke-grandfathering-link"
+                 id="revoke-policy-violation-grandfathering-link"
                  ng-click="vm.revokeGrandfathering()"
                  class="iq-btn iq-btn--dropdown">
                 <i class="fa fa-history"/>Revoke All Grandfathered
@@ -193,7 +193,9 @@
               Policy Violation Grandfathering
             </h4>
             <ul>
-              <li class="simple clickable" same-owner-edit-sref="violation-grandfathering-policy">
+              <li class="simple clickable"
+                  same-owner-edit-sref="violation-grandfathering-policy"
+                  id="policy-violation-grandfathering">
                 <div class="title single-row-text">
                   {{vm.grandfatheringStatusMessage}}
                 </div>

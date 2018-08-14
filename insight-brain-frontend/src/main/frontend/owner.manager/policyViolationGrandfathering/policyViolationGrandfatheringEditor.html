@@ -37,11 +37,13 @@
       </iq-radio>
       <iq-radio model="vm.currentConfiguration.enabled"
                 value="true"
+                id="enable-policy-violation-grandfathering"
                 is-disabled="!vm.currentConfiguration.allowChange">
         Enable
       </iq-radio>
       <iq-radio model="vm.currentConfiguration.enabled"
                 value="false"
+                id="disable-policy-violation-grandfathering"
                 is-disabled="!vm.currentConfiguration.allowChange">
         Disable
       </iq-radio>
@@ -50,6 +52,7 @@
       <label class="iq-label" ng-if="vm.isRootOrg">Allow Override by Child Organizations and Applications</label>
       <label class="iq-label" ng-if="!vm.isRootOrg">Allow Override by Child Applications</label>
       <iq-checkbox label="Allow override"
+                   id="policy-violation-grandfathering-override"
                    on-click="vm.currentConfiguration.allowOverride = !vm.currentConfiguration.allowOverride"
                    is-checked="vm.currentConfiguration.allowOverride"
                    is-disabled="!vm.currentConfiguration.allowChange">
@@ -58,6 +61,7 @@
     <footer class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
       <button type="submit"
               class="btn btn-primary"
+              id="update-policy-grandfathering-button"
               submit-validation
               submit-dirty="vm.isDirty()"
               submit-type="update"

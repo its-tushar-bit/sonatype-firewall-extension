@@ -20,13 +20,24 @@
       <div ng-if="vm.error" class="section with-icon">
         <i class="fa fa-warning"></i>{{ vm.error }}
       </div>
-      <button ng-if="!vm.error" class="iq-btn iq-btn--primary" type="submit">
+      <button ng-if="!vm.error"
+              class="iq-btn iq-btn--primary"
+              id="revoke-policy-violation-grandfathering-button"
+              type="submit">
         Revoke
       </button>
-      <button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit">
+      <button ng-if="vm.error"
+              class="iq-btn iq-btn--error"
+              id="revoke-policy-violation-grandfathering-retry-button"
+              type="submit">
         <i class="fa fa-refresh"></i>Retry
       </button>
-      <button class="iq-btn iq-btn--cancel" type="button" ng-click="$dismiss()">Cancel</button>
+      <button class="iq-btn iq-btn--cancel"
+              id="revoke-policy-violation-grandfathering-cancel-button"
+              type="button"
+              ng-click="$dismiss()">
+        Cancel
+      </button>
     </div>
   </form>
 </div>

@@ -46,7 +46,7 @@ public class ActionDropDown
   }
 
   public static SelenideElement revokeGrandfathered() {
-    return $("#revoke-grandfathering-link");
+    return $("#revoke-policy-violation-grandfathering-link");
   }
 
   public static SelenideElement evaluateBinaryButton() {

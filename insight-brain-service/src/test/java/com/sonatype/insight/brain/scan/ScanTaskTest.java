@@ -209,12 +209,13 @@ public class ScanTaskTest
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = new PolicyEvaluation();
     results.notifiableViolations = new ArrayList<>();
+    results.allViolations = new ArrayList<>();
     when(scanPolicyEvaluator.evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage))).thenReturn(
         results);
 
     task.run();
 
-    verify(notifier).sendNotifications(eq(app), same(results.evaluation), same(results.notifiableViolations));
+    verify(notifier).sendNotifications(eq(app), same(results));
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

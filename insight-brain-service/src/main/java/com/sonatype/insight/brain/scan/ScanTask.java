@@ -208,7 +208,7 @@ class ScanTask
       // The ScanPolicyEvaluator will fetch the report if it's not there
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
-        policyAlertNotifier.sendNotifications(app, results.evaluation, results.notifiableViolations);
+        policyAlertNotifier.sendNotifications(app, results);
       }
 
       // provide report/scanId once evaluation is completed successfully

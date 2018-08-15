@@ -15,7 +15,6 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -50,13 +49,12 @@ public class PolicyAlertNotifier
    * application and stage.
    */
   public void sendNotifications(final Application app,
-                                final PolicyEvaluation currentEvaluation,
-                                final List<PolicyViolation> appearedViolations)
+                                final ScanPolicyEvaluatorResults results)
   {
-    if (!appearedViolations.isEmpty()) {
+    if (!results.notifiableViolations.isEmpty()) {
       List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-          .createPolicyNotifications(appearedViolations, currentEvaluation.getStageTypeId(),
-              currentEvaluation.isForMonitoring());
+          .createPolicyNotifications(results.notifiableViolations, results.evaluation.getStageTypeId(),
+              results.evaluation.isForMonitoring());
 
       // sort the alerts by threat-level, which is common means to represent in most notifiers
       Collections.sort(policyNotifications, new Comparator<PolicyNotification>()
@@ -74,11 +72,14 @@ public class PolicyAlertNotifier
         }
       });
 
-      final String scanId = currentEvaluation.getScanId();
-      final Stage stage = makeStage(currentEvaluation.getStageTypeId());
+      final String scanId = results.evaluation.getScanId();
+      final Stage stage = makeStage(results.evaluation.getStageTypeId());
+
+      int grandfatheredPolicyViolationCount = getGrandfatheredPolicyViolationCount(results);
 
       try {
-        policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
+        policyAlertEmailer
+            .sendNotifications(app, scanId, stage, policyNotifications, grandfatheredPolicyViolationCount);
       }
       catch (Exception e) {
         log.error("Email notification failed", e);
@@ -93,9 +94,19 @@ public class PolicyAlertNotifier
     }
     else {
       log.debug("Not sending notifications for application {} and scan {} in stage {}"
-          + ", no new policy violations since last evaluation", app.getPublicId(), currentEvaluation.getScanId(),
-          currentEvaluation.getStageTypeId());
+          + ", no new policy violations since last evaluation", app.getPublicId(), results.evaluation.getScanId(),
+          results.evaluation.getStageTypeId());
     }
+  }
+
+  private int getGrandfatheredPolicyViolationCount(final ScanPolicyEvaluatorResults results) {
+    int grandfatheredPolicyViolationCount = 0;
+    for (PolicyViolation policyViolation : results.allViolations) {
+      if (policyViolation.isGrandfathered()) {
+        grandfatheredPolicyViolationCount++;
+      }
+    }
+    return grandfatheredPolicyViolationCount;
   }
 
   /**

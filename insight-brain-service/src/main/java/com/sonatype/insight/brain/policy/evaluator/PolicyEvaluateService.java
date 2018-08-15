@@ -54,7 +54,7 @@ public class PolicyEvaluateService
         results.allViolations, true);
 
     if (!results.evaluation.isReevaluation()) {
-      policyAlertNotifier.sendNotifications(application, results.evaluation, results.notifiableViolations);
+      policyAlertNotifier.sendNotifications(application, results);
     }
 
     return policyEvaluationResult;

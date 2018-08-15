@@ -57,7 +57,8 @@ public class PolicyAlertEmailer
   public void sendNotifications(final Application app,
                                 final String scanId,
                                 final Stage stage,
-                                final List<PolicyNotification> policyNotifications)
+                                final List<PolicyNotification> policyNotifications,
+                                final int grandfatheredPolicyViolationCount)
   {
     // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
     final String stringBaseUrl = baseUrl.get();
@@ -83,7 +84,8 @@ public class PolicyAlertEmailer
             final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
             final String subject = createPolicyMailSubject(new PolicyAlertCounts(details.getValue()), app.getName());
             final String body = createPolicyMailBody(
-                createPolicyMailModel(stringBaseUrl, app, scanId, stage, details.getValue()));
+                createPolicyMailModel(stringBaseUrl, app, scanId, stage, details.getValue(),
+                    grandfatheredPolicyViolationCount));
             getMail().sendHtml(mailId, addresses, subject, body);
           }
           catch (final Exception e) {
@@ -99,7 +101,8 @@ public class PolicyAlertEmailer
                                                       Application app,
                                                       String scanId,
                                                       Stage stage,
-                                                      List<PolicyFact> policyFacts)
+                                                      List<PolicyFact> policyFacts,
+                                                      int grandfatheredPolicyViolationCount)
   {
     Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stage, policyFacts);
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
@@ -109,6 +112,7 @@ public class PolicyAlertEmailer
     }
     model.put("detailedReportUrl", serverBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
     model.put("ownerIdLabel", "APP ID");
+    model.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
 
     return model;
   }

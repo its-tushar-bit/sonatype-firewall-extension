@@ -52,20 +52,30 @@ public class PolicyAlertNotifierTest
   public void testLogging_NoNewViolations() {
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
+    ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
+    results.evaluation = eval;
+    results.notifiableViolations = Arrays.asList();
+    results.allViolations = Arrays.asList();
 
-    notifier.sendNotifications(app, eval, Arrays.asList());
+    notifier.sendNotifications(app, results);
     logOutput.assertDebug("Not sending notifications for application " + app.getPublicId() + " and scan "
         + eval.getScanId() + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
   }
 
   @Test
-  public void test_Notification_Email() throws Exception {
+  public void test_Notification_Email() {
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
+    PolicyViolation grandfatheredViolation = tempEntity
+        .newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy("grandfatheredPolicy"));
+    ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
+    results.evaluation = eval;
+    results.notifiableViolations = Arrays.asList(violation);
+    results.allViolations = Arrays.asList(violation, grandfatheredViolation);
 
-    notifier.sendNotifications(app, eval, Arrays.asList(violation));
-    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
+    notifier.sendNotifications(app, results);
+    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
   }
 
   private PolicyViolation newPolicyViolationWantingAlerts(final Application app, final PolicyEvaluation eval) {

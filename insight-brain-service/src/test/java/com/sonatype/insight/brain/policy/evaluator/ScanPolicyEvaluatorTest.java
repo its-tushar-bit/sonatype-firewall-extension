@@ -64,6 +64,7 @@ import org.mockito.ArgumentCaptor;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -301,7 +302,7 @@ public class ScanPolicyEvaluatorTest
     // 2nd evaluation. Nothing changed, so there are no new violations, so no notifiable violations.
     results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(results.activeViolations, hasSize(1));
-    assertThat(results.notifiableViolations, is(nullValue()));
+    assertThat(results.notifiableViolations, is(empty()));
 
     // 3rd evaluation. The report contains a new component that triggers the policy, so there is one new notifiable
     // violation.

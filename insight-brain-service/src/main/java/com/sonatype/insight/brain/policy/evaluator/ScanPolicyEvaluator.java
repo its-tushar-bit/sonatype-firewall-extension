@@ -229,7 +229,7 @@ public class ScanPolicyEvaluator
         ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
         results.evaluation = policyEvaluation;
         results.allViolations = new ArrayList<>();
-        results.notifiableViolations = isReevaluation ? null : new ArrayList<>();
+        results.notifiableViolations = new ArrayList<>();
 
         // Convert the policy alerts into policy violations
         List<PolicyAlert> allPolicyAlerts = new ArrayList<>();

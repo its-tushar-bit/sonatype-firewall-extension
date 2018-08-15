@@ -717,7 +717,7 @@ public class PolicyEvaluateServiceTest
     PolicyAlertEmailer emailer = lookup(PolicyAlertEmailer.class);
 
     String serverUrl = "http://localhost/";
-    Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyFacts);
+    Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyFacts, 8);
     assertEquals(policyFacts, model.get("policyFacts"));
     assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
     assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId),
@@ -732,6 +732,7 @@ public class PolicyEvaluateServiceTest
     assertEquals("admin@localhost", model.get("applicationContactEmail"));
     assertNotNull(model.get("policyThreatTime"));
     assertEquals("APP ID", model.get("ownerIdLabel"));
+    assertEquals(8, model.get("grandfatheredPolicyViolationCount"));
   }
 
   @Test

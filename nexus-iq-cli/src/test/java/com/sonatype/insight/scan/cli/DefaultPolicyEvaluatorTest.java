@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -36,6 +37,7 @@ import com.sonatype.insight.scan.model.io.ScanWriter;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -512,5 +514,65 @@ public class DefaultPolicyEvaluatorTest
     policy.setAction(Stage.ID_BUILD, actionId);
     policy.setThreatLevel(threatLevel);
     tempEntity.newPolicy(policy);
+  }
+
+  @Test
+  public void testRun_ServerVersionRequired() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", app.getPublicId(), "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
+
+    VersionService versionService = testInsightServer.getCLMServer().getInjector().getInstance(VersionService.class);
+    String currentServerVersion = versionService.getVersion();
+    currentServerVersion = currentServerVersion.replace("-SNAPSHOT", "");
+
+    // Verify older server version. There should be no exceptions because the client requires a minimal server version
+    // that is older than the current server version.
+    String olderServerVersion = decrementVersion(currentServerVersion);
+    String savedMinimalServerVersionRequired = evaluator.getMinimalServerVersionRequired();
+    try {
+      evaluator.setMinimalServerVersionRequired(olderServerVersion);
+      evaluator.run(params);
+    }
+    finally {
+      evaluator.setMinimalServerVersionRequired(savedMinimalServerVersionRequired);
+    }
+
+    // Verify newer server version. There should be an exception because the client requires a minimal server version
+    // that is newer than the current server version.
+    String newerServerVersion = incrementVersion(currentServerVersion);
+    evaluator.setMinimalServerVersionRequired(newerServerVersion);
+    try {
+      evaluator.run(params);
+      fail("Expected exception");
+    }
+    catch (ExitException expected) {
+      String expectedMessage = String.format(
+          "The IQ Server version %s is not compatible. Supported IQ server versions are %s or newer.",
+          currentServerVersion, newerServerVersion);
+      assertThat(expected.getMessage(), endsWith(expectedMessage));
+      logOutput.assertError(expectedMessage);
+    }
+    finally {
+      evaluator.setMinimalServerVersionRequired(savedMinimalServerVersionRequired);
+    }
+  }
+
+  private String decrementVersion(String versionAsString) {
+    int dotAt = versionAsString.indexOf(".");
+    if (dotAt > 0) {
+      return (Integer.valueOf(versionAsString.substring(0, dotAt)) - 1) + "." + versionAsString.substring(dotAt + 1);
+    }
+    return String.valueOf(Integer.valueOf(versionAsString) - 1);
+  }
+
+  private String incrementVersion(String versionAsString) {
+    int dotAt = versionAsString.indexOf(".");
+    if (dotAt > 0) {
+      return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
+    }
+    return String.valueOf(Integer.valueOf(versionAsString) + 1);
   }
 }

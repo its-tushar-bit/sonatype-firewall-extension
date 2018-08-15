@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
+import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -34,9 +35,13 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
 
+  private static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.50.0";
+
   private final Scanner scanner;
 
   protected final RestClientFactory restClientFactory;
+
+  private String minimalServerVersionRequired = MINIMAL_SERVER_VERSION_REQUIRED;
 
   public AbstractPolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     this.scanner = scanner;
@@ -45,6 +50,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   public void run(P params) throws ExitException {
     RestClient restClient = createClient(newHttpClientConfig(params));
+
+    validateServerVersion(params, restClient);
 
     validateServerAccess(params, restClient);
 
@@ -74,27 +81,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     try {
       isApplicationAllowed = restClient.verifyOrCreateApplication(params.getApplicationId());
     }
+    catch (HttpResponseException e) {
+      throw handleHttpResponseException(params, e);
+    }
     catch (Exception e) {
-      if (e instanceof HttpResponseException) {
-        HttpResponseException resp = (HttpResponseException) e;
-        if (resp.getStatusCode() == 503) {
-          log.error("The IQ Server is down for maintenance, please try again later.");
-        }
-        else if (resp.getStatusCode() == 407) {
-          log.error("The proxy server {} requires authentication: {}", params.getProxy(), e.getMessage());
-        }
-        else if (resp.getStatusCode() == 401 || resp.getStatusCode() == 403) {
-          log.error("The IQ Server {} rejected the supplied credentials.", params.getServerUrl());
-        }
-        else {
-          log.error("The IQ Server {} could not be contacted: {} ({})", params.getServerUrl(), e.getMessage(),
-              resp.getStatusCode());
-        }
-      }
-      else {
-        log.error("The IQ Server {} could not be contacted: {}", params.getServerUrl(), e.getMessage());
-        log.error("Error details below:", e);
-      }
+      log.error(e.getMessage(), e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     if (!isApplicationAllowed) {
@@ -243,4 +234,51 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
                                          PolicyEvaluationResult eval,
                                          PolicyAction outcome,
                                          RestClient restClient) throws ExitException;
+
+  private void validateServerVersion(P params, RestClient restClient) throws ExitException {
+    log.info("Validating IQ Server version {}...", params.getServerUrl());
+
+    try {
+      restClient.validateServerVersion(minimalServerVersionRequired);
+    }
+    catch (HttpResponseException e) {
+      throw handleHttpResponseException(params, e);
+    }
+    catch (UnsupportedServerVersionException e) {
+      log.error(e.getMessage());
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+    catch (Exception e) {
+      log.error("The IQ Server {} could not be contacted: {}", params.getServerUrl(), e.getMessage());
+      log.error("Error details below:", e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+  }
+
+  private ExitException handleHttpResponseException(P params, HttpResponseException e) {
+    if (e.getStatusCode() == 503) {
+      log.error("The IQ Server is down for maintenance, please try again later.");
+    }
+    else if (e.getStatusCode() == 407) {
+      log.error("The proxy server {} requires authentication: {}", params.getProxy(), e.getMessage());
+    }
+    else if (e.getStatusCode() == 401 || e.getStatusCode() == 403) {
+      log.error("The IQ Server {} rejected the supplied credentials.", params.getServerUrl());
+    }
+    else {
+      log.error("The IQ Server {} could not be contacted: {} ({})", params.getServerUrl(), e.getMessage(),
+          e.getStatusCode());
+    }
+    return new ExitException(params.isIgnoreSystemErrors(), e);
+  }
+
+  // For tests only
+  String getMinimalServerVersionRequired() {
+    return minimalServerVersionRequired;
+  }
+
+  // For tests only
+  void setMinimalServerVersionRequired(String minimalServerVersionRequired) {
+    this.minimalServerVersionRequired = minimalServerVersionRequired;
+  }
 }

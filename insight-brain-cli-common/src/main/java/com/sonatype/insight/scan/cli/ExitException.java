@@ -27,6 +27,11 @@ public class ExitException
     this.exitCode = ignorable ? 0 : 1;
   }
 
+  public ExitException(boolean ignorable, String message) {
+    super(message);
+    this.exitCode = ignorable ? 0 : 1;
+  }
+
   public int getExitCode() {
     return exitCode;
   }

@@ -127,5 +127,12 @@ public class RestClientFactory
     public void saveResults(String appId, File resultFile, ScanReceipt receipt) throws IOException {
       new ScanClient(config, appId).saveResultData(resultFile, receipt);
     }
+
+    /**
+     * @since 1.50
+     */
+    public void validateServerVersion(String minimalServerVersionRequiredAsString) throws IOException {
+      new ConfigurationClient(config).validateServerVersion(minimalServerVersionRequiredAsString);
+    }
   }
 }

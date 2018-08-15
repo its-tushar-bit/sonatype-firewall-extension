@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -448,5 +449,52 @@ public class ConfigurationClientTest
     automaticApplicationsConfigurationDAO.setEnabled(true);
     boolean result = client.verifyOrCreateApplication(appPublicId);
     assertThat(result, is(true));
+  }
+
+  @Test
+  public void testValidateServerVersion() throws Exception {
+    VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
+    String currentServerVersion = versionService.getVersion();
+    currentServerVersion = currentServerVersion.replace("-SNAPSHOT", "");
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+
+    // Verify current server version. There should be no exceptions.
+    client.validateServerVersion(currentServerVersion);
+
+    // Verify older server version. There should be no exceptions because the client requires a minimal server version
+    // that is older than the current server version.
+    String olderServerVersion = decrementVersion(currentServerVersion);
+    client.validateServerVersion(olderServerVersion);
+
+    // Verify newer server version. There should be an exception because the client requires a minimal server version
+    // that is newer than the current server version.
+    String newerServerVersion = incrementVersion(currentServerVersion);
+    try {
+      client.validateServerVersion(newerServerVersion);
+      fail("Expected exception");
+    }
+    catch (UnsupportedServerVersionException expected) {
+      String expectedMessage = "The IQ Server version " + currentServerVersion
+          + " is not compatible. Supported IQ server versions are " + newerServerVersion + " or newer.";
+      assertThat(expected.getMessage(), is(expectedMessage));
+    }
+  }
+
+  private String decrementVersion(String versionAsString) {
+    int dotAt = versionAsString.indexOf(".");
+    if (dotAt > 0) {
+      return (Integer.valueOf(versionAsString.substring(0, dotAt)) - 1) + "." + versionAsString.substring(dotAt + 1);
+    }
+    return String.valueOf(Integer.valueOf(versionAsString) - 1);
+  }
+
+  private String incrementVersion(String versionAsString) {
+    int dotAt = versionAsString.indexOf(".");
+    if (dotAt > 0) {
+      return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
+    }
+    return String.valueOf(Integer.valueOf(versionAsString) + 1);
   }
 }

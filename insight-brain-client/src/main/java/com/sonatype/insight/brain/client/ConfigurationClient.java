@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
@@ -19,6 +20,10 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.sonatype.aether.util.version.GenericVersionScheme;
+import org.sonatype.aether.version.InvalidVersionSpecificationException;
+import org.sonatype.aether.version.Version;
 
 public class ConfigurationClient
     extends AbstractRequestClient
@@ -133,5 +138,28 @@ public class ConfigurationClient
   public FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException {
     Result result = getRequest(path("rest/integration/repositories/evaluate/ignorePatterns"));
     return parseResult(result, FirewallIgnorePatterns.class);
+  }
+
+  /**
+   * @since 1.50
+   */
+  public void validateServerVersion(String minimalServerVersionRequiredAsString) throws IOException {
+    Result result = getRequest(path("rest/product/version"));
+    Properties serverVersionProperties = parseResult(result, Properties.class);
+
+    try {
+      String serverVersionAsString = serverVersionProperties.getProperty("version");
+      serverVersionAsString = serverVersionAsString.replace("-SNAPSHOT", "");
+      GenericVersionScheme scheme = new GenericVersionScheme();
+      Version serverVersion = scheme.parseVersion(serverVersionAsString);
+      Version minimalServerVersion = scheme.parseVersion(minimalServerVersionRequiredAsString);
+      if (serverVersion.compareTo(minimalServerVersion) < 0) {
+        throw new UnsupportedServerVersionException(serverVersionAsString, minimalServerVersion.toString());
+      }
+    }
+    catch (InvalidVersionSpecificationException e) {
+      // the generic version scheme should accept anything
+      throw new IllegalStateException(e);
+    }
   }
 }

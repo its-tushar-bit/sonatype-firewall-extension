@@ -43,12 +43,12 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private String minimalServerVersionRequired = MINIMAL_SERVER_VERSION_REQUIRED;
 
-  public AbstractPolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
+  protected AbstractPolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     this.scanner = scanner;
     this.restClientFactory = restClientFactory;
   }
 
-  public void run(P params) throws ExitException {
+  void run(P params) throws ExitException {
     RestClient restClient = createClient(newHttpClientConfig(params));
 
     validateServerVersion(params, restClient);
@@ -75,7 +75,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return config;
   }
 
-  protected void validateServerAccess(P params, RestClient restClient) throws ExitException {
+  private void validateServerAccess(P params, RestClient restClient) throws ExitException {
     log.info("Validating application ID {} with the IQ Server {}...", params.getApplicationId(), params.getServerUrl());
     boolean isApplicationAllowed;
     try {

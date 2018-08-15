@@ -83,6 +83,11 @@ public class VersionService
     return properties.getProperty("version", defaultValue);
   }
 
+  // For tests only
+  public void setVersion(String version) {
+    properties.setProperty("version", version);
+  }
+
   private static void loadProperties() {
     InputStream is = VersionService.class.getResourceAsStream(FILE_NAME);
     if (is != null) {

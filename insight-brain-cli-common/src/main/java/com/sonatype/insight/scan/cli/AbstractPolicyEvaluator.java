@@ -35,13 +35,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
 
-  private static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.50.0";
+  public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.50.0";
 
   private final Scanner scanner;
 
   protected final RestClientFactory restClientFactory;
-
-  private String minimalServerVersionRequired = MINIMAL_SERVER_VERSION_REQUIRED;
 
   protected AbstractPolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     this.scanner = scanner;
@@ -239,7 +237,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     log.info("Validating IQ Server version {}...", params.getServerUrl());
 
     try {
-      restClient.validateServerVersion(minimalServerVersionRequired);
+      restClient.validateServerVersion(MINIMAL_SERVER_VERSION_REQUIRED);
     }
     catch (HttpResponseException e) {
       throw handleHttpResponseException(params, e);
@@ -270,15 +268,5 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
           e.getStatusCode());
     }
     return new ExitException(params.isIgnoreSystemErrors(), e);
-  }
-
-  // For tests only
-  String getMinimalServerVersionRequired() {
-    return minimalServerVersionRequired;
-  }
-
-  // For tests only
-  void setMinimalServerVersionRequired(String minimalServerVersionRequired) {
-    this.minimalServerVersionRequired = minimalServerVersionRequired;
   }
 }

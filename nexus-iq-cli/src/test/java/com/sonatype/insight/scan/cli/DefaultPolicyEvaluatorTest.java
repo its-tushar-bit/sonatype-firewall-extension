@@ -525,38 +525,36 @@ public class DefaultPolicyEvaluatorTest
         "src/test/data/artifact.jar");
 
     VersionService versionService = testInsightServer.getCLMServer().getInjector().getInstance(VersionService.class);
-    String currentServerVersion = versionService.getVersion();
-    currentServerVersion = currentServerVersion.replace("-SNAPSHOT", "");
+    String savedServerVersion = versionService.getVersion();
 
-    // Verify older server version. There should be no exceptions because the client requires a minimal server version
-    // that is older than the current server version.
-    String olderServerVersion = decrementVersion(currentServerVersion);
-    String savedMinimalServerVersionRequired = evaluator.getMinimalServerVersionRequired();
-    try {
-      evaluator.setMinimalServerVersionRequired(olderServerVersion);
-      evaluator.run(params);
-    }
-    finally {
-      evaluator.setMinimalServerVersionRequired(savedMinimalServerVersionRequired);
-    }
-
-    // Verify newer server version. There should be an exception because the client requires a minimal server version
-    // that is newer than the current server version.
-    String newerServerVersion = incrementVersion(currentServerVersion);
-    evaluator.setMinimalServerVersionRequired(newerServerVersion);
+    // Verify older server version. There should be an exception because the client requires a minimal server version
+    // that is newer than the server version.
+    String olderServerVersion = decrementVersion(AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED);
+    versionService.setVersion(olderServerVersion);
     try {
       evaluator.run(params);
       fail("Expected exception");
     }
     catch (ExitException expected) {
-      String expectedMessage = String.format(
-          "The IQ Server version %s is not compatible. Supported IQ server versions are %s or newer.",
-          currentServerVersion, newerServerVersion);
+      String expectedMessage = "The IQ Server version " + olderServerVersion
+          + " is not compatible. Supported IQ server versions are "
+          + AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED + " or newer.";
       assertThat(expected.getMessage(), endsWith(expectedMessage));
       logOutput.assertError(expectedMessage);
     }
     finally {
-      evaluator.setMinimalServerVersionRequired(savedMinimalServerVersionRequired);
+      versionService.setVersion(savedServerVersion);
+    }
+
+    // Verify newer server version. There should be no exceptions because the client requires a minimal server version
+    // that is older than the server version.
+    String newerServerVersion = incrementVersion(AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED);
+    versionService.setVersion(newerServerVersion);
+    try {
+      evaluator.run(params);
+    }
+    finally {
+      versionService.setVersion(savedServerVersion);
     }
   }
 

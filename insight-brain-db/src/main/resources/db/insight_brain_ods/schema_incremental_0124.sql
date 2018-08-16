@@ -1,4 +1,4 @@
--- Since 50
+-- Since 1.50
 SET SCHEMA insight_brain_ods;
 
 ALTER TABLE policy ADD COLUMN policy_violation_grandfathering_allowed boolean;

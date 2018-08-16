@@ -43,7 +43,7 @@ public class Policy
   private int threatLevel = 5;
 
   /**
-   * @since 50
+   * @since 1.50
    */
   private boolean policyViolationGrandfatheringAllowed;
 

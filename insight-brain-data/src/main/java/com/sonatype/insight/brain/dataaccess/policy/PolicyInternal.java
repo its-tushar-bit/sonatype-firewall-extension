@@ -51,7 +51,7 @@ public class PolicyInternal
   private int threatLevel = 5;
 
   /**
-   * @since 50
+   * @since 1.50
    */
   @Column(name = "policy_violation_grandfathering_allowed")
   private boolean policyViolationGrandfatheringAllowed;

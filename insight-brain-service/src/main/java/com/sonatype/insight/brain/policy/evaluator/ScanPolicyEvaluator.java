@@ -387,7 +387,7 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * @since 50
+   * @since 1.50
    */
   private boolean isPolicyViolationGrandfatheringEnabled(String appId) {
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
@@ -623,7 +623,7 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * @since 50
+   * @since 1.50
    */
   void sendGrandfatheredViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations) {
     TelemetryData telemetryData = new TelemetryData(
@@ -633,7 +633,7 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * @since 50
+   * @since 1.50
    */
   private Map<String, Object> getGrandfatheredViolationCountsAttributes(String applicationId,
                                                                         List<PolicyViolation> policyViolations)

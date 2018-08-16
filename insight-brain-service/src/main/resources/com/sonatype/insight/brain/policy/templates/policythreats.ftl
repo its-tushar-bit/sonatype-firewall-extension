@@ -63,7 +63,7 @@ div,p,a,li,td {
 								<#if (grandfatheredPolicyViolationCount??)>
 							  	<tr>
 							    		<td style="padding: 10px;">
-									  	<span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;">${grandfatheredPolicyViolationCount}&nbsp;Grandfathered&nbsp;violations</span>
+									  	<span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;">${grandfatheredPolicyViolationCount}&nbsp;Grandfathered&nbsp;Violations</span>
 									</td>
 							  	</tr></#if>
 							</table>

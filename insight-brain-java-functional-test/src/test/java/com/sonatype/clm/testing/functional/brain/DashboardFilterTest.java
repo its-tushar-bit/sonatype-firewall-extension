@@ -265,7 +265,7 @@ public class DashboardFilterTest
     DashboardPage.violationsTab().counter().shouldHave(text("3"));
     DashboardPage.componentsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().counter().shouldNot(exist);
-    
+
     DashboardFilters.applyButton().shouldBe(DISABLED).hover().tooltip().shouldHave(NO_CHANGES_MESSAGE);
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
 
@@ -617,7 +617,7 @@ public class DashboardFilterTest
     deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter1));
     deleteFiltersDialog.checkboxItem(2).label().shouldHave(text(filter2));
     deleteFiltersDialog.deleteButton().shouldHave(DISABLED);
-    
+
     // delete filter
     deleteFiltersDialog.checkboxItem(1).click();
     eyesWatcher.eyesCheck();
@@ -727,9 +727,9 @@ public class DashboardFilterTest
     saveFilter(filterName, null, false, false);
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    
+
     assertThat(filters.size(), is(2)); // one for the active and named
-    assertThat(filters.get(0).isAcknowledged(), is(false)); 
+    assertThat(filters.get(0).isAcknowledged(), is(false));
     assertThat(filters.get(1).isAcknowledged(), is(false));
 
     testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
@@ -790,7 +790,7 @@ public class DashboardFilterTest
     componentsResults.components().shouldHaveSize(0);
     componentsResults.noDataMessage().shouldBe(visible);
   }
-  
+
   private void assertNeedsAcknowledgementPostFilterState(String filterName) {
     if (filterName != null) {
       DashboardFilters.saveFilterNameLabel().shouldBe(visible).shouldHave(text(filterName));

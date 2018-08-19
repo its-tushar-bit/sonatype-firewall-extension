@@ -246,7 +246,7 @@ public class DashboardViolationsTest
         "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo   //
     );
     assertViolationsCsv(exportCsv, expectedResults);
-    
+
     headers.ageHeader().click();
     firstViolation.shouldHave(text("7d"));
     table.lastViolation().shouldHave(text("1min"));

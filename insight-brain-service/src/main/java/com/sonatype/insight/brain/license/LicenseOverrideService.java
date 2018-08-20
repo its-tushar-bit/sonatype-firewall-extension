@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Owner;
@@ -121,8 +120,6 @@ public class LicenseOverrideService
       licenseOverrideAudit.setComment(null);
     }
     store.commit("licenses.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(licenseOverrideAudit)));
-    BomAudit bomAudit = new BomAudit(licenseOverride.getComponentIdentifier(), !isDelete /* modified */);
-    store.commit("bom.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(bomAudit)));
   }
 
   @Authorize(permission = Permission.WRITE)

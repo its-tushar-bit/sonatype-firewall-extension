@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -147,9 +146,7 @@ public final class Report
 
     embedApplicationPublicId(application, reportFile);
 
-    final JsonStore auditStore = JsonUtils.fileStore(auditDir);
-
-    applyComponentRelatedChanges(application, reportFile, auditStore);
+    applyComponentRelatedChanges(application, reportFile);
 
     // this data item is not in the original report, but is placed in the cache by the policy evaluator
     final ReportEntry policyReportEntry = getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
@@ -433,9 +430,12 @@ public final class Report
     log.debug("fixComponentIdentifiers: {} components, {} removed.", aaData.size(), removedCount);
   }
 
-  private static void applyLicenseOverrides(ContainerNode<?> licensesJsonData, Application application) {
+  private static Set<ComponentIdentifier> applyLicenseOverrides(ContainerNode<?> licensesJsonData,
+                                                                Application application)
+  {
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
@@ -447,6 +447,7 @@ public final class Report
           application.getId(), componentIdentifier);
       if (licenseOverride != null) {
         licenseOverrideCount++;
+        componentIdentifiersWithLicenseOverrides.add(componentIdentifier);
         licenseJsonNode.put("status", licenseOverride.getStatus().getName());
         if (!licenseOverride.getLicenseIds().isEmpty()) {
           ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
@@ -462,6 +463,7 @@ public final class Report
     }
 
     log.debug("applyLicenseOverrides: {} components, {} overrides.", licensesAaData.size(), licenseOverrideCount);
+    return componentIdentifiersWithLicenseOverrides;
   }
 
   private static void applySecurityVulnerabilityOverrides(ContainerNode<?> securityJsonData, Application application) {
@@ -490,12 +492,13 @@ public final class Report
         overrideCount);
   }
 
-  private static void addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
-                                                              Collection<HashComponentIdentifier> hashComponentIdentifiers,
-                                                              Application application)
+  private static Set<ComponentIdentifier> addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
+                                                                                  Collection<HashComponentIdentifier> hashComponentIdentifiers,
+                                                                                  Application application)
   {
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
     int licenseOverrideCount = 0;
     for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
@@ -506,6 +509,7 @@ public final class Report
         ObjectNode licenseJsonNode = licensesAaData.addObject();
         licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+        componentIdentifiersWithLicenseOverrides.add(componentIdentifier);
         licenseJsonNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         if (componentIdentifier.isMaven()) {
           // reports generated before 1.13.0 still require separate GAV fields
@@ -531,6 +535,7 @@ public final class Report
       }
     }
     log.debug("addLicenseOverridesForClaimedComponents: {} overrides.", licenseOverrideCount);
+    return componentIdentifiersWithLicenseOverrides;
   }
 
   private static void removeClaimedComponentsFromPartialMatched(ContainerNode<?> partialmatchedJsonData,
@@ -563,8 +568,7 @@ public final class Report
    * Applies changes to component data (bom/license/security/partialmatched) including claiming components
    */
   private static void applyComponentRelatedChanges(final Application application,
-                                                   final File reportFile,
-                                                   final JsonStore auditStore) throws IOException
+                                                   final File reportFile) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -574,19 +578,22 @@ public final class Report
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
-    // now apply any data edits (e.g. modified flag)
-    auditStore.augment(bomJsonData, "bom.json");
-    saveReportEntry(reportFile, "bom.json", bomJsonData);
     saveReportEntry(reportFile, "data.json", dataJson);
     saveReportEntry(reportFile, "summary.json", summaryJsonData);
 
     // Must start from un-edited license data.
     ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, "licenses.json");
     fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
-    applyLicenseOverrides(licensesJsonData, application);
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
+        application);
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
-    addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application);
+    componentIdentifiersWithLicenseOverrides
+        .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
     saveReportEntry(reportFile, "licenses.json", licensesJsonData);
+
+    // now apply any data edits (e.g. modified flag)
+    augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
+    saveReportEntry(reportFile, "bom.json", bomJsonData);
 
     // must start from un-edited data
     ContainerNode<?> securityJsonData = loadReportEntry(reportFile, "security.json");
@@ -600,6 +607,19 @@ public final class Report
     saveReportEntry(reportFile, "partialmatched.json", partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
+  }
+
+  @VisibleForTesting
+  static void augmentModified(Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides, JsonNode bomJsonData)
+  {
+    ArrayNode components = (ArrayNode) bomJsonData.get("aaData");
+    for (int componentIndex = 0; componentIndex < components.size(); componentIndex++) {
+      ObjectNode component = (ObjectNode) components.get(componentIndex);
+      if (componentIdentifiersWithLicenseOverrides
+          .contains(ComponentIdentifierAdapter.getComponentIdentifier(component))) {
+        component.put("modified", true);
+      }
+    }
   }
 
   private static ContainerNode<?> loadReportEntry(File reportFile, String entryFileName) throws IOException {

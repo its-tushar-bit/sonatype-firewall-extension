@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverrideByOwner;
@@ -228,21 +227,6 @@ public class LicenseOverrideResourceTest
     String licenseName = licenseOverrideAudit.getOverriddenLicenses().get(0);
     License license = new LicenseDAO().getByNameNotNull(licenseName);
     assertEquals(expected.getLicenseIds().iterator().next(), license.getId());
-
-    // Verify the BOM audit
-    logFile = new File(getCLMServer().getAuditDir(ownerId), "bom.json");
-    assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
-
-    allLogJsonData = JsonUtils.read(logFile);
-    assertTrue(allLogJsonData.size() > 0);
-    logJsonData = allLogJsonData.get(0);
-    assertNotNull(logJsonData);
-    assertEquals(user, logJsonData.get("user").asText());
-    assertEquals(where, logJsonData.get("where").asText());
-    BomAudit bomAudit = JsonUtils.asPojo(logJsonData.get("data"), BomAudit.class);
-    assertNotNull(bomAudit);
-    assertThat(expected.getComponentIdentifier(), is(bomAudit.getComponentIdentifier()));
-    assertEquals(!isDelete, bomAudit.isModified());
   }
 
   @Test

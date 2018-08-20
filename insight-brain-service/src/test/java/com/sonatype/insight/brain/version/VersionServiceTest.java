@@ -33,6 +33,7 @@ public class VersionServiceTest
     assertNotNull(versionService.getTimestamp());
     assertNotNull(versionService.getVersion());
     assertNotNull(versionService.getTag());
+    assertNotNull(versionService.getLogDisplayVersion());
 
     // Ensure that cleared properties return null.
     versionService = new VersionService(new Properties());
@@ -49,5 +50,23 @@ public class VersionServiceTest
     assertThat(versionService.getTimestamp(defaultValue), is(defaultValue));
     assertThat(versionService.getVersion(defaultValue), is(defaultValue));
     assertThat(versionService.getTag(defaultValue), is(defaultValue));
+  }
+
+  @Test
+  public void testGetLogDisplayVersion() {
+    versionService.setVersion("foo");
+    assertThat(versionService.getLogDisplayVersion(), is("foo"));
+
+    versionService.setVersion("1.50.0-SNAPSHOT");
+    assertThat(versionService.getLogDisplayVersion(), is("50.0-SNAPSHOT"));
+
+    versionService.setVersion("1.50.1-01");
+    assertThat(versionService.getLogDisplayVersion(), is("50.1-01"));
+
+    versionService.setVersion("50.0-SNAPSHOT");
+    assertThat(versionService.getLogDisplayVersion(), is("50.0-SNAPSHOT"));
+
+    versionService.setVersion("50.1-01");
+    assertThat(versionService.getLogDisplayVersion(), is("50.1-01"));
   }
 }

@@ -28,8 +28,8 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
-import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
+import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -195,11 +195,11 @@ public class InsightBrainService
     }.start();
   }
 
-  private void printVersion() {
-    String version = new VersionService().getVersion("Unknown");
+  void printVersion() {
+    String version = new VersionService().getLogDisplayVersion();
     log.info("|------------------------------------------");
     log.info("|");
-    log.info("| Initializing {} {}", PRODUCT_NAME, version);
+    log.info("| Initializing {} 1 release {}", PRODUCT_NAME, version);
     log.info("|");
     log.info("|------------------------------------------");
   }

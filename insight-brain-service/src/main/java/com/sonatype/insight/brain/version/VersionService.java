@@ -83,6 +83,17 @@ public class VersionService
     return properties.getProperty("version", defaultValue);
   }
 
+  /**
+   * @since 1.50
+   */
+  public String getLogDisplayVersion() {
+    String version = getVersion("Unknown");
+    if (version.startsWith("1.")) {
+      version = version.substring(2);
+    }
+    return version;
+  }
+
   // For tests only
   public void setVersion(String version) {
     properties.setProperty("version", version);

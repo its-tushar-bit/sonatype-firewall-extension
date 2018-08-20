@@ -30,6 +30,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
+import com.sonatype.insight.test.LogOutput;
 
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;
@@ -37,6 +38,7 @@ import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -52,6 +54,9 @@ import static org.junit.Assert.fail;
 public class InsightBrainServiceTest
     extends AbstractBrainServiceTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput();
+
   @Test
   @ManualServerInit
   public void testCreateSampleData_Enabled() throws Exception {
@@ -188,5 +193,15 @@ public class InsightBrainServiceTest
         is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
     assertThat(((SyslogAppenderFactory) accessAppenders.get(2)).getLogFormat(),
         is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
+  }
+
+  @Test
+  public void testPrintVersion() throws Exception {
+    // Special handling to capture log output, DropWizard overrides the LogOutput configuration so
+    // we must restore it calling the before() method. Once we've done this we can call the method
+    // again to test the log output as we'll miss the log output the first time during startup.
+    logOutput.before();
+    getCLMServer().getInjector().getInstance(InsightBrainService.class).printVersion();
+    logOutput.assertInfo("| Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
   }
 }

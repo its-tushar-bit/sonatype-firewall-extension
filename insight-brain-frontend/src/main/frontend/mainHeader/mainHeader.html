@@ -6,7 +6,7 @@
         Sonatype Nexus IQ Server
       </div>
       <div class="iq-title__version visual-testing-ignore">
-        {{vm.productEdition}} {{::vm.getServerVersion()}}
+        {{vm.productEdition}} release {{::vm.getReleaseVersion()}}
       </div>
     </div>
     <div id="main-header-buttons" ng-if="vm.isLoggedIn()">

@@ -13,13 +13,25 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.isSuccessMetricsEnabled = false;
   vm.permissions = {};
   vm.$onInit = doLoad;
-  vm.getServerVersion = getServerVersion;
+  vm.getReleaseVersion = getReleaseVersion;
   vm.hasAnyPermission = hasAnyPermission;
   vm.isLoggedIn = isLoggedIn;
   vm.isLicensed = isLicensed;
 
-  function getServerVersion() {
-    return clmServerVersion;
+  function getReleaseVersion() {
+    const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
+    const serverVersionParts = serverVersionWithoutBuildNumber.split('.');
+    // remove major version if present
+    if (serverVersionParts.length === 3) {
+      serverVersionParts.shift();
+    }
+    const [minorVersion, pointVersion] = serverVersionParts;
+    let result = minorVersion;
+    if (pointVersion !== '0') {
+      result += '.';
+      result += pointVersion;
+    }
+    return result;
   }
 
   function hasAnyPermission() {

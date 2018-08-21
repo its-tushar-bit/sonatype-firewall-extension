@@ -6,9 +6,11 @@ describe('mainHeaderSpec', function() {
       $rootScope,
       mockSystemConfigurationPropertyService,
       isSuccessMetricsEnabledDeferred,
-      vm;
+      vm,
+      clmServerVersion;
 
   beforeEach(inject(function(_$rootScope_, $q, $componentController) {
+    clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
     isSuccessMetricsEnabledDeferred = $q.defer();
@@ -23,6 +25,7 @@ describe('mainHeaderSpec', function() {
   }));
 
   afterEach(function() {
+    window.clmServerVersion = clmServerVersion;
     $scope.$destroy();
   });
 
@@ -56,6 +59,34 @@ describe('mainHeaderSpec', function() {
     $rootScope.$broadcast('successMetricsConfigurationUpdated', false);
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
+  });
+
+  it('properly determines the displayed release version number', function() {
+    vm.$onInit();
+
+    window.clmServerVersion = '1.50.0-SNAPSHOT';
+    expect(vm.getReleaseVersion()).toEqual('50');
+
+    window.clmServerVersion = '1.50.0-01';
+    expect(vm.getReleaseVersion()).toEqual('50');
+
+    window.clmServerVersion = '1.50.1-SNAPSHOT';
+    expect(vm.getReleaseVersion()).toEqual('50.1');
+
+    window.clmServerVersion = '1.50.1-01';
+    expect(vm.getReleaseVersion()).toEqual('50.1');
+
+    window.clmServerVersion = '50.0-SNAPSHOT';
+    expect(vm.getReleaseVersion()).toEqual('50');
+
+    window.clmServerVersion = '50.0-01';
+    expect(vm.getReleaseVersion()).toEqual('50');
+
+    window.clmServerVersion = '50.1-SNAPSHOT';
+    expect(vm.getReleaseVersion()).toEqual('50.1');
+
+    window.clmServerVersion = '50.1-01';
+    expect(vm.getReleaseVersion()).toEqual('50.1');
   });
 
   describe('isLoggedIn()', function() {

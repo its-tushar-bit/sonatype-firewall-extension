@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.Properties;
-
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -14,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
@@ -45,9 +44,12 @@ public class MainHeaderTest
 
   @Test
   public void testProductVersion() throws Exception {
-    Properties props = new Properties();
-    props.load(getClass().getResourceAsStream("/com/sonatype/insight/brain/version/version.properties"));
-    String productVersion = clmLicenseManager.getLicenseSummary().productEdition + " " + props.get("version");
+    // version is the same as what we display in the startup message for product and version except that:
+    // 1. point release numbers are not included unless nonzero
+    // 2. build numbers (or SNAPSHOT) are not included in the version number
+    String version = new VersionService().getLogDisplayVersion();
+    version = version.substring(0, version.indexOf("-")).replace(".0", "");
+    String productVersion = clmLicenseManager.getLicenseSummary().productEdition + " release " + version;
     MainHeader.productVersion().shouldHave(text(productVersion));
   }
 

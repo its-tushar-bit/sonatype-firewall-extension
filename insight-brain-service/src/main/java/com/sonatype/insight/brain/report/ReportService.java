@@ -147,7 +147,7 @@ public class ReportService
     if (oldCount == null || oldCount < newCount) {
       Report.deletePdf(reportFile);
 
-      Report.applyChanges(application, reportFile, appAuditDir);
+      Report.applyChanges(application, reportFile);
 
       MODIFICATION_COUNTS.put(appId + '-' + scanId, newCount);
     }

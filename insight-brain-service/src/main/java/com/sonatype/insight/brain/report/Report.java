@@ -133,7 +133,7 @@ public final class Report
     return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
   }
 
-  static void applyChanges(final Application application, final File reportFile, final File auditDir)
+  static void applyChanges(final Application application, final File reportFile)
       throws IOException
   {
     long start = System.currentTimeMillis();

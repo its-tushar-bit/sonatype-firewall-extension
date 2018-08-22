@@ -58,7 +58,8 @@
                 class="iq-btn iq-btn--primary"
                 submit-validation
                 submit-dirty="vm.dirtyLabel.isDirty()"
-                submit-type="vm.dirtyLabel.id ? 'update' : 'create'">
+                submit-type="vm.dirtyLabel.id ? 'update' : 'create'"
+                submit-tooltip-target="body">
           {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
         </button><!--
      --><button id="delete-label-button"

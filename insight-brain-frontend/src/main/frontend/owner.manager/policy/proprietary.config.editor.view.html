@@ -108,8 +108,12 @@
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyProprietaryConfig.isDirty()"
-                submit-type="update">
+        <button type="submit"
+                class="btn btn-primary"
+                submit-validation
+                submit-dirty="vm.dirtyProprietaryConfig.isDirty()"
+                submit-type="update"
+                submit-tooltip-target="body">
           Update
         </button>
       </div>

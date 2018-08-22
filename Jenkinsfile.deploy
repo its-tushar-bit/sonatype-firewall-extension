@@ -33,12 +33,12 @@ pipeline {
     }
     stage('Publish Server') {
       steps {
-        publishProduct('IQServer')
+        echo "publishProduct('IQServer')"
       }
     }
     stage('Publish CLI Scanner') {
       steps {
-        publishProduct('CLIScanner')
+        echo "publishProduct('CLIScanner')"
       }
     }
     stage('Build and push internal RPM') {
@@ -57,17 +57,17 @@ pipeline {
     }
     stage('Update iq-server latest version') {
       steps {
-        updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))
+        echo "updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))"
       }
     }
     stage('Update iq-cli latest version') {
       steps {
-        updateLatestVersionTable(params.environment, 'IQ_CLI', getVersionFromBuildName(env.releaseBuild_NAME))
+        echo "updateLatestVersionTable(params.environment, 'IQ_CLI', getVersionFromBuildName(env.releaseBuild_NAME))"
       }
     }
     stage('Update nginx configuration') {
       steps {
-        updateNginxConfig()
+        echo "updateNginxConfig()"
       }
     }
   }

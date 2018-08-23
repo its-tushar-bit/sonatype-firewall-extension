@@ -37,7 +37,6 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
       crumb: 'Dashboard'
     }
   }).state('dashboard.overview', {
-    url: '?timeFilterFeature', // query parameter feature flag for Time-based filter control
     abstract: true,
     views: {
       content: 'dashboardResultsContainer',

@@ -202,7 +202,6 @@ describe('dashboardFilterReducer', function() {
         maxPolicyThreatLevel: 6
       };
       initState = {
-        isTimeFilterFeatureEnabled: false,
         showAgeFilter: false,
         isViolationsTab: false,
         organizations: [
@@ -299,19 +298,8 @@ describe('dashboardFilterReducer', function() {
       });
 
       describe('showAgeFilter', function() {
-        it('is set to true if isViolationsTab and time filter is disabled but selected age is not default', function() {
-          initState.isTimeFilterFeatureEnabled = false;
+        it('is set to true if isViolationsTab', function() {
           initState.isViolationsTab = true;
-          var state = Object.freeze(initState);
-          var newState = reduce(state, action);
-          expect(newState.showAgeFilter).toBe(true);
-          expect(newState.other).toBe(otherObject); // other properties are not modified
-        });
-
-        it('is set to true if isViolationsTab and selected age is default but time filter is enabled', function() {
-          initState.isTimeFilterFeatureEnabled = true;
-          initState.isViolationsTab = true;
-          filterJson.maxDaysOld = 30;
           var state = Object.freeze(initState);
           expect(state.showAgeFilter).toBe(false);
           var newState = reduce(state, action);
@@ -319,11 +307,8 @@ describe('dashboardFilterReducer', function() {
           expect(newState.other).toBe(otherObject); // other properties are not modified
         });
 
-        it('is set to false if isViolationsTab but selected age is default and time filter is disabled', function() {
-          initState.isTimeFilterFeatureEnabled = false;
-          initState.isViolationsTab = true;
-          initState.showAgeFilter = true;
-          filterJson.maxDaysOld = 30;
+        it('is set to false if not isViolationsTab', function() {
+          initState.isViolationsTab = false;
           var state = Object.freeze(initState);
           var newState = reduce(state, action);
           expect(newState.showAgeFilter).toBe(false);
@@ -427,7 +412,6 @@ describe('dashboardFilterReducer', function() {
     beforeEach(function() {
       initState = {
         isViolationsTab: false,
-        isTimeFilterFeatureEnabled: false,
         showAgeFilter: false,
         selected: {
           maxDaysOld: 30
@@ -473,69 +457,8 @@ describe('dashboardFilterReducer', function() {
       });
     });
 
-    describe('isTimeFilterFeatureEnabled', function() {
-      it('is set to false if current router state has no timeFilterFeature parameter', function() {
-        initState.isTimeFilterFeatureEnabled = true;
-        var state = Object.freeze(initState);
-        var action = {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations'
-            },
-            toParams: {}
-          }
-        };
-        expect(state.isTimeFilterFeatureEnabled).toBe(true);
-        var newState = reduce(state, action);
-        expect(newState.isTimeFilterFeatureEnabled).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-
-      it('is set to true if timeFilterFeature parameter is provided', function() {
-        initState.isTimeFilterFeatureEnabled = false;
-        var state = Object.freeze(initState);
-        var action = {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations'
-            },
-            toParams: {
-              timeFilterFeature: 'foo'
-            }
-          }
-        };
-        expect(state.isTimeFilterFeatureEnabled).toBe(false);
-        var newState = reduce(state, action);
-        expect(newState.isTimeFilterFeatureEnabled).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-    });
-
     describe('showAgeFilter', function() {
-      it('is set to true if isViolationsTab, time filter is enabled and selected age is default', function() {
-        var state = Object.freeze(initState);
-        var action = {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations'
-            },
-            toParams: {
-              timeFilterFeature: 'foo'
-            }
-          }
-        };
-        expect(state.showAgeFilter).toBe(false);
-        var newState = reduce(state, action);
-        expect(newState.isTimeFilterFeatureEnabled).toBe(true);
-        expect(newState.showAgeFilter).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-
-      it('is set to true if isViolationsTab, time filter is disabled but selected age is not default', function() {
-        initState.selected.maxDaysOld = null;
+      it('is set to true if isViolationsTab', function() {
         var state = Object.freeze(initState);
         var action = {
           type: '@@reduxUiRouter/onFinish',
@@ -548,52 +471,10 @@ describe('dashboardFilterReducer', function() {
         };
         expect(state.showAgeFilter).toBe(false);
         var newState = reduce(state, action);
-        expect(newState.isTimeFilterFeatureEnabled).toBe(false);
         expect(newState.showAgeFilter).toBe(true);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('is set to false if isViolationsTab but time filter is disabled and selected age is default', function() {
-        initState.showAgeFilter = true;
-        var state = Object.freeze(initState);
-        var action = {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations'
-            },
-            toParams: {}
-          }
-        };
-        expect(state.showAgeFilter).toBe(true);
-        var newState = reduce(state, action);
-        expect(newState.isTimeFilterFeatureEnabled).toBe(false);
-        expect(newState.showAgeFilter).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-
-      it('is set to false if isViolationsTab is false but time filter is enabled and selected age is not default',
-          function() {
-            initState.showAgeFilter = true;
-            initState.selected.maxDaysOld = null;
-            var state = Object.freeze(initState);
-            var action = {
-              type: '@@reduxUiRouter/onFinish',
-              payload: {
-                toState: {
-                  name: 'dashboard.overview.applications'
-                },
-                toParams: {
-                  timeFilterFeature: 'foo'
-                }
-              }
-            };
-            expect(state.showAgeFilter).toBe(true);
-            var newState = reduce(state, action);
-            expect(newState.isTimeFilterFeatureEnabled).toBe(true);
-            expect(newState.showAgeFilter).toBe(false);
-            expect(newState.other).toBe(otherObject); // other properties are not modified
-          });
     });
 
   });

@@ -58,7 +58,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.AGE_FILTER_FEATURE_FLAG;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
@@ -166,10 +165,7 @@ public class DashboardViolationsTest
     showLowRiskViolations();
     table.violations().shouldHaveSize(4);
 
-    // age filter should not be displayed without url query parameter
     AgeFilter ageFilter = DashboardFilters.ageFilter();
-    ageFilter.shouldBe(hidden);
-    refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
     ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
     ageFilter.past90days().click();

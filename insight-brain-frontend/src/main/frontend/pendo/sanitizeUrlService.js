@@ -10,7 +10,7 @@ import ownerConstant from '../utility/services/owner.constant';
 /**
  * Provides a `sanitize` function that removes the baseUrl and any dynamic route parameters from URLs within the
  * main IQ app.  Not for use within the reports or other bundles.
- * NOTE: This implementation assumes that any hash query parameters (eg timeFilterFeature) do not have dynamic values.
+ * NOTE: This implementation assumes that any hash query parameters do not have dynamic values.
  */
 function sanitizeUrlService($urlService, baseUrlService) {
   /*

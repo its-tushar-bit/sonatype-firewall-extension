@@ -50,7 +50,6 @@ const initState = Object.freeze({
   filtersAreDirty: false,
   needsAcknowledgement: false,
   isViolationsTab: false,
-  isTimeFilterFeatureEnabled: false,
   showAgeFilter: false,
 
   // available filter items
@@ -74,8 +73,7 @@ export default function dashboardFilterReducer(state = initState, {type, payload
   switch (type) {
     case UI_ROUTER_ON_FINISH: {
       const isViolationsTab = payload.toState.name === 'dashboard.overview.violations';
-      const isTimeFilterFeatureEnabled = !!payload.toParams.timeFilterFeature;
-      const newState = {...state, isViolationsTab, isTimeFilterFeatureEnabled};
+      const newState = {...state, isViolationsTab};
       return setShowAgeFilter(newState);
     }
 
@@ -250,7 +248,6 @@ function getAge(state, maxDaysOld) {
 }
 
 function setShowAgeFilter(state) {
-  const showAgeFilter = state.isViolationsTab &&
-      (state.isTimeFilterFeatureEnabled || (state.selected.maxDaysOld !== defaultMaxDaysOld));
+  const showAgeFilter = state.isViolationsTab;
   return {...state, showAgeFilter};
 }

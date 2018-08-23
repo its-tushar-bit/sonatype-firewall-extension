@@ -69,7 +69,6 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.AGE_FILTER_FEATURE_FLAG;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.COMPONENTS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
@@ -186,26 +185,18 @@ public class DashboardFilterTest
   }
 
   /**
-   * Age only applies to violations tab and defaults to 'past 30 days'. It is currently only displayed when either
-   * - URL query parameter 'timeFilterFeature' is used, or
-   * - the query parameter is not used, but a filter with non-default age is loaded.
+   * Age only applies to violations tab and defaults to 'past 30 days'.
    */
   @Test
   public void testAgeFilter() {
-    refreshOrOpen(APPLICATIONS_URL + AGE_FILTER_FEATURE_FLAG);
+    refreshOrOpen(APPLICATIONS_URL);
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.shouldBe(hidden);
-    refreshOrOpen(APPLICATIONS_URL);
-    ageFilter.shouldBe(hidden);
 
-    refreshOrOpen(COMPONENTS_URL + AGE_FILTER_FEATURE_FLAG);
-    ageFilter.shouldBe(hidden);
     refreshOrOpen(COMPONENTS_URL);
     ageFilter.shouldBe(hidden);
 
     refreshOrOpen(VIOLATIONS_URL);
-    ageFilter.shouldBe(hidden);
-    refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
     ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldHaveSize(6)
@@ -218,14 +209,7 @@ public class DashboardFilterTest
     ageFilter.singleSelectList().shouldHaveSize(6);
     eyesWatcher.eyesCheck("90 days selected - after apply");
 
-    // filter should be visible but readonly if the loaded filter has non-default age value, even without feature flag
     refreshOrOpen(VIOLATIONS_URL);
-    ageFilter.shouldBe(visible).anchor().shouldBe(DISABLED);
-    ageFilter.twisty().click();
-    ageFilter.singleSelectList().shouldBe(empty);
-    ageFilter.counter().shouldHave(text("past 90 days"));
-
-    refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
     ageFilter.twisty().click();
     ageFilter.past30days().shouldNotBe(selected).click();
     // check that revert button restores previously applied value
@@ -258,6 +242,7 @@ public class DashboardFilterTest
   @Test
   public void testFilters() throws Exception {
     assertInitialFilterState();
+    assertAgeFilterInitialState();
     eyesWatcher.eyesCheck("Initial State");
 
     // assert no filtering is done
@@ -1001,6 +986,16 @@ public class DashboardFilterTest
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(visible);
     threatLevelFilter.twisty().click();
+  }
+
+  private void assertAgeFilterInitialState() {
+    AgeFilter ageFilter = DashboardFilters.ageFilter();
+    ageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("past 30 days"));
+    ageFilter.singleSelectList().shouldBe(empty);
+    ageFilter.twisty().click();
+    ageFilter.singleSelectList().shouldHaveSize(6);
+    ageFilter.past30days().shouldBe(selected).label().shouldHave(text("past 30 days"));
+    ageFilter.twisty().click();
   }
 
   private void assertPolicyTypeFilterInitialState() {

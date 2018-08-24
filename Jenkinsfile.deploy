@@ -33,12 +33,12 @@ pipeline {
     }
     stage('Publish Server') {
       steps {
-        echo "publishProduct('IQServer')"
+        publishProduct('IQServer')
       }
     }
     stage('Publish CLI Scanner') {
       steps {
-        echo "publishProduct('CLIScanner')"
+        publishProduct('CLIScanner')
       }
     }
     stage('Build and push internal RPM') {

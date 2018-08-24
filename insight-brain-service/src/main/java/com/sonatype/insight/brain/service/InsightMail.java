@@ -11,8 +11,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.portal.mail.EmailUtil;
-import com.sonatype.insight.portal.mail.InsightMailer;
+import com.sonatype.insight.mail.EmailUtil;
+import com.sonatype.insight.mail.InsightMailer;
 
 import org.sonatype.micromailer.Address;
 import org.sonatype.micromailer.EMailer;

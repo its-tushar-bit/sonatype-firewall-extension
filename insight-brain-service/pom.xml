@@ -110,8 +110,8 @@
       <artifactId>insight-brain-scanner</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-portal-mail</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-mail</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

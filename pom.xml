@@ -72,6 +72,7 @@
     <module>insight-brain-scanner</module>
     <module>insight-brain-frontend</module>
     <module>insight-brain-service</module>
+    <module>insight-mail</module>
     <module>insight-brain-client</module>
     <module>insight-rm-common</module>
     <module>insight-brain-cli-common</module>
@@ -150,6 +151,11 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
+        <version>1.51.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-mail</artifactId>
         <version>1.51.0-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -369,11 +375,6 @@
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-license-model</artifactId>
-        <version>${hds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-portal-mail</artifactId>
         <version>${hds.version}</version>
       </dependency>
       <dependency>

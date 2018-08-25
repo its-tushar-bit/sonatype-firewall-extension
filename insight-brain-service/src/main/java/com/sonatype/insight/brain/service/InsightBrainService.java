@@ -345,9 +345,9 @@ public class InsightBrainService
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
   }
 
-  private void addServletFilter(Environment env, Class<? extends Filter> filterType, String urlPattern) {
+  private void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {
     env.servlets().addFilter(filterType.getSimpleName(), getInstance(filterType))
-        .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPattern);
+        .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
   }
 
   private void replaceGenericExceptionMapper(final Environment environment, InsightConfig config) {

@@ -3,6 +3,8 @@ $tile-scroll-container-z-index: 0;
 $iq-tile-header-height: 24px; // Minimum height
 $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right actions
 
+$iq-tile-actions-margin-top: 8px;
+
 /*
   #Name-spaced Tile System
 */
@@ -174,7 +176,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile__actions {
   float: right;
-  margin-top: 8px;
+  margin-top: $iq-tile-actions-margin-top;
   
   .btn {
     margin-right: 8px;
@@ -234,7 +236,16 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   width: 1024px - 17px;
 
   .iq-tile__actions {
+    // Various wrapper directives can create intervening divs between the iq-tile and its semantic child, such as the
+    // iq-tile__actions and iq-tile-header. The margin of the iq-tile-header collapses out of these divs, moving all
+    // of the header's siblings down along with it. To combat that, we remove the top margin that the
+    // iq-tile__actions would usually have.
     margin-top: 0;
+  }
+
+  > .iq-tile__actions {
+    // do not remove the margin if there are no intervening divs
+    margin-top: $iq-tile-actions-margin-top;
   }
 }
 

@@ -75,10 +75,11 @@ describe('evaluate.application.modal.controller.spec.js', function() {
   }));
 
   describe('Bundle submit', function() {
+    var appendSpy;
     beforeEach(inject(function($window) {
       $window.FormData = function() {
-        this.append = function() {
-        };
+        this.append = jasmine.createSpy();
+        appendSpy = this.append;
       };
       var original = angular.element;
       spyOn(angular, 'element').and.callFake(function(selector) {
@@ -126,6 +127,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     });
 
     it('Test submit success', function() {
+      expect(appendSpy).toHaveBeenCalledWith('filename', 'testfile');
       vm.bundle.notify = 'false';
       $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl(mockSelectedApplication.publicId, 'release',
           'false')).respond({

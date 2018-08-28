@@ -64,6 +64,7 @@ public class ScanResource
   public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,
                                @FormDataParam("file") InputStream is,
                                @FormDataParam("file") FormDataContentDisposition fileDetail,
+                               @FormDataParam("filename") String filename,
                                @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                                @Context HttpHeaders headers,
                                @QueryParam("stageId") String stageId,
@@ -72,8 +73,14 @@ public class ScanResource
   {
     try {
       antiCsrfFilter.validate(csrfToken, headers);
-      ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
-          sendNotifications);
+      // Browsers submit the Content-Disposition header with an UTF-8 encoded filename, Jersey however decodes that
+      // header using Latin-1, messing up non-ASCII filenames.
+      // We therefore transmit the filename in the body part of a separate form parameter for modern browsers ...
+      if (filename == null) {
+        // ... and fallback to the broken header in case of IE9
+        filename = fileDetail.getFileName();
+      }
+      ScanTicket result = scanService.scanBinary(appPublicId, is, filename, new Stage(stageId), sendNotifications);
       if (noFormData) {
         return Response.ok(JsonUtils.generate(result), ErrorResponse.CONTENT_TYPE).build();
       }

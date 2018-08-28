@@ -98,6 +98,9 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
     if ($window.FormData) {
       var form = new FormData();
       form.append('file', fileElement.files[0]);
+      // Explicitly add the filename as a form parameter since there is an encoding mismatch between the browsers and
+      // server in the Content-Disposition filename header.
+      form.append('filename', fileElement.files[0].name);
       $http.post(vm.uploadBundleUrl(), form).then(function(response) {
         vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.data.ticketId);
         doPoll();

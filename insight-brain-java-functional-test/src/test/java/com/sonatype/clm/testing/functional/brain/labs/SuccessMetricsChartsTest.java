@@ -13,12 +13,16 @@ import java.util.function.Predicate;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot;
+import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot.BarPlot;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -33,21 +37,41 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.google.common.collect.Ordering;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ALL_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.CRITICAL_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.LICENSE_CLASS;
 import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT_MONTHLY;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.OTHER_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.QUALITY_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SECURITY_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.TOTAL_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.DESCRIPTION_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.GUIDELINE_TOOLTIP_VALUES;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.HEIGHT_ATTR;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.TITLE_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.TRENDS_DELTA_DOWN_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.TRENDS_DELTA_UP_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.TRENDS_DISCOVERED_CLASS;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile.TRENDS_FIXED_CLASS;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -56,15 +80,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECUR
 public class SuccessMetricsChartsTest
     extends AbstractFunctionalTest
 {
-  private static final String FILL_ATTRIBUTE = "fill";
-
-  private static final String STROKE_ATTRIBUTE = "stroke";
-
-  private static final String ALL_COLOR = "rgb(82, 121, 199)";
-
-  private static final String CRITICAL_COLOR = "rgb(253, 55, 62)";
-
-  private static final DateTime thisMonth = DateTime.now().withDayOfMonth(15);
+  private static final DateTime thisMonth = DateTime.parse("2018-08-15T19:36");
 
   private static final DateTime fourMonthsAgo = thisMonth.minusMonths(4);
 
@@ -89,6 +105,8 @@ public class SuccessMetricsChartsTest
 
   @BeforeClass
   public static void startup() {
+    // always use the same date to have consistent results in weekly charts
+    setTimeTo(thisMonth);
     Application app1 = staticTempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
     Application app2 = staticTempEntity.newApplicationWithParent("app2", "SuccessMetricsChart Test App2");
     Application app3 = staticTempEntity.newApplicationWithParent("app3", "SuccessMetricsChart Test App3");
@@ -168,6 +186,11 @@ public class SuccessMetricsChartsTest
     loginAsAdmin();
   }
 
+  @AfterClass
+  public static void tearDown() {
+    resetTime();
+  }
+
   @Before
   public void navigate() {
     refreshOrOpen(successMetricsChartsPageUrl);
@@ -179,12 +202,252 @@ public class SuccessMetricsChartsTest
 
     successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
+    eyesWatcher.eyesCheck();
     SummaryStatementTile.title().shouldHave(text("Test"));
-    String startOfMonth = DateTimeFormat.forPattern("MMM d, YYYY").withLocale(Locale.ENGLISH)
-        .print(LocalDate.now().withDayOfMonth(1));
+    String reportUpdated = DateTimeFormat.forPattern("MMM d, YYYY").withLocale(Locale.ENGLISH)
+        .print(Ordering.natural().max(LocalDate.now().withDayOfMonth(1), LocalDate.now().withDayOfWeek(1)));
     SummaryStatementTile.averages().shouldHave(text("This report contains data for 2 applications, evaluated over the" +
         " past 4 months, aggregated and deduplicated over the build, stage release, release, and operate stages. Last" +
-        " updated " + startOfMonth + "."));
+        " updated " + reportUpdated + "."));
+  }
+
+  @Test
+  public void testViolationTrendTile() {
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
+    successMetricsChartsPage.should(appear);
+
+    ScrollUtil.scrollIntoView(ViolationTrendTile.root());
+
+    ViolationTrendTile.root().shouldBe(visible);
+
+    ViolationTrendTile.title().shouldHave(TITLE_TEXT);
+    ViolationTrendTile.description().shouldHave(DESCRIPTION_TEXT);
+
+    // all violations
+    ViolationTrendPlot allViolations = ViolationTrendTile.allViolationsPlot();
+    allViolations.shouldBe(visible);
+
+    BarPlot allViolationsDeltaPlot = allViolations.deltaPlot();
+    allViolationsDeltaPlot.shouldBe(visible);
+    allViolationsDeltaPlot.bar(3).shouldHave(TRENDS_DELTA_UP_CLASS).shouldHave(heightAttrStartingWith("20.66"));
+    allViolationsDeltaPlot.bar(7).shouldHave(TRENDS_DELTA_DOWN_CLASS).shouldHave(heightAttrStartingWith("10.33"));
+
+    BarPlot newViolationsDeltaPlot = allViolations.newPlot();
+    newViolationsDeltaPlot.shouldBe(visible);
+    newViolationsDeltaPlot.bar(3).shouldHave(TRENDS_DISCOVERED_CLASS).shouldHave(heightAttrStartingWith("31"));
+
+    allViolations.waivedPlot().shouldBe(visible);
+
+    BarPlot allViolationsFixedPlot = allViolations.fixedPlot();
+    allViolationsFixedPlot.shouldBe(visible);
+    allViolationsFixedPlot.bar(3).shouldHave(TRENDS_FIXED_CLASS).shouldHave(heightAttrStartingWith("31"));
+    allViolationsFixedPlot.bar(7).shouldHave(TRENDS_FIXED_CLASS).shouldHave(heightAttrStartingWith("15.5"));
+
+    // security violations
+    ViolationTrendPlot securityViolations = ViolationTrendTile.securityViolationsPlot();
+    securityViolations.shouldBe(visible);
+
+    BarPlot securityViolationsDeltaPlot = securityViolations.deltaPlot();
+    securityViolationsDeltaPlot.shouldBe(visible);
+    securityViolationsDeltaPlot.bar(3).shouldHave(TRENDS_DELTA_DOWN_CLASS).shouldHave(heightAttrStartingWith("10.33"));
+    securityViolationsDeltaPlot.bar(7).shouldHave(TRENDS_DELTA_DOWN_CLASS).shouldHave(heightAttrStartingWith("10.33"));
+
+    securityViolations.newPlot().shouldBe(visible);
+    securityViolations.waivedPlot().shouldBe(visible);
+
+    BarPlot securityViolationsFixedPlot = securityViolations.fixedPlot();
+    securityViolationsFixedPlot.shouldBe(visible);
+    securityViolationsFixedPlot.bar(3).shouldHave(TRENDS_FIXED_CLASS).shouldHave(heightAttrStartingWith("15.5"));
+    securityViolationsFixedPlot.bar(7).shouldHave(TRENDS_FIXED_CLASS).shouldHave(heightAttrStartingWith("15.5"));
+
+    // license violations
+    ViolationTrendPlot licenseViolations = ViolationTrendTile.licenseViolationsPlot();
+    securityViolations.shouldBe(visible);
+
+    BarPlot licenseViolationsDeltaPlot = licenseViolations.deltaPlot();
+    licenseViolationsDeltaPlot.shouldBe(visible);
+    licenseViolationsDeltaPlot.bar(3).shouldHave(TRENDS_DELTA_UP_CLASS).shouldHave(heightAttrStartingWith("10.33"));
+
+    BarPlot licenseViolationsNewPlot = licenseViolations.newPlot();
+    licenseViolationsNewPlot.shouldBe(visible);
+    licenseViolationsNewPlot.bar(3).shouldHave(TRENDS_DISCOVERED_CLASS).shouldHave(heightAttrStartingWith("15.5"));
+
+    licenseViolations.waivedPlot().shouldBe(visible);
+
+    BarPlot licenseViolationsFixedPlot = licenseViolations.fixedPlot();
+    licenseViolationsFixedPlot.shouldBe(visible);
+    licenseViolationsFixedPlot.bar(3).shouldHave(TRENDS_FIXED_CLASS).shouldHave(heightAttrStartingWith("15.5"));
+
+    // quality violations
+    ViolationTrendPlot qualityViolations = ViolationTrendTile.qualityViolationsPlot();
+    securityViolations.shouldBe(visible);
+
+    BarPlot qualityViolationsDeltaPlot = qualityViolations.deltaPlot();
+    qualityViolationsDeltaPlot.shouldBe(visible);
+    qualityViolationsDeltaPlot.bar(3).shouldHave(TRENDS_DELTA_UP_CLASS).shouldHave(heightAttrStartingWith("10.33"));
+
+    BarPlot qualityViolationsNewPlot = qualityViolations.newPlot();
+    qualityViolationsNewPlot.shouldBe(visible);
+    qualityViolationsNewPlot.bar(3).shouldHave(TRENDS_DISCOVERED_CLASS).shouldHave(heightAttrStartingWith("7.75"));
+
+    qualityViolations.waivedPlot().shouldBe(visible);
+    qualityViolations.fixedPlot().shouldBe(visible);
+
+    // other violations
+    ViolationTrendPlot otherViolations = ViolationTrendTile.otherViolationsPlot();
+    securityViolations.shouldBe(visible);
+
+    BarPlot otherViolationsDeltaPlot = otherViolations.deltaPlot();
+    otherViolationsDeltaPlot.shouldBe(visible);
+    otherViolationsDeltaPlot.bar(3).shouldHave(TRENDS_DELTA_UP_CLASS).shouldHave(heightAttrStartingWith("10.33"));
+
+    BarPlot otherViolationsNewPlot = otherViolations.newPlot();
+    otherViolationsNewPlot.shouldBe(visible);
+    otherViolationsNewPlot.bar(3).shouldHave(TRENDS_DISCOVERED_CLASS).shouldHave(heightAttrStartingWith("7.75"));
+
+    otherViolations.waivedPlot().shouldBe(visible);
+    otherViolations.fixedPlot().shouldBe(visible);
+
+    // tooltips
+    ViolationTrendTile.guidelineTooltip.shouldNotBe(visible);
+    ViolationTrendTile.deltaBarTooltip.shouldNotBe(visible);
+    ViolationTrendTile.newBarTooltip.shouldNotBe(visible);
+    ViolationTrendTile.waivedBarTooltip.shouldNotBe(visible);
+    ViolationTrendTile.fixedBarTooltip.shouldNotBe(visible);
+
+    allViolationsDeltaPlot.bar(3).hover();
+    eyesWatcher.eyesCheck();
+
+    verifyPlotTooltips(allViolationsDeltaPlot, new String[][]{
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"2", "4", "0", "2"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"1", "0", "0", "1"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"}});
+
+    verifyPlotTooltips(securityViolationsDeltaPlot, new String[][]{
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"1", "0", "0", "1"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"1", "0", "0", "1"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"}});
+
+    verifyPlotTooltips(licenseViolationsDeltaPlot, new String[][]{
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"1", "2", "0", "1"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"}});
+
+    verifyPlotTooltips(qualityViolationsDeltaPlot, new String[][]{
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"1", "1", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"}});
+
+    verifyPlotTooltips(otherViolationsDeltaPlot, new String[][]{
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"1", "1", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"},
+        new String[]{"0", "0", "0", "0"}});
+  }
+
+  private void verifyPlotTooltips(BarPlot plot, String[][] tooltipValuesPerWeek) {
+    for(int i = 0; i < tooltipValuesPerWeek.length; i++) {
+      plot.bar(i).hover();
+      verifyTooltips(GUIDELINE_TOOLTIP_VALUES[i], tooltipValuesPerWeek[i]);
+    }
+  }
+
+  private void verifyTooltips(String guidelineTooltip, String[] barTooltips)
+  {
+    ViolationTrendTile.guidelineTooltip.shouldBe(visible).shouldHave(text(guidelineTooltip));
+    ViolationTrendTile.deltaBarTooltip.shouldBe(visible).shouldHave(text(barTooltips[0]));
+    ViolationTrendTile.newBarTooltip.shouldBe(visible).shouldHave(text(barTooltips[1]));
+    ViolationTrendTile.waivedBarTooltip.shouldBe(visible).shouldHave(text(barTooltips[2]));
+    ViolationTrendTile.fixedBarTooltip.shouldBe(visible).shouldHave(text(barTooltips[3]));
+  }
+
+  @Test
+  public void testViolationsByCategoryTile() {
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
+
+    successMetricsChartsPage.should(appear);
+
+    ScrollUtil.scrollIntoView(ViolationsByCategoryTile.root());
+
+    ViolationsByCategoryTile.root().shouldBe(visible);
+
+    ViolationsByCategoryTile.title().shouldHave(text("12 Week Open Violation Totals"));
+
+    ViolationsByCategoryTile.description().shouldHave(text("Open violations over the past 12 weeks by policy type."));
+
+    ViolationsByCategoryTile.chart().shouldBe(visible);
+    eyesWatcher.eyesCheck();
+
+    ElementsCollection points = ViolationsByCategoryTile.points();
+    points.shouldHaveSize(12 * 5); // 8 weeks times four categories plus totals
+
+    String[] expectedClassOrdering = { OTHER_CLASS, QUALITY_CLASS, LICENSE_CLASS, SECURITY_CLASS, TOTAL_CLASS };
+
+    for (int i = 0; i < points.size(); i++) {
+      points.get(i).shouldBe(visible).shouldHave(cssClass(expectedClassOrdering[i / 12]));
+    }
+
+    ElementsCollection lines = ViolationsByCategoryTile.lines();
+    lines.shouldHaveSize(5);
+
+    for (int i = 0; i < lines.size(); i++) {
+      lines.get(i).shouldBe(visible).shouldHave(cssClass(expectedClassOrdering[i]));
+    }
+
+    ElementsCollection weeks = ViolationsByCategoryTile.xAxisLabels();
+    weeks.shouldHaveSize(12);
+
+    String[] expectedWeeks = {
+        "28 May", "04 Jun", "11 Jun", "18 Jun", "25 Jun", "02 Jul", "09 Jul", "16 Jul", "23 Jul", "30 Jul", "06 Aug",
+        "13 Aug"
+    };
+    for (int i = 0; i < 12; i++) {
+      weeks.get(i).shouldBe(visible).shouldHave(text(expectedWeeks[i]));
+    }
   }
 
   @Test
@@ -236,15 +499,15 @@ public class SuccessMetricsChartsTest
 
     ElementsCollection points = MttrTile.mttrPoints();
     points.shouldHaveSize(4);
-    points.get(0).should(visible).shouldHave(attribute(FILL_ATTRIBUTE, ALL_COLOR));
-    points.get(1).should(visible).shouldHave(attribute(FILL_ATTRIBUTE, ALL_COLOR));
-    points.get(2).should(visible).shouldHave(attribute(FILL_ATTRIBUTE, CRITICAL_COLOR));
-    points.get(3).should(visible).shouldHave(attribute(FILL_ATTRIBUTE, CRITICAL_COLOR));
+    points.get(0).should(visible).shouldHave(cssClass(ALL_CLASS));
+    points.get(1).should(visible).shouldHave(cssClass(ALL_CLASS));
+    points.get(2).should(visible).shouldHave(cssClass(CRITICAL_CLASS));
+    points.get(3).should(visible).shouldHave(cssClass(CRITICAL_CLASS));
 
     ElementsCollection lines = MttrTile.mttrLines();
     lines.shouldHaveSize(2);
-    lines.get(0).should(visible).shouldHave(attribute(STROKE_ATTRIBUTE, ALL_COLOR));
-    lines.get(1).should(visible).shouldHave(attribute(STROKE_ATTRIBUTE, CRITICAL_COLOR));
+    lines.get(0).should(visible).shouldHave(cssClass(ALL_CLASS));
+    lines.get(1).should(visible).shouldHave(cssClass(CRITICAL_CLASS));
 
     ElementsCollection months = MttrTile.mttrXAxisLabels();
     months.shouldHaveSize(12);
@@ -318,5 +581,27 @@ public class SuccessMetricsChartsTest
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
     successMetricsChartsPage.should(appear);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_MONTHLY);
+  }
+
+  private static void setTimeTo(DateTime fakeNow) {
+    DateTimeUtils.setCurrentMillisFixed(fakeNow.getMillis());
+  }
+
+  private static void resetTime() {
+    DateTimeUtils.setCurrentMillisSystem();
+  }
+
+  private static Condition heightAttrStartingWith(final String value) {
+    return new Condition("heightAttrStartingWith") {
+      @Override
+      public boolean apply(WebElement element) {
+        return element.getAttribute(HEIGHT_ATTR).startsWith(value);
+      }
+
+      @Override
+      public String actualValue(WebElement element) {
+        return element.getAttribute(HEIGHT_ATTR);
+      }
+    };
   }
 }

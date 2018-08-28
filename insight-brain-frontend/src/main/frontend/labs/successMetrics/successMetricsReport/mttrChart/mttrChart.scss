@@ -29,10 +29,10 @@
   }
 
   .legend-entry:nth-child(1) .legend-symbol {
-    fill: $iq-light-red;
+    fill: $iq-dark-red;
   }
 
   .legend-entry:nth-child(2) .legend-symbol {
-    fill: $iq-dark-red;
+    fill: $iq-light-red;
   }
 }

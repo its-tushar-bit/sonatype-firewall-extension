@@ -27,7 +27,7 @@ public class AddSuccessMetricsModal
   private static final String ROOT_SELECTOR = "#add-success-metrics-report";
 
   public static final Condition ON_LOAD_WARNING_TEXT = Condition
-      .text("Data for incomplete months will skew monthly averages. May be slow for large data sets.");
+      .text("Data for incomplete months and weeks will skew averages. May be slow for large data sets.");
 
   public AddSuccessMetricsModal() {
     super(ROOT_SELECTOR);
@@ -41,11 +41,11 @@ public class AddSuccessMetricsModal
     return child("#add-success-metrics-perf-warning");
   }
 
-  public IqRadio byMostRecentRadioBtn() {
+  public IqRadio includingMostRecentEvaluations() {
     return new IqRadio(child("#add-success-metrics-latest"));
   }
 
-  public IqRadio byCalendarMonthRadioBtn() {
+  public IqRadio onlyForFullCalendarWeeksAndMonths() {
     return new IqRadio(child("#add-success-metrics-monthly"));
   }
 

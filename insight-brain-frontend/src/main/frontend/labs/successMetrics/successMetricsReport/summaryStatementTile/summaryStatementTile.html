@@ -22,4 +22,6 @@
 <div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">
   <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
   again{{::vm.successMetricsReport.includeLatestData ? '' : ' next month'}}.
+  {{::vm.successMetricsReport.includeLatestData ? ''
+  : ' Create a Success Metrics report using the \'include most recent evaluations\' option to see the latest data.'}}
 </div>

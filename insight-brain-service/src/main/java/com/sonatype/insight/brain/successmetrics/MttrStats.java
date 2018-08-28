@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 /**
- * A container for DescriptiveStatistics objects for Mean Times to Resolution at each threat level category
+ * A container for DescriptiveStatistics objects for MTTRs at each threat level category
  */
 class MttrStats
 {

@@ -68,7 +68,7 @@ public class SuccessMetricsIncludeLatestDataTest
     addSuccessMetricsModal.shouldBe(visible);
     addSuccessMetricsModal.name().setValue("Test Latest Data");
     addSuccessMetricsModal.byMostRecentWarning().shouldBe(hidden);
-    addSuccessMetricsModal.byMostRecentRadioBtn().shouldNotBe(selected).click();
+    addSuccessMetricsModal.includingMostRecentEvaluations().shouldNotBe(selected).click();
     addSuccessMetricsModal.byMostRecentWarning().shouldBe(visible).shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
     addSuccessMetricsModal.createBtn().click();
 

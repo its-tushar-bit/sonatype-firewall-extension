@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -104,15 +105,18 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
+import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
@@ -122,6 +126,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
@@ -1452,88 +1457,37 @@ public class TemporaryEntity
 
   public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
                                                                   Date timePeriodStart,
-                                                                  DescriptiveStatistics mttrLowThreatStats,
-                                                                  DescriptiveStatistics mttrModerateThreatStats,
-                                                                  DescriptiveStatistics mttrSevereThreatStats,
-                                                                  DescriptiveStatistics mttrCriticalThreatStats)
-  {
-    PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
-        mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats);
-
-    policyViolationAggregationDAO.insert(aggregation);
-    policyViolationAggregations.add(aggregation);
-
-    return aggregation;
-  }
-
-  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
-                                                                  Date timePeriodStart,
+                                                                  TimePeriod timePeriod,
                                                                   DescriptiveStatistics mttrLowThreatStats,
                                                                   DescriptiveStatistics mttrModerateThreatStats,
                                                                   DescriptiveStatistics mttrSevereThreatStats,
                                                                   DescriptiveStatistics mttrCriticalThreatStats,
-                                                                  int discoveredCountSecurityLowThreat,
-                                                                  int discoveredCountSecurityModerateThreat,
-                                                                  int discoveredCountSecuritySevereThreat,
-                                                                  int discoveredCountSecurityCriticalThreat,
-                                                                  int discoveredCountLicenseLowThreat,
-                                                                  int discoveredCountLicenseModerateThreat,
-                                                                  int discoveredCountLicenseSevereThreat,
-                                                                  int discoveredCountLicenseCriticalThreat,
-                                                                  int discoveredCountQualityLowThreat,
-                                                                  int discoveredCountQualityModerateThreat,
-                                                                  int discoveredCountQualitySevereThreat,
-                                                                  int discoveredCountQualityCriticalThreat,
-                                                                  int discoveredCountOtherLowThreat,
-                                                                  int discoveredCountOtherModerateThreat,
-                                                                  int discoveredCountOtherSevereThreat,
-                                                                  int discoveredCountOtherCriticalThreat,
-                                                                  int evaluationCount)
-  {
-    return newPolicyViolationAggregation(applicationId, timePeriodStart, null,
-        mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats,
-        discoveredCountSecurityLowThreat, discoveredCountSecurityModerateThreat, discoveredCountSecuritySevereThreat,
-        discoveredCountSecurityCriticalThreat, discoveredCountLicenseLowThreat, discoveredCountLicenseModerateThreat,
-        discoveredCountLicenseSevereThreat, discoveredCountLicenseCriticalThreat, discoveredCountQualityLowThreat,
-        discoveredCountQualityModerateThreat, discoveredCountQualitySevereThreat, discoveredCountQualityCriticalThreat,
-        discoveredCountOtherLowThreat, discoveredCountOtherModerateThreat, discoveredCountOtherSevereThreat,
-        discoveredCountOtherCriticalThreat, evaluationCount);
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+                                                                  Map<PolicyThreatCategory, Integer> openCounts,
+                                                                  int evaluationCount) {
+    return newPolicyViolationAggregation(applicationId, timePeriodStart, null, timePeriod, mttrLowThreatStats,
+        mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats, discoveredCounts, fixedCounts,
+        waivedCounts, openCounts, evaluationCount);
   }
 
   public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
                                                                   Date timePeriodStart,
                                                                   Date timePeriodEnd,
+                                                                  TimePeriod timePeriod,
                                                                   DescriptiveStatistics mttrLowThreatStats,
                                                                   DescriptiveStatistics mttrModerateThreatStats,
                                                                   DescriptiveStatistics mttrSevereThreatStats,
                                                                   DescriptiveStatistics mttrCriticalThreatStats,
-                                                                  int discoveredCountSecurityLowThreat,
-                                                                  int discoveredCountSecurityModerateThreat,
-                                                                  int discoveredCountSecuritySevereThreat,
-                                                                  int discoveredCountSecurityCriticalThreat,
-                                                                  int discoveredCountLicenseLowThreat,
-                                                                  int discoveredCountLicenseModerateThreat,
-                                                                  int discoveredCountLicenseSevereThreat,
-                                                                  int discoveredCountLicenseCriticalThreat,
-                                                                  int discoveredCountQualityLowThreat,
-                                                                  int discoveredCountQualityModerateThreat,
-                                                                  int discoveredCountQualitySevereThreat,
-                                                                  int discoveredCountQualityCriticalThreat,
-                                                                  int discoveredCountOtherLowThreat,
-                                                                  int discoveredCountOtherModerateThreat,
-                                                                  int discoveredCountOtherSevereThreat,
-                                                                  int discoveredCountOtherCriticalThreat,
-                                                                  int evaluationCount)
-  {
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+                                                                  Map<PolicyThreatCategory, Integer> openCounts,
+                                                                  int evaluationCount) {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
-        timePeriodEnd, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats,
-        discoveredCountSecurityLowThreat, discoveredCountSecurityModerateThreat, discoveredCountSecuritySevereThreat,
-        discoveredCountSecurityCriticalThreat, discoveredCountLicenseLowThreat, discoveredCountLicenseModerateThreat,
-        discoveredCountLicenseSevereThreat, discoveredCountLicenseCriticalThreat, discoveredCountQualityLowThreat,
-        discoveredCountQualityModerateThreat, discoveredCountQualitySevereThreat, discoveredCountQualityCriticalThreat,
-        discoveredCountOtherLowThreat, discoveredCountOtherModerateThreat, discoveredCountOtherSevereThreat,
-        discoveredCountOtherCriticalThreat, evaluationCount);
-
+        timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, 
+        mttrCriticalThreatStats, discoveredCounts, fixedCounts, waivedCounts, openCounts, evaluationCount);
     policyViolationAggregationDAO.insert(aggregation);
     policyViolationAggregations.add(aggregation);
 
@@ -1541,9 +1495,17 @@ public class TemporaryEntity
   }
 
   public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId, Date timePeriodStart) {
+    return newPolicyViolationAggregation(applicationId, timePeriodStart, MONTH);
+  }
+
+  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
+                                                                  Date timePeriodStart,
+                                                                  TimePeriod timePeriod)
+  {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation();
     aggregation.setApplicationId(applicationId);
     aggregation.setTimePeriodStart(timePeriodStart);
+    aggregation.setTimePeriod(timePeriod);
 
     policyViolationAggregationDAO.insert(aggregation);
     policyViolationAggregations.add(aggregation);
@@ -1562,6 +1524,7 @@ public class TemporaryEntity
    */
   public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
                                                                   LocalDate timePeriodStart,
+                                                                  TimePeriod timePeriod,
                                                                   List<Integer> securityViolationCounts,
                                                                   List<Integer> licenseViolationCounts,
                                                                   List<Integer> qualityViolationCounts,
@@ -1572,6 +1535,7 @@ public class TemporaryEntity
     aggregation.setApplicationId(applicationId);
     aggregation.setTimePeriodStart(timePeriodStart.toDateTimeAtStartOfDay().toDate());
     aggregation.setEvaluationCount(evaluationCount);
+    aggregation.setTimePeriod(timePeriod);
     setPolicyViolationCounts(aggregation, SECURITY, securityViolationCounts);
     setPolicyViolationCounts(aggregation, LICENSE, licenseViolationCounts);
     setPolicyViolationCounts(aggregation, QUALITY, qualityViolationCounts);
@@ -1635,7 +1599,7 @@ public class TemporaryEntity
     successMetricsReportData.setId(successMetricsReportId);
     successMetricsReportData.setLastUpdated(new Date());
     successMetricsReportData.setIncludedApplicationIds(Collections.singleton("1234"));
-
+    successMetricsReportData.setChartDataJson("");
     this.successMetricsReportDatas.add(successMetricsReportData);
     this.successMetricsReportDataDAO.insert(successMetricsReportData);
     return successMetricsReportData;

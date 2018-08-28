@@ -5,33 +5,45 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.MttrMonth;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.utils.DateUtils;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Ordering;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
 import static com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
 
@@ -51,6 +63,8 @@ public class SuccessMetricsReportDataService
   private final SuccessMetricsReportDataDAO successMetricsReportDataDAO;
 
   private final PolicyViolationAggregationDAO violationAggregationDAO;
+
+  private final DateTimeFormatter formatter = DateTimeFormat.forPattern("dd MMM").withLocale(Locale.ENGLISH);
 
   @Inject
   public SuccessMetricsReportDataService(ApplicationService applicationService,
@@ -82,7 +96,7 @@ public class SuccessMetricsReportDataService
 
     SuccessMetricsReportData reportData = successMetricsReportDataDAO.getById(successMetricsReportId);
     DateTime lastUpdated = includeLatestData ? currentDateTime
-        : currentDateTime.withDayOfMonth(1).millisOfDay().withMinimumValue();
+        : latest(currentDateTime.withDayOfMonth(1), currentDateTime.withDayOfWeek(1)).millisOfDay().withMinimumValue();
     Date lastUpdatedDate = lastUpdated.toDate();
 
     if (reportData == null) {
@@ -90,7 +104,7 @@ public class SuccessMetricsReportDataService
           includeLatestData);
 
       reportData = createSuccessMetricsReportData(successMetricsReportId, lastUpdatedDate, applicationIdsToQuery,
-          includeLatestData);
+          includeLatestData, currentDateTime);
 
       successMetricsReportDataDAO.insert(reportData);
     }
@@ -100,18 +114,16 @@ public class SuccessMetricsReportDataService
           includeLatestData);
 
       reportData = createSuccessMetricsReportData(successMetricsReportId, lastUpdatedDate, applicationIdsToQuery,
-          includeLatestData);
+          includeLatestData, currentDateTime);
       successMetricsReportDataDAO.update(reportData);
     }
 
-    SuccessMetricsChartDataDTO result = new SuccessMetricsChartDataDTO();
-    result.mttrs = getMttrs(reportData);
-    result.averages = getAverages(reportData);
-    result.applicationCounts = getApplicationCounts(applicationIdsToQuery, reportData);
-    result.lastUpdated = reportData.getLastUpdated();
-    result.monthCount = reportData.getMonthCount();
-
-    return result;
+    try {
+      return JsonUtils.parse(reportData.getChartDataJson(), SuccessMetricsChartDataDTO.class);
+    }
+    catch (IOException e) {
+      throw new IllegalStateException("Could not parse Success Metrics chart data.", e);
+    }
   }
 
   private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
@@ -142,7 +154,7 @@ public class SuccessMetricsReportDataService
     else {
       // The time that the aggregations would be updated to if run right now
       DateTime aggregationUpdateTime = includeLatestData ? currentDateTime
-          : currentDateTime.withDayOfMonth(1).withTimeAtStartOfDay();
+          : latest(currentDateTime.withDayOfMonth(1), currentDateTime.withDayOfWeek(1)).withTimeAtStartOfDay();
 
       DateTime reportDataLastUpdated = new DateTime(reportData.getLastUpdated());
 
@@ -156,41 +168,41 @@ public class SuccessMetricsReportDataService
   private SuccessMetricsReportData createSuccessMetricsReportData(String successMetricsReportId,
                                                                   Date lastUpdated,
                                                                   Set<String> applicationIdsToQuery,
-                                                                  boolean includeLatestData)
+                                                                  boolean includeLatestData,
+                                                                  DateTime currentDateTime)
   {
     SuccessMetricsReportData successMetricsReportData = new SuccessMetricsReportData();
     successMetricsReportData.setId(successMetricsReportId);
     successMetricsReportData.setIncludedApplicationIds(applicationIdsToQuery);
     successMetricsReportData.setLastUpdated(lastUpdated);
 
-    populateMttrData(successMetricsReportData, applicationIdsToQuery, includeLatestData);
-    populateAveragesData(successMetricsReportData, applicationIdsToQuery, includeLatestData);
-    populateApplicationCountsData(successMetricsReportData, applicationIdsToQuery, includeLatestData);
-
+    SuccessMetricsChartDataDTO chartDataDTO = new SuccessMetricsChartDataDTO();
     int activeApplicationCount = violationAggregationDAO.getActiveApplicationCount(applicationIdsToQuery,
         includeLatestData);
+    populateMttrData(chartDataDTO, applicationIdsToQuery, includeLatestData);
+    populateAveragesData(chartDataDTO, applicationIdsToQuery, includeLatestData);
+    populateApplicationCountsData(chartDataDTO, applicationIdsToQuery, activeApplicationCount, includeLatestData);
+    populateViolationCountsData(chartDataDTO, applicationIdsToQuery, includeLatestData);
+    populateViolationsByCategory(chartDataDTO, applicationIdsToQuery, includeLatestData, currentDateTime);
+    chartDataDTO.lastUpdated = lastUpdated;
+    successMetricsReportData.setChartDataJson(JsonUtils.format(chartDataDTO));
 
     successMetricsReportData.setActiveApplicationCount(activeApplicationCount);
 
     return successMetricsReportData;
   }
 
-  private void populateMttrData(SuccessMetricsReportData successMetricsReportData,
+  private void populateMttrData(SuccessMetricsChartDataDTO chartDataDTO,
                                 Set<String> applicationIdsToQuery,
                                 boolean includeLatestData)
   {
-    List<MttrMonth> mttrMonths = violationAggregationDAO.getMttrMonthlyAverages(applicationIdsToQuery,
-        includeLatestData);
-
-    Iterator<MttrMonth> mttrMonthIterator = mttrMonths.iterator();
-
-    for (int monthIndex = 13 - mttrMonths.size(); monthIndex < 13; monthIndex++) {
-      MttrMonth mttrMonth = mttrMonthIterator.next();
-
-      successMetricsReportData.setMttrMonthAll(monthIndex, getOverallMttr(mttrMonth));
-      successMetricsReportData.setMttrMonthCritical(monthIndex, getCriticalMttr(mttrMonth));
-      successMetricsReportData.setMttrMonthTimePeriodStart(monthIndex, mttrMonth.monthStart);
-    }
+    chartDataDTO.mttrs = violationAggregationDAO.getMttrMonthlyAverages(applicationIdsToQuery, includeLatestData)
+        .stream().map(
+            mttrMonth -> new MttrDTO(
+                new YearMonth(mttrMonth.monthStart).monthOfYear().getAsShortText(Locale.US),
+                getOverallMttr(mttrMonth),
+                getCriticalMttr(mttrMonth)))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -222,7 +234,7 @@ public class SuccessMetricsReportDataService
     return mttrMonth.mttrCriticalThreat != null ? (int) (mttrMonth.mttrCriticalThreat.doubleValue() / 1000) : null;
   }
 
-  private void populateAveragesData(SuccessMetricsReportData successMetricsReportData,
+  private void populateAveragesData(SuccessMetricsChartDataDTO chartDataDTO,
                                     Set<String> applicationIdsToQuery,
                                     boolean includeLatestData)
   {
@@ -270,33 +282,29 @@ public class SuccessMetricsReportDataService
         queryResults.size());
     double otherPolicyViolationsPerApplication = divideOrZero(sumDoubles(otherViolationCounts), queryResults.size());
 
-    successMetricsReportData.setEvaluationsPerMonth(divideOrZero(sumIntegers(evaluationCounts), queryResults.size()));
+    chartDataDTO.monthCount = queryResults.size();
 
-    successMetricsReportData
-        .setSecurityCriticalPolicyViolationsPerApplication(securityCriticalPolicyViolationsPerApplication);
-    successMetricsReportData.setSecurityPolicyViolationsPerApplication(securityPolicyViolationsPerApplication);
-
-    successMetricsReportData
-        .setLicenseCriticalPolicyViolationsPerApplication(licenseCriticalPolicyViolationsPerApplication);
-    successMetricsReportData.setLicensePolicyViolationsPerApplication(licensePolicyViolationsPerApplication);
-
-    successMetricsReportData
-        .setQualityCriticalPolicyViolationsPerApplication(qualityCriticalPolicyViolationsPerApplication);
-    successMetricsReportData.setQualityPolicyViolationsPerApplication(qualityPolicyViolationsPerApplication);
-
-    successMetricsReportData
-        .setOtherCriticalPolicyViolationsPerApplication(otherCriticalPolicyViolationsPerApplication);
-    successMetricsReportData.setOtherPolicyViolationsPerApplication(otherPolicyViolationsPerApplication);
-
-    successMetricsReportData.setTotalCriticalPolicyViolationsPerApplication(
+    ThreatCategoryPolicyViolationsDTO totalViolations = new ThreatCategoryPolicyViolationsDTO(
+        securityPolicyViolationsPerApplication + licensePolicyViolationsPerApplication
+            + qualityPolicyViolationsPerApplication + otherPolicyViolationsPerApplication,
         securityCriticalPolicyViolationsPerApplication + licenseCriticalPolicyViolationsPerApplication
             + qualityCriticalPolicyViolationsPerApplication + otherCriticalPolicyViolationsPerApplication);
 
-    successMetricsReportData.setTotalPolicyViolationsPerApplication(
-        securityPolicyViolationsPerApplication + licensePolicyViolationsPerApplication
-            + qualityPolicyViolationsPerApplication + otherPolicyViolationsPerApplication);
+    ThreatCategoryPolicyViolationsDTO securityViolations = new ThreatCategoryPolicyViolationsDTO(
+        securityPolicyViolationsPerApplication, securityCriticalPolicyViolationsPerApplication);
 
-    successMetricsReportData.setMonthCount(queryResults.size());
+    ThreatCategoryPolicyViolationsDTO licenseViolations = new ThreatCategoryPolicyViolationsDTO(
+        licensePolicyViolationsPerApplication, licenseCriticalPolicyViolationsPerApplication);
+
+    ThreatCategoryPolicyViolationsDTO qualityViolations = new ThreatCategoryPolicyViolationsDTO(
+        qualityPolicyViolationsPerApplication, qualityCriticalPolicyViolationsPerApplication);
+
+    ThreatCategoryPolicyViolationsDTO otherViolations = new ThreatCategoryPolicyViolationsDTO(
+        otherPolicyViolationsPerApplication, otherCriticalPolicyViolationsPerApplication);
+
+    chartDataDTO.averages = new AverageDiscoveredPolicyViolationsDTO(
+        divideOrZero(sumIntegers(evaluationCounts), queryResults.size()), totalViolations, securityViolations,
+        licenseViolations, qualityViolations, otherViolations);
   }
 
   private static double sumDoubles(Collection<Double> numbers) {
@@ -323,106 +331,106 @@ public class SuccessMetricsReportDataService
     return denominator == 0 ? 0.0 : numerator / denominator;
   }
 
-  private void populateApplicationCountsData(SuccessMetricsReportData successMetricsReportData,
+  private void populateApplicationCountsData(SuccessMetricsChartDataDTO chartDataDTO,
                                              Set<String> applicationIdsToQuery,
+                                             int activeApplicationCount,
                                              boolean includeLatestData)
   {
     ApplicationCountsByThreat applicationCounts = violationAggregationDAO
         .getApplicationCountsByThreatByApplicationIds(applicationIdsToQuery, includeLatestData);
 
-    successMetricsReportData.setApplicationsWithViolationsTotal(applicationCounts.countAnyThreat);
-    successMetricsReportData.setApplicationsWithCriticalViolationsTotal(applicationCounts.countAnyCriticalThreat);
+    ThreatCategoryApplicationCount totalCount = new ThreatCategoryApplicationCount(
+        applicationCounts.countAnyThreat, applicationCounts.countAnyCriticalThreat);
 
-    successMetricsReportData.setApplicationsWithViolationsSecurity(applicationCounts.countSecurityThreat);
-    successMetricsReportData
-        .setApplicationsWithCriticalViolationsSecurity(applicationCounts.countSecurityCriticalThreat);
+    ThreatCategoryApplicationCount securityCount = new ThreatCategoryApplicationCount(
+        applicationCounts.countSecurityThreat, applicationCounts.countSecurityCriticalThreat);
 
-    successMetricsReportData.setApplicationsWithViolationsLicense(applicationCounts.countLicenseThreat);
-    successMetricsReportData.setApplicationsWithCriticalViolationsLicense(applicationCounts.countLicenseCriticalThreat);
+    ThreatCategoryApplicationCount licenseCount = new ThreatCategoryApplicationCount(
+        applicationCounts.countLicenseThreat, applicationCounts.countLicenseCriticalThreat);
 
-    successMetricsReportData.setApplicationsWithViolationsQuality(applicationCounts.countQualityThreat);
-    successMetricsReportData.setApplicationsWithCriticalViolationsQuality(applicationCounts.countQualityCriticalThreat);
+    ThreatCategoryApplicationCount qualityCount = new ThreatCategoryApplicationCount(
+        applicationCounts.countQualityThreat, applicationCounts.countQualityCriticalThreat);
 
-    successMetricsReportData.setApplicationsWithViolationsOther(applicationCounts.countOtherThreat);
-    successMetricsReportData.setApplicationsWithCriticalViolationsOther(applicationCounts.countOtherCriticalThreat);
+    ThreatCategoryApplicationCount otherCount = new ThreatCategoryApplicationCount(
+        applicationCounts.countOtherThreat, applicationCounts.countOtherCriticalThreat);
+
+    chartDataDTO.applicationCounts = new ApplicationCountsDTO(applicationIdsToQuery.size(), activeApplicationCount,
+        totalCount, securityCount, licenseCount, qualityCount, otherCount);
+  }
+
+  private void populateViolationsByCategory(SuccessMetricsChartDataDTO dto,
+                                            Set<String> applicationIdsToQuery,
+                                            boolean includeLatestData,
+                                            DateTime currentDateTime)
+  {
+    dto.violationsByCategoryWeeks = violationAggregationDAO
+        .getOpenViolationsCountsByApplicationIds(applicationIdsToQuery, includeLatestData).stream().map(
+            week -> new ViolationsByCategoryDTO(getAdjustedOpenViolationCountsDate(week.weekStart),
+                week.openViolationCounts.get(SECURITY), week.openViolationCounts.get(LICENSE),
+                week.openViolationCounts.get(QUALITY), week.openViolationCounts.get(OTHER)))
+        .collect(Collectors.toCollection(LinkedList::new));
+
+    if (dto.violationsByCategoryWeeks.isEmpty()) {
+      return;
+    }
+
+    padWeeks(dto.violationsByCategoryWeeks, includeLatestData, currentDateTime);
+  }
+
+  private void padWeeks(List<ViolationsByCategoryDTO> violationsByCategoryWeeks,
+                        boolean includeLatestData,
+                        DateTime currentDateTime)
+  {
+    // Add missing weeks to return a full 12 weeks worth of data
+    LocalDate weekStart = new LocalDate(currentDateTime.withDayOfWeek(1));
+    while (violationsByCategoryWeeks.size() < 12) {
+      // figure out the missing/padded week and add it to the list
+      int weeksToAdjust = includeLatestData ? violationsByCategoryWeeks.size() - 1 : violationsByCategoryWeeks.size();
+      LocalDate missingWeek = weekStart.minusWeeks(weeksToAdjust);
+      violationsByCategoryWeeks.add(0,
+          new ViolationsByCategoryDTO(formatter.print(missingWeek), null, null, null, null));
+    }
+  }
+
+  private void populateViolationCountsData(SuccessMetricsChartDataDTO chartDataDTO,
+                                           Set<String> applicationIdsToQuery,
+                                           boolean includeLatestData)
+  {
+    chartDataDTO.violationCounts = violationAggregationDAO
+        .getViolationCountsByApplicationIds(applicationIdsToQuery, includeLatestData).stream().map(week -> {
+          ViolationCountsDTO violationCountsDTO = new ViolationCountsDTO();
+
+          DateTime periodStart = new DateTime(week.periodStart);
+          String monthName = periodStart.monthOfYear().getAsText(Locale.US);
+          int dayOfMonth = periodStart.getDayOfMonth();
+          String dayOfMonthOrdinal = dayOfMonth + DateUtils.getDayOfMonthSuffix(dayOfMonth);
+
+          violationCountsDTO.timePeriodName = "Week of " + monthName + " " + dayOfMonthOrdinal;
+          violationCountsDTO.discoveredCounts = week.discoveredCounts;
+          violationCountsDTO.fixedCounts = week.fixedCounts;
+          violationCountsDTO.waivedCounts = week.waivedCounts;
+
+          return violationCountsDTO;
+        })
+        .collect(Collectors.toList());
   }
 
   /**
-   * @return the list of MttrDTOs which will be empty if the MTTR functionality is disabled
-   * (ie, due to being in PoC mode)
+   * Open counts are calculated at a specific point in time (a snapshot) as opposed to discovered/fixed/waived counts 
+   * that represent the number of respective events that occurred during a given time period. The snapshot we use for 
+   * open counts is taken at the end of the time period (week) or technically at the beginning of the next time period. 
+   * Here we make those adjustments.
    */
-  private static List<MttrDTO> getMttrs(SuccessMetricsReportData successMetricsReportData) {
-    List<MttrDTO> retval = new ArrayList<>(PolicyViolationAggregationDAO.NUM_MONTHS);
-
-    for (int month = 1; month <= PolicyViolationAggregationDAO.NUM_MONTHS; month++) {
-      Integer mttrMonthAll = successMetricsReportData.getMttrMonthAll(month);
-      Integer mttrMonthCritical = successMetricsReportData.getMttrMonthCritical(month);
-      Date timePeriodStart = successMetricsReportData.getMttrMonthTimePeriodStart(month);
-
-      if (timePeriodStart != null) {
-        String timePeriodName = new YearMonth(timePeriodStart).monthOfYear().getAsShortText(Locale.US);
-        MttrDTO dto = new MttrDTO();
-
-        dto.timePeriodName = timePeriodName;
-        dto.criticalMttrInSeconds = mttrMonthCritical;
-        dto.mttrInSeconds = mttrMonthAll;
-
-        retval.add(dto);
-      }
+  private String getAdjustedOpenViolationCountsDate(Date weekStart) {
+    LocalDate weekStartAsLocalDate = new LocalDate(weekStart);
+    if (weekStartAsLocalDate.equals(new LocalDate().withDayOfWeek(1))) {
+      return "now";
     }
-
-    return retval;
+    return formatter.print(weekStartAsLocalDate.plusWeeks(1));
   }
 
-  private static AverageDiscoveredPolicyViolationsDTO getAverages(SuccessMetricsReportData successMetricsReportData) {
-    ThreatCategoryPolicyViolationsDTO totalViolations = new ThreatCategoryPolicyViolationsDTO(
-        successMetricsReportData.getTotalPolicyViolationsPerApplication(),
-        successMetricsReportData.getTotalCriticalPolicyViolationsPerApplication());
-
-    ThreatCategoryPolicyViolationsDTO securityViolations = new ThreatCategoryPolicyViolationsDTO(
-        successMetricsReportData.getSecurityPolicyViolationsPerApplication(),
-        successMetricsReportData.getSecurityCriticalPolicyViolationsPerApplication());
-
-    ThreatCategoryPolicyViolationsDTO licenseViolations = new ThreatCategoryPolicyViolationsDTO(
-        successMetricsReportData.getLicensePolicyViolationsPerApplication(),
-        successMetricsReportData.getLicenseCriticalPolicyViolationsPerApplication());
-
-    ThreatCategoryPolicyViolationsDTO qualityViolations = new ThreatCategoryPolicyViolationsDTO(
-        successMetricsReportData.getQualityPolicyViolationsPerApplication(),
-        successMetricsReportData.getQualityCriticalPolicyViolationsPerApplication());
-
-    ThreatCategoryPolicyViolationsDTO otherViolations = new ThreatCategoryPolicyViolationsDTO(
-        successMetricsReportData.getOtherPolicyViolationsPerApplication(),
-        successMetricsReportData.getOtherCriticalPolicyViolationsPerApplication());
-
-    return new AverageDiscoveredPolicyViolationsDTO(successMetricsReportData.getEvaluationsPerMonth(), totalViolations,
-        securityViolations, licenseViolations, qualityViolations, otherViolations);
-  }
-
-  private static ApplicationCountsDTO getApplicationCounts(Set<String> applicationIds,
-                                                           SuccessMetricsReportData successMetricsReportData)
+  private static DateTime latest(DateTime a, DateTime b)
   {
-    ThreatCategoryApplicationCount totalCount = new ThreatCategoryApplicationCount(
-        successMetricsReportData.getApplicationsWithViolationsTotal(),
-        successMetricsReportData.getApplicationsWithCriticalViolationsTotal());
-
-    ThreatCategoryApplicationCount securityCount = new ThreatCategoryApplicationCount(
-        successMetricsReportData.getApplicationsWithViolationsSecurity(),
-        successMetricsReportData.getApplicationsWithCriticalViolationsSecurity());
-
-    ThreatCategoryApplicationCount licenseCount = new ThreatCategoryApplicationCount(
-        successMetricsReportData.getApplicationsWithViolationsLicense(),
-        successMetricsReportData.getApplicationsWithCriticalViolationsLicense());
-
-    ThreatCategoryApplicationCount qualityCount = new ThreatCategoryApplicationCount(
-        successMetricsReportData.getApplicationsWithViolationsQuality(),
-        successMetricsReportData.getApplicationsWithCriticalViolationsQuality());
-
-    ThreatCategoryApplicationCount otherCount = new ThreatCategoryApplicationCount(
-        successMetricsReportData.getApplicationsWithViolationsOther(),
-        successMetricsReportData.getApplicationsWithCriticalViolationsOther());
-
-    return new ApplicationCountsDTO(applicationIds.size(), successMetricsReportData.getActiveApplicationCount(),
-        totalCount, securityCount, licenseCount, qualityCount, otherCount);
+    return Ordering.natural().max(a, b);
   }
 }

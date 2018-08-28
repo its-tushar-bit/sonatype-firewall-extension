@@ -26,11 +26,11 @@
           </div>
         </div>
         <fieldset class="section iq-radio-group">
-          <legend>Aggregation interval</legend>
-          <iq-radio id="add-success-metrics-monthly" model="vm.includeLatestData" value="false">by calendar month</iq-radio>
-          <iq-radio id="add-success-metrics-latest" model="vm.includeLatestData" value="true">by most recent evaluation</iq-radio>
+          <legend>Aggregation data</legend>
+          <iq-radio id="add-success-metrics-monthly" model="vm.includeLatestData" value="false">only full calendar weeks and months</iq-radio>
+          <iq-radio id="add-success-metrics-latest" model="vm.includeLatestData" value="true">including most recent evaluations</iq-radio>
           <div class="iq-alert" id="add-success-metrics-perf-warning" ng-if="vm.includeLatestData">
-            <i class='fa fa-warning'></i>Data for incomplete months will skew monthly averages. May be slow for large data sets.
+            <i class='fa fa-warning'></i>Data for incomplete months and weeks will skew averages. May be slow for large data sets.
           </div>
         </fieldset>
         <fieldset class="section iq-radio-group">

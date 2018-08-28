@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -18,14 +20,22 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
+import com.google.common.collect.Table;
+import com.google.common.collect.Table.Cell;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -45,7 +55,8 @@ public class PolicyViolationAggregationServiceTest
   public void testGeneratePolicyViolationAggregations_ViolationsWithoutHash_AllResolved() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
-    DateTime now = new DateTime().withDayOfMonth(10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
         now.minusHours(72).toDate());
@@ -65,29 +76,68 @@ public class PolicyViolationAggregationServiceTest
     // second and third violation resolved after 48 hours
     violation2.setFixTime(eval3.getTime());
     violationDAO.update(violation2);
-    violation3.setFixTime(eval3.getTime());
+    violation3.setWaiveTime(eval3.getTime());
     violationDAO.update(violation3);
 
     service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
 
-    PolicyViolationAggregation aggregation = aggregationDAO.getMostRecentByApplicationId(app.getId());
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
 
+    assertAllResoloved(now, aggregation);
+
+    aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
+
+    assertAllResoloved(now, aggregation);
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_MultipleStages_AllResolved() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
+
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusHours(72).toDate());
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan2",
+        now.minusHours(72).toDate());
+    // two distinct violation entities which are "equal" per PolicyViolationComparator
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, null, "unknown component");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, null, null, "unknown component");
+
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3",
+        now.minusHours(24).toDate());
+    PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4",
+        now.minusHours(24).toDate());
+    // both violations resolved after 48 hours
+    violation1.setFixTime(eval3.getTime());
+    violationDAO.update(violation1);
+    violation2.setFixTime(eval4.getTime());
+    violationDAO.update(violation2);
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    assertAllResoloved(now, aggregation);
+
+    aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
+
+    assertAllResoloved(now, aggregation);
+  }
+
+  private void assertAllResoloved(DateTime now, PolicyViolationAggregation aggregation) {
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
     assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.LOW), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.CRITICAL), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.LOW), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.CRITICAL), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.LOW), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.CRITICAL), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.LOW), is(0));
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getFixedAsTable());
+    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+
+    assertAllCountsZero(aggregation.getWaivedAsTable());
+
+    assertAllCountsZero(aggregation.getOpenCountsAsMap());
 
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(1));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
@@ -98,13 +148,20 @@ public class PolicyViolationAggregationServiceTest
     assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
     assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
     assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+
+    LocalDate expectedTimePeriodStart =
+        aggregation.getTimePeriod() == MONTH ? new LocalDate(now.withDayOfMonth(1)) : new LocalDate(
+            now.withDayOfWeek(1));
+    assertThat(aggregation.getTimePeriodStart(), is(expectedTimePeriodStart.toDate()));
+    assertThat(aggregation.getTimePeriodEnd(), is(now.toDate()));
   }
 
   @Test
   public void testGeneratePolicyViolationAggregations_ViolationsWithoutHash_SomeUnresolved() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
-    DateTime now = new DateTime().withDayOfMonth(10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
         now.minusHours(72).toDate());
@@ -120,24 +177,61 @@ public class PolicyViolationAggregationServiceTest
 
     service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
 
-    PolicyViolationAggregation aggregation = aggregationDAO.getMostRecentByApplicationId(app.getId());
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
 
+    assertSomeResolved(now, aggregation);
+
+    aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
+
+    assertSomeResolved(now, aggregation);
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_MultipleStages_SomeUnresolved() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
+
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusHours(72).toDate());
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan2",
+        now.minusHours(72).toDate());
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), OperateStageType.ID, "scan3",
+        now.minusHours(72).toDate());
+    // three distinct violation entities which are "equal" per PolicyViolationComparator
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, null, "unknown component");
+    tempEntity.newPolicyViolation(eval2, policy, null, null, "unknown component");
+    tempEntity.newPolicyViolation(eval3, policy, null, null, "unknown component");
+
+    PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan4",
+        now.minusHours(48).toDate());
+    // first violation resolved after 24 hours, second violation remains unresolved
+    violation1.setFixTime(eval4.getTime());
+    violationDAO.update(violation1);
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    assertSomeResolved(now, aggregation);
+
+    aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
+
+    assertSomeResolved(now, aggregation);
+  }
+
+  private void assertSomeResolved(DateTime now, PolicyViolationAggregation aggregation) {
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
     assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.LOW), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.CRITICAL), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.LICENSE, ThreatLevel.LOW), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.CRITICAL), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.QUALITY, ThreatLevel.LOW), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.CRITICAL), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.SEVERE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.MODERATE), is(0));
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.OTHER, ThreatLevel.LOW), is(0));
+
+    assertAllCountsZero(aggregation.getFixedAsTable());
+    assertAllCountsZero(aggregation.getWaivedAsTable());
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregation.getOpenCountsAsMap());
+    assertThat(aggregation.getOpenCountSecurity(), is(1));
 
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
@@ -148,5 +242,262 @@ public class PolicyViolationAggregationServiceTest
     assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
     assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
     assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+
+    LocalDate expectedTimePeriodStart =
+        aggregation.getTimePeriod() == MONTH ? new LocalDate(now.withDayOfMonth(1)) : new LocalDate(
+            now.withDayOfWeek(1));
+    assertThat(aggregation.getTimePeriodStart(), is(expectedTimePeriodStart.toDate()));
+    assertThat(aggregation.getTimePeriodEnd(), is(now.toDate()));
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_TimePeriodRollovers() {
+    Application app = tempEntity.newApplicationWithParent();
+    DateTime now = new DateTime().withDayOfMonth(10);
+
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusMonths(12).toDate());
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, false);
+
+    List<PolicyViolationAggregation> weekAggregations = aggregationDAO.getByTimePeriod(WEEK);
+    List<PolicyViolationAggregation> monthAggregations = aggregationDAO.getByTimePeriod(MONTH);
+
+    // If now starts on monday we will have an extra week since we're able to get a full week's worth of data
+    // for the first week (there are 52 complete weeks in a year, leaving one extra day).
+    assertThat(weekAggregations.size(), is(now.getDayOfWeek() == 1 ? 53 : 52));
+    assertThat(monthAggregations.size(), is(12));
+    DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
+
+    for(int i = 0; i < weekAggregations.size(); i++) {
+      PolicyViolationAggregation aggregation = weekAggregations.get(i);
+      assertThat(aggregation.getTimePeriod(), is(WEEK));
+      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusWeeks(i).toDate()));
+      assertThat(aggregation.getTimePeriodEnd(), is(nullValue()));
+    }
+
+    aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
+    for(int i = 0; i < monthAggregations.size(); i++) {
+      PolicyViolationAggregation aggregation = monthAggregations.get(i);
+      assertThat(aggregation.getTimePeriod(), is(MONTH));
+      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusMonths(i).toDate()));
+      assertThat(aggregation.getTimePeriodEnd(), is(nullValue()));
+    }
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_IncludeLatestData_TimePeriodRollovers() {
+    Application app = tempEntity.newApplicationWithParent();
+    DateTime now = new DateTime().withDayOfMonth(10);
+
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusMonths(12).toDate());
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    List<PolicyViolationAggregation> weekAggregations = aggregationDAO.getByTimePeriod(WEEK);
+    List<PolicyViolationAggregation> monthAggregations = aggregationDAO.getByTimePeriod(MONTH);
+
+    // If now starts on monday we will have an extra week since we're able to get a full week's worth of data
+    // for the first week (there are 52 complete weeks in a year, leaving one extra day).
+    assertThat(weekAggregations.size(), is(now.getDayOfWeek() == 1 ? 54 : 53));
+    assertThat(monthAggregations.size(), is(13));
+
+    DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
+
+    for(int i = 0; i < weekAggregations.size(); i++) {
+      PolicyViolationAggregation aggregation = weekAggregations.get(i);
+      assertThat(aggregation.getTimePeriod(), is(WEEK));
+      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusWeeks(i).toDate()));
+      assertThat(aggregation.getTimePeriodEnd(), is(i < weekAggregations.size() - 1 ? null : now.toDate()));
+    }
+    
+    aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
+    for(int i = 0; i < monthAggregations.size(); i++) {
+      PolicyViolationAggregation aggregation = monthAggregations.get(i);
+      assertThat(aggregation.getTimePeriod(), is(MONTH));
+      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusMonths(i).toDate()));
+      assertThat(aggregation.getTimePeriodEnd(), is(i < monthAggregations.size() - 1 ? null : now.toDate()));
+    }
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_ViolationsWithHash() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
+
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusHours(72).toDate());
+    // two distinct violations
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, "hash1", "component 2");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval1, policy, null, "hash2", "component 2");
+
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2",
+        now.minusHours(48).toDate());
+    violation1.setFixTime(eval2.getTime());
+    violation2.setWaiveTime(eval2.getTime());
+    violationDAO.update(violation1);
+    violationDAO.update(violation2);
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
+
+    assertViolationsWithHash(aggregation);
+
+    aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    assertViolationsWithHash(aggregation);
+  }
+  
+  private void assertViolationsWithHash(PolicyViolationAggregation aggregation) {
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getFixedAsTable());
+    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getWaivedAsTable());
+    assertThat(aggregation.getWaivedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+
+    assertAllCountsZero(aggregation.getOpenCountsAsMap());
+
+    assertThat(aggregation.getResolvedCountCriticalThreat(), is(2));
+    assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
+    assertThat(aggregation.getResolvedCountModerateThreat(), is(0));
+    assertThat(aggregation.getResolvedCountLowThreat(), is(0));
+
+    assertThat(aggregation.getMttrCriticalThreat(), is(TimeUnit.HOURS.toMillis(24)));
+    assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_ViolationOneWeekAgoFromMidMonth() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    DateTime now = new DateTime().withDayOfMonth(15);
+
+    // generate a violation 1 week ago
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusWeeks(1).toDate());
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, "hash1", "component 1");
+
+    violationDAO.update(violation1);
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    List<PolicyViolationAggregation> aggregations = aggregationDAO.getByTimePeriod(MONTH);
+
+    assertThat(aggregations.size(), is(1));
+    assertViolationOneWeekAgoFromMidMonth(aggregations.get(0), true);
+
+    aggregations = aggregationDAO.getByTimePeriod(WEEK);
+
+    assertThat(aggregations.size(), is(greaterThan(1)));
+    for (int i = 0; i < aggregations.size(); i++) {
+      // only last weeks aggregation should expect a violation
+      assertViolationOneWeekAgoFromMidMonth(aggregations.get(i), i == aggregations.size() - 2);
+    }
+  }
+
+  private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation, boolean violationExpected)
+  {
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL),
+        is(violationExpected ? 1 : 0));
+
+    assertAllCountsZero(aggregation.getFixedAsTable());
+    assertAllCountsZero(aggregation.getWaivedAsTable());
+
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregation.getOpenCountsAsMap());
+    assertThat(aggregation.getOpenCountSecurity(), is(1));
+
+    assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
+    assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
+    assertThat(aggregation.getResolvedCountModerateThreat(), is(0));
+    assertThat(aggregation.getResolvedCountLowThreat(), is(0));
+
+    assertThat(aggregation.getMttrCriticalThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_OpenCounts() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    // for weekly aggregations - make sure we have enough days in the week to work with
+    DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
+
+    // generate 2 violations 2 weeks ago
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        now.minusWeeks(2).toDate());
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, "hash1", "component 1");
+    tempEntity.newPolicyViolation(eval1, policy, null, "hash2", "component 2");
+
+    // generate a violation 1 week ago
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2",
+        now.minusWeeks(1).toDate());
+    tempEntity.newPolicyViolation(eval2, policy, null, "hash3", "component 3");
+
+    // now resolve the first violation 2 days ago
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3",
+        now.minusHours(48).toDate());
+    violation1.setFixTime(eval3.getTime());
+    violationDAO.update(violation1);
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    List<PolicyViolationAggregation> aggregations = aggregationDAO.getByTimePeriod(MONTH);
+
+    assertThat(aggregations.size(), is(1));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(0).getOpenCountsAsMap());
+    assertThat(aggregations.get(0).getOpenCountSecurity(), is(2));
+
+    aggregations = aggregationDAO.getByTimePeriod(WEEK);
+
+    assertThat(aggregations.size(), is(3));
+    // 2 weeks ago
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(0).getOpenCountsAsMap());
+    assertThat(aggregations.get(0).getOpenCountSecurity(), is(2));
+    // 1 week ago
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(1).getOpenCountsAsMap());
+    assertThat(aggregations.get(1).getOpenCountSecurity(), is(3));
+    // this week
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(2).getOpenCountsAsMap());
+    assertThat(aggregations.get(2).getOpenCountSecurity(), is(2));
+  }
+
+  private void assertAllCountsZero(Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable) {
+    assertAllCountsZeroExcept(null, null, countsAsTable);
+  }
+
+  private void assertAllCountsZeroExcept(PolicyThreatCategory category,
+                                         ThreatLevel level,
+                                         Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable) {
+    for (Cell<PolicyThreatCategory, ThreatLevel, Integer> cell : countsAsTable.cellSet()) {
+      if (!(cell.getRowKey().equals(category) && cell.getColumnKey().equals(level))) {
+        assertThat(cell.getValue(), is(0));
+      }
+    }
+  }
+
+  private void assertAllCountsZero(Map<PolicyThreatCategory, Integer> countsAsMap) {
+    assertAllCountsZeroExcept(null, countsAsMap);
+  }
+
+  private void assertAllCountsZeroExcept(PolicyThreatCategory category,
+                                         Map<PolicyThreatCategory, Integer> countsAsMap) {
+    for (PolicyThreatCategory categoryToAssert : PolicyThreatCategory.values()) {
+      if (categoryToAssert != category) {
+        assertThat(countsAsMap.get(categoryToAssert), is(0));
+      }
+    }
   }
 }

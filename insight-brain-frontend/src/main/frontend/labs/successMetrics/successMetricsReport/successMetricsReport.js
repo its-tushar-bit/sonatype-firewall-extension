@@ -54,9 +54,27 @@ function successMetricsReportController($q, $state, $stateParams, systemConfigur
       else {
         return $q.reject(`Could not find report with id ${successMetricsReportId}`);
       }
-    }).then(function([{applicationCountsData, mttrData, averagesData, lastUpdated, monthCount}, componentCountsData]) {
-      angular.extend(vm,
-          { applicationCountsData, mttrData, averagesData, lastUpdated, monthCount, componentCountsData });
+    }).then(function([chartData, componentCountsData]) {
+      const {
+        applicationCountsData,
+        mttrData,
+        averagesData,
+        violationsByCategoryData,
+        lastUpdated,
+        monthCount,
+        violationCounts
+      } = chartData;
+
+      angular.extend(vm, {
+        applicationCountsData,
+        mttrData,
+        averagesData,
+        lastUpdated,
+        monthCount,
+        componentCountsData,
+        violationsByCategoryData,
+        violationCounts
+      });
 
       vm.activeApplicationCount = applicationCountsData.activeApplications;
       vm.isSingleApplicationReport = !!(vm.successMetricsReport && vm.successMetricsReport.scope.applicationIds &&

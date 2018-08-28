@@ -28,16 +28,15 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.FOOTER_ERROR_CLASS;
-import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_ERROR_CLASS;
-import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_DISABLED_CLASS;
-
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.FOOTER_ERROR_CLASS;
+import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_DISABLED_CLASS;
+import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_ERROR_CLASS;
 
 public class SuccessMetricsReportListTest
     extends AbstractFunctionalTest
@@ -131,8 +130,8 @@ public class SuccessMetricsReportListTest
 
     // Add and test a Root Org SuccessMetricsReport.
     modal.name().setValue("Root Org Chart");
-    modal.byCalendarMonthRadioBtn().shouldBe(selected);
-    modal.byMostRecentRadioBtn().shouldNotBe(selected);
+    modal.onlyForFullCalendarWeeksAndMonths().shouldBe(selected);
+    modal.includingMostRecentEvaluations().shouldNotBe(selected);
     modal.allApplicationsRadioBtn().shouldHave(text("all applications")).shouldBe(selected);
     modal.customRadioBtn().shouldHave(text("custom")).shouldNotBe(selected);
     modal.createBtn().shouldHave(text("Create")).click();

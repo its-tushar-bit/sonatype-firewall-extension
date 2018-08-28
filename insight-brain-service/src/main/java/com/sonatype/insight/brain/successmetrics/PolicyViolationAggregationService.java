@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,26 +37,23 @@ import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
-import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
-import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
-import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
 
 /**
  * @since 1.31
@@ -159,69 +156,138 @@ class PolicyViolationAggregationService
                                                    boolean includeLatestData)
   {
     log.trace("Generating Violation Aggregations for {}", applicationId);
+    LocalDate currentDate = currentDateTime.toLocalDate();
 
-    PolicyViolationAggregation mostRecentPriorAggregation = violationAggregationDAO
-        .getMostRecentByApplicationId(applicationId);
+    Map<TimePeriod, PvaDates> pvaDatesMap = new EnumMap<>(TimePeriod.class);
+    Map<TimePeriod, Map> openViolationCountsMap = new EnumMap<>(TimePeriod.class);
 
-    if (isPartial(mostRecentPriorAggregation)) {
-      mostRecentPriorAggregation = updatePartialAggregation(mostRecentPriorAggregation, currentDateTime, applicationId,
-          stageTypeIds, includeLatestData);
+    for (TimePeriod timePeriod : TimePeriod.values()) {
+      LocalDate startOfCurrentTimePeriod = withDayOfTimePeriod(currentDate, timePeriod, 1);
+
+      PolicyViolationAggregation mostRecentPriorAggregation = violationAggregationDAO
+          .getMostRecentByApplicationIdAndTimePeriod(applicationId, timePeriod);
+
+      if (isPartial(mostRecentPriorAggregation)) {
+        mostRecentPriorAggregation = updatePartialAggregation(mostRecentPriorAggregation, currentDateTime,
+            applicationId, stageTypeIds, includeLatestData, timePeriod);
+      }
+
+      PvaDates pvaDates = getPvaDates(timePeriod, mostRecentPriorAggregation, applicationId, startOfCurrentTimePeriod);
+
+      if (!isAggregationUpToDate(mostRecentPriorAggregation, pvaDates.startOfNewAggregation,
+          startOfCurrentTimePeriod, includeLatestData)) {
+        pvaDatesMap.put(timePeriod, pvaDates);
+        openViolationCountsMap.put(timePeriod,
+            mostRecentPriorAggregation == null ? allZeroOpenCounts() : mostRecentPriorAggregation.getOpenCountsAsMap());
+      }
     }
 
-    LocalDate currentDate = currentDateTime.toLocalDate();
-    LocalDate startOfCurrentMonth = currentDate.withDayOfMonth(1);
-
-    // start the next new aggregation at the beginning of the month after the last aggregation, or at the beginning
-    // of the month of the first evaluation if there aren't any aggregations for this app yet
-    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldestByApplicationId(applicationId);
-    LocalDate oldestEvaluationDate = oldestEvaluation == null ? null : new LocalDate(oldestEvaluation.getTime());
-    LocalDate startOfFirstAggregation =
-        oldestEvaluationDate == null ? startOfCurrentMonth : oldestEvaluationDate.withDayOfMonth(1);
-    LocalDate startOfNewAggregation = mostRecentPriorAggregation == null ? startOfFirstAggregation : new LocalDate(
-        mostRecentPriorAggregation.getTimePeriodStart()).plusMonths(1);
-    LocalDate startOfNextAggregation = startOfNewAggregation.plusMonths(1);
-
-    if (includeLatestData && isPartial(mostRecentPriorAggregation) ||
-        !includeLatestData && startOfNewAggregation.compareTo(startOfCurrentMonth) >= 0) {
-      // aggregations are already up to date
+    if (pvaDatesMap.isEmpty()) {
+      // No aggregations to create/update
       return;
     }
 
+    // Use the earliest startOfNewAggregation
+    LocalDate monthStartDate = pvaDatesMap.get(MONTH) != null ? pvaDatesMap.get(MONTH).startOfNewAggregation : null;
+    LocalDate weekStartDate = pvaDatesMap.get(WEEK) != null ? pvaDatesMap.get(WEEK).startOfNewAggregation : null;
+    LocalDate eventsStartDate = Ordering.natural().nullsLast().min(monthStartDate, weekStartDate);
     List<ProcessableEvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds,
-        localDateToTimestamp(startOfNewAggregation), currentDateTime.toDate());
+        localDateToTimestamp(eventsStartDate), currentDateTime.toDate());
 
-    MttrStats mttrStats = new MttrStats();
-    DiscoveredStats discoveredStats = new DiscoveredStats();
+    Map<TimePeriod, ResultsWrapper> results = new EnumMap<>(TimePeriod.class);
 
-    if (!events.isEmpty()) {
-      for (ProcessableEvaluationEvent event : events) {
-        while (new LocalDate(event.time).compareTo(startOfNextAggregation) >= 0) {
-          // event is too recent for the current aggregation record, start a new one
-          saveViolationAggregation(applicationId, startOfNewAggregation, null, mttrStats, discoveredStats);
-          startOfNewAggregation = startOfNextAggregation;
-          startOfNextAggregation = startOfNewAggregation.plusMonths(1);
+    for (TimePeriod timePeriod : TimePeriod.values()) {
+      // keep a running tally of open counts
+      Map<PolicyThreatCategory, Integer> openCounts = openViolationCountsMap.get(timePeriod);
+      results.put(timePeriod, new ResultsWrapper(openCounts));
+      PvaDates pvaDates = pvaDatesMap.get(timePeriod);
 
-          mttrStats = new MttrStats();
-          discoveredStats = new DiscoveredStats();
+      if (pvaDates != null) {
+        LocalDate startOfNewAggregation = pvaDates.startOfNewAggregation;
+        LocalDate startOfNextAggregation = pvaDates.startOfNextAggregation;
+
+        ResultsWrapper result = results.get(timePeriod);
+        if (!events.isEmpty()) {
+          for (ProcessableEvaluationEvent event : events) {
+            while (new LocalDate(event.time).compareTo(startOfNextAggregation) >= 0) {
+              // event is too recent for the current aggregation record, start a new one
+              saveViolationAggregation(applicationId, startOfNewAggregation, null, result, timePeriod);
+              startOfNewAggregation = startOfNextAggregation;
+              startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
+
+              result = new ResultsWrapper(openCounts);
+              results.put(timePeriod, result);
+            }
+            event.process(result, timePeriod);
+          }
         }
-        event.process(mttrStats, discoveredStats);
-      }
-    }
 
-    // insert the last aggregation from the loop above and any others necessary to bring things up to the
-    // start of the current month
-    while (includeLatestData ?
-        startOfNewAggregation.compareTo(currentDate) <= 0 : startOfNewAggregation.compareTo(startOfCurrentMonth) < 0) {
-      DateTime endDateTime = null;
-      if (includeLatestData && currentDate.withDayOfMonth(1).equals(startOfNewAggregation)) {
-        endDateTime = currentDateTime;
+        LocalDate startOfCurrentTimePeriod = withDayOfTimePeriod(currentDate, timePeriod, 1);
+
+        // insert the last aggregation from the loop above and any others necessary to bring things up to the
+        // start of the current time period
+        while (includeLatestData ?
+            startOfNewAggregation.compareTo(currentDate) <= 0 :
+            startOfNewAggregation.compareTo(startOfCurrentTimePeriod) < 0) {
+          DateTime endDateTime = null;
+          if (includeLatestData && startOfCurrentTimePeriod.equals(startOfNewAggregation)) {
+            endDateTime = currentDateTime;
+          }
+          saveViolationAggregation(applicationId, startOfNewAggregation, endDateTime, result, timePeriod);
+          startOfNewAggregation = startOfNextAggregation;
+          startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
+          result = new ResultsWrapper(openCounts);
+          results.put(timePeriod, result);
+        }
       }
-      saveViolationAggregation(applicationId, startOfNewAggregation, endDateTime, mttrStats, discoveredStats);
-      startOfNewAggregation = startOfNextAggregation;
-      startOfNextAggregation = startOfNewAggregation.plusMonths(1);
-      mttrStats = new MttrStats();
-      discoveredStats = new DiscoveredStats();
     }
+  }
+
+  private PvaDates getPvaDates(TimePeriod timePeriod,
+                               PolicyViolationAggregation mostRecentPriorAggregation,
+                               String applicationId,
+                               LocalDate startOfCurrentTimePeriod)
+  {
+    // start the next new aggregation at the beginning of the time period after the last aggregation, or at the
+    // beginning of the time period of the first evaluation if there aren't any aggregations for this app yet
+    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldestByApplicationId(applicationId);
+    LocalDate startOfMostRecentPriorAggregation = 
+        mostRecentPriorAggregation == null ? null : new LocalDate(mostRecentPriorAggregation.getTimePeriodStart());
+    LocalDate oldestEvaluationDate = oldestEvaluation == null ? null : new LocalDate(oldestEvaluation.getTime());
+    LocalDate startOfFirstAggregation =
+        oldestEvaluationDate == null ? startOfCurrentTimePeriod : withDayOfTimePeriod(oldestEvaluationDate, timePeriod,
+            1);
+    LocalDate startOfNewAggregation =
+        mostRecentPriorAggregation == null ? startOfFirstAggregation : plusTimePeriod(startOfMostRecentPriorAggregation,
+            timePeriod, 1);
+    LocalDate startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
+
+    return new PvaDates(startOfNewAggregation, startOfNextAggregation);
+  }
+
+  private boolean isAggregationUpToDate(PolicyViolationAggregation mostRecentPriorAggregation,
+                                        LocalDate startOfNewAggregation,
+                                        LocalDate startOfCurrentTimePeriod,
+                                        boolean includeLatestData)
+  {
+    return includeLatestData && isPartial(mostRecentPriorAggregation) ||
+        !includeLatestData && startOfNewAggregation.compareTo(startOfCurrentTimePeriod) >= 0;
+  }
+
+  private Map<PolicyThreatCategory, Integer> allZeroOpenCounts() {
+    Map<PolicyThreatCategory, Integer> result = new EnumMap<>(PolicyThreatCategory.class);
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
+      result.put(category, 0);
+    }
+    return result;
+  }
+
+  private LocalDate withDayOfTimePeriod(LocalDate dateTime, TimePeriod timePeriod, int dayOf) {
+    return dateTime.withField(timePeriod.getDateTimeFieldType(), dayOf);
+  }
+
+  private LocalDate plusTimePeriod(LocalDate dateTime, TimePeriod timePeriod, int timePeriods) {
+    return dateTime.plus(timePeriod.getPeriod(timePeriods));
   }
 
   private boolean isPartial(PolicyViolationAggregation mostRecentPriorAggregation) {
@@ -236,46 +302,44 @@ class PolicyViolationAggregationService
                                                               DateTime currentTime,
                                                               String applicationId,
                                                               Set<String> stageTypeIds,
-                                                              boolean includeLatestData)
+                                                              boolean includeLatestData,
+                                                              TimePeriod timePeriod)
   {
-    LocalDate startOfNextAggregation = new LocalDate(partialAggregation.getTimePeriodStart()).plusMonths(1)
-        .withDayOfMonth(1);
+    LocalDate startOfNextAggregation = withDayOfTimePeriod(
+        plusTimePeriod(new LocalDate(partialAggregation.getTimePeriodStart()), timePeriod, 1), timePeriod, 1);
     boolean isLastAggregation = currentTime.isBefore(startOfNextAggregation.toDateTimeAtStartOfDay());
 
     if (!includeLatestData && isLastAggregation) {
-      return partialAggregation; // no need to update current month
+      return partialAggregation; // no need to update current month/week
     }
 
     Date from = partialAggregation.getTimePeriodEnd();
-    Date upTo = new LocalDate(from).plusMonths(1).withDayOfMonth(1).toDateTimeAtStartOfDay().toDate();
-
+    Date upTo = withDayOfTimePeriod(plusTimePeriod(new LocalDate(from), timePeriod, 1), timePeriod, 1)
+        .toDateTimeAtStartOfDay().toDate();
     List<ProcessableEvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds, from, upTo);
 
-    MttrStats mttrStats = recreateMttrStats(partialAggregation);
-    DiscoveredStats discoveredStats = recreateDiscoveredStats(partialAggregation);
+    ResultsWrapper results = recreateResults(partialAggregation);
 
     if (!events.isEmpty()) {
       for (ProcessableEvaluationEvent event : events) {
-        event.process(mttrStats, discoveredStats);
+        event.process(results, timePeriod);
       }
     }
     LocalDate timePeriodStart = new LocalDate(partialAggregation.getTimePeriodStart());
     DateTime timePeriodEnd = isLastAggregation ? currentTime : null;
-    return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, mttrStats, discoveredStats,
-        partialAggregation.getId());
+    return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, results, partialAggregation.getId(),
+        timePeriod);
   }
 
-  private DiscoveredStats recreateDiscoveredStats(PolicyViolationAggregation mostRecentPriorAggregation) {
-    DiscoveredStats result = new DiscoveredStats();
-    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
-      Map<ThreatLevel, Integer> threatLevelToCounts = new HashMap<>();
-      for (ThreatLevel threatLevel : ThreatLevel.values()) {
-        threatLevelToCounts.put(threatLevel, mostRecentPriorAggregation.getDiscoveredCount(category, threatLevel));
-      }
-      result.threatCategoryToThreatLevelToCounts.put(category, threatLevelToCounts);
-    }
-    result.evaluationCount = mostRecentPriorAggregation.getEvaluationCount();
-    return result;
+  private ResultsWrapper recreateResults(PolicyViolationAggregation partialAggregation) {
+    MttrStats mttrStats = recreateMttrStats(partialAggregation);
+    int evaluationCount = partialAggregation.getEvaluationCount();
+
+    Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts = partialAggregation.getDiscoveredAsTable();
+    Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts = partialAggregation.getFixedAsTable();
+    Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts = partialAggregation.getWaivedAsTable();
+    Map<PolicyThreatCategory, Integer> openCounts = partialAggregation.getOpenCountsAsMap();
+    return new ResultsWrapper(mttrStats, evaluationCount, discoveredCounts, fixedCounts, waivedCounts, openCounts);
   }
 
   /**
@@ -336,10 +400,16 @@ class PolicyViolationAggregationService
       if (from.compareTo(violation.getOpenTime()) <= 0) {
         events.add(new ViolationDiscoveredInStageEvent(violation));
       }
-      Date resolveTime = getResolveTime(violation);
-      if (resolveTime != null && resolveTime.compareTo(upTo) < 0
-          && !isViolationWithUnresolvedDuplicate(violation, resolveTime, violationMap.get(violation))) {
-        events.add(new ViolationResolvedInStageEvent(violation, resolveTime));
+
+      boolean isWaivedInTimeframe = violation.getWaiveTime() != null && violation.getWaiveTime().compareTo(upTo) < 0;
+      boolean isFixedInTimeframe = violation.getFixTime() != null && violation.getFixTime().compareTo(upTo) < 0;
+      Date resolveTime = isWaivedInTimeframe ? violation.getWaiveTime() :
+          isFixedInTimeframe ? violation.getFixTime() :
+          null;
+
+      if (resolveTime != null &&
+          !isViolationWithUnresolvedDuplicate(violation, resolveTime, violationMap.get(violation))) {
+        events.add(new ViolationResolvedInStageEvent(violation, resolveTime, isWaivedInTimeframe));
       }
     }
     events.sort(null);
@@ -400,7 +470,11 @@ class PolicyViolationAggregationService
             throw new IllegalStateException("Unable to find first occurrence of Policy Violation");
           }
           else {
-            retval.add(new ViolationResolvedEvent(violation, firstOccurrence, event.time));
+            ProcessableViolationEvent outputEvent =
+                event.isWaived ? new ViolationWaivedEvent(violation, firstOccurrence, event.time) :
+                    new ViolationFixedEvent(violation, firstOccurrence, event.time);
+
+           retval.add(outputEvent);
           }
         }
       }
@@ -481,45 +555,34 @@ class PolicyViolationAggregationService
   }
 
   private PolicyViolationAggregation saveViolationAggregation(String applicationId,
-                                        LocalDate timePeriodStart,
-                                        DateTime timePeriodEnd,
-                                        MttrStats mttrStats,
-                                        DiscoveredStats discoveredStats)
+                                                              LocalDate timePeriodStart,
+                                                              DateTime timePeriodEnd,
+                                                              ResultsWrapper results,
+                                                              TimePeriod timePeriod)
   {
-    return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, mttrStats, discoveredStats, null);
+    return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, results, null, timePeriod);
   }
 
   private PolicyViolationAggregation saveViolationAggregation(String applicationId,
-                                        LocalDate timePeriodStart,
-                                        DateTime timePeriodEnd,
-                                        MttrStats mttrStats,
-                                        DiscoveredStats discoveredStats,
-                                        String aggregationToUpdateId)
+                                                              LocalDate timePeriodStart,
+                                                              DateTime timePeriodEnd,
+                                                              ResultsWrapper results,
+                                                              String aggregationToUpdateId,
+                                                              TimePeriod timePeriod)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, //
         localDateToTimestamp(timePeriodStart), //
         timePeriodEnd == null ? null : timePeriodEnd.toDate(), //
-        mttrStats.mttrLowThreatStats, //
-        mttrStats.mttrModerateThreatStats, //
-        mttrStats.mttrSevereThreatStats, //
-        mttrStats.mttrCriticalThreatStats, //
-        discoveredStats.getCount(SECURITY, LOW), //
-        discoveredStats.getCount(SECURITY, MODERATE), //
-        discoveredStats.getCount(SECURITY, SEVERE), //
-        discoveredStats.getCount(SECURITY, CRITICAL), //
-        discoveredStats.getCount(LICENSE, LOW), //
-        discoveredStats.getCount(LICENSE, MODERATE), //
-        discoveredStats.getCount(LICENSE, SEVERE), //
-        discoveredStats.getCount(LICENSE, CRITICAL), //
-        discoveredStats.getCount(QUALITY, LOW), //
-        discoveredStats.getCount(QUALITY, MODERATE), //
-        discoveredStats.getCount(QUALITY, SEVERE), //
-        discoveredStats.getCount(QUALITY, CRITICAL), //
-        discoveredStats.getCount(OTHER, LOW), //
-        discoveredStats.getCount(OTHER, MODERATE), //
-        discoveredStats.getCount(OTHER, SEVERE), //
-        discoveredStats.getCount(OTHER, CRITICAL), //
-        discoveredStats.getEvaluationCount());
+        timePeriod, //
+        results.mttrStats.mttrLowThreatStats, //
+        results.mttrStats.mttrModerateThreatStats, //
+        results.mttrStats.mttrSevereThreatStats, //
+        results.mttrStats.mttrCriticalThreatStats, //
+        results.discoveredCounts, //
+        results.fixedCounts, //
+        results.waivedCounts, //
+        results.openCounts, //
+        results.evaluationCount);
 
     if (aggregationToUpdateId != null) {
       aggregation.setId(aggregationToUpdateId);
@@ -528,5 +591,18 @@ class PolicyViolationAggregationService
       violationAggregationDAO.insert(aggregation);
     }
     return aggregation;
+  }
+
+  private class PvaDates
+  {
+    final LocalDate startOfNewAggregation;
+
+    final LocalDate startOfNextAggregation;
+
+    public PvaDates(LocalDate startOfNewAggregation, LocalDate startOfNextAggregation)
+    {
+      this.startOfNewAggregation = startOfNewAggregation;
+      this.startOfNextAggregation = startOfNextAggregation;
+    }
   }
 }

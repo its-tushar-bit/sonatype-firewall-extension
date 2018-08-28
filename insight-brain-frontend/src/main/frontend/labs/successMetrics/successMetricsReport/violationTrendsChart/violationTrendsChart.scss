@@ -1,0 +1,182 @@
+// 31*4 - four charts
+// 48*3 - padding between charts
+// 24   - top padding
+// 292 = 31*4 + 48*3 + 24
+$chart-height: 292px;
+
+$total-delta-icon-margin-right: 12px;
+$total-delta-icon-margin-left: 8px;
+
+.iq-table--violation-trends-chart-table {
+
+  thead {
+    .iq-table-row {
+      border-top: 0;
+      border-bottom: 0;
+     
+      .iq-cell {
+        border-top: 0;
+        border-bottom: 0;
+      }
+    }
+  }
+
+  h4 {
+    color: $iq-off-black;
+    font-size: 10px;
+    margin: 0;
+    padding: 0;
+  }
+  
+  thead h4 {
+    text-align: center;
+  }
+
+  tbody {
+    background-image: url(data:image/gif;base64,R0lGODlhAQBPAPEAAOrq6v///yZFySZFySH5BAEAAAIALAAAAAABAE8AAAIIjI+py+0PQQEAOw==);
+    background-position: 0 20px;
+    background-repeat: repeat;
+  }
+
+  .iq-table-row {
+    .iq-cell {
+      border: none;
+      margin: unset;
+      padding: unset;
+    }
+    
+    &:last-child {
+      border: none;
+    }
+
+    .iq-cell--violation-trends-row-label {
+      height: 79px;
+      text-align: right;
+      width: 50px;
+    }
+
+    .iq-cell--violation-trends-chart-total {
+      color: $iq-slate;
+      font-size: 21px;
+      font-weight: bold;
+      padding-left: 12px;
+      text-align: right;
+      width: 100px;
+    }
+
+    .iq-cell--violation-trends-chart {
+      height: $chart-height;
+      min-width: 120px;
+
+      .label, .component.label {
+        background-color: transparent;
+        padding: 0;
+      }
+    }
+  }
+}
+
+.iq-cell--violation-trends-gutter {
+  background-color: $iq-off-white;
+  padding: 0;
+  width: 48px;
+}
+
+.iq-cell--violation-trends-chart-total-number {
+  // leave space for floated delta icon = icon width + icon margins
+  margin-right: 10px + $total-delta-icon-margin-right + $total-delta-icon-margin-left;
+}
+
+.iq-cell--violation-trends-chart-total-delta-icon {
+  .iq-violation-trends__delta-icon {
+    margin-right: $total-delta-icon-margin-right;
+  }
+}
+
+.iq-table-row--violation-trends-chart-deltas {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-delta-icon,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 36px;
+  }
+}
+
+.iq-table-row--violation-trends-chart-new {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 26px;
+  }
+}
+
+.iq-table-row--violation-trends-chart-waived {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 14px;
+  }
+}
+
+.iq-table-row--violation-trends-chart-fixed {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 4px;
+  }
+}
+
+.iq-violation-trends__chart {
+  height: $chart-height;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 24px 12px;
+  width: 120px;
+
+  .plottable {
+    width: 100%;
+
+    .guide-line-layer.iq-violation-trends__guideline .content line.guide-line {
+      stroke: $iq-off-black;
+    }
+  }
+}
+
+.iq-violation-trends__tooltip {
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  white-space: nowrap;
+
+  .iq-violation-trends__delta-icon {
+    padding-left: 4px;
+  }
+}
+
+.iq-violation-trends__bar--delta-up {
+  fill: $iq-dark-red;
+}
+
+.iq-violation-trends__bar--delta-down {
+  fill: $iq-dark-blue;
+}
+
+.iq-violation-trends__bar--discovered {
+  fill: $iq-dark-red;
+}
+
+.iq-violation-trends__bar--waived {
+  fill: $iq-dark-blue;
+}
+
+.iq-violation-trends__bar--fixed {
+  fill: $iq-dark-green;
+}
+
+.fa.iq-violation-trends__delta-icon {
+  font-size: 18px;
+
+  &.fa-caret-up {
+    color: $iq-dark-red;
+  }
+
+  &.fa-caret-down {
+    color: $iq-dark-blue;
+  }
+}

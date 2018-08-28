@@ -6,9 +6,15 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.util.Date;
+import java.util.Map;
 
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
+import com.sonatype.insight.brain.utils.ThreatLevel;
+
+import com.google.common.collect.Table;
 
 /**
  * An event in the lifecycle of evaluations and violations that PolicyViolationAggregationService
@@ -40,7 +46,7 @@ abstract class ProcessableEvaluationEvent
     super(time);
   }
 
-  abstract void process(MttrStats mttrStats, DiscoveredStats discoveredStats);
+  abstract void process(ResultsWrapper results, TimePeriod timePeriod);
 }
 
 class EvaluationPerformedEvent
@@ -51,8 +57,27 @@ class EvaluationPerformedEvent
   }
 
   @Override
-  void process(MttrStats mttrStats, DiscoveredStats discoveredStats) {
-    discoveredStats.incrementEvaluationCount();
+  void process(ResultsWrapper results, TimePeriod timePeriod) {
+    results.evaluationCount++;
+  }
+}
+
+abstract class ProcessableViolationEvent
+    extends ProcessableEvaluationEvent
+{
+  protected final PolicyViolation violation;
+  protected final PolicyThreatCategory threatCategory;
+  protected final ThreatLevel threatLevel;
+
+  ProcessableViolationEvent(PolicyViolation violation, Date time) {
+    super(time);
+    this.violation = violation;
+    this.threatCategory = violation.getThreatCategory();
+    this.threatLevel = ThreatLevel.from(violation.getThreatLevel());
+  }
+
+  ProcessableViolationEvent(PolicyViolation violation) {
+    this(violation, violation.getOpenTime());
   }
 }
 
@@ -60,40 +85,69 @@ class EvaluationPerformedEvent
  * Represents a violation the first time it appears in any stage
  */
 class ViolationDiscoveredEvent
-    extends ProcessableEvaluationEvent
+    extends ProcessableViolationEvent
 {
-  private final PolicyViolation violation;
-
   ViolationDiscoveredEvent(PolicyViolation violation) {
-    super(violation.getOpenTime());
-    this.violation = violation;
+    super(violation);
   }
 
   @Override
-  void process(MttrStats mttrStats, DiscoveredStats discoveredStats) {
-    discoveredStats.addViolation(violation);
+  void process(ResultsWrapper results, TimePeriod timePeriod) {
+    results.discoveredCounts
+        .put(threatCategory, threatLevel, results.discoveredCounts.get(threatCategory, threatLevel) + 1);
+    results.openCounts.compute(threatCategory, (k, v) -> v + 1);
   }
 }
 
 /**
- * Represents a violation being resolved in all stages
+ * Represents a violation being resolved in all stages.  The `time` field stores the resolution time while the
+ * `openTime` field stores the openTime
  */
-class ViolationResolvedEvent
-    extends ProcessableEvaluationEvent
+abstract class ViolationResolvedEvent
+    extends ProcessableViolationEvent
 {
-  private final PolicyViolation violation;
-
   private final Date openTime;
 
   ViolationResolvedEvent(PolicyViolation violation, Date openTime, Date resolveTime) {
-    super(resolveTime);
-    this.violation = violation;
+    super(violation, resolveTime);
     this.openTime = openTime;
   }
 
-  @Override
-  void process(MttrStats mttrStats, DiscoveredStats discoveredStats) {
+  protected void processResolved(MttrStats mttrStats,
+                                 Table<PolicyThreatCategory, ThreatLevel, Integer> resolvedCounts,
+                                 Map<PolicyThreatCategory, Integer> openCounts)
+  {
     mttrStats.addViolation(violation, openTime, time);
+    resolvedCounts.put(threatCategory, threatLevel, resolvedCounts.get(threatCategory, threatLevel) + 1);
+    openCounts.compute(threatCategory, (k, v) -> v < 1 ? 0 : v - 1);
+  }
+}
+
+class ViolationWaivedEvent
+    extends ViolationResolvedEvent
+{
+  ViolationWaivedEvent(PolicyViolation violation, Date openTime, Date waiveTime) {
+    super(violation, openTime, waiveTime);
+  }
+
+  @Override
+  void process(ResultsWrapper results, TimePeriod timePeriod)
+  {
+    super.processResolved(results.mttrStats, results.waivedCounts, results.openCounts);
+  }
+}
+
+class ViolationFixedEvent
+    extends ViolationResolvedEvent
+{
+  ViolationFixedEvent(PolicyViolation violation, Date openTime, Date fixTime) {
+    super(violation, openTime, fixTime);
+  }
+
+  @Override
+  void process(ResultsWrapper results, TimePeriod timePeriod)
+  {
+    super.processResolved(results.mttrStats, results.fixedCounts, results.openCounts);
   }
 }
 
@@ -113,8 +167,12 @@ class ViolationResolvedInStageEvent
 {
   public final PolicyViolation violation;
 
-  ViolationResolvedInStageEvent(PolicyViolation violation, Date time) {
+  // true if the violation was waived, false if it was fixed
+  public final boolean isWaived;
+
+  ViolationResolvedInStageEvent(PolicyViolation violation, Date time, boolean isWaived) {
     super(time);
     this.violation = violation;
+    this.isWaived = isWaived;
   }
 }

@@ -6,15 +6,28 @@
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.joda.time.LocalDate;
+
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
+import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
 
 /**
  * @since 1.31
@@ -22,7 +35,7 @@ import org.joda.time.LocalDate;
 public class PolicyViolationAggregationDAO
     extends AbstractAggregationSqlDAO<PolicyViolationAggregation>
 {
-  public static final int NUM_MONTHS = 12;
+  public static final int NUM_PERIODS = 12;
 
   @Override
   public PolicyViolationAggregation getById(String id) {
@@ -30,12 +43,21 @@ public class PolicyViolationAggregationDAO
     return get(sQuery, id);
   }
 
-  public PolicyViolationAggregation getMostRecentByApplicationId(String applicationId) {
+  @VisibleForTesting
+  public List<PolicyViolationAggregation> getByTimePeriod(TimePeriod timePeriod) {
+    String sQuery = "SELECT entity FROM PolicyViolationAggregation entity WHERE entity.timePeriod = ?1";
+    return getList(sQuery, timePeriod);
+  }
+
+  public PolicyViolationAggregation getMostRecentByApplicationIdAndTimePeriod(String applicationId,
+                                                                              TimePeriod timePeriod)
+  {
     String sQuery = "SELECT entity FROM PolicyViolationAggregation entity" + //
         " WHERE entity.applicationId = ?1" + //
+        " AND entity.timePeriod = ?2" + //
         " ORDER BY entity.timePeriodStart DESC";
 
-    return createQuery(sQuery, applicationId).forceSingleResult().get();
+    return createQuery(sQuery, applicationId, timePeriod).forceSingleResult().get();
   }
 
   public static class MttrMonth
@@ -129,20 +151,63 @@ public class PolicyViolationAggregationDAO
     }
   }
 
+  public static class ViolationCountPeriod
+  {
+    public final Date periodStart;
+
+    public final Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts;
+
+    public final Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts;
+
+    public final Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts;
+
+    public ViolationCountPeriod(Date periodStart,
+                                Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
+                                Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
+                                Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts)
+    {
+      this.periodStart = periodStart;
+      this.discoveredCounts = discoveredCounts;
+      this.fixedCounts = fixedCounts;
+      this.waivedCounts = waivedCounts;
+    }
+  }
+
+  public static class OpenViolationCountsWeek
+  {
+    public final Date weekStart;
+
+    public Map<PolicyThreatCategory, Integer> openViolationCounts;
+
+    OpenViolationCountsWeek(Date weekStart, Map<PolicyThreatCategory, Integer> openViolationCounts) {
+      this.weekStart = weekStart;
+      this.openViolationCounts = openViolationCounts;
+    }
+  }
+
   /**
    * Get MTTR monthly averages for the specified applications, for the 12 most recent months
    */
   public List<MttrMonth> getMttrMonthlyAverages(Set<String> applicationIds, boolean includeLatestData) {
     // compute an overall average MTTR for these applications for each month
+    String aggResolvedCountTemplate = "(agg.fixedCountSecurity%1$sThreat + agg.fixedCountLicense%1$sThreat" +
+        " + agg.fixedCountQuality%1$sThreat + agg.fixedCountOther%1$sThreat + agg.waivedCountSecurity%1$sThreat" +
+        " + agg.waivedCountLicense%1$sThreat + agg.waivedCountQuality%1$sThreat + agg.waivedCountOther%1$sThreat)";
+    String resolvedCountLow = String.format(aggResolvedCountTemplate, "Low");
+    String resolvedCountModerate = String.format(aggResolvedCountTemplate, "Moderate");
+    String resolvedCountSevere = String.format(aggResolvedCountTemplate, "Severe");
+    String resolvedCountCritical = String.format(aggResolvedCountTemplate, "Critical");
+
     String sQuery = "SELECT agg.timePeriodStart, " + //
-        " SUM(agg.mttrLowThreat * agg.resolvedCountLowThreat) / SUM(agg.resolvedCountLowThreat)," + //
-        " SUM(agg.mttrModerateThreat * agg.resolvedCountModerateThreat) / SUM(agg.resolvedCountModerateThreat)," + //
-        " SUM(agg.mttrSevereThreat * agg.resolvedCountSevereThreat) / SUM(agg.resolvedCountSevereThreat)," + //
-        " SUM(agg.mttrCriticalThreat * agg.resolvedCountCriticalThreat) / SUM(agg.resolvedCountCriticalThreat)," + //
-        " SUM(agg.resolvedCountLowThreat), SUM(agg.resolvedCountModerateThreat), " + //
-        " SUM(agg.resolvedCountSevereThreat), SUM(agg.resolvedCountCriticalThreat)" + //
+        " SUM(agg.mttrLowThreat * " + resolvedCountLow + ") / SUM(" + resolvedCountLow + ")," + //
+        " SUM(agg.mttrModerateThreat * " + resolvedCountModerate +") / SUM(" + resolvedCountModerate + ")," + //
+        " SUM(agg.mttrSevereThreat * " + resolvedCountSevere + ") / SUM(" + resolvedCountSevere + ")," + //
+        " SUM(agg.mttrCriticalThreat * " + resolvedCountCritical + ") / SUM(" + resolvedCountCritical + ")," + //
+        " SUM(" + resolvedCountLow + "), SUM(" + resolvedCountModerate + "), " + //
+        " SUM(" + resolvedCountSevere + "), SUM(" + resolvedCountCritical + ")" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1)" + //
+        " AND agg.timePeriod = ?2" + //
         (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.timePeriodStart" + //
         " ORDER BY agg.timePeriodStart DESC";
@@ -150,7 +215,8 @@ public class PolicyViolationAggregationDAO
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = tx.createQuery(sQuery);
       query.setParameter(1, applicationIds);
-      query.setMaxResults(NUM_MONTHS);
+      query.setParameter(2, MONTH);
+      query.setMaxResults(NUM_PERIODS);
 
       @SuppressWarnings("unchecked")
       List<Object[]> results = query.getResultList();
@@ -166,7 +232,8 @@ public class PolicyViolationAggregationDAO
         Number resolvedCountSevereThreat = (Number) row[7];
         Number resolvedCountCriticalThreat = (Number) row[8];
 
-        MttrMonth mttrMonth = new MttrMonth((Date) row[0], mttrLowThreat == null ? null : mttrLowThreat.longValue(),
+        MttrMonth mttrMonth = new MttrMonth((Date) row[0],
+            mttrLowThreat == null ? null : mttrLowThreat.longValue(),
             mttrModerateThreat == null ? null : mttrModerateThreat.longValue(),
             mttrSevereThreat == null ? null : mttrSevereThreat.longValue(),
             mttrCriticalThreat == null ? null : mttrCriticalThreat.longValue(), resolvedCountLowThreat.intValue(),
@@ -208,6 +275,7 @@ public class PolicyViolationAggregationDAO
         " SUM(agg.evaluationCount)" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1)" + //
+        " AND agg.timePeriod = ?2" + //
         (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.timePeriodStart" + //
         " ORDER BY agg.timePeriodStart DESC";
@@ -215,7 +283,8 @@ public class PolicyViolationAggregationDAO
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = tx.createQuery(sQuery);
       query.setParameter(1, applicationIds);
-      query.setMaxResults(NUM_MONTHS);
+      query.setParameter(2, MONTH);
+      query.setMaxResults(NUM_PERIODS);
 
       @SuppressWarnings("unchecked")
       List<Object[]> results = query.getResultList();
@@ -275,10 +344,11 @@ public class PolicyViolationAggregationDAO
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1)" +
         " AND agg.timePeriodStart >= ?2" +
+        " AND agg.timePeriod = ?3" + //
         (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " AND agg.evaluationCount > 0";
 
-    return getSingle(Number.class, sQuery, applicationIds, getAggregationQueryStartDate()).intValue();
+    return getSingle(Number.class, sQuery, applicationIds, getAggregationQueryStartDate(MONTH), MONTH).intValue();
   }
 
   public static class ApplicationCountsByThreat
@@ -323,13 +393,15 @@ public class PolicyViolationAggregationDAO
         "  SUM(agg.discoveredCountOtherCriticalThreat)" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1) AND agg.timePeriodStart >= ?2" + //
+        " AND agg.timePeriod = ?3" + //
         (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.applicationId";
 
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = tx.createQuery(sQuery);
       query.setParameter(1, applicationIds);
-      query.setParameter(2, getAggregationQueryStartDate());
+      query.setParameter(2, getAggregationQueryStartDate(MONTH));
+      query.setParameter(3, MONTH);
 
       @SuppressWarnings("unchecked")
       List<Object[]> results = query.getResultList();
@@ -407,8 +479,9 @@ public class PolicyViolationAggregationDAO
     }
   }
 
-  private Date getAggregationQueryStartDate() {
-    return new LocalDate().withDayOfMonth(1).minusMonths(NUM_MONTHS).toDate();
+  private Date getAggregationQueryStartDate(TimePeriod timePeriod) {
+    return new LocalDate().withField(timePeriod.getDateTimeFieldType(), 1).minus(timePeriod.getPeriod(NUM_PERIODS))
+        .toDate();
   }
 
   private double divideOrZero(double numerator, int denominator) {
@@ -435,4 +508,164 @@ public class PolicyViolationAggregationDAO
     String sQuery = "SELECT entity FROM PolicyViolationAggregation entity WHERE entity.applicationId = ?1";
     return getList(tx, sQuery, applicationId);
   }
+
+  public List<ViolationCountPeriod> getViolationCountsByApplicationIds(Set<String> applicationIds,
+                                                                       boolean includeLatestData)
+  {
+    String sQuery = "SELECT" + //
+        "  SUM(agg.discoveredCountSecurityLowThreat)," + //
+        "  SUM(agg.discoveredCountSecurityModerateThreat)," + //
+        "  SUM(agg.discoveredCountSecuritySevereThreat)," + //
+        "  SUM(agg.discoveredCountSecurityCriticalThreat)," + //
+        "  SUM(agg.discoveredCountLicenseLowThreat)," + //
+        "  SUM(agg.discoveredCountLicenseModerateThreat)," + //
+        "  SUM(agg.discoveredCountLicenseSevereThreat)," + //
+        "  SUM(agg.discoveredCountLicenseCriticalThreat)," + //
+        "  SUM(agg.discoveredCountQualityLowThreat)," + //
+        "  SUM(agg.discoveredCountQualityModerateThreat)," + //
+        "  SUM(agg.discoveredCountQualitySevereThreat)," + //
+        "  SUM(agg.discoveredCountQualityCriticalThreat)," + //
+        "  SUM(agg.discoveredCountOtherLowThreat)," + //
+        "  SUM(agg.discoveredCountOtherModerateThreat)," + //
+        "  SUM(agg.discoveredCountOtherSevereThreat)," + //
+        "  SUM(agg.discoveredCountOtherCriticalThreat), " + //
+        "  SUM(agg.fixedCountSecurityLowThreat)," + //
+        "  SUM(agg.fixedCountSecurityModerateThreat)," + //
+        "  SUM(agg.fixedCountSecuritySevereThreat)," + //
+        "  SUM(agg.fixedCountSecurityCriticalThreat)," + //
+        "  SUM(agg.fixedCountLicenseLowThreat)," + //
+        "  SUM(agg.fixedCountLicenseModerateThreat)," + //
+        "  SUM(agg.fixedCountLicenseSevereThreat)," + //
+        "  SUM(agg.fixedCountLicenseCriticalThreat)," + //
+        "  SUM(agg.fixedCountQualityLowThreat)," + //
+        "  SUM(agg.fixedCountQualityModerateThreat)," + //
+        "  SUM(agg.fixedCountQualitySevereThreat)," + //
+        "  SUM(agg.fixedCountQualityCriticalThreat)," + //
+        "  SUM(agg.fixedCountOtherLowThreat)," + //
+        "  SUM(agg.fixedCountOtherModerateThreat)," + //
+        "  SUM(agg.fixedCountOtherSevereThreat)," + //
+        "  SUM(agg.fixedCountOtherCriticalThreat), " + //
+        "  SUM(agg.waivedCountSecurityLowThreat)," + //
+        "  SUM(agg.waivedCountSecurityModerateThreat)," + //
+        "  SUM(agg.waivedCountSecuritySevereThreat)," + //
+        "  SUM(agg.waivedCountSecurityCriticalThreat)," + //
+        "  SUM(agg.waivedCountLicenseLowThreat)," + //
+        "  SUM(agg.waivedCountLicenseModerateThreat)," + //
+        "  SUM(agg.waivedCountLicenseSevereThreat)," + //
+        "  SUM(agg.waivedCountLicenseCriticalThreat)," + //
+        "  SUM(agg.waivedCountQualityLowThreat)," + //
+        "  SUM(agg.waivedCountQualityModerateThreat)," + //
+        "  SUM(agg.waivedCountQualitySevereThreat)," + //
+        "  SUM(agg.waivedCountQualityCriticalThreat)," + //
+        "  SUM(agg.waivedCountOtherLowThreat)," + //
+        "  SUM(agg.waivedCountOtherModerateThreat)," + //
+        "  SUM(agg.waivedCountOtherSevereThreat)," + //
+        "  SUM(agg.waivedCountOtherCriticalThreat), " + //
+        "  agg.timePeriodStart" + //
+        " FROM PolicyViolationAggregation agg" + //
+        " WHERE agg.applicationId IN (?1)" + //
+        "  AND agg.timePeriodStart >= ?2" + //
+        "  AND agg.timePeriod = ?3" + //
+        (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
+        " GROUP BY agg.timePeriodStart" + //
+        " ORDER BY agg.timePeriodStart DESC";
+
+    LinkedList<ViolationCountPeriod> countPeriods = new LinkedList<>();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createQuery(sQuery);
+      query.setParameter(1, applicationIds);
+      query.setParameter(2, getAggregationQueryStartDate(WEEK));
+      query.setParameter(3, WEEK);
+      query.setMaxResults(NUM_PERIODS);
+
+      @SuppressWarnings("unchecked")
+      List<Object[]> periods = query.getResultList();
+
+      for (Object[] period : periods) {
+        ViolationCountPeriod countPeriod = new ViolationCountPeriod((Date) period[48], getDiscoveredCounts(period),
+            getFixedCounts(period), getWaivedCounts(period));
+        countPeriods.push(countPeriod);
+      }
+    }
+    return countPeriods;
+  }
+
+  private Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> getDiscoveredCounts(Object[] period) {
+    return getCounts(period, 0);
+  }
+
+  private Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> getFixedCounts(Object[] period) {
+    return getCounts(period, 16);
+  }
+
+  private Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> getWaivedCounts(Object[] period) {
+    return getCounts(period, 32);
+  }
+
+  private Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> getCounts(Object[] period, int countTypeOffset) {
+    Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> result = allZeroCounts();
+    for (int categoryIndex = 0; categoryIndex < 4; categoryIndex++) {
+      for (int threatLevelIndex = 0; threatLevelIndex < 4; threatLevelIndex++) {
+        PolicyThreatCategory category = PolicyThreatCategory.values()[categoryIndex];
+        ThreatLevel level = ThreatLevel.values()[threatLevelIndex];
+        int count = ((Number) period[4 * categoryIndex + threatLevelIndex + countTypeOffset]).intValue();
+        result.get(category).put(level, count);
+      }
+    }
+    return result;
+  }
+
+  private Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> allZeroCounts() {
+    EnumMap<PolicyThreatCategory, Map<ThreatLevel, Integer>> result = new EnumMap<>(PolicyThreatCategory.class);
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
+      result.put(category, new EnumMap<>(ThreatLevel.class));
+      for (ThreatLevel level : ThreatLevel.values()) {
+        result.get(category).put(level, 0);
+      }
+    }
+    return result;
+  }
+
+  public LinkedList<OpenViolationCountsWeek> getOpenViolationsCountsByApplicationIds(Set<String> applicationIds,
+                                                                                     boolean includeLatestData)
+  {
+    String sQuery = "SELECT" + //
+        "  SUM(agg.openCountSecurity)," + //
+        "  SUM(agg.openCountLicense)," + //
+        "  SUM(agg.openCountQuality)," + //
+        "  SUM(agg.openCountOther)," + //
+        "  agg.timePeriodStart" + //
+        " FROM PolicyViolationAggregation agg" + //
+        " WHERE agg.applicationId IN (?1)" + //
+        "  AND agg.timePeriodStart >= ?2" + //
+        "  AND agg.timePeriod = ?3" + //
+        (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
+        " GROUP BY agg.timePeriodStart" + //
+        " ORDER BY agg.timePeriodStart DESC";
+
+    final LinkedList<OpenViolationCountsWeek> openViolationCountsWeeks = new LinkedList<>();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createQuery(sQuery);
+      query.setParameter(1, applicationIds);
+      query.setParameter(2, getAggregationQueryStartDate(WEEK));
+      query.setParameter(3, WEEK);
+      query.setMaxResults(NUM_PERIODS);
+
+      @SuppressWarnings("unchecked")
+      List<Object[]> periods = query.getResultList();
+
+      for (Object[] period : periods) {
+        Map<PolicyThreatCategory, Integer> violationTotalsWeek = new EnumMap(PolicyThreatCategory.class);
+        violationTotalsWeek.put(SECURITY, ((Number) period[0]).intValue());
+        violationTotalsWeek.put(LICENSE, ((Number) period[1]).intValue());
+        violationTotalsWeek.put(QUALITY, ((Number) period[2]).intValue());
+        violationTotalsWeek.put(OTHER, ((Number) period[3]).intValue());
+        openViolationCountsWeeks.push(new OpenViolationCountsWeek((Date) period[4], violationTotalsWeek));
+      }
+    }
+    return openViolationCountsWeeks;
+  }
+
 }

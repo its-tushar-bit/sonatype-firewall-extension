@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.collect.Ordering;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
 import org.junit.Test;
@@ -51,7 +52,8 @@ public class PolicyViolationAggregationResourceTest
     Organization org2 = tempEntity.newOrganization();
     String orgId2 = org2.getId();
     Application app2 = tempEntity.newApplication(orgId2);
-    Date date1 = new LocalDate().withDayOfMonth(1).minusMonths(1).toDate();
+    LocalDate now = new LocalDate();
+    Date date1 = now.withDayOfMonth(1).minusMonths(1).toDate();
     Date date2 = new Date(date1.getTime() + 1000);
     Date date3 = new Date(date1.getTime() + 5000);
     String appId1 = app1.getId();
@@ -78,7 +80,8 @@ public class PolicyViolationAggregationResourceTest
     assertMttrResponse(chartDto, new YearMonth(date1).monthOfYear().getAsShortText(Locale.US));
     assertAveragesResponse(chartDto);
     assertApplicationCountsResponse(chartDto);
-    assertThat(chartDto.lastUpdated, is(new LocalDate().withDayOfMonth(1).toDate()));
+    Date updateTime = Ordering.natural().max(now.withDayOfMonth(1).toDate(), now.withDayOfWeek(1).toDate());
+    assertThat(chartDto.lastUpdated, is(updateTime));
     assertThat(chartDto.monthCount, is(1));
   }
 

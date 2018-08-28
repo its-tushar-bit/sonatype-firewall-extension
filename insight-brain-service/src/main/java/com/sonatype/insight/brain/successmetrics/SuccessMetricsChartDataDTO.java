@@ -19,6 +19,11 @@ public class SuccessMetricsChartDataDTO
 
   public ApplicationCountsDTO applicationCounts;
 
+  public List<ViolationCountsDTO> violationCounts;
+
+  // Ordered list of up to 12 weeks in chronologically increasing order
+  public List<ViolationsByCategoryDTO> violationsByCategoryWeeks;
+
   public Date lastUpdated;
 
   public int monthCount;

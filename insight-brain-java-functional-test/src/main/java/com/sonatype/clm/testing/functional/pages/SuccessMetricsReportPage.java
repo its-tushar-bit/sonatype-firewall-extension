@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
+import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
@@ -32,12 +33,28 @@ public class SuccessMetricsReportPage
 
   public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = Condition.text("Delete Report");
 
+  public static final String ALL_CLASS = "iq-chart__dataset--overall";
+
+  public static final String CRITICAL_CLASS = "iq-chart__dataset--critical";
+
+  public static final String TOTAL_CLASS = "iq-chart__dataset--overall";
+
+  public static final String SECURITY_CLASS = "iq-chart__dataset--security";
+
+  public static final String LICENSE_CLASS = "iq-chart__dataset--license";
+
+  public static final String QUALITY_CLASS = "iq-chart__dataset--quality";
+
+  public static final String OTHER_CLASS = "iq-chart__dataset--other";
+
   public SuccessMetricsReportPage() {
     super(ROOT_SELECTOR);
   }
 
   public SuccessMetricsReportPage shouldBeFullyLoaded() {
     SummaryStatementTile.title().should(exist);
+    ViolationTrendTile.title().should(exist);
+    ViolationsByCategoryTile.title().should(exist);
     ViolationAveragesTile.title().should(exist);
     MttrTile.chart().should(exist);
     ApplicationCountsTile.activeApplicationsCount().should(exist);
@@ -240,6 +257,111 @@ public class SuccessMetricsReportPage
 
     public static ElementsCollection componentsWithMostViolations() {
       return $$(SelectorUtils.createSelector(ROOT, "#component-with-most-violations", ".iq-chart__bar-label"));
+    }
+  }
+
+  public static class ViolationsByCategoryTile
+  {
+    private static final String ROOT = "violations-by-category-chart";
+
+    public static SelenideElement root() {
+      return $(ROOT);
+    }
+
+    public static SelenideElement title() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart-title"));
+    }
+
+    public static SelenideElement description() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
+    }
+
+
+    public static SelenideElement chart() {
+      return $(SelectorUtils.createSelector(ROOT, "iq-render-plottable"));
+    }
+
+    public static ElementsCollection points() {
+      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".scatter-plot", "path"));
+    }
+
+    public static ElementsCollection lines() {
+      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".line-plot", "path"));
+    }
+
+    public static ElementsCollection xAxisLabels() {
+      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".x-axis", ".tick-label-container", "text"));
+    }
+
+  }
+
+  public static class ViolationTrendTile
+  {
+    private static final String ROOT = "violation-trends-chart";
+
+    public static final String HEIGHT_ATTR = "height";
+
+    public static final String[] GUIDELINE_TOOLTIP_VALUES = {
+      "Week of May 21st",
+      "Week of May 28th",
+      "Week of June 4th",
+      "Week of June 11th",
+      "Week of June 18th",
+      "Week of June 25th",
+      "Week of July 2nd",
+      "Week of July 9th",
+      "Week of July 16th",
+      "Week of July 23rd",
+      "Week of July 30th",
+      "Week of August 6th"
+    };
+
+    public static final Condition TITLE_TEXT = Condition.text("12 Week Policy Violation Activity");
+
+    public static final Condition DESCRIPTION_TEXT = Condition
+        .text("Violations and remediation over the past 12 weeks.");
+
+    public static final Condition TRENDS_DELTA_UP_CLASS = Condition.cssClass("iq-violation-trends__bar--delta-up");
+    public static final Condition TRENDS_DELTA_DOWN_CLASS = Condition.cssClass("iq-violation-trends__bar--delta-down");
+    public static final Condition TRENDS_DISCOVERED_CLASS = Condition.cssClass("iq-violation-trends__bar--discovered");
+    public static final Condition TRENDS_FIXED_CLASS = Condition.cssClass("iq-violation-trends__bar--fixed");
+
+    public static SelenideElement guidelineTooltip = $("#guidelineTooltip");
+    public static SelenideElement deltaBarTooltip = $("#deltaBarTooltip");
+    public static SelenideElement newBarTooltip = $("#newBarTooltip");
+    public static SelenideElement waivedBarTooltip = $("#waivedBarTooltip");
+    public static SelenideElement fixedBarTooltip = $("#fixedBarTooltip");
+
+    public static SelenideElement root() {
+      return $(ROOT);
+    }
+
+    public static SelenideElement title() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart-title"));
+    }
+
+    public static SelenideElement description() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
+    }
+
+    public static ViolationTrendPlot allViolationsPlot() {
+      return new ViolationTrendPlot("#iq-violation-trends-all");
+    }
+
+    public static ViolationTrendPlot securityViolationsPlot() {
+      return new ViolationTrendPlot("#iq-violation-trends-security");
+    }
+
+    public static ViolationTrendPlot licenseViolationsPlot() {
+      return new ViolationTrendPlot("#iq-violation-trends-license");
+    }
+
+    public static ViolationTrendPlot qualityViolationsPlot() {
+      return new ViolationTrendPlot("#iq-violation-trends-quality");
+    }
+
+    public static ViolationTrendPlot otherViolationsPlot() {
+      return new ViolationTrendPlot("#iq-violation-trends-other");
     }
   }
 }

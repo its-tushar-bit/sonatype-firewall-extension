@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { equals, complement, drop, concat, takeWhile, dropWhile, map, objOf } from 'ramda';
+import {complement, concat, drop, dropWhile, equals, map, objOf, takeWhile} from 'ramda';
 
 const EMPTY_PREFIX = '~empty~';
 
@@ -32,8 +32,10 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
         mttrData: getMttrData(data.mttrs),
         averagesData: data.averages,
         applicationCountsData: data.applicationCounts,
+        violationsByCategoryData: data.violationsByCategoryWeeks,
         lastUpdated: data.lastUpdated,
-        monthCount: data.monthCount
+        monthCount: data.monthCount,
+        violationCounts: data.violationCounts
       };
     });
   }

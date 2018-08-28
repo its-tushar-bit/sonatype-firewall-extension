@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Compon
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -89,6 +90,17 @@ public class SuccessMetricsChartsSingleApplicationTest
     SummaryStatementTile.title().shouldHave(text("Test"));
     SummaryStatementTile.averages().shouldHave(text("This report contains data for 1 application, evaluated over the " +
         "past 3 months, aggregated and deduplicated over the build, stage release, release, and operate stages."));
+  }
+
+  @Test
+  public void testViolationCountsTile() {
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
+
+    successMetricsReportPage.should(appear);
+
+    ScrollUtil.scrollIntoView(ViolationsByCategoryTile.root());
+    ViolationsByCategoryTile.root().shouldBe(visible);
+    ViolationsByCategoryTile.chart().shouldBe(visible);
   }
 
   @Test

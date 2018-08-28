@@ -93,6 +93,10 @@ public class AbstractServiceAuthzTest
     grantPermission(contextId, Permission.EVALUATE_COMPONENT);
   }
 
+  protected void grantEvaluateApplicationPermission(String contextId) {
+    grantPermission(contextId, Permission.EVALUATE_APPLICATION);
+  }
+
   protected void grantClaimComponentPermission() {
     grantGlobalPermission(Permission.CLAIM_COMPONENT);
   }

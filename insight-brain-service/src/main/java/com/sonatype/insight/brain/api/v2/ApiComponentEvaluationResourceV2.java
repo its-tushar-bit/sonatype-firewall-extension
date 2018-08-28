@@ -21,7 +21,10 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -33,11 +36,18 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2)
 public class ApiComponentEvaluationResourceV2
 {
+  public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
+
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
 
+  private final ApiPromoteScanServiceV2 promoteScanService;
+
   @Inject
-  public ApiComponentEvaluationResourceV2(final ApiComponentEvaluationServiceV2 componentEvaluationService) {
+  public ApiComponentEvaluationResourceV2(final ApiComponentEvaluationServiceV2 componentEvaluationService,
+                                          final ApiPromoteScanServiceV2 apiPromoteScanServiceV2)
+  {
     this.componentEvaluationService = componentEvaluationService;
+    this.promoteScanService = apiPromoteScanServiceV2;
   }
 
   @Path("{applicationId}")
@@ -58,5 +68,15 @@ public class ApiComponentEvaluationResourceV2
       throws IOException
   {
     return componentEvaluationService.getComponentEvaluation(applicationId, resultId);
+  }
+
+  @Path(PROMOTE_SCAN_PATH)
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiPromoteScanResultDTOV2 promoteScan(@PathParam("applicationId") final String applicationId,
+                                               final ApiPromoteScanRequestDTOV2 promoteScanRequest)
+  {
+    return promoteScanService.promoteScan(applicationId, promoteScanRequest);
   }
 }

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +21,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -25,6 +30,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
@@ -33,7 +40,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import com.google.inject.Injector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,6 +69,10 @@ public class ApiComponentEvaluationResourceV2Test
 
   private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
+  private InsightWork insightWork;
+
+  private static final String SCAN_ID = "scanId";
+
   private HttpRequest restRequest(String applicationId) {
     return restRequest().path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, applicationId);
   }
@@ -68,6 +81,8 @@ public class ApiComponentEvaluationResourceV2Test
   public void setupApplication() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
+    Injector injector = getCLMServer().getInjector();
+    insightWork = injector.getInstance(InsightWork.class);
   }
 
   @Test
@@ -461,6 +476,22 @@ public class ApiComponentEvaluationResourceV2Test
         "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION), "Internal Error", 500);
   }
 
+  @Test
+  public void testPromoteScan() throws Exception {
+    createScanFile();
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
+    ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2 = ApiPromoteScanRequestDTOV2
+        .fromScan(SCAN_ID, Stage.ID_OPERATE);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiComponentEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
+
+    assertResponseStatus(200, response);
+    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
+    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
+  }
+
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
     setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
         "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION),
@@ -490,5 +521,16 @@ public class ApiComponentEvaluationResourceV2Test
       Thread.sleep(RETRY_INTERVAL);
     }
     return response;
+  }
+
+  private void createScanFile() {
+    File scanFile = insightWork.getScanFile(app.getId(), SCAN_ID);
+    try {
+      Files.createDirectories(scanFile.getParentFile().toPath());
+      Files.write(scanFile.toPath(), Collections.singletonList("test"));
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

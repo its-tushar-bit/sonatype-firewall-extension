@@ -505,11 +505,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
     assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
 
-    response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiComponentEvaluationResourceV2.SCAN_STATUS_PATH)
-        .parameter(app.getId(),
-            apiPromoteScanResultDTOV2.statusUrl.substring(apiPromoteScanResultDTOV2.statusUrl.lastIndexOf("/") + 1))
-        .get();
+    response = restRequest().path(apiPromoteScanResultDTOV2.statusUrl).get();
 
     assertResponseStatus(200, response);
     ApiScanResultDTOV2 apiScanResultDTOV2 = response.getBody(ApiScanResultDTOV2.class);

@@ -39,7 +39,7 @@ public class ApiComponentEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
   
-  public static final String SCAN_STATUS_PATH = "{applicationId}/scan/{statusId}";
+  public static final String SCAN_STATUS_PATH = "{applicationId}/status/{statusId}";
 
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
 

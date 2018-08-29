@@ -145,8 +145,6 @@ public class PolicyJsonMigrator
 
     public String ownerId;
 
-    public boolean enabled = true;
-
     public int threatLevel = 5;
 
     public List<Constraint> constraints;

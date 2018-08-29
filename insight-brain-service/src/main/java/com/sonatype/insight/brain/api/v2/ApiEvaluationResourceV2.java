@@ -35,7 +35,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2)
-public class ApiComponentEvaluationResourceV2
+public class ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
   
@@ -46,8 +46,8 @@ public class ApiComponentEvaluationResourceV2
   private final ApiPromoteScanServiceV2 promoteScanService;
 
   @Inject
-  public ApiComponentEvaluationResourceV2(final ApiComponentEvaluationServiceV2 componentEvaluationService,
-                                          final ApiPromoteScanServiceV2 apiPromoteScanServiceV2)
+  public ApiEvaluationResourceV2(final ApiComponentEvaluationServiceV2 componentEvaluationService,
+                                 final ApiPromoteScanServiceV2 apiPromoteScanServiceV2)
   {
     this.componentEvaluationService = componentEvaluationService;
     this.promoteScanService = apiPromoteScanServiceV2;

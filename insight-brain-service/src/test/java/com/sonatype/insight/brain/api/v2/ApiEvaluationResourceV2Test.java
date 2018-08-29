@@ -56,7 +56,7 @@ import static org.hamcrest.Matchers.startsWith;
 /**
  * @since 1.13.0
  */
-public class ApiComponentEvaluationResourceV2Test
+public class ApiEvaluationResourceV2Test
     extends AbstractResourceTest
 {
   public static final String MISSING_COORDINATES = "The following coordinates are missing for given format: ";
@@ -486,7 +486,7 @@ public class ApiComponentEvaluationResourceV2Test
         .fromScan(SCAN_ID, Stage.ID_OPERATE);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiComponentEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
 
     assertResponseStatus(200, response);
@@ -499,7 +499,7 @@ public class ApiComponentEvaluationResourceV2Test
     createScanFile();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiComponentEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
     assertResponseStatus(200, response);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);

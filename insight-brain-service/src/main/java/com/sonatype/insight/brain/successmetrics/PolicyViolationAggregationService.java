@@ -159,7 +159,7 @@ class PolicyViolationAggregationService
     LocalDate currentDate = currentDateTime.toLocalDate();
 
     Map<TimePeriod, PvaDates> pvaDatesMap = new EnumMap<>(TimePeriod.class);
-    Map<TimePeriod, Map> openViolationCountsMap = new EnumMap<>(TimePeriod.class);
+    Map<TimePeriod, Map<PolicyThreatCategory, Integer>> openViolationCountsMap = new EnumMap<>(TimePeriod.class);
 
     for (TimePeriod timePeriod : TimePeriod.values()) {
       LocalDate startOfCurrentTimePeriod = withDayOfTimePeriod(currentDate, timePeriod, 1);

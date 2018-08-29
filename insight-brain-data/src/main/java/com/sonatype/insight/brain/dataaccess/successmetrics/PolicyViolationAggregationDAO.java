@@ -657,7 +657,7 @@ public class PolicyViolationAggregationDAO
       List<Object[]> periods = query.getResultList();
 
       for (Object[] period : periods) {
-        Map<PolicyThreatCategory, Integer> violationTotalsWeek = new EnumMap(PolicyThreatCategory.class);
+        Map<PolicyThreatCategory, Integer> violationTotalsWeek = new EnumMap<>(PolicyThreatCategory.class);
         violationTotalsWeek.put(SECURITY, ((Number) period[0]).intValue());
         violationTotalsWeek.put(LICENSE, ((Number) period[1]).intValue());
         violationTotalsWeek.put(QUALITY, ((Number) period[2]).intValue());

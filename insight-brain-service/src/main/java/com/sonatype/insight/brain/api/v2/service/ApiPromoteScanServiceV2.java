@@ -103,14 +103,14 @@ public class ApiPromoteScanServiceV2
     executor.allowCoreThreadTimeOut(true);
   }
 
-  private void validateRequest(final String scanId, final String stageId, final String applicationId) {
-    if (!isValidTargetStage(stageId)) {
-      throw new BadRequestException("Stage " + stageId + " is invalid.");
+  private void validateRequest(final ApiPromoteScanRequestDTOV2 requestDTO, final String applicationId) {
+    if (!isValidTargetStage(requestDTO.targetStageId)) {
+      throw new BadRequestException("Stage " + requestDTO.targetStageId + " is invalid.");
     }
 
-    final File scanFile = work.getScanFile(applicationId, scanId);
+    final File scanFile = work.getScanFile(applicationId, requestDTO.scanId);
     if (!scanFile.isFile()) {
-      throw new BadRequestException("A scan with ID " + scanId +
+      throw new BadRequestException("A scan with ID " + requestDTO.scanId +
           " does not exist on the server and may be obsolete. Note that only the most recent scan for the given" +
           " stage can be promoted.");
     }
@@ -127,7 +127,7 @@ public class ApiPromoteScanServiceV2
   {
     final Application application = applicationDAO.getByIdNotNull(applicationId);
 
-    validateRequest(apiPromoteScanRequestDTOV2.scanId, apiPromoteScanRequestDTOV2.targetStageId, application.getId());
+    validateRequest(apiPromoteScanRequestDTOV2, application.getId());
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
         apiPromoteScanRequestDTOV2.scanId, application.getName(), apiPromoteScanRequestDTOV2.targetStageId, statusId);

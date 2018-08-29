@@ -25,7 +25,7 @@ class LoginErrorResponseHandler
   private LoginErrorResponseHandler() {}
 
   static void sendError(final HttpServletResponse httpResponse, final AuthenticationException e) {
-    sendError(httpResponse, errorResponseGenerator.mapException(e));
+    sendError(httpResponse, errorResponseGenerator.mapExceptionAndLog(e));
   }
 
   static void sendError(final HttpServletResponse httpResponse, final ErrorResponse errorResponse) {

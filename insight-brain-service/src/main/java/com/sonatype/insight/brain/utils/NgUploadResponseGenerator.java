@@ -17,9 +17,6 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * A utility to generate a Json response for Ajax form uploads with the ability to fallback to ngUpload's
  * iFrame implementation for IE9. IE9 requests must be returned as TEXT_PLAIN or else IE will attempt to open
@@ -30,8 +27,6 @@ import org.slf4j.LoggerFactory;
 @Named
 public class NgUploadResponseGenerator
 {
-  private static final Logger log = LoggerFactory.getLogger(NgUploadResponseGenerator.class);
-
   private final ErrorResponseGenerator errorResponseGenerator;
 
   private final AntiCsrfFilter antiCsrfFilter;
@@ -66,8 +61,7 @@ public class NgUploadResponseGenerator
     }
     catch (Exception e) {
       if (noFormData) {
-        log.error(e.getMessage(), e);
-        String errorMessage = errorResponseGenerator.mapException(e).getMessageBody();
+        String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
         return Response.ok(JsonUtils.format(errorMessage), MediaType.TEXT_PLAIN).build();
       }
       throw e;

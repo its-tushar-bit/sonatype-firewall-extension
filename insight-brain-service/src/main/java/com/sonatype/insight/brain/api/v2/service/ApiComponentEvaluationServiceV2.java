@@ -214,7 +214,7 @@ public class ApiComponentEvaluationServiceV2
       }
       catch (Exception e) {
         evaluationResultDTO.isError = true;
-        evaluationResultDTO.errorMessage = errorResponseGenerator.mapException(e).getMessageBody();
+        evaluationResultDTO.errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
       }
 
       try {

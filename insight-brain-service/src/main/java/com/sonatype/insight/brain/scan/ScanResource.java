@@ -90,7 +90,7 @@ public class ScanResource
     }
     catch (Exception e) {
       if (noFormData) {
-        String msg = errorResponseGenerator.mapException(e).getMessageBody();
+        String msg = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
         return Response.ok(msg, ErrorResponse.CONTENT_TYPE).build();
       }
       throw e;

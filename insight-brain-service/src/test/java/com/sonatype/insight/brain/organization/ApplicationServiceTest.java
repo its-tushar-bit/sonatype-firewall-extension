@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -24,8 +26,10 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +42,9 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -208,6 +215,24 @@ public class ApplicationServiceTest
   }
 
   @Test
+  public void testAddApplication_NoOrganization() throws Exception {
+    String applicationPublicId = "testAddApplication_NoOrganization";
+    String applicationName = "testAddApplication-NoOrganization";
+
+    Application application = new Application();
+    application.setName(applicationName);
+    application.setPublicId(applicationPublicId);
+
+    try {
+      applicationService.addApplication(application);
+      fail("Expected exception");
+    }
+    catch (InvalidApplicationException expected) {
+      assertEquals("Application must have a parent organization.", expected.getMessage());
+    }
+  }
+
+  @Test
   public void testGetApplicationIdsByOrganizationIds() {
     String sameOrgAppId = tempEntity.newApplication(org.getId()).getId();
 
@@ -222,5 +247,60 @@ public class ApplicationServiceTest
 
     Set<String> applicationIds = applicationService.getApplicationIdsByOrganizationIds(null);
     assertThat(applicationIds, notNullValue());
+  }
+
+  @Test
+  public void testDeleteApplicationByPublicId_ApplicationWithData() throws Exception {
+    final String applicationId = app1.getId();
+
+    final InsightWork insightWork = lookup(InsightWork.class);
+    Files.createDirectories(insightWork.getScanDir(applicationId).toPath());
+    Files.createDirectories(insightWork.getAuditDir(applicationId).toPath());
+    Files.createDirectories(insightWork.getReportDir(applicationId).toPath());
+
+    applicationService.deleteApplicationByPublicId(app1.getPublicId());
+    assertNull(new ApplicationDAO().getById(applicationId));
+
+    assertFalse(insightWork.getScanDir(applicationId).exists());
+    assertFalse(insightWork.getAuditDir(applicationId).exists());
+    assertFalse(insightWork.getReportDir(applicationId).exists());
+  }
+
+  @Test
+  public void testDeleteApplicationByPublicId_NonExistingApplication() throws Exception {
+    String applicationPublicId = "NoSuchAppPublicId";
+    try {
+      applicationService.deleteApplicationByPublicId(applicationPublicId);
+      fail("Expected exception");
+    }
+    catch (NotFoundException expected) {
+      assertEquals("Could not find an application with public ID " + applicationPublicId + ".", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testUpdateApplication_NoOrganization() throws Exception {
+    app1.setOrganizationId(null);
+
+    try {
+      applicationService.updateApplication(app1);
+      fail("Expected exception");
+    }
+    catch (InvalidApplicationException expected) {
+      assertEquals("Cannot change the parent organization of an application.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testUpdateApplication_ChangeOrganization() throws Exception {
+    app1.setOrganizationId("newOrganizationId");
+
+    try {
+      applicationService.updateApplication(app1);
+      fail("Expected exception");
+    }
+    catch (InvalidApplicationException expected) {
+      assertEquals("Cannot change the parent organization of an application.", expected.getMessage());
+    }
   }
 }

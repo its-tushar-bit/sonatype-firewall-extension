@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -20,24 +19,20 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -137,17 +132,15 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert
-        .assertEquals(
-            "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
-            response.getBodyText());
+    assertEquals(
+        "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
+        response.getBodyText());
 
     // Test Get Icon (default icon)
     HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
         .parameter(applicationPublicId).get();
     assertResponseStatus(307, iconResponse);
-    Assert
-        .assertEquals(getRestBaseUrl() + "assets/img/defaulticon_application.png", iconResponse.getHeader("Location"));
+    assertEquals(getRestBaseUrl() + "assets/img/defaulticon_application.png", iconResponse.getHeader("Location"));
 
     // Test Add Application Icon
     defaultIconByteArray = loadDefaultIcon();
@@ -204,69 +197,6 @@ public class ApplicationResourceTest
     }
     assertNotNull(icon);
     assertTrue(icon.getHeight() > 0);
-  }
-
-  @Test
-  public void testDeleteApplicationWithData() throws Exception {
-    final ApplicationDAO applicationDAO = new ApplicationDAO();
-    final PolicyDAO policyDAO = new PolicyDAO();
-
-    final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
-    final String applicationName = "testDeleteApplicationWithScanAppName";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
-
-    final String licenseFingerprint = "testDeleteApplicationWithScan_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    makeScanReceipt();
-
-    HttpResponse response = super.restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH)
-        .parameter(applicationPublicId).body("").put();
-
-    assertResponseStatus(200, response);
-
-    final String applicationId = application.getId();
-
-    // TODO ideally, need to create these directories by calling into appropriate REST endpoints
-    final InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setSonatypeWork(getCLMServer().getWorkDir().getAbsolutePath());
-    final InsightWork insightWork = new InsightWork(insightConfig);
-    createDirectory(insightWork.getScanDir(applicationId));
-    createDirectory(insightWork.getAuditDir(applicationId));
-    createDirectory(insightWork.getReportDir(applicationId));
-
-    response = restRequest().path(applicationPublicId).delete();
-    application = applicationDAO.getByPublicId(applicationPublicId);
-
-    assertResponseStatus(204, response);
-    assertNull(application);
-
-    assertEquals(0, policyDAO.getByOwnerId(applicationId).size());
-    assertFalse(insightWork.getScanDir(applicationId).exists());
-    assertFalse(insightWork.getAuditDir(applicationId).exists());
-    assertFalse(insightWork.getReportDir(applicationId).exists());
-  }
-
-  @Test
-  public void testDeleteNonExistingApplication() throws Exception {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-
-    final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
-    final String applicationName = "testDeleteApplicationWithScanAppName";
-
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
-
-    HttpResponse response = restRequest().path(applicationPublicId).delete();
-    application = applicationDAO.getByPublicId(applicationPublicId);
-
-    assertResponseStatus(204, response);
-    assertNull(application);
-
-    response = restRequest().path(applicationPublicId).delete();
-
-    assertResponseStatus(404, response);
-    assertEquals("Could not find an application with public ID " + applicationPublicId + ".",
-        response.getBodyText());
   }
 
   @Test
@@ -500,51 +430,9 @@ public class ApplicationResourceTest
   }
 
   @Test
-  public void testAddApplication_NoOrganization() throws Exception {
-    String applicationPublicId = "testAddApplication_NoOrganization";
-    String applicationName = "testAddApplication-NoOrganization";
-
-    Application application = new Application();
-    application.setName(applicationName);
-    application.setPublicId(applicationPublicId);
-
-    HttpResponse response = restRequest().body(application).post();
-    assertResponseStatus(400, response);
-    assertEquals("Application must have a parent organization.", response.getBodyText());
-  }
-
-  @Test
-  public void testUpdateApplication_NoOrganization() throws Exception {
-    Application application = tempEntity.newApplicationWithParent("testUpdateApplication_NoOrganization");
-
-    application.setOrganizationId(null);
-
-    HttpResponse response = restRequest().body(application).put();
-    assertResponseStatus(400, response);
-    assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
-  }
-
-  @Test
-  public void testUpdateApplication_ChangeOrganization() throws Exception {
-    Application application = tempEntity.newApplicationWithParent("testUpdateApplication_ChangeOrganization");
-
-    application.setOrganizationId("newOrganizationId");
-
-    HttpResponse response = restRequest().body(application).put();
-    assertResponseStatus(400, response);
-    assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
-  }
-
-  @Test
   public void testGenerateIcon() throws Exception {
     HttpResponse response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter("hash").get();
     testValidIconResponse(response);
-  }
-
-  private void createDirectory(File dir) {
-    if (!dir.isDirectory()) {
-      assertTrue("create directory " + dir.getAbsolutePath(), dir.mkdirs());
-    }
   }
 
   private void makeScanReceipt() throws Exception {

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -18,29 +19,44 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
@@ -50,6 +66,8 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -72,6 +90,9 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -865,6 +886,569 @@ public class ScanPolicyEvaluatorTest
     }
   }
 
+  @Test
+  public void testEvaluate_Label_DefinedAtAppLevel() throws Exception {
+    testEvaluate_Label(false, false);
+  }
+
+  @Test
+  public void testEvaluate_Label_DefinedAtOrgLevel_AppliedAtOrgLevel() throws Exception {
+    testEvaluate_Label(true, true);
+  }
+
+  @Test
+  public void testEvaluate_Label_DefinedAtOrgLevel_AppliedAtAppLevel() throws Exception {
+    testEvaluate_Label(true, false);
+  }
+
+  private void testEvaluate_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
+    String hash = "1249e25aebb15358bedd";
+    Label label = tempEntity.newLabel(orgLabel ? application.getOrganizationId() : application.getId(), "red");
+    tempEntity.newComponentLabel(orgComponentLabel ? application.getOrganizationId() : application.getId(),
+        label.getId(), hash);
+
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Policy policy = new Policy(null /* policyId */, "Policy 1");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+    constraint = policy.getConstraints().get(0);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String groupId = "tomcat";
+    String artifactId = "tomcat-util";
+    String version = "5.5.23";
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(1));
+    assertContainsPolicyViolation(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), hash,
+        policy, constraint, Action.ID_FAIL, LabelConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_LicenseOverride() throws Exception {
+    Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    Condition condition1 = new Condition(LicenseConditionType.ID, "is", "ZPL-2.0");
+    constraint1.addCondition(condition1);
+    Constraint constraint2 = new Constraint(null /* constraintId */, "Constraint 2", LogicalOperator.AND);
+    Condition condition2 = new Condition(LicenseStatusConditionType.ID, "is", "OVERRIDDEN");
+    constraint2.addCondition(condition2);
+
+    Policy policy = new Policy(null /* policyId */, "Policy 1");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint1);
+    policy.addConstraint(constraint2);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+    constraint1 = policy.getConstraints().get(0);
+    constraint2 = policy.getConstraints().get(1);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Override the license at org level
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-pool", "commons-pool",
+        "1.4");
+    String hash = "1a667c9d419dc4f185c9";
+    tempEntity.newLicenseOverride(application.getOrganizationId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(2));
+    assertContainsPolicyViolation(componentIdentifier, hash, policy, constraint1, Action.ID_FAIL,
+        LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    assertContainsPolicyViolation(componentIdentifier, hash, policy, constraint2, Action.ID_FAIL,
+        LicenseStatusConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+
+    // Override the license at app level. This must supersede the override at org level, so the policy should not
+    // trigger any alerts.
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.ACKNOWLEDGED,
+        (String) null /* licenseId */, " My comment");
+
+    scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    // Evaluate policy
+    scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(0));
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityOverride() throws Exception {
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint name", LogicalOperator.AND);
+    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", "CONFIRMED");
+    constraint.addCondition(condition);
+
+    Policy policy = new Policy(null /* policyId */, "Policy name");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+    constraint = policy.getConstraints().get(0);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Override the security vulnerability
+    String hash = "494308fc2d433720c778";
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), hash, "cve", "CVE-2009-1524",
+        SecurityVulnerabilityOverrideStatus.CONFIRMED, " My comment");
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(1));
+    assertContainsPolicyViolation(ComponentIdentifier.createMavenCoordinates("org.mortbay.jetty", "jetty", "6.1.15"),
+        hash, policy, constraint, Action.ID_FAIL, SecurityVulnerabilityStatusConditionType.ID,
+        scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_WaivedPolicyViolations() throws Exception {
+    // Create a policy
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
+    constraint.addCondition(condition);
+    Policy policy = new Policy(null /* policyId */, "Policy");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+
+    String componentHash = "f2e35e4a21f07d25710f";
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(componentHash, policy.getId(), application.getId(),
+        "Waiver comment here");
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.allViolations, hasSize(3));
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(2));
+
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(),
+        stage.getStageTypeId());
+    assertThat(policyViolations, hasSize(3));
+    int countWaived = 0;
+    for (PolicyViolation policyViolation : policyViolations) {
+      if (componentHash.equals(policyViolation.getHash())) {
+        assertThat(policyViolation.isWaived(), is(true));
+        assertThat(policyViolation.getPolicyWaiverId(), is(policyWaiver.getId()));
+        assertThat(policyViolation.getPolicyWaiverComment(), is(policyWaiver.getComment()));
+        countWaived++;
+      }
+      else {
+        assertThat(policyViolation.isWaived(), is(false));
+      }
+    }
+    assertThat(countWaived, is(1));
+  }
+
+  @Test
+  public void testEvaluate_InvalidStage() throws Exception {
+    try {
+      scanPolicyEvaluator.evaluate(application, "scanid", new Stage("foobar"));
+      fail("Expected exception");
+    }
+    catch (InvalidStageException expected) {
+      assertThat(expected.getMessage(), is("Invalid stage id=foobar"));
+    }
+  }
+
+  @Test
+  public void testEvaluate_MissingReport() throws Exception {
+    try {
+      scanPolicyEvaluator.evaluate(application, "scanId", new Stage(Stage.ID_BUILD));
+      fail("Expected exception");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is("Could not download the report for scan ID scanId"));
+    }
+
+    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(application.getId(),
+        Stage.ID_BUILD);
+    assertNull(eval);
+  }
+
+  @Test
+  public void testEvaluate_ErrorReport() throws Exception {
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/empty_report.zip");
+
+    try {
+      scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(),
+          is("Unable to evaluate policy, the scan " + scanId + " could not be processed."));
+    }
+
+    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(application.getId(),
+        Stage.ID_BUILD);
+    assertNull(eval);
+  }
+
+  @Test
+  public void testEvaluate_ManuallyIdentifiedComponent() throws Exception {
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
+
+    Policy policy = new Policy(null /* policyId */, "Policy");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+    constraint = policy.getConstraints().get(0);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String hash = "5801a1a27a36f88e2089";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("G", "A", "V");
+    tempEntity.newClaimedComponent(hash, componentIdentifier);
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/ManuallyIdentifiedComponent/report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(1));
+    assertContainsPolicyViolation(componentIdentifier, hash, policy, constraint, Action.ID_FAIL,
+        MatchStateConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_MultiLicense() throws Exception {
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
+    constraint.addCondition(condition);
+
+    Policy policy = new Policy(null /* policyId */, "Policy 1");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+    constraint = policy.getConstraints().get(0);
+
+    String hash = "f2e35e4a21f07d25710f";
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(3));
+    assertContainsPolicyViolation(ComponentIdentifier.createMavenCoordinates("org.webjars", "select2", "3.2"), hash,
+        policy, constraint, Action.ID_FAIL, LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_MultipleMatchesForSameGAV() throws Exception {
+    Constraint constraintLicense = new Constraint(null /* constraintId */, "Constraint License", LogicalOperator.AND);
+    Condition condition1 = new Condition(LicenseConditionType.ID, "is", "UNSPECIFIED");
+    constraintLicense.addCondition(condition1);
+    Constraint constraintSV = new Constraint(null /* constraintId */, "Constraint SV", LogicalOperator.AND);
+    Condition condition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    constraintSV.addCondition(condition2);
+
+    Policy policy = new Policy(null /* policyId */, "Policy 1");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraintLicense);
+    policy.addConstraint(constraintSV);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+    constraintLicense = policy.getConstraints().get(0);
+    constraintSV = policy.getConstraints().get(1);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/MultipleMatchesForSameGAV/report");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations, hasSize(9));
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.0.28");
+    String hashExact = "3102cdd0edd5a05afe00";
+    String hashSimilar1 = "d29a75f9056e0b040f09";
+    assertContainsPolicyViolation(componentIdentifier, hashExact,
+        policy, constraintLicense, Action.ID_FAIL, LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    assertContainsPolicyViolation(componentIdentifier, hashExact, policy, constraintSV, Action.ID_FAIL,
+        SecurityVulnerabilitySeverityConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    assertContainsPolicyViolation(componentIdentifier, hashSimilar1, policy, constraintLicense, Action.ID_FAIL,
+        LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+
+    String hashSimilar2 = "707df42012875442b9df";
+    // Verify that the SVs are associated with components by hash, not by component identifier.
+    // If SVs were associated with components by component identifier, this component would have a policy violation for
+    // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
+    assertNotContainsPolicyViolation(componentIdentifier, hashSimilar1, policy, constraintSV, Action.ID_FAIL,
+        SecurityVulnerabilitySeverityConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    assertContainsPolicyViolation(componentIdentifier, hashSimilar2, policy, constraintLicense, Action.ID_FAIL,
+        LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    // Verify that the SVs are associated with components by hash, not by component identifier.
+    // If SVs were associated with components by component identifier, this component would have a policy violation for
+    // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
+    assertNotContainsPolicyViolation(componentIdentifier, hashSimilar2, policy, constraintSV, Action.ID_FAIL,
+        SecurityVulnerabilitySeverityConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_OneStage() throws Exception {
+    Constraint constraint = new Constraint("C1", "constraint", LogicalOperator.OR);
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat:tomcat-util:5.5.23");
+    constraint.addCondition(condition1);
+    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
+    constraint.addCondition(condition2);
+    Policy policy = new Policy("P1", "policy");
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+
+    // Evaluate policy
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+    PolicyEvaluation policyEvaluation1 = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(application.getId(),
+        stage.getStageTypeId());
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(),
+        stage.getStageTypeId());
+    assertThat(policyViolations1, hasSize(2));
+    policyViolations1 = sort(policyViolations1);
+    assertThat(policyViolations1.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID), is("tomcat"));
+    assertThat(policyViolations1.get(0).getOpenTime(), is(policyEvaluation1.getTime()));
+    assertThat(policyViolations1.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
+    assertThat(policyViolations1.get(1).getOpenTime(), is(policyEvaluation1.getTime()));
+
+    // Change one of the policy conditions and re-evaluate the policy.
+    // This should cause a policy violation to be cleared and a new policy violation to appear.
+    policy.getConstraints().get(0).getConditions().get(0).setValue("maven:commons-dbcp:commons-dbcp:1.4");
+    new PolicyDAO().update(policy);
+    // Evaluate policy again for the same scan
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+    PolicyEvaluation policyEvaluation2 = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(application.getId(),
+        stage.getStageTypeId());
+    assertThat(policyEvaluation1.getId(), is(not(policyEvaluation2.getId())));
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(),
+        stage.getStageTypeId());
+    assertThat(policyViolations2, hasSize(2));
+    policyViolations2 = sort(policyViolations2);
+    assertThat(policyViolations2.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
+    assertThat(policyViolations2.get(0).getOpenTime(), is(policyEvaluation1.getTime()));
+    assertThat(policyViolations2.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-dbcp"));
+    assertThat(policyViolations2.get(1).getOpenTime(), is(policyEvaluation2.getTime()));
+  }
+
+  @Test
+  public void testEvaluate_TwoStages() throws Exception {
+    Constraint constraint = new Constraint("C1", "constraint", LogicalOperator.OR);
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
+    constraint.addCondition(condition);
+    Policy policy = new Policy("P1", "policy");
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    policy.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy);
+
+    // Evaluate policy for the Build stage
+    String scanBuildId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+    scanPolicyEvaluator.evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
+    PolicyEvaluation policyEvaluationBuild = new PolicyEvaluationDAO()
+        .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolationsBuild = policyViolationDAO
+        .getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    assertThat(policyViolationsBuild, hasSize(1));
+    assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
+    assertThat(policyViolationsBuild.get(0).getOpenTime(), is(policyEvaluationBuild.getTime()));
+
+    // Evaluate policy for the Release stage
+    String scanReleaseId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+    scanPolicyEvaluator.evaluate(application, scanReleaseId, new Stage(Stage.ID_RELEASE));
+    PolicyEvaluation policyEvaluationRelease = new PolicyEvaluationDAO()
+        .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_RELEASE);
+    List<PolicyViolation> policyViolationsRelease = policyViolationDAO
+        .getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_RELEASE);
+    assertThat(policyViolationsRelease, hasSize(1));
+    assertThat(policyViolationsRelease.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
+    assertThat(policyViolationsRelease.get(0).getOpenTime(), is(policyEvaluationRelease.getTime()));
+
+    policyViolationsBuild = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    assertThat(policyViolationsBuild, hasSize(1));
+    assertThat(policyViolationsBuild.get(0).getOpenTime(), is(policyEvaluationBuild.getTime()));
+  }
+
+  @Test
+  public void testEvaluate_ReEvaluateObsoleteScan() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Evaluate policy for scanId1
+    String scanId1 = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+    scanPolicyEvaluator.evaluate(application, scanId1, stage);
+    assertPolicyEvaluation(scanId1, false /* isReevaluation */);
+
+    // Make sure we don't have two evaluations at exactly the same time
+    Thread.sleep(1);
+
+    // Evaluate policy for scanId2
+    String scanId2 = mockReport("/ScanPolicyEvaluatorTest/report.zip");
+    scanPolicyEvaluator.evaluate(application, scanId2, stage);
+    assertPolicyEvaluation(scanId2, false /* isReevaluation */);
+
+    // Evaluate policy again for scanId1
+    scanPolicyEvaluator.evaluate(application, scanId1, stage);
+    assertPolicyEvaluation(scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
+  }
+
+  @Test
+  public void testEvaluate_PersistApplicationComponents() throws Exception {
+    Stage stage1 = new Stage(Stage.ID_BUILD);
+    Stage stage2 = new Stage(Stage.ID_RELEASE);
+
+    // Evaluate policy
+    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage1.getStageTypeId()),
+        is(empty()));
+    String scanId1 = mockReport("/ScanPolicyEvaluatorTest/PersistApplicationComponents/report1.zip");
+    scanPolicyEvaluator.evaluate(application, scanId1, stage1);
+    List<ApplicationComponent> appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
+        stage1.getStageTypeId());
+    assertThat(appComponents1, hasSize(1));
+    ApplicationComponent appComponent1 = appComponents1.get(0);
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+        stage1.getStageTypeId());
+    ComponentIdentifier commonsDbcpComponentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-dbcp",
+        "commons-dbcp", "1.4");
+    assertApplicationComponent(commonsDbcpComponentIdentifier, policyEvaluation1.getTime(), appComponent1);
+
+    // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage2.getStageTypeId()),
+        is(empty()));
+    String scanId2 = mockReport("/ScanPolicyEvaluatorTest/PersistApplicationComponents/report2.zip");
+    scanPolicyEvaluator.evaluate(application, scanId2, stage2);
+    List<ApplicationComponent> appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
+        stage2.getStageTypeId());
+    assertThat(appComponents2, hasSize(1));
+    ApplicationComponent appComponent2 = appComponents2.get(0);
+    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+        stage2.getStageTypeId());
+    ComponentIdentifier geronimoTomcatComponentIdentifier = ComponentIdentifier.createMavenCoordinates("geronimo",
+        "geronimo-tomcat", "1.0");
+    assertApplicationComponent(geronimoTomcatComponentIdentifier, policyEvaluation2.getTime(), appComponent2);
+    appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage1.getStageTypeId());
+    assertThat(appComponents1, hasSize(1));
+    assertApplicationComponent(commonsDbcpComponentIdentifier, policyEvaluation1.getTime(), appComponents1.get(0));
+    assertThat(appComponents1.get(0).getId(), is(appComponent1.getId()));
+
+    // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
+    // should not touch the app<->component assocs for the second stage.
+    String scanId3 = mockReport("/ScanPolicyEvaluatorTest/PersistApplicationComponents/report3.zip");
+    scanPolicyEvaluator.evaluate(application, scanId3, stage1);
+    List<ApplicationComponent> appComponents3 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
+        stage1.getStageTypeId());
+    assertThat(appComponents3, hasSize(1));
+    ApplicationComponent appComponent3 = appComponents3.get(0);
+    policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+        stage1.getStageTypeId());
+    ComponentIdentifier tomcatUtilCOmponentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat",
+        "tomcat-util", "5.5.23");
+    assertApplicationComponent(tomcatUtilCOmponentIdentifier, policyEvaluation1.getTime(), appComponent3);
+    appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage2.getStageTypeId());
+    assertThat(appComponents2, hasSize(1));
+    assertApplicationComponent(geronimoTomcatComponentIdentifier, policyEvaluation2.getTime(), appComponents2.get(0));
+    assertThat(appComponents2.get(0).getId(), is(appComponent2.getId()));
+  }
+
+  private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,
+                                                    String expectedHash,
+                                                    Policy expectedPolicy,
+                                                    Constraint expectedConstraint,
+                                                    String expectedActionTypeId,
+                                                    String expectedConditionTypeId,
+                                                    List<PolicyViolation> actualPolicyViolations)
+  {
+    assertThat(
+        "Cannot find expected policy violation.", findPolicyViolation(expectedComponentIdentifier, expectedHash,
+            expectedPolicy, expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actualPolicyViolations),
+        is(notNullValue()));
+  }
+
+  private static void assertNotContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,
+                                                       String expectedHash,
+                                                       Policy expectedPolicy,
+                                                       Constraint expectedConstraint,
+                                                       String expectedActionTypeId,
+                                                       String expectedConditionTypeId,
+                                                       List<PolicyViolation> actualPolicyViolations)
+  {
+    assertThat(
+        "Found unexpected policy violation.", findPolicyViolation(expectedComponentIdentifier, expectedHash,
+            expectedPolicy, expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actualPolicyViolations),
+        is(nullValue()));
+  }
+
+  private static PolicyViolation findPolicyViolation(ComponentIdentifier expectedComponentIdentifier,
+                                                     String expectedHash,
+                                                     Policy expectedPolicy,
+                                                     Constraint expectedConstraint,
+                                                     String expectedActionTypeId,
+                                                     String expectedConditionTypeId,
+                                                     List<PolicyViolation> actualPolicyViolations)
+  {
+    for (PolicyViolation actualPolicyViolation : actualPolicyViolations) {
+      if (actualPolicyViolation.getPolicyId().equals(expectedPolicy.getId())
+          && actualPolicyViolation.getPolicyName().equals(expectedPolicy.getName())
+          && actualPolicyViolation.getComponentIdentifier().equals(expectedComponentIdentifier)
+          && actualPolicyViolation.getHash().equals(expectedHash)
+          && actualPolicyViolation.getActionTypeId().equals(expectedActionTypeId)) {
+        assertThat(actualPolicyViolation.getConstraintFacts(), hasSize(1));
+        ConstraintFact actualConstraintFact = actualPolicyViolation.getConstraintFacts().get(0);
+        if (actualConstraintFact.getConstraintId().equals(expectedConstraint.getId())
+            && actualConstraintFact.getConstraintName().equals(expectedConstraint.getName())) {
+          assertThat(actualConstraintFact.getConditionFacts(), hasSize(1));
+          ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(0);
+          if (actualConditionFact.getConditionTypeId().equals(expectedConditionTypeId)) {
+            return actualPolicyViolation;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   private File createScanFile(Application app, String scanId) {
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     scanFile.delete();
@@ -914,5 +1498,33 @@ public class ScanPolicyEvaluatorTest
     List<PolicyViolation> inactiveViolations = new ArrayList<>(scanPolicyEvaluatorResults.allViolations);
     inactiveViolations.removeAll(scanPolicyEvaluatorResults.activeViolations);
     return inactiveViolations;
+  }
+
+  private List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
+    List<PolicyViolation> result = new ArrayList<>(policyViolations);
+    Collections.sort(result, PolicyViolationComparator.COMPARATOR);
+    return result;
+  }
+
+  private void assertPolicyEvaluation(String scanId, boolean isReevaluation) {
+    assertPolicyEvaluation(scanId, isReevaluation, false /* isForObsoleteScan */);
+  }
+
+  private void assertPolicyEvaluation(String scanId,
+                                      boolean isReevaluation,
+                                      boolean isForObsoleteScan)
+  {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
+        scanId);
+    assertEquals(isReevaluation, policyEvaluation.isReevaluation());
+    assertEquals(isForObsoleteScan, policyEvaluation.isForObsoleteScan());
+  }
+
+  private void assertApplicationComponent(ComponentIdentifier componentIdentifier,
+                                          Date time,
+                                          ApplicationComponent actual)
+  {
+    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
+    assertThat(actual.getTime(), is(time));
   }
 }

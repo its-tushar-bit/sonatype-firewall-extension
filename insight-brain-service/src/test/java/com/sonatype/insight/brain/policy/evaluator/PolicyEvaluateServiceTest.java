@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.mail.Message;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -34,31 +32,17 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -67,8 +51,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -79,19 +61,14 @@ import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest.assertContainsPolicyAlert;
-import static com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest.assertNotContainsPolicyAlert;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -105,18 +82,6 @@ public class PolicyEvaluateServiceTest
 {
   @Inject
   private PolicyEvaluateService policyEvaluateService;
-
-  private final ComponentIdentifier GERONIMO_TOMCAT_1_0 = ComponentIdentifier.createMavenCoordinates("geronimo",
-      "geronimo-tomcat", "1.0");
-
-  private final ComponentIdentifier COMMONS_DBCP_1_4 = ComponentIdentifier.createMavenCoordinates("commons-dbcp",
-      "commons-dbcp", "1.4");
-
-  private final ComponentIdentifier TOMCAT_UTIL_5_5_23 = ComponentIdentifier.createMavenCoordinates("tomcat",
-      "tomcat-util", "5.5.23");
-
-  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier.createMavenCoordinates("commons-pool",
-      "commons-pool", "1.4");
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
@@ -140,160 +105,6 @@ public class PolicyEvaluateServiceTest
   @Before
   public void before() throws Exception {
     app = tempEntity.newApplicationWithParent();
-  }
-
-  @Test
-  public void testEvaluate_MultipleMatchesForSameGAV() throws Exception {
-    Constraint constraintLicense = new Constraint(null /* constraintId */, "Constraint License", LogicalOperator.AND);
-    Condition condition1 = new Condition(LicenseConditionType.ID, "is", "UNSPECIFIED");
-    constraintLicense.addCondition(condition1);
-    Constraint constraintSV = new Constraint(null /* constraintId */, "Constraint SV", LogicalOperator.AND);
-    Condition condition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraintSV.addCondition(condition2);
-
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraintLicense);
-    policy.addConstraint(constraintSV);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-    constraintLicense = policy.getConstraints().get(0);
-    constraintSV = policy.getConstraints().get(1);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    String scanId = simulateReportIsAvailable("MultipleMatchesForSameGAV/report");
-    
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    
-    assertEquals(3, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(3, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(9, policyAlerts.size());
-    for (PolicyAlert policyAlert : policyAlerts) {
-      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
-    }
-    Component expectedComponentExact = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.EXACT);
-    expectedComponentExact.setHash("3102cdd0edd5a05afe00");
-    Component expectedComponentSimilar1 = ComponentFactory
-        .forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
-    expectedComponentSimilar1.setHash("d29a75f9056e0b040f09");
-    Component expectedComponentSimilar2 = ComponentFactory
-        .forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
-    expectedComponentSimilar2.setHash("707df42012875442b9df");
-    assertContainsPolicyAlert(expectedComponentExact, policy, constraintLicense, Action.ID_FAIL,
-        LicenseConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(expectedComponentExact, policy, constraintSV, Action.ID_FAIL,
-        SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(expectedComponentSimilar1, policy, constraintLicense, Action.ID_FAIL,
-        LicenseConditionType.ID, policyAlerts);
-    // Verify that the SVs are associated with components by hash, not by component identifier.
-    // If SVs were associated with components by component identifier, this component would have a policy violation for
-    // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
-    assertNotContainsPolicyAlert(expectedComponentSimilar1, policy, constraintSV, Action.ID_FAIL,
-        SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(expectedComponentSimilar2, policy, constraintLicense, Action.ID_FAIL,
-        LicenseConditionType.ID, policyAlerts);
-    // Verify that the SVs are associated with components by hash, not by component identifier.
-    // If SVs were associated with components by component identifier, this component would have a policy violation for
-    // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
-    assertNotContainsPolicyAlert(expectedComponentSimilar2, policy, constraintSV, Action.ID_FAIL,
-        SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
-  }
-
-  @Test
-  public void testEvaluate_ManuallyIdentifiedComponent() throws Exception {
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    constraint.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
-    constraint.addCondition(new Condition(AgeInDaysConditionType.ID, "younger than", "30"));
-
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    String hash = "5801a1a27a36f88e2089";
-    String groupId = "G";
-    String artifactId = "A";
-    String version = "V";
-    tempEntity.newClaimedComponent(hash, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
-
-    String scanId = simulateReportIsAvailable("ManuallyIdentifiedComponent/report.zip");
-    
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    assertEquals(1, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(1, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(1, policyAlerts.size());
-    AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
-    Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
-    expectedComponentExact.setHash(hash);
-    assertContainsPolicyAlert(expectedComponentExact, policy, constraint, Action.ID_FAIL, MatchStateConditionType.ID,
-        policyAlerts);
-  }
-
-  @Test
-  public void testEvaluate_Label_DefinedAtAppLevel() throws Exception {
-    testEvaluate_Label(false, false);
-  }
-
-  @Test
-  public void testEvaluate_Label_DefinedAtOrgLevel_AppliedAtOrgLevel() throws Exception {
-    testEvaluate_Label(true, true);
-  }
-
-  @Test
-  public void testEvaluate_Label_DefinedAtOrgLevel_AppliedAtAppLevel() throws Exception {
-    testEvaluate_Label(true, false);
-  }
-
-  private void testEvaluate_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
-    String hash = "1249e25aebb15358bedd";
-    Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
-    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label.getId(), hash);
-
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    String groupId = "tomcat";
-    String artifactId = "tomcat-util";
-    String version = "5.5.23";
-
-    String scanId = simulateReportIsAvailable("report.zip");
-
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    assertThat(policyEvaluationResult.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationResult.getCriticalComponentCount(), is(0));
-    assertThat(policyEvaluationResult.getSevereComponentCount(), is(1));
-    assertThat(policyEvaluationResult.getModerateComponentCount(), is(0));
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertThat(policyAlerts.size(), is(1));
-    AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
-    Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
-    expectedComponentExact.setHash(hash);
-    assertContainsPolicyAlert(expectedComponentExact, policy, constraint, Action.ID_FAIL, LabelConditionType.ID,
-        policyAlerts);
   }
 
   private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) {
@@ -530,143 +341,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testEvaluate_MultiLicense() throws Exception {
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
-    constraint.addCondition(condition);
-
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    String scanId = simulateReportIsAvailable("report.zip");
-
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    assertEquals(3, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(3, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(3, policyAlerts.size());
-    for (PolicyAlert policyAlert : policyAlerts) {
-      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
-    }
-    Component expectedComponent = ComponentFactory.forGav("org.webjars", "select2", "3.2", MatchState.EXACT);
-    expectedComponent.setHash("f2e35e4a21f07d25710f");
-    assertContainsPolicyAlert(expectedComponent, policy, constraint, Action.ID_FAIL, LicenseConditionType.ID,
-        policyAlerts);
-  }
-
-  @Test
-  public void testEvaluate_LicenseOverride() throws Exception {
-    Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(LicenseConditionType.ID, "is", "ZPL-2.0");
-    constraint1.addCondition(condition1);
-    Constraint constraint2 = new Constraint(null /* constraintId */, "Constraint 2", LogicalOperator.AND);
-    Condition condition2 = new Condition(LicenseStatusConditionType.ID, "is", "OVERRIDDEN");
-    constraint2.addCondition(condition2);
-
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint1);
-    policy.addConstraint(constraint2);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-    constraint1 = policy.getConstraints().get(0);
-    constraint2 = policy.getConstraints().get(1);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    // Override the license at org level
-    tempEntity.newLicenseOverride(app.getOrganizationId(), COMMONS_POOL_ID, LicenseOverrideStatus.OVERRIDDEN,
-        "ZPL-2.0", " My comment");
-
-    String scanId = simulateReportIsAvailable("report.zip");
-
-    // Evaluate policy
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    assertEquals(1, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(1, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(2, policyAlerts.size());
-    for (PolicyAlert policyAlert : policyAlerts) {
-      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
-    }
-    Component expectedComponent = ComponentFactory.forGav("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
-    expectedComponent.setHash("1a667c9d419dc4f185c9");
-    assertContainsPolicyAlert(expectedComponent, policy, constraint1, Action.ID_FAIL, LicenseConditionType.ID,
-        policyAlerts);
-    assertContainsPolicyAlert(expectedComponent, policy, constraint2, Action.ID_FAIL, LicenseStatusConditionType.ID,
-        policyAlerts);
-
-    // Override the license at app level. This must supersede the override at org level, so the policy should not
-    // trigger any alerts.
-    tempEntity.newLicenseOverride(app.getId(), COMMONS_POOL_ID, LicenseOverrideStatus.ACKNOWLEDGED,
-        (String) null /* licenseId */, " My comment");
-
-    scanId = simulateReportIsAvailable("report.zip");
-
-    // Evaluate policy
-    policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    assertEquals(0, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(0, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(0, policyAlerts.size());
-  }
-
-  @Test
-  public void testEvaluate_SecurityVulnerabilityOverride() throws Exception {
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint name", LogicalOperator.AND);
-    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", "CONFIRMED");
-    constraint.addCondition(condition);
-
-    Policy policy = new Policy(null /* policyId */, "Policy name");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    // Override the security vulnerability
-    tempEntity.newSecurityVulnerabilityOverride(app.getId(), "494308fc2d433720c778" /* hash */, "cve", "CVE-2009-1524",
-        SecurityVulnerabilityOverrideStatus.CONFIRMED, " My comment");
-
-    String scanId = simulateReportIsAvailable("report.zip");
-
-    // Evaluate policy
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    assertThat(policyEvaluationResult.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationResult.getCriticalComponentCount(), is(0));
-    assertThat(policyEvaluationResult.getSevereComponentCount(), is(1));
-    assertThat(policyEvaluationResult.getModerateComponentCount(), is(0));
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertThat(policyAlerts, hasSize(1));
-    AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
-    Component expectedComponent = ComponentFactory.forGav("org.mortbay.jetty", "jetty", "6.1.15", MatchState.EXACT);
-    expectedComponent.setHash("494308fc2d433720c778");
-    assertContainsPolicyAlert(expectedComponent, policy, constraint, Action.ID_FAIL,
-        SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
-  }
-
-  @Test
   public void testEvaluate_NotificationEmailModel() throws Exception {
     final Constraint constraint1 = new Constraint("C1", "constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
@@ -736,23 +410,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testEvaluate_ErrorReport() throws Exception {
-    String scanId = simulateReportIsAvailable("empty_report.zip");
-
-    try {
-      policyEvaluateService.evaluate(app.getPublicId(), scanId, new Stage(Stage.ID_BUILD));
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(),
-          is("Unable to evaluate policy, the scan " + scanId + " could not be processed."));
-    }
-
-    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
-    assertNull(eval);
-  }
-
-  @Test
   public void testEvaluate_ReEvaluateNotifications() throws Exception {
     Constraint constraint = new Constraint("C1", "constraint 1", LogicalOperator.AND);
     Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
@@ -795,250 +452,6 @@ public class PolicyEvaluateServiceTest
 
     // Notification message should not have been sent since this is a re-evaluation
     assertNotifications(notifications, 0, 5000);
-  }
-
-  @Test
-  public void testEvaluate_MissingReport() throws Exception {
-    try {
-      policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(Stage.ID_BUILD));
-      fail("Expected exception");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Could not download the report for scan ID scanId"));
-    }
-
-    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
-    assertNull(eval);
-  }
-
-  private List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
-    List<PolicyViolation> result = new ArrayList<>(policyViolations);
-    Collections.sort(result, PolicyViolationComparator.COMPARATOR);
-    return result;
-  }
-
-  @Test
-  public void testEvaluate_OneStage() throws Exception {
-    Constraint constraint1 = new Constraint("C1", "constraint 1", LogicalOperator.OR);
-    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat:tomcat-util:5.5.23");
-    constraint1.addCondition(condition1);
-    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
-    constraint1.addCondition(condition2);
-    Policy policy = new Policy("P1", "policy");
-    policy.setThreatLevel(8);
-    policy.addConstraint(constraint1);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    String scanId = simulateReportIsAvailable("report.zip");
-
-    // Evaluate policy
-    policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    PolicyEvaluation policyEvaluation1 = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations1 = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    assertThat(policyViolations1, hasSize(2));
-    policyViolations1 = sort(policyViolations1);
-    assertThat(policyViolations1.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID), is("tomcat"));
-    assertThat(policyViolations1.get(0).getOpenTime(), is(policyEvaluation1.getTime()));
-    assertThat(policyViolations1.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
-        is("commons-pool"));
-    assertThat(policyViolations1.get(1).getOpenTime(), is(policyEvaluation1.getTime()));
-
-    // Change one of the policy conditions and re-evaluate the policy.
-    // This should cause a policy violation to be cleared and a new policy violation to appear.
-    policy.getConstraints().get(0).getConditions().get(0).setValue("maven:commons-dbcp:commons-dbcp:1.4");
-    policyDAO.update(policy);
-    // Evaluate policy again for the same scan
-    policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    PolicyEvaluation policyEvaluation2 = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    assertThat(policyEvaluation1.getId(), is(not(policyEvaluation2.getId())));
-    List<PolicyViolation> policyViolations2 = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    assertThat(policyViolations2, hasSize(2));
-    policyViolations2 = sort(policyViolations2);
-    assertThat(policyViolations2.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
-        is("commons-pool"));
-    assertThat(policyViolations2.get(0).getOpenTime(), is(policyEvaluation1.getTime()));
-    assertThat(policyViolations2.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
-        is("commons-dbcp"));
-    assertThat(policyViolations2.get(1).getOpenTime(), is(policyEvaluation2.getTime()));
-  }
-
-  @Test
-  public void testEvaluate_TwoStages() throws Exception {
-    Constraint constraint1 = new Constraint("C1", "constraint 1", LogicalOperator.OR);
-    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
-    constraint1.addCondition(condition1);
-    Policy policy = new Policy("P1", "policy");
-    policy.setThreatLevel(8);
-    policy.addConstraint(constraint1);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-
-    // Evaluate policy for the Build stage
-    String scanBuildId = simulateReportIsAvailable("report.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanBuildId, new Stage(Stage.ID_BUILD));
-    PolicyEvaluation policyEvaluationBuild = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
-        Stage.ID_BUILD);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        Stage.ID_BUILD);
-    assertThat(policyViolationsBuild, hasSize(1));
-    assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
-        is("commons-pool"));
-    assertThat(policyViolationsBuild.get(0).getOpenTime(), is(policyEvaluationBuild.getTime()));
-
-    // Evaluate policy for the Release stage
-    String scanReleaseId = simulateReportIsAvailable("report.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanReleaseId, new Stage(Stage.ID_RELEASE));
-    PolicyEvaluation policyEvaluationRelease = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
-        Stage.ID_RELEASE);
-    List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        Stage.ID_RELEASE);
-    assertThat(policyViolationsRelease, hasSize(1));
-    assertThat(policyViolationsRelease.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
-        is("commons-pool"));
-    assertThat(policyViolationsRelease.get(0).getOpenTime(), is(policyEvaluationRelease.getTime()));
-
-    policyViolationsBuild = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
-    assertThat(policyViolationsBuild, hasSize(1));
-    assertThat(policyViolationsBuild.get(0).getOpenTime(), is(policyEvaluationBuild.getTime()));
-  }
-
-  @Test
-  public void testEvaluate_PersistApplicationComponents() throws Exception {
-    Stage stage1 = new Stage(Stage.ID_BUILD);
-    Stage stage2 = new Stage(Stage.ID_RELEASE);
-
-    // Evaluate policy
-    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId()), is(empty()));
-    String scanId1 = simulateReportIsAvailable("PersistApplicationComponents/report1.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanId1, stage1);
-    List<ApplicationComponent> appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
-        stage1.getStageTypeId());
-    assertThat(appComponents1, hasSize(1));
-    ApplicationComponent appComponent1 = appComponents1.get(0);
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
-        stage1.getStageTypeId());
-    assertApplicationComponent(COMMONS_DBCP_1_4, policyEvaluation1.getTime(), appComponent1);
-
-    // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId()), is(empty()));
-    String scanId2 = simulateReportIsAvailable("PersistApplicationComponents/report2.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanId2, stage2);
-    List<ApplicationComponent> appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
-        stage2.getStageTypeId());
-    assertThat(appComponents2, hasSize(1));
-    ApplicationComponent appComponent2 = appComponents2.get(0);
-    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
-        stage2.getStageTypeId());
-    assertApplicationComponent(GERONIMO_TOMCAT_1_0, policyEvaluation2.getTime(), appComponent2);
-    appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId());
-    assertThat(appComponents1, hasSize(1));
-    assertApplicationComponent(COMMONS_DBCP_1_4, policyEvaluation1.getTime(), appComponents1.get(0));
-    assertThat(appComponents1.get(0).getId(), is(appComponent1.getId()));
-
-    // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
-    // should not touch the app<->component assocs for the second stage.
-    String scanId3 = simulateReportIsAvailable("PersistApplicationComponents/report3.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanId3, stage1);
-    List<ApplicationComponent> appComponents3 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
-        stage1.getStageTypeId());
-    assertThat(appComponents3, hasSize(1));
-    ApplicationComponent appComponent3 = appComponents3.get(0);
-    policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stage1.getStageTypeId());
-    assertApplicationComponent(TOMCAT_UTIL_5_5_23, policyEvaluation1.getTime(), appComponent3);
-    appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId());
-    assertThat(appComponents2, hasSize(1));
-    assertApplicationComponent(GERONIMO_TOMCAT_1_0, policyEvaluation2.getTime(), appComponents2.get(0));
-    assertThat(appComponents2.get(0).getId(), is(appComponent2.getId()));
-  }
-
-  @Test
-  public void testEvaluate_ReEvaluateObsoleteScan() throws Exception {
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    // Evaluate policy for scanId1
-    String scanId1 = simulateReportIsAvailable("report.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanId1, stage);
-    assertPolicyEvaluation(app.getId(), scanId1, false /* isReevaluation */);
-
-    // Make sure we don't have two evaluations at exactly the same time
-    Thread.sleep(1);
-
-    // Evaluate policy for scanId2
-    String scanId2 = simulateReportIsAvailable("report.zip");
-    policyEvaluateService.evaluate(app.getPublicId(), scanId2, stage);
-    assertPolicyEvaluation(app.getId(), scanId2, false /* isReevaluation */);
-
-    // Evaluate policy again for scanId1
-    policyEvaluateService.evaluate(app.getPublicId(), scanId1, stage);
-    assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
-  }
-
-  private void assertApplicationComponent(ComponentIdentifier componentIdentifier,
-                                          Date time,
-                                          ApplicationComponent actual)
-  {
-    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getTime(), is(time));
-  }
-
-  @Test
-  public void testEvaluate_InvalidStage() throws Exception {
-    try {
-      policyEvaluateService.evaluate(app.getPublicId(), "scanid", new Stage("foobar"));
-      fail("Expected exception");
-    }
-    catch (InvalidStageException expected) {
-      assertThat(expected.getMessage(), is("Invalid stage id=foobar"));
-    }
-  }
-
-  @Test
-  public void testEvaluate_WaivedPolicyViolations() throws Exception {
-    // Create a policy
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
-    constraint.addCondition(condition);
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
-
-    String componentHash = "f2e35e4a21f07d25710f";
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(componentHash, policy.getId(), app.getId(), "Waiver comment here");
-
-    String scanId = simulateReportIsAvailable("report.zip");
-
-    // Evaluate the policy
-    Stage stage = new Stage(Stage.ID_BUILD);
-    policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    assertThat(policyViolations, hasSize(3));
-    for (PolicyViolation policyViolation : policyViolations) {
-      if (componentHash.equals(policyViolation.getHash())) {
-        assertThat(policyViolation.isWaived(), is(true));
-        assertThat(policyViolation.getPolicyWaiverId(), is(policyWaiver.getId()));
-        assertThat(policyViolation.getPolicyWaiverComment(), is(policyWaiver.getComment()));
-      }
-      else {
-        assertThat(policyViolation.isWaived(), is(false));
-      }
-    }
   }
 
   /**

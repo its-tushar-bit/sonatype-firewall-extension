@@ -221,8 +221,6 @@ public class ApiPromoteScanServiceV2Test
 
   @Test
   public void testGetScanStatus_MismatchedAppStatusIds_NotFound() throws Exception {
-    when(scanUploader.upload(any(File.class), any(Application.class))).thenThrow(new RuntimeException("ruh-roh"));
-
     // app scan promotion
     createScanFile();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);

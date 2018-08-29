@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class OrganizationResourceTest
     extends AbstractResourceTest
@@ -75,14 +76,12 @@ public class OrganizationResourceTest
     // Get icon (default icon)
     HttpResponse iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(307, iconResponse);
-    Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png",
-        iconResponse.getHeader("Location"));
+    assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png", iconResponse.getHeader("Location"));
 
     // Get icon (default Root Org icon)
     iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(Organization.ROOT_ORGANIZATION_ID).get();
     assertResponseStatus(307, iconResponse);
-    Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_root_org.png",
-        iconResponse.getHeader("Location"));
+    assertEquals(getRestBaseUrl() + "assets/img/defaulticon_root_org.png", iconResponse.getHeader("Location"));
 
     // Add icon
     defaultIconByteArray = loadDefaultIcon();
@@ -97,9 +96,9 @@ public class OrganizationResourceTest
     try (InputStream iconStream = iconResponse.getBodyStream()) {
       icon = ImageIO.read(iconStream);
     }
-    Assert.assertNotNull(icon);
-    Assert.assertEquals(420, icon.getHeight());
-    Assert.assertEquals(420, icon.getWidth());
+    assertNotNull(icon);
+    assertEquals(420, icon.getHeight());
+    assertEquals(420, icon.getWidth());
 
     // Update
     organization.setName("OrganizationResourceTest updated");
@@ -125,11 +124,11 @@ public class OrganizationResourceTest
     // Delete
     response = restRequest().path(organizationId).delete();
     assertResponseStatus(204, response);
-    Assert.assertNull(new OrganizationDAO().getById(organizationId));
+    assertNull(new OrganizationDAO().getById(organizationId));
     iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
-    Assert.assertNull(applicationDAO.getById(application.getId()));
+    assertNull(applicationDAO.getById(application.getId()));
   }
 
   @Test
@@ -161,7 +160,7 @@ public class OrganizationResourceTest
   public void testGenerateIcon() throws Exception {
     HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter("hash").get();
     assertResponseStatus(200, response);
-    Assert.assertNotNull(response.getBodyBytes());
+    assertNotNull(response.getBodyBytes());
   }
 
   private byte[] loadDefaultIcon() throws IOException {

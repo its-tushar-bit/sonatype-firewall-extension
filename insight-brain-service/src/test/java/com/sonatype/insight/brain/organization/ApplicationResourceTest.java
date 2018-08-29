@@ -33,10 +33,15 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -56,7 +61,7 @@ public class ApplicationResourceTest
     final String applicationPublicId = "ApplicationResourceTest-testValidate-AppId";
     ApplicationDAO applicationDAO = new ApplicationDAO();
     Application application = applicationDAO.getByPublicId(applicationPublicId);
-    Assert.assertNull(application);
+    assertNull(application);
 
     application = tempEntity.newApplicationWithParent(applicationPublicId,
         "ApplicationResourceTest-testValidate-AppName", "ApplicationResourceTest-testValidate-OrgName");
@@ -78,7 +83,7 @@ public class ApplicationResourceTest
     final String applicationPublicId = "ApplicationResourceTest-testValidate-AppId";
     ApplicationDAO applicationDAO = new ApplicationDAO();
     Application application = applicationDAO.getByPublicId(applicationPublicId);
-    Assert.assertNull(application);
+    assertNull(application);
 
     application = tempEntity.newApplicationWithParent(applicationPublicId,
         "ApplicationResourceTest-testValidate-AppName");
@@ -116,12 +121,12 @@ public class ApplicationResourceTest
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     tempEntity.register(application);
 
-    Assert.assertNotNull(application);
-    Assert.assertEquals(application.getId(), applicationResult.getId());
-    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
-    Assert.assertEquals(applicationName, applicationResult.getName());
-    Assert.assertEquals(application.getOrganizationId(), applicationResult.getOrganizationId());
-    Assert.assertEquals(organization.getName(), applicationResult.getOrganizationName());
+    assertNotNull(application);
+    assertEquals(application.getId(), applicationResult.getId());
+    assertEquals(applicationPublicId, applicationResult.getPublicId());
+    assertEquals(applicationName, applicationResult.getName());
+    assertEquals(application.getOrganizationId(), applicationResult.getOrganizationId());
+    assertEquals(organization.getName(), applicationResult.getOrganizationName());
 
     ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
     ContactDTO contact = applicationResult.getContact();
@@ -160,9 +165,9 @@ public class ApplicationResourceTest
     response = restRequest().body(application).put();
     assertResponseStatus(200, response);
     applicationResult = response.getBody(ApplicationDTO.class);
-    Assert.assertEquals(application.getId(), applicationResult.getId());
-    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
-    Assert.assertEquals(applicationName + "updated", applicationResult.getName());
+    assertEquals(application.getId(), applicationResult.getId());
+    assertEquals(applicationPublicId, applicationResult.getPublicId());
+    assertEquals(applicationName + "updated", applicationResult.getName());
 
     // Test icon update
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
@@ -180,7 +185,7 @@ public class ApplicationResourceTest
     response = restRequest().path(applicationPublicId).delete();
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
-    Assert.assertNull(application);
+    assertNull(application);
     iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH).parameter(applicationPublicId)
         .get();
     assertResponseStatus(404, iconResponse);
@@ -192,13 +197,13 @@ public class ApplicationResourceTest
 
   private void testValidIconResponse(HttpResponse iconResponse) throws Exception {
     assertResponseStatus(200, iconResponse);
-    Assert.assertNotNull(iconResponse.getBodyBytes());
+    assertNotNull(iconResponse.getBodyBytes());
     BufferedImage icon;
     try (InputStream iconStream = iconResponse.getBodyStream()) {
       icon = ImageIO.read(iconStream);
     }
-    Assert.assertNotNull(icon);
-    Assert.assertTrue(icon.getHeight() > 0);
+    assertNotNull(icon);
+    assertTrue(icon.getHeight() > 0);
   }
 
   @Test
@@ -234,12 +239,12 @@ public class ApplicationResourceTest
     application = applicationDAO.getByPublicId(applicationPublicId);
 
     assertResponseStatus(204, response);
-    Assert.assertNull(application);
+    assertNull(application);
 
-    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationId).size());
-    Assert.assertFalse(insightWork.getScanDir(applicationId).exists());
-    Assert.assertFalse(insightWork.getAuditDir(applicationId).exists());
-    Assert.assertFalse(insightWork.getReportDir(applicationId).exists());
+    assertEquals(0, policyDAO.getByOwnerId(applicationId).size());
+    assertFalse(insightWork.getScanDir(applicationId).exists());
+    assertFalse(insightWork.getAuditDir(applicationId).exists());
+    assertFalse(insightWork.getReportDir(applicationId).exists());
   }
 
   @Test
@@ -255,12 +260,12 @@ public class ApplicationResourceTest
     application = applicationDAO.getByPublicId(applicationPublicId);
 
     assertResponseStatus(204, response);
-    Assert.assertNull(application);
+    assertNull(application);
 
     response = restRequest().path(applicationPublicId).delete();
 
     assertResponseStatus(404, response);
-    Assert.assertEquals("Could not find an application with public ID " + applicationPublicId + ".",
+    assertEquals("Could not find an application with public ID " + applicationPublicId + ".",
         response.getBodyText());
   }
 
@@ -277,7 +282,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).post();
     assertResponseStatus(402, response);
-    Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getBodyText());
+    assertEquals("You have exceeded the licensed limit of 1 applications.", response.getBodyText());
   }
 
   @Test
@@ -294,20 +299,20 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     ApplicationDTO[] applications = response.getBody(ApplicationDTO[].class);
-    Assert.assertNotNull(applications);
+    assertNotNull(applications);
 
-    Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
-    Assert.assertEquals(application.getId(), applications[0].getId());
-    Assert.assertEquals(application.getName(), applications[0].getName());
+    assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
+    assertEquals(application.getId(), applications[0].getId());
+    assertEquals(application.getName(), applications[0].getName());
 
     // Test GetApplication
     response = restRequest().path(ApplicationResource.GET_APPLICATION_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
 
     ApplicationDTO applicationSummary = response.getBody(ApplicationDTO.class);
-    Assert.assertNotNull(applicationSummary);
-    Assert.assertEquals(application.getId(), applicationSummary.getId());
-    Assert.assertEquals(application.getName(), applicationSummary.getName());
+    assertNotNull(applicationSummary);
+    assertEquals(application.getId(), applicationSummary.getId());
+    assertEquals(application.getName(), applicationSummary.getName());
   }
 
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
@@ -359,9 +364,9 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
-    Assert.assertNotNull(applications);
+    assertNotNull(applications);
 
-    Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
+    assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
     ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
     assertApplicationManagementSummaryDTO(applications[0], application, organization, 2, expectedContact);
 
@@ -369,30 +374,30 @@ public class ApplicationResourceTest
         .getPolicyEvaluations();
     String[] stageTypeIds = policyEvaluations.keySet().toArray(new String[0]);
 
-    Assert.assertNotNull(policyEvaluations);
-    Assert.assertEquals(2, policyEvaluations.size());
-    Assert.assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
-    Assert.assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStageTypeId());
-    Assert.assertEquals(scanId2, policyEvaluations.get(stageTypeIds[0]).getScanId());
-    Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
-    Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
-    Assert.assertEquals(scanId3, policyEvaluations.get(stageTypeIds[1]).getScanId());
+    assertNotNull(policyEvaluations);
+    assertEquals(2, policyEvaluations.size());
+    assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
+    assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStageTypeId());
+    assertEquals(scanId2, policyEvaluations.get(stageTypeIds[0]).getScanId());
+    assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
+    assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
+    assertEquals(scanId3, policyEvaluations.get(stageTypeIds[1]).getScanId());
 
     Map<String, PolicyEvaluationResult> policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
     stageTypeIds = policyEvaluationsResults.keySet().toArray(new String[0]);
 
-    Assert.assertNotNull(policyEvaluationsResults);
-    Assert.assertEquals(2, policyEvaluationsResults.size());
-    Assert.assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[0]).getAffectedComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[0]).getCriticalComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[0]).getModerateComponentCount());
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[0]).getSevereComponentCount());
-    Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getAffectedComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[1]).getCriticalComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[1]).getModerateComponentCount());
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getSevereComponentCount());
+    assertNotNull(policyEvaluationsResults);
+    assertEquals(2, policyEvaluationsResults.size());
+    assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
+    assertEquals(7, policyEvaluationsResults.get(stageTypeIds[0]).getAffectedComponentCount());
+    assertEquals(0, policyEvaluationsResults.get(stageTypeIds[0]).getCriticalComponentCount());
+    assertEquals(0, policyEvaluationsResults.get(stageTypeIds[0]).getModerateComponentCount());
+    assertEquals(7, policyEvaluationsResults.get(stageTypeIds[0]).getSevereComponentCount());
+    assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
+    assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getAffectedComponentCount());
+    assertEquals(0, policyEvaluationsResults.get(stageTypeIds[1]).getCriticalComponentCount());
+    assertEquals(0, policyEvaluationsResults.get(stageTypeIds[1]).getModerateComponentCount());
+    assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getSevereComponentCount());
 
     // Scans count
     makeScanReceipt();
@@ -404,7 +409,7 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     applications = response.getBody(ApplicationManagementSummaryDTO[].class);
-    Assert.assertNotNull(applications);
+    assertNotNull(applications);
 
     // Test GetApplication
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY)
@@ -417,20 +422,20 @@ public class ApplicationResourceTest
     policyEvaluations = applicationSummary.getPolicyEvaluations();
     stageTypeIds = policyEvaluations.keySet().toArray(new String[0]);
 
-    Assert.assertNotNull(policyEvaluations);
-    Assert.assertEquals(2, policyEvaluations.size());
-    Assert.assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
-    Assert.assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStageTypeId());
-    Assert.assertEquals(scanId2, applications[0].getPolicyEvaluations().get(stageTypeIds[0]).getScanId());
-    Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
-    Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
-    Assert.assertEquals(scanId3, applications[0].getPolicyEvaluations().get(stageTypeIds[1]).getScanId());
+    assertNotNull(policyEvaluations);
+    assertEquals(2, policyEvaluations.size());
+    assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
+    assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStageTypeId());
+    assertEquals(scanId2, applications[0].getPolicyEvaluations().get(stageTypeIds[0]).getScanId());
+    assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
+    assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
+    assertEquals(scanId3, applications[0].getPolicyEvaluations().get(stageTypeIds[1]).getScanId());
 
     policyEvaluationsResults = applicationSummary.getPolicyEvaluationsResults();
     stageTypeIds = policyEvaluationsResults.keySet().toArray(new String[0]);
 
-    Assert.assertNotNull(policyEvaluationsResults);
-    Assert.assertEquals(0, policyEvaluationsResults.size());
+    assertNotNull(policyEvaluationsResults);
+    assertEquals(0, policyEvaluationsResults.size());
   }
 
   @Test(timeout = 10000)
@@ -448,8 +453,8 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
-    Assert.assertNotNull(applications);
-    Assert.assertEquals(1, applications.length);
+    assertNotNull(applications);
+    assertEquals(1, applications.length);
   }
 
   @Test
@@ -463,11 +468,11 @@ public class ApplicationResourceTest
 
     @SuppressWarnings("unchecked")
     Map<String, String> applicationNames = response.getBody(Map.class);
-    Assert.assertNotNull(applicationNames);
+    assertNotNull(applicationNames);
 
-    Assert.assertEquals(applicationNames.toString(), 1, applicationNames.size());
-    Assert.assertTrue(applicationNames.containsKey(applicationPublicId));
-    Assert.assertTrue(applicationNames.containsValue(applicationName));
+    assertEquals(applicationNames.toString(), 1, applicationNames.size());
+    assertTrue(applicationNames.containsKey(applicationPublicId));
+    assertTrue(applicationNames.containsValue(applicationName));
   }
 
   @Test
@@ -487,11 +492,11 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
     @SuppressWarnings("unchecked")
     Map<String, String> applicationNames = response.getBody(Map.class);
-    Assert.assertNotNull(applicationNames);
+    assertNotNull(applicationNames);
 
-    Assert.assertEquals(applicationNames.toString(), 1, applicationNames.size());
-    Assert.assertTrue(applicationNames.containsKey(applicationPublicId));
-    Assert.assertTrue(applicationNames.containsValue(applicationName));
+    assertEquals(applicationNames.toString(), 1, applicationNames.size());
+    assertTrue(applicationNames.containsKey(applicationPublicId));
+    assertTrue(applicationNames.containsValue(applicationName));
   }
 
   @Test
@@ -505,7 +510,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Application must have a parent organization.", response.getBodyText());
+    assertEquals("Application must have a parent organization.", response.getBodyText());
   }
 
   @Test
@@ -516,7 +521,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).put();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
+    assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
   }
 
   @Test
@@ -527,7 +532,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).put();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
+    assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
   }
 
   @Test
@@ -538,7 +543,7 @@ public class ApplicationResourceTest
 
   private void createDirectory(File dir) {
     if (!dir.isDirectory()) {
-      Assert.assertTrue("create directory " + dir.getAbsolutePath(), dir.mkdirs());
+      assertTrue("create directory " + dir.getAbsolutePath(), dir.mkdirs());
     }
   }
 
@@ -551,10 +556,10 @@ public class ApplicationResourceTest
 
   private void assertContact(ContactDTO actualContact, ContactDTO expectedContact) {
 
-    Assert.assertThat(actualContact, notNullValue());
-    Assert.assertThat(actualContact.getInternalName(), is(expectedContact.getInternalName()));
-    Assert.assertThat(actualContact.getDisplayName(), is(expectedContact.getDisplayName()));
-    Assert.assertThat(actualContact.getEmail(), is(expectedContact.getEmail()));
-    Assert.assertThat(actualContact.getRealm(), is(expectedContact.getRealm()));
+    assertThat(actualContact, notNullValue());
+    assertThat(actualContact.getInternalName(), is(expectedContact.getInternalName()));
+    assertThat(actualContact.getDisplayName(), is(expectedContact.getDisplayName()));
+    assertThat(actualContact.getEmail(), is(expectedContact.getEmail()));
+    assertThat(actualContact.getRealm(), is(expectedContact.getRealm()));
   }
 }

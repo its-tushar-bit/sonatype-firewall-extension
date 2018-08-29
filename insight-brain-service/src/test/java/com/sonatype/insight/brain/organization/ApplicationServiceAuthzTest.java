@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.google.common.collect.Sets;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -43,12 +42,12 @@ public class ApplicationServiceAuthzTest
 
     List<Application> applications = applicationService.getApplications();
 
-    Assert.assertThat(applications, hasSize(1));
-    Assert.assertThat(app.getId(), equalTo(applications.get(0).getId()));
+    assertThat(applications, hasSize(1));
+    assertThat(app.getId(), equalTo(applications.get(0).getId()));
 
     grantReadPermission(newApp.getId());
     applications = applicationService.getApplications();
-    Assert.assertThat(applications, hasSize(2));
+    assertThat(applications, hasSize(2));
   }
 
   @Test

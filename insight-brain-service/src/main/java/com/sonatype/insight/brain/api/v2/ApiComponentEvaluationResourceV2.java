@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
 
@@ -37,6 +38,8 @@ import com.codahale.metrics.annotation.Timed;
 public class ApiComponentEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
+  
+  public static final String SCAN_STATUS_PATH = "{applicationId}/scan/{statusId}";
 
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
 
@@ -78,5 +81,14 @@ public class ApiComponentEvaluationResourceV2
                                                final ApiPromoteScanRequestDTOV2 promoteScanRequest)
   {
     return promoteScanService.promoteScan(applicationId, promoteScanRequest);
+  }
+
+  @GET
+  @Path(SCAN_STATUS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiScanResultDTOV2 getScanStatus(@PathParam("applicationId") String applicationId,
+                                          @PathParam("statusId") String statusId)
+  {
+    return promoteScanService.getScanStatus(applicationId, statusId);
   }
 }

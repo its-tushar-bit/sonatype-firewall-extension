@@ -23,10 +23,13 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
@@ -34,9 +37,12 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -63,22 +69,34 @@ public class ApiPromoteScanServiceV2
   private final InsightWork work;
 
   private final ScanUploader uploader;
+  
+  private final ErrorResponseGenerator errorResponseGenerator;
 
-  private final Cache<String, Future<String>> scanPromotions = CacheBuilder.newBuilder()
-      .expireAfterWrite(2, TimeUnit.HOURS).build();
+  @VisibleForTesting
+  final Cache<String, Future<String>> scanPromotions = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS)
+      .build();
+
+  enum ScanStatus
+  {
+    PENDING,
+    COMPLETED,
+    FAILED
+  }
 
   @Inject
   public ApiPromoteScanServiceV2(ApplicationDAO applicationDAO,
                                  ScanPolicyEvaluator scanPolicyEvaluator,
                                  PolicyAlertNotifier policyAlertNotifier,
                                  InsightWork work,
-                                 ScanUploader uploader)
+                                 ScanUploader uploader,
+                                 ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
     this.uploader = uploader;
+    this.errorResponseGenerator = errorResponseGenerator;
 
     executor = new ThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
@@ -114,12 +132,16 @@ public class ApiPromoteScanServiceV2
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
         apiPromoteScanRequestDTOV2.scanId, application.getName(), apiPromoteScanRequestDTOV2.targetStageId, statusId);
 
-    scanPromotions
-        .put(statusId, executor.submit(new ScanPromotionTask(apiPromoteScanRequestDTOV2, applicationId, statusId)));
+    scanPromotions.put(getScanPromotionKey(application.getId(), statusId),
+        executor.submit(new ScanPromotionTask(apiPromoteScanRequestDTOV2, applicationId, statusId)));
 
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = new ApiPromoteScanResultDTOV2();
     apiPromoteScanResultDTOV2.statusUrl = getStatusUrl(applicationId, statusId);
     return apiPromoteScanResultDTOV2;
+  }
+
+  private String getScanPromotionKey(String applicationId, String statusId) {
+    return applicationId + ":" + statusId;
   }
 
   class ScanPromotionTask
@@ -166,8 +188,8 @@ public class ApiPromoteScanServiceV2
       }
       catch (Exception e) {
         log.error("Failed to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
-            scanId, applicationId, targetStageId, statusId, e);
-        throw e;
+            scanId, applicationId, targetStageId, statusId);
+        throw new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e);
       }
       finally {
         if (tempScanFile != null && tempScanFile.exists() && !tempScanFile.delete()) {
@@ -185,5 +207,37 @@ public class ApiPromoteScanServiceV2
 
   private static String getStatusUrl(String applicationId, String statusId) {
     return UriBuilder.fromPath(PublicApiPaths.PROMOTE_SCAN_STATUS_PATH_V2).build(applicationId, statusId).toString();
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public ApiScanResultDTOV2 getScanStatus(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+                                          String statusId)
+  {
+    Future<String> scan = scanPromotions.getIfPresent(getScanPromotionKey(applicationId, statusId));
+    if (scan == null) {
+      throw new NotFoundException(
+          String.format("Scan status with id %s for application with id %s was not found.", statusId, applicationId));
+    }
+    ApiScanResultDTOV2 scanStatus = new ApiScanResultDTOV2();
+    if (!scan.isDone()) {
+      scanStatus.status = ScanStatus.PENDING.name();
+      return scanStatus;
+    }
+    String scanId;
+    try {
+      scanId = scan.get();
+    }
+    catch (Exception e) {
+      scanStatus.status = ScanStatus.FAILED.name();
+      scanStatus.reason = e.getCause().getMessage();
+      return scanStatus;
+    }
+    scanStatus.status = ScanStatus.COMPLETED.name();
+    String applicationPublicId = applicationDAO.getByIdNotNull(applicationId).getPublicId();
+    scanStatus.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(applicationPublicId, scanId);
+    scanStatus.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId);
+    scanStatus.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(applicationPublicId, scanId);
+    scanStatus.reportDataUrl = ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
+    return scanStatus;
   }
 }

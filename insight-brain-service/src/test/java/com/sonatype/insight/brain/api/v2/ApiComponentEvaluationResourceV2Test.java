@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
@@ -491,6 +492,29 @@ public class ApiComponentEvaluationResourceV2Test
     assertResponseStatus(200, response);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
     assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
+  }
+
+  @Test
+  public void testGetScanStatus() throws Exception {
+    createScanFile();
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiComponentEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
+    assertResponseStatus(200, response);
+    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
+    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
+
+    response = restRequest()
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiComponentEvaluationResourceV2.SCAN_STATUS_PATH)
+        .parameter(app.getId(),
+            apiPromoteScanResultDTOV2.statusUrl.substring(apiPromoteScanResultDTOV2.statusUrl.lastIndexOf("/") + 1))
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiScanResultDTOV2 apiScanResultDTOV2 = response.getBody(ApiScanResultDTOV2.class);
+    assertThat(apiScanResultDTOV2, is(notNullValue()));
+    assertThat(apiScanResultDTOV2.status, is(notNullValue()));
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {

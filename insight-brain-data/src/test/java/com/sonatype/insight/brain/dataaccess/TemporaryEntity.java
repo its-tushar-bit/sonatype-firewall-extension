@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -18,8 +19,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -803,6 +806,17 @@ public class TemporaryEntity
     policyTagDAO.insert(policyTag);
     policyTags.add(policyTag);
     return policyTag;
+  }
+
+  public Policy newPolicy(String ownerId, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
+    Policy policy = new Policy(null, uuid());
+    policy.setThreatLevel(threatLevel);
+    policy.setOwnerId(ownerId);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    Constraint constraint = new Constraint(null, uuid(), conditionOperator);
+    Arrays.stream(conditions).forEach(constraint::addCondition);
+    policy.addConstraint(constraint);
+    return newPolicy(policy);
   }
 
   public Policy newPolicy(Policy policy) {

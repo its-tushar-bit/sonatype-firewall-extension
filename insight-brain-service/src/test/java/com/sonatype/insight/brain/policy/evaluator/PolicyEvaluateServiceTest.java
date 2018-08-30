@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateRes
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.report.MockReportDownloader;
@@ -132,31 +133,19 @@ public class PolicyEvaluateServiceTest
     JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
     when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(createResponse);
 
-    final Constraint constraint1 = new Constraint("C1", "constraint 1", LogicalOperator.AND);
-    final Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraint1.addCondition(condition1);
-    final Policy policy1 = new Policy("P1", "policy1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.getNotifications().add(new UserNotification("manager@example.com", Stage.ID_BUILD));
-    policy1.getNotifications().add(new UserNotification("john.doe@example.com", Stage.ID_BUILD));
-    policy1.getNotifications().add(new JiraNotification("projectKey1", 1, Stage.ID_BUILD));
-    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy1.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy1);
+    final Policy policy1 = tempEntity.newPolicy(app.getId(), 8, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    addNotificationsToPolicy(policy1, Stage.ID_BUILD, //
+        new UserNotification("manager@example.com", Stage.ID_BUILD),
+        new UserNotification("john.doe@example.com", Stage.ID_BUILD),
+        new JiraNotification("projectKey1", 1, Stage.ID_BUILD));
 
-    final Constraint constraint2 = new Constraint("C2", "constraint 2", LogicalOperator.AND);
-    final Condition condition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraint2.addCondition(condition2);
     // same conditions, but lower threat-level => analysis should show highest threat-level
-    final Policy policy2 = new Policy("P2", "policy2");
-    policy2.setThreatLevel(3);
-    policy2.addConstraint(constraint2);
-    policy2.setOwnerId(app.getId());
-    policy2.getNotifications().add(new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE));
-    policy2.getNotifications().add(new JiraNotification("projectKey2", 2, Stage.ID_RELEASE));
-    policy2.setAction(Stage.ID_RELEASE, Action.ID_FAIL);
-    tempEntity.newPolicy(policy2);
+    final Policy policy2 = tempEntity.newPolicy(app.getId(), 3, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    addNotificationsToPolicy(policy2, Stage.ID_RELEASE, //
+        new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE),
+        new JiraNotification("projectKey2", 2, Stage.ID_RELEASE));
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -251,15 +240,8 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate_PolicyThreatLevelCounts() throws Exception {
-    final Constraint constraint = new Constraint("C1", "PolicyThreatCountResourceTest constraint 1",
-        LogicalOperator.AND);
-    final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraint.addCondition(condition);
-    Policy policy = new Policy("P1", "PolicyThreatCountResourceTest policy1");
-    policy.setThreatLevel(1);
-    policy.addConstraint(constraint);
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
+    Policy policy = tempEntity.newPolicy(app.getId(), 1, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -342,37 +324,14 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate_NotificationEmailModel() throws Exception {
-    final Constraint constraint1 = new Constraint("C1", "constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
-    final Policy policy1 = new Policy("P1", "policy1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy1);
-
-    final Constraint constraint2 = new Constraint("C2", "constraint 2", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat"));
-    final Policy policy2 = new Policy("P2", "policy2");
-    policy2.setThreatLevel(4);
-    policy2.addConstraint(constraint2);
-    policy2.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy2);
-
-    final Constraint constraint3 = new Constraint("C3", "constraint 3", LogicalOperator.AND);
-    constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:org.*"));
-    final Policy policy3 = new Policy("P3", "policy3");
-    policy3.setThreatLevel(3);
-    policy3.addConstraint(constraint3);
-    policy3.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy3);
-
-    final Constraint constraint4 = new Constraint("C4", "constraint 1", LogicalOperator.AND);
-    constraint4.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<", "5"));
-    final Policy policy4 = new Policy("P4", "policy4");
-    policy4.setThreatLevel(0);
-    policy4.addConstraint(constraint4);
-    policy4.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy4);
+    tempEntity.newPolicy(app.getId(), 8, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    tempEntity.newPolicy(app.getId(), 4, LogicalOperator.AND,
+        new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat"));
+    tempEntity.newPolicy(app.getId(), 3, LogicalOperator.AND,
+        new Condition(CoordinatesConditionType.ID, "match", "maven:org.*"));
+    tempEntity.newPolicy(app.getId(), 0, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<", "5"));
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -411,15 +370,9 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate_ReEvaluateNotifications() throws Exception {
-    Constraint constraint = new Constraint("C1", "constraint 1", LogicalOperator.AND);
-    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraint.addCondition(condition);
-    Policy policy = new Policy("P1", "policy1");
-    policy.setThreatLevel(8);
-    policy.addConstraint(constraint);
-    policy.getNotifications().add(new UserNotification("manager@test.corp", Stage.ID_BUILD));
-    policy.setOwnerId(app.getId());
-    tempEntity.newPolicy(policy);
+    Policy policy = tempEntity.newPolicy(app.getId(), 8, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    addNotificationsToPolicy(policy, Stage.ID_BUILD, new UserNotification("manager@test.corp", Stage.ID_BUILD));
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -463,5 +416,12 @@ public class PolicyEvaluateServiceTest
    */
   private String simulateReportIsAvailable(String reportResourceName) {
     return mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/" + reportResourceName);
+  }
+
+  private void addNotificationsToPolicy(Policy policy, String stageId, Notification... notifications) {
+    Arrays.stream(notifications).forEach(policy.getNotifications()::add);
+    policy.getActions().clear();
+    policy.setAction(stageId, Action.ID_FAIL);
+    policyDAO.update(policy);
   }
 }

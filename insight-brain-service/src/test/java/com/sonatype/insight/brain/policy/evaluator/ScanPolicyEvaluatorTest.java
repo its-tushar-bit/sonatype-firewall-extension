@@ -222,7 +222,7 @@ public class ScanPolicyEvaluatorTest
     mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
     PolicyViolationPersistenceLocks policyViolationPersistenceLocks = getCLMServer().getInjector()
         .getInstance(PolicyViolationPersistenceLocks.class);
-    Policy policy = newSecurityPolicy(5);
+    Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(expectGrandfatheredViolations);
     new PolicyDAO().update(policy);
 
@@ -338,7 +338,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1));
 
-    newSecurityPolicy(5);
+    newSecurityPolicy();
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -361,7 +361,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(event.criticalComponentCount, is(0));
     assertThat(event.severeComponentCount, is(7));
     assertThat(event.moderateComponentCount, is(0));
-    assertThat(event.outcome, is(ApplicationEvaluationEvent.ACTION_ID_NONE));
+    assertThat(event.outcome, is(Action.ID_FAIL));
   }
 
   @Test
@@ -907,15 +907,8 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newComponentLabel(orgComponentLabel ? application.getOrganizationId() : application.getId(),
         label.getId(), hash);
 
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
+    Policy policy = newPolicy(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Constraint constraint = policy.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -986,17 +979,8 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_SecurityVulnerabilityOverride() throws Exception {
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint name", LogicalOperator.AND);
-    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", "CONFIRMED");
-    constraint.addCondition(condition);
-
-    Policy policy = new Policy(null /* policyId */, "Policy name");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
+    Policy policy = newPolicy(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", "CONFIRMED"));
+    Constraint constraint = policy.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -1018,16 +1002,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_WaivedPolicyViolations() throws Exception {
-    // Create a policy
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
-    constraint.addCondition(condition);
-    Policy policy = new Policy(null /* policyId */, "Policy");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
+    Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
 
     String componentHash = "f2e35e4a21f07d25710f";
     PolicyWaiver policyWaiver = tempEntity.newWaiver(componentHash, policy.getId(), application.getId(),
@@ -1108,16 +1083,8 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_ManuallyIdentifiedComponent() throws Exception {
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
-
-    Policy policy = new Policy(null /* policyId */, "Policy");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
+    Policy policy = newPolicy(new Condition(MatchStateConditionType.ID, "is", "exact"));
+    Constraint constraint = policy.getConstraints().get(0);
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -1137,17 +1104,8 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_MultiLicense() throws Exception {
-    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
-    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
-    constraint.addCondition(condition);
-
-    Policy policy = new Policy(null /* policyId */, "Policy 1");
-    policy.setThreatLevel(5);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
-    constraint = policy.getConstraints().get(0);
+    Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
+    Constraint constraint = policy.getConstraints().get(0);
 
     String hash = "f2e35e4a21f07d25710f";
 
@@ -1217,16 +1175,8 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_OneStage() throws Exception {
-    Constraint constraint = new Constraint("C1", "constraint", LogicalOperator.OR);
-    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat:tomcat-util:5.5.23");
-    constraint.addCondition(condition1);
-    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
-    constraint.addCondition(condition2);
-    Policy policy = new Policy("P1", "policy");
-    policy.setThreatLevel(8);
-    policy.addConstraint(constraint);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
+    Policy policy = newPolicyOR(new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat:tomcat-util:5.5.23"),
+        new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -1270,14 +1220,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_TwoStages() throws Exception {
-    Constraint constraint = new Constraint("C1", "constraint", LogicalOperator.OR);
-    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
-    constraint.addCondition(condition);
-    Policy policy = new Policy("P1", "policy");
-    policy.setThreatLevel(8);
-    policy.addConstraint(constraint);
-    policy.setOwnerId(application.getId());
-    tempEntity.newPolicy(policy);
+    newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 
     // Evaluate policy for the Build stage
     String scanBuildId = mockReport("/ScanPolicyEvaluatorTest/report.zip");
@@ -1469,29 +1412,27 @@ public class ScanPolicyEvaluatorTest
   }
 
   private Policy newSecurityPolicy() {
-    return newSecurityPolicy(5);
-  }
-
-  private Policy newSecurityPolicy(int policyThreatLevel) {
-    Policy policy = new Policy(null, "Test Policy");
-    policy.setThreatLevel(policyThreatLevel);
-    policy.setOwnerId(application.getId());
-    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint);
-    new PolicyDAO().insert(policy);
-    return policy;
+    return newPolicy(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
   }
 
   private Policy newRelativePopularityPolicy() {
-    Policy policy = new Policy(null, "Test Policy Age");
-    policy.setThreatLevel(5);
-    policy.setOwnerId(application.getId());
-    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(RelativePopularityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint);
-    new PolicyDAO().insert(policy);
-    return policy;
+    return newPolicy(new Condition(RelativePopularityConditionType.ID, ">=", "0"));
+  }
+
+  private Policy newPolicy(Condition... conditions) {
+    return newPolicyAND(conditions);
+  }
+
+  private Policy newPolicyAND(Condition... conditions) {
+    return newPolicy(LogicalOperator.AND, conditions);
+  }
+
+  private Policy newPolicyOR(Condition... conditions) {
+    return newPolicy(LogicalOperator.OR, conditions);
+  }
+
+  private Policy newPolicy(LogicalOperator conditionOperator, Condition... conditions) {
+    return tempEntity.newPolicy(application.getId(), 5, conditionOperator, conditions);
   }
 
   private List<PolicyViolation> getInactiveViolations(ScanPolicyEvaluatorResults scanPolicyEvaluatorResults) {

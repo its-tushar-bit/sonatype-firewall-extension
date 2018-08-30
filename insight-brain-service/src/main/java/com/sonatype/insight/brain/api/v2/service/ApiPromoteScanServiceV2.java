@@ -207,7 +207,7 @@ public class ApiPromoteScanServiceV2
                 : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
             application.getName(), targetStageId, statusId);
 
-        tempScanFile = work.getScanFile(applicationId, "tmp-" + UUID.randomUUID());
+        tempScanFile = work.getScanFile(applicationId, "tmp-" + statusId);
         String sourceScanId = getSourceScanId();
         while (true) {
           File sourceScanFile = work.getScanFile(application.getId(), sourceScanId);

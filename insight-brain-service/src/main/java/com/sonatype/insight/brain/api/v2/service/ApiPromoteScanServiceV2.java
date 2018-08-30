@@ -28,9 +28,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -62,6 +64,8 @@ public class ApiPromoteScanServiceV2
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
@@ -85,6 +89,7 @@ public class ApiPromoteScanServiceV2
 
   @Inject
   public ApiPromoteScanServiceV2(ApplicationDAO applicationDAO,
+                                 PolicyEvaluationDAO policyEvaluationDAO,
                                  ScanPolicyEvaluator scanPolicyEvaluator,
                                  PolicyAlertNotifier policyAlertNotifier,
                                  InsightWork work,
@@ -92,6 +97,7 @@ public class ApiPromoteScanServiceV2
                                  ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
@@ -104,16 +110,39 @@ public class ApiPromoteScanServiceV2
   }
 
   private void validateRequest(final ApiPromoteScanRequestDTOV2 requestDTO, final String applicationId) {
+    if (requestDTO == null) {
+      throw new BadRequestException("Missing parameters.");
+    }
+    if (requestDTO.scanId == null && requestDTO.sourceStageId == null) {
+      throw new BadRequestException("Either scanId or sourceStageId need to be supplied.");
+    }
+    if (requestDTO.scanId != null && requestDTO.sourceStageId != null) {
+      throw new BadRequestException("Only one of scanId or sourceStageId can be supplied.");
+    }
+
     if (!isValidTargetStage(requestDTO.targetStageId)) {
       throw new BadRequestException("Stage " + requestDTO.targetStageId + " is invalid.");
     }
 
-    final File scanFile = work.getScanFile(applicationId, requestDTO.scanId);
-    if (!scanFile.isFile()) {
-      throw new BadRequestException("A scan with ID " + requestDTO.scanId +
-          " does not exist on the server and may be obsolete. Note that only the most recent scan for the given" +
-          " stage can be promoted.");
+    if (requestDTO.scanId != null) {
+      final File scanFile = work.getScanFile(applicationId, requestDTO.scanId);
+      if (!scanFile.isFile()) {
+        throw new BadRequestException("A scan with ID " + requestDTO.scanId +
+            " does not exist on the server and may be obsolete. Note that only the most recent scan for the given" +
+            " stage can be promoted.");
+      }
     }
+    else {
+      PolicyEvaluation lastEvaluation = getLastEvaluation(applicationId, requestDTO.sourceStageId);
+      if (lastEvaluation == null) {
+        throw new BadRequestException("No scan available to promote from stage " + requestDTO.sourceStageId + ".");
+      }
+      // given scan files get deleted upon new policy evaluation, don't validate its existence here
+    }
+  }
+
+  private PolicyEvaluation getLastEvaluation(String applicationId, String stageId) {
+    return policyEvaluationDAO.getLastByApplicationIdAndStageId(applicationId, stageId);
   }
 
   private boolean isValidTargetStage(String stageId) {
@@ -130,7 +159,9 @@ public class ApiPromoteScanServiceV2
     validateRequest(apiPromoteScanRequestDTOV2, application.getId());
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
-        apiPromoteScanRequestDTOV2.scanId, application.getName(), apiPromoteScanRequestDTOV2.targetStageId, statusId);
+        apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
+            : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
+        application.getName(), apiPromoteScanRequestDTOV2.targetStageId, statusId);
 
     scanPromotions.put(getScanPromotionKey(application.getId(), statusId),
         executor.submit(new ScanPromotionTask(apiPromoteScanRequestDTOV2, applicationId, statusId)));
@@ -166,29 +197,50 @@ public class ApiPromoteScanServiceV2
     public String call() throws Exception {
       File tempScanFile = null;
       final String targetStageId = apiPromoteScanRequestDTOV2.targetStageId;
-      final String scanId = apiPromoteScanRequestDTOV2.scanId;
       try {
         final long start = System.currentTimeMillis();
 
         final Application application = applicationDAO.getByIdNotNull(applicationId);
 
-        log.debug("Promoting scan {} of app {} to stage {}. The status ID of the operation is {}.", scanId,
+        log.debug("Promoting scan {} of app {} to stage {}. The status ID of the operation is {}.",
+            apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
+                : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
             application.getName(), targetStageId, statusId);
-        tempScanFile = work.getScanFile(applicationId, "tmp-" + scanId);
 
-        final ScanReceipt scanReceipt = uploadNewScanFile(application, scanId, tempScanFile);
+        tempScanFile = work.getScanFile(applicationId, "tmp-" + UUID.randomUUID());
+        String sourceScanId = getSourceScanId();
+        while (true) {
+          File sourceScanFile = work.getScanFile(application.getId(), sourceScanId);
+          try {
+            Files.copy(sourceScanFile.toPath(), tempScanFile.toPath());
+            break;
+          }
+          catch (IOException e) {
+            // each new policy evaluation deletes the scan for the previous one in that stage
+            // if we find ourselves trying to promote the latest scan from a stage that just got re-evaluated,
+            // try again with the new latest scan
+            String scanId = getSourceScanId();
+            if (!sourceScanId.equals(scanId)) {
+              sourceScanId = scanId;
+              continue;
+            }
+            throw e;
+          }
+        }
+
+        final ScanReceipt scanReceipt = uploader.upload(tempScanFile, application);
         scanReceipt.waitForReport();
         Files.move(tempScanFile.toPath(), work.getScanFile(application.getId(), scanReceipt.getScanId()).toPath());
         ScanPolicyEvaluatorResults results = scanPolicyEvaluator
             .evaluate(application, scanReceipt.getScanId(), new Stage(targetStageId));
         policyAlertNotifier.sendNotifications(application, results);
-        log.debug("Promoted scan {} of app {} to stage {} in {} ms. The status ID of the operation is {}.", scanId,
-            application.getName(), targetStageId, System.currentTimeMillis() - start, statusId);
+        log.debug("Promoted scan {} of app {} to stage {} in {} ms. The status ID of the operation is {}.",
+            sourceScanId, application.getName(), targetStageId, System.currentTimeMillis() - start, statusId);
         return scanReceipt.getScanId();
       }
       catch (Exception e) {
-        log.error("Failed to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
-            scanId, applicationId, targetStageId, statusId);
+        log.error("Failed to promote scan of app {} to stage {}. The status ID of the operation is {}.", applicationId,
+            targetStageId, statusId);
         throw new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e);
       }
       finally {
@@ -197,12 +249,13 @@ public class ApiPromoteScanServiceV2
         }
       }
     }
-  }
 
-  private ScanReceipt uploadNewScanFile(Application application, String scanId, File tempScanFile) throws IOException {
-    final File sourceScanFile = work.getScanFile(application.getId(), scanId);
-    Files.copy(sourceScanFile.toPath(), tempScanFile.toPath());
-    return uploader.upload(tempScanFile, application);
+    private String getSourceScanId() {
+      if (apiPromoteScanRequestDTOV2.scanId != null) {
+        return apiPromoteScanRequestDTOV2.scanId;
+      }
+      return getLastEvaluation(applicationId, apiPromoteScanRequestDTOV2.sourceStageId).getScanId();
+    }
   }
 
   private static String getStatusUrl(String applicationId, String statusId) {

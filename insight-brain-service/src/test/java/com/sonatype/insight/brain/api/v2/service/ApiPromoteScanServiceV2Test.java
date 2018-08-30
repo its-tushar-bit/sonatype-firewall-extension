@@ -50,6 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ApiPromoteScanServiceV2Test
@@ -100,7 +101,7 @@ public class ApiPromoteScanServiceV2Test
   }
 
   @Test
-  public void testPromoteScan() {
+  public void testPromoteScan_FromScanId() {
     createScanFile();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
 
@@ -110,6 +111,77 @@ public class ApiPromoteScanServiceV2Test
     assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
     assertThat(apiPromoteScanResultDTOV2.statusUrl,
         startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId())));
+  }
+
+  @Test
+  public void testPromoteScan_FromStageId() throws Exception {
+    createScanFile();
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(NEW_SCAN_ID);
+    when(scanUploader.upload(any(File.class), any(Application.class))).thenReturn(scanReceipt);
+    ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
+    when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class)))
+        .thenReturn(evaluatorResults);
+
+    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service.promoteScan(app.getId(),
+        ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE));
+
+    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
+    assertThat(apiPromoteScanResultDTOV2.statusUrl,
+        startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId())));
+
+    // await successful completion
+    String scanPromotionKey = getScanPromotionKey(apiPromoteScanResultDTOV2.statusUrl);
+    service.scanPromotions.getIfPresent(scanPromotionKey).get(1, TimeUnit.MINUTES);
+    assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID).isFile(), is(true));
+    verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
+  }
+
+  @Test
+  public void testPromoteScan_NullRequestDTO() {
+    try {
+      service.promoteScan(app.getId(), null);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Missing parameters."));
+    }
+  }
+
+  @Test
+  public void testPromoteScan_NoSourceScan() {
+    try {
+      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE));
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), startsWith("Either scanId or sourceStageId need to be supplied."));
+    }
+  }
+
+  @Test
+  public void testPromoteScan_AmbiguousSourceScan() {
+    try {
+      ApiPromoteScanRequestDTOV2 requestDTO = ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE);
+      requestDTO.scanId = SCAN_ID;
+      service.promoteScan(app.getId(), requestDTO);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), startsWith("Only one of scanId or sourceStageId can be supplied."));
+    }
+  }
+
+  @Test
+  public void testPromoteScan_NoEvaluationsInSourceStage() {
+    try {
+      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE));
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), startsWith("No scan available to promote from stage"));
+    }
   }
 
   @Test

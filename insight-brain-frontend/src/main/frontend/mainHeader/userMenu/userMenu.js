@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function UserMenuController($scope, $http, CLMLocations, Modal, messages, CurrentUser, telemetryService,
-                            defaultAdminPasswordChangedService) {
+                            defaultAdminPasswordChangedService, pendoService) {
   var vm = this;
 
   vm.$onInit = getCurrentUser;
@@ -19,11 +19,18 @@ function UserMenuController($scope, $http, CLMLocations, Modal, messages, Curren
   }
 
   function logout() {
-    // TODO This ought to perform a dirty check before it simply logs the user out
-    // https://issues.sonatype.org/browse/CLM-1251
-    $http['delete'](CLMLocations.getSessionLogoutUrl()).then(function(response) {
-      $scope.$emit('logout', response.headers('Location'));
-    });
+    function serverLogout() {
+      // TODO This ought to perform a dirty check before it simply logs the user out
+      // https://issues.sonatype.org/browse/CLM-1251
+      return $http['delete'](CLMLocations.getSessionLogoutUrl());
+    }
+
+    pendoService.flush()
+        // continue the logout whether the pendo flush succeeds or fails
+        .then(serverLogout, serverLogout)
+        .then(function(response) {
+          $scope.$emit('logout', response.headers('Location'));
+        });
   }
 
   function canChangePassword() {
@@ -82,7 +89,7 @@ function UserMenuController($scope, $http, CLMLocations, Modal, messages, Curren
 
 UserMenuController.$inject = [
   '$scope', '$http', 'CLMLocations', 'Modal', 'Messages', 'CurrentUser', 'telemetryService',
-  'defaultAdminPasswordChangedService'
+  'defaultAdminPasswordChangedService', 'pendoService'
 ];
 
 export default {

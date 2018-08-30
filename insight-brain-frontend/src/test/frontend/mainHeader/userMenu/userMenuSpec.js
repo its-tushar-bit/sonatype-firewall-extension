@@ -1,5 +1,13 @@
 describe('userMenu', function() {
-  var scope, vm, currentUserSuccess, dialogScope, parentScope;
+  var scope,
+      vm,
+      currentUserSuccess,
+      dialogScope,
+      parentScope,
+      pendoFlushDeferred,
+      mockPendoService = {
+        flush: function() { return pendoFlushDeferred.promise; }
+      };
 
   beforeEach(module('mainHeader', function($provide) {
 
@@ -36,11 +44,13 @@ describe('userMenu', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $componentController) {
+  beforeEach(inject(function($q, $rootScope, $componentController) {
     parentScope = $rootScope.$new();
     scope = parentScope.$new();
+    pendoFlushDeferred = $q.defer();
     vm = $componentController('userMenu', {
-      $scope: scope
+      $scope: scope,
+      pendoService: mockPendoService
     });
     vm.$onInit();
   }));
@@ -58,7 +68,6 @@ describe('userMenu', function() {
   }));
 
   describe('logout()', function () {
-
     it('provides the ability to log out', inject(function($httpBackend, CLMLocations) {
       var spy = jasmine.createSpy();
       parentScope.$on('logout', spy);
@@ -67,6 +76,10 @@ describe('userMenu', function() {
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
 
       vm.logout();
+
+      pendoFlushDeferred.resolve();
+      scope.$digest();
+
       $httpBackend.flush();
 
       expect(spy).toHaveBeenCalled();
@@ -80,10 +93,53 @@ describe('userMenu', function() {
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
 
       vm.logout();
+
+      pendoFlushDeferred.resolve();
+      scope.$digest();
+
       $httpBackend.flush();
 
       expect(spy).toHaveBeenCalledWith(jasmine.any(Object), headers.Location);
     }));
+
+    it('still logs out if the pendo promise is rejected', inject(function($httpBackend, CLMLocations) {
+      var spy = jasmine.createSpy();
+      parentScope.$on('logout', spy);
+
+      expect(vm.logout).not.toBeUndefined();
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
+
+      vm.logout();
+
+      pendoFlushDeferred.reject();
+      scope.$digest();
+
+      $httpBackend.flush();
+
+      expect(spy).toHaveBeenCalled();
+    }));
+
+    it('doesn\'t log out from the server before the pendo promise completes', inject(
+        function($httpBackend, CLMLocations) {
+          var spy = jasmine.createSpy();
+          parentScope.$on('logout', spy);
+
+          expect(vm.logout).not.toBeUndefined();
+
+          vm.logout();
+
+          // not setting this up until after `logout` is called, to ensure that the test fails if the request occurs too
+          // early
+          $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
+
+          pendoFlushDeferred.resolve();
+          scope.$digest();
+
+          $httpBackend.flush();
+
+          expect(spy).toHaveBeenCalled();
+        }
+    ));
   });
 
   describe('canChangePassword()', function () {

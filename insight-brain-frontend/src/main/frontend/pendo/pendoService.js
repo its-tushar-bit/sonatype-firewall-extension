@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function pendoService($http, $window, $document, CLMLocations, sanitizeUrlService) {
+export default function pendoService($http, $q, $window, $document, CLMLocations, sanitizeUrlService) {
   /* eslint-disable */
   // Snippet from Pendo which creates a stub pendo object and adds pendo script, slightly changed to modify the URL and
   // to use Angular wrapper objects.
@@ -33,9 +33,19 @@ export default function pendoService($http, $window, $document, CLMLocations, sa
     });
   }
 
+  function flush() {
+    if ($window.pendo.flushNow) {
+      return $window.pendo.flushNow();
+    }
+    else {
+      return $q.resolve();
+    }
+  }
+
   return {
-    start
+    start,
+    flush
   };
 }
 
-pendoService.$inject = ['$http', '$window', '$document', 'CLMLocations', 'sanitizeUrlService'];
+pendoService.$inject = ['$http', '$q', '$window', '$document', 'CLMLocations', 'sanitizeUrlService'];

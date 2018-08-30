@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.collect.HashBasedTable;
@@ -734,6 +736,177 @@ public class PolicyViolationAggregationDAOTest
         .getOpenViolationsCountsByApplicationIds(new HashSet<>(), false);
 
     assertEquals(Collections.emptyList(), actualList);
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndTimePeriodBounds() {
+    LocalDate beginningOfMonth = new LocalDate().withDayOfMonth(1);
+    LocalDate beginningOfMonth13MonthsAgo = beginningOfMonth.minusMonths(13);
+
+    PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+    List<String> applicationIds = Arrays.asList(PolicyViolationAggregationDataHelper.APPLICATION_IDS);
+    Set<String> applicationIdSet = new HashSet<>(applicationIds);
+
+    List<PolicyViolationAggregation> results = dao.getByApplicationIdsAndTimePeriodBounds(applicationIdSet,
+        TimePeriod.MONTH, beginningOfMonth13MonthsAgo.toDate(), null);
+
+    Iterator<PolicyViolationAggregation> resultsIter = results.iterator();
+
+    /*
+     * App 1 begins 13 months ago and does have data for this month
+     * App 2 begins 12 months ago and does have data for this month
+     * App 3 begins 10 months ago and does not have data for this month
+     * App 4 begins 6 months ago and does not have data for this month
+     * App 5 begins 13 months ago and does not have data for this month
+     */
+    assertAggregations(resultsIter, applicationIds.get(0), TimePeriod.MONTH, beginningOfMonth13MonthsAgo, 14, true);
+    assertAggregations(resultsIter, applicationIds.get(1), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(1),
+        13, true);
+    assertAggregations(resultsIter, applicationIds.get(2), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(4),
+        9, false);
+    assertAggregations(resultsIter, applicationIds.get(3), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(9),
+        4, false);
+    assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.MONTH, beginningOfMonth13MonthsAgo, 13, false);
+
+    // app 6 has no data
+    assertThat(resultsIter.hasNext(), is(false));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndTimePeriodBounds_FilterByApplication() {
+    LocalDate beginningOfMonth = new LocalDate().withDayOfMonth(1);
+    LocalDate beginningOfMonth13MonthsAgo = beginningOfMonth.minusMonths(13);
+
+    PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+    List<String> applicationIds = Arrays.asList(PolicyViolationAggregationDataHelper.APPLICATION_IDS).subList(1, 3);
+    Set<String> applicationIdSet = new HashSet<>(applicationIds);
+
+    List<PolicyViolationAggregation> results = dao.getByApplicationIdsAndTimePeriodBounds(applicationIdSet,
+        TimePeriod.MONTH, beginningOfMonth13MonthsAgo.toDate(), null);
+
+    Iterator<PolicyViolationAggregation> resultsIter = results.iterator();
+
+    // app 1 filtered out
+
+    assertAggregations(resultsIter, applicationIds.get(0), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(1),
+        13, true);
+    assertAggregations(resultsIter, applicationIds.get(1), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(4),
+        9, false);
+
+    // apps 4+ filtered out
+    assertThat(resultsIter.hasNext(), is(false));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndTimePeriodBounds_Weekly() {
+    LocalDate beginningOfWeek = new LocalDate().withDayOfWeek(1);
+    LocalDate beginningOfWeek13WeeksAgo = beginningOfWeek.minusWeeks(13);
+
+    PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+    List<String> applicationIds = Arrays.asList(PolicyViolationAggregationDataHelper.APPLICATION_IDS);
+    Set<String> applicationIdSet = new HashSet<>(applicationIds);
+
+    List<PolicyViolationAggregation> results = dao.getByApplicationIdsAndTimePeriodBounds(applicationIdSet,
+        TimePeriod.WEEK, beginningOfWeek13WeeksAgo.toDate(), null);
+
+    Iterator<PolicyViolationAggregation> resultsIter = results.iterator();
+
+    assertAggregations(resultsIter, applicationIds.get(0), TimePeriod.WEEK, beginningOfWeek13WeeksAgo, 14, true);
+    assertAggregations(resultsIter, applicationIds.get(1), TimePeriod.WEEK, beginningOfWeek13WeeksAgo.plusWeeks(1), 13,
+        true);
+    assertAggregations(resultsIter, applicationIds.get(2), TimePeriod.WEEK, beginningOfWeek13WeeksAgo.plusWeeks(4), 9,
+        false);
+    assertAggregations(resultsIter, applicationIds.get(3), TimePeriod.WEEK, beginningOfWeek13WeeksAgo.plusWeeks(9), 4,
+        false);
+    assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.WEEK, beginningOfWeek13WeeksAgo, 13, false);
+
+    // app 6 has no data
+    assertThat(resultsIter.hasNext(), is(false));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndTimePeriodBounds_FilterByStartDate() {
+    LocalDate beginningOfMonth = new LocalDate().withDayOfMonth(1);
+    LocalDate beginningOfMonth5MonthsAgo = beginningOfMonth.minusMonths(5);
+
+    PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+    List<String> applicationIds = Arrays.asList(PolicyViolationAggregationDataHelper.APPLICATION_IDS);
+    Set<String> applicationIdSet = new HashSet<>(applicationIds);
+
+    List<PolicyViolationAggregation> results = dao.getByApplicationIdsAndTimePeriodBounds(applicationIdSet,
+        TimePeriod.MONTH, beginningOfMonth5MonthsAgo.toDate(), null);
+
+    Iterator<PolicyViolationAggregation> resultsIter = results.iterator();
+
+    assertAggregations(resultsIter, applicationIds.get(0), TimePeriod.MONTH, beginningOfMonth5MonthsAgo, 6, true);
+    assertAggregations(resultsIter, applicationIds.get(1), TimePeriod.MONTH, beginningOfMonth5MonthsAgo, 6, true);
+    assertAggregations(resultsIter, applicationIds.get(2), TimePeriod.MONTH, beginningOfMonth5MonthsAgo, 5, false);
+    assertAggregations(resultsIter, applicationIds.get(3), TimePeriod.MONTH, beginningOfMonth5MonthsAgo.plusMonths(1),
+        4, false);
+    assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.MONTH, beginningOfMonth5MonthsAgo, 5, false);
+
+    // app 6 has no data
+    assertThat(resultsIter.hasNext(), is(false));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndTimePeriodBounds_FilterByEndDate() {
+    LocalDate beginningOfMonth = new LocalDate().withDayOfMonth(1);
+    LocalDate beginningOfMonth13MonthsAgo = beginningOfMonth.minusMonths(13);
+
+    PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+    List<String> applicationIds = Arrays.asList(PolicyViolationAggregationDataHelper.APPLICATION_IDS);
+    Set<String> applicationIdSet = new HashSet<>(applicationIds);
+
+    List<PolicyViolationAggregation> results = dao.getByApplicationIdsAndTimePeriodBounds(applicationIdSet,
+        TimePeriod.MONTH, beginningOfMonth13MonthsAgo.toDate(), beginningOfMonth.toDate());
+
+    Iterator<PolicyViolationAggregation> resultsIter = results.iterator();
+
+    assertAggregations(resultsIter, applicationIds.get(0), TimePeriod.MONTH, beginningOfMonth13MonthsAgo, 13, false);
+    assertAggregations(resultsIter, applicationIds.get(1), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(1),
+        12, false);
+    assertAggregations(resultsIter, applicationIds.get(2), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(4),
+        9, false);
+    assertAggregations(resultsIter, applicationIds.get(3), TimePeriod.MONTH, beginningOfMonth13MonthsAgo.plusMonths(9),
+        4, false);
+    assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.MONTH, beginningOfMonth13MonthsAgo, 13, false);
+
+    // app 6 has no data
+    assertThat(resultsIter.hasNext(), is(false));
+  }
+
+  /**
+   *  Helper method to assert that a series of aggregations match the expected parameters
+   *  @param aggregationIter the Iterator to draw the aggregations from
+   *  @param applicationId the application id to expect on all checked aggregations
+   *  @param timePeriod the TimePeriod to expect on all checked aggregations
+   *  @param startingDate the timePeriodStart to expect on the first aggregation.  Successive aggregations are expected
+   *  to have dates chronologically increasing from this one at `timePeriod` intervals
+   *  @param expectedAggregationsCount The number of aggregations to pull from the iterator and check
+   *  @param expectTimePeriodEnd Whether to expect the last checked aggregation to have a non-null timePeriodEnd value
+   */
+  private void assertAggregations(Iterator<PolicyViolationAggregation> aggregationIter,
+                                  String applicationId,
+                                  TimePeriod timePeriod,
+                                  LocalDate startingDate,
+                                  int expectedAggregationsCount,
+                                  boolean expectTimePeriodEnd)
+  {
+    for (int i = 0; i < expectedAggregationsCount; i++) {
+      PolicyViolationAggregation aggregation = aggregationIter.next();
+      assertThat(aggregation.getApplicationId(), is(applicationId));
+      assertThat(aggregation.getTimePeriod(), is(timePeriod));
+      assertThat(aggregation.getTimePeriodStart(), is(startingDate.plus(timePeriod.getPeriod(i)).toDate()));
+
+      if (expectTimePeriodEnd && i == expectedAggregationsCount - 1) {
+        assertThat(aggregation.getTimePeriodEnd(), is(notNullValue()));
+      }
+      else {
+        assertThat(aggregation.getTimePeriodEnd(), is(nullValue()));
+      }
+    }
+
   }
 
   private Map<PolicyThreatCategory, Integer> categoryCounts(int security, int license, int quality, int other) {

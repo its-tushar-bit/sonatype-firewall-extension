@@ -668,4 +668,33 @@ public class PolicyViolationAggregationDAO
     return openViolationCountsWeeks;
   }
 
+  /**
+   * Return all PolicyViolationAggregations for the given applications in the given time range. The returned list
+   * is sorted by applicationId and then by timePeriodStart.
+   *
+   * @param applicationIds The ids of the applications to look up
+   * @param timePeriod the TimePeriod (e.g. WEEKLY or MONTHLY)
+   * @param startDate the earliest timePeriodStart value to look up
+   * @param endDate the latest timePeriodStart to look up (exclusive).  If null, all aggregations after startDate,
+   * including the current partial aggregation, are included
+   */
+  public List<PolicyViolationAggregation> getByApplicationIdsAndTimePeriodBounds(Set<String> applicationIds,
+                                                                                 TimePeriod timePeriod,
+                                                                                 Date startDate,
+                                                                                 Date endDate)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolationAggregation entity" +
+        " WHERE entity.applicationId IN (?1)" +
+        "  AND entity.timePeriod = ?2" +
+        "  AND entity.timePeriodStart >= ?3" +
+        (endDate != null ? " AND entity.timePeriodStart < ?4" : "") +
+        " ORDER BY entity.applicationId ASC, entity.timePeriodStart ASC";
+
+    if (endDate == null) {
+      return getList(sQuery, applicationIds, timePeriod, startDate);
+    }
+    else {
+      return getList(sQuery, applicationIds, timePeriod, startDate, endDate);
+    }
+  }
 }

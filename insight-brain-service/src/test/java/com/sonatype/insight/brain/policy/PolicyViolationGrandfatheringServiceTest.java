@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -19,13 +20,16 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.nullValue;
 
 public class PolicyViolationGrandfatheringServiceTest
@@ -56,6 +60,55 @@ public class PolicyViolationGrandfatheringServiceTest
     assertThat(policyViolationDAO.getById(fixedGrandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).isGrandfathered(), is(false));
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered(), is(true));
+  }
+
+  @Test
+  public void testGrandfather() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+    Policy policy1 = tempEntity.newPolicy("test1");
+    policy1.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy1);
+    Policy policy2 = tempEntity.newPolicy("test2");
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scanId1");
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyViolation unfixedPolicyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    PolicyViolation fixedPolicyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    fixedPolicyViolation1.setFixTime(new Date());
+    policyViolationDAO.update(fixedPolicyViolation1);
+    PolicyViolation grandfatheredPolicyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    Date inThePast = new Date(System.currentTimeMillis() - 1);
+    grandfatheredPolicyViolation1.setGrandfatherTime(inThePast);
+    policyViolationDAO.update(grandfatheredPolicyViolation1);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy1.getId(), app1.getId());
+    PolicyViolation waivedPolicyViolation1 = tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1,
+        policyWaiver);
+    PolicyViolation unfixedPolicyViolation1PolicyDoesNotExist = tempEntity.newPolicyViolation(policyEvaluation1,
+        policy2);
+    new PolicyDAO().delete(policy2);
+
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "scanId2");
+    PolicyViolation unfixedPolicyViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy1);
+
+    Date before = new Date();
+    policyViolationGrandfatheringService.grandfather(app1.getPublicId());
+    Date after = new Date();
+
+    assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isGrandfathered(), is(false));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).getGrandfatherTime(),
+        is(inThePast));
+    assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1, before, after);
+    assertPolicyViolationGrandfatherTime(waivedPolicyViolation1, before, after);
+    assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
+
+    assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isGrandfathered(), is(false));
+  }
+
+  private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    assertThat(policyViolationDAO.getById(policyViolation.getId()).getGrandfatherTime(), greaterThanOrEqualTo(before));
+    assertThat(policyViolationDAO.getById(policyViolation.getId()).getGrandfatherTime(), lessThanOrEqualTo(after));
   }
 
   @Test

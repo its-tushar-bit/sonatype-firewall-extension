@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyViolationGrandfatheringEditorPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -40,16 +41,11 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-
-  private PolicyViolationPersistenceLocks policyViolationPersistenceLocks = new PolicyViolationPersistenceLocks();
-
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService = new PolicyViolationGrandfatheringService(
-      applicationDAO, organizationDAO, policyViolationDAO, policyViolationPersistenceLocks);
+      new ApplicationDAO(), organizationDAO, new PolicyDAO(), new PolicyViolationDAO(),
+      new PolicyViolationPersistenceLocks());
 
   @BeforeClass
   public static void boot() {

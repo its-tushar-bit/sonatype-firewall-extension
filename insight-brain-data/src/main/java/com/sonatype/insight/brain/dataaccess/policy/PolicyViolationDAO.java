@@ -12,9 +12,9 @@ import java.util.concurrent.CompletableFuture;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 
@@ -111,6 +111,13 @@ public class PolicyViolationDAO
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
         (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds);
+  }
+
+  public List<PolicyViolation> getUnfixedByApplicationId(TransactionContext tx, String applicationId) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1" + //
+        " AND entity.fixTime IS NULL";
+    return getList(tx, sQuery, applicationId);
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,

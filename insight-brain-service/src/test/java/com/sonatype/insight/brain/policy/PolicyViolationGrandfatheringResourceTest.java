@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -46,6 +47,22 @@ public class PolicyViolationGrandfatheringResourceTest
     assertResponseStatus(204, response);
     policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
     assertThat(policyViolation.isGrandfathered(), is(false));
+  }
+
+  @Test
+  public void testGrandfather() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
+    Policy policy = tempEntity.newPolicy("test");
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    HttpResponse response = restRequest().path(PolicyViolationGrandfatheringResource.GRANDFATHER_PATH)
+        .parameter(application.getPublicId()).put();
+    assertResponseStatus(204, response);
+    policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
+    assertThat(policyViolation.isGrandfathered(), is(true));
   }
 
   @Test

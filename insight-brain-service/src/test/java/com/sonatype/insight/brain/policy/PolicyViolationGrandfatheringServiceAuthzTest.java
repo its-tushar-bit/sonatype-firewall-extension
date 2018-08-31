@@ -39,6 +39,23 @@ public class PolicyViolationGrandfatheringServiceAuthzTest
   }
 
   @Test
+  public void testGrandfather_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGrandfather_Unauthorized() throws Exception {
+    login();
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGrandfather_Unauthenticated() throws Exception {
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+  }
+
+  @Test
   public void testGetGrandfathering_Application_Authorized() throws Exception {
     grantReadPermission(app.getId());
     policyViolationGrandfatheringService.getGrandfathering(OwnerType.APPLICATION, app.getPublicId());

@@ -32,6 +32,8 @@ public class PolicyViolationGrandfatheringResource
 
   static final String REVOKE_PATH = "revoke/{applicationPublicId}";
 
+  static final String GRANDFATHER_PATH = "grandfather/{applicationPublicId}";
+
   static final String GET_PATH = "{ownerType: application|organization}/{ownerId}";
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
@@ -45,6 +47,12 @@ public class PolicyViolationGrandfatheringResource
   @Path(REVOKE_PATH)
   public void revokeGrandfathering(@PathParam("applicationPublicId") String applicationPublicId) {
     policyViolationGrandfatheringService.revokeGrandfathering(applicationPublicId);
+  }
+
+  @PUT
+  @Path(GRANDFATHER_PATH)
+  public void grandfather(@PathParam("applicationPublicId") String applicationPublicId) {
+    policyViolationGrandfatheringService.grandfather(applicationPublicId);
   }
 
   @GET

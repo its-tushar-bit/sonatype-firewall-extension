@@ -659,6 +659,36 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testGetUnfixedByApplicationId() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+
+    Policy policy1 = tempEntity.newPolicy(applicationId, "policy-1");
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation unfixedViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    PolicyViolation fixedViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    fixedViolation1.setFixTime(new Date());
+    dao.update(fixedViolation1);
+
+    String applicationId2 = tempEntity.newApplicationWithParent().getId();
+    Policy policy2 = tempEntity.newPolicy(applicationId2, "policy-2");
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(applicationId2, BuildStageType.ID, "scan-2");
+    PolicyViolation unfixedViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
+    PolicyViolation fixedViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
+    fixedViolation2.setFixTime(new Date());
+    dao.update(fixedViolation2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyViolation> violations1 = dao.getUnfixedByApplicationId(tx, applicationId);
+      assertThat(violations1, hasSize(1));
+      assertThat(violations1.get(0).getId(), is(unfixedViolation1.getId()));
+
+      List<PolicyViolation> violations2 = dao.getUnfixedByApplicationId(tx, applicationId2);
+      assertThat(violations2, hasSize(1));
+      assertThat(violations2.get(0).getId(), is(unfixedViolation2.getId()));
+    }
+  }
+
+  @Test
   public void testReplacePolicyId() {
     Policy fromPolicy = tempEntity.newPolicy(applicationId, "From Policy");
     Policy toPolicy = tempEntity.newPolicy(applicationId, "To Policy");

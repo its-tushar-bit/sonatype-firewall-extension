@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -12,10 +13,12 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -34,6 +37,8 @@ public class PolicyViolationGrandfatheringService
 
   private final OrganizationDAO organizationDAO;
 
+  private final PolicyDAO policyDAO;
+
   private final PolicyViolationDAO policyViolationDAO;
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
@@ -41,11 +46,13 @@ public class PolicyViolationGrandfatheringService
   @Inject
   public PolicyViolationGrandfatheringService(ApplicationDAO applicationDAO,
                                               OrganizationDAO organizationDAO,
+                                              PolicyDAO policyDAO,
                                               PolicyViolationDAO policyViolationDAO,
                                               PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
+    this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
@@ -65,6 +72,34 @@ public class PolicyViolationGrandfatheringService
         for (PolicyViolation grandfatheredPolicyViolation : grandfatheredPolicyViolations) {
           grandfatheredPolicyViolation.setGrandfatherTime(null);
           policyViolationDAO.update(tx, grandfatheredPolicyViolation);
+        }
+
+        tx.commit();
+      }
+    }
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void grandfather(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    log.info("Grandfathering policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
+
+    Object lock = policyViolationPersistenceLocks.getLock(app.getId());
+    synchronized (lock) {
+      Date now = new Date();
+
+      try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+        tx.begin();
+
+        List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
+        for (PolicyViolation policyViolation : policyViolations) {
+          if (!policyViolation.isGrandfathered()) {
+            Policy policy = policyDAO.getById(tx, policyViolation.getPolicyId());
+            if (policy == null || policy.isPolicyViolationGrandfatheringAllowed()) {
+              policyViolation.setGrandfatherTime(now);
+              policyViolationDAO.update(tx, policyViolation);
+            }
+          }
         }
 
         tx.commit();

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Collection;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -12,10 +14,12 @@ import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
+import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import org.apache.shiro.authc.Authenticator;
 import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.session.mgt.eis.MemorySessionDAO;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
@@ -55,6 +59,10 @@ public class SecurityModule
 
   @Override
   protected void configureShiro() {
+    TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType = new TypeLiteral<Collection<SessionListener>>()
+    {
+    };
+    bind(sessionListenerCollectionType).toProvider(SessionListenerProvider.class);
     bindWebSecurityManager(bind(WebSecurityManager.class));
     expose(WebSecurityManager.class);
     bind(FilterChainResolver.class).to(PathMatchingFilterChainResolver.class);

@@ -13,7 +13,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -61,8 +63,9 @@ public class NgUploadResponseGenerator
     }
     catch (Exception e) {
       if (noFormData) {
-        String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
-        return Response.ok(JsonUtils.format(errorMessage), MediaType.TEXT_PLAIN).build();
+        ErrorResponse errorResponse = errorResponseGenerator.mapException(e);
+        AuditData.get().setHttpStatus(errorResponse.getStatusCode());
+        return Response.ok(JsonUtils.format(errorResponse.getMessageBody()), MediaType.TEXT_PLAIN).build();
       }
       throw e;
     }

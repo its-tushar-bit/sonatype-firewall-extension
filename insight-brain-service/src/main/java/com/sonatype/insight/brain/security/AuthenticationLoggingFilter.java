@@ -18,6 +18,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletRequestWrapper;
 import javax.servlet.ServletResponse;
 
+import com.sonatype.insight.brain.audit.AuditData;
+
 import org.apache.http.auth.BasicUserPrincipal;
 import org.eclipse.jetty.security.DefaultUserIdentity;
 import org.eclipse.jetty.security.UserAuthentication;
@@ -46,7 +48,9 @@ public class AuthenticationLoggingFilter
       throws IOException, ServletException
   {
     if (!currentUser.isAnonymous()) {
-      setUsernameForRequestLogging(request, currentUser.getUsername());
+      String username = currentUser.getUsername();
+      AuditData.get().setUsername(username);
+      setUsernameForRequestLogging(request, username);
     }
     try (MDCUsernameScope mdcUsernameScope = currentUser.isAnonymous() ? MDCUsernameScope.forAnonymous()
         : MDCUsernameScope.forUser(currentUser.getUsername())) {

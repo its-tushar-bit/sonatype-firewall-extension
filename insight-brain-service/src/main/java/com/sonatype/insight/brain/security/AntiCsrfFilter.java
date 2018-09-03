@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -135,6 +137,7 @@ public class AntiCsrfFilter
 
   @Override
   protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    auditBadToken();
     HttpServletResponse httpResponse = (HttpServletResponse) response;
     httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     httpResponse.setContentType("text/plain");
@@ -166,8 +169,14 @@ public class AntiCsrfFilter
     }
     javax.ws.rs.core.Cookie csrfCookie = headers.getCookies().get(CSRF_COOKIE_NAME);
     if (csrfHeader == null || csrfCookie == null || !csrfHeader.equals(csrfCookie.getValue())) {
+      auditBadToken();
       throw new UnauthenticatedException(ERROR_MSG);
     }
+  }
+
+  private void auditBadToken() {
+    AuditData.get().setEvent(AuditEvent.AUTHENTICATION_FAILURE);
+    AuditData.get().setError("bad-csrf-token");
   }
 
   private boolean isReverseProxyAuthenticationWithCsrf(final HttpServletRequest httpRequest) {

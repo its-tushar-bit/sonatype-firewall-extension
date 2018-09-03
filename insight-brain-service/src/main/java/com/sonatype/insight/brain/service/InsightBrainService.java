@@ -18,6 +18,7 @@ import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.validation.Validator;
 
+import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
@@ -329,6 +330,7 @@ public class InsightBrainService
 
     config.getSonatypeWork().mkdirs();
 
+    addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
     addServletFilter(env, GuiceShiroFilter.class, "/*");
     addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);

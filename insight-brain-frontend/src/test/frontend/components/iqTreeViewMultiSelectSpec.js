@@ -99,6 +99,12 @@ describe('iqTreeViewMultiSelect', function() {
     });
   });
 
+  describe('generateCheckboxId()', function() {
+    it('returns generated string', function() {
+      expect(vm.generateCheckboxId('Parent', 'child 2')).toBe('iq-tree-view-checkbox-parent-child-2');
+    });
+  });
+
   describe('toggle()', function() {
     it('when selected, calls onChange with the updated selected Set and toggledId', function() {
       expect(vm.selected.has('foo')).toBe(false);

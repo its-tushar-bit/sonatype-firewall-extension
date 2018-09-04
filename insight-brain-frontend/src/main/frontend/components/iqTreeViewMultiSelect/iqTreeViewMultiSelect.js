@@ -35,6 +35,7 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
   vm.toggleSelectAll = toggleSelectAll;
   vm.toggle = toggle;
   vm.showFilter = showFilter;
+  vm.generateCheckboxId = generateCheckboxId;
 
   vm.$onChanges = function({selected, providedFilterThreshold}) {
     if (selected) {
@@ -50,6 +51,12 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
 
   function showFilter() {
     return vm.available.length > vm.filterThreshold;
+  }
+
+  function generateCheckboxId(parentName, elementName) {
+    let id = 'iq-tree-view-checkbox-' + parentName + '-' + elementName;
+    id = id.replace(' ', '-');
+    return id.toLowerCase();
   }
 
   function toggleSelectAll() {

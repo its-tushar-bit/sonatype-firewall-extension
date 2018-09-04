@@ -46,7 +46,8 @@
         <input type="checkbox"
                class="iq-checkbox__input"
                ng-checked="vm.selected.has(entity.id)"
-               ng-click="vm.toggle(entity.id)">
+               ng-click="vm.toggle(entity.id)"
+               id="{{vm.generateCheckboxId(vm.name, entity.id)}}">
         <span class="iq-checkbox__box"></span>{{::entity.name}}
       </label>
     </div>

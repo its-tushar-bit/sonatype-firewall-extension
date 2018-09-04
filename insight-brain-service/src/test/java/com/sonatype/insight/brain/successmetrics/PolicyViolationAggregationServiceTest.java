@@ -435,9 +435,9 @@ public class PolicyViolationAggregationServiceTest
     // for weekly aggregations - make sure we have enough days in the week to work with
     DateTime now = new DateTime().withDayOfMonth(1).plusWeeks(2).withDayOfWeek(4);
 
-    // generate 2 violations 2 weeks ago
+    // generate 2 violations at the beginning of the month
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
-        now.minusWeeks(2).toDate());
+        now.withDayOfMonth(1).toDate());
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, "hash1", "component 1");
     tempEntity.newPolicyViolation(eval1, policy, null, "hash2", "component 2");
 

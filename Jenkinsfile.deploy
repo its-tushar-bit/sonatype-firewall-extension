@@ -57,17 +57,22 @@ pipeline {
     }
     stage('Update iq-server latest version') {
       steps {
-        echo "updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))"
+        updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))
       }
     }
     stage('Update iq-cli latest version') {
       steps {
-        echo "updateLatestVersionTable(params.environment, 'IQ_CLI', getVersionFromBuildName(env.releaseBuild_NAME))"
+        updateLatestVersionTable(params.environment, 'IQ_CLI', getVersionFromBuildName(env.releaseBuild_NAME))
       }
     }
     stage('Update nginx configuration') {
       steps {
-        echo "updateNginxConfig()"
+        updateNginxConfig()
+      }
+    }
+    stage('Purge Fastly Download Cache') {
+      steps {
+        build job: 'ops/fastly-purge-downloads', propagate: true, wait: true
       }
     }
   }

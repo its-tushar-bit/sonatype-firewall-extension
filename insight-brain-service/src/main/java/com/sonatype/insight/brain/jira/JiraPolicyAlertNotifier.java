@@ -87,9 +87,6 @@ public class JiraPolicyAlertNotifier
       return;
     }
 
-    // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
-    final String stringBaseUrl = baseUrl.get();
-
     log.debug("Sending JIRA notifications for application: {}, scan: {}, stage: {}", app.getId(), scanId, stage);
 
     new Thread("PolicyAlertJIRANotifierForScan-" + scanId)
@@ -133,17 +130,7 @@ public class JiraPolicyAlertNotifier
             ));
 
             // render description from template; prepare template parameters with appropriate details
-            Map<String, Object> params = new HashMap<>();
-            params.put("baseUrl", stringBaseUrl);
-            params.put("app", app);
-            params.put("scanId", scanId);
-            params.put("stage", stage.getStageName());
-            params.put("policyAlertSections", new PolicyAlertSections(policyFacts));
-            params.put("policyAlertCounts", counts);
-            params.put("contact", applicationAdapter.getContact(app.getContactInternalName()));
-            params
-                .put("detailedReportUrl",
-                    stringBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+            Map<String, Object> params = createPolicyMailModel(app, scanId, stage, counts, policyFacts);
             request.description(TemplateUtils.render(descriptionTemplate, params));
 
             log.debug("Creating JIRA issue: {}", request);
@@ -160,6 +147,27 @@ public class JiraPolicyAlertNotifier
         }
       }
     }.start();
+  }
+
+  // Visible for tests
+  Map<String, Object> createPolicyMailModel(Application app,
+                                                    String scanId,
+                                                    Stage stage,
+                                                    PolicyAlertCounts counts,
+                                                    List<PolicyFact> policyFacts)
+  {
+    String stringBaseUrl = baseUrl.getConfigured();
+    Map<String, Object> model = new HashMap<>();
+    model.put("baseUrl", stringBaseUrl);
+    model.put("app", app);
+    model.put("scanId", scanId);
+    model.put("stage", stage.getStageName());
+    model.put("policyAlertSections", new PolicyAlertSections(policyFacts));
+    model.put("policyAlertCounts", counts);
+    model.put("contact", applicationAdapter.getContact(app.getContactInternalName()));
+    model.put("detailedReportUrl", stringBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+
+    return model;
   }
 
   private Map<JiraNotification, List<PolicyFact>> getPolicyFactsByJiraNotifications(

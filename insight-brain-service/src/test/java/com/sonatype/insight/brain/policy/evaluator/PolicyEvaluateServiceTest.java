@@ -350,7 +350,8 @@ public class PolicyEvaluateServiceTest
     PolicyAlertEmailer emailer = lookup(PolicyAlertEmailer.class);
 
     String serverUrl = "http://localhost/";
-    Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyFacts, 8);
+    lookup(InsightConfig.class).setBaseUrl(serverUrl);
+    Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, stage, policyFacts, 8);
     assertEquals(policyFacts, model.get("policyFacts"));
     assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
     assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId),

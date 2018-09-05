@@ -25,7 +25,8 @@ public class BaseUrl
     implements RestComponent
 {
 
-  static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "baseUrl is not configured.";
+  public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
+      + "More information at https://links.sonatype.com/products/clm/docs/base-url";
 
   private final InsightConfig appConfig;
 
@@ -51,15 +52,31 @@ public class BaseUrl
     this.httpHeaders = httpHeaders;
   }
 
+  /**
+   * Returns the server base URL:
+   * - if the base URL is not forced (in the server configuration), it tries to extract the base URL from the incoming
+   * HTTP request (if any);
+   * - otherwise, it returns the configured server base URL.
+   * 
+   * @throws IllegalStateException if the base URL cannot be determined.
+   */
   public String get() {
-    String url;
     if (!appConfig.isForceBaseUrl()) {
-      url = tryGetBaseUriWithEndingForwardSlash();
+      String url = tryGetBaseUriWithEndingForwardSlash();
       if (url != null) {
         return url;
       }
     }
-    url = appConfig.getBaseUrl();
+    return getConfigured();
+  }
+
+  /**
+   * Returns the configured server base URL.
+   * 
+   * @throws IllegalStateException if the base URL is not configured.
+   */
+  public String getConfigured() {
+    String url = appConfig.getBaseUrl();
     if (!isBlank(url)) {
       return url;
     }

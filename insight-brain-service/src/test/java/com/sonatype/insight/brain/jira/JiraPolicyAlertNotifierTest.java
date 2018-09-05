@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
@@ -43,6 +44,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -220,5 +222,20 @@ public class JiraPolicyAlertNotifierTest
     logOutput.assertDebug("JIRA integration is not enabled; skipping issue creation");
 
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any(JiraIssueCreateRequest.class));
+  }
+
+  @Test
+  public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
+    config.setBaseUrl(null);
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    try {
+      jiraPolicyAlertNotifier.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), null, null);
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
+    }
   }
 }

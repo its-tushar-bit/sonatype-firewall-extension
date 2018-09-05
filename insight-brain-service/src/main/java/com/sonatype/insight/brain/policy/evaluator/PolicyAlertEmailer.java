@@ -60,9 +60,6 @@ public class PolicyAlertEmailer
                                 final List<PolicyNotification> policyNotifications,
                                 final int grandfatheredPolicyViolationCount)
   {
-    // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
-    final String stringBaseUrl = baseUrl.get();
-
     new Thread("PolicyAlertEmailNotifierForScan-" + scanId)
     {
       @Override
@@ -84,8 +81,7 @@ public class PolicyAlertEmailer
             final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
             final String subject = createPolicyMailSubject(new PolicyAlertCounts(details.getValue()), app.getName());
             final String body = createPolicyMailBody(
-                createPolicyMailModel(stringBaseUrl, app, scanId, stage, details.getValue(),
-                    grandfatheredPolicyViolationCount));
+                createPolicyMailModel(app, scanId, stage, details.getValue(), grandfatheredPolicyViolationCount));
             getMail().sendHtml(mailId, addresses, subject, body);
           }
           catch (final Exception e) {
@@ -97,8 +93,7 @@ public class PolicyAlertEmailer
     }.start();
   }
 
-  protected Map<String, Object> createPolicyMailModel(String serverBaseUrl,
-                                                      Application app,
+  protected Map<String, Object> createPolicyMailModel(Application app,
                                                       String scanId,
                                                       Stage stage,
                                                       List<PolicyFact> policyFacts,
@@ -110,7 +105,8 @@ public class PolicyAlertEmailer
       model.put("applicationContactEmail", contact.getEmail());
       model.put("applicationContactName", contact.getDisplayName());
     }
-    model.put("detailedReportUrl", serverBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+    model.put("detailedReportUrl",
+        baseUrl.getConfigured() + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
     model.put("ownerIdLabel", "APP ID");
     model.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
 

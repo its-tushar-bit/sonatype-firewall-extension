@@ -75,7 +75,7 @@ public class RepositoryPolicyAlertEmailer
         policyFacts);
 
     model.put("detailedReportUrl",
-        baseUrl.get() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
+        baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
     model.put("ownerIdLabel", "REPO ID");
 
     return model;

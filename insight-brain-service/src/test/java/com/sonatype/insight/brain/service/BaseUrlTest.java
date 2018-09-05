@@ -16,7 +16,9 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 
 import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -167,4 +169,27 @@ public class BaseUrlTest
         .build().toString());
   }
 
+  @Test
+  public void testGetConfigured_BaseUrlConfigured() {
+    String configuredBaseUrl = "http://testBaseUrl:8070/";
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setBaseUrl(configuredBaseUrl);
+
+    BaseUrl baseUrl = new BaseUrl(insightConfig, null, null);
+    assertThat(baseUrl.getConfigured(), is(configuredBaseUrl));
+  }
+
+  @Test
+  public void testGetConfigured_BaseUrlNotConfigured() {
+    InsightConfig insightConfig = new InsightConfig();
+    BaseUrl baseUrl = new BaseUrl(insightConfig, null, null);
+
+    try {
+      baseUrl.getConfigured();
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
+    }
+  }
 }

@@ -39,17 +39,22 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import org.sonatype.micromailer.Address;
 
 import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -62,20 +67,26 @@ public class RepositoryPolicyAlertEmailerTest
   @Inject
   private RepositoryPolicyAlertEmailer emailer;
 
-  @Mock
-  private InsightMail mail;
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Inject
+  private BaseUrl baseUrl;
 
   @Mock
-  private BaseUrl baseUrl;
+  private InsightMail mail;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.bind(InsightMail.class).toInstance(mail);
-    binder.bind(BaseUrl.class).toInstance(baseUrl);
 
-    when(baseUrl.get()).thenReturn("http://baseUrl");
+    binder.bind(InsightMail.class).toInstance(mail);
     when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
+  }
+
+  @Before
+  public void before() {
+    insightConfig.setBaseUrl("http://baseUrl");
   }
 
   @Test
@@ -133,7 +144,7 @@ public class RepositoryPolicyAlertEmailerTest
     assertNotNull(model);
     assertEquals(policyFacts, model.get("policyFacts"));
     assertEquals("http://cdnUrl", model.get("cdnUrl"));
-    assertEquals(baseUrl.get() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()),
+    assertEquals(baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()),
         model.get("detailedReportUrl"));
     assertEquals(2, model.get("policyThreatRedCount"));
     assertEquals(4, model.get("policyThreatOrangeCount"));
@@ -143,6 +154,31 @@ public class RepositoryPolicyAlertEmailerTest
     assertEquals(repository.getPublicId(), model.get("policyThreatApp"));
     assertNotNull(model.get("policyThreatTime"));
     assertEquals("REPO ID", model.get("ownerIdLabel"));
+  }
+
+  @Test
+  public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
+    insightConfig.setBaseUrl(null);
+
+    Repository repository = new Repository("repoManagerId", "repoPublicId");
+    repository.setId("repoId");
+
+    Policy policy = new Policy("policyId", "policyName");
+    policy.setThreatLevel(5);
+    RepositoryComponent component = new RepositoryComponent(repository.getId(), "pathname", new Date(), "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), new Date());
+
+    List<PolicyFact> policyFacts = new ArrayList<>();
+    policyFacts.add(createPolicyFact(policy, component));
+
+    try {
+      emailer.createPolicyMailModel(repository, policyFacts);
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
+    }
   }
 
   private Policy createPolicy(User user) {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -16,8 +15,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -76,7 +73,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -84,10 +83,8 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class PolicyAlertEmailerTest
     extends AbstractComponentTest
@@ -211,8 +208,6 @@ public class PolicyAlertEmailerTest
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
-
-    config.setBaseUrl("http://localhost");
 
     Exception ex = new RuntimeException();
     doThrow(ex).when(mailer).sendHtml(anyString(), anyList(), anyString(), anyString());
@@ -427,11 +422,8 @@ public class PolicyAlertEmailerTest
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
-    InsightConfig appConfig = new InsightConfig();
-    UriInfo uriInfo = mock(UriInfo.class);
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
-    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://localhost:8080")));
-    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, baseUrl, new ApplicationAdapter(userDirectory),
+    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class),
+        new ApplicationAdapter(userDirectory),
         new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()));
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -568,7 +560,6 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testNotificationEmailBody() throws Exception {
-    String serverBaseUrl = "http://localhost/";
     Application app = tempEntity.newApplicationWithParent("testapp");
     String scanId = "some scan id";
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -585,8 +576,7 @@ public class PolicyAlertEmailerTest
     String hashUnknown = "hashUnknown123";
     policyFacts.add(newPolicyFact(policy, null, hashUnknown));
 
-    Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(serverBaseUrl, app, scanId, stage,
-        policyFacts, 0);
+    Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(app, scanId, stage, policyFacts, 0);
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
     assertThat(emailBody, containsString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString()));
@@ -594,6 +584,26 @@ public class PolicyAlertEmailerTest
     assertThat(emailBody, containsString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString()));
     assertThat(emailBody, not(containsString(hashAname)));
     assertThat(emailBody, containsString(hashUnknown));
+  }
+
+  @Test
+  public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
+    config.setBaseUrl(null);
+
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "TestPolicy");
+
+    List<PolicyFact> policyFacts = new ArrayList<>();
+    policyFacts
+        .add(newPolicyFact(policy, ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "hash"));
+
+    try {
+      policyAlertEmailer.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), policyFacts, 0);
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
+    }
   }
 
   private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {

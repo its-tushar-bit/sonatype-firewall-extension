@@ -5,9 +5,10 @@
  */
 
 import modalWrapperTemplate from './addSuccessMetricsReportModalWrapper.html';
+import template from './successMetricsReportList.html';
 
 export default {
-  templateUrl: 'labs/successMetrics/successMetricsReportList.html?' + clmBuildTimestamp,
+  template,
   controller: successMetricsReportController,
   controllerAs: 'vm'
 };
@@ -19,6 +20,7 @@ function successMetricsReportController($state, $q, systemConfigurationPropertyS
   vm.loaded = false;
   vm.error = undefined;
   vm.successMetricsReports = undefined;
+  vm.$state = $state;
 
   vm.$onInit = $onInit;
   vm.goToCharts = goToCharts;

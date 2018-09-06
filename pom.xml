@@ -226,6 +226,12 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- bcprov-jdk15on versions before 1.60 have a lot of security vulnerabilities. -->
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk15on</artifactId>
+        <version>1.60</version>
+      </dependency>
 
       <dependency>
         <groupId>com.sonatype.clm</groupId>

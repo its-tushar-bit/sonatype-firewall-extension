@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.model.configuration.ldap;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class LdapUtils
 {

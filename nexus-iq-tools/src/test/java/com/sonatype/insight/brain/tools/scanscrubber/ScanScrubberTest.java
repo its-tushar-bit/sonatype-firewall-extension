@@ -23,7 +23,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;

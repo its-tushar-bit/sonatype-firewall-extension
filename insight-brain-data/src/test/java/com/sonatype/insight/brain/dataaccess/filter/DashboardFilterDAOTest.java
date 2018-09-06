@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

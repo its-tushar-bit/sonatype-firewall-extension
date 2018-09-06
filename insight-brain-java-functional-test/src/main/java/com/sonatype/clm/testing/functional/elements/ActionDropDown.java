@@ -45,6 +45,10 @@ public class ActionDropDown
     return $("#delete-owner-link");
   }
 
+  public static SelenideElement grandfather() {
+    return $("#policy-violation-grandfather-link");
+  }
+
   public static SelenideElement revokeGrandfathered() {
     return $("#revoke-policy-violation-grandfathering-link");
   }

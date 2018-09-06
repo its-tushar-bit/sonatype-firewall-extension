@@ -44,9 +44,15 @@
               </a>
               <div ng-if="vm.isApp" class="divider"></div>
               <a ng-if="vm.isApp"
+                 id="policy-violation-grandfather-link"
+                 ng-click="vm.grandfather()"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-gavel"></i>Grandfather {{vm.owner.name}}
+              </a>
+              <a ng-if="vm.isApp"
                  id="revoke-policy-violation-grandfathering-link"
                  ng-click="vm.revokeGrandfathering()"
-                 class="iq-btn iq-btn--dropdown">
+                 class="btn iq-btn--dropdown">
                 <i class="fa fa-history"/>Revoke All Grandfathered
               </a>
               <div ng-if="vm.isApp" class="divider"></div>

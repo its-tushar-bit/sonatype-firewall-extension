@@ -60,11 +60,13 @@ import SelectApplicationContactService from './summary/select.application.contac
 import OwnerSummaryController from './summary/owner.summary.controller';
 import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
 import RevokeGrandfatheringModalService from './utility/services/revokeGrandfatheringModalService';
+import GrandfatherModalService from './utility/services/grandfatherModalService';
 import ImportPolicyModalService from './utility/services/import.policy.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
 import ChangeApplicationIdService from './summary/change.application.id.service';
 import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
 import RevokeGrandfatheringModalController from './utility/services/revokeGrandfatheringModalController';
+import GrandfatherModalController from './utility/services/grandfatherModalController';
 import ImportPolicyModalController from './utility/services/import.policy.modal.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
@@ -118,11 +120,13 @@ angular.module('owner.manager.module',
     .controller('OwnerSummaryController', OwnerSummaryController)
     .service('evaluate.application.modal.service', EvaluateApplicationModalService)
     .service('RevokeGrandfatheringModalService', RevokeGrandfatheringModalService)
+    .service('GrandfatherModalService', GrandfatherModalService)
     .service('import.policy.modal.service', ImportPolicyModalService)
     .controller('select.application.contact.controller', SelectApplicationContactController)
     .service('change.application.id.service', ChangeApplicationIdService)
     .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
     .controller('RevokeGrandfatheringModalController', RevokeGrandfatheringModalController)
+    .controller('GrandfatherModalController', GrandfatherModalController)
     .controller('import.policy.modal.controller', ImportPolicyModalController)
     .directive('numberInputWithStringValue', NumberInputWithStringValue)
     .directive('sameOwnerEditSref', SameOwnerEditSref)

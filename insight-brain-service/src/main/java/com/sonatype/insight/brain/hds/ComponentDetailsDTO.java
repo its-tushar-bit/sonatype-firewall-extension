@@ -28,7 +28,7 @@ public class ComponentDetailsDTO
 
   public LicenseStatus effectiveLicenseStatus;
 
-  public long catalogDate;
+  public Long catalogDate;
 
   public Integer relativePopularity;
 

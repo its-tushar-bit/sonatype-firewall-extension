@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.audit;
 
 import java.util.function.Function;
 
+import com.google.common.annotations.VisibleForTesting;
+
 class ProxyAuditData
     extends AuditData
 {
-  private AuditData auditData;
+  @VisibleForTesting
+  AuditData auditData;
 
   public ProxyAuditData(AuditData auditData) {
     this.auditData = auditData;

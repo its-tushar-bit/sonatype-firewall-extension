@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.audit;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
+import com.sonatype.insight.brain.security.SecurityModule;
+
+import com.google.common.net.HttpHeaders;
+import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class RequestDataTest
+{
+  @Test
+  public void testNewInstance_Method() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getMethod()).thenReturn("method");
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getMethod(), is("method"));
+  }
+
+  @Test
+  public void testNewInstance_Path_NullQueryParams() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getPath(), is("requestUri"));
+  }
+
+  @Test
+  public void testNewInstance_Path_QueryParams() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
+    when(mockHttpServletRequest.getQueryString()).thenReturn("queryString");
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getPath(), is("requestUri?queryString"));
+  }
+
+  @Test
+  public void testNewInstance_RemoteIpAddress() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getRemoteAddr()).thenReturn("remoteAddr");
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getRemoteIpAddress(), is("remoteAddr"));
+  }
+
+  @Test
+  public void testNewInstance_Forwarded() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.FORWARDED))
+        .thenReturn(Collections.enumeration(Arrays.asList("forwarded1", "forwarded2", "forwarded3")));
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getForwarded(),
+        is("forwarded1, forwarded2, forwarded3"));
+  }
+
+  @Test
+  public void testNewInstance_ForwardedNull_XForwardedFor() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.X_FORWARDED_FOR))
+        .thenReturn(Collections.enumeration(Arrays.asList("forwarded1", "forwarded2", "forwarded3")));
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getForwarded(),
+        is("forwarded1, forwarded2, forwarded3"));
+  }
+
+  @Test
+  public void testNewInstance_UserAgent() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getHeader(HttpHeaders.USER_AGENT)).thenReturn("userAgent");
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getUserAgent(), is("userAgent"));
+  }
+
+  @Test
+  public void testNewInstance_SessionId() {
+    HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
+    when(mockHttpServletRequest.getCookies()).thenReturn(new Cookie[]{
+        new Cookie("cookieName1", "cookieValue1"), new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
+        new Cookie("cookieName3", "cookieValue3")
+    });
+
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getSessionId(), is("sessionId"));
+  }
+
+  private HttpServletRequest mockHttpServletRequest() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.FORWARDED)).thenReturn(Collections.emptyEnumeration());
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.X_FORWARDED_FOR)).thenReturn(Collections.emptyEnumeration());
+    return mockHttpServletRequest;
+  }
+}

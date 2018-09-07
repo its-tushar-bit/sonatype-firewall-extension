@@ -9,13 +9,16 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * The data for one audit record. Code populates audit data for the current operation/event using
  * {@link AuditData#get()}.
  */
 public abstract class AuditData
 {
-  private static final ThreadLocal<AuditData> instance = ThreadLocal.withInitial(() -> NoopAuditData.INSTANCE);
+  @VisibleForTesting
+  static final ThreadLocal<AuditData> instance = ThreadLocal.withInitial(() -> NoopAuditData.INSTANCE);
 
   public static AuditData get() {
     return instance.get();
@@ -45,7 +48,7 @@ public abstract class AuditData
           try {
             task.run();
           }
-          catch (RuntimeException | Error e) {
+          catch (Throwable e) {
             auditData.setException(e);
             throw e;
           }
@@ -62,7 +65,7 @@ public abstract class AuditData
           try {
             return task.call();
           }
-          catch (Exception | Error e) {
+          catch (Throwable e) {
             auditData.setException(e);
             throw e;
           }
@@ -79,7 +82,7 @@ public abstract class AuditData
           try {
             return task.get();
           }
-          catch (RuntimeException | Error e) {
+          catch (Throwable e) {
             auditData.setException(e);
             throw e;
           }

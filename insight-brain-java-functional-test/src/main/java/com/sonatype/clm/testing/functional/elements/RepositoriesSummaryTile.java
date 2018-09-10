@@ -23,7 +23,7 @@ public class RepositoriesSummaryTile
   }
 
   private SelenideElement scrollContainer() {
-    return $(".tile-scroll-container");
+    return $(".iq-tile-scroll-container");
   }
 
   public PillButton configButton() {

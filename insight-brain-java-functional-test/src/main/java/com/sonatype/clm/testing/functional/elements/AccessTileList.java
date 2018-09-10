@@ -28,11 +28,11 @@ public class AccessTileList
   }
 
   public SelenideElement ownerName() {
-    return child(".subsection-header");
+    return child(".iq-list__title");
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".empty-list");
+    return child(".iq-list__item--empty");
   }
 
   public static class AccessTileListElement
@@ -50,11 +50,11 @@ public class AccessTileList
     }
 
     public SelenideElement role() {
-      return child(".role");
+      return child(".iq-cell--access-role");
     }
 
     public SelenideElement members() {
-      return child(".members");
+      return child(".iq-cell--access-members");
     }
 
     public SelenideElement userIcon() {

@@ -32,15 +32,15 @@ public class ThreatGroupTileSimpleList
   }
 
   public SelenideElement ownerName() {
-    return child(".subsection-header");
+    return child(".iq-list__title");
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".empty-list");
+    return child(".iq-list__item--empty");
   }
 
   public static Condition threatLevel(int threatLevel) {
-    return Condition.cssClass("threat-level-" + threatLevel);
+    return Condition.cssClass("iq-threat-bar--" + threatLevel);
   }
 
   public static class ThreatGroupTileSimpleListElement
@@ -56,11 +56,11 @@ public class ThreatGroupTileSimpleList
     }
 
     public SelenideElement threatLevel() {
-      return $(SelectorUtils.createSelector(selector, ".threat-legend"));
+      return $(SelectorUtils.createSelector(selector, ".iq-threat-bar"));
     }
 
     public SelenideElement name() {
-      return $(SelectorUtils.createSelector(selector, ".threat-group-title"));
+      return $(SelectorUtils.createSelector(selector, ".test-list-item-title"));
     }
   }
 }

@@ -40,7 +40,7 @@
     border-color: $iq-grey-2;
     color: $iq-grey-4;
     cursor: default;
-    
+
     &:focus {
       outline: 0;
     }
@@ -125,7 +125,7 @@
 /*
  * Standard button container
  */
- 
+
 .iq-btn-bar {
   margin: 8px 0 0 0;
 }
@@ -135,13 +135,15 @@
  */
 
 .iq-btn--dropdown {
+  $iq-drop-down-indentation: -12px;
+
   background-color: transparent;
   border-color: transparent;
   border-radius: 0;
   display: block;
   height: 32px;
   line-height: 32px;
-  margin: 0 0 0 -12px;
+  margin: 0 0 0 $iq-drop-down-indentation;
   overflow: hidden;
   padding: 0 10px 0 12px;
   text-align: left;
@@ -169,5 +171,10 @@
   .fa {
     height: 12px;
     width: 12px;
+  }
+
+  // This overrides the normal spacing for .iq-btn + .iq-btn above
+  + .iq-btn--dropdown {
+    margin-left: $iq-drop-down-indentation;
   }
 }

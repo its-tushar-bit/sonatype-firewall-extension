@@ -39,7 +39,7 @@ public class OwnerSummaryTile
   }
 
   private SelenideElement scrollContainer() {
-    return $(".tile-scroll-container");
+    return $(".iq-tile-scroll-container");
   }
 
   public PillButton appCategoriesButton() {

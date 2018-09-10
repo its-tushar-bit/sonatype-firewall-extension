@@ -40,6 +40,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.TileSimpleList.CLICKABLE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -156,26 +157,17 @@ public class OrganizationSummaryViewTest
   }
 
   private void testApplicationCategoryTile_Empty() {
-    final int hierarchySize = getHierarchySize(organization.getId());
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
     categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(organization));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(organization));
 
-    categoryTile.categoryLists().shouldHaveSize(hierarchySize);
+    categoryTile.categoryLists().shouldHaveSize(1);
 
-    for (int i = 0; i < hierarchySize; i++) {
-      TileSimpleList list = categoryTile.categoryList(i);
-      list.elements().shouldBe(empty);
+    TileSimpleList list = categoryTile.categoryList(0);
+    list.elements().shouldBe(empty);
 
-      if (i == 0) {
-        list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
-      }
-      else {
-        list.subsectionHeader().shouldNot(exist);
-        list.emptyDescriptor().shouldNot(exist);
-      }
-    }
+    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
   }
 
   private void testApplicationCategoryTile_WithApplicableCategories() {
@@ -206,9 +198,11 @@ public class OrganizationSummaryViewTest
 
       if (i == 0) {
         list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+        list.root.shouldHave(CLICKABLE);
       }
       else {
         list.subsectionHeader().shouldBe(visible).shouldHave(CategoryTile.inheritedText(owners.get(i).getName()));
+        list.root.shouldNotHave(CLICKABLE);
       }
 
       list.elements().shouldHaveSize(ownerTags.get(i).size());
@@ -218,11 +212,9 @@ public class OrganizationSummaryViewTest
         Tag expectedCategory = ownerTags.get(i).get(j);
 
         if (i == 0) {
-          actualCategory.root.shouldBe(TileSimpleListElement.CLICKABLE);
           actualCategory.chevron().shouldBe(visible);
         }
         else {
-          actualCategory.root.shouldNotBe(TileSimpleListElement.CLICKABLE);
           actualCategory.chevron().shouldNot(exist);
         }
 

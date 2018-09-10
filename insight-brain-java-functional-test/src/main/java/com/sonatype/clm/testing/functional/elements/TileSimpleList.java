@@ -13,7 +13,9 @@ import static com.codeborne.selenide.Condition.cssClass;
 
 public class TileSimpleList
 {
-  protected SelenideElement root;
+  public static final Condition CLICKABLE = cssClass("iq-list--clickable");
+  
+  public SelenideElement root;
 
   public TileSimpleList(SelenideElement root) {
     this.root = root;
@@ -26,23 +28,21 @@ public class TileSimpleList
   public SelenideElement noElementsMessage() {
     return root.$("li.iq-list__item--empty");
   }
- 
+
   public TileSimpleListElement element(int num) {
     return new TileSimpleListElement(elements().get(num));
   }
 
   public SelenideElement subsectionHeader() {
-    return root.$(".subsection-header");
+    return root.$(".iq-list__title");
   }
 
   public SelenideElement emptyDescriptor() {
-    return root.$(".empty-list");
+    return root.$(".iq-list__item--empty");
   }
 
   public static class TileSimpleListElement
   {
-    public static final Condition CLICKABLE = cssClass("clickable");
-
     public SelenideElement root;
 
     public TileSimpleListElement(SelenideElement root) {
@@ -50,15 +50,15 @@ public class TileSimpleList
     }
 
     public SelenideElement icon() {
-      return root.$(".title .fa, .title .hexagon");
+      return root.$(".test-list-item-title .fa, .test-list-item-title .hexagon");
     }
 
     public SelenideElement name() {
-      return root.$(".title");
+      return root.$(".test-list-item-title");
     }
 
     public SelenideElement description() {
-      return root.$(".subtitle");
+      return root.$(".iq-list__subtext");
     }
 
     public SelenideElement chevron() {

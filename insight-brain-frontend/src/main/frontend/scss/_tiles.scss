@@ -76,6 +76,20 @@ $iq-tile-actions-margin-top: 8px;
   }
 }
 
+.iq-tile-scroll-container {
+  margin: 0 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 8px;
+  position: relative; //required for scrollspy
+  width: calc(100% - 16px);
+  z-index: $tile-scroll-container-z-index;
+
+  .iq-tile {
+    margin: 0 0 8px 0;
+  }
+}
+
 // used when a <form> is the first element in an iq-tile
 .iq-tile--form-tile {
   .iq-tile-header {
@@ -568,115 +582,6 @@ $iq-tile-actions-margin-top: 8px;
 
           + li, + tr {
             border-top-color: $iq-slate;
-          }
-        }
-      }
-    }
-
-    /*
-      ##Access Tiles
-    */
-    .access-list {
-      width: 100%;
-
-      tr {
-        td {
-          @include semi-bold();
-
-          line-height: 16px;
-        }
-
-        .role {
-          padding-top: 12px;
-          padding-right: 24px;
-          padding-left: 8px;
-          vertical-align: top;
-          min-width: 140px;
-        }
-
-        .members {
-          padding-top: 10.0px;
-          vertical-align: bottom;
-          width: 100%;
-
-          .list-within-list {
-            display: inline-block;
-            padding-bottom: 12px;
-            white-space: nowrap;
-
-            i {
-              margin-right: 8px;
-            }
-            span {
-              margin-right: 15px;
-            }
-          }
-        }
-
-        td:last-child {
-          padding-top: 0px;
-          padding-right: 12px;
-          padding-left: 24px;
-          vertical-align: middle;
-        }
-
-        &.simple {
-          height: 40px;
-        }
-      }
-    }
-
-    .policy-list {
-      margin-top: 0;
-      width: 100%;
-
-      .iq-cell {
-        white-space: normal;
-      }
-
-      .iq-column-sort-trigger {
-        height: auto;
-        line-height: normal;
-      }
-
-      .iq-cell--header {
-        line-height: normal;
-      }
-
-      .threat-legend {
-        display: inline-block;
-        float: left;
-        height: 100%;
-        margin: 0px 8px 0px -12px;
-        width: 8px;
-
-        @each $threat in $policy-threat-levels {
-          @each $threatLevel in nth($threat, 4) {
-            &.policy-threat-level-#{$threatLevel} {
-              background-color: nth($threat, 3);
-            }
-          }
-        }
-      }
-
-      .policy-list__name-column {
-        @include semi-bold();
-      }
-
-      .policy-list__threat-column {
-        width: 67px;
-      }
-
-      .policy-list__stage-column {
-        color: $iq-slate;
-        width: 1px;
-        white-space: nowrap;
-
-        .fa {
-          margin-right: 8px;
-
-          span {
-            color: $iq-off-black;
           }
         }
       }

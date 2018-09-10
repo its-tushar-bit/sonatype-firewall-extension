@@ -30,7 +30,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement.CLICKABLE;
+import static com.sonatype.clm.testing.functional.elements.TileSimpleList.CLICKABLE;
 
 public abstract class AbstractPolicyMonitoringEditorTest
     extends AbstractFunctionalTest

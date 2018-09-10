@@ -35,7 +35,7 @@ public class AccessTile
   }
 
   private String accessListSelector() {
-    return createSelector(selector, ".simple-list");
+    return createSelector(selector, ".iq-list");
   }
 
   public ElementsCollection accessLists() {
@@ -44,10 +44,10 @@ public class AccessTile
 
   public AccessTileList accessList(int num) {
     return new AccessTileList(accessListSelector(),
-        nthChild(num + 1 + 2 /* some other elements have the same parent */));
+        nthChild(num + 1));
   }
 
   public SelenideElement localAccessRole(String roleName) {
-    return children("table td.role").findBy(text(roleName));
+    return children("table td.iq-cell--access-role").findBy(text(roleName));
   }
 }

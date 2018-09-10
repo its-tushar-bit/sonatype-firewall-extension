@@ -47,7 +47,7 @@ public class PolicyTile
   }
 
   public SelenideElement localPolicy(String policyName) {
-    return children("table tr > .policy-list__name-column").findBy(text(policyName));
+    return children("table tr > .iq-cell--policy-list-name").findBy(text(policyName));
   }
 
   public SelenideElement violationGrandfathering() {
@@ -59,6 +59,6 @@ public class PolicyTile
   }
 
   public SelenideElement proprietaryComponentMatchers() {
-    return $("#proprietary-component-matchers div.title");
+    return $("#proprietary-component-matchers .test-list-item-title");
   }
 }

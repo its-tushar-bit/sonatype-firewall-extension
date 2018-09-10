@@ -36,3 +36,7 @@
 @import "../labs/labs";
 @import "../configuration/configuration";
 @import "iq-theme-dark";
+@import "../owner.manager/summary/owner.summary.view.scss";
+@import "../owner.manager/summary/ownerPolicyList/ownerPolicyList.scss";
+@import "../owner.manager/repositories/repositories.summary.view.scss";
+@import "../owner.manager/access/access.tile.directive.scss"

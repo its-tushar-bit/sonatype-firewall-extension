@@ -1,78 +1,83 @@
-<div class="tile-container">
-  <div class="summary-tile-container">
-    <div class="iq-tile iq-tile--top-tile" id="repositories-summary">
-      <div class="iq-tile-header iq-tile-header--no-actions">
+<div class="iq-tile iq-tile--top-tile" id="repositories-summary">
+  <div class="iq-tile-header iq-tile-header--no-actions">
+    <div class="iq-tile-header__title">
+      <i class="fa fa-database iq-tile-header__icon"></i>
+      <h1>Repositories</h1>
+    </div>
+  </div>
+  <ul class="nav nav-pills iq-nav-pills">
+    <li class="iq-nav-pills__pill active">
+      <a data-toggle="pill" id="repositories-configuration-button" data-target="#repositories-pill-configuration">
+         Configuration
+      </a>
+    </li>
+    <li class="iq-nav-pills__pill">
+      <a data-toggle="pill" id="repositories-access-button" data-target="#repositories-pill-access">Access</a>
+    </li>
+  </ul>
+</div>
+<div class="iq-tile-scroll-container" maximize-container-height scrollspy="#repositories-summary">
+  <div id="repositories-pill-configuration"
+       class="iq-tile"
+       ng-controller="repositories.configuration.tile.controller as vm">
+    <div load-wrapper="vm.error"
+         loading="!vm.repositories"
+         reload="vm.doLoad()"
+         error-message="Unable to load repositories.">
+      <div class="iq-tile-header">
         <div class="iq-tile-header__title">
-          <i class="fa fa-database iq-tile-header__icon"></i>
-          <h1>Repositories</h1>
+          <i class="fa fa-sliders size-20px inverse iq-tile-header__icon"></i>
+          <h2>Configuration</h2>
         </div>
       </div>
-      <ul class="nav nav-pills iq-nav-pills">
-        <li class="iq-nav-pills__pill active">
-          <a data-toggle="pill" id="repositories-configuration-button" data-target="#repositories-pill-configuration">
-             Configuration
-          </a>
-        </li>
-        <li class="iq-nav-pills__pill">
-          <a data-toggle="pill" id="repositories-access-button" data-target="#repositories-pill-access">Access</a>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="tile-scroll-container" maximize-container-height scrollspy="#repositories-summary">
-    <div id="repositories-pill-configuration" class="tile"
-         ng-controller="repositories.configuration.tile.controller as vm">
-      <div load-wrapper="vm.error" loading="!vm.repositories" reload="vm.doLoad()"
-           error-message="Unable to load repositories.">
-        <h2><i class="fa fa-sliders size-20px inverse"></i>Configuration</h2>
-        <div class="simple-list">
-          <div class="subsection-divider"></div>
-          <div class="empty-list" ng-if="vm.repositories.length <= 0">There are no repositories registered with the
-            server.
+      <div class="iq-tile-content">
+        <div class="iq-list" ng-if="vm.repositories.length <= 0">
+          <div class="iq-list__item iq-list__item--empty">
+            There are no repositories registered with the server.
           </div>
-          <table sort="vm.sortFields"
-                 on-sort-change="vm.sortFields = sortFields"
-                 class="iq-table repository-configuration-list"
-                 cols="3"
-                 ng-if="vm.repositories.length > 0">
-            <thead>
-              <tr class="iq-table-row">
-                <th sort-column="repository.publicId" class="iq-cell iq-cell--header">
-                  <span class="header-text">REPOSITORY</span>
-                </th>
-                <th sort-column="managerInstanceId, repository.publicId"
-                    class="iq-cell iq-cell--header repository-configuration-list__manager-id">
-                  <span class="header-text">REPOSITORY MANAGER</span>
-                </th>
-                <th sort-column="-repository.enabled, repository.publicId"
-                    class="iq-cell iq-cell--header repository-configuration-list__enabled">
-                  <span class="header-text">STATUS</span>
-                </th>
-                <th class="iq-cell iq-cell--header iq-cell--btn-icon iq-cell--header--noborder"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="iq-table-row" ng-repeat="repository in vm.repositories | orderBy:vm.sortFields">
-                <td class="iq-cell">{{repository.repository.publicId}}</td>
-                <td class="iq-cell repository-configuration-list__manager-id">{{repository.managerInstanceId}}</td>
-                <td class="iq-cell repository-configuration-list__enabled">
-                  <i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--
-               -->{{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
-                </td>
-                <td class="iq-cell iq-cell--btn-icon">
-                  <button type="button"
-                          class="btn btn-tertiary btn-icon-only"
-                          ng-click="vm.removeRepository(repository)">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
+        <table sort="vm.sortFields"
+               on-sort-change="vm.sortFields = sortFields"
+               class="iq-table repository-configuration-list"
+               cols="3"
+               ng-if="vm.repositories.length > 0">
+          <thead>
+            <tr class="iq-table-row">
+              <th sort-column="repository.publicId" class="iq-cell iq-cell--header">
+                REPOSITORY
+              </th>
+              <th sort-column="managerInstanceId, repository.publicId"
+                  class="iq-cell iq-cell--header repository-configuration-list__manager-id">
+                REPOSITORY MANAGER
+              </th>
+              <th sort-column="-repository.enabled, repository.publicId"
+                  class="iq-cell iq-cell--header repository-configuration-list__enabled">
+                STATUS
+              </th>
+              <th class="iq-cell iq-cell--header iq-cell--btn-icon iq-cell--header--noborder"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="iq-table-row" ng-repeat="repository in vm.repositories | orderBy:vm.sortFields">
+              <td class="iq-cell">{{repository.repository.publicId}}</td>
+              <td class="iq-cell repository-configuration-list__manager-id">{{repository.managerInstanceId}}</td>
+              <td class="iq-cell repository-configuration-list__enabled">
+                <i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--
+             -->{{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
+              </td>
+              <td class="iq-cell iq-cell--btn-icon">
+                <button type="button"
+                        class="btn btn-tertiary btn-icon-only"
+                        ng-click="vm.removeRepository(repository)">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-
-    <access-tile id="repositories-pill-access" pad-to-top></access-tile>
   </div>
+
+  <access-tile id="repositories-pill-access" pad-to-top></access-tile>
 </div>

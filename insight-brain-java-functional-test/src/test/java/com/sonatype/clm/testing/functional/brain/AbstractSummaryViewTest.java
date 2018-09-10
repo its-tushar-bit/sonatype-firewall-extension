@@ -139,30 +139,19 @@ public abstract class AbstractSummaryViewTest
   }
 
   public void testLabelTile_no_labels() {
-    int hierarchySize = getHierarchySize(currentOwner.getId());
 
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(currentOwner.getName()));
     labelTile.newButton().shouldBe(visible, enabled);
 
-    labelTile.labelLists().shouldHaveSize(hierarchySize);
+    labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < hierarchySize; i++) {
-      TileSimpleList list = labelTile.labelList(i);
-
-      if (i == 0) {
-        list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldBe(visible);
-      }
-      else {
-        list.subsectionHeader().shouldBe(hidden);
-      }
-
-      list.elements().shouldBe(empty);
-    }
+    TileSimpleList list = labelTile.labelList(0);
+    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    list.emptyDescriptor().shouldBe(visible);
   }
 
   public void testAccessTile_no_local_access() {
@@ -252,41 +241,31 @@ public abstract class AbstractSummaryViewTest
 
   private void testLabelTile_Local(List<Label> localLabels) {
 
-    int hierarchySize = getHierarchySize(currentOwner.getId());
     LabelTile labelTile = OwnerSummaryPage.labelTile();
-    labelTile.labelLists().shouldHaveSize(hierarchySize);
+    labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < hierarchySize; i++) {
-      TileSimpleList list = labelTile.labelList(i);
+    TileSimpleList list = labelTile.labelList(0);
+    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    list.emptyDescriptor().shouldNot(exist);
+    list.elements().shouldHaveSize(localLabels.size());
 
-      if (i == 0) {
-        list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldNot(exist);
-        list.elements().shouldHaveSize(localLabels.size());
+    for (int i = 0; i < localLabels.size(); i++) {
+      TileSimpleListElement actualLabel = list.element(i);
+      Label expectedLabel = localLabels.get(i);
 
-        for (int j = 0; j < localLabels.size(); j++) {
-          TileSimpleListElement actualLabel = list.element(j);
-          Label expectedLabel = localLabels.get(j);
-
-          if (expectedLabel.getDescription() == null) {
-            actualLabel.description().shouldNot(exist);
-          }
-          else {
-            actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
-          }
-
-          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toValue()));
-          actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
-          actualLabel.chevron().shouldBe(visible);
-        }
+      if (expectedLabel.getDescription() == null) {
+        actualLabel.description().shouldNot(exist);
       }
       else {
-        list.subsectionHeader().shouldNot(exist);
-        list.elements().shouldBe(empty);
+        actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
       }
+
+      actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toValue()));
+      actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
+      actualLabel.chevron().shouldBe(visible);
     }
   }
 

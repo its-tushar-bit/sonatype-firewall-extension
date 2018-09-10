@@ -27,6 +27,7 @@ function LicenseThreatGroupTileController($scope, $http, CLMContextLocations, Sa
       });
 
       vm.ownerName = vm.applicableLicenseGroups[0].ownerName;
+      vm.isOrg = vm.applicableLicenseGroups[0].ownerType === 'organization';
     }, function(error) {
       vm.error = error;
     });

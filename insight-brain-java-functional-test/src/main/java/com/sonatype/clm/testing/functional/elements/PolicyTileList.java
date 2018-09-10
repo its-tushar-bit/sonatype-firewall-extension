@@ -29,11 +29,11 @@ public class PolicyTileList
   }
 
   public SelenideElement ownerName() {
-    return child(".subsection-header");
+    return child(".iq-list__title");
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".empty-list");
+    return child(".iq-list__item--empty");
   }
 
   public HeaderColumn threatLegendHeaderColumn() {
@@ -49,7 +49,7 @@ public class PolicyTileList
   }
 
   public static Condition threatLevel(int threatLevel) {
-    return cssClass("policy-threat-level-" + threatLevel);
+    return cssClass("iq-threat-bar--policy-level-" + threatLevel);
   }
 
   public static class PolicyTileListElement
@@ -70,7 +70,7 @@ public class PolicyTileList
     }
 
     public SelenideElement threadLegend() {
-      return child(".threat-legend");
+      return child(".iq-threat-bar");
     }
 
     public SelenideElement name() {

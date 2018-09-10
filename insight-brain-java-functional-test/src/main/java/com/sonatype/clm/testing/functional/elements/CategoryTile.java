@@ -55,7 +55,7 @@ public class CategoryTile
   }
 
   public ElementsCollection categoryLists() {
-    return children(".simple-list");
+    return children(".iq-list");
   }
 
   public TileSimpleList categoryList(int num) {
@@ -63,6 +63,6 @@ public class CategoryTile
   }
 
   public SelenideElement localCategory(String categoryName) {
-    return children("ul div.title").findBy(text(categoryName));
+    return children("ul .iq-list__item").findBy(text(categoryName));
   }
 }

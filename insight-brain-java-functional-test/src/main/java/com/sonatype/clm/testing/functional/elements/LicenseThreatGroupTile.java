@@ -31,11 +31,11 @@ public class LicenseThreatGroupTile
   }
 
   public ElementsCollection ltgLists() {
-    return children(".simple-list");
+    return children(".iq-list");
   }
 
   public ThreatGroupTileSimpleList ltgList(int num) {
-    return new ThreatGroupTileSimpleList("#ltg-summary-hierarchy", ".simple-list", nthChild(num + 1));
+    return new ThreatGroupTileSimpleList("#ltg-summary-hierarchy", ".iq-list", nthChild(num + 1));
   }
 
   public SelenideElement localLTG(String ltgName) {
@@ -43,6 +43,6 @@ public class LicenseThreatGroupTile
   }
 
   public ElementsCollection localLTGs() {
-    return children(".simple-list:first-child ul div.threat-group-title");
+    return children(".iq-list:first-child ul .test-list-item-title");
   }
 }

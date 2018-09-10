@@ -32,7 +32,7 @@ public class LabelTile
   }
 
   public ElementsCollection labelLists() {
-    return children(".simple-list");
+    return children(".iq-list");
   }
 
   public TileSimpleList labelList(int num) {
@@ -40,6 +40,6 @@ public class LabelTile
   }
 
   public SelenideElement localLabel(String labelName) {
-    return children("ul div.title").findBy(text(labelName));
+    return children("ul .test-list-item-title").findBy(text(labelName));
   }
 }

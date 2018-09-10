@@ -32,7 +32,7 @@ public class RepositoryConfigurationTile
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".empty-list");
+    return child(".iq-list__item--empty");
   }
 
   public static class ConfigurationTable

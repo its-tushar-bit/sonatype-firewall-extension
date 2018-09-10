@@ -9,6 +9,20 @@
   vertical-align: middle;
   width: 8px;
 
+  @each $threatdef in join($threat-levels, $threat-bars) {
+    &.iq-threat-bar--#{nth($threatdef, 1)} {
+      background-color: #{nth($threatdef, 3)};
+    }
+  }
+
+  @each $threatdef in $threat-levels {
+    @each $threatLevel in nth($threatdef, 4) {
+      &.iq-threat-bar--#{$threatLevel} {
+        background-color: nth($threatdef, 3);
+      }
+    }
+  }
+
   @each $threat in $policy-threat-levels {
     @each $threatLevel in nth($threat, 4) {
       &.iq-threat-bar--policy-level-#{$threatLevel} {
@@ -18,10 +32,9 @@
   }
 }
 
-@each $threatdef in join($threat-levels, $threat-bars) {
+.iq-list__item {
   .iq-threat-bar {
-    &.iq-threat-bar--#{nth($threatdef, 1)} {
-      background-color: #{nth($threatdef, 3)};
-    }
+    height: 40px;
+    margin: -12px 4px -12px -8px;
   }
 }

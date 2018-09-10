@@ -1,0 +1,91 @@
+owner-policy-list {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.iq-table--policy-list {
+  table-layout: fixed;
+  
+  .iq-cell--chevron {
+    padding-left: 0;
+  }
+
+  .iq-cell--policy-list-stage,
+  .policy-list__stage-column {
+    white-space: nowrap;
+  }
+
+  .iq-threat-bar {
+    float: left;
+  }
+
+  .policy-list__threat-column {
+    width: 67px;
+  }
+
+  // All the columns have the same class but require different widths so we have to count them.
+  // The numbers represent minimum values for the column header text + arrows to fit.
+  $iq-cell-proxy-width: 61px;
+  $iq-cell-build-width: 61px;
+  $iq-cell-stage-width: 61px;
+  $iq-cell-develop-width: 77px;
+  $iq-cell-release-width: 73px;
+  $iq-cell-operate-width: 76px;
+  
+  .policy-list__stage-column {
+    // Proxy, Build, and Stage columns
+    &:nth-child(3),
+    &:nth-child(5),
+    &:nth-child(6) {
+      width: $iq-cell-proxy-width;
+    }
+
+    // Develop column
+    &:nth-child(4) {
+      width: $iq-cell-develop-width
+    }
+
+    // Release column
+    &:nth-child(7) {
+      width: $iq-cell-release-width;
+    }
+
+    // Operate column
+    &:nth-child(8) {
+      width: $iq-cell-operate-width;
+    }
+  }
+  
+  .iq-cell--policy-list-name {
+    @include semi-bold();
+
+    // values below are the values in the classes above + padding + border
+    // last value is the chevron column
+    width: calc(100% - (
+                        + #{$iq-cell-proxy-width} + 24px + 1px
+                        + #{$iq-cell-build-width} + 24px + 1px
+                        + #{$iq-cell-stage-width} + 24px + 1px
+                        + #{$iq-cell-develop-width} + 24px + 1px
+                        + #{$iq-cell-release-width} + 24px + 1px
+                        + #{$iq-cell-operate-width} + 24px + 1px
+                        + 33px
+                      )
+                    );
+  }
+}
+
+@media only screen and (max-width: 1065px) {
+  .iq-table--policy-list {
+    .policy-list__threat-column {
+      width: 12px;
+
+      .iq-column-sort-trigger {
+        span {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+

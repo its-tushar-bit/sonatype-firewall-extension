@@ -49,6 +49,7 @@ public class EyesWatcher
 
       // set the default parent branch to master if the parent branch is not specified
       eyes.setParentBranchName(System.getProperty("parentBranchName", "master"));
+      eyes.setHideCaret(false);
     }
   }
 
@@ -88,6 +89,11 @@ public class EyesWatcher
    * @param tag or step name of the validation
    */
   public void eyesCheck(String tag) {
+    // Since Applitools SDK 3.29 a bug was introduced in the SDK where calling eyes.check results in a 
+    // NullPointerException when visual testing is disabled. This is a workaround that allows us to upgrade.
+    if (eyes.getIsDisabled()) {
+      return;
+    }
     if (!eyes.getIsOpen()) {
       WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
 
@@ -103,6 +109,6 @@ public class EyesWatcher
       settings = settings.ignore(element);
     }
     
-    eyes.check(tag, settings.ignoreCaret());
+    eyes.check(tag, settings);
   }
 }

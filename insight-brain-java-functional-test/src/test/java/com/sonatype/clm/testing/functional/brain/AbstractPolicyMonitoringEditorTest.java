@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -53,7 +54,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     this.currentOwner = currentOwner;
     this.parentOrg = orgDao.getById(currentOwner.getParentOwnerId());
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
+    OwnerSummaryPage.summaryTile().shouldBe(visible).name().shouldHave(text(currentOwner.getName()));
   }
 
   @Test
@@ -74,9 +75,10 @@ public abstract class AbstractPolicyMonitoringEditorTest
   public void testNotLicensed() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
-
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
-    OwnerSummaryPage.policyTile().monitoredStage().shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    policyTile.shouldBe(visible);
+    policyTile.monitoredStage().shouldBe(visible).shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(MonitoredStageEditorPage.url(currentOwner));

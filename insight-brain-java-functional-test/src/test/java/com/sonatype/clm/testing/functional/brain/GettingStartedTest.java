@@ -66,11 +66,11 @@ public class GettingStartedTest
     refreshOrOpen(GettingStartedPage.URL);
 
     // non-admin user only sees the HDS connectivity warning and learning topics tile
-    eyesWatcher.eyesCheck("Non-admin user");
     gettingStartedPage.hdsConnectivityWarning().shouldBe(visible).shouldHave(text("retry in a bit"));
     gettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     gettingStartedPage.systemSetup().shouldNotBe(visible);
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
+    eyesWatcher.eyesCheck("Non-admin user");
 
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.ADD_APPLICATION);
     refresh();
@@ -85,11 +85,11 @@ public class GettingStartedTest
     refresh();
 
     // non-default admin user sees all tiles
-    eyesWatcher.eyesCheck("Non-default admin user");
     gettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     gettingStartedPage.productLicenseSummary().shouldBe(visible);
     checkLicenseSummaryContent();
     gettingStartedPage.systemSetup().shouldBe(visible);
+    eyesWatcher.eyesCheck("Non-default admin user");
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
 
     testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);

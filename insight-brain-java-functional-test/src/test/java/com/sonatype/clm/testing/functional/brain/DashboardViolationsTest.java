@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -186,22 +187,33 @@ public class DashboardViolationsTest
     firstViolation.threatBar().shouldHave(SEVERE);
     firstViolation.threatNumber().shouldHave(text("7"));
     firstViolation.policy().shouldHave(text(licensePolicy.getName())).hover();
-    DashboardPage.tooltip().shouldBe(hidden);
+    Tooltip.get().shouldBe(hidden);
     firstViolation.application().shouldHave(text(app1.getName())).hover();
-    DashboardPage.tooltip().shouldBe(hidden);
+    Tooltip.get().shouldBe(hidden);
     firstViolation.component().shouldHave(text("g1 : a1 : v1")).hover();
-    DashboardPage.tooltip().shouldBe(hidden);
+    Tooltip.get().shouldBe(hidden);
     firstViolation.age().shouldHave(text("1min"));
 
     // check that tooltips do show for long names
     ViolationTile secondViolation = table.violation(1);
-    secondViolation.policy().hover();
-    DashboardPage.tooltip().shouldBe(visible).shouldHave(text(securityPolicy.getName()));
-    secondViolation.application().hover();
-    DashboardPage.tooltip().shouldBe(visible).shouldHave(text(app2.getName()));
-    secondViolation.component().hover();
-    DashboardPage.tooltip().shouldBe(visible).shouldHave(text("g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
+    secondViolation.componentEllipsis().hover();
+    Tooltip.get().shouldHave(text("g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
     eyesWatcher.eyesCheck();
+
+    DashboardFilters.revertButton().hover();
+    Tooltip.get().shouldBe(hidden);
+
+    secondViolation.policy().shouldBe(visible).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text(securityPolicy.getName()));
+
+    DashboardFilters.revertButton().hover();
+    Tooltip.get().shouldBe(hidden);
+
+    secondViolation.application().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text(app2.getName()));
+
+    DashboardFilters.revertButton().hover();
+    Tooltip.get().shouldBe(hidden);
 
     // check the report link - opens new window
     firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
@@ -215,7 +227,7 @@ public class DashboardViolationsTest
 
     // open component details and back
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
-    firstViolation.component().click(5, 5);
+    firstViolation.componentLink().click(5, 5);
     waitUntilUrl(DashboardComponentDetailsPage.url("g1a1v1"));
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("g1 : a1 : v1"));

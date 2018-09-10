@@ -19,7 +19,8 @@
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
-    <docker.image>standalone-chrome:3.8.1-aluminum</docker.image>
+    <docker.image.version>3.8.1-aluminum</docker.image.version>
+    <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
   </properties>
 
@@ -161,6 +162,19 @@
   </dependencies>
 
   <profiles>
+    <profile>
+      <id>firefox</id>
+      <activation>
+        <property>
+          <name>browser</name>
+          <value>firefox</value>
+        </property>
+      </activation>
+      <properties>
+        <docker.image>standalone-firefox:${docker.image.version}</docker.image>
+        <selenide.browser>firefox</selenide.browser>
+      </properties>
+    </profile>
     <profile>
       <id>docker-functional-tests</id>
       <activation>

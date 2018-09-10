@@ -113,7 +113,7 @@ public class WaiverTest
     ViewWaiversDialog.emptyText().shouldBe(visible);
     ViewWaiversDialog.closeButton().click();
 
-    String longComment = StringUtils.repeat("A", 1001);
+    String longComment = StringUtils.repeat("Long text ", 101);
     String truncatedLongComment = longComment.substring(0, 1000);
 
     WaiverCip.row(0).waiveButton().click();

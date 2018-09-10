@@ -117,6 +117,10 @@ public class DashboardViolations
     }
 
     public SelenideElement component() {
+      return child(".iq-cell--component");
+    }
+
+    public SelenideElement componentLink() {
       return child(".iq-cell--component a");
     }
 
@@ -126,6 +130,10 @@ public class DashboardViolations
 
     public SelenideElement latestReport() {
       return child(".iq-cell--report a");
+    }
+
+    public SelenideElement componentEllipsis() {
+      return component().$(".truncate-ellipsis");
     }
   }
 }

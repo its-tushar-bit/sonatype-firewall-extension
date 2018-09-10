@@ -72,6 +72,9 @@ import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_C
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.COMPONENTS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -204,6 +207,11 @@ public class DashboardFilterTest
     ageFilter.past30days().shouldBe(selected);
     ageFilter.past90days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldBe(selected);
+
+    // make sure the tabs are updated
+    violationsTab().counter().shouldBe(visible).shouldHave(text("3"));
+    componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
+    applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
     eyesWatcher.eyesCheck("90 days selected - before apply");
     DashboardFilters.apply();
     ageFilter.singleSelectList().shouldHaveSize(6);

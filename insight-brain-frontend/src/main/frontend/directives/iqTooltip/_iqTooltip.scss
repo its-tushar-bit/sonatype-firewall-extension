@@ -92,3 +92,6 @@
   color: $iq-off-white;
 }
 
+.tooltip {
+  pointer-events: none; // prevent flicking and other display issues when hovering on the tooltip border
+}

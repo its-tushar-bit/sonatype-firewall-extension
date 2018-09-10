@@ -64,11 +64,6 @@ public class DashboardPage
     return new DashboardApplications();
   }
 
-
-  public static SelenideElement tooltip() {
-    return $(".tooltip.dashboard-tooltip");
-  }
-
   public static SelenideElement needsAcknowledgementMessage() {
     return $(createSelector(ROOT, "#needs-acknowledgement"));
   }

@@ -22,10 +22,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.hidden;
@@ -37,6 +39,8 @@ public class OwnerTreeViewTest
 {
   private List<Organization> organizations = new ArrayList<>();
   private List<Application> applications = new ArrayList<>();
+
+  private final String browserName = System.getProperty("browser");
 
   @BeforeClass
   public static void startup() {
@@ -96,6 +100,11 @@ public class OwnerTreeViewTest
 
     for (int i = 0; i < applicationNames.length; i++) {
       organizationNode.application(i).shouldNotBe(CLM.SELECTED).shouldHave(text(applicationNames[i])).hover();
+      // For whatever reason the firefox driver misses the hover point. To work around this we nudge the cursor over a
+      // bit so that the hover kicks in.
+      if ("firefox".equals(browserName)) {
+        new Actions(WebDriverRunner.getAndCheckWebDriver()).moveByOffset(1, 0).perform();
+      }
       checkTooltipRenderedOnlyOnOverflow(applicationNames[i]);
     }
 

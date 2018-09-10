@@ -80,8 +80,10 @@ public class LoginTest
     loginAsAdmin();
     logout();
     MainHeader.mainHeaderButtons().shouldBe(hidden);
-    eyesWatcher.eyesCheck();
     loginModal.shouldBe(visible);
+    // take focus off the input to prevent blinking cursor
+    loginModal.header().click();
+    eyesWatcher.eyesCheck();
   }
 
   @Test

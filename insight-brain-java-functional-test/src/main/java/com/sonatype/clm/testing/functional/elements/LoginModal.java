@@ -37,4 +37,8 @@ public class LoginModal
   public SelenideElement errorMessage() {
     return $("#login-error");
   }
+
+  public SelenideElement header() {
+    return $(".iq-modal-header");
+  }
 }

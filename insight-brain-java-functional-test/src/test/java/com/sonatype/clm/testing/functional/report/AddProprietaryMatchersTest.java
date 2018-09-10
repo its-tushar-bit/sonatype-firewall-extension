@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -90,8 +91,10 @@ public class AddProprietaryMatchersTest
 
     // test Cancel button
     ReportPolicyPage.row(0).openCip();
+    SelenideElement addButton = VersionsCIP.addProprietaryMatchersButton();
+    addButton.shouldBe(visible);
     eyesWatcher.eyesCheck("Add proprietary matchers button");
-    VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
+    addButton.click();
     modal.regexInput().shouldBe(visible); // ensure form is fully loaded and stable
     modal.cancelButton().shouldBe(visible).click();
     modal.shouldBe(hidden);

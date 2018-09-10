@@ -39,6 +39,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import com.google.common.collect.Ordering;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -49,6 +51,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
@@ -89,6 +92,8 @@ public class SuccessMetricsChartsTest
   private static final DateTime twoMonthsAgo = threeMonthsAgo.plusDays(30);
 
   private static final DateTime oneMonthAgo = twoMonthsAgo.plusDays(30);
+  
+  private final String browserName = System.getProperty("browser");
 
   private static String successMetricsChartsPageUrl;
 
@@ -391,7 +396,18 @@ public class SuccessMetricsChartsTest
 
   private void verifyPlotTooltips(BarPlot plot, String[][] tooltipValuesPerWeek) {
     for(int i = 0; i < tooltipValuesPerWeek.length; i++) {
-      plot.bar(i).hover();
+      // hide tooltip
+      ViolationTrendTile.description().hover();
+      ViolationTrendTile.guidelineTooltip.shouldNotBe(visible);
+
+      SelenideElement plotBar = plot.bar(i);
+      plotBar.hover();
+      // For whatever reason the firefox driver misses the hover point when the violation column has 0 violations and 
+      // the height of the rectangle is set to 0. The cursor is placed just to the left of the first column. To work 
+      // around this we nudge the cursor over a bit to roughly the center of the hover point so that the hover kicks in.
+      if ("firefox".equals(browserName) && plotBar.getAttribute("height").equals("0")) {
+        new Actions(WebDriverRunner.getAndCheckWebDriver()).moveByOffset((i * 10) + 5, 0).perform();
+      }
       verifyTooltips(GUIDELINE_TOOLTIP_VALUES[i], tooltipValuesPerWeek[i]);
     }
   }
@@ -523,7 +539,7 @@ public class SuccessMetricsChartsTest
   public void testComponentCountsTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
-    ScrollUtil.scrollIntoView(ComponentCountsTile.root(), false);
+    ScrollUtil.scrollIntoView(ComponentCountsTile.root());
 
     successMetricsChartsPage.should(appear);
     ComponentCountsTile.root().shouldBe(visible);

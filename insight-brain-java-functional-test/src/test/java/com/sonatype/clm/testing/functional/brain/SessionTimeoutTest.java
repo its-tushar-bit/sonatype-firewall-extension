@@ -192,29 +192,29 @@ public class SessionTimeoutTest
   public void testRefreshAfterServerTimeoutWithCookieUpdate() throws Exception {
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
-    // set session timeout to 3 second
-    sessionManager.setGlobalSessionTimeout(3000);
+    // set session timeout to 6 seconds
+    sessionManager.setGlobalSessionTimeout(6000);
 
     // Current Time: 0; Timeout Time: N/A
     loginAsAdmin();
     Thread.sleep(2000);
 
     // Perform an interaction that will cause a server request
-    // Current Time: 2000; Timeout Time: 3000
+    // Current Time: 2000; Timeout Time: 6000
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
     // wait until after the initial timeout would've expired, but not after the timeout from the most recent
     // interaction would've expired
-    Thread.sleep(1500);
+    Thread.sleep(4500);
 
-    // Current Time: 3500; Timeout Time: 5000
+    // Current Time: 6500; Timeout Time: 8000
     new WebhookConfigurationPage().newWebhook().shouldBe(visible);
 
     // wait until after the new timeout should expire
     Thread.sleep(2000);
 
-    // Current Time: 5500; Timeout Time: 5000
+    // Current Time: 8500; Timeout Time: 8000
     assertUiCleared();
   }
 
@@ -226,8 +226,8 @@ public class SessionTimeoutTest
   public void testRefreshDespiteDirtyPage() throws Exception {
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
-    // set session timeout to 1 second
-    sessionManager.setGlobalSessionTimeout(2000);
+    // set session timeout to 3 seconds
+    sessionManager.setGlobalSessionTimeout(3000);
 
     loginAsAdmin();
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
@@ -235,7 +235,7 @@ public class SessionTimeoutTest
     new WebhookConfigurationPage().newWebhook().shouldBe(visible).click();
     new WebhookEditPage().url().shouldBe(visible).setValue("test");
 
-    Thread.sleep(2500);
+    Thread.sleep(3500);
 
     assertUiCleared();
   }

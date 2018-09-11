@@ -14,6 +14,8 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Central consumer of audit data, handling its export to log file and database.
  */
@@ -21,6 +23,32 @@ import com.sonatype.insight.json.store.JsonUtils;
 @Singleton
 public class AuditRecorder
 {
+  enum HttpStatusString
+  {
+    BAD_REQUEST("bad-request"),
+    BAD_AUTHENTICATION("bad-authentication"),
+    BAD_SESSION("bad-session"),
+    UNAUTHENTICATED("unauthenticated"),
+    UNLICENSED("unlicensed"),
+    UNAUTHORIZED("unauthorized"),
+    NOT_FOUND("not-found"),
+    BAD_GATEWAY("bad-gateway"),
+    SERVICE_UNAVAILABLE("service-unavailable"),
+    GATEWAY_TIMEOUT("gateway-timeout"),
+    SERVER_ERROR("server-error"),
+    CLIENT_ERROR("client-error");
+
+    private String logString;
+
+    HttpStatusString(String logString) {
+      this.logString = logString;
+    }
+
+    String getLogString() {
+      return logString;
+    }
+  }
+
   private final ErrorResponseGenerator errorResponseGenerator;
 
   @Inject
@@ -58,41 +86,42 @@ public class AuditRecorder
   private String getHttpStatusString(final RecordingAuditData auditData, final int httpStatus) {
     switch (httpStatus) {
       case 400:
-        return "bad-request";
+        return HttpStatusString.BAD_REQUEST.getLogString();
       case 401:
         if (auditData.getUsername() != null) {
-          return "bad-authentication";
+          return HttpStatusString.BAD_AUTHENTICATION.getLogString();
         }
         else {
           RequestData requestData = auditData.getRequestData();
           if (requestData != null && requestData.getSessionId() != null) {
-            return "bad-session";
+            return HttpStatusString.BAD_SESSION.getLogString();
           }
         }
-        return "unauthenticated";
+        return HttpStatusString.UNAUTHENTICATED.getLogString();
       case 402:
-        return "unlicensed";
+        return HttpStatusString.UNLICENSED.getLogString();
       case 403:
-        return "unauthorized";
+        return HttpStatusString.UNAUTHORIZED.getLogString();
       case 404:
-        return "not-found";
+        return HttpStatusString.NOT_FOUND.getLogString();
       case 502:
-        return "bad-gateway";
+        return HttpStatusString.BAD_GATEWAY.getLogString();
       case 503:
-        return "service-unavailable";
+        return HttpStatusString.SERVICE_UNAVAILABLE.getLogString();
       case 504:
-        return "gateway-timeout";
+        return HttpStatusString.GATEWAY_TIMEOUT.getLogString();
     }
     if (httpStatus >= 500) {
-      return "server-error";
+      return HttpStatusString.SERVER_ERROR.getLogString();
     }
     if (httpStatus >= 400) {
-      return "client-error";
+      return HttpStatusString.CLIENT_ERROR.getLogString();
     }
     return null;
   }
 
-  private void commitAuditData(RecordingAuditData auditData) {
+  @VisibleForTesting
+  void commitAuditData(RecordingAuditData auditData) {
     if (auditData.getEvent() == null) {
       if (auditData.getHttpStatus() == 401) {
         auditData.setEvent(AuditEvent.AUTHENTICATION_FAILURE);
@@ -105,7 +134,8 @@ public class AuditRecorder
     recordAuditData(auditData, error);
   }
 
-  private void recordAuditData(RecordingAuditData auditData, String error) {
+  @VisibleForTesting
+  void recordAuditData(RecordingAuditData auditData, String error) {
     // only record dependent sub events if the compound event succeeded, avoid noise otherwise
     if (error == null) {
       for (RecordingAuditData child : auditData.getChildren()) {
@@ -113,7 +143,11 @@ public class AuditRecorder
       }
     }
 
-    // write to log, add to database, etc.
+    logData(auditData, error);
+  }
+
+  @VisibleForTesting
+  void logData(final RecordingAuditData auditData, final String error) {
     AuditEvent event = auditData.getEvent();
     RequestData requestData = auditData.getRequestData();
     System.out.println("AUDIT-DATA: " + auditData.getTimestamp() + ", " + auditData.getUsername() + ", " +

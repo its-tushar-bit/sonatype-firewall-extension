@@ -37,7 +37,7 @@ public class ApplicationCategoryEditorPage
   }
 
   public static SelenideElement title() {
-    return $(".tile h2");
+    return $(".iq-tile h2");
   }
 
   public static Condition titleText() {

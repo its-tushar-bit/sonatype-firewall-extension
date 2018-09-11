@@ -14,10 +14,10 @@ import com.codeborne.selenide.SelenideElement;
 public class AssociationEditor
     extends BasicElement<AssociationEditor>
 {
-  private static final String ROOT_SELECTOR = ".association-editor";
+  private static final String ROOT_SELECTOR = ".iq-association-editor";
 
   // The CSS class present when the editor is using CSS multi-column display
-  public static final Condition MULTI_COLUMN = Condition.cssClass("association-editor--multi-column");
+  public static final Condition MULTI_COLUMN = Condition.cssClass("iq-association-editor--multi-column");
 
   public AssociationEditor(String selector) {
     super(selector, ROOT_SELECTOR);
@@ -48,7 +48,7 @@ public class AssociationEditor
     }
 
     public SelenideElement description() {
-      return root.$(".description");
+      return root.$(".iq-association-editor__description");
     }
   }
 }

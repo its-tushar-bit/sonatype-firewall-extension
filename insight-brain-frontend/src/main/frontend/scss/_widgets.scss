@@ -547,11 +547,7 @@
 /*
   #Association Editor
 */
-.association-editor {
-  &.association-editor--multi-column {
-    column-count: 2;
-  }
-
+.iq-association-editor {
   margin: 0;
   max-width: max-content;
 
@@ -563,10 +559,6 @@
 
   .iq-checkbox__label, .iq-radio {
     @extend .truncate-ellipsis;
-
-    display: block;
-
-    margin-left: 24px;
   }
 
   .iq-radio {
@@ -582,14 +574,18 @@
     vertical-align: top;
   }
 
-  .description {
-    margin-left: 8px;
-  }
-
   .fa {
     padding-top: 2px;
     vertical-align: top;
   }
+}
+
+.iq-association-editor--multi-column {
+  column-count: 2;
+}
+
+.iq-association-editor__description {
+  margin-left: 8px;
 }
 
 /*

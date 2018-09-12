@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Consumer;
 
@@ -16,8 +17,12 @@ import com.sonatype.insight.brain.audit.AuditRecorder.HttpStatusString;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.net.HttpHeaders;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -26,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +47,9 @@ import static org.mockito.Mockito.when;
 
 public class AuditRecorderTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput("audit.authentication");
+
   @Before
   public void before() {
     AuditData.set(null);
@@ -252,7 +261,6 @@ public class AuditRecorderTest
                                       String expectedStatus)
   {
     AuditRecorder auditRecorder = spy(new AuditRecorder(new ErrorResponseGenerator()));
-    doNothing().when(auditRecorder).logData(isA(RecordingAuditData.class), any());
     HttpServletRequest httpRequest = mockHttpServletRequest();
     servletRequestConsumer.accept(httpRequest);
 
@@ -287,9 +295,9 @@ public class AuditRecorderTest
   @Test
   public void testRecordAuditData_ErrorNull() {
     AuditRecorder auditRecorder = spy(new AuditRecorder(new ErrorResponseGenerator()));
-    doNothing().when(auditRecorder).logData(isA(RecordingAuditData.class), any());
 
-    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {}, null));
+    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {}, mock(RequestData.class)));
+    parent.setEvent(AuditEvent.LOGIN);
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false);
 
     auditRecorder.recordAuditData(parent, null);
@@ -302,9 +310,9 @@ public class AuditRecorderTest
   public void testRecordAuditData_ErrorNotNull() {
     String error = "Error";
     AuditRecorder auditRecorder = spy(new AuditRecorder(new ErrorResponseGenerator()));
-    doNothing().when(auditRecorder).logData(isA(RecordingAuditData.class), any());
 
-    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {}, null));
+    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {}, mock(RequestData.class)));
+    parent.setEvent(AuditEvent.LOGIN);
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false);
 
     auditRecorder.recordAuditData(parent, error);
@@ -318,5 +326,71 @@ public class AuditRecorderTest
     when(mockHttpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
     when(mockHttpServletRequest.getHeaders(anyString())).thenReturn(Collections.emptyEnumeration());
     return mockHttpServletRequest;
+  }
+
+  @Test
+  public void testToLogger() {
+    assertThat(AuditRecorder.toLogger(AuditEvent.AUTHENTICATION_FAILURE).getName(), is("audit.authentication"));
+  }
+
+  @Test
+  public void testToObjectNode() {
+    ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData(), "derivedError");
+
+    assertThat(objectNode, is(notNullValue()));
+    assertThat(objectNode.get("timestamp").asLong(), lessThanOrEqualTo(System.currentTimeMillis()));
+    assertThat(objectNode.get("method").asText(), is("GET"));
+    assertThat(objectNode.get("path").asText(), is("requestUri?queryString"));
+    assertThat(objectNode.get("remoteIpAddress").asText(), is("remoteAddr"));
+    assertThat(objectNode.get("forwarded").asText(), is("forwarded1, forwarded2, forwarded3"));
+    assertThat(objectNode.get("userAgent").asText(), is("userAgent"));
+    assertThat(objectNode.get("sessionId").asText(), is("sessionId"));
+    assertThat(objectNode.get("username").asText(), is("username"));
+    assertThat(objectNode.get("logger").asText(), is("audit.authentication"));
+    assertThat(objectNode.get("event").asText(), is(AuditEvent.AUTHENTICATION_FAILURE.name()));
+    assertThat(objectNode.get("httpStatus").asLong(), is(500L));
+    assertThat(objectNode.get("error").asText(), is("derivedError"));
+    assertThat(objectNode.get("data").get("key1").asText(), is("value1"));
+    assertThat(objectNode.get("data").get("key2").asLong(), is(1L));
+  }
+
+  @Test
+  public void testLog() {
+    RecordingAuditData recordingAuditData = recordingAuditData();
+
+    AuditRecorder.log(recordingAuditData, "derivedError");
+
+    logOutput.assertInfo(AuditRecorder.toObjectNode(recordingAuditData, "derivedError").toString());
+  }
+
+  private RecordingAuditData recordingAuditData() {
+    RecordingAuditData recordingAuditData = new RecordingAuditData(null, requestData());
+    recordingAuditData.setEvent(AuditEvent.AUTHENTICATION_FAILURE);
+    recordingAuditData.setError("error");
+    recordingAuditData.setException(new Exception("exception"));
+    recordingAuditData.setUsername("username");
+    recordingAuditData.setHttpStatus(500);
+    recordingAuditData.addData("key1", "value1");
+    recordingAuditData.addData("key2", 1);
+    return recordingAuditData;
+  }
+
+  private RequestData requestData() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.FORWARDED)).thenReturn(Collections.emptyEnumeration());
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.X_FORWARDED_FOR)).thenReturn(Collections.emptyEnumeration());
+    when(mockHttpServletRequest.getMethod()).thenReturn("GET");
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
+    when(mockHttpServletRequest.getQueryString()).thenReturn("queryString");
+    when(mockHttpServletRequest.getRemoteAddr()).thenReturn("remoteAddr");
+    when(mockHttpServletRequest.getHeaders(HttpHeaders.FORWARDED))
+        .thenReturn(Collections.enumeration(Arrays.asList("forwarded1", "forwarded2", "forwarded3")));
+    when(mockHttpServletRequest.getHeader(HttpHeaders.USER_AGENT)).thenReturn("userAgent");
+    when(mockHttpServletRequest.getCookies()).thenReturn(new Cookie[]{
+        new Cookie("cookieName1", "cookieValue1"),
+        new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
+        new Cookie("cookieName3", "cookieValue3")
+    });
+    return RequestData.newInstance(mockHttpServletRequest);
   }
 }

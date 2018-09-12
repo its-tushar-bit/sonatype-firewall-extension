@@ -12,9 +12,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Central consumer of audit data, handling its export to log file and database.
@@ -23,6 +26,12 @@ import com.google.common.annotations.VisibleForTesting;
 @Singleton
 public class AuditRecorder
 {
+  private static final String BASE_LOGGER_NAME = "audit";
+
+  private static final String LOGGER_NAME_SEPARATOR = ".";
+
+  private static final ObjectMapper AUDIT_OBJECT_MAPPER = new ObjectMapper();
+
   enum HttpStatusString
   {
     BAD_REQUEST("bad-request"),
@@ -143,16 +152,25 @@ public class AuditRecorder
       }
     }
 
-    logData(auditData, error);
+    log(auditData, error);
   }
 
   @VisibleForTesting
-  void logData(final RecordingAuditData auditData, final String error) {
-    AuditEvent event = auditData.getEvent();
-    RequestData requestData = auditData.getRequestData();
-    System.out.println("AUDIT-DATA: " + auditData.getTimestamp() + ", " + auditData.getUsername() + ", " +
-        requestData.getRemoteIpAddress() + ", " + requestData.getMethod() + " " + requestData.getPath() + ", " +
-        requestData.getUserAgent() + ", " + event.getDomain() + ":" + event.getType() + ", " + error + ", " +
-        JsonUtils.writeUnformatted(auditData.getData()));
+  static void log(RecordingAuditData auditData, String error) {
+    toLogger(auditData.getEvent()).info(toObjectNode(auditData, error).toString());
+  }
+
+  @VisibleForTesting
+  static ObjectNode toObjectNode(RecordingAuditData recordingAuditData, String error) {
+    return ((ObjectNode) AUDIT_OBJECT_MAPPER.valueToTree(new AuditDTO(recordingAuditData, error)));
+  }
+
+  @VisibleForTesting
+  static Logger toLogger(AuditEvent auditEvent) {
+    return LoggerFactory.getLogger(toLoggerName(auditEvent));
+  }
+
+  static String toLoggerName(AuditEvent auditEvent) {
+    return String.join(LOGGER_NAME_SEPARATOR, BASE_LOGGER_NAME, auditEvent.getDomain());
   }
 }

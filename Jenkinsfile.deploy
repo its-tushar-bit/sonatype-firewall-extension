@@ -6,9 +6,6 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 pipeline {
   agent { label 'ubuntu-zion' }
-  tools {
-    jdk 'Java 7'
-  }
   options {
     buildDiscarder(
         logRotator(numToKeepStr: '100', artifactNumToKeepStr: '20')

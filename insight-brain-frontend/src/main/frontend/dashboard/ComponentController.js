@@ -37,6 +37,7 @@ componentModule.controller('componentController', ['$scope', '$state', '$q', '$h
             risk += applicationComponent.policyViolations[j].threatLevel;
           }
           applicationComponent.risk = risk;
+          applicationComponent.uiIdentifier = i;
           totalRisk += applicationComponent.risk;
         }
         $scope.totalRisk = totalRisk;

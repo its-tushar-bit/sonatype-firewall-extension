@@ -38,10 +38,11 @@
         <tbody>
           <tr ng-repeat-start="applicationComponent in applicationComponents | orderBy:'risk':true"
               ng-class="{ expanded: applicationComponent.isExpanded }"
-              class="expandable-row app-row">
+              id="application-row-{{applicationComponent.uiIdentifier}}"
+              class="expandable-row app-row}">
             <td>
               <div class="twisty-container" ng-click="applicationComponent.isExpanded = !applicationComponent.isExpanded"
-                   data-toggle="collapse" data-target="#application-{{applicationComponent.application.id}}">
+                   data-toggle="collapse" data-target="#application-{{applicationComponent.uiIdentifier}}">
                 <span class="twisty"
                       ng-class="{ expand: !applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
                                 collapse: applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
@@ -72,7 +73,8 @@
           </tr>
           <tr ng-repeat-end>
             <td colspan="{{4 + stageTypes.length}}" class="accordion-column">
-              <div class="accordion-body collapse application-container">
+              <div id="application-{{applicationComponent.uiIdentifier}}"
+                   class="accordion-body collapse application-container">
                 <div class="component-violations-table">
                   <table class="table clm-table-stripe">
                     <tbody>

@@ -22,8 +22,16 @@ public class BaseUrl
     return pageUriBuilder().fragment(path).build(parameters).toString().replaceAll("%2F", "/");
   }
 
+  public static String resolveRestUrl(String path, Object... parameters) {
+    return restUriBuilder().path(path).build(parameters).toString().replaceAll("%2F", "/");
+  }
+
   private static UriBuilder pageUriBuilder() {
     return rootUriBuilder().path("assets/index.html");
+  }
+
+  private static UriBuilder restUriBuilder() {
+    return rootUriBuilder().path("rest");
   }
 
   public static UriBuilder rootUriBuilder() {

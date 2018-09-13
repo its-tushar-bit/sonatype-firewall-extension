@@ -9,8 +9,10 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GrandfatherModal;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -26,6 +28,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -42,6 +45,8 @@ public class GrandfatherTest
 
   private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
+  private ApplicationDAO applicationDAO = new ApplicationDAO();
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(ReportListPage.URL);
@@ -52,20 +57,40 @@ public class GrandfatherTest
   public void init() {
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    applicationDAO.update(application);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
   }
 
   @Test
-  public void testGrandfather_ModalInitialState() {
+  public void testGrandfather_ModalInitialState_GrandfatheringEnabled() {
     ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.grandfather().shouldBe(visible).click();
+    ActionDropDown.grandfather().shouldBe(visible).shouldNotBe(DISABLED).hover();
+    Tooltip.get().shouldBe(hidden);
+    ActionDropDown.grandfather().click();
     GrandfatherModal modal = new GrandfatherModal();
     modal.shouldBe(visible);
     modal.grandfatherButton().shouldBe(visible);
     modal.retryButton().shouldBe(hidden);
     modal.cancelButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testGrandfather_ModalInitialState_GrandfatheringDisabled() {
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    applicationDAO.update(application);
+
+    refreshOrOpen(OwnerSummaryPage.url(application));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
+
+    ActionDropDown.actionButton().shouldBe(visible).click();
+    ActionDropDown.grandfather().shouldBe(visible).shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Grandfathering is not enabled for this application."));
+    ActionDropDown.grandfather().click();
+    GrandfatherModal modal = new GrandfatherModal();
+    modal.shouldNotBe(visible);
   }
 
   @Test

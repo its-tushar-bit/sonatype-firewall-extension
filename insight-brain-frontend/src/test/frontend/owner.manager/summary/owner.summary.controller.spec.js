@@ -24,7 +24,9 @@ describe('owner.summary.controller.js', function() {
         mockDeleteService,
         isContextAuthorizedDefer,
         mockPermissionService,
-        mockChangeApplicationIdService;
+        mockChangeApplicationIdService,
+        getGrandfatheringDefer,
+        mockPolicyViolationGrandfatheringService;
 
     beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_, StageTypeStore) {
       $timeout = _$timeout_;
@@ -34,6 +36,7 @@ describe('owner.summary.controller.js', function() {
       stageTypeStoreDefer = $q.defer();
       deleteOwnerDefer = $q.defer();
       isContextAuthorizedDefer = $q.defer();
+      getGrandfatheringDefer = $q.defer();
       mockDeleteService = {
         deleteResource: function() {
           return deleteOwnerDefer.promise;
@@ -43,6 +46,9 @@ describe('owner.summary.controller.js', function() {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise)
       };
       mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
+      mockPolicyViolationGrandfatheringService = {
+        getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise)
+      };
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
       spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
@@ -69,7 +75,8 @@ describe('owner.summary.controller.js', function() {
         $window: mockWindow,
         DeleteModalService: mockDeleteService,
         PermissionService: mockPermissionService,
-        'change.application.id.service': mockChangeApplicationIdService
+        'change.application.id.service': mockChangeApplicationIdService,
+        policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService
       });
     }
     ));
@@ -82,6 +89,7 @@ describe('owner.summary.controller.js', function() {
     it('Properly Loading Data', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
@@ -95,12 +103,14 @@ describe('owner.summary.controller.js', function() {
         expect(vm.applicationSummary).toEqual(ApplicationResourceMockData.getApplicationSummaryUrl());
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
         expect(vm.hasPermissionToEvaluateApp).toEqual(true);
+        expect(vm.isGrandfatheringEnabled).toEqual(true);
       }
     });
 
     it('Properly loads permissions when unauthorized', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(false);
@@ -116,6 +126,7 @@ describe('owner.summary.controller.js', function() {
     it('Properly routing to Build Report', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
@@ -138,6 +149,7 @@ describe('owner.summary.controller.js', function() {
     it('Properly Displaying Error', function() {
       mockOwnerStore.resolveGet([{}, {}]);
       mockOwnerStore.rejectGetById('Could not find an ' + type);
+      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -148,6 +160,7 @@ describe('owner.summary.controller.js', function() {
 
     it('Refreshing Owner After Error', function() {
       mockOwnerStore.rejectGet('Error');
+      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -171,6 +184,7 @@ describe('owner.summary.controller.js', function() {
     it('ApplicationSummary Loading Error', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(400, 'Bad Request');
       $timeout.flush();
@@ -186,6 +200,7 @@ describe('owner.summary.controller.js', function() {
     it('StageTypeStore Loading Error', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -201,6 +216,7 @@ describe('owner.summary.controller.js', function() {
     it('Delete Owner goes to parent view', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
@@ -226,6 +242,7 @@ describe('owner.summary.controller.js', function() {
         it('calls ChangeApplicationIdService.open when hasPermissionToChangeAppId is true', function() {
           mockOwnerStore.resolveGet([owner]);
           mockOwnerStore.resolveGetById(owner);
+          resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
           resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
           resolveApplicationWritePermission(true);
@@ -241,6 +258,7 @@ describe('owner.summary.controller.js', function() {
         it('does not call ChangeApplicationIdService.open when hasPermissionToChangeAppId is false', function() {
           mockOwnerStore.resolveGet([owner]);
           mockOwnerStore.resolveGetById(owner);
+          resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
           resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
           resolveApplicationWritePermission(false);
@@ -280,6 +298,15 @@ describe('owner.summary.controller.js', function() {
       if (isApp) {
         expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['EVALUATE_APPLICATION'], type, owner.id);
         isContextAuthorizedDefer.resolve(hasPermission);
+      }
+    }
+
+    function resolveGetGrandfathering(calculatedEnabled) {
+      if (isApp) {
+        expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
+        getGrandfatheringDefer.resolve({
+          calculatedEnabled
+        });
       }
     }
   }

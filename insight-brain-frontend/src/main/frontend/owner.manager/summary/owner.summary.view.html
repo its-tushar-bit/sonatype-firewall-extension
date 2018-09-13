@@ -48,6 +48,8 @@
             <a ng-if="vm.isApp"
                id="policy-violation-grandfather-link"
                ng-click="vm.grandfather()"
+               tooltip="{{vm.isGrandfatheringEnabled ? undefined : 'Grandfathering is not enabled for this application.'}}"
+               ng-class="{'disabled': !vm.isGrandfatheringEnabled}"
                class="iq-btn iq-btn--dropdown">
               <i class="fa fa-gavel"></i>Grandfather {{vm.owner.name}}
             </a>

@@ -18,6 +18,8 @@ import javax.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.service.RestComponent;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Audits the event kind for a REST resource. Worth to highlight is that this request filter can grab the event even if
  * the REST method is never actually invoked (e.g. because its parameters couldn't be deserialized). Put differently,
@@ -33,6 +35,14 @@ class AuditContainerRequestFilter
 {
   @Context
   private ResourceInfo resInfo;
+
+  @VisibleForTesting
+  public AuditContainerRequestFilter() {}
+
+  @VisibleForTesting
+  public AuditContainerRequestFilter(ResourceInfo resInfo) {
+    this.resInfo = resInfo;
+  }
 
   @Override
   public void filter(ContainerRequestContext requestContext) {

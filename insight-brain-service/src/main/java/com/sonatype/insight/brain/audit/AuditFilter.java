@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Servlet filter that audits the current HTTP request. Must be used before Shiro filter to capture
  * authentication-related failures.
@@ -32,7 +34,8 @@ public class AuditFilter
   /**
    * Audits the HTTP status code of a response.
    */
-  private static class ResponseWrapper
+  @VisibleForTesting
+  static class ResponseWrapper
       extends HttpServletResponseWrapper
   {
     public ResponseWrapper(ServletResponse response) {

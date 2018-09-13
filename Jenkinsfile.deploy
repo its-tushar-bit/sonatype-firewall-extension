@@ -67,7 +67,6 @@ pipeline {
     }
     stage('Update nginx configuration') {
       steps {
-        checkoutPublishingScripts()
         updateNginxConfig()
       }
     }

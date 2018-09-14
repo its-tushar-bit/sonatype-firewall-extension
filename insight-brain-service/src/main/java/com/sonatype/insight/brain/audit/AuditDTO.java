@@ -35,6 +35,11 @@ public class AuditDTO
 
   public Map<String, Object> data;
 
+  @SuppressWarnings("unused")
+  public AuditDTO() {
+    // supports deserialization
+  }
+
   public AuditDTO(RecordingAuditData recordingAuditData, String error) {
     timestamp = recordingAuditData.getTimestamp();
     method = recordingAuditData.getRequestData().getMethod();

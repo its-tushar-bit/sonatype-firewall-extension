@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.report;
 import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ReportCip;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.elements.reports.AddProprietaryMatchersDialog;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -83,14 +84,21 @@ public class AddProprietaryMatchersTest
 
     // test AddProprietaryButton is not visible if all pathNames are maven coordinates
     ReportPolicyPage.row(2).openCip();
+    VersionsCIP.unknownComponentMessage().shouldBe(visible);
     VersionsCIP.addProprietaryMatchersButton().shouldBe(hidden);
+    ReportCip.close();
+    VersionsCIP.unknownComponentMessage().shouldNotBe(visible);
 
     // test AddProprietaryButton is not visible if already proprietary
     ReportPolicyPage.row(1).openCip();
+    VersionsCIP.unknownComponentMessage().shouldBe(visible);
     VersionsCIP.addProprietaryMatchersButton().shouldBe(hidden);
+    ReportCip.close();
+    VersionsCIP.unknownComponentMessage().shouldNotBe(visible);
 
     // test Cancel button
     ReportPolicyPage.row(0).openCip();
+    VersionsCIP.unknownComponentMessage().shouldBe(visible);
     SelenideElement addButton = VersionsCIP.addProprietaryMatchersButton();
     addButton.shouldBe(visible);
     eyesWatcher.eyesCheck("Add proprietary matchers button");

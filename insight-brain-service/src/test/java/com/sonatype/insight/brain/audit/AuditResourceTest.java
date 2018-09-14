@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.audit;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.organization.ApplicationResource;
+import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
@@ -29,6 +31,8 @@ public class AuditResourceTest
 {
   private static final String RESTRICTED_PATH = "/" + ApplicationResource.RESOURCE_PATH;
 
+  private static final String AUTH_RESOURCE_PATH = "/" + UserSessionResource.RESOURCE_PATH;
+
   @Rule
   public LogOutput logOutput = new LogOutput("audit");
 
@@ -46,12 +50,36 @@ public class AuditResourceTest
     List<String> auditAuthenticationMessages = logOutput.getInfoMessages("audit.authentication");
     assertThat(auditAuthenticationMessages, notNullValue());
     assertThat(auditAuthenticationMessages, hasSize(1));
-    AuditDTO auditDTO = JsonUtils.asPojo(JsonUtils.parse(auditAuthenticationMessages.get(0)), AuditDTO.class);
-    assertThat(auditDTO.method, is("GET"));
-    assertThat(auditDTO.path, is(RESTRICTED_PATH));
+    assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "unauthenticated");
+  }
+
+  @Test
+  public void testInvalidUserNamePassword() throws Exception {
+    authRequest("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
+    List<String> auditAuthenticationMessages = logOutput.getInfoMessages("audit.authentication");
+
+    assertThat(auditAuthenticationMessages, notNullValue());
+    assertThat(auditAuthenticationMessages, hasSize(1));
+    assertAuditLog(auditAuthenticationMessages.get(0), "POST", AUTH_RESOURCE_PATH, "bad-authentication");
+  }
+
+  private void assertAuditLog(final String auditLogEntry,
+                              final String method,
+                              final String resourcePath,
+                              final String error) throws Exception
+  {
+    AuditDTO auditDTO = JsonUtils.asPojo(JsonUtils.parse(auditLogEntry), AuditDTO.class);
+    assertThat(auditDTO.method, is(method));
+    assertThat(auditDTO.path, is(resourcePath));
     assertThat(auditDTO.logger, is("audit.authentication"));
     assertThat(auditDTO.event, is(AuditEvent.AUTHENTICATION_FAILURE.name()));
     assertThat(auditDTO.httpStatus, is(HttpStatus.SC_UNAUTHORIZED));
-    assertThat(auditDTO.error, is("unauthenticated"));
+    assertThat(auditDTO.error, is(error));
+  }
+
+  private HttpRequest authRequest(final String username, final String password) {
+    HttpRequest request = HttpRequest.to(getRestBaseUrl()).noCsrfToken();
+    request.auth(username, password);
+    return request;
   }
 }

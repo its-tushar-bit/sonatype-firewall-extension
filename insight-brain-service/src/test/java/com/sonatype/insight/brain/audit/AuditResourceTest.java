@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.audit;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
@@ -55,7 +54,7 @@ public class AuditResourceTest
 
   @Test
   public void testInvalidUserNamePassword() throws Exception {
-    authRequest("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
+    restRequest().auth("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
     List<String> auditAuthenticationMessages = logOutput.getInfoMessages("audit.authentication");
 
     assertThat(auditAuthenticationMessages, notNullValue());
@@ -75,11 +74,5 @@ public class AuditResourceTest
     assertThat(auditDTO.event, is(AuditEvent.AUTHENTICATION_FAILURE.name()));
     assertThat(auditDTO.httpStatus, is(HttpStatus.SC_UNAUTHORIZED));
     assertThat(auditDTO.error, is(error));
-  }
-
-  private HttpRequest authRequest(final String username, final String password) {
-    HttpRequest request = HttpRequest.to(getRestBaseUrl()).noCsrfToken();
-    request.auth(username, password);
-    return request;
   }
 }

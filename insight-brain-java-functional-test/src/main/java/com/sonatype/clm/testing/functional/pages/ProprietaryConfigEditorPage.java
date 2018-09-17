@@ -40,7 +40,7 @@ public class ProprietaryConfigEditorPage
   }
 
   public static ElementsCollection localMatchers() {
-    return $$(createSelector(".local-proprietary-component-matchers", "tbody", "tr"));
+    return $$(createSelector(".local-proprietary-component-matchers", ".iq-list__item"));
   }
 
   public static Dropdown typeDropdown() {

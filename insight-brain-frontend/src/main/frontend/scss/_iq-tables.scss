@@ -140,7 +140,23 @@ thead {
   color: $iq-off-black;
 }
 
+.iq-cell--empty {
+  @include regular();
+
+  color: $iq-slate;
+  text-align: center;
+}
+
 .iq-cell--chevron {
+  color: $iq-slate;
+  padding: 0 12px;
+  text-align: right;
+  width: 14px;
+  max-width: 14px;
+  min-width: 14px;
+}
+
+.iq-cell--icon {
   color: $iq-slate;
   padding: 0 12px;
   text-align: right;
@@ -151,5 +167,6 @@ thead {
 
 // a cell that only contains an icon that acts as a button
 .iq-cell--btn-icon {
+  padding-right: 0;
   width: 32px;
 }

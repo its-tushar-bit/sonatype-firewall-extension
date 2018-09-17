@@ -21,7 +21,6 @@ import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
 import org.junit.BeforeClass;
@@ -30,7 +29,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -171,26 +169,14 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     }
 
     ProprietaryConfigInheritedTile configTile = new ProprietaryConfigInheritedTile();
-    configTile.proprietaryConfigInheritedLists().shouldHaveSize(parentOwners.size());
+    configTile.proprietaryConfigInheritedLists().shouldHaveSize(1);
 
-    // we reverse the hierarchy order on the proprietary config editor
-    Collections.reverse(parentOwners);
+    ProprietaryConfigInheritedList list = configTile.proprietaryConfigInheritedList(0);
 
-    for (int i = 0; i < parentOwners.size(); i++) {
-      ProprietaryConfigInheritedList list = configTile.proprietaryConfigInheritedList(i);
-
-
-      // Testing with an application owner we will leave the root org empty
-      if (OwnerType.APPLICATION.equals(currentOwner.getType()) && i == 0) {
-        list.ownerName().shouldBe(hidden);
-      }
-      else {
-        list.ownerName().shouldBe(visible)
-            .shouldHave(ProprietaryConfigInheritedTile.inheritedText(parentOwners.get(i).getName()));
-        list.inheritedMatchers().shouldHave(texts("com.inherited", ".*test\\.zip (regex)"));
-        list.inheritedMatcher(REGEX, ".*test\\.zip (regex)").deleteButton().shouldNot(exist);
-        list.inheritedMatcher(PACKAGE, "com.inherited").deleteButton().shouldNot(exist);
-      }
-    }
+    list.ownerName().shouldBe(visible)
+        .shouldHave(ProprietaryConfigInheritedTile.inheritedText(parentOwners.get(0).getName()));
+    list.inheritedMatchers().shouldHave(texts("com.inherited", ".*test\\.zip (regex)"));
+    list.inheritedMatcher(REGEX, ".*test\\.zip (regex)").deleteButton().shouldNot(exist);
+    list.inheritedMatcher(PACKAGE, "com.inherited").deleteButton().shouldNot(exist);
   }
 }

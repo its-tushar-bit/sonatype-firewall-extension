@@ -17,11 +17,11 @@ public class ProprietaryComponentMatcher
 
   public ProprietaryComponentMatcher(String rootSelector, MatcherType type, String name) {
     this.selector =
-        rootSelector + " tbody tr[data-matcher-type^=\"" + type.name + "\"][data-matcher-value^=\"" + name + "\"]";
+        rootSelector + " ul li[data-matcher-type^=\"" + type.name + "\"][data-matcher-value^=\"" + name + "\"]";
   }
 
   public SelenideElement name() {
-    return $(createSelector(selector, "td", nthChild(0)));
+    return $(createSelector(selector, "li", nthChild(0)));
   }
 
   public SelenideElement deleteButton() {

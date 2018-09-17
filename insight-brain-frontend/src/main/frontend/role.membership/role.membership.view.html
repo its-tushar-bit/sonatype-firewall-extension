@@ -12,8 +12,8 @@
           use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches &lsquo;Isaac Asimov&rsquo;)
         </div>
         <div class="iq-sub-label" id="disabled-group-search-warning" ng-if="!vm.groupSearchEnabled">
-          <i class="fa fa-info-circle size-16px"></i>One or more LDAP servers have group
-          search disabled, which will affect your results
+          <i class="fa fa-info-circle size-16px"></i><!--
+       -->One or more LDAP servers have group search disabled, which will affect your results
         </div>
       </label>
       <input id="access-user-search-input"
@@ -46,26 +46,25 @@
         ng-if="!vm.groupSearchEnabled"
         novalidate
         ng-submit="vm.addGroup();">
-    <div class="iq-form-row">
-      <div class="iq-form-group">
-        <label for="access-add-group-input" class="iq-label">Associate Group
-          <div class="iq-sub-label">requires an exact match of the group name</div>
-        </label>
-        <input id="access-add-group-input"
-               class="iq-text-input"
-               type="text"
-               name="add"
-               ng-model="vm.newGroupName"
-               ng-maxlength="60"
-               ng-disabled="vm.searchInProgress"
-               clm-input/><!--
-     --><button id="add-group-button"
-                class="iq-btn iq-btn--inline"
-                type="submit"
-                ng-disabled="vm.searchInProgress || !vm.newGroupName || vm.groupExists(vm.newGroupName)">
-          Add
-        </button>
-      </div>
+    <div class="iq-form-group">
+      <label for="access-add-group-input" class="iq-label">
+        Associate Group
+        <div class="iq-sub-label">requires an exact match of the group name</div>
+      </label>
+      <input id="access-add-group-input"
+             class="iq-text-input"
+             type="text"
+             name="add"
+             ng-model="vm.newGroupName"
+             ng-maxlength="60"
+             ng-disabled="vm.searchInProgress"
+             clm-input/><!--
+   --><button id="add-group-button"
+              class="iq-btn iq-btn--inline"
+              type="submit"
+              ng-disabled="vm.searchInProgress || !vm.newGroupName || vm.groupExists(vm.newGroupName)">
+        Add
+      </button>
     </div>
   </form>
 

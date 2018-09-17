@@ -23,7 +23,7 @@ public class ProprietaryConfigInheritedTile
 
   public ProprietaryConfigInheritedList proprietaryConfigInheritedList(int num) {
     return new ProprietaryConfigInheritedList(selector, CONFIG_HIERARCHY_SELECTOR,
-        nthChild(num + 1 + 2 /* some other elements have the same parent */));
+        nthChild(num + 2 /* some other elements have the same parent */));
   }
 
   public ElementsCollection proprietaryConfigInheritedLists() {

@@ -18,7 +18,7 @@ public class ProprietaryConfigInheritedList
   }
 
   public SelenideElement ownerName() {
-    return child("thead", ".subsection-header");
+    return child(".iq-list__title");
   }
 
   public ProprietaryComponentMatcher inheritedMatcher(ProprietaryComponentMatcher.MatcherType type, String name) {
@@ -26,6 +26,6 @@ public class ProprietaryConfigInheritedList
   }
 
   public ElementsCollection inheritedMatchers() {
-    return children("tbody", "tr");
+    return children("ul", ".iq-list__item");
   }
 }

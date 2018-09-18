@@ -11,19 +11,9 @@ package com.sonatype.insight.brain.audit;
 public enum AuditEvent
 {
   AUTHENTICATION_FAILURE(Domain.AUTHENTICATION, Type.FAILURE),
-
-  LOGIN(Domain.AUTHENTICATION, Type.LOGIN), //
-  LOGOUT(Domain.AUTHENTICATION, Type.LOGOUT), //
-
-  DELETE_ORGANIZATION(Domain.ORGANIZATION, Type.DELETE), //
-
-  CREATE_APPLICATION(Domain.APPLICATION, Type.CREATE), //
-  EVALUATE_APPLICATION(Domain.APPLICATION, Type.EVALUATE), //
-  MOVE_APPLICATION(Domain.APPLICATION, Type.MOVE), //
-  DELETE_APPLICATION(Domain.APPLICATION, Type.DELETE), //
-
-  // etc.
-  ;
+  LOGIN(Domain.AUTHENTICATION, Type.LOGIN),
+  LOGOUT(Domain.AUTHENTICATION, Type.LOGOUT),
+  CREATE_APPLICATION(Domain.APPLICATION, Type.CREATE);
 
   private final String domain;
 
@@ -42,11 +32,9 @@ public enum AuditEvent
     return type;
   }
 
-  private interface Domain
+  interface Domain
   {
     String AUTHENTICATION = "authentication";
-
-    String ORGANIZATION = "organization";
 
     String APPLICATION = "application";
   }
@@ -60,13 +48,5 @@ public enum AuditEvent
     String LOGOUT = "logout";
 
     String CREATE = "create";
-
-    String UPDATE = "update";
-
-    String DELETE = "delete";
-
-    String MOVE = "move";
-
-    String EVALUATE = "evaluate";
   }
 }

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Consumer;
@@ -13,7 +17,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 
-import com.sonatype.insight.brain.audit.AuditRecorder.HttpStatusString;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
@@ -27,11 +30,11 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import static com.sonatype.insight.brain.audit.AuditRecorder.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,7 +51,7 @@ import static org.mockito.Mockito.when;
 public class AuditRecorderTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput("audit.authentication");
+  public LogOutput logOutput = new LogOutput("com.sonatype.insight.audit.authentication");
 
   @Before
   public void before() {
@@ -117,13 +120,19 @@ public class AuditRecorderTest
     assertThat(argumentCaptor2.getValue().getEvent(), is(AuditEvent.LOGIN));
   }
 
+  @Test(expected = NullPointerException.class)
+  public void testRecordSystemEvent_Null() {
+    new AuditRecorder(null).recordSystemEvent(null);
+  }
+
   @Test
   public void testRecordUserEvent_AuthenticationFailure_UnAuthenticated() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(401),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         AuditEvent.AUTHENTICATION_FAILURE,
-        HttpStatusString.UNAUTHENTICATED.getLogString());
+        UNAUTHENTICATED);
   }
 
   @Test
@@ -133,9 +142,10 @@ public class AuditRecorderTest
           recordingAuditData.setHttpStatus(401);
           recordingAuditData.setUsername("TestUserName");
         },
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         AuditEvent.AUTHENTICATION_FAILURE,
-        HttpStatusString.BAD_AUTHENTICATION.getLogString());
+        BAD_AUTHENTICATION);
   }
 
   @Test
@@ -143,81 +153,89 @@ public class AuditRecorderTest
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(401),
         httpServletRequest -> when(httpServletRequest.getCookies()).thenReturn(
-            new Cookie[] { new Cookie(SecurityModule.SESSION_COOKIE_NAME, "AuthCookie") }),
+            new Cookie[]{new Cookie(SecurityModule.SESSION_COOKIE_NAME, "AuthCookie")}),
         AuditEvent.AUTHENTICATION_FAILURE,
-        HttpStatusString.BAD_SESSION.getLogString());
+        BAD_SESSION);
   }
 
   @Test
   public void testRecordUserEvent_BadRequest() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(400),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.BAD_REQUEST.getLogString());
+        BAD_REQUEST);
   }
 
   @Test
   public void testRecordUserEvent_Unlicensed() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(402),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.UNLICENSED.getLogString());
+        UNLICENSED);
   }
 
   @Test
   public void testRecordUserEvent_Unauthorized() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(403),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.UNAUTHORIZED.getLogString());
+        UNAUTHORIZED);
   }
 
   @Test
   public void testRecordUserEvent_NotFound() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(404),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.NOT_FOUND.getLogString());
+        NOT_FOUND);
   }
 
   @Test
   public void testRecordUserEvent_ServiceUnavailable() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(503),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.SERVICE_UNAVAILABLE.getLogString());
+        SERVICE_UNAVAILABLE);
   }
 
   @Test
   public void testRecordUserEvent_GatewayTimeout() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(504),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.GATEWAY_TIMEOUT.getLogString());
+        GATEWAY_TIMEOUT);
   }
 
   @Test
   public void testRecordUserEvent_Unspecified500Error() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(505),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.SERVER_ERROR.getLogString());
+        SERVER_ERROR);
   }
 
   @Test
   public void testRecordUserEvent_Unspecified400Error() {
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(405),
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         null,
-        HttpStatusString.CLIENT_ERROR.getLogString());
+        CLIENT_ERROR);
   }
 
   @Test
@@ -227,7 +245,8 @@ public class AuditRecorderTest
           recordingAuditData.setEvent(AuditEvent.LOGIN);
           recordingAuditData.setError("ruh roh");
         },
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         AuditEvent.LOGIN,
         "ruh roh");
   }
@@ -239,9 +258,10 @@ public class AuditRecorderTest
           recordingAuditData.setEvent(AuditEvent.LOGIN);
           recordingAuditData.setException(new Exception("ruh roh"));
         },
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         AuditEvent.LOGIN,
-        HttpStatusString.SERVER_ERROR.getLogString());
+        SERVER_ERROR);
   }
 
   @Test
@@ -250,7 +270,8 @@ public class AuditRecorderTest
         recordingAuditData -> {
           recordingAuditData.setEvent(AuditEvent.LOGIN);
         },
-        httpServletRequest -> {},
+        httpServletRequest -> {
+        },
         AuditEvent.LOGIN,
         null);
   }
@@ -296,7 +317,8 @@ public class AuditRecorderTest
   public void testRecordAuditData_ErrorNull() {
     AuditRecorder auditRecorder = spy(new AuditRecorder(new ErrorResponseGenerator()));
 
-    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {}, mock(RequestData.class)));
+    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {
+    }, mock(RequestData.class)));
     parent.setEvent(AuditEvent.LOGIN);
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false);
 
@@ -311,7 +333,8 @@ public class AuditRecorderTest
     String error = "Error";
     AuditRecorder auditRecorder = spy(new AuditRecorder(new ErrorResponseGenerator()));
 
-    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {}, mock(RequestData.class)));
+    RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {
+    }, mock(RequestData.class)));
     parent.setEvent(AuditEvent.LOGIN);
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false);
 
@@ -330,7 +353,8 @@ public class AuditRecorderTest
 
   @Test
   public void testToLogger() {
-    assertThat(AuditRecorder.toLogger(AuditEvent.AUTHENTICATION_FAILURE).getName(), is("audit.authentication"));
+    assertThat(AuditRecorder.toLogger(AuditEvent.AUTHENTICATION_FAILURE).getName(),
+        is("com.sonatype.insight.audit.authentication"));
   }
 
   @Test
@@ -338,20 +362,56 @@ public class AuditRecorderTest
     ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData(), "derivedError");
 
     assertThat(objectNode, is(notNullValue()));
-    assertThat(objectNode.get("timestamp").asLong(), lessThanOrEqualTo(System.currentTimeMillis()));
+    ZonedDateTime parsed = ZonedDateTime
+        .parse(objectNode.get("timestamp").asText(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    ZonedDateTime now = ZonedDateTime
+        .ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.systemDefault());
+    assertThat(parsed.isBefore(now) || parsed.isEqual(now), is(true));
     assertThat(objectNode.get("method").asText(), is("GET"));
     assertThat(objectNode.get("path").asText(), is("requestUri?queryString"));
     assertThat(objectNode.get("remoteIpAddress").asText(), is("remoteAddr"));
     assertThat(objectNode.get("forwarded").asText(), is("forwarded1, forwarded2, forwarded3"));
     assertThat(objectNode.get("userAgent").asText(), is("userAgent"));
-    assertThat(objectNode.get("sessionId").asText(), is("sessionId"));
     assertThat(objectNode.get("username").asText(), is("username"));
-    assertThat(objectNode.get("logger").asText(), is("audit.authentication"));
-    assertThat(objectNode.get("event").asText(), is(AuditEvent.AUTHENTICATION_FAILURE.name()));
-    assertThat(objectNode.get("httpStatus").asLong(), is(500L));
+    assertThat(objectNode.get("domain").asText(), is("authentication"));
+    assertThat(objectNode.get("type").asText(), is("failure"));
     assertThat(objectNode.get("error").asText(), is("derivedError"));
     assertThat(objectNode.get("data").get("key1").asText(), is("value1"));
     assertThat(objectNode.get("data").get("key2").asLong(), is(1L));
+  }
+
+  @Test
+  public void testToObjectNode_NonAuthentication_ExcludesMethodPath() {
+    RecordingAuditData recordingAuditData = recordingAuditData();
+    recordingAuditData.setEvent(AuditEvent.CREATE_APPLICATION);
+    ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
+
+    assertThat(objectNode.has("method"), is(false));
+    assertThat(objectNode.has("path"), is(false));
+  }
+
+  @Test
+  public void testToObjectNode_NullData() {
+    RecordingAuditData recordingAuditData = new RecordingAuditData(null, null);
+    recordingAuditData.setEvent(AuditEvent.AUTHENTICATION_FAILURE);
+    ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
+
+    assertThat(objectNode, is(notNullValue()));
+    ZonedDateTime parsed = ZonedDateTime
+        .parse(objectNode.get("timestamp").asText(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    ZonedDateTime now = ZonedDateTime
+        .ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.systemDefault());
+    assertThat(parsed.isBefore(now) || parsed.isEqual(now), is(true));
+    assertThat(objectNode.has("method"), is(false));
+    assertThat(objectNode.has("path"), is(false));
+    assertThat(objectNode.has("remoteIpAddress"), is(false));
+    assertThat(objectNode.has("forwarded"), is(false));
+    assertThat(objectNode.has("userAgent"), is(false));
+    assertThat(objectNode.get("username").asText(), is("*UNKNOWN"));
+    assertThat(objectNode.get("domain").asText(), is("authentication"));
+    assertThat(objectNode.get("type").asText(), is("failure"));
+    assertThat(objectNode.get("error").asText(), is("derivedError"));
+    assertThat(objectNode.has("data"), is(false));
   }
 
   @Test

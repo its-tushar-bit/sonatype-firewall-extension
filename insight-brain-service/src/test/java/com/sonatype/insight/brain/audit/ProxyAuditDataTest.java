@@ -59,6 +59,11 @@ public class ProxyAuditDataTest
     assertThat(result[0], is("result"));
   }
 
+  @Test(expected = NullPointerException.class)
+  public void testForSubEvent_Null() {
+    new ProxyAuditData(mock(AuditData.class)).forSubEvent(null, false);
+  }
+
   @Test
   public void testCommit() {
     AuditData auditData = mock(AuditData.class);

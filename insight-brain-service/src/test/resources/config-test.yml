@@ -19,7 +19,7 @@ logging:
     "org.apache.shiro.realm.AuthenticatingRealm": INFO
     "org.springframework.jdbc.datasource.SimpleDriverDataSource" : INFO
     "org.apache.commons.beanutils.converters": INFO
-    "audit":
+    "com.sonatype.insight.audit":
       level: INFO
       additive: false
       appenders:

@@ -178,7 +178,7 @@ logging:
     "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN
     "org.eclipse.jetty": INFO
     "org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter": INFO   # WARNING: This reveals credentials at DEBUG level
-    "audit":
+    "com.sonatype.insight.audit":
       # Set audit statements to INFO level as they only observe behaviour.
       level: INFO
       # Keep audit statements separate from other log statements.

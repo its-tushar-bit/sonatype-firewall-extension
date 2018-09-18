@@ -26,37 +26,35 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class AuditRecorder
 {
-  private static final String BASE_LOGGER_NAME = "audit";
+  private static final String BASE_LOGGER_NAME = "com.sonatype.insight.audit";
 
-  private static final String LOGGER_NAME_SEPARATOR = ".";
+  private static final String LOGGER_NAME_PREFIX = BASE_LOGGER_NAME + ".";
 
   private static final ObjectMapper AUDIT_OBJECT_MAPPER = new ObjectMapper();
 
-  enum HttpStatusString
-  {
-    BAD_REQUEST("bad-request"),
-    BAD_AUTHENTICATION("bad-authentication"),
-    BAD_SESSION("bad-session"),
-    UNAUTHENTICATED("unauthenticated"),
-    UNLICENSED("unlicensed"),
-    UNAUTHORIZED("unauthorized"),
-    NOT_FOUND("not-found"),
-    BAD_GATEWAY("bad-gateway"),
-    SERVICE_UNAVAILABLE("service-unavailable"),
-    GATEWAY_TIMEOUT("gateway-timeout"),
-    SERVER_ERROR("server-error"),
-    CLIENT_ERROR("client-error");
+  static final String BAD_REQUEST = "bad-request";
 
-    private String logString;
+  static final String BAD_AUTHENTICATION = "bad-authentication";
 
-    HttpStatusString(String logString) {
-      this.logString = logString;
-    }
+  static final String BAD_SESSION = "bad-session";
 
-    String getLogString() {
-      return logString;
-    }
-  }
+  static final String UNAUTHENTICATED = "unauthenticated";
+
+  static final String UNLICENSED = "unlicensed";
+
+  static final String UNAUTHORIZED = "unauthorized";
+
+  static final String NOT_FOUND = "not-found";
+
+  static final String BAD_GATEWAY = "bad-gateway";
+
+  static final String SERVICE_UNAVAILABLE = "service-unavailable";
+
+  static final String GATEWAY_TIMEOUT = "gateway-timeout";
+
+  static final String SERVER_ERROR = "server-error";
+
+  static final String CLIENT_ERROR = "client-error";
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
@@ -71,6 +69,9 @@ public class AuditRecorder
   }
 
   public AuditSession recordSystemEvent(AuditEvent event) {
+    if (event == null) {
+      throw new NullPointerException();
+    }
     AuditData auditData = new RecordingAuditData(this::commitAuditData, null);
     auditData.setEvent(event);
     auditData.setUsername(MDCUsernameScope.SYSTEM);
@@ -95,36 +96,36 @@ public class AuditRecorder
   private String getHttpStatusString(final RecordingAuditData auditData, final int httpStatus) {
     switch (httpStatus) {
       case 400:
-        return HttpStatusString.BAD_REQUEST.getLogString();
+        return BAD_REQUEST;
       case 401:
         if (auditData.getUsername() != null) {
-          return HttpStatusString.BAD_AUTHENTICATION.getLogString();
+          return BAD_AUTHENTICATION;
         }
         else {
           RequestData requestData = auditData.getRequestData();
           if (requestData != null && requestData.getSessionId() != null) {
-            return HttpStatusString.BAD_SESSION.getLogString();
+            return BAD_SESSION;
           }
         }
-        return HttpStatusString.UNAUTHENTICATED.getLogString();
+        return UNAUTHENTICATED;
       case 402:
-        return HttpStatusString.UNLICENSED.getLogString();
+        return UNLICENSED;
       case 403:
-        return HttpStatusString.UNAUTHORIZED.getLogString();
+        return UNAUTHORIZED;
       case 404:
-        return HttpStatusString.NOT_FOUND.getLogString();
+        return NOT_FOUND;
       case 502:
-        return HttpStatusString.BAD_GATEWAY.getLogString();
+        return BAD_GATEWAY;
       case 503:
-        return HttpStatusString.SERVICE_UNAVAILABLE.getLogString();
+        return SERVICE_UNAVAILABLE;
       case 504:
-        return HttpStatusString.GATEWAY_TIMEOUT.getLogString();
+        return GATEWAY_TIMEOUT;
     }
     if (httpStatus >= 500) {
-      return HttpStatusString.SERVER_ERROR.getLogString();
+      return SERVER_ERROR;
     }
     if (httpStatus >= 400) {
-      return HttpStatusString.CLIENT_ERROR.getLogString();
+      return CLIENT_ERROR;
     }
     return null;
   }
@@ -171,6 +172,6 @@ public class AuditRecorder
   }
 
   static String toLoggerName(AuditEvent auditEvent) {
-    return String.join(LOGGER_NAME_SEPARATOR, BASE_LOGGER_NAME, auditEvent.getDomain());
+    return LOGGER_NAME_PREFIX + auditEvent.getDomain();
   }
 }

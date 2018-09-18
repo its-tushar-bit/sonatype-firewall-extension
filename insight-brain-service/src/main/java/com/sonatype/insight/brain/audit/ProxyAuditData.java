@@ -28,6 +28,9 @@ class ProxyAuditData
 
   @Override
   protected AuditData forSubEvent(AuditEvent event, boolean independent) {
+    if (event == null) {
+      throw new NullPointerException();
+    }
     return new ProxyAuditData(auditData.forSubEvent(event, independent));
   }
 

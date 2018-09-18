@@ -75,6 +75,7 @@ public class ApplicationSummaryResource
    */
   @POST
   @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
+  @Produces("text/plain")
   public boolean verifyOrCreateApplication(@PathParam("applicationPublicId") String applicationPublicId,
                                            @QueryParam(GOAL_PARAM) Goal goal,
                                            @Context HttpServletRequest request)

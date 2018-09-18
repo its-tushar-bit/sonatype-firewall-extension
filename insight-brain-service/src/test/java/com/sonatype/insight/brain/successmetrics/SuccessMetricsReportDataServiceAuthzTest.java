@@ -29,6 +29,8 @@ import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.ONE_HOUR;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -40,9 +42,6 @@ import static org.junit.Assert.fail;
 public class SuccessMetricsReportDataServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  // one hour in milliseconds
-  private static final int ONE_HOUR = 1000 * 60 * 60;
-
   @Inject
   private SuccessMetricsReportDataService successMetricsReportDataService;
 
@@ -333,7 +332,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
     MttrDTO dto = mttrDTOs.get(0);
     assertThat(dto.timePeriodName, is(today.minusMonths(1).monthOfYear().getAsShortText(Locale.US)));
-    assertThat(dto.mttrInSeconds, is(ONE_HOUR / 1000));
+    assertThat(dto.mttrInSeconds, is((int) ONE_HOUR / 1000));
     assertThat(dto.criticalMttrInSeconds, is(nullValue()));
   }
 

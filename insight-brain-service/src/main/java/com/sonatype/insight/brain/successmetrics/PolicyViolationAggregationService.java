@@ -14,6 +14,7 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -60,7 +61,7 @@ import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
  */
 @Named
 @Singleton
-class PolicyViolationAggregationService
+public class PolicyViolationAggregationService
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationAggregationService.class);
 
@@ -108,7 +109,7 @@ class PolicyViolationAggregationService
    * time period that was already aggregated for each application and then creates all necessary aggregations
    * for the time periods since then.
    */
-  void generatePolicyViolationAggregations(Set<String> applicationIds,
+  public void generatePolicyViolationAggregations(Set<String> applicationIds,
                                            DateTime currentDateTime,
                                            boolean includeLatestData)
   {
@@ -158,7 +159,7 @@ class PolicyViolationAggregationService
     log.trace("Generating Violation Aggregations for {}", applicationId);
     LocalDate currentDate = currentDateTime.toLocalDate();
 
-    Map<TimePeriod, PvaDates> pvaDatesMap = new EnumMap<>(TimePeriod.class);
+    Map<TimePeriod, LocalDate> aggregationStarts = new EnumMap<>(TimePeriod.class);
     Map<TimePeriod, Map<PolicyThreatCategory, Integer>> openViolationCountsMap = new EnumMap<>(TimePeriod.class);
 
     for (TimePeriod timePeriod : TimePeriod.values()) {
@@ -172,24 +173,29 @@ class PolicyViolationAggregationService
             applicationId, stageTypeIds, includeLatestData, timePeriod);
       }
 
-      PvaDates pvaDates = getPvaDates(timePeriod, mostRecentPriorAggregation, applicationId, startOfCurrentTimePeriod);
+      LocalDate startOfNewAggregation = getNewAggregationStartingPoint(timePeriod, mostRecentPriorAggregation,
+          applicationId);
 
-      if (!isAggregationUpToDate(mostRecentPriorAggregation, pvaDates.startOfNewAggregation,
-          startOfCurrentTimePeriod, includeLatestData)) {
-        pvaDatesMap.put(timePeriod, pvaDates);
-        openViolationCountsMap.put(timePeriod,
-            mostRecentPriorAggregation == null ? allZeroOpenCounts() : mostRecentPriorAggregation.getOpenCountsAsMap());
+      if (startOfNewAggregation != null) {
+        boolean upToDate = isAggregationUpToDate(mostRecentPriorAggregation, startOfNewAggregation,
+            startOfCurrentTimePeriod, includeLatestData);
+
+        if (!upToDate) {
+          aggregationStarts.put(timePeriod, startOfNewAggregation);
+          openViolationCountsMap.put(timePeriod, mostRecentPriorAggregation == null ? allZeroOpenCounts() :
+              mostRecentPriorAggregation.getOpenCountsAsMap());
+        }
       }
     }
 
-    if (pvaDatesMap.isEmpty()) {
+    if (aggregationStarts.isEmpty()) {
       // No aggregations to create/update
       return;
     }
 
     // Use the earliest startOfNewAggregation
-    LocalDate monthStartDate = pvaDatesMap.get(MONTH) != null ? pvaDatesMap.get(MONTH).startOfNewAggregation : null;
-    LocalDate weekStartDate = pvaDatesMap.get(WEEK) != null ? pvaDatesMap.get(WEEK).startOfNewAggregation : null;
+    LocalDate monthStartDate = aggregationStarts.get(MONTH);
+    LocalDate weekStartDate = aggregationStarts.get(WEEK);
     LocalDate eventsStartDate = Ordering.natural().nullsLast().min(monthStartDate, weekStartDate);
     List<ProcessableEvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds,
         localDateToTimestamp(eventsStartDate), currentDateTime.toDate());
@@ -200,11 +206,11 @@ class PolicyViolationAggregationService
       // keep a running tally of open counts
       Map<PolicyThreatCategory, Integer> openCounts = openViolationCountsMap.get(timePeriod);
       results.put(timePeriod, new ResultsWrapper(openCounts));
-      PvaDates pvaDates = pvaDatesMap.get(timePeriod);
 
-      if (pvaDates != null) {
-        LocalDate startOfNewAggregation = pvaDates.startOfNewAggregation;
-        LocalDate startOfNextAggregation = pvaDates.startOfNextAggregation;
+      LocalDate startOfNewAggregation = aggregationStarts.get(timePeriod);
+
+      if (startOfNewAggregation != null) {
+        LocalDate startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
 
         ResultsWrapper result = results.get(timePeriod);
         if (!events.isEmpty()) {
@@ -243,26 +249,37 @@ class PolicyViolationAggregationService
     }
   }
 
-  private PvaDates getPvaDates(TimePeriod timePeriod,
-                               PolicyViolationAggregation mostRecentPriorAggregation,
-                               String applicationId,
-                               LocalDate startOfCurrentTimePeriod)
+  /**
+   * Get the date at which the first new aggregation of this application should start
+   * @param timePeriod The TimePeriod in which to do the calculation (weeks or months)
+   * @param mostRecentPriorAggregation The most recent existing PolicyViolationAggregation, if any
+   * @param applicationId The id of the application to check
+   * @return a LocalDate for the starting point of the first new aggregation that should be generated for this
+   * application, or null if this application has never had any evaluations, implying that no aggregations should
+   * be generated
+   */
+  private LocalDate getNewAggregationStartingPoint(TimePeriod timePeriod,
+                                                   PolicyViolationAggregation mostRecentPriorAggregation,
+                                                   String applicationId)
   {
     // start the next new aggregation at the beginning of the time period after the last aggregation, or at the
     // beginning of the time period of the first evaluation if there aren't any aggregations for this app yet
-    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldestByApplicationId(applicationId);
-    LocalDate startOfMostRecentPriorAggregation = 
-        mostRecentPriorAggregation == null ? null : new LocalDate(mostRecentPriorAggregation.getTimePeriodStart());
-    LocalDate oldestEvaluationDate = oldestEvaluation == null ? null : new LocalDate(oldestEvaluation.getTime());
-    LocalDate startOfFirstAggregation =
-        oldestEvaluationDate == null ? startOfCurrentTimePeriod : withDayOfTimePeriod(oldestEvaluationDate, timePeriod,
-            1);
-    LocalDate startOfNewAggregation =
-        mostRecentPriorAggregation == null ? startOfFirstAggregation : plusTimePeriod(startOfMostRecentPriorAggregation,
-            timePeriod, 1);
-    LocalDate startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
+    Optional<PolicyEvaluation> oldestEvaluation =
+        Optional.ofNullable(policyEvaluationDAO.getOldestByApplicationId(applicationId));
 
-    return new PvaDates(startOfNewAggregation, startOfNextAggregation);
+    Optional<LocalDate> startOfMostRecentPriorAggregation =
+        Optional.ofNullable(mostRecentPriorAggregation).map(agg -> new LocalDate(agg.getTimePeriodStart()));
+
+    Optional<LocalDate> oldestEvaluationDate = oldestEvaluation.map(eval -> new LocalDate(eval.getTime()));
+    Optional<LocalDate> startOfFirstAggregation =
+        oldestEvaluationDate.map(date -> withDayOfTimePeriod(date, timePeriod, 1));
+
+    Optional<LocalDate> startOfNewAggregation = startOfMostRecentPriorAggregation
+        .map(startOfMostRecent -> plusTimePeriod(startOfMostRecent, timePeriod, 1)) //
+        .map(Optional::of) //
+        .orElse(startOfFirstAggregation);
+
+    return startOfNewAggregation.orElse(null);
   }
 
   private boolean isAggregationUpToDate(PolicyViolationAggregation mostRecentPriorAggregation,
@@ -591,18 +608,5 @@ class PolicyViolationAggregationService
       violationAggregationDAO.insert(aggregation);
     }
     return aggregation;
-  }
-
-  private class PvaDates
-  {
-    final LocalDate startOfNewAggregation;
-
-    final LocalDate startOfNextAggregation;
-
-    public PvaDates(LocalDate startOfNewAggregation, LocalDate startOfNextAggregation)
-    {
-      this.startOfNewAggregation = startOfNewAggregation;
-      this.startOfNextAggregation = startOfNextAggregation;
-    }
   }
 }

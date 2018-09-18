@@ -404,8 +404,17 @@ public class TemporaryEntity
   }
 
   public Organization newOrganizationWithSpecificId(String id) {
+    return newOrganizationWithSpecificId(id, null);
+  }
+
+  public Organization newOrganizationWithSpecificId(String id, String name) {
     Organization org = new Organization(uuid());
     org.setId(id);
+
+    if (name != null) {
+      org.setName(name);
+    }
+
     orgDAO.insert(org);
     orgs.add(org);
     return org;

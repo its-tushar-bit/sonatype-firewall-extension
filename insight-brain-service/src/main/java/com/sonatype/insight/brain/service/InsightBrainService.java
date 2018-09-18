@@ -40,6 +40,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
@@ -264,7 +265,7 @@ public class InsightBrainService
     // Legacy support for old reports
     bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html", "policyAssets"));
 
-    bootstrap.setObjectMapper(getObjectMapper());
+    bootstrap.setObjectMapper(configureObjectMapper(new ObjectMapper()));
 
     bootstrap.addCommand(new CompactCommand());
 
@@ -297,10 +298,9 @@ public class InsightBrainService
     });
   }
 
-  private ObjectMapper getObjectMapper() {
+  private <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {
     // Use an object mapper mostly matching the default for Dropwizard version 1.2.2 i.e.
     // https://github.com/dropwizard/dropwizard/blob/v1.2.2/dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
-    ObjectMapper objectMapper = new ObjectMapper();
     // Register default modules except io.dropwizard.jackson.FuzzyEnumModule so enums using @JsonValue can be
     // deserialized without needing @JsonCreator methods
     objectMapper.registerModule(new GuavaModule());
@@ -380,6 +380,7 @@ public class InsightBrainService
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
         bind(EventBusConfig.class).toInstance(config.getEventBusConfig());
+        bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
       }
     };
     Module authc = new SecurityModule(config);

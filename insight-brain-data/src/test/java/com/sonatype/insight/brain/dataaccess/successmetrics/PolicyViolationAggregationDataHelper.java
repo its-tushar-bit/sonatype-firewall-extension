@@ -582,7 +582,7 @@ public class PolicyViolationAggregationDataHelper
 
     Organization org = tempEntity.newOrganizationWithSpecificId(ORG_ID);
     for (String appId : APPLICATION_IDS) {
-      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
+      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId + "-publicId", org.getId());
     }
   }
 
@@ -1967,6 +1967,10 @@ public class PolicyViolationAggregationDataHelper
 
     private CountsBuilder() {
       this.table = HashBasedTable.create();
+      this.put(SECURITY, 0, 0, 0, 0);
+      this.put(LICENSE, 0, 0, 0, 0);
+      this.put(QUALITY, 0, 0, 0, 0);
+      this.put(OTHER, 0, 0, 0, 0);
     }
 
     private CountsBuilder put(PolicyThreatCategory category,

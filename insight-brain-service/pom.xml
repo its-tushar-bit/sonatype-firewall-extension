@@ -172,6 +172,10 @@
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-csv</artifactId>
+    </dependency>
     <!-- The following are not actually direct Jackson dependencies of ours but of dropwizard-core. We declare those -->
     <!-- here to workaround that our dependency management for transitive dependencies does not apply when this      -->
     <!-- project itself is consumed as a dependency. This ensures a consistent set of Jackson dependencies is seen   -->

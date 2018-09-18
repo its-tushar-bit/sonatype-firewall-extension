@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
 import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.FakeDateRule;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Ordering;
@@ -41,8 +42,7 @@ import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.ORG_ID;
@@ -68,22 +68,14 @@ public class SuccessMetricsReportDataServiceTest
 {
   private static final double TOLERANCE = 0.00001;
 
+  @Rule
+  public FakeDateRule fakeDateRule = new FakeDateRule();
+
   @Inject
   private SuccessMetricsReportDataService service;
 
   @Inject
   private PolicyViolationDAO policyViolationDAO;
-
-  @Before
-  public void fakeDate() {
-    // Set current date to December 11 2017 for these tests
-    DateTimeUtils.setCurrentMillisFixed(1512996545000l);
-  }
-
-  @After
-  public void after() {
-    DateTimeUtils.setCurrentMillisSystem();
-  }
 
   private void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
     for (PolicyViolation fixedViolation : policyViolationDAO
@@ -425,7 +417,7 @@ public class SuccessMetricsReportDataServiceTest
     }
     finally {
       // tell joda time to come back to the mocked present
-      fakeDate();
+      fakeDateRule.fakeDate();
     }
 
     List<MttrDTO> expected1 = new ArrayList<>(1);
@@ -1270,22 +1262,7 @@ public class SuccessMetricsReportDataServiceTest
         Collections.singleton(application.getId()), "latest", true);
     List<ViolationsByCategoryDTO> result = service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks;
 
-    List<ViolationsByCategoryDTO> expectedDTOs = Arrays.asList(
-        createEmptyViolationsByCategoryDTO("11 Sep"),
-        createEmptyViolationsByCategoryDTO("18 Sep"),
-        createEmptyViolationsByCategoryDTO("25 Sep"),
-        createEmptyViolationsByCategoryDTO("02 Oct"),
-        createEmptyViolationsByCategoryDTO("09 Oct"),
-        createEmptyViolationsByCategoryDTO("16 Oct"),
-        createEmptyViolationsByCategoryDTO("23 Oct"),
-        createEmptyViolationsByCategoryDTO("30 Oct"),
-        createEmptyViolationsByCategoryDTO("06 Nov"),
-        createEmptyViolationsByCategoryDTO("13 Nov"),
-        createEmptyViolationsByCategoryDTO("20 Nov"),
-        new ViolationsByCategoryDTO("now", 0, 0, 0, 0)
-    );
-
-    assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
+    assertThat(result, hasSize(0));
   }
 
   @Test

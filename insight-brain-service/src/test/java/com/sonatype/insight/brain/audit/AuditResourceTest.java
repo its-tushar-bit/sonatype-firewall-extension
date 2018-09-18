@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.audit;
 import java.util.List;
 
 import com.sonatype.insight.brain.organization.ApplicationResource;
+import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -35,6 +36,8 @@ public class AuditResourceTest
 
   private static final String AUTH_RESOURCE_PATH = "/" + UserSessionResource.RESOURCE_PATH;
 
+  private static final String AUDIT_LOGGER = "com.sonatype.insight.audit.authentication";
+
   @Rule
   public LogOutput logOutput = new LogOutput("com.sonatype.insight.audit");
 
@@ -49,7 +52,7 @@ public class AuditResourceTest
 
     HttpClientBuilder.create().build().execute(httpGet);
 
-    List<String> auditAuthenticationMessages = awaitLogMessages("com.sonatype.insight.audit.authentication", 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
     assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "unauthenticated");
   }
@@ -57,7 +60,7 @@ public class AuditResourceTest
   @Test
   public void testInvalidUserNamePassword() throws Exception {
     restRequest().auth("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
-    List<String> auditAuthenticationMessages = awaitLogMessages("com.sonatype.insight.audit.authentication", 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
 
     assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "POST", AUTH_RESOURCE_PATH, "bad-authentication");
@@ -67,9 +70,18 @@ public class AuditResourceTest
   public void testInvalidCsrfToken() throws Exception {
     restRequest().path(RESTRICTED_UNSAFE_PATH).noCsrfToken().delete();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages("com.sonatype.insight.audit.authentication", 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
     assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "DELETE", RESTRICTED_UNSAFE_PATH, "bad-csrf-token");
+  }
+
+  @Test
+  public void testBadSessionCookie() throws Exception {
+    restRequest().path(RESTRICTED_PATH).anon().cookie(SecurityModule.SESSION_COOKIE_NAME, "bad").get();
+
+    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+
+    assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "bad-session");
   }
 
   private List<String> awaitLogMessages(String logger, int count) {

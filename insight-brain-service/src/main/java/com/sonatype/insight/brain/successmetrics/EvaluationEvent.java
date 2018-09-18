@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.util.Date;
-import java.util.Map;
 
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -95,7 +94,7 @@ class ViolationDiscoveredEvent
   void process(ResultsWrapper results, TimePeriod timePeriod) {
     results.discoveredCounts
         .put(threatCategory, threatLevel, results.discoveredCounts.get(threatCategory, threatLevel) + 1);
-    results.openCounts.compute(threatCategory, (k, v) -> v + 1);
+    results.openCounts.put(threatCategory, threatLevel, results.openCounts.get(threatCategory, threatLevel) + 1);
   }
 }
 
@@ -115,11 +114,12 @@ abstract class ViolationResolvedEvent
 
   protected void processResolved(MttrStats mttrStats,
                                  Table<PolicyThreatCategory, ThreatLevel, Integer> resolvedCounts,
-                                 Map<PolicyThreatCategory, Integer> openCounts)
+                                 Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts)
   {
     mttrStats.addViolation(violation, openTime, time);
     resolvedCounts.put(threatCategory, threatLevel, resolvedCounts.get(threatCategory, threatLevel) + 1);
-    openCounts.compute(threatCategory, (k, v) -> v < 1 ? 0 : v - 1);
+    Integer openCountValue = openCounts.get(threatCategory, threatLevel);
+    openCounts.put(threatCategory, threatLevel, openCountValue < 1 ? 0 : openCountValue - 1);
   }
 }
 

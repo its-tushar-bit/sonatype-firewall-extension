@@ -185,11 +185,8 @@ public class ApiMetricsReportingServiceV2
         aggregation.getDiscoveredAsTable().rowMap(), //
         aggregation.getFixedAsTable().rowMap(), //
         aggregation.getWaivedAsTable().rowMap(), //
-        aggregation.getEvaluationCount(), //
-        aggregation.getOpenCountSecurity(), //
-        aggregation.getOpenCountLicense(), //
-        aggregation.getOpenCountQuality(), //
-        aggregation.getOpenCountOther());
+        aggregation.getOpenAsTable().rowMap(), //
+        aggregation.getEvaluationCount());
   }
 
   private Stream<ApiMetricsReportingFlattenedDTOV2> flattenDTO(ApiMetricsReportingDTOV2 inputDTO) {
@@ -206,10 +203,6 @@ public class ApiMetricsReportingServiceV2
           aggregationDTO.mttrSevereThreat, //
           aggregationDTO.mttrCriticalThreat, //
           aggregationDTO.evaluationCount, //
-          aggregationDTO.openCountSecurity, //
-          aggregationDTO.openCountLicense, //
-          aggregationDTO.openCountQuality, //
-          aggregationDTO.openCountOther, //
 
           aggregationDTO.discoveredCounts.get(SECURITY).get(LOW), //
           aggregationDTO.discoveredCounts.get(SECURITY).get(MODERATE), //
@@ -260,7 +253,24 @@ public class ApiMetricsReportingServiceV2
           aggregationDTO.waivedCounts.get(OTHER).get(LOW), //
           aggregationDTO.waivedCounts.get(OTHER).get(MODERATE), //
           aggregationDTO.waivedCounts.get(OTHER).get(SEVERE), //
-          aggregationDTO.waivedCounts.get(OTHER).get(CRITICAL)));
+          aggregationDTO.waivedCounts.get(OTHER).get(CRITICAL), //
+
+          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(LOW), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(MODERATE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(SEVERE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(CRITICAL), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(LOW), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(MODERATE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(SEVERE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(CRITICAL), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(LOW), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(MODERATE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(SEVERE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(CRITICAL), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(LOW), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(MODERATE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(SEVERE), //
+          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(CRITICAL)));
   }
 
   /**

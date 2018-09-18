@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.FakeDateRule;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -42,8 +42,9 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.fixed;
+import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.open;
+import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.openWithSampleData;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
-
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -340,8 +341,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 0, 1).asMap(), //
                     fixed().security(0, 0, 0, 1).asMap(), //
                     waived().asMap(), //
-                    2, // evaluationCount
-                    0, 0, 0, 0 // openCounts
+                    open().asMap(), //
+                    2 // evaluationCount
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
@@ -349,8 +350,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, // evaluationCount
-                    0, 0, 0, 0 // openCounts
+                    open().asMap(), //
+                    0 // evaluationCount
                 )
             )
         );
@@ -632,7 +633,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-11-01", //
             null, null, null, 86400000L, //
             2, // evaluationCount
-            0, 0, 0, 0, // openCounts
             0, 0, 0, 1, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -644,13 +644,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2(app.getId(), app.getPublicId(), app.getName(), org.getId(), org.getName(),
             "2017-12-01", //
             null, null, null, null, //
             0, // evaluationCount
-            0, 0, 0, 0, // openCounts
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -662,7 +665,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         )
     );
 
@@ -707,8 +714,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 1, 0).license(0, 0, 2, 1).quality(1, 0, 0, 2).other(0, 0, 0, 3).asMap(),
                     fixed().asMap(), //
                     waived().asMap(), //
-                    1, // evaluationCount
-                    1, 2, 3, 4 // openCounts
+                    openWithSampleData().asMap(), //
+                    1 // evaluationCount
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
@@ -716,8 +723,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).quality(3, 0, 0, 0).other(0, 0, 0, 2).asMap(), //
                     fixed().quality(1, 1, 1, 1).asMap(), //
                     waived().asMap(), //
-                    1, // evaluationCount
-                    1, 2, 3, 4 // openCounts
+                    openWithSampleData().asMap(), //
+                    1 // evaluationCount
                 ),
                 new ApiMetricsReportingAggregationDTOV2(
                     "2017-12-01", //
@@ -725,8 +732,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(1, 2, 3, 4).license(1, 2, 3, 4).quality(1, 2, 3, 4).other(1, 2, 3, 4).asMap(),
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    1, // evaluationCount
-                    1, 2, 3, 4 // openCounts
+                    openWithSampleData().asMap(), //
+                    1 // evaluationCount
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -738,8 +745,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().security(0, 0, 1, 0).asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
@@ -747,8 +754,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).other(0, 0, 0, 3).asMap(), //
                     fixed().asMap(), //
                     waived().quality(1, 1, 1, 1).asMap(), //
-                    2, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    2
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
@@ -756,8 +763,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(3, 4, 5, 6).license(3, 4, 5, 6).quality(3, 4, 5, 6).other(3, 4, 5, 6).asMap(),
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    3, //
-                    1, 2, 3, 4 //
+                    openWithSampleData().asMap(), //
+                    3
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -769,8 +776,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
@@ -778,8 +785,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).license(0, 0, 0, 3).quality(0, 0, 1, 0).other(0, 0, 0, 5).asMap(),
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    3, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    3
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
@@ -787,8 +794,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -800,8 +807,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
@@ -809,8 +816,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).license(0, 0, 0, 1).quality(0, 0, 0, 4).other(0, 0, 0, 2).asMap(),
                     fixed().quality(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    1, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    1
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
@@ -818,8 +825,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -831,8 +838,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    0, 0, 0, 0
+                    open().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
@@ -840,8 +847,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    0, 0, 0, 0
+                    open().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
@@ -849,8 +856,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    0, 0, 0, 0
+                    open().asMap(), //
+                    0
                 )
             ).subList(0, numTimePeriods)
         )
@@ -874,7 +881,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-10-01", //
             null, null, null, null, // MTTRs
             1, // evaluationCount
-            1, 2, 3, 4, // openCounts
             0, 0, 1, 0, // discovered security
             0, 0, 2, 1, // discovered license
             1, 0, 0, 2, // discovered quality
@@ -886,13 +892,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-11-01", //
             1000L, 2000L, 3000L, 4000L, // MTTRs
             1, // evaluationCount
-            1, 2, 3, 4, // openCounts
             0, 0, 2, 0, // discovered security
             0, 0, 0, 0, // discovered license
             3, 0, 0, 0, // discovered quality
@@ -904,13 +913,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-12-01", //
             3000L, 4000L, 5000L, 6000L, // MTTRs
             1, // evaluationCount
-            1, 2, 3, 4, // openCounts
             1, 2, 3, 4, // discovered security
             1, 2, 3, 4, // discovered license
             1, 2, 3, 4, // discovered quality
@@ -922,7 +934,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
           )
       ).subList(0, numTimePeriods);
 
@@ -932,7 +948,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-10-01", //
             null, null, 5000L, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -944,13 +959,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-11-01", //
             5000L, 6000L, 7000L, 8000L, //
             2, //
-            1, 2, 3, 4, //
             0, 0, 2, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -962,13 +980,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             1, 1, 1, 1, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-12-01", //
             5000L, 6000L, 7000L, 8000L, //
             3, //
-            1, 2, 3, 4, //
             3, 4, 5, 6, // discovered security
             3, 4, 5, 6, // discovered license
             3, 4, 5, 6, // discovered quality
@@ -980,7 +1001,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -989,7 +1014,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-10-01", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1001,13 +1025,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-11-01", //
             9000L, 10000L, 11000L, 12000L, //
             3, //
-            1, 2, 3, 4, //
             0, 0, 2, 0, // discovered security
             0, 0, 0, 3, // discovered license
             0, 0, 1, 0, // discovered quality
@@ -1019,13 +1046,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-12-01", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1037,7 +1067,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1047,7 +1081,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-10-01", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1059,13 +1092,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-11-01", //
             13000L, 14000L, 15000L, 16000L, //
             1, //
-            1, 2, 3, 4, //
             0, 0, 2, 0, // discovered security
             0, 0, 0, 1, // discovered license
             0, 0, 0, 4, // discovered quality
@@ -1077,13 +1113,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-12-01", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1095,7 +1134,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1105,7 +1148,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-10-01", //
             null, null, null, null, //
             0, //
-            0, 0, 0, 0, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1117,13 +1159,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-11-01", //
             null, null, null, null, //
             0, //
-            0, 0, 0, 0, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1135,13 +1180,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-12-01", //
             null, null, null, null, //
             0, //
-            0, 0, 0, 0, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1153,7 +1201,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1184,8 +1236,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 1, 0).license(0, 0, 2, 1).quality(1, 0, 0, 2).other(0, 0, 0, 3).asMap(),
                     fixed().asMap(), //
                     waived().asMap(), //
-                    1, // evaluationCount
-                    1, 2, 3, 4 // openCounts
+                    openWithSampleData().asMap(), //
+                    1 // evaluationCount
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
@@ -1193,8 +1245,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).quality(3, 0, 0, 0).other(0, 0, 0, 2).asMap(), //
                     fixed().quality(1, 1, 1, 1).asMap(), //
                     waived().asMap(), //
-                    1, // evaluationCount
-                    1, 2, 3, 4 // openCounts
+                    openWithSampleData().asMap(), //
+                    1 // evaluationCount
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
@@ -1202,8 +1254,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(1, 2, 3, 4).license(1, 2, 3, 4).quality(1, 2, 3, 4).other(1, 2, 3, 4).asMap(),
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    1, // evaluationCount
-                    1, 2, 3, 4 // openCounts
+                    openWithSampleData().asMap(), //
+                    1 // evaluationCount
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -1215,8 +1267,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().security(0, 0, 1, 0).asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
@@ -1224,8 +1276,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).other(0, 0, 0, 3).asMap(), //
                     fixed().asMap(), //
                     waived().quality(1, 1, 1, 1).asMap(), //
-                    2, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    2
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
@@ -1233,8 +1285,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(3, 4, 5, 6).license(3, 4, 5, 6).quality(3, 4, 5, 6).other(3, 4, 5, 6).asMap(),
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    3, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    3
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -1246,8 +1298,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
@@ -1255,8 +1307,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).license(0, 0, 0, 3).quality(0, 0, 1, 0).other(0, 0, 0, 5).asMap(),
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    3, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    3
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
@@ -1264,8 +1316,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -1277,8 +1329,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
@@ -1286,8 +1338,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().security(0, 0, 2, 0).license(0, 0, 0, 1).quality(0, 0, 0, 4).other(0, 0, 0, 2).asMap(),
                     fixed().quality(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
-                    1, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    1
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
@@ -1295,8 +1347,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    1, 2, 3, 4
+                    openWithSampleData().asMap(), //
+                    0
                 )
             ).subList(0, numTimePeriods)
         ),
@@ -1308,8 +1360,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    0, 0, 0, 0
+                    open().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
@@ -1317,8 +1369,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    0, 0, 0, 0
+                    open().asMap(), //
+                    0
                 ),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
@@ -1326,8 +1378,8 @@ public class ApiMetricsReportingServiceV2Test
                     discovered().asMap(), //
                     fixed().asMap(), //
                     waived().asMap(), //
-                    0, //
-                    0, 0, 0, 0
+                    open().asMap(), //
+                    0
                 )
             ).subList(0, numTimePeriods)
         )
@@ -1350,7 +1402,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-11-27", //
             null, null, null, null, // MTTRs
             1, // evaluationCount
-            1, 2, 3, 4, // openCounts
             0, 0, 1, 0, // discovered security
             0, 0, 2, 1, // discovered license
             1, 0, 0, 2, // discovered quality
@@ -1362,13 +1413,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-12-04", //
             2000L, 3000L, 4000L, 5000L, // MTTRs
             1, // evaluationCount
-            1, 2, 3, 4, // openCounts
             0, 0, 2, 0, // discovered security
             0, 0, 0, 0, // discovered license
             3, 0, 0, 0, // discovered quality
@@ -1380,13 +1434,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-12-11", //
             4000L, 5000L, 6000L, 7000L, // MTTRs
             1, // evaluationCount
-            1, 2, 3, 4, // openCounts
             1, 2, 3, 4, // discovered security
             1, 2, 3, 4, // discovered license
             1, 2, 3, 4, // discovered quality
@@ -1398,7 +1455,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
           )
       ).subList(0, numTimePeriods);
 
@@ -1408,7 +1469,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-11-27", //
             null, null, 2500L, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1420,13 +1480,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-12-04", //
             6000L, 7000L, 8000L, 9000L, //
             2, //
-            1, 2, 3, 4, //
             0, 0, 2, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1438,13 +1501,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             1, 1, 1, 1, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-12-11", //
             6000L, 7000L, 8000L, 9000L, //
             3, //
-            1, 2, 3, 4, //
             3, 4, 5, 6, // discovered security
             3, 4, 5, 6, // discovered license
             3, 4, 5, 6, // discovered quality
@@ -1456,7 +1522,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1465,7 +1535,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-11-27", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1477,13 +1546,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-12-04", //
             10000L, 11000L, 12000L, 13000L, //
             3, //
-            1, 2, 3, 4, //
             0, 0, 2, 0, // discovered security
             0, 0, 0, 3, // discovered license
             0, 0, 1, 0, // discovered quality
@@ -1495,13 +1567,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-12-11", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1513,7 +1588,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1523,7 +1602,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-11-27", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1535,13 +1613,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-12-04", //
             14000L, 15000L, 16000L, 17000L, //
             1, //
-            1, 2, 3, 4, //
             0, 0, 2, 0, // discovered security
             0, 0, 0, 1, // discovered license
             0, 0, 0, 4, // discovered quality
@@ -1553,13 +1634,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 1, 1, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-12-11", //
             null, null, null, null, //
             0, //
-            1, 2, 3, 4, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1571,7 +1655,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            1, 0, 1, 1, // open security
+            0, 3, 2, 1, // open license
+            5, 0, 0, 0, // open quality
+            0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1581,7 +1669,6 @@ public class ApiMetricsReportingServiceV2Test
             "2017-11-27", //
             null, null, null, null, //
             0, //
-            0, 0, 0, 0, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1593,13 +1680,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-12-04", //
             null, null, null, null, //
             0, //
-            0, 0, 0, 0, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1611,13 +1701,16 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-12-11", //
             null, null, null, null, //
             0, //
-            0, 0, 0, 0, //
             0, 0, 0, 0, // discovered security
             0, 0, 0, 0, // discovered license
             0, 0, 0, 0, // discovered quality
@@ -1629,7 +1722,11 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // waived security
             0, 0, 0, 0, // waived license
             0, 0, 0, 0, // waived quality
-            0, 0, 0, 0  // waived other
+            0, 0, 0, 0, // waived other
+            0, 0, 0, 0, // open security
+            0, 0, 0, 0, // open license
+            0, 0, 0, 0, // open quality
+            0, 0, 0, 0  // open other
         )
     ).subList(0, numTimePeriods);
 
@@ -1670,10 +1767,7 @@ public class ApiMetricsReportingServiceV2Test
     assertThat(actual.fixedCounts, is(expected.fixedCounts));
     assertThat(actual.waivedCounts, is(expected.waivedCounts));
     assertThat(actual.evaluationCount, is(expected.evaluationCount));
-    assertThat(actual.openCountSecurity, is(expected.openCountSecurity));
-    assertThat(actual.openCountLicense, is(expected.openCountLicense));
-    assertThat(actual.openCountQuality, is(expected.openCountQuality));
-    assertThat(actual.openCountOther, is(expected.openCountOther));
+    assertThat(actual.openCountsAtTimePeriodEnd, is(expected.openCountsAtTimePeriodEnd));
   }
 
   private void assertFlattenedDTO(ApiMetricsReportingFlattenedDTOV2 actual,
@@ -1690,10 +1784,6 @@ public class ApiMetricsReportingServiceV2Test
     assertThat(actual.mttrSevereThreat, is(expected.mttrSevereThreat));
     assertThat(actual.mttrCriticalThreat, is(expected.mttrCriticalThreat));
     assertThat(actual.evaluationCount, is(expected.evaluationCount));
-    assertThat(actual.openCountSecurity, is(expected.openCountSecurity));
-    assertThat(actual.openCountLicense, is(expected.openCountLicense));
-    assertThat(actual.openCountQuality, is(expected.openCountQuality));
-    assertThat(actual.openCountOther, is(expected.openCountOther));
     assertThat(actual.discoveredCountSecurityLow, is(expected.discoveredCountSecurityLow));
     assertThat(actual.discoveredCountSecurityModerate, is(expected.discoveredCountSecurityModerate));
     assertThat(actual.discoveredCountSecuritySevere, is(expected.discoveredCountSecuritySevere));
@@ -1742,6 +1832,22 @@ public class ApiMetricsReportingServiceV2Test
     assertThat(actual.waivedCountOtherModerate, is(expected.waivedCountOtherModerate));
     assertThat(actual.waivedCountOtherSevere, is(expected.waivedCountOtherSevere));
     assertThat(actual.waivedCountOtherCritical, is(expected.waivedCountOtherCritical));
+    assertThat(actual.openCountAtTimePeriodEndSecurityLow, is(expected.openCountAtTimePeriodEndSecurityLow));
+    assertThat(actual.openCountAtTimePeriodEndSecurityModerate, is(expected.openCountAtTimePeriodEndSecurityModerate));
+    assertThat(actual.openCountAtTimePeriodEndSecuritySevere, is(expected.openCountAtTimePeriodEndSecuritySevere));
+    assertThat(actual.openCountAtTimePeriodEndSecurityCritical, is(expected.openCountAtTimePeriodEndSecurityCritical));
+    assertThat(actual.openCountAtTimePeriodEndLicenseLow, is(expected.openCountAtTimePeriodEndLicenseLow));
+    assertThat(actual.openCountAtTimePeriodEndLicenseModerate, is(expected.openCountAtTimePeriodEndLicenseModerate));
+    assertThat(actual.openCountAtTimePeriodEndLicenseSevere, is(expected.openCountAtTimePeriodEndLicenseSevere));
+    assertThat(actual.openCountAtTimePeriodEndLicenseCritical, is(expected.openCountAtTimePeriodEndLicenseCritical));
+    assertThat(actual.openCountAtTimePeriodEndQualityLow, is(expected.openCountAtTimePeriodEndQualityLow));
+    assertThat(actual.openCountAtTimePeriodEndQualityModerate, is(expected.openCountAtTimePeriodEndQualityModerate));
+    assertThat(actual.openCountAtTimePeriodEndQualitySevere, is(expected.openCountAtTimePeriodEndQualitySevere));
+    assertThat(actual.openCountAtTimePeriodEndQualityCritical, is(expected.openCountAtTimePeriodEndQualityCritical));
+    assertThat(actual.openCountAtTimePeriodEndOtherLow, is(expected.openCountAtTimePeriodEndOtherLow));
+    assertThat(actual.openCountAtTimePeriodEndOtherModerate, is(expected.openCountAtTimePeriodEndOtherModerate));
+    assertThat(actual.openCountAtTimePeriodEndOtherSevere, is(expected.openCountAtTimePeriodEndOtherSevere));
+    assertThat(actual.openCountAtTimePeriodEndOtherCritical, is(expected.openCountAtTimePeriodEndOtherCritical));
   }
 
   /**

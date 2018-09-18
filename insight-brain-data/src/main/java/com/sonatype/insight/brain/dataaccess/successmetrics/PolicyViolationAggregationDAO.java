@@ -631,10 +631,14 @@ public class PolicyViolationAggregationDAO
                                                                                      boolean includeLatestData)
   {
     String sQuery = "SELECT" + //
-        "  SUM(agg.openCountSecurity)," + //
-        "  SUM(agg.openCountLicense)," + //
-        "  SUM(agg.openCountQuality)," + //
-        "  SUM(agg.openCountOther)," + //
+        "  SUM(agg.openCountSecurityLowThreat) + SUM(agg.openCountSecurityModerateThreat) + " + //
+        "    SUM(agg.openCountSecuritySevereThreat) + SUM(agg.openCountSecurityCriticalThreat)," + //
+        "  SUM(agg.openCountLicenseLowThreat) + SUM(agg.openCountLicenseModerateThreat) +" + //
+        "    SUM(agg.openCountLicenseSevereThreat) + SUM(agg.openCountLicenseCriticalThreat)," + //
+        "  SUM(agg.openCountQualityLowThreat) + SUM(agg.openCountQualityModerateThreat) +" + //
+        "    SUM(agg.openCountQualitySevereThreat) + SUM(agg.openCountQualityCriticalThreat)," + //
+        "  SUM(agg.openCountOtherLowThreat) + SUM(agg.openCountOtherModerateThreat) +" + //
+        "    SUM(agg.openCountOtherSevereThreat) + SUM(agg.openCountOtherCriticalThreat), " + //
         "  agg.timePeriodStart" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1)" + //

@@ -20,7 +20,6 @@ public class ApiMetricsReportingFlattenedDTOV2Test
         "2017-10-01", //
         20L, 500L, 2L, 6L, //
         10, // evaluationCount
-        1, 2, 3, 4, // openCounts
         1, 0, 0, 0, // discovered security
         0, 5, 0, 0, // discovered license
         0, 0, 0, 0, // discovered quality
@@ -32,7 +31,11 @@ public class ApiMetricsReportingFlattenedDTOV2Test
         0, 0, 0, 0, // waived security
         0, 0, 0, 0, // waived license
         0, 0, 0, 0, // waived quality
-        0, 0, 0, 100);  // waived other
+        0, 0, 0, 100, // waived other
+        0, 0, 0, 0, // open security
+        0, 0, 0, 0, // open license
+        0, 0, 0, 0, // open quality
+        0, 0, 99, 0); // open other
 
     assertThat(dto.timePeriodStart, is("2017-10-01"));
 
@@ -98,10 +101,22 @@ public class ApiMetricsReportingFlattenedDTOV2Test
     assertThat(dto.waivedCountOtherSevere, is(0));
     assertThat(dto.waivedCountOtherCritical, is(100));
 
-    assertThat(dto.openCountSecurity, is(1));
-    assertThat(dto.openCountLicense, is(2));
-    assertThat(dto.openCountQuality, is(3));
-    assertThat(dto.openCountOther, is(4));
+    assertThat(dto.openCountAtTimePeriodEndSecurityLow, is(0));
+    assertThat(dto.openCountAtTimePeriodEndSecurityModerate, is(0));
+    assertThat(dto.openCountAtTimePeriodEndSecuritySevere, is(0));
+    assertThat(dto.openCountAtTimePeriodEndSecurityCritical, is(0));
+    assertThat(dto.openCountAtTimePeriodEndLicenseLow, is(0));
+    assertThat(dto.openCountAtTimePeriodEndLicenseModerate, is(0));
+    assertThat(dto.openCountAtTimePeriodEndLicenseSevere, is(0));
+    assertThat(dto.openCountAtTimePeriodEndLicenseCritical, is(0));
+    assertThat(dto.openCountAtTimePeriodEndQualityLow, is(0));
+    assertThat(dto.openCountAtTimePeriodEndQualityModerate, is(0));
+    assertThat(dto.openCountAtTimePeriodEndQualitySevere, is(0));
+    assertThat(dto.openCountAtTimePeriodEndQualityCritical, is(0));
+    assertThat(dto.openCountAtTimePeriodEndOtherLow, is(0));
+    assertThat(dto.openCountAtTimePeriodEndOtherModerate, is(0));
+    assertThat(dto.openCountAtTimePeriodEndOtherSevere, is(99));
+    assertThat(dto.openCountAtTimePeriodEndOtherCritical, is(0));
 
     assertThat(dto.evaluationCount, is(10));
   }

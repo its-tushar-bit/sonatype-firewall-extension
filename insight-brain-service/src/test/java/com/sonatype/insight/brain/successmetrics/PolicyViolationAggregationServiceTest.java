@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.successmetrics;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -137,7 +136,7 @@ public class PolicyViolationAggregationServiceTest
 
     assertAllCountsZero(aggregation.getWaivedAsTable());
 
-    assertAllCountsZero(aggregation.getOpenCountsAsMap());
+    assertAllCountsZero(aggregation.getOpenAsTable());
 
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(1));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
@@ -230,8 +229,8 @@ public class PolicyViolationAggregationServiceTest
     assertAllCountsZero(aggregation.getFixedAsTable());
     assertAllCountsZero(aggregation.getWaivedAsTable());
 
-    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregation.getOpenCountsAsMap());
-    assertThat(aggregation.getOpenCountSecurity(), is(1));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getOpenAsTable());
+    assertThat(aggregation.getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
 
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
@@ -363,7 +362,7 @@ public class PolicyViolationAggregationServiceTest
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getWaivedAsTable());
     assertThat(aggregation.getWaivedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
 
-    assertAllCountsZero(aggregation.getOpenCountsAsMap());
+    assertAllCountsZero(aggregation.getOpenAsTable());
 
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(2));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
@@ -414,8 +413,8 @@ public class PolicyViolationAggregationServiceTest
     assertAllCountsZero(aggregation.getFixedAsTable());
     assertAllCountsZero(aggregation.getWaivedAsTable());
 
-    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregation.getOpenCountsAsMap());
-    assertThat(aggregation.getOpenCountSecurity(), is(1));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getOpenAsTable());
+    assertThat(aggregation.getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
 
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
@@ -457,21 +456,25 @@ public class PolicyViolationAggregationServiceTest
     List<PolicyViolationAggregation> aggregations = aggregationDAO.getByTimePeriod(MONTH);
 
     assertThat(aggregations.size(), is(1));
-    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(0).getOpenCountsAsMap());
-    assertThat(aggregations.get(0).getOpenCountSecurity(), is(2));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
+        aggregations.get(0).getOpenAsTable());
+    assertThat(aggregations.get(0).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
 
     aggregations = aggregationDAO.getByTimePeriod(WEEK);
 
     assertThat(aggregations.size(), is(3));
     // 2 weeks ago
-    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(0).getOpenCountsAsMap());
-    assertThat(aggregations.get(0).getOpenCountSecurity(), is(2));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
+        aggregations.get(0).getOpenAsTable());
+    assertThat(aggregations.get(0).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
     // 1 week ago
-    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(1).getOpenCountsAsMap());
-    assertThat(aggregations.get(1).getOpenCountSecurity(), is(3));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
+        aggregations.get(1).getOpenAsTable());
+    assertThat(aggregations.get(1).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(3));
     // this week
-    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, aggregations.get(2).getOpenCountsAsMap());
-    assertThat(aggregations.get(2).getOpenCountSecurity(), is(2));
+    assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
+        aggregations.get(2).getOpenAsTable());
+    assertThat(aggregations.get(2).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
   }
 
   private void assertAllCountsZero(Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable) {
@@ -484,19 +487,6 @@ public class PolicyViolationAggregationServiceTest
     for (Cell<PolicyThreatCategory, ThreatLevel, Integer> cell : countsAsTable.cellSet()) {
       if (!(cell.getRowKey().equals(category) && cell.getColumnKey().equals(level))) {
         assertThat(cell.getValue(), is(0));
-      }
-    }
-  }
-
-  private void assertAllCountsZero(Map<PolicyThreatCategory, Integer> countsAsMap) {
-    assertAllCountsZeroExcept(null, countsAsMap);
-  }
-
-  private void assertAllCountsZeroExcept(PolicyThreatCategory category,
-                                         Map<PolicyThreatCategory, Integer> countsAsMap) {
-    for (PolicyThreatCategory categoryToAssert : PolicyThreatCategory.values()) {
-      if (categoryToAssert != category) {
-        assertThat(countsAsMap.get(categoryToAssert), is(0));
       }
     }
   }

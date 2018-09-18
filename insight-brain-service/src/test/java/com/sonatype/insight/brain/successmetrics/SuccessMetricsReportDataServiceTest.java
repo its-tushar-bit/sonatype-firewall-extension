@@ -48,7 +48,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.ORG_ID;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.fixed;
-import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.openCounts;
+import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.openWithSampleData;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
@@ -888,7 +888,7 @@ public class SuccessMetricsReportDataServiceTest
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     // cause the initial report data to be generated
@@ -904,7 +904,7 @@ public class SuccessMetricsReportDataServiceTest
         discovered().security(1, 0, 0, 0).get(),
         fixed().security(1, 0, 0, 0).get(),
         waived().get(),
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     // run the chart again
@@ -953,7 +953,7 @@ public class SuccessMetricsReportDataServiceTest
         discovered().security(1, 0, 0, 0).get(),
         fixed().security(1, 0, 0, 0).get(),
         waived().get(),
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     // cause the initial report data to be generated
@@ -1749,36 +1749,36 @@ public class SuccessMetricsReportDataServiceTest
 
   private void assertAggregationViolationTotalsByCategoryHistory(List<ViolationsByCategoryDTO> actualDTOs) {
     List<ViolationsByCategoryDTO> expectedDTOs = Arrays.asList(
-        new ViolationsByCategoryDTO("25 Sep", 2, 4, 6, 8),
-        new ViolationsByCategoryDTO("02 Oct", 2, 4, 6, 8),
-        new ViolationsByCategoryDTO("09 Oct", 2, 4, 6, 8),
-        new ViolationsByCategoryDTO("16 Oct", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("23 Oct", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("30 Oct", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("06 Nov", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("13 Nov", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("20 Nov", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("27 Nov", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("04 Dec", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("11 Dec", 4, 8, 12, 16)
+        new ViolationsByCategoryDTO("25 Sep", 6, 12, 10, 10),
+        new ViolationsByCategoryDTO("02 Oct", 6, 12, 10, 10),
+        new ViolationsByCategoryDTO("09 Oct", 6, 12, 10, 10),
+        new ViolationsByCategoryDTO("16 Oct", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("23 Oct", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("30 Oct", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("06 Nov", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("13 Nov", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("20 Nov", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("27 Nov", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("04 Dec", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("11 Dec", 12, 24, 20, 20)
     );
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
 
   private void assertAggregationViolationTotalsByCategoryHistoryIncludeLatestData(List<ViolationsByCategoryDTO> actualDTOs) {
     List<ViolationsByCategoryDTO> expectedDTOs = Arrays.asList(
-        new ViolationsByCategoryDTO("02 Oct", 2, 4, 6, 8),
-        new ViolationsByCategoryDTO("09 Oct", 2, 4, 6, 8),
-        new ViolationsByCategoryDTO("16 Oct", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("23 Oct", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("30 Oct", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("06 Nov", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("13 Nov", 3, 6, 9, 12),
-        new ViolationsByCategoryDTO("20 Nov", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("27 Nov", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("04 Dec", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("11 Dec", 4, 8, 12, 16),
-        new ViolationsByCategoryDTO("now", 4, 8, 12, 16)
+        new ViolationsByCategoryDTO("02 Oct", 6, 12, 10, 10),
+        new ViolationsByCategoryDTO("09 Oct", 6, 12, 10, 10),
+        new ViolationsByCategoryDTO("16 Oct", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("23 Oct", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("30 Oct", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("06 Nov", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("13 Nov", 9, 18, 15, 15),
+        new ViolationsByCategoryDTO("20 Nov", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("27 Nov", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("04 Dec", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("11 Dec", 12, 24, 20, 20),
+        new ViolationsByCategoryDTO("now", 12, 24, 20, 20)
     );
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
@@ -1788,15 +1788,15 @@ public class SuccessMetricsReportDataServiceTest
         createEmptyViolationsByCategoryDTO("25 Sep"),
         createEmptyViolationsByCategoryDTO("02 Oct"),
         createEmptyViolationsByCategoryDTO("09 Oct"),
-        new ViolationsByCategoryDTO("16 Oct", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("23 Oct", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("30 Oct", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("06 Nov", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("13 Nov", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("20 Nov", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("27 Nov", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("04 Dec", 1, 2, 3, 4),
-        new ViolationsByCategoryDTO("11 Dec", 1, 2, 3, 4)
+        new ViolationsByCategoryDTO("16 Oct", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("23 Oct", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("30 Oct", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("06 Nov", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("13 Nov", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("20 Nov", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("27 Nov", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("04 Dec", 3, 6, 5, 5),
+        new ViolationsByCategoryDTO("11 Dec", 3, 6, 5, 5)
     );
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }

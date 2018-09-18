@@ -15,10 +15,10 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
@@ -72,7 +72,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().security(1, 0, 1, 1).get(), //
         waived().license(2, 0, 0, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -88,7 +88,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 2).other(0, 0, 0, 4).get(), //
         fixed().security(1, 0, 0, 0).license(0, 1, 0, 0).get(), //
         waived().quality(0, 0, 1, 0).other(0, 0, 0, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -99,7 +99,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(1, 1, 0, 0).other(0, 0, 0, 2).get(), //
         fixed().security(0, 0, 1, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -115,7 +115,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 2).other(1, 1, 1, 3).get(), //
         fixed().security(1, 0, 0, 0).get(), //
         waived().security(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -126,7 +126,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 2).other(0, 2, 1, 3).get(), //
         fixed().license(0, 1, 0, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -142,7 +142,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).license(1, 0, 0, 1).quality(0, 0, 0, 3).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -153,7 +153,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -169,7 +169,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 1, 0).license(0, 1, 0, 0).quality(0, 3, 0, 2).other(0, 0, 0, 1).get(), //
         fixed().license(0, 1, 0, 0).get(), //
         waived().quality(0, 1, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -180,7 +180,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(1, 1, 0, 0).quality(0, 0, 0, 4).other(0, 0, 0, 2).get(), //
         fixed().security(1, 0, 0, 0).get(), //
         waived().security(0, 1, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -191,7 +191,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 4, 0).license(0, 0, 0, 3).other(0, 0, 0, 3).get(), //
         fixed().security(2, 0, 0, 0).get(), //
         waived().quality(1, 0, 0, 0).other(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -207,7 +207,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(1, 1, 1, 1).quality(1, 0, 0, 3).other(0, 1, 1, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -218,7 +218,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -229,7 +229,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -245,7 +245,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 1, 0).license(0, 0, 0, 1).quality(1, 0, 0, 4).other(1, 4, 1, 3).get(), //
         fixed().security(0, 0, 0, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -256,7 +256,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(0, 0, 0, 1).quality(0, 0, 0, 2).other(0, 3, 0, 3).get(), //
         fixed().get(), //
         waived().other(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -267,7 +267,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(2, 1, 0, 0).license(0, 0, 0, 1).quality(0, 2, 0, 0).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().other(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -283,7 +283,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 1, 0, 0).license(0, 0, 0, 1).quality(1, 1, 1, 1).other(3, 0, 0, 2).get(), //
         fixed().other(3, 0, 0, 0).quality(0, 1, 0, 0).get(), //
         waived().license(0, 0, 2, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -299,7 +299,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 2, 0, 0).quality(0, 0, 0, 2).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().license(0, 0, 0, 52).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -310,7 +310,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 2).quality(1, 2, 3, 0).other(0, 0, 0, 7).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -326,7 +326,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 4).other(2, 0, 0, 5).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -337,7 +337,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 1, 1, 1).quality(1, 0, 1, 0).other(0, 0, 0, 5).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -348,7 +348,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -364,7 +364,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 1, 0, 0).license(0, 1, 0, 1).quality(0, 0, 1, 1).other(0, 2, 0, 0).get(), //
         fixed().other(1, 0, 0, 0).get(), //
         waived().security(0, 0, 0, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -375,7 +375,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).license(0, 1, 0, 1).quality(0, 1, 0, 1).other(0, 0, 0, 4).get(), //
         fixed().license(0, 0, 1, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -386,7 +386,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().license(0, 1, 0, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -397,7 +397,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().security(0, 0, 0, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -413,7 +413,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 1, 0).license(0, 0, 3, 1).quality(0, 2, 0, 4).other(0, 1, 0, 6).get(), //
         fixed().get(), //
         waived().quality(1, 2, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -424,7 +424,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -435,7 +435,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -446,7 +446,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(1, 1, 1, 1).quality(0, 0, 0, 4).other(0, 1, 0, 4).get(), //
         fixed().security(0, 1, 0, 0).get(), //
         waived().other(2, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -462,7 +462,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 1, 0).license(0, 0, 2, 1).quality(1, 0, 0, 2).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -473,7 +473,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().security(0, 0, 1, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -484,7 +484,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -495,7 +495,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -512,7 +512,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).quality(3, 0, 0, 0).other(0, 0, 0, 2).get(), //
         fixed().quality(1, 1, 1, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -523,7 +523,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().quality(1, 1, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -534,7 +534,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(0, 0, 0, 3).quality(0, 0, 1, 0).other(0, 0, 0, 5).get(), //
         fixed().security(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -545,7 +545,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(0, 0, 0, 1).quality(0, 0, 0, 4).other(0, 0, 0, 2).get(), //
         fixed().quality(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -563,7 +563,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 2, 3, 4).license(1, 2, 3, 4).quality(1, 2, 3, 4).other(1, 2, 3, 4).get(), //
         fixed().security(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, now, MONTH, //
@@ -574,7 +574,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(3, 4, 5, 6).license(3, 4, 5, 6).quality(3, 4, 5, 6).other(3, 4, 5, 6).get(), //
         fixed().security(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     // sanity check
@@ -608,7 +608,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().security(1, 0, 1, 1).get(), //
         waived().license(2, 0, 0, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -624,7 +624,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 2).other(0, 0, 0, 4).get(), //
         fixed().security(2, 0, 0, 0).license(0, 1, 0, 0).get(), //
         waived().quality(0, 0, 1, 0).other(0, 0, 0, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -635,7 +635,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(1, 1, 0, 0).other(0, 0, 0, 2).get(), //
         fixed().security(0, 0, 1, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -651,7 +651,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 2).other(1, 1, 1, 3).get(), //
         fixed().security(1, 0, 0, 0).get(), //
         waived().security(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -662,7 +662,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 2).other(0, 2, 1, 3).get(), //
         fixed().license(0, 1, 0, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -678,7 +678,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).license(1, 0, 0, 1).quality(0, 0, 0, 3).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().security(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -689,7 +689,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -705,7 +705,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 1, 0).license(0, 1, 0, 0).quality(0, 3, 0, 2).other(0, 0, 0, 1).get(), //
         fixed().license(0, 1, 0, 0).get(), //
         waived().quality(0, 1, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -716,7 +716,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(1, 1, 0, 0).quality(0, 0, 0, 4).other(0, 0, 0, 2).get(), //
         fixed().security(1, 0, 0, 0).get(), //
         waived().security(0, 1, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -727,7 +727,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 4, 0).license(0, 0, 0, 3).other(0, 0, 0, 3).get(), //
         fixed().security(2, 1, 0, 0).get(), //
         waived().quality(1, 0, 0, 0).other(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -743,7 +743,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(1, 1, 1, 1).quality(1, 0, 0, 3).other(0, 1, 1, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -754,7 +754,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -765,7 +765,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -781,7 +781,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 1, 0).license(0, 0, 0, 1).quality(1, 0, 0, 4).other(1, 4, 1, 3).get(), //
         fixed().security(0, 0, 0, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -792,7 +792,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(0, 0, 0, 1).quality(0, 0, 0, 2).other(0, 3, 0, 3).get(), //
         fixed().get(), //
         waived().other(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -803,7 +803,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(2, 1, 0, 0).license(0, 0, 0, 1).quality(0, 2, 0, 0).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().other(1, 0, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -819,7 +819,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 1, 0, 0).license(0, 0, 0, 1).quality(1, 1, 1, 1).other(3, 0, 0, 2).get(), //
         fixed().other(3, 0, 0, 0).quality(0, 1, 0, 0).get(), //
         waived().license(0, 0, 2, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -835,7 +835,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 2, 0, 0).quality(0, 0, 0, 2).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().license(0, 0, 0, 52).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -846,7 +846,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 2).quality(1, 2, 3, 0).other(0, 0, 0, 7).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -862,7 +862,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).quality(0, 0, 0, 4).other(2, 0, 0, 5).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -873,7 +873,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 1, 1, 1).quality(1, 0, 1, 0).other(0, 0, 0, 5).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -884,7 +884,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -900,7 +900,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 1, 0, 0).license(0, 1, 0, 1).quality(0, 0, 1, 1).other(0, 2, 0, 0).get(), //
         fixed().other(0, 0, 0, 0).get(), //
         waived().security(0, 0, 0, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -911,7 +911,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).license(0, 1, 0, 1).quality(0, 1, 0, 1).other(0, 0, 0, 4).get(), //
         fixed().license(0, 0, 1, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -922,7 +922,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().license(0, 1, 0, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -933,7 +933,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().security(0, 0, 0, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -949,7 +949,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 1, 0).license(0, 0, 3, 1).quality(0, 2, 0, 4).other(0, 1, 0, 6).get(), //
         fixed().get(), //
         waived().quality(1, 2, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -960,7 +960,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -971,7 +971,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -982,7 +982,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(1, 1, 1, 1).quality(0, 0, 0, 4).other(0, 1, 0, 4).get(), //
         fixed().security(1, 2, 0, 0).get(), //
         waived().other(3, 1, 0, 0).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -998,7 +998,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 1, 0).license(0, 0, 2, 1).quality(1, 0, 0, 2).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1009,7 +1009,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().security(0, 0, 1, 0).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1020,7 +1020,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -1031,7 +1031,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1048,7 +1048,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).quality(3, 0, 0, 0).other(0, 0, 0, 2).get(), //
         fixed().quality(1, 1, 1, 1).get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1059,7 +1059,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).other(0, 0, 0, 3).get(), //
         fixed().get(), //
         waived().quality(1, 1, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1070,7 +1070,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(0, 0, 0, 3).quality(0, 0, 1, 0).other(0, 0, 0, 5).get(), //
         fixed().security(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -1081,7 +1081,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 2, 0).license(0, 0, 0, 1).quality(0, 0, 0, 4).other(0, 0, 0, 2).get(), //
         fixed().quality(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1099,7 +1099,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 2, 3, 4).license(1, 2, 3, 4).quality(1, 2, 3, 4).other(1, 2, 3, 4).get(), //
         fixed().security(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, now, WEEK, //
@@ -1110,7 +1110,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(3, 4, 5, 6).license(3, 4, 5, 6).quality(3, 4, 5, 6).other(3, 4, 5, 6).get(), //
         fixed().security(1, 1, 0, 0).get(), //
         waived().security(0, 0, 1, 1).get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     // sanity check
@@ -1152,7 +1152,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1165,7 +1165,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        open().get(), //
         5);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1173,7 +1173,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1186,7 +1186,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 5, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1194,7 +1194,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1207,7 +1207,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1215,7 +1215,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1228,7 +1228,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1236,7 +1236,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1244,7 +1244,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1257,7 +1257,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1265,7 +1265,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1273,7 +1273,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1286,7 +1286,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1294,7 +1294,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1302,7 +1302,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1315,7 +1315,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1323,7 +1323,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1331,7 +1331,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1344,7 +1344,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1352,7 +1352,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1360,7 +1360,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1373,7 +1373,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1381,7 +1381,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1389,7 +1389,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -1397,7 +1397,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 3, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1410,7 +1410,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1418,7 +1418,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 3, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1426,7 +1426,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -1434,7 +1434,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1447,7 +1447,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1455,7 +1455,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1463,7 +1463,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 3, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -1471,7 +1471,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().quality(0, 0, 7, 0).other(0, 0, 0, 8).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1484,7 +1484,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, MONTH, //
@@ -1492,7 +1492,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, MONTH, //
@@ -1500,7 +1500,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, MONTH, //
@@ -1508,7 +1508,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 3, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate, MONTH);
@@ -1523,7 +1523,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).license(0, 2, 0, 0).quality(0, 0, 3, 0).other(0, 0, 0, 4).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, now, MONTH, //
@@ -1531,7 +1531,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(5, 0, 0, 0).license(0, 6, 0, 0).quality(0, 0, 7, 0).other(0, 0, 0, 8).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     // sanity check
@@ -1562,7 +1562,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1575,7 +1575,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         5);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1583,7 +1583,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1596,7 +1596,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().quality(1, 0, 0, 0).other(0, 0, 0, 1).security(0, 5, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1604,7 +1604,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1617,7 +1617,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1625,7 +1625,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1638,7 +1638,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1646,7 +1646,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1654,7 +1654,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1667,7 +1667,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1675,7 +1675,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1683,7 +1683,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1696,7 +1696,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1704,7 +1704,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1712,7 +1712,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1725,7 +1725,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1733,7 +1733,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1741,7 +1741,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1754,7 +1754,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1762,7 +1762,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1770,7 +1770,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1783,7 +1783,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1791,7 +1791,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1799,7 +1799,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -1807,7 +1807,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(0, 0, 3, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1820,7 +1820,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1828,7 +1828,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 3, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1836,7 +1836,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -1844,7 +1844,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1857,7 +1857,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1865,7 +1865,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1873,7 +1873,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(0, 3, 0, 0).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -1881,7 +1881,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().quality(0, 0, 7, 0).other(0, 0, 0, 8).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1894,7 +1894,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, WEEK, //
@@ -1902,7 +1902,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfWeekDate, WEEK, //
@@ -1910,7 +1910,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfWeekDate, WEEK, //
@@ -1918,7 +1918,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().license(1, 0, 0, 1).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfWeekDate, WEEK);
@@ -1933,7 +1933,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(1, 0, 0, 0).license(0, 2, 0, 0).quality(0, 0, 3, 0).other(0, 0, 0, 4).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfWeekDate, now, WEEK, //
@@ -1941,7 +1941,7 @@ public class PolicyViolationAggregationDataHelper
         discovered().security(5, 0, 0, 0).license(0, 6, 0, 0).quality(0, 0, 7, 1).other(0, 0, 0, 8).get(), //
         fixed().get(), //
         waived().get(), //
-        openCounts(1, 2, 3, 4).get(), //
+        openWithSampleData().get(), //
         3);
 
     // sanity check
@@ -1961,17 +1961,19 @@ public class PolicyViolationAggregationDataHelper
     return new CountsBuilder();
   }
 
+  public static CountsBuilder open() {
+    return new CountsBuilder();
+  }
+
+  public static CountsBuilder openWithSampleData() {
+    return new CountsBuilder().security(1, 0, 1, 1).license(0, 3, 2, 1).quality(5, 0, 0, 0).other(0, 3, 0, 2);
+  }
+
+
   public static class CountsBuilder
   {
-    private final Table<PolicyThreatCategory,ThreatLevel,Integer> table;
-
-    private CountsBuilder() {
-      this.table = HashBasedTable.create();
-      this.put(SECURITY, 0, 0, 0, 0);
-      this.put(LICENSE, 0, 0, 0, 0);
-      this.put(QUALITY, 0, 0, 0, 0);
-      this.put(OTHER, 0, 0, 0, 0);
-    }
+    private final Table<PolicyThreatCategory, ThreatLevel, Integer> table = new EnumIntegerTable<>(
+        PolicyThreatCategory.class, ThreatLevel.class);
 
     private CountsBuilder put(PolicyThreatCategory category,
                       Integer countLow,

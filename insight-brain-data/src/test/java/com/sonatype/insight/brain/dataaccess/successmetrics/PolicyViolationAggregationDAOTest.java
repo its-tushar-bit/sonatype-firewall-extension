@@ -25,11 +25,11 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggre
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
@@ -46,6 +46,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALI
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
+import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
@@ -76,10 +77,14 @@ public class PolicyViolationAggregationDAOTest
     DescriptiveStatistics mttrSevereThreatStats = new DescriptiveStatistics();
     DescriptiveStatistics mttrCriticalThreatStats = new DescriptiveStatistics();
 
-    Table<PolicyThreatCategory,ThreatLevel,Integer> discoveredCounts = HashBasedTable.create();
-    Table<PolicyThreatCategory,ThreatLevel,Integer> fixedCounts = HashBasedTable.create();
-    Table<PolicyThreatCategory,ThreatLevel,Integer> waivedCounts = HashBasedTable.create();
-    Map<PolicyThreatCategory, Integer> openCounts = new EnumMap<>(PolicyThreatCategory.class);
+    Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts = new EnumIntegerTable<>(
+        PolicyThreatCategory.class, ThreatLevel.class);
+    Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts = new EnumIntegerTable<>(PolicyThreatCategory.class,
+        ThreatLevel.class);
+    Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts = new EnumIntegerTable<>(
+        PolicyThreatCategory.class, ThreatLevel.class);
+    Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts = new EnumIntegerTable<>(PolicyThreatCategory.class,
+        ThreatLevel.class);
 
     mttrLowThreatStats.addValue(1);
     mttrLowThreatStats.addValue(2);
@@ -95,7 +100,7 @@ public class PolicyViolationAggregationDAOTest
     mttrSevereThreatStats.addValue(47);
     fixedCounts.put(SECURITY, SEVERE, 3);
 
-    openCounts.put(QUALITY, 2);
+    openCounts.put(QUALITY, CRITICAL, 2);
 
     int evaluationCount = 30;
 
@@ -123,7 +128,7 @@ public class PolicyViolationAggregationDAOTest
     assertThat(aggregation.getResolvedCountModerateThreat(), is(1));
     assertThat(aggregation.getResolvedCountSevereThreat(), is(3));
     assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
-    assertThat(aggregation.getOpenCountQuality(), is(2));
+    assertThat(aggregation.getOpenCount(QUALITY, CRITICAL), is(2));
     assertThat(aggregation.getEvaluationCount(), is(evaluationCount));
 
     // update
@@ -685,18 +690,18 @@ public class PolicyViolationAggregationDAOTest
         .getOpenViolationsCountsByApplicationIds(applicationIds, false);
 
     List<OpenViolationCountsWeek> expectedList = Arrays.asList(
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo), categoryCounts(2, 4, 6, 8)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(1)), categoryCounts(2, 4, 6, 8)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(2)), categoryCounts(2, 4, 6, 8)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(3)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(4)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(5)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(6)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(7)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(8)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(9)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(10)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(11)), categoryCounts(4, 8, 12, 16))
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo), categoryCounts(6, 12, 10, 10)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(1)), categoryCounts(6, 12, 10, 10)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(2)), categoryCounts(6, 12, 10, 10)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(3)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(4)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(5)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(6)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(7)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(8)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(9)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(10)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(11)), categoryCounts(12, 24, 20, 20))
     );
 
     assertOpenViolationCountsWeekHistory(actualList, expectedList);
@@ -711,18 +716,18 @@ public class PolicyViolationAggregationDAOTest
         .getOpenViolationsCountsByApplicationIds(applicationIds, true);
 
     List<OpenViolationCountsWeek> expectedList = Arrays.asList(
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo), categoryCounts(2, 4, 6, 8)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(1)), categoryCounts(2, 4, 6, 8)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(2)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(3)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(4)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(5)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(6)), categoryCounts(3, 6, 9, 12)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(7)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(8)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(9)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(10)), categoryCounts(4, 8, 12, 16)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(11)), categoryCounts(2, 4, 6, 8))
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo), categoryCounts(6, 12, 10, 10)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(1)), categoryCounts(6, 12, 10, 10)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(2)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(3)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(4)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(5)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(6)), categoryCounts(9, 18, 15, 15)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(7)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(8)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(9)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(10)), categoryCounts(12, 24, 20, 20)),
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(11)), categoryCounts(6, 12, 10, 10))
     );
 
     assertOpenViolationCountsWeekHistory(actualList, expectedList);
@@ -938,13 +943,7 @@ public class PolicyViolationAggregationDAOTest
       OpenViolationCountsWeek expected = expectedList.get(i);
       OpenViolationCountsWeek actual = actualList.get(i);
       assertThat(i + " week start", actual.weekStart, is(expected.weekStart));
-      assertThat(i + " security", actual.openViolationCounts.get(SECURITY), 
-          is(expected.openViolationCounts.get(SECURITY)));
-      assertThat(i + " license", actual.openViolationCounts.get(LICENSE), 
-          is(expected.openViolationCounts.get(LICENSE)));
-      assertThat(i + " quality", actual.openViolationCounts.get(QUALITY), 
-          is(expected.openViolationCounts.get(QUALITY)));
-      assertThat(i + " other", actual.openViolationCounts.get(OTHER), is(expected.openViolationCounts.get(OTHER)));
+      assertThat(i + " open", actualList.get(i).openViolationCounts, is(expectedList.get(i).openViolationCounts));
     }
   }
 

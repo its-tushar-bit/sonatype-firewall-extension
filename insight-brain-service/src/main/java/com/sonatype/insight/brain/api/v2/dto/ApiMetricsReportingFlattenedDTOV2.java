@@ -35,14 +35,6 @@ public class ApiMetricsReportingFlattenedDTOV2
 
   public int evaluationCount;
 
-  public int openCountSecurity;
-
-  public int openCountLicense;
-
-  public int openCountQuality;
-
-  public int openCountOther;
-
   public int discoveredCountSecurityLow;
 
   public int discoveredCountSecurityModerate;
@@ -139,6 +131,38 @@ public class ApiMetricsReportingFlattenedDTOV2
 
   public int waivedCountOtherCritical;
 
+  public int openCountAtTimePeriodEndSecurityLow;
+
+  public int openCountAtTimePeriodEndSecurityModerate;
+
+  public int openCountAtTimePeriodEndSecuritySevere;
+
+  public int openCountAtTimePeriodEndSecurityCritical;
+
+  public int openCountAtTimePeriodEndLicenseLow;
+
+  public int openCountAtTimePeriodEndLicenseModerate;
+
+  public int openCountAtTimePeriodEndLicenseSevere;
+
+  public int openCountAtTimePeriodEndLicenseCritical;
+
+  public int openCountAtTimePeriodEndQualityLow;
+
+  public int openCountAtTimePeriodEndQualityModerate;
+
+  public int openCountAtTimePeriodEndQualitySevere;
+
+  public int openCountAtTimePeriodEndQualityCritical;
+
+  public int openCountAtTimePeriodEndOtherLow;
+
+  public int openCountAtTimePeriodEndOtherModerate;
+
+  public int openCountAtTimePeriodEndOtherSevere;
+
+  public int openCountAtTimePeriodEndOtherCritical;
+
   public ApiMetricsReportingFlattenedDTOV2(String applicationId,
                                            String applicationPublicId,
                                            String applicationName,
@@ -150,10 +174,6 @@ public class ApiMetricsReportingFlattenedDTOV2
                                            Long mttrSevereThreat,
                                            Long mttrCriticalThreat,
                                            int evaluationCount,
-                                           int openCountSecurity,
-                                           int openCountLicense,
-                                           int openCountQuality,
-                                           int openCountOther,
                                            int discoveredCountSecurityLow,
                                            int discoveredCountSecurityModerate,
                                            int discoveredCountSecuritySevere,
@@ -201,7 +221,23 @@ public class ApiMetricsReportingFlattenedDTOV2
                                            int waivedCountOtherLow,
                                            int waivedCountOtherModerate,
                                            int waivedCountOtherSevere,
-                                           int waivedCountOtherCritical)
+                                           int waivedCountOtherCritical,
+                                           int openCountSecurityLow,
+                                           int openCountSecurityModerate,
+                                           int openCountSecuritySevere,
+                                           int openCountSecurityCritical,
+                                           int openCountLicenseLow,
+                                           int openCountLicenseModerate,
+                                           int openCountLicenseSevere,
+                                           int openCountLicenseCritical,
+                                           int openCountQualityLow,
+                                           int openCountQualityModerate,
+                                           int openCountQualitySevere,
+                                           int openCountQualityCritical,
+                                           int openCountOtherLow,
+                                           int openCountOtherModerate,
+                                           int openCountOtherSevere,
+                                           int openCountOtherCritical)
   {
     this.applicationId = applicationId;
     this.applicationPublicId = applicationPublicId;
@@ -214,10 +250,6 @@ public class ApiMetricsReportingFlattenedDTOV2
     this.mttrSevereThreat = mttrSevereThreat;
     this.mttrCriticalThreat = mttrCriticalThreat;
     this.evaluationCount = evaluationCount;
-    this.openCountSecurity = openCountSecurity;
-    this.openCountLicense = openCountLicense;
-    this.openCountQuality = openCountQuality;
-    this.openCountOther = openCountOther;
     this.discoveredCountSecurityLow = discoveredCountSecurityLow;
     this.discoveredCountSecurityModerate = discoveredCountSecurityModerate;
     this.discoveredCountSecuritySevere = discoveredCountSecuritySevere;
@@ -266,5 +298,21 @@ public class ApiMetricsReportingFlattenedDTOV2
     this.waivedCountOtherModerate = waivedCountOtherModerate;
     this.waivedCountOtherSevere = waivedCountOtherSevere;
     this.waivedCountOtherCritical = waivedCountOtherCritical;
+    this.openCountAtTimePeriodEndSecurityLow = openCountSecurityLow;
+    this.openCountAtTimePeriodEndSecurityModerate = openCountSecurityModerate;
+    this.openCountAtTimePeriodEndSecuritySevere = openCountSecuritySevere;
+    this.openCountAtTimePeriodEndSecurityCritical = openCountSecurityCritical;
+    this.openCountAtTimePeriodEndLicenseLow = openCountLicenseLow;
+    this.openCountAtTimePeriodEndLicenseModerate = openCountLicenseModerate;
+    this.openCountAtTimePeriodEndLicenseSevere = openCountLicenseSevere;
+    this.openCountAtTimePeriodEndLicenseCritical = openCountLicenseCritical;
+    this.openCountAtTimePeriodEndQualityLow = openCountQualityLow;
+    this.openCountAtTimePeriodEndQualityModerate = openCountQualityModerate;
+    this.openCountAtTimePeriodEndQualitySevere = openCountQualitySevere;
+    this.openCountAtTimePeriodEndQualityCritical = openCountQualityCritical;
+    this.openCountAtTimePeriodEndOtherLow = openCountOtherLow;
+    this.openCountAtTimePeriodEndOtherModerate = openCountOtherModerate;
+    this.openCountAtTimePeriodEndOtherSevere = openCountOtherSevere;
+    this.openCountAtTimePeriodEndOtherCritical = openCountOtherCritical;
   }
 }

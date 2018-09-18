@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -160,7 +161,8 @@ public class PolicyViolationAggregationService
     LocalDate currentDate = currentDateTime.toLocalDate();
 
     Map<TimePeriod, LocalDate> aggregationStarts = new EnumMap<>(TimePeriod.class);
-    Map<TimePeriod, Map<PolicyThreatCategory, Integer>> openViolationCountsMap = new EnumMap<>(TimePeriod.class);
+    Map<TimePeriod, Table<PolicyThreatCategory, ThreatLevel, Integer>> openViolationCountsMap = new EnumMap<>(
+        TimePeriod.class);
 
     for (TimePeriod timePeriod : TimePeriod.values()) {
       LocalDate startOfCurrentTimePeriod = withDayOfTimePeriod(currentDate, timePeriod, 1);
@@ -182,8 +184,10 @@ public class PolicyViolationAggregationService
 
         if (!upToDate) {
           aggregationStarts.put(timePeriod, startOfNewAggregation);
-          openViolationCountsMap.put(timePeriod, mostRecentPriorAggregation == null ? allZeroOpenCounts() :
-              mostRecentPriorAggregation.getOpenCountsAsMap());
+          Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts =
+              mostRecentPriorAggregation == null ? new EnumIntegerTable<>(PolicyThreatCategory.class,
+                  ThreatLevel.class) : mostRecentPriorAggregation.getOpenAsTable();
+          openViolationCountsMap.put(timePeriod, openCounts);
         }
       }
     }
@@ -204,7 +208,7 @@ public class PolicyViolationAggregationService
 
     for (TimePeriod timePeriod : TimePeriod.values()) {
       // keep a running tally of open counts
-      Map<PolicyThreatCategory, Integer> openCounts = openViolationCountsMap.get(timePeriod);
+      Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts = openViolationCountsMap.get(timePeriod);
       results.put(timePeriod, new ResultsWrapper(openCounts));
 
       LocalDate startOfNewAggregation = aggregationStarts.get(timePeriod);
@@ -291,14 +295,6 @@ public class PolicyViolationAggregationService
         !includeLatestData && startOfNewAggregation.compareTo(startOfCurrentTimePeriod) >= 0;
   }
 
-  private Map<PolicyThreatCategory, Integer> allZeroOpenCounts() {
-    Map<PolicyThreatCategory, Integer> result = new EnumMap<>(PolicyThreatCategory.class);
-    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
-      result.put(category, 0);
-    }
-    return result;
-  }
-
   private LocalDate withDayOfTimePeriod(LocalDate dateTime, TimePeriod timePeriod, int dayOf) {
     return dateTime.withField(timePeriod.getDateTimeFieldType(), dayOf);
   }
@@ -355,7 +351,7 @@ public class PolicyViolationAggregationService
     Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts = partialAggregation.getDiscoveredAsTable();
     Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts = partialAggregation.getFixedAsTable();
     Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts = partialAggregation.getWaivedAsTable();
-    Map<PolicyThreatCategory, Integer> openCounts = partialAggregation.getOpenCountsAsMap();
+    Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts = partialAggregation.getOpenAsTable();
     return new ResultsWrapper(mttrStats, evaluationCount, discoveredCounts, fixedCounts, waivedCounts, openCounts);
   }
 

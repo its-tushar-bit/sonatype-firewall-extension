@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -1488,7 +1487,7 @@ public class TemporaryEntity
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                                                                  Map<PolicyThreatCategory, Integer> openCounts,
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
                                                                   int evaluationCount) {
     return newPolicyViolationAggregation(applicationId, timePeriodStart, null, timePeriod, mttrLowThreatStats,
         mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats, discoveredCounts, fixedCounts,
@@ -1506,7 +1505,7 @@ public class TemporaryEntity
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                                                                  Map<PolicyThreatCategory, Integer> openCounts,
+                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
                                                                   int evaluationCount) {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
         timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, 

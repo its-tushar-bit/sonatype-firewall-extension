@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.util.Map;
-
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 class ResultsWrapper {
@@ -25,14 +23,15 @@ class ResultsWrapper {
 
   final Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts;
 
-  final Map<PolicyThreatCategory, Integer> openCounts;
+  final Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts;
 
-  public ResultsWrapper(Map<PolicyThreatCategory, Integer> openCounts) {
+  public ResultsWrapper(Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts) {
     mttrStats = new MttrStats();
     evaluationCount = 0;
-    discoveredCounts = allZeroCounts();
-    fixedCounts = allZeroCounts();
-    waivedCounts = allZeroCounts();
+    discoveredCounts = new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
+    fixedCounts = new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
+    waivedCounts = new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
+    
     this.openCounts = openCounts;
   }
 
@@ -41,7 +40,7 @@ class ResultsWrapper {
                         Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
                         Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
                         Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                        Map<PolicyThreatCategory, Integer> openCounts)
+                        Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts)
   {
     this.mttrStats = mttrStats;
     this.evaluationCount = evaluationCount;
@@ -50,15 +49,4 @@ class ResultsWrapper {
     this.waivedCounts = waivedCounts;
     this.openCounts = openCounts;
   }
-
-  private static Table<PolicyThreatCategory, ThreatLevel, Integer> allZeroCounts() {
-    Table<PolicyThreatCategory, ThreatLevel, Integer> result = HashBasedTable.create();
-    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
-      for (ThreatLevel level : ThreatLevel.values()) {
-        result.put(category, level, 0);
-      }
-    }
-    return result;
-  }
-
 }

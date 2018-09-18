@@ -32,15 +32,9 @@ public class ApiMetricsReportingAggregationDTOV2
 
   public Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts;
 
+  public Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> openCountsAtTimePeriodEnd;
+
   public int evaluationCount;
-
-  public int openCountSecurity;
-
-  public int openCountLicense;
-
-  public int openCountQuality;
-
-  public int openCountOther;
 
   public ApiMetricsReportingAggregationDTOV2(String timePeriodStart,
                                              Long mttrLowThreat,
@@ -50,11 +44,8 @@ public class ApiMetricsReportingAggregationDTOV2
                                              Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
                                              Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
                                              Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts,
-                                             int evaluationCount,
-                                             int openCountSecurity,
-                                             int openCountLicense,
-                                             int openCountQuality,
-                                             int openCountOther)
+                                             Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> openCounts,
+                                             int evaluationCount)
   {
     this.timePeriodStart = timePeriodStart;
     this.mttrLowThreat = mttrLowThreat;
@@ -64,10 +55,7 @@ public class ApiMetricsReportingAggregationDTOV2
     this.discoveredCounts = discoveredCounts;
     this.fixedCounts = fixedCounts;
     this.waivedCounts = waivedCounts;
+    this.openCountsAtTimePeriodEnd = openCounts;
     this.evaluationCount = evaluationCount;
-    this.openCountSecurity = openCountSecurity;
-    this.openCountLicense = openCountLicense;
-    this.openCountQuality = openCountQuality;
-    this.openCountOther = openCountOther;
   }
 }

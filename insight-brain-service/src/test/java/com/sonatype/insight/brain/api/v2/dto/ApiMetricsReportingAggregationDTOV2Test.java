@@ -32,11 +32,14 @@ public class ApiMetricsReportingAggregationDTOV2Test
     Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discovered = emptyMap();
     Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixed = emptyMap();
     Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waived = emptyMap();
+    Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> open = emptyMap();
 
     discovered.get(SECURITY).put(LOW, 1);
     discovered.get(LICENSE).put(MODERATE, 5);
     fixed.get(QUALITY).put(SEVERE, 2);
     waived.get(OTHER).put(CRITICAL, 100);
+    open.get(SECURITY).put(LOW, 2);
+    open.get(LICENSE).put(MODERATE, 10);
 
     ApiMetricsReportingAggregationDTOV2 dto = new ApiMetricsReportingAggregationDTOV2( //
         "2017-10-01", //
@@ -44,8 +47,8 @@ public class ApiMetricsReportingAggregationDTOV2Test
         discovered, //
         fixed, //
         waived, //
-        10, //
-        1, 2, 3, 4);
+        open, //
+        10);
 
     assertThat(dto.timePeriodStart, is("2017-10-01"));
 
@@ -105,10 +108,22 @@ public class ApiMetricsReportingAggregationDTOV2Test
     assertThat(dto.waivedCounts.get(OTHER).get(SEVERE), is(0));
     assertThat(dto.waivedCounts.get(OTHER).get(CRITICAL), is(100));
 
-    assertThat(dto.openCountSecurity, is(1));
-    assertThat(dto.openCountLicense, is(2));
-    assertThat(dto.openCountQuality, is(3));
-    assertThat(dto.openCountOther, is(4));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(LOW), is(2));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(MODERATE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(SEVERE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(CRITICAL), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(LOW), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(MODERATE), is(10));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(SEVERE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(CRITICAL), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(LOW), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(MODERATE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(SEVERE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(CRITICAL), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(LOW), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(MODERATE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(SEVERE), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(CRITICAL), is(0));
 
     assertThat(dto.evaluationCount, is(10));
   }

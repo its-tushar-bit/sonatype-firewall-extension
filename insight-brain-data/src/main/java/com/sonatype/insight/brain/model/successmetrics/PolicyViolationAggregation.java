@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.model.successmetrics;
 
 import java.util.Date;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -20,12 +18,12 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -220,17 +218,53 @@ public class PolicyViolationAggregation
   @Column(name = "discovered_count_other_critical_threat")
   private int discoveredCountOtherCriticalThreat;
 
-  @Column(name = "open_count_security")
-  private int openCountSecurity;
+  @Column(name = "open_count_security_low_threat")
+  private int openCountSecurityLowThreat;
 
-  @Column(name = "open_count_license")
-  private int openCountLicense;
+  @Column(name = "open_count_security_moderate_threat")
+  private int openCountSecurityModerateThreat;
 
-  @Column(name = "open_count_quality")
-  private int openCountQuality;
+  @Column(name = "open_count_security_severe_threat")
+  private int openCountSecuritySevereThreat;
 
-  @Column(name = "open_count_other")
-  private int openCountOther;
+  @Column(name = "open_count_security_critical_threat")
+  private int openCountSecurityCriticalThreat;
+
+  @Column(name = "open_count_license_low_threat")
+  private int openCountLicenseLowThreat;
+
+  @Column(name = "open_count_license_moderate_threat")
+  private int openCountLicenseModerateThreat;
+
+  @Column(name = "open_count_license_severe_threat")
+  private int openCountLicenseSevereThreat;
+
+  @Column(name = "open_count_license_critical_threat")
+  private int openCountLicenseCriticalThreat;
+
+  @Column(name = "open_count_quality_low_threat")
+  private int openCountQualityLowThreat;
+
+  @Column(name = "open_count_quality_moderate_threat")
+  private int openCountQualityModerateThreat;
+
+  @Column(name = "open_count_quality_severe_threat")
+  private int openCountQualitySevereThreat;
+
+  @Column(name = "open_count_quality_critical_threat")
+  private int openCountQualityCriticalThreat;
+
+  @Column(name = "open_count_other_low_threat")
+  private int openCountOtherLowThreat;
+
+  @Column(name = "open_count_other_moderate_threat")
+  private int openCountOtherModerateThreat;
+
+  @Column(name = "open_count_other_severe_threat")
+  private int openCountOtherSevereThreat;
+
+  @Column(name = "open_count_other_critical_threat")
+  private int openCountOtherCriticalThreat;
 
   @Column(name = "evaluation_count")
   private int evaluationCount;
@@ -259,10 +293,10 @@ public class PolicyViolationAggregation
   private Table<PolicyThreatCategory, ThreatLevel, IntConsumer> waivedSettersMap = HashBasedTable.create();
 
   @Transient
-  private Map<PolicyThreatCategory, IntSupplier> openCountsGettersMap = new EnumMap<>(PolicyThreatCategory.class);
+  private Table<PolicyThreatCategory, ThreatLevel, IntSupplier> openGettersMap = HashBasedTable.create();
 
   @Transient
-  private Map<PolicyThreatCategory, IntConsumer> openCountsSettersMap = new EnumMap<>(PolicyThreatCategory.class);
+  private Table<PolicyThreatCategory, ThreatLevel, IntConsumer> openSettersMap = HashBasedTable.create();
 
   {
     discoveredGettersMap.put(SECURITY, LOW, () -> discoveredCountSecurityLowThreat);
@@ -367,15 +401,39 @@ public class PolicyViolationAggregation
     waivedSettersMap.put(OTHER, SEVERE, (count) -> waivedCountOtherSevereThreat = count);
     waivedSettersMap.put(OTHER, CRITICAL, (count) -> waivedCountOtherCriticalThreat = count);
 
-    openCountsGettersMap.put(SECURITY, () -> openCountSecurity);
-    openCountsGettersMap.put(LICENSE, () -> openCountLicense);
-    openCountsGettersMap.put(QUALITY, () -> openCountQuality);
-    openCountsGettersMap.put(OTHER, () -> openCountOther);
+    openGettersMap.put(SECURITY, LOW, () -> openCountSecurityLowThreat);
+    openGettersMap.put(SECURITY, MODERATE, () -> openCountSecurityModerateThreat);
+    openGettersMap.put(SECURITY, SEVERE, () -> openCountSecuritySevereThreat);
+    openGettersMap.put(SECURITY, CRITICAL, () -> openCountSecurityCriticalThreat);
+    openGettersMap.put(LICENSE, LOW, () -> openCountLicenseLowThreat);
+    openGettersMap.put(LICENSE, MODERATE, () -> openCountLicenseModerateThreat);
+    openGettersMap.put(LICENSE, SEVERE, () -> openCountLicenseSevereThreat);
+    openGettersMap.put(LICENSE, CRITICAL, () -> openCountLicenseCriticalThreat);
+    openGettersMap.put(QUALITY, LOW, () -> openCountQualityLowThreat);
+    openGettersMap.put(QUALITY, MODERATE, () -> openCountQualityModerateThreat);
+    openGettersMap.put(QUALITY, SEVERE, () -> openCountQualitySevereThreat);
+    openGettersMap.put(QUALITY, CRITICAL, () -> openCountQualityCriticalThreat);
+    openGettersMap.put(OTHER, LOW, () -> openCountOtherLowThreat);
+    openGettersMap.put(OTHER, MODERATE, () -> openCountOtherModerateThreat);
+    openGettersMap.put(OTHER, SEVERE, () -> openCountOtherSevereThreat);
+    openGettersMap.put(OTHER, CRITICAL, () -> openCountOtherCriticalThreat);
 
-    openCountsSettersMap.put(SECURITY, (count) -> openCountSecurity = count);
-    openCountsSettersMap.put(LICENSE, (count) -> openCountLicense = count);
-    openCountsSettersMap.put(QUALITY, (count) -> openCountQuality = count);
-    openCountsSettersMap.put(OTHER, (count) -> openCountOther = count);
+    openSettersMap.put(SECURITY, LOW, (count) -> openCountSecurityLowThreat = count);
+    openSettersMap.put(SECURITY, MODERATE, (count) -> openCountSecurityModerateThreat = count);
+    openSettersMap.put(SECURITY, SEVERE, (count) -> openCountSecuritySevereThreat = count);
+    openSettersMap.put(SECURITY, CRITICAL, (count) -> openCountSecurityCriticalThreat = count);
+    openSettersMap.put(LICENSE, LOW, (count) -> openCountLicenseLowThreat = count);
+    openSettersMap.put(LICENSE, MODERATE, (count) -> openCountLicenseModerateThreat = count);
+    openSettersMap.put(LICENSE, SEVERE, (count) -> openCountLicenseSevereThreat = count);
+    openSettersMap.put(LICENSE, CRITICAL, (count) -> openCountLicenseCriticalThreat = count);
+    openSettersMap.put(QUALITY, LOW, (count) -> openCountQualityLowThreat = count);
+    openSettersMap.put(QUALITY, MODERATE, (count) -> openCountQualityModerateThreat = count);
+    openSettersMap.put(QUALITY, SEVERE, (count) -> openCountQualitySevereThreat = count);
+    openSettersMap.put(QUALITY, CRITICAL, (count) -> openCountQualityCriticalThreat = count);
+    openSettersMap.put(OTHER, LOW, (count) -> openCountOtherLowThreat = count);
+    openSettersMap.put(OTHER, MODERATE, (count) -> openCountOtherModerateThreat = count);
+    openSettersMap.put(OTHER, SEVERE, (count) -> openCountOtherSevereThreat = count);
+    openSettersMap.put(OTHER, CRITICAL, (count) -> openCountOtherCriticalThreat = count);
   }
 
   public PolicyViolationAggregation() {
@@ -389,10 +447,10 @@ public class PolicyViolationAggregation
                                     DescriptiveStatistics mttrModerateThreatStats,
                                     DescriptiveStatistics mttrSevereThreatStats,
                                     DescriptiveStatistics mttrCriticalThreatStats,
-                                    Table<PolicyThreatCategory,ThreatLevel,Integer> discoveredCounts,
-                                    Table<PolicyThreatCategory,ThreatLevel,Integer> fixedCounts,
-                                    Table<PolicyThreatCategory,ThreatLevel,Integer> waivedCounts,
-                                    Map<PolicyThreatCategory, Integer> openCounts,
+                                    Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+                                    Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+                                    Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+                                    Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
                                     Integer evaluationCount)
   {
     this.applicationId = applicationId;
@@ -408,7 +466,7 @@ public class PolicyViolationAggregation
     this.setCounts(discoveredCounts, discoveredSettersMap);
     this.setCounts(fixedCounts, fixedSettersMap);
     this.setCounts(waivedCounts, waivedSettersMap);
-    this.setOpenCounts(openCounts);
+    this.setCounts(openCounts, openSettersMap);
 
     this.evaluationCount = evaluationCount;
   }
@@ -420,12 +478,6 @@ public class PolicyViolationAggregation
       for (ThreatLevel threatLevel : ThreatLevel.values()) {
         settersMap.get(category, threatLevel).accept(Optional.ofNullable(counts.get(category, threatLevel)).orElse(0));
       }
-    }
-  }
-
-  private void setOpenCounts(Map<PolicyThreatCategory, Integer> openCounts) {
-    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
-      openCountsSettersMap.get(category).accept(openCounts.getOrDefault(category, 0));
     }
   }
 
@@ -441,12 +493,13 @@ public class PolicyViolationAggregation
     return countsToTable(waivedGettersMap);
   }
 
-  public Map<PolicyThreatCategory, Integer> getOpenCountsAsMap() {
-    return new EnumMap<>(Maps.transformValues(openCountsGettersMap, IntSupplier::getAsInt));
+  public Table<PolicyThreatCategory, ThreatLevel, Integer> getOpenAsTable() {
+    return countsToTable(openGettersMap);
   }
 
   private Table<PolicyThreatCategory, ThreatLevel, Integer> countsToTable(Table<PolicyThreatCategory, ThreatLevel, IntSupplier> getterMap) {
-    Table<PolicyThreatCategory, ThreatLevel, Integer> result = HashBasedTable.create();
+    Table<PolicyThreatCategory, ThreatLevel, Integer> result =
+        new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
     for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
       for (ThreatLevel level : ThreatLevel.values()) {
         result.put(category, level, getterMap.get(category, level).getAsInt());
@@ -547,20 +600,8 @@ public class PolicyViolationAggregation
     return waivedGettersMap.get(category, level).getAsInt();
   }
 
-  public int getOpenCountSecurity() {
-    return openCountsGettersMap.get(SECURITY).getAsInt();
-  }
-
-  public int getOpenCountLicense() {
-    return openCountsGettersMap.get(LICENSE).getAsInt();
-  }
-
-  public int getOpenCountQuality() {
-    return openCountsGettersMap.get(QUALITY).getAsInt();
-  }
-
-  public int getOpenCountOther() {
-    return openCountsGettersMap.get(OTHER).getAsInt();
+  public int getOpenCount(PolicyThreatCategory category, ThreatLevel level) {
+    return openGettersMap.get(category, level).getAsInt();
   }
 
   public TimePeriod getTimePeriod() {

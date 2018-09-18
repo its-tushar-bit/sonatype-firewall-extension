@@ -470,7 +470,7 @@ public class InsightConfig
     return reverseProxyAuthentication;
   }
 
-  void setReverseProxyAuthentication(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
+  public void setReverseProxyAuthentication(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     this.reverseProxyAuthentication = reverseProxyAuthentication;
   }
 

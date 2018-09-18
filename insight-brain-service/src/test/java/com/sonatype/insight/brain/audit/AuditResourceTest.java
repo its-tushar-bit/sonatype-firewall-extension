@@ -19,15 +19,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 public class AuditResourceTest
     extends AbstractBrainServiceTest
 {
   private static final String RESTRICTED_PATH = "/" + ApplicationResource.RESOURCE_PATH;
+
+  private static final String RESTRICTED_UNSAFE_PATH = RESTRICTED_PATH + "/applicationPublicId";
 
   private static final String AUTH_RESOURCE_PATH = "/" + UserSessionResource.RESOURCE_PATH;
 
@@ -45,9 +49,7 @@ public class AuditResourceTest
 
     HttpClientBuilder.create().build().execute(httpGet);
 
-    List<String> auditAuthenticationMessages = logOutput
-        .getInfoMessages("com.sonatype.insight.audit.authentication");
-    assertThat(auditAuthenticationMessages, notNullValue());
+    List<String> auditAuthenticationMessages = awaitLogMessages("com.sonatype.insight.audit.authentication", 1);
     assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "unauthenticated");
   }
@@ -55,12 +57,24 @@ public class AuditResourceTest
   @Test
   public void testInvalidUserNamePassword() throws Exception {
     restRequest().auth("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
-    List<String> auditAuthenticationMessages = logOutput
-        .getInfoMessages("com.sonatype.insight.audit.authentication");
+    List<String> auditAuthenticationMessages = awaitLogMessages("com.sonatype.insight.audit.authentication", 1);
 
-    assertThat(auditAuthenticationMessages, notNullValue());
     assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "POST", AUTH_RESOURCE_PATH, "bad-authentication");
+  }
+
+  @Test
+  public void testInvalidCsrfToken() throws Exception {
+    restRequest().path(RESTRICTED_UNSAFE_PATH).noCsrfToken().delete();
+
+    List<String> auditAuthenticationMessages = awaitLogMessages("com.sonatype.insight.audit.authentication", 1);
+    assertThat(auditAuthenticationMessages, hasSize(1));
+    assertAuditLog(auditAuthenticationMessages.get(0), "DELETE", RESTRICTED_UNSAFE_PATH, "bad-csrf-token");
+  }
+
+  private List<String> awaitLogMessages(String logger, int count) {
+    return await().atMost(5, SECONDS)
+        .until(() -> logOutput.getInfoMessages(logger), hasSize(greaterThanOrEqualTo(count)));
   }
 
   private void assertAuditLog(final String auditLogEntry,

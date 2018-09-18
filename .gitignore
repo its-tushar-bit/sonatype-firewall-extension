@@ -11,3 +11,5 @@ dependency-reduced-pom.xml
 .DS_Store
 .*.swp
 .tags
+.vscode/
+.factorypath

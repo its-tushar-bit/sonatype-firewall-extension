@@ -73,7 +73,12 @@ public class H2DatabaseMigrator
       }
 
       log.info("Current version of database {}: {}", databaseFilename, currentVersion);
-      if (currentVersion >= desiredVersion) {
+      if (currentVersion > desiredVersion) {
+        throw new IllegalStateException(databaseFilename + " was created by a newer product version. " +
+            "Please upgrade your IQ Server or restore a database backup taken by your current version.");
+      }
+
+      if (currentVersion == desiredVersion) {
         return;
       }
 

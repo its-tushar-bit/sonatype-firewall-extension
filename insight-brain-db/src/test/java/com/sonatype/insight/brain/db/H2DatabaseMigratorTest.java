@@ -16,6 +16,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -109,6 +110,25 @@ public class H2DatabaseMigratorTest
     }
     catch (IllegalStateException expected) {
       assertThat(expected.getMessage(), is("Missing the database version file " + databaseVersionFile + "."));
+    }
+  }
+
+  @Test
+  public void testMigrate_ThrowsExceptionWhenCurrentVersionIsHigherThanDesiredVersion() throws Exception {
+    File databaseDir = tempDir.newFolder("db");
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_CurrentVersionHigherThanDesiredVersion");
+    File databaseVersionFile = new File(databaseDir, "dm.ver");
+
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+
+    try {
+      new H2DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), containsString("was created by a newer product version"));
+      assertThat(readDatabaseVersion(databaseVersionFile), is("9999"));
     }
   }
 

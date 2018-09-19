@@ -5,15 +5,24 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.6
@@ -42,6 +51,15 @@ public class PolicyWaiver
   @Column(name = "create_time")
   private Date createTime;
 
+  /**
+   * @since 1.52
+   */
+  @Column(name = "constraint_facts_json")
+  private String constraintFactsJson;
+
+  @Transient
+  private List<ConstraintFact> constraintFacts;
+
   public PolicyWaiver() {
   }
 
@@ -54,6 +72,12 @@ public class PolicyWaiver
   public PolicyWaiver(String hash, String policyId, String ownerId, String comment) {
     this(policyId, ownerId, comment);
     setHash(hash);
+  }
+
+  public PolicyWaiver(String hash, String policyId, String ownerId, String constraintFactsJson, String comment) {
+    this(policyId, ownerId, comment);
+    setHash(hash);
+    setConstraintFactsJson(constraintFactsJson);
   }
 
   @Override
@@ -88,6 +112,40 @@ public class PolicyWaiver
 
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+  }
+
+  public String getConstraintFactsJson() {
+    return constraintFactsJson;
+  }
+
+  public void setConstraintFactsJson(String constraintFactsJson) {
+    if (StringUtils.isBlank(constraintFactsJson)) {
+      constraintFactsJson = null;
+    }
+    this.constraintFactsJson = constraintFactsJson;
+    constraintFacts = null;
+  }
+
+  public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
+    this.constraintFacts = constraintFacts;
+    if (constraintFacts == null) {
+      constraintFactsJson = null;
+    }
+    else {
+      constraintFactsJson = JsonUtils.format(constraintFacts);
+    }
+  }
+
+  public List<ConstraintFact> getConstraintFacts() {
+    if (constraintFacts == null && !StringUtils.isBlank(constraintFactsJson)) {
+      try {
+        constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    return constraintFacts;
   }
 
   public String getComment() {

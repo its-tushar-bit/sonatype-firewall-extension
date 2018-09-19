@@ -121,11 +121,12 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
+    String constraintFactsJson = "foo";
     String comment = "My comment";
-    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, constraintFactsJson, comment);
     dao.insert(policyWaiver1);
 
-    PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, comment);
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, constraintFactsJson, comment);
     try {
       dao.insert(policyWaiver2);
       fail("Expected BadRequestException");
@@ -144,11 +145,12 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
+    String constraintFactsJson = "foo";
     String comment = "My comment";
-    PolicyWaiver policyWaiver1 = new PolicyWaiver(policyId, ownerId, comment);
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFactsJson, comment);
     dao.insert(policyWaiver1);
 
-    PolicyWaiver policyWaiver2 = new PolicyWaiver(policyId, ownerId, comment);
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFactsJson, comment);
     try {
       dao.insert(policyWaiver2);
       fail("Expected BadRequestException");
@@ -244,8 +246,10 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
-    tempEntity.newWaiver(hash1, policyId, ownerId);
-    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId);
+    String constraintFactsJson = "foo";
+    String comment = "My comment";
+    tempEntity.newWaiver(hash1, policyId, ownerId, constraintFactsJson, comment);
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId, constraintFactsJson, comment);
 
     policyWaiver2.setHash(hash1);
     try {
@@ -253,7 +257,7 @@ public class PolicyWaiverDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("A policy waiver for the same hash, policy and owner already exists.", expected.getMessage());
+      assertEquals("A policy waiver for the same policy violation already exists.", expected.getMessage());
     }
   }
 
@@ -266,8 +270,11 @@ public class PolicyWaiverDAOTest
     String policyId1 = policy1.getId();
     String policyId2 = policy2.getId();
     String ownerId = organization.getId();
-    tempEntity.newWaiver(policyId1, ownerId);
-    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policyId2, ownerId);
+    String constraintFactsJson = "foo";
+    String comment = "My comment";
+    tempEntity.newWaiver(null /* hash */, policyId1, ownerId, constraintFactsJson, comment);
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(null /* hash */, policyId2, ownerId, constraintFactsJson,
+        comment);
 
     policyWaiver2.setPolicyId(policyId1);
     try {
@@ -275,7 +282,7 @@ public class PolicyWaiverDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("A policy waiver for the same hash, policy and owner already exists.", expected.getMessage());
+      assertEquals("A policy waiver for the same policy violation already exists.", expected.getMessage());
     }
   }
 

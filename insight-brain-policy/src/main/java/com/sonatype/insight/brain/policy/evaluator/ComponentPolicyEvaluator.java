@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,11 +68,9 @@ public class ComponentPolicyEvaluator
       }
 
       ComponentFact componentFact1 = policyFact1.getComponentFacts().get(0);
-      String componentName1 = componentFact1.getDisplayName() == null ? "null"
-          : componentFact1.getDisplayName().toString();
+      String componentName1 = Objects.toString(componentFact1.getDisplayName());
       ComponentFact componentFact2 = policyFact2.getComponentFacts().get(0);
-      String componentName2 = componentFact2.getDisplayName() == null ? "null"
-          : componentFact2.getDisplayName().toString();
+      String componentName2 = Objects.toString(componentFact2.getDisplayName());
       result = componentName1.compareTo(componentName2);
       if (result != 0) {
         return result;
@@ -110,8 +109,7 @@ public class ComponentPolicyEvaluator
 
     List<MatchFact> matchFacts = evaluateFacts(policies, components);
     List<PolicyFact> policyFacts = toPolicyFacts(policies, matchFacts);
-    PolicyResults policyResults = new PolicyResults();
-    toPolicyResults(ownerId, policies, policyFacts, stage, forMonitoring, policyResults);
+    PolicyResults policyResults = toPolicyResults(ownerId, policies, policyFacts, stage, forMonitoring);
 
     log.debug("Evaluated {} policies on {} components in {} ms", policies.size(), components.size(),
         System.currentTimeMillis() - start);
@@ -119,15 +117,16 @@ public class ComponentPolicyEvaluator
     return policyResults;
   }
 
-  static void toPolicyResults(String ownerId,
-                              final List<Policy> policies,
-                              final List<PolicyFact> policyFacts,
-                              final Stage stage,
-                              boolean forMonitoring,
-                              PolicyResults policyResults)
+  static PolicyResults toPolicyResults(String ownerId,
+                                       final List<Policy> policies,
+                                       final List<PolicyFact> policyFacts,
+                                       final Stage stage,
+                                       boolean forMonitoring)
   {
     // Ordering of policyFacts should result in consistent alerts.
     policyFacts.sort(POLICY_FACT_COMPARATOR);
+
+    PolicyResults policyResults = new PolicyResults();
 
     Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getApplicableByOwnerId(ownerId);
@@ -149,6 +148,78 @@ public class ComponentPolicyEvaluator
         policyResults.addActiveNotification(policyNotification);
       }
     }
+
+    return policyResults;
+  }
+
+  private static PolicyWaiver getApplicablePolicyWaiver(List<PolicyWaiver> policyWaivers, PolicyFact policyFact) {
+    PolicyWaiver legacyWaiver = null;
+
+    for (PolicyWaiver policyWaiver : policyWaivers) {
+      if (policyWaiver.getPolicyId().equals(policyFact.getPolicyId())) {
+        if (policyWaiver.getHash() == null
+            || policyWaiver.getHash().equals(policyFact.getComponentFacts().get(0).getHash())) {
+          if (policyWaiver.getConstraintFacts() == null) {
+            // This is a legacy waiver (before Brain 1.52). It matches the policy fact, but there may be a more specific
+            // waiver. Continue looking...
+            legacyWaiver = policyWaiver;
+          }
+          else if (ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
+              policyWaiver.getConstraintFacts(), policyFact.getComponentFacts().get(0).getConstraintFacts()) == 0) {
+            return policyWaiver;
+          }
+        }
+      }
+    }
+
+    if (legacyWaiver != null) {
+      return legacyWaiver;
+    }
+    return null;
+  }
+
+  // Visible for tests
+  static List<PolicyFact> toPolicyFacts(List<Policy> policies, List<MatchFact> matchFacts) {
+    List<PolicyFact> policyFacts = new ArrayList<>();
+
+    Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
+    for (MatchFact matchFact : matchFacts) {
+      Policy policy = policiesById.get(matchFact.getPolicyId());
+      policyFacts.add(toPolicyFact(policy, matchFact));
+    }
+
+    return policyFacts;
+  }
+
+  private static PolicyFact toPolicyFact(Policy policy, MatchFact matchFact) {
+    PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
+
+    Component component = matchFact.getComponent();
+    ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
+    componentFact.addPathnames(component.getPathnames());
+    ComponentFactUtil.injectDisplayName(componentFact);
+
+    Constraint constraint = policy.getConstraintById(matchFact.getConstraintId());
+    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
+        constraint.getOperator().name());
+
+    List<Condition> conditions = constraint.getConditions();
+    int conditionIndex = matchFact.getConditionIndex();
+    if (conditionIndex >= 0) {
+      ConditionFact conditionFact = createConditionFact(conditions.get(conditionIndex), matchFact);
+      constraintFact.addConditionFact(conditionFact);
+    }
+    else {
+      for (Condition condition : conditions) {
+        ConditionFact conditionFact = createConditionFact(condition, matchFact);
+        constraintFact.addConditionFact(conditionFact);
+      }
+    }
+
+    componentFact.addConstraintFact(constraintFact);
+    policyFact.addComponentFact(componentFact);
+
+    return policyFact;
   }
 
   private static PolicyWaiver getApplicablePolicyWaiver(List<PolicyWaiver> policyWaivers, PolicyFact policyFact) {

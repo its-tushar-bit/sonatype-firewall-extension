@@ -505,9 +505,8 @@ public class ComponentPolicyEvaluatorTest
     }
 
     // Convert facts into alerts
-    PolicyResults policyResults = new PolicyResults();
-    ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts, new Stage(BuildStageType.ID),
-        false /* forMonitoring */, policyResults);
+    PolicyResults policyResults = ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts,
+        new Stage(BuildStageType.ID), false /* forMonitoring */);
     final List<PolicyAlert> expectedAlerts = policyResults.getActiveAlerts();
 
     // Check alerts are consistent with the policy facts
@@ -515,9 +514,8 @@ public class ComponentPolicyEvaluatorTest
       Collections.shuffle(policyFacts);
       Collections.shuffle(policies);
 
-      policyResults = new PolicyResults();
-      ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts, new Stage(BuildStageType.ID),
-          false /* forMonitoring */, policyResults);
+      policyResults = ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts,
+          new Stage(BuildStageType.ID), false /* forMonitoring */);
       final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
       Assert.assertEquals(alertsToString(expectedAlerts), alertsToString(alerts));
@@ -686,8 +684,10 @@ public class ComponentPolicyEvaluatorTest
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
     assertThat(policyResults.getWaivedAlerts(), hasSize(0));
 
-    // Waive policy1 for component1 and re-evaluate
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
+    // Waive the alert for policy1 and component1 and re-evaluate
+    PolicyAlert policyAlertToWaive = findPolicyAlert(activePolicyAlerts, component1, policy1);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), app.getId(),
+        policyAlertToWaive.getTrigger().getComponentFacts().get(0).getConstraintFacts());
     policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     activePolicyAlerts = policyResults.getActiveAlerts();
     Assert.assertNotNull(activePolicyAlerts);
@@ -707,6 +707,14 @@ public class ComponentPolicyEvaluatorTest
     assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts(), hasSize(1));
     ComponentFact waivedComponentFact = waivedPolicyAlerts.get(0).getTrigger().getComponentFacts().get(0);
     assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId(), is(policyWaiver.getId()));
+  }
+
+  private PolicyAlert findPolicyAlert(List<PolicyAlert> policyAlerts, Component component, Policy policy) {
+    return policyAlerts.stream().filter( //
+        (policyAlert) -> policyAlert.getTrigger().getComponentFacts().get(0).getComponentIdentifier()
+            .equals(component.getComponentIdentifier()) && //
+            policyAlert.getTrigger().getPolicyId().equals(policy.getId()))
+        .findFirst().get();
   }
 
   @Test
@@ -957,6 +965,62 @@ public class ComponentPolicyEvaluatorTest
     assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId(),
         is(policyWaiver.getId()));
     assertThat(policyResults.getActiveAlerts(), hasSize(0));
+  }
+
+  @Test
+  public void testEvaluate_LegacyPolicyWaiver() {
+    // Before Brain 1.52, policy waivers did not store the constraint facts from the policy alert that was waived.
+    // Although there are other tests that use legacy waivers, I added this explicit test for legacy waivers, just in
+    // case the other tests are updated to use new waivers.
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+
+    Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    String hash = "hash";
+    component.setHash(hash);
+    component.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(hash, policy.getId(), app.getId());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Collections.singletonList(component), false);
+
+    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash(), is(hash));
+    assertThat(policyResults
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiver.getId()));
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaiverWithConstraintFactsArePreferred() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+
+    Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    String hash = "hash";
+    component.setHash(hash);
+    component.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiverWithoutConstraintFacts = tempEntity.newWaiver(hash, policy.getId(), app.getId());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Collections.singletonList(component), false);
+    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiverWithoutConstraintFacts.getId()));
+
+    List<ConstraintFact> constraintFacts = policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts()
+        .get(0).getConstraintFacts();
+    PolicyWaiver policyWaiverWithConstraintFacts = tempEntity.newWaiver(hash, policy.getId(), app.getId(),
+        constraintFacts);
+    policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Collections.singletonList(component), false);
+    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiverWithConstraintFacts.getId()));
   }
 
   private void assertConditionFact(ConditionFact actual,

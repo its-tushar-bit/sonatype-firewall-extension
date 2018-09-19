@@ -117,10 +117,12 @@ CREATE TABLE policy_waiver (
   hash varchar(20) NULL,  -- null if waiver applies to all components of app/org
   policy_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
+  -- record of the policy constraints/conditions that were violated
+  -- it is nullable because legacy policy waivers (before Insight Brain 1.52) do not store this data.
+  constraint_facts_json CLOB NULL,
   comment varchar(1000) NULL,
   create_time datetime NOT NULL,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
-  CONSTRAINT policy_waiver_uk UNIQUE KEY (hash, policy_id, owner_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
 

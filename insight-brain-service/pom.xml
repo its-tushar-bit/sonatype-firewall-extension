@@ -134,6 +134,13 @@
       <groupId>de.schlichtherle.truezip</groupId>
       <artifactId>truezip-file</artifactId>
       <version>${truezipVersion}</version>
+      <exclusions>
+        <exclusion>
+          <!-- unneeded cruft that should have been declared optional by truezip -->
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

@@ -222,62 +222,6 @@ public class ComponentPolicyEvaluator
     return policyFact;
   }
 
-  private static PolicyWaiver getApplicablePolicyWaiver(List<PolicyWaiver> policyWaivers, PolicyFact policyFact) {
-    for (PolicyWaiver policyWaiver : policyWaivers) {
-      if (policyWaiver.getPolicyId().equals(policyFact.getPolicyId())) {
-        if (policyWaiver.getHash() == null
-            || policyWaiver.getHash().equals(policyFact.getComponentFacts().get(0).getHash())) {
-          return policyWaiver;
-        }
-      }
-    }
-    return null;
-  }
-
-  // Visible for tests
-  static List<PolicyFact> toPolicyFacts(List<Policy> policies, List<MatchFact> matchFacts) {
-    List<PolicyFact> policyFacts = new ArrayList<>();
-
-    Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
-    for (MatchFact matchFact : matchFacts) {
-      Policy policy = policiesById.get(matchFact.getPolicyId());
-      policyFacts.add(toPolicyFact(policy, matchFact));
-    }
-
-    return policyFacts;
-  }
-
-  private static PolicyFact toPolicyFact(Policy policy, MatchFact matchFact) {
-    PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
-
-    Component component = matchFact.getComponent();
-    ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
-    componentFact.addPathnames(component.getPathnames());
-    ComponentFactUtil.injectDisplayName(componentFact);
-
-    Constraint constraint = policy.getConstraintById(matchFact.getConstraintId());
-    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
-        constraint.getOperator().name());
-
-    List<Condition> conditions = constraint.getConditions();
-    int conditionIndex = matchFact.getConditionIndex();
-    if (conditionIndex >= 0) {
-      ConditionFact conditionFact = createConditionFact(conditions.get(conditionIndex), matchFact);
-      constraintFact.addConditionFact(conditionFact);
-    }
-    else {
-      for (Condition condition : conditions) {
-        ConditionFact conditionFact = createConditionFact(condition, matchFact);
-        constraintFact.addConditionFact(conditionFact);
-      }
-    }
-
-    componentFact.addConstraintFact(constraintFact);
-    policyFact.addComponentFact(componentFact);
-
-    return policyFact;
-  }
-
   public static ConditionFact createConditionFact(Condition condition, MatchFact matchFact) {
     final ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
 

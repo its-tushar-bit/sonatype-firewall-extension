@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.security.SecurityModule;
@@ -139,6 +140,18 @@ public class AuditResourceTest
     List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
 
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "bad-session");
+  }
+
+  @Test
+  public void testAuthenticationInternalError() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("ldap");
+    tempEntity.newLdapConnection(ldapServer.getId());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    restRequest().auth("user", "pass").path(RESTRICTED_PATH).get();
+
+    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, AuditRecorder.SERVER_ERROR);
   }
 
   private List<String> awaitLogMessages(String logger, int count) {

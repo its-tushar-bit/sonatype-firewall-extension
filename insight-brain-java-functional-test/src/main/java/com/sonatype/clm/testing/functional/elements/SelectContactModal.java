@@ -46,7 +46,7 @@ public class SelectContactModal
   }
 
   public static SelenideElement updateButton() {
-    return $(ROOT + " .btn-primary");
+    return $(ROOT + " .iq-btn--primary");
   }
 
   public static SelenideElement cancelButton() {
@@ -54,7 +54,7 @@ public class SelectContactModal
   }
 
   public static SelenideElement removeButton() {
-    return $(ROOT + " .btn-tertiary");
+    return $(ROOT + " .iq-btn--tertiary");
   }
 
   public static IqRadio userRadio(final String usersName) {

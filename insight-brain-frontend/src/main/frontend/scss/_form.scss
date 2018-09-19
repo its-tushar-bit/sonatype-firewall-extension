@@ -62,9 +62,14 @@ $iq-form-element-wide: 395px;
   
   .iq-form-group {
     display: inline-block;
-    margin-right: 32px;
+    margin-right: 24px;
     margin-bottom: 0;
-  
+    vertical-align: top; // fixes issue where certain form types display lower
+    
+    &:last-child {
+      margin-right: 0;
+    }
+    
     .iq-btn {
       margin-top: 27px;
     }
@@ -429,18 +434,6 @@ dropdown-selector {
 .iq-read-only-data--horizontal {
   dd {
     display: inline-block;
-  }
-}
-
-.iq-form-row {
-  .iq-form-group {
-    display: inline-block;
-    margin-right: 24px;
-    vertical-align: top; // fixes issue where certain form types display lower
-
-    &:last-child {
-      margin-right: 0;
-    }
   }
 }
 

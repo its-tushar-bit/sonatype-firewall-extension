@@ -11,11 +11,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -47,6 +49,7 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -485,34 +488,35 @@ public class ComponentPolicyEvaluatorTest
     components.add(component4);
 
     // Evaluate the facts
-    final List<MatchFact> facts = ComponentPolicyEvaluator.evaluateFacts(policies, components);
+    final List<MatchFact> matchFacts = ComponentPolicyEvaluator.evaluateFacts(policies, components);
+    List<PolicyFact> policyFacts = ComponentPolicyEvaluator.toPolicyFacts(policies, matchFacts);
 
     // Sort facts by policy then component then constraint then condition
-    Collections.sort(facts, ComponentPolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
-    final List<MatchFact> expectedFacts = new ArrayList<>(facts);
+    Collections.sort(policyFacts, ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
+    final List<PolicyFact> expectedPolicyFacts = new ArrayList<>(policyFacts);
 
     // Check sorting is consistent
     for (int i = 0; i < 100; i++) {
-      Collections.shuffle(facts);
+      Collections.shuffle(policyFacts);
 
-      Collections.sort(facts, ComponentPolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
+      Collections.sort(policyFacts, ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
 
-      Assert.assertEquals(expectedFacts, facts);
+      Assert.assertEquals(expectedPolicyFacts, policyFacts);
     }
 
-    // Slice facts into alerts
+    // Convert facts into alerts
     PolicyResults policyResults = new PolicyResults();
-    ComponentPolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
-        policyResults);
+    ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts, new Stage(BuildStageType.ID),
+        false /* forMonitoring */, policyResults);
     final List<PolicyAlert> expectedAlerts = policyResults.getActiveAlerts();
 
-    // Check slicing is consistent
+    // Check alerts are consistent with the policy facts
     for (int i = 0; i < 100; i++) {
-      Collections.shuffle(facts);
+      Collections.shuffle(policyFacts);
       Collections.shuffle(policies);
 
       policyResults = new PolicyResults();
-      ComponentPolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID),
+      ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts, new Stage(BuildStageType.ID),
           false /* forMonitoring */, policyResults);
       final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
@@ -846,6 +850,113 @@ public class ComponentPolicyEvaluatorTest
     assertConditionFact(conditionFacts2.get(0), 1, SecurityVulnerabilityStatusConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with status 'Open'.", "Security Vulnerability Status is OPEN",
         newConditionTriggerWithStatus(1, securityVulnerability));
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaiverForSpecificComponent() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+
+    Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    String hash1 = "hash1";
+    component1.setHash(hash1);
+    component1.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+    Component component2 = new Component(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    String hash2 = "hash2";
+    component2.setHash(hash2);
+    component2.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(hash1, policy.getId(), app.getId());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Lists.newArrayList(component1, component2), false);
+
+    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash(), is(hash1));
+    assertThat(policyResults
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiver.getId()));
+    assertThat(policyResults.getActiveAlerts(), hasSize(1));
+    assertThat(policyResults.getActiveAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash(), is(hash2));
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaiverNotForSpecificComponent() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+
+    Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    String hash1 = "hash1";
+    component1.setHash(hash1);
+    component1.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+    Component component2 = new Component(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    String hash2 = "hash2";
+    component2.setHash(hash2);
+    component2.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), app.getId());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Lists.newArrayList(component1, component2), false);
+
+    assertThat(policyResults.getWaivedAlerts(), hasSize(2));
+    PolicyAlert waivedAlert1 = policyResults.getWaivedAlerts().get(0);
+    assertThat(waivedAlert1.getTrigger().getComponentFacts().get(0).getHash(), is(hash1));
+    assertThat(policyResults.getPolicyWaiver(waivedAlert1.getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiver.getId()));
+    PolicyAlert waivedAlert2 = policyResults.getWaivedAlerts().get(1);
+    assertThat(waivedAlert2.getTrigger().getComponentFacts().get(0).getHash(), is(hash2));
+    assertThat(policyResults.getPolicyWaiver(waivedAlert2.getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiver.getId()));
+    assertThat(policyResults.getActiveAlerts(), hasSize(0));
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaiver_InheritedFromOrganization() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy policy = tempEntity.newPolicy(org.getId(), "Test policy");
+
+    Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    String hash = "hash";
+    component.setHash(hash);
+    component.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), org.getId());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Collections.singletonList(component), false);
+
+    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    PolicyAlert waivedAlert = policyResults.getWaivedAlerts().get(0);
+    assertThat(waivedAlert.getTrigger().getComponentFacts().get(0).getHash(), is(hash));
+    assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiver.getId()));
+    assertThat(policyResults.getActiveAlerts(), hasSize(0));
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaiver_InheritedFromRootOrganization() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy policy = tempEntity.newPolicy(org.getParentOrganizationId(), "Test policy");
+
+    Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    String hash = "hash";
+    component.setHash(hash);
+    component.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), org.getParentOrganizationId());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Collections.singletonList(component), false);
+
+    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    PolicyAlert waivedAlert = policyResults.getWaivedAlerts().get(0);
+    assertThat(waivedAlert.getTrigger().getComponentFacts().get(0).getHash(), is(hash));
+    assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId(),
+        is(policyWaiver.getId()));
+    assertThat(policyResults.getActiveAlerts(), hasSize(0));
   }
 
   private void assertConditionFact(ConditionFact actual,

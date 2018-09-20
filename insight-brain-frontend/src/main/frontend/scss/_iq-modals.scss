@@ -91,9 +91,18 @@ $iq-modal-bottom-spacing: 8px;
   
   .btn {
     margin-right: 12px;
-    
+
     &:not(.btn-icon-only) {
       min-width: 100px;
+    }
+  }
+    
+  // solves the problem where a tooltip inserts itself between two buttons and breaks the standard + .iq-btn rule
+  .iq-btn {
+    margin-right: 8px;
+    
+    + .iq-btn {
+      margin-left: 0;
     }
   }
   

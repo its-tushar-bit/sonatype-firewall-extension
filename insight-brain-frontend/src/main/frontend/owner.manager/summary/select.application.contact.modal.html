@@ -64,8 +64,8 @@
               submit-dirty="vm.isDirty()"
               submit-type="update">
         Select
-      </button>
-      <button ng-if="vm.submitError" class="iq-btn iq-btn--error" type="submit" ng-disabled="!vm.isDirty()">
+      </button><!--
+   --><button ng-if="vm.submitError" class="iq-btn iq-btn--error" type="submit" ng-disabled="!vm.isDirty()">
         <i class="fa fa-refresh"></i>Retry
       </button><!--
    --><button class="iq-btn" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">

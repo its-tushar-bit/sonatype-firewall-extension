@@ -36,7 +36,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
-public class AuditResourceTest
+public class AuthenticationAuditTest
     extends AbstractBrainServiceTest
 {
   private static final String RESTRICTED_PATH = "/" + ApplicationResource.RESOURCE_PATH;

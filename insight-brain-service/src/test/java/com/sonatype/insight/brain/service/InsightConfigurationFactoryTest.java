@@ -8,8 +8,16 @@ package com.sonatype.insight.brain.service;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
+import io.dropwizard.jackson.Jackson;
 import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
@@ -18,19 +26,16 @@ import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
+import io.dropwizard.logging.LoggerConfiguration;
 import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import io.dropwizard.server.ServerFactory;
 import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.util.Duration;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.util.Duration;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.ImmutableMap;
-import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -38,8 +43,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-
-import ch.qos.logback.classic.Level;
 
 public class InsightConfigurationFactoryTest
 {
@@ -203,6 +206,95 @@ public class InsightConfigurationFactoryTest
     assertConnector(defaultServerFactory.getApplicationConnectors(), HttpsConnectorFactory.class, 9070,
         Duration.minutes(30));
     assertConnector(defaultServerFactory.getAdminConnectors(), HttpsConnectorFactory.class, 9071, Duration.minutes(30));
+  }
+
+  @Test
+  public void testBuild_NoAuditLogSettings_UseDefault() throws Exception {
+    InsightConfig insightConfig = build("config-no-server.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
+        .treeToValue(auditLogger, LoggerConfiguration.class);
+    assertThat(loggerConfiguration.getLevel(), is(Level.INFO.toString()));
+    assertThat(loggerConfiguration.isAdditive(), is(false));
+    assertThat(loggerConfiguration.getAppenders(), hasSize(1));
+    assertThat(loggerConfiguration.getAppenders().get(0), is(instanceOf(FileAppenderFactory.class)));
+    FileAppenderFactory<ILoggingEvent> auditLogAppenderFactory =
+        (FileAppenderFactory<ILoggingEvent>) loggerConfiguration.getAppenders().get(0);
+    assertThat(auditLogAppenderFactory.getCurrentLogFilename(), is("./log/audit.log"));
+    assertThat(auditLogAppenderFactory.getLogFormat(), is("%message%n"));
+    assertThat(auditLogAppenderFactory.getDiscardingThreshold(), is(0));
+    assertThat(auditLogAppenderFactory.getArchivedLogFilenamePattern(), is("./log/audit-%d.log.gz"));
+    assertThat(auditLogAppenderFactory.getArchivedFileCount(), is(50));
+  }
+
+  @Test
+  public void testBuild_AuditLogOnlyLevelSetting_NoError() throws Exception {
+    build("config-audit-text-node.yml");
+  }
+
+  @Test
+  public void testBuild_AuditLogSettings_Empty() throws Exception {
+    build("config-audit-empty.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBuild_AuditLogSettings_NonObjectAppender() throws Exception {
+    build("config-audit-non-object-appender.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBuild_AuditLogSettings_EmptyObjectAppender() throws Exception {
+    build("config-audit-empty-appender.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBuild_AuditLogSettings_NonTextType() throws Exception {
+    build("config-audit-non-text-type.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBuild_AuditLogSettings_NonStandardAppender() throws Exception {
+    build("config-audit-non-standard-appender.yml");
+  }
+
+  @Test
+  public void testBuild_AuditLogSettings_MissingRequired() throws Exception {
+    InsightConfig insightConfig = build("config-audit-missing-required.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
+        .treeToValue(auditLogger, LoggerConfiguration.class);
+    assertThat(loggerConfiguration.isAdditive(), is(false));
+    assertThat(loggerConfiguration.getAppenders(), hasSize(3));
+    for (AppenderFactory<ILoggingEvent> appenderFactory : loggerConfiguration.getAppenders()) {
+      assertThat(appenderFactory, is(instanceOf(AbstractAppenderFactory.class)));
+      AbstractAppenderFactory<ILoggingEvent> abstractAppenderFactory =
+          (AbstractAppenderFactory<ILoggingEvent>) appenderFactory;
+      assertThat(abstractAppenderFactory.getDiscardingThreshold(), is(0));
+      assertThat(abstractAppenderFactory.getLogFormat(), is("%message%n"));
+    }
+  }
+
+  @Test
+  public void testBuild_AuditLogSettings_OverridesDiscardingThreshold() throws Exception {
+    InsightConfig insightConfig = build("config-audit-overrides-discarding-threshold.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
+        .treeToValue(auditLogger, LoggerConfiguration.class);
+    assertThat(loggerConfiguration.isAdditive(), is(true));
+    assertThat(loggerConfiguration.getAppenders(), hasSize(3));
+    for (AppenderFactory<ILoggingEvent> appenderFactory : loggerConfiguration.getAppenders()) {
+      assertThat(appenderFactory, is(instanceOf(AbstractAppenderFactory.class)));
+      AbstractAppenderFactory<ILoggingEvent> abstractAppenderFactory =
+          (AbstractAppenderFactory<ILoggingEvent>) appenderFactory;
+      assertThat(abstractAppenderFactory.getDiscardingThreshold(), is(0));
+      assertThat(abstractAppenderFactory.getLogFormat(), is("logFormat"));
+    }
   }
 
   private InsightConfig build(String filename) throws Exception {

@@ -179,18 +179,10 @@ logging:
     "org.eclipse.jetty": INFO
     "org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter": INFO   # WARNING: This reveals credentials at DEBUG level
     "com.sonatype.insight.audit":
-      # Set audit statements to INFO level as they only observe behaviour.
-      level: INFO
-      # Keep audit statements separate from other log statements.
-      additive: false
       appenders:
       - type: file
         # The file to which audit statements will be logged.
         currentLogFilename: ./log/audit.log
-        # Only print the audit log statement message followed by a new line.
-        logFormat: "%message%n"
-        # Keep all audit events.
-        discardingThreshold: 0
         # When the audit log file rotates, the archived audit log will be renamed to this and gzipped. The
         # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
         # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".

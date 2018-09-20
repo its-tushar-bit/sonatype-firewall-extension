@@ -20,12 +20,8 @@ logging:
     "org.springframework.jdbc.datasource.SimpleDriverDataSource" : INFO
     "org.apache.commons.beanutils.converters": INFO
     "com.sonatype.insight.audit":
-      level: INFO
-      additive: false
       appenders:
       - type: console
-        logFormat: "%message%n"
-        discardingThreshold: 0
   appenders:
     - type: console
       logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"

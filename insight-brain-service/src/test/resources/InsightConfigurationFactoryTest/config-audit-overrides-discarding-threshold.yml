@@ -1,0 +1,17 @@
+logging:
+  loggers:
+    "com.sonatype.insight.audit":
+      additive: true
+      appenders:
+      - type: console
+        logFormat: "logFormat"
+        discardingThreshold: 100
+      - type: file
+        currentLogFilename: ./log/audit.log
+        logFormat: "logFormat"
+        discardingThreshold: 100
+        archivedLogFilenamePattern: ./log/audit-%d.log.gz
+        archivedFileCount: 50
+      - type: syslog
+        logFormat: "logFormat"
+        discardingThreshold: 100

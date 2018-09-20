@@ -11,18 +11,21 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.validation.Validator;
 
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.YamlConfigurationFactory;
@@ -106,6 +109,51 @@ public class InsightConfigurationFactory
     newLoggerLevels.putIfAbsent("com.sonatype.insight.brain.hds.UserTelemetryHdsClient",
         new TextNode(Level.INFO.toString()));
 
+    setAuditLogSettings(newLoggerLevels);
     loggingFactory.setLoggers(newLoggerLevels);
+  }
+
+  private void setAuditLogSettings(Map<String, JsonNode> loggers) {
+    JsonNode auditLogger = loggers.putIfAbsent(AuditRecorder.BASE_LOGGER_NAME, createDefaultAuditLogger());
+    if (auditLogger instanceof ObjectNode) {
+      setRequiredAuditLogSettings((ObjectNode) auditLogger);
+    }
+  }
+
+  private void setRequiredAuditLogSettings(ObjectNode auditLogger) {
+    if (!auditLogger.has("additive")) {
+      auditLogger.put("additive", false);
+    }
+    JsonNode auditLogAppenders = auditLogger.get("appenders");
+    if (!(auditLogAppenders instanceof ArrayNode)) {
+      return;
+    }
+    for (int index = 0; index < auditLogAppenders.size(); index++) {
+      if (!(auditLogAppenders.get(index) instanceof ObjectNode)) {
+        continue;
+      }
+      ObjectNode auditLogAppender = (ObjectNode) auditLogAppenders.get(index);
+      String type = auditLogAppender.path("type").asText();
+      if (!type.equals("file") && !type.equals("console") && !type.equals("syslog")) {
+        continue;
+      }
+      auditLogAppender.put("discardingThreshold", 0);
+      if (!auditLogAppender.has("logFormat")) {
+        auditLogAppender.put("logFormat", "%message%n");
+      }
+    }
+  }
+
+  private JsonNode createDefaultAuditLogger() {
+    ObjectNode auditLogger = mapper.createObjectNode();
+    ArrayNode auditLogAppenders = auditLogger.putArray("appenders");
+    ObjectNode auditLogAppender = mapper.createObjectNode();
+    auditLogAppender.put("type", "file");
+    auditLogAppender.put("currentLogFilename", "./log/audit.log");
+    auditLogAppender.put("archivedLogFilenamePattern", "./log/audit-%d.log.gz");
+    auditLogAppender.put("archivedFileCount", 50);
+    auditLogAppenders.add(auditLogAppender);
+    setRequiredAuditLogSettings(auditLogger);
+    return auditLogger;
   }
 }

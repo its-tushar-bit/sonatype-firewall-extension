@@ -1,0 +1,10 @@
+logging:
+  loggers:
+    "com.sonatype.insight.audit":
+      appenders:
+      - type: console
+      - type: file
+        currentLogFilename: ./log/audit.log
+        archivedLogFilenamePattern: ./log/audit-%d.log.gz
+        archivedFileCount: 50
+      - type: syslog

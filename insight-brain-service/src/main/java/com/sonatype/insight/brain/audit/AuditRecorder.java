@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class AuditRecorder
 {
-  private static final String BASE_LOGGER_NAME = "com.sonatype.insight.audit";
+  public static final String BASE_LOGGER_NAME = "com.sonatype.insight.audit";
 
   private static final String LOGGER_NAME_PREFIX = BASE_LOGGER_NAME + ".";
 

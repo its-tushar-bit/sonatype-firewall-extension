@@ -20,8 +20,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -106,21 +104,17 @@ public class AuthenticationAuditTest
 
   @Test
   public void testNoAuthenticationHeadersOrCookies() throws Exception {
-    HttpGet httpGet = new HttpGet(getRestBaseUrl() + RESTRICTED_PATH);
-
-    HttpClientBuilder.create().build().execute(httpGet);
+    restRequest().anon().path(RESTRICTED_PATH).get();
 
     List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
-    assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "unauthenticated");
   }
 
   @Test
   public void testInvalidUserNamePassword() throws Exception {
     restRequest().auth("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
 
-    assertThat(auditAuthenticationMessages, hasSize(1));
+    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
     assertAuditLog(auditAuthenticationMessages.get(0), "POST", AUTH_RESOURCE_PATH, "bad-authentication");
   }
 
@@ -129,7 +123,6 @@ public class AuthenticationAuditTest
     restRequest().path(RESTRICTED_UNSAFE_PATH).noCsrfToken().delete();
 
     List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
-    assertThat(auditAuthenticationMessages, hasSize(1));
     assertAuditLog(auditAuthenticationMessages.get(0), "DELETE", RESTRICTED_UNSAFE_PATH, "bad-csrf-token");
   }
 
@@ -138,7 +131,6 @@ public class AuthenticationAuditTest
     restRequest().path(RESTRICTED_PATH).anon().cookie(SecurityModule.SESSION_COOKIE_NAME, "bad").get();
 
     List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
-
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "bad-session");
   }
 

@@ -169,7 +169,7 @@ logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
   level: DEBUG
 
-  # Logger-specific levels.
+  # Logger-specific settings.
   loggers:
     "com.sonatype.insight.scan": INFO
     "eu.medsea.mimeutil.MimeUtil2": INFO

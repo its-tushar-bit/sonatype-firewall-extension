@@ -32,20 +32,20 @@ public class RequestDataTest
   }
 
   @Test
-  public void testNewInstance_Path_NullQueryParams() {
+  public void testNewInstance_Uri_NullQueryParams() {
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getPath(), is("requestUri"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getUri(), is("requestUri"));
   }
 
   @Test
-  public void testNewInstance_Path_QueryParams() {
+  public void testNewInstance_Uri_QueryParams() {
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
     when(mockHttpServletRequest.getQueryString()).thenReturn("queryString");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getPath(), is("requestUri?queryString"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getUri(), is("requestUri?queryString"));
   }
 
   @Test

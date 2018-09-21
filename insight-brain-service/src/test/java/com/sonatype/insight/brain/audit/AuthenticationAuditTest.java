@@ -64,8 +64,8 @@ public class AuthenticationAuditTest
     assertThat(log.timestamp, not(isEmptyOrNullString()));
     assertThat(log.error, is(nullValue()));
     assertThat(log.username, is(User.ADMIN_USERNAME));
-    assertThat(log.method, is("POST"));
-    assertThat(log.path, is(AUTH_RESOURCE_PATH));
+    assertThat(log.requestMethod, is("POST"));
+    assertThat(log.requestUri, is(AUTH_RESOURCE_PATH));
 
     restRequest().path(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).anon().cookie(sessionCookie)
         .delete();
@@ -77,8 +77,8 @@ public class AuthenticationAuditTest
     assertThat(log.timestamp, not(isEmptyOrNullString()));
     assertThat(log.error, is(nullValue()));
     assertThat(log.username, is(User.ADMIN_USERNAME));
-    assertThat(log.method, is("DELETE"));
-    assertThat(log.path, is(AUTH_RESOURCE_PATH + '/' + UserSessionResource.LOGOUT_PATH));
+    assertThat(log.requestMethod, is("DELETE"));
+    assertThat(log.requestUri, is(AUTH_RESOURCE_PATH + '/' + UserSessionResource.LOGOUT_PATH));
   }
 
   @Test
@@ -98,8 +98,8 @@ public class AuthenticationAuditTest
     assertThat(log.timestamp, not(isEmptyOrNullString()));
     assertThat(log.error, is(nullValue()));
     assertThat(log.username, is(username));
-    assertThat(log.method, is("GET"));
-    assertThat(log.path, is(RESTRICTED_PATH));
+    assertThat(log.requestMethod, is("GET"));
+    assertThat(log.requestUri, is(RESTRICTED_PATH));
   }
 
   @Test
@@ -166,8 +166,8 @@ public class AuthenticationAuditTest
                               final String error)
   {
     AuditDTO auditDTO = parseAuditLog(auditLogEntry);
-    assertThat(auditDTO.method, is(method));
-    assertThat(auditDTO.path, is(resourcePath));
+    assertThat(auditDTO.requestMethod, is(method));
+    assertThat(auditDTO.requestUri, is(resourcePath));
     assertThat(auditDTO.domain, is("authentication"));
     assertThat(auditDTO.type, is("failure"));
     assertThat(auditDTO.error, is(error));

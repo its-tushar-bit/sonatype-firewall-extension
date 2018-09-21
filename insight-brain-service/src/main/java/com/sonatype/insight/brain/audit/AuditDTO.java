@@ -22,9 +22,9 @@ public class AuditDTO
 {
   public String timestamp;
 
-  public String method;
+  public String requestMethod;
 
-  public String path;
+  public String requestUri;
 
   public String remoteIpAddress;
 
@@ -53,8 +53,8 @@ public class AuditDTO
     domain = recordingAuditData.getEvent().getDomain();
     if (requestData != null) {
       if (domain.equals(Domain.AUTHENTICATION)) {
-        method = requestData.getMethod();
-        path = requestData.getPath();
+        requestMethod = requestData.getMethod();
+        requestUri = requestData.getUri();
       }
       remoteIpAddress = requestData.getRemoteIpAddress();
       forwarded = requestData.getForwarded();

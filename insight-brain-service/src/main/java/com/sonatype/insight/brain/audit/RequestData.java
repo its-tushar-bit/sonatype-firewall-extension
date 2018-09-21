@@ -22,7 +22,7 @@ class RequestData
 {
   private final String method;
 
-  private final String path;
+  private final String uri;
 
   private final String remoteIpAddress;
 
@@ -34,10 +34,10 @@ class RequestData
 
   static RequestData newInstance(HttpServletRequest httpRequest) {
     String method = httpRequest.getMethod();
-    String path = httpRequest.getRequestURI();
+    String uri = httpRequest.getRequestURI();
     String queryParams = httpRequest.getQueryString();
     if (queryParams != null) {
-      path += '?' + queryParams;
+      uri += '?' + queryParams;
     }
     String remoteIpAddress = httpRequest.getRemoteAddr();
     String forwarded = getAllHeaders(httpRequest.getHeaders(HttpHeaders.FORWARDED));
@@ -46,7 +46,7 @@ class RequestData
     }
     String userAgent = httpRequest.getHeader(HttpHeaders.USER_AGENT);
     String sessionId = getCookie(httpRequest, SecurityModule.SESSION_COOKIE_NAME);
-    return new RequestData(method, path, remoteIpAddress, forwarded, userAgent, sessionId);
+    return new RequestData(method, uri, remoteIpAddress, forwarded, userAgent, sessionId);
   }
 
   private static String getAllHeaders(Enumeration<String> headers) {
@@ -73,14 +73,14 @@ class RequestData
   }
 
   private RequestData(String method,
-                      String path,
+                      String uri,
                       String remoteIpAddress,
                       String forwarded,
                       String userAgent,
                       String sessionId)
   {
     this.method = method;
-    this.path = path;
+    this.uri = uri;
     this.remoteIpAddress = remoteIpAddress;
     this.forwarded = forwarded;
     this.userAgent = userAgent;
@@ -91,8 +91,8 @@ class RequestData
     return method;
   }
 
-  String getPath() {
-    return path;
+  String getUri() {
+    return uri;
   }
 
   String getRemoteIpAddress() {

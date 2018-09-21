@@ -367,8 +367,8 @@ public class AuditRecorderTest
     ZonedDateTime now = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.systemDefault());
     assertThat(parsed.isBefore(now) || parsed.isEqual(now), is(true));
-    assertThat(objectNode.get("method").asText(), is("GET"));
-    assertThat(objectNode.get("path").asText(), is("requestUri?queryString"));
+    assertThat(objectNode.get("requestMethod").asText(), is("GET"));
+    assertThat(objectNode.get("requestUri").asText(), is("requestUri?queryString"));
     assertThat(objectNode.get("remoteIpAddress").asText(), is("remoteAddr"));
     assertThat(objectNode.get("forwarded").asText(), is("forwarded1, forwarded2, forwarded3"));
     assertThat(objectNode.get("userAgent").asText(), is("userAgent"));
@@ -386,8 +386,8 @@ public class AuditRecorderTest
     recordingAuditData.setEvent(AuditEvent.CREATE_APPLICATION);
     ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
 
-    assertThat(objectNode.has("method"), is(false));
-    assertThat(objectNode.has("path"), is(false));
+    assertThat(objectNode.has("requestMethod"), is(false));
+    assertThat(objectNode.has("requestUri"), is(false));
   }
 
   @Test
@@ -402,8 +402,8 @@ public class AuditRecorderTest
     ZonedDateTime now = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.systemDefault());
     assertThat(parsed.isBefore(now) || parsed.isEqual(now), is(true));
-    assertThat(objectNode.has("method"), is(false));
-    assertThat(objectNode.has("path"), is(false));
+    assertThat(objectNode.has("requestMethod"), is(false));
+    assertThat(objectNode.has("requestUri"), is(false));
     assertThat(objectNode.has("remoteIpAddress"), is(false));
     assertThat(objectNode.has("forwarded"), is(false));
     assertThat(objectNode.has("userAgent"), is(false));

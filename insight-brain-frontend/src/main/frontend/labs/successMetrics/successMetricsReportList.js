@@ -20,7 +20,6 @@ function successMetricsReportController($state, $q, systemConfigurationPropertyS
   vm.loaded = false;
   vm.error = undefined;
   vm.successMetricsReports = undefined;
-  vm.$state = $state;
 
   vm.$onInit = $onInit;
   vm.goToCharts = goToCharts;

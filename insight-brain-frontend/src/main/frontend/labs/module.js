@@ -19,7 +19,7 @@ function configureRoutes($stateProvider) {
         </div>`
       })
       .state('labs.successMetrics', {
-        url: '/successMetrics?successMetricsApi',
+        url: '/successMetrics',
         component: 'successMetricsReportList',
         data: {
           title: 'Success Metrics'

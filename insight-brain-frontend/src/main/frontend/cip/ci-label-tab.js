@@ -5,6 +5,7 @@
  */
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
+import cipLabelEditorModule from './cip.label.editor/cip.label.editor.module';
 /*global angular, $, CLM, Insight, applicationId */
 (function() {
   'use strict';
@@ -40,7 +41,7 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
           ownerId: applicationId
         };
       });
-      angular.bootstrap(container[0], ['cip.label.editor', 'componentProvider' + timestamp, 'AngularCommon', 
+      angular.bootstrap(container[0], [cipLabelEditorModule.name, 'componentProvider' + timestamp, 'AngularCommon',
           'ui.bootstrap', legacyConfigurationModule.name]);
     };
 

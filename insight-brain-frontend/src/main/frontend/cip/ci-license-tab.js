@@ -5,6 +5,7 @@
  */
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
+import cipLicenseEditorModule from './cip.license.editor/cip.license.editor.module';
 /*global angular, $, CLM, Insight, applicationId */
 (function() {
   'use strict';
@@ -60,7 +61,7 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
         };
       });
 
-      angular.bootstrap(container[0], ['cip.license.editor', 'componentProvider' + timestamp,
+      angular.bootstrap(container[0], [cipLicenseEditorModule.name, 'componentProvider' + timestamp,
           legacyConfigurationModule.name]);
     };
 

@@ -3,28 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, CLM */
-(function() {
-  'use strict';
+/*global CLM */
+export default function LabelRemoveController($scope, $http, label, SelectedComponent, messages) {
+  //accept, send delete request to server
+  $scope.accept = function() {
+    $scope.labelDeleting = true;
+    $scope.labelRemoveError = null;
+    $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
+        SelectedComponent.get().hash + '/' + label.id).then(function() {
+      $scope.$emit('reevaluate.component', {hash: SelectedComponent.get().hash});
+      $scope.$close();
+    }, function(error) {
+      $scope.labelDeleting = false;
+      $scope.labelRemoveError = messages.getHttpErrorMessage(error);
+    });
+  };
+  $scope.labelRemoveError = null;
+}
 
-  //the remove controller, controlling the remove modal
-  angular.module('cip.label.editor').controller('LabelRemoveController', [
-    '$scope', '$http', 'label', 'SelectedComponent', 'Messages',
-    function($scope, $http, label, SelectedComponent, messages) {
-      //accept, send delete request to server
-      $scope.accept = function() {
-        $scope.labelDeleting = true;
-        $scope.labelRemoveError = null;
-        $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
-                SelectedComponent.get().hash + '/' + label.id).then(function() {
-          $scope.$emit('reevaluate.component', {hash: SelectedComponent.get().hash});
-          $scope.$close();
-        }, function(error) {
-          $scope.labelDeleting = false;
-          $scope.labelRemoveError = messages.getHttpErrorMessage(error);
-        });
-      };
-      $scope.labelRemoveError = null;
-    }
-  ]);
-}());
+LabelRemoveController.$inject = ['$scope', '$http', 'label', 'SelectedComponent', 'Messages'];

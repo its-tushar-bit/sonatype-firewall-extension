@@ -3,32 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular*/
-(function() {
-  'use strict';
-
-  angular.module('version.graph').controller('ApplicationController', ['$scope', 'Applications', 'OwnerContext', function ($scope, Applications, OwnerContext) {
-    $scope.doLoad = function () {
-      Applications.get().then(function (data) {
-        $scope.applications = data;
-      }, function (error) {
-        $scope.setError(error);
-      });
-    };
-
-    $scope.applications = null;
-    $scope.selectedApplication = OwnerContext.ownerId;
-
-    $scope.$on('reload', function () {
-      $scope.doLoad();
+export default function ApplicationController($scope, Applications, OwnerContext) {
+  $scope.doLoad = function() {
+    Applications.get().then(function(data) {
+      $scope.applications = data;
+    }, function(error) {
+      $scope.setError(error);
     });
+  };
 
-    // Monitor user's change to dropdown
-    $scope.$watch('selectedApplication', function (app) {
-      OwnerContext.setApplicationId(app);
-    });
+  $scope.applications = null;
+  $scope.selectedApplication = OwnerContext.ownerId;
 
+  $scope.$on('reload', function() {
     $scope.doLoad();
-  }]);
+  });
 
-}());
+  // Monitor user's change to dropdown
+  $scope.$watch('selectedApplication', function(app) {
+    OwnerContext.setApplicationId(app);
+  });
+
+  $scope.doLoad();
+}
+
+ApplicationController.$inject = ['$scope', 'Applications', 'OwnerContext'];

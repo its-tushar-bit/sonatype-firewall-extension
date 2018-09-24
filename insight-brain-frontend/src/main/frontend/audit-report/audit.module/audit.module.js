@@ -7,6 +7,16 @@
 
 import legacyConfigurationModule from '../../LegacyConfigurationModule';
 import auditReportPendoModule from '../pendo/module';
+import componentInformationPanelModule from '../cip/component.information.panel.module';
+
+import auditSummaryController from './audit.summary.controller';
+import coverageDonutDirective from './coverage.donut.directive';
+import auditThreatDirective from './audit.threat.directive';
+import ownerContextService from './owner.context.service';
+import repositoryViolationTableFilterDirective from './repository.violation.table.filter.directive';
+import componentUpdateController from './component.update.controller';
+import componentUpdateOptionalController from './component.update.optional.controller';
+import componentUpdateService from './component.update.service';
 
 window.CLM = {
   path: '../../',
@@ -34,7 +44,15 @@ window.CLM = {
 
   angular.module('audit',
       ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-        auditReportPendoModule.name, 'component.information.panel', legacyConfigurationModule.name])
+        auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name])
+      .controller('audit.summary.controller', auditSummaryController)
+      .directive('coverageDonut', coverageDonutDirective)
+      .directive('auditThreat', auditThreatDirective)
+      .service('OwnerContext', ownerContextService)
+      .directive('repositoryViolationTableFilter', repositoryViolationTableFilterDirective)
+      .controller('component.update.controller', componentUpdateController)
+      .controller('component.update.optional.controller', componentUpdateOptionalController)
+      .service('component.update.service', componentUpdateService)
       .run(init)
       .config(config);
 }());

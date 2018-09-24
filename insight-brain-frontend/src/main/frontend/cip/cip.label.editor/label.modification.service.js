@@ -3,42 +3,35 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular */
-(function() {
-  'use strict';
-
-  function LabelModification(Modal) {
-    return {
-      add: function (label) {
-        return Modal.open({
-          backdrop: 'static',
-          keyboard: false,
-          templateUrl: 'add-modal-service',
-          controller: 'LabelAddController',
-          resolve: {
-            label: function () {
-              return label;
-            }
+export default function LabelModification(Modal) {
+  return {
+    add: function(label) {
+      return Modal.open({
+        backdrop: 'static',
+        keyboard: false,
+        templateUrl: 'add-modal-service',
+        controller: 'LabelAddController',
+        resolve: {
+          label: function() {
+            return label;
           }
-        }).result;
-      },
+        }
+      }).result;
+    },
 
-      remove: function (label) {
-        return Modal.open({
-          backdrop: 'static',
-          keyboard: false,
-          templateUrl: 'delete-modal-service',
-          controller: 'LabelRemoveController',
-          resolve: {
-            label: function () {
-              return label;
-            }
+    remove: function(label) {
+      return Modal.open({
+        backdrop: 'static',
+        keyboard: false,
+        templateUrl: 'delete-modal-service',
+        controller: 'LabelRemoveController',
+        resolve: {
+          label: function() {
+            return label;
           }
-        }).result;
-      }
-    };
-  }
-  LabelModification.$inject = ['Modal'];
-
-  angular.module('cip.label.editor').service('LabelModification', LabelModification);
-}());
+        }
+      }).result;
+    }
+  };
+}
+LabelModification.$inject = ['Modal'];

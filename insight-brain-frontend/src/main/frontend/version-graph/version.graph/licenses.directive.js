@@ -3,20 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular*/
-(function() {
-  'use strict';
-
-  angular.module('version.graph').directive('licenses', function () {
-    return {
-      scope : {
-        licenses : '=',
-        status : '@',
-        emptyText : '@'
-      },
-      template : '<span ng-repeat="license in licenses" class="license">{{license.licenseName}}{{!$last ? "," : ""}}</span>' +
-                 '<span ng-if="licenses.length == 0">{{emptyText}}</span>' +
-                 '<span ng-if="status" class="clm-license-status {{status | lowercase}}">{{status}}</span>'
-    };
-  });
-}());
+export default function() {
+  return {
+    scope: {
+      licenses: '=',
+      status: '@',
+      emptyText: '@'
+    },
+    template: '<span ng-repeat="license in licenses" class="license">{{license.licenseName}}{{!$last ? "," : ""}}</span>' +
+    '<span ng-if="licenses.length == 0">{{emptyText}}</span>' +
+    '<span ng-if="status" class="clm-license-status {{status | lowercase}}">{{status}}</span>'
+  };
+}

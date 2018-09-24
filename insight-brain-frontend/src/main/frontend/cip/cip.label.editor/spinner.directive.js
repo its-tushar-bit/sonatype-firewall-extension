@@ -4,28 +4,24 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
+export default function spinnerDirective() {
+  var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
 
-  angular.module('cip.label.editor').directive('spinner', function() {
-    var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
+  function setElement(element, value) {
+    angular.forEach(properties, function(prop) {
+      element.css(prop, value);
+    });
+    return element;
+  }
 
-    function setElement(element, value) {
-      angular.forEach(properties, function(prop) {
-        element.css(prop, value);
+  return function(scope, element) {
+    element.bind('click', function() {
+      setElement(element, '').prop('rotate', null).animate({rotate: '+360'}, {
+        step: function(now) {
+          now = now % 360;
+          setElement(element, 'rotate(' + now + 'deg)');
+        }
       });
-      return element;
-    }
-
-    return function(scope, element) {
-      element.bind('click', function() {
-        setElement(element, '').prop('rotate', null).animate({ rotate: '+360'}, {
-          step: function(now) {
-            now = now % 360;
-            setElement(element, 'rotate(' + now + 'deg)');
-          }
-        });
-      });
-    };
-  });
-}());
+    });
+  };
+}

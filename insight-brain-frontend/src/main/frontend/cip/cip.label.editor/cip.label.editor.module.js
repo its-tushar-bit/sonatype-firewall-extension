@@ -4,8 +4,20 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
+import currentLabelDataService from './current.label.data.service';
+import labelAddController from './label.add.controller';
+import labelRemoveController from './label.remove.controller';
+import labelsController from './labels.controller';
+import spinnerDirective from './spinner.directive';
+import cipLabelEditor from './cip.label.editor.directive';
+import labelModificationService from './label.modification.service';
 
-  angular.module('cip.label.editor', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap']);
-}());
+export default angular.module('cip.label.editor',
+    ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap'])
+    .service('CurrentLabelData', currentLabelDataService)
+    .controller('LabelAddController', labelAddController)
+    .controller('LabelRemoveController', labelRemoveController)
+    .controller('LabelsController', labelsController)
+    .directive('spinner', spinnerDirective)
+    .directive('cipLabelEditor', cipLabelEditor)
+    .service('LabelModification', labelModificationService);

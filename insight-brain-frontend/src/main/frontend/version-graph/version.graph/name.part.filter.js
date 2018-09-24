@@ -4,21 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
-
-  angular.module('version.graph').filter('namePart', function () {
-    return function (input) {
-      if (angular.isArray(input)) {
-        var result = [];
-        angular.forEach(input, function (part) {
-          if (part.field) {
-            result.push(part);
-          }
-        });
-        return result;
-      }
-      return input;
-    };
-  });
-}());
+export default function namePartFilter() {
+  return function(input) {
+    if (angular.isArray(input)) {
+      var result = [];
+      angular.forEach(input, function(part) {
+        if (part.field) {
+          result.push(part);
+        }
+      });
+      return result;
+    }
+    return input;
+  };
+}

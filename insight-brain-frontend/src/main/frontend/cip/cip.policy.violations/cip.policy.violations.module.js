@@ -4,8 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
+import addWaiverController from './add.waiver.controller';
+import cipPolicyViolationsDirective from './cip.policy.violations.directive';
+import policyViolationsController from './policy.violations.controller';
+import viewWaiverController from './view.waiver.controller';
+import releaseQuarantineController from './release.quarantine.controller';
+import ciPolicyViolationsService from './ci.policy.violations.service';
 
-  angular.module('cip.policy.violations', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap']);
-}());
+export default angular.module('cip.policy.violations',
+    ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap'])
+    .controller('AddWaiverController', addWaiverController)
+    .directive('cipPolicyViolations', cipPolicyViolationsDirective)
+    .controller('PolicyViolationsController', policyViolationsController)
+    .controller('ViewWaiverController', viewWaiverController)
+    .controller('release.quarantine.controller', releaseQuarantineController)
+    .service('PolicyViolations', ciPolicyViolationsService);

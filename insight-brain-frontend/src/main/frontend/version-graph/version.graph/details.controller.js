@@ -4,129 +4,134 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, Brain, clmEndpoint */
-(function() {
-  'use strict';
 
-  angular.module('version.graph').controller('DetailsController', ['$scope', '$http', 'OwnerContext', 'Coordinates', 'Properties', function ($scope, $http, OwnerContext, Coordinates, Properties) {
-    function coordinatesChanged() {
-      var coordinates = Coordinates.getSelected() ? { coordinates : Coordinates.getSelected(), appId : OwnerContext.ownerId } : null;
+export default function DetailsController($scope, $http, OwnerContext, Coordinates, Properties) {
+  function coordinatesChanged() {
+    var coordinates = Coordinates.getSelected() ? {
+      coordinates: Coordinates.getSelected(),
+      appId: OwnerContext.ownerId
+    } : null;
 
-      if (!angular.equals(last, coordinates)) {
-        $scope.componentDetails = null;
-        $scope.highestPolicyThreat = null;
-        last = coordinates;
+    if (!angular.equals(last, coordinates)) {
+      $scope.componentDetails = null;
+      $scope.highestPolicyThreat = null;
+      last = coordinates;
 
-        if (coordinates && coordinates.appId && !Properties.isUnknown()) {
-          $http.get(Brain[clmEndpoint.type].getComponentUrl(OwnerContext.ownerType, OwnerContext.ownerId, Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), coordinates.coordinates, Properties.getPathname())).then(function (response) {
-            var data = response.data;
-            if (data.matchState === 'unknown') {
-              Properties.setMatchState('unknown');
-            }
-            else {
-              $scope.componentDetails = data;
-              $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
+      if (coordinates && coordinates.appId && !Properties.isUnknown()) {
+        $http.get(Brain[clmEndpoint.type].getComponentUrl(OwnerContext.ownerType, OwnerContext.ownerId,
+            Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
+            coordinates.coordinates, Properties.getPathname())).then(function(response) {
+          var data = response.data;
+          if (data.matchState === 'unknown') {
+            Properties.setMatchState('unknown');
+          }
+          else {
+            $scope.componentDetails = data;
+            $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
 
-              var i = 0;
-              while (i < $scope.componentDetails.securityVulnerabilities.length) {
-                if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
-                  $scope.componentDetails.securityVulnerabilities.splice(i, 1);
-                }
-                else {
-                  i++;
-                }
+            var i = 0;
+            while (i < $scope.componentDetails.securityVulnerabilities.length) {
+              if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
+                $scope.componentDetails.securityVulnerabilities.splice(i, 1);
               }
-
-              $scope.componentDetails.securityVulnerabilities.sort(function(a, b) {
-                if (a.severity === b.severity) {
-                  return 0;
-                }
-                else if (a.severity === null) {
-                  return 1;
-                }
-                else if (b.severity === null) {
-                  return -1;
-                }
-                return b.severity - a.severity;
-              });
-
-              $scope.componentDetails.policyAlerts.sort(function(alertA, alertB) {
-                return alertB.trigger.threatLevel - alertA.trigger.threatLevel;
-              });
-              $scope.highestPolicyThreat = {
-                level: $scope.componentDetails.policyAlerts.length >
-                    0 ? $scope.componentDetails.policyAlerts[0].trigger.threatLevel : null,
-                violatedPolicies: $scope.componentDetails.policyAlerts.length
-              };
+              else {
+                i++;
+              }
             }
-          }, function (error) {
-            $scope.setError(error);
-          });
-        }
+
+            $scope.componentDetails.securityVulnerabilities.sort(function(a, b) {
+              if (a.severity === b.severity) {
+                return 0;
+              }
+              else if (a.severity === null) {
+                return 1;
+              }
+              else if (b.severity === null) {
+                return -1;
+              }
+              return b.severity - a.severity;
+            });
+
+            $scope.componentDetails.policyAlerts.sort(function(alertA, alertB) {
+              return alertB.trigger.threatLevel - alertA.trigger.threatLevel;
+            });
+            $scope.highestPolicyThreat = {
+              level: $scope.componentDetails.policyAlerts.length >
+              0 ? $scope.componentDetails.policyAlerts[0].trigger.threatLevel : null,
+              violatedPolicies: $scope.componentDetails.policyAlerts.length
+            };
+          }
+        }, function(error) {
+          $scope.setError(error);
+        });
       }
     }
-    var last = {};
+  }
 
-    $scope.isManual = function () {
-      return $scope.componentDetails && $scope.componentDetails.identificationSource === 'Manual';
-    };
+  var last = {};
 
-    $scope.canMigrate = function () {
-      var coordinates = Coordinates.get(),
-          selected = Coordinates.getSelected();
+  $scope.isManual = function() {
+    return $scope.componentDetails && $scope.componentDetails.identificationSource === 'Manual';
+  };
 
-      return coordinates && selected && coordinates.version !== selected.version;
-    };
+  $scope.canMigrate = function() {
+    var coordinates = Coordinates.get(),
+        selected = Coordinates.getSelected();
 
-    $scope.getMaximumSeverity = function () {
-      if ($scope.componentDetails) {
-        if ($scope.componentDetails.securityVulnerabilities.length === 0) {
-          return 'NA';
-        }
-        else if ($scope.componentDetails.securityVulnerabilities[0].severity === null) {
-          return 'Unscored';
-        }
-        else {
-          return $scope.componentDetails.securityVulnerabilities[0].severity;
-        }
+    return coordinates && selected && coordinates.version !== selected.version;
+  };
+
+  $scope.getMaximumSeverity = function() {
+    if ($scope.componentDetails) {
+      if ($scope.componentDetails.securityVulnerabilities.length === 0) {
+        return 'NA';
       }
-    };
-
-    $scope.getColorClass = function () {
-      if ($scope.componentDetails) {
-        if ($scope.componentDetails.securityVulnerabilities.length === 0) {
-          return ' unspecified';
-        }
-        else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 7) {
-          return ' critical';
-        }
-        else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 4) {
-          return ' severe';
-        }
-        else {
-          return ' moderate';
-        }
+      else if ($scope.componentDetails.securityVulnerabilities[0].severity === null) {
+        return 'Unscored';
       }
-    };
+      else {
+        return $scope.componentDetails.securityVulnerabilities[0].severity;
+      }
+    }
+  };
 
-    $scope.viewDetails = function () {
-      $scope.$emit('viewDetails', Coordinates.getSelected().version);
-    };
+  $scope.getColorClass = function() {
+    if ($scope.componentDetails) {
+      if ($scope.componentDetails.securityVulnerabilities.length === 0) {
+        return ' unspecified';
+      }
+      else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 7) {
+        return ' critical';
+      }
+      else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 4) {
+        return ' severe';
+      }
+      else {
+        return ' moderate';
+      }
+    }
+  };
 
-    $scope.markUpgrade = function () {
-      $scope.$emit('markUpgrade', Coordinates.getSelected());
-    };
+  $scope.viewDetails = function() {
+    $scope.$emit('viewDetails', Coordinates.getSelected().version);
+  };
 
-    $scope.$on('reload', function () {
-      last = {};
-      coordinatesChanged();
-    });
+  $scope.markUpgrade = function() {
+    $scope.$emit('markUpgrade', Coordinates.getSelected());
+  };
 
-    $scope.$watch(function () {
-      return Coordinates.getSelected();
-    }, coordinatesChanged);
+  $scope.$on('reload', function() {
+    last = {};
+    coordinatesChanged();
+  });
 
-    $scope.$watch(function () {
-      return OwnerContext.ownerId;
-    }, coordinatesChanged);
-  }]);
-}());
+  $scope.$watch(function() {
+    return Coordinates.getSelected();
+  }, coordinatesChanged);
+
+  $scope.$watch(function() {
+    return OwnerContext.ownerId;
+  }, coordinatesChanged);
+}
+
+DetailsController.$inject = ['$scope', '$http', 'OwnerContext', 'Coordinates', 'Properties'];

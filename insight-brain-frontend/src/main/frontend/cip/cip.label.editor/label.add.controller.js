@@ -4,62 +4,56 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM */
-import { pick } from 'ramda';
+import {pick} from 'ramda';
 
-(function() {
-  'use strict';
+//the add controller, controlling the add modal
+export default function LabelAddController($scope, label, SelectedComponent, OwnerContext, messages, $http) {
+  var component = SelectedComponent.get();
+  $scope.displayName = component.displayName;
 
-  //the add controller, controlling the add modal
-  function LabelAddController($scope, label, SelectedComponent, OwnerContext, messages, $http) {
-    var component = SelectedComponent.get();
-    $scope.displayName = component.displayName;
+  //they accept, update the server
+  $scope.accept = function() {
+    const parts = $scope.label.selectedOwner.split('$$'),
+        payload = pick(['color', 'label', 'id', 'description', 'labelLowercase', 'ownerId'], label);
 
-    //they accept, update the server
-    $scope.accept = function() {
-      const parts = $scope.label.selectedOwner.split('$$'),
-          payload = pick(['color', 'label', 'id', 'description', 'labelLowercase', 'ownerId'], label);
+    $scope.labelSaving = true;
+    $scope.labelAddError = null;
+    $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
+        component.hash, payload).then(function() {
+      $scope.$emit('reevaluate.component', {hash: component.hash});
+      $scope.$close(label);
+    }, function(error) {
+      $scope.labelSaving = false;
+      $scope.error = messages.getHttpErrorMessage(error);
+    });
+  };
 
-      $scope.labelSaving = true;
-      $scope.labelAddError = null;
-      $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
-              component.hash, payload).then(function() {
-        $scope.$emit('reevaluate.component', {hash: component.hash});
-        $scope.$close(label);
-      }, function(error) {
-        $scope.labelSaving = false;
-        $scope.error = messages.getHttpErrorMessage(error);
-      });
+  $scope.doLoad = function() {
+    $scope.labelLoading = true;
+    $scope.labelAddError = null;
+    $scope.label = {
+      selectedOwner: OwnerContext.ownerId + '$$' + OwnerContext.ownerType
     };
+    $scope.labelOwners = [];
 
-    $scope.doLoad = function () {
-      $scope.labelLoading = true;
-      $scope.labelAddError = null;
-      $scope.label = {
-        selectedOwner: OwnerContext.ownerId + '$$' + OwnerContext.ownerType
-      };
-      $scope.labelOwners = [];
+    $http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable/context/' +
+        label.id).then(function(response) {
+      $scope.labelLoading = false;
+      function processItem(item) {
+        $scope.labelOwners.push(item);
+        angular.forEach(item.children, function(child) {
+          processItem(child);
+        });
+      }
 
-      $http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable/context/' +
-              label.id).then(function(response) {
-        $scope.labelLoading = false;
-        function processItem(item) {
-          $scope.labelOwners.push(item);
-          angular.forEach(item.children, function(child) {
-            processItem(child);
-          });
-        }
+      processItem(response.data);
+      $scope.labelOwners.reverse();
+    }, function(error) {
+      $scope.labelLoading = false;
+      $scope.error = messages.getHttpErrorMessage(error);
+    });
+  };
 
-        processItem(response.data);
-        $scope.labelOwners.reverse();
-      }, function(error) {
-        $scope.labelLoading = false;
-        $scope.error = messages.getHttpErrorMessage(error);
-      });
-    };
-
-    $scope.doLoad();
-  }
-  LabelAddController.$inject = ['$scope', 'label', 'SelectedComponent', 'OwnerContext', 'Messages', '$http'];
-
-  angular.module('cip.label.editor').controller('LabelAddController', LabelAddController);
-}());
+  $scope.doLoad();
+}
+LabelAddController.$inject = ['$scope', 'label', 'SelectedComponent', 'OwnerContext', 'Messages', '$http'];

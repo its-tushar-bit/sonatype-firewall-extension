@@ -3,50 +3,45 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, clmEndpoint*/
-(function () {
-  'use strict';
+/*global clmEndpoint*/
 
-
-  function OwnerContext($rootScope) {
-    var ownerContext = {
-        ownerType: 'application',
-        ownerId: null,
-        setApplicationId: function (newApplicationId) {
-          if (clmEndpoint.selectApplication) {
-            if (newApplicationId) {
-              var date = new Date();
-              date.setTime(date.getTime() + (60 * 60 * 24 * 365));
-              document.cookie = 'clmAppId=' + newApplicationId + '; expires=' + date.toGMTString();
-            } else {
-              document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
-            }
-          }
-          ownerContext.ownerId = newApplicationId;
+export default function OwnerContext($rootScope) {
+  var ownerContext = {
+    ownerType: 'application',
+    ownerId: null,
+    setApplicationId: function(newApplicationId) {
+      if (clmEndpoint.selectApplication) {
+        if (newApplicationId) {
+          var date = new Date();
+          date.setTime(date.getTime() + (60 * 60 * 24 * 365));
+          document.cookie = 'clmAppId=' + newApplicationId + '; expires=' + date.toGMTString();
         }
-    };
-
-    if (clmEndpoint.selectApplication) {
-      $rootScope.$watch(function() {
-        return document.cookie;
-      }, function () {
-          var clmAppId = null;
-
-          $.each(document.cookie.split(';'), function (index, cookie) {
-            cookie = cookie.split('=');
-            if (cookie[0].trim() === 'clmAppId') {
-              clmAppId = cookie[1].trim();
-              return false;
-            }
-          });
-
-          ownerContext.ownerId = clmAppId;
-      });
+        else {
+          document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
+        }
+      }
+      ownerContext.ownerId = newApplicationId;
     }
+  };
 
-    return ownerContext;
+  if (clmEndpoint.selectApplication) {
+    $rootScope.$watch(function() {
+      return document.cookie;
+    }, function() {
+      var clmAppId = null;
+
+      $.each(document.cookie.split(';'), function(index, cookie) {
+        cookie = cookie.split('=');
+        if (cookie[0].trim() === 'clmAppId') {
+          clmAppId = cookie[1].trim();
+          return false;
+        }
+      });
+
+      ownerContext.ownerId = clmAppId;
+    });
   }
-  OwnerContext.$inject = ['$rootScope'];
 
-  angular.module('version.graph.app').service('OwnerContext', OwnerContext);
-}());
+  return ownerContext;
+}
+OwnerContext.$inject = ['$rootScope'];

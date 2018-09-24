@@ -5,6 +5,9 @@
  */
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
+import versionGraphModule from '../version-graph/version.graph/version.graph.module';
+import proprietaryMatchersModule from './proprietary.matchers.modal/proprietary.matchers.module';
+
 /*global $, angular, applicationId, Insight, CLM */
 (function () {
   'use strict';
@@ -57,8 +60,8 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
           }
         };
       });
-      angular.bootstrap(container[0], ['version.graph', 'componentProvider' + timestamp, 'HttpInterceptors',
-          'UnauthenticatedResponseHttpInterceptor', 'proprietary.matchers', legacyConfigurationModule.name]);
+      angular.bootstrap(container[0], [versionGraphModule.name, 'componentProvider' + timestamp, 'HttpInterceptors',
+          'UnauthenticatedResponseHttpInterceptor', proprietaryMatchersModule.name, legacyConfigurationModule.name]);
     };
     return VersionGraphTab;
   }

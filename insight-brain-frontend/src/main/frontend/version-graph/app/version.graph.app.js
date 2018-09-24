@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import versionGraphPendoModule from '../pendo/module';
+import versionGraphModule from '../version.graph/version.graph.module';
+import ownerContext from './owner.context.service';
+import exceptionHandler from './exception.handler.factory';
 
 /*global $, angular, Insight, Brain, clmEndpoint, window */
 (function () {
@@ -31,8 +34,10 @@ import versionGraphPendoModule from '../pendo/module';
 
   loginAndStartPendoService.$inject = ['$http', 'CLMLocations', 'pendoService'];
 
-  angular.module('version.graph.app', ['version.graph', versionGraphPendoModule.name])
+  angular.module('version.graph.app', [versionGraphModule.name, versionGraphPendoModule.name])
       .service('loginAndStartPendo', loginAndStartPendoService)
+      .service('OwnerContext', ownerContext)
+      .factory('$exceptionHandler', exceptionHandler)
       .run(['$rootScope', '$injector', 'ErrorMessage', 'pendoService',
         function($rootScope, $injector, errorMessage, pendoService) {
           injector = $injector;

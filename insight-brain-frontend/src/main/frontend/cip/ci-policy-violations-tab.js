@@ -5,6 +5,7 @@
  */
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
+import cipPolicyViolationsModule from './cip.policy.violations/cip.policy.violations.module';
 /*global angular, $, CLM, Insight, applicationId */
 (function() {
   'use strict';
@@ -38,7 +39,7 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
           ownerId: applicationId
         };
       });
-      angular.bootstrap(container[0], ['cip.policy.violations', 'policyViolations' + timestamp, 'AngularCommon',
+      angular.bootstrap(container[0], [cipPolicyViolationsModule.name, 'policyViolations' + timestamp, 'AngularCommon',
           legacyConfigurationModule.name]);
     };
 

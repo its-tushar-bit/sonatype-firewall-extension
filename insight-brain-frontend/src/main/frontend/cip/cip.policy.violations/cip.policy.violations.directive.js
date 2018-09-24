@@ -3,17 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, CLM */
-(function () {
-  'use strict';
-
-  function CIPLabelEditor() {
-    return {
-      templateUrl: CLM.assetsPath + 'cip/cip-policy-violations.html',
-      controllerAs: 'vm',
-      controller: 'PolicyViolationsController'
-    };
-  }
-
-  angular.module('cip.policy.violations').directive('cipPolicyViolations', CIPLabelEditor);
-}());
+/*global CLM */
+export default function cipPolicyViolationsDirective() {
+  return {
+    templateUrl: CLM.assetsPath + 'cip/cip-policy-violations.html',
+    controllerAs: 'vm',
+    controller: 'PolicyViolationsController'
+  };
+}

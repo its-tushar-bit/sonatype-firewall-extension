@@ -4,32 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function () {
-  'use strict';
+function decode(encodedString) {
+  return decodeURIComponent((encodedString || '').replace(/\+/g, '%20'));
+}
 
-  function decode(encodedString) {
-    return decodeURIComponent((encodedString || '').replace(/\+/g, '%20'));
+export default function OwnerContext($window) {
+  var search = $window.location.search,
+      result = {};
+  if (search.length === 0) {
+    return;
   }
 
-  function OwnerContext($window) {
-    var search = $window.location.search,
-        result = {};
-    if (search.length === 0) {
-      return;
-    }
+  search = search.substring(1).split('&');
+  angular.forEach(search, function(item) {
+    var field = item.split('=');
+    result[decode(field[0])] = decode(field[1]);
+  });
 
-    search = search.substring(1).split('&');
-    angular.forEach(search, function(item) {
-      var field = item.split('=');
-      result[decode(field[0])] = decode(field[1]);
-    });
-
-    return {
-      ownerType: 'repository',
-      ownerId: result.repositoryId
-    };
-  }
-  OwnerContext.$inject = ['$window'];
-
-  angular.module('audit').service('OwnerContext', OwnerContext);
-}());
+  return {
+    ownerType: 'repository',
+    ownerId: result.repositoryId
+  };
+}
+OwnerContext.$inject = ['$window'];

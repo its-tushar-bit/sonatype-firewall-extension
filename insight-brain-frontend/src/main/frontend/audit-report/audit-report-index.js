@@ -28,18 +28,5 @@ import './slickgrid/sort';
 
 // repository-cip
 import './cip/SlickGrid.ComponentInformationPlugin';
-import './cip/component.information.panel.module';
-import './cip/component.information.panel.directive';
-import './cip/repository.policy.violations.service';
-import './cip/cip.tab.pane.directive';
-import './cip/selected.component.service';
 
 import './audit.module/audit.module';
-import './audit.module/audit.summary.controller';
-import './audit.module/coverage.donut.directive';
-import './audit.module/audit.threat.directive';
-import './audit.module/owner.context.service';
-import './audit.module/repository.violation.table.filter.directive';
-import './audit.module/component.update.controller';
-import './audit.module/component.update.optional.controller';
-import './audit.module/component.update.service';

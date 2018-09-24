@@ -4,8 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
+import cipLicenseEditorDirective from './cip.license.editor.directive';
+import licenseEditorController from './license.editor.controller';
 
-  angular.module('cip.license.editor', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'utility.directives']);
-}());
+export default angular.module('cip.license.editor', [
+  'CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'utility.directives'
+])
+    .directive('cipLicenseEditor', cipLicenseEditorDirective)
+    .controller('LicenseEditorController', licenseEditorController);

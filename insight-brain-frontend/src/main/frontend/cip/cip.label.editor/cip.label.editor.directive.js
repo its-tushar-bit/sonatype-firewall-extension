@@ -4,16 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM */
-(function () {
-  'use strict';
 
-  function CIPLabelEditor() {
-    return {
-      templateUrl: CLM.assetsPath + 'cip/cip-label-editor.html',
-      controllerAs: 'vm',
-      controller: 'LabelsController'
-    };
-  }
-
-  angular.module('cip.label.editor').directive('cipLabelEditor', CIPLabelEditor);
-}());
+export default function CIPLabelEditor() {
+  return {
+    templateUrl: CLM.assetsPath + 'cip/cip-label-editor.html',
+    controllerAs: 'vm',
+    controller: 'LabelsController'
+  };
+}

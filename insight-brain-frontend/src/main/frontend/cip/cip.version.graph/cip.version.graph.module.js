@@ -4,44 +4,42 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular*/
-(function() {
-  'use strict';
+import versionGraphModule from '../../version-graph/version.graph/version.graph.module';
 
-  function getFilename(pathname) {
-    var lastSegmentIndex = pathname.lastIndexOf('/');
-    if (lastSegmentIndex !== -1) {
-      return pathname.substring(lastSegmentIndex + 1);
-    }
-    return pathname;
+function getFilename(pathname) {
+  var lastSegmentIndex = pathname.lastIndexOf('/');
+  if (lastSegmentIndex !== -1) {
+    return pathname.substring(lastSegmentIndex + 1);
   }
+  return pathname;
+}
 
-  function run($rootScope, SelectedComponent, Coordinates, Properties) {
-    $rootScope.$watch(function () {
-      return SelectedComponent.get();
-    }, function (newComponent) {
-      if (newComponent){
-        if (newComponent.componentIdentifier) {
-          Coordinates.set(newComponent.componentIdentifier.format, newComponent.componentIdentifier.coordinates);
-        }
-        else if (newComponent.groupId) {
-          Coordinates.set('maven', { groupId: newComponent.groupId, artifactId: newComponent.artifactId, version: newComponent.version});
-        }
-        else {
-          Coordinates.set(null, {}); // unknown
-        }
-        Properties.setHash(newComponent.hash);
-        Properties.setFilename(getFilename(newComponent.pathname));
-        Properties.setPathname(newComponent.pathname);
-        Properties.setProprietary(newComponent.proprietary || false);
-        Properties.setMatchState(newComponent.matchState || 'exact');
+function run($rootScope, SelectedComponent, Coordinates, Properties) {
+  $rootScope.$watch(function () {
+    return SelectedComponent.get();
+  }, function (newComponent) {
+    if (newComponent){
+      if (newComponent.componentIdentifier) {
+        Coordinates.set(newComponent.componentIdentifier.format, newComponent.componentIdentifier.coordinates);
+      }
+      else if (newComponent.groupId) {
+        Coordinates.set('maven', { groupId: newComponent.groupId, artifactId: newComponent.artifactId, version: newComponent.version});
       }
       else {
-        Coordinates.set(null, null);
-        Properties.reset();
+        Coordinates.set(null, {}); // unknown
       }
-    });
-  }
-  run.$inject = ['$rootScope', 'SelectedComponent', 'Coordinates', 'Properties'];
+      Properties.setHash(newComponent.hash);
+      Properties.setFilename(getFilename(newComponent.pathname));
+      Properties.setPathname(newComponent.pathname);
+      Properties.setProprietary(newComponent.proprietary || false);
+      Properties.setMatchState(newComponent.matchState || 'exact');
+    }
+    else {
+      Coordinates.set(null, null);
+      Properties.reset();
+    }
+  });
+}
+run.$inject = ['$rootScope', 'SelectedComponent', 'Coordinates', 'Properties'];
 
-  angular.module('cip.version.graph', ['version.graph']).run(run);
-}());
+export default angular.module('cip.version.graph', [versionGraphModule.name]).run(run);

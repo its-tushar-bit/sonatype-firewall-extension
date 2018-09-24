@@ -3,26 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular */
-(function() {
-  'use strict';
-  function ErrorMessage(error) {
-    var responseText = error[0] || error.data,
-        status = error[1] || error.status,
-        headers = error[2] || error.headers;
+function ErrorMessage(error) {
+  var responseText = error[0] || error.data,
+      status = error[1] || error.status,
+      headers = error[2] || error.headers;
 
-    if (status === 0 || status >= 1000) {
-      return 'Network error while contacting server';
-    }
-    else if (responseText && (headers('Content-Type') || '').indexOf('text/plain') >= 0) {
-      return responseText;
-    }
-    else {
-      return 'Error ' + status;
-    }
+  if (status === 0 || status >= 1000) {
+    return 'Network error while contacting server';
   }
+  else if (responseText && (headers('Content-Type') || '').indexOf('text/plain') >= 0) {
+    return responseText;
+  }
+  else {
+    return 'Error ' + status;
+  }
+}
 
-  angular.module('version.graph').factory('ErrorMessage', function () {
-    return ErrorMessage;
-  });
-}());
+export default function ErrorMessageFactory() {
+  return ErrorMessage;
+}

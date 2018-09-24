@@ -3,17 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, CLM*/
-(function() {
-  'use strict';
 
-  function cipVersionGraph() {
-    return {
-      templateUrl: CLM.assetsPath + 'version-graph/version-graph.html',
-      controllerAs: 'vm',
-      controller: 'CIPController'
-    };
-  }
+export default function cipVersionGraph($window) {
+  return {
+    templateUrl: $window.CLM.assetsPath + 'version-graph/version-graph.html',
+    controllerAs: 'vm',
+    controller: 'CIPController'
+  };
+}
 
-  angular.module('version.graph').directive('informationPanel', cipVersionGraph);
-}());
+cipVersionGraph.$inject = ['$window'];

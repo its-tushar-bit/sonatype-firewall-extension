@@ -3,54 +3,48 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, Brain */
-(function () {
-  'use strict';
+/*global Brain */
+export default function ComponentUpdateController($scope, $rootScope, $http, $q, Messages, OwnerContext, componentKey, reevaluate) {
+  var vm = this;
 
-  function ComponentUpdateController($scope, $rootScope, $http, $q, Messages, OwnerContext, componentKey, reevaluate) {
-    var vm = this;
+  vm.error = null;
+  vm.doProcess = doProcess;
+  vm.reevaluated = !reevaluate;
 
-    vm.error = null;
-    vm.doProcess = doProcess;
-    vm.reevaluated = !reevaluate;
+  doProcess();
 
-    doProcess();
-
-    function doProcess() {
-      if (!vm.reevaluated) {
-        doReevaluate();
-      }
-      else {
-        updateComponent();
-      }
+  function doProcess() {
+    if (!vm.reevaluated) {
+      doReevaluate();
     }
-
-    function updateComponent() {
-      delete vm.error;
-
-      // emit an event
-      var promises = [];
-      $rootScope.$broadcast('component.evaluation.updated', componentKey, promises);
-      $q.all(promises).then(function () {
-        $scope.$dismiss();
-      }, function (error) {
-        vm.error = Messages.getHttpErrorMessage(error);
-      });
-    }
-
-    function doReevaluate() {
-      delete vm.error;
-
-      $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).then(function () {
-        vm.reevaluated = true;
-        updateComponent();
-      }, function (error) {
-        vm.error = Messages.getHttpErrorMessage(error);
-      });
+    else {
+      updateComponent();
     }
   }
-  ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext',
-                                       'componentKey', 'reevaluate'];
 
-  angular.module('audit').controller('component.update.controller', ComponentUpdateController);
-}());
+  function updateComponent() {
+    delete vm.error;
+
+    // emit an event
+    var promises = [];
+    $rootScope.$broadcast('component.evaluation.updated', componentKey, promises);
+    $q.all(promises).then(function () {
+      $scope.$dismiss();
+    }, function (error) {
+      vm.error = Messages.getHttpErrorMessage(error);
+    });
+  }
+
+  function doReevaluate() {
+    delete vm.error;
+
+    $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).then(function () {
+      vm.reevaluated = true;
+      updateComponent();
+    }, function (error) {
+      vm.error = Messages.getHttpErrorMessage(error);
+    });
+  }
+}
+ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext',
+                                     'componentKey', 'reevaluate'];

@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var ApplicationMockData = {
+export default {
   getApplicationsData: function() {
     return [
       {

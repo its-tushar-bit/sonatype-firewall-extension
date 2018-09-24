@@ -1,10 +1,12 @@
+import resourceModule from '../../../main/frontend/Resource';
+
 describe('Resource', function() {
   var storeUrl = 'http://localhost:8234/';
   var relatedStoreUrl = function(result) {
     return 'http://localhost:8234/related/' + result.id;
   };
 
-  beforeEach(module('ResourceModule'));
+  beforeEach(angular.mock.module(resourceModule.name));
 
   afterEach(inject(function($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();

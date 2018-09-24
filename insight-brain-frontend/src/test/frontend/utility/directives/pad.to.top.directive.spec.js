@@ -1,5 +1,7 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('pad.to.top.directive.spec.js', function() {
-  beforeEach(module('utility'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   var $interval,
       scope,

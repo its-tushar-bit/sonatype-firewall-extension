@@ -1,5 +1,7 @@
+import defaultAdminPasswordChangedServiceModule from '../../../main/frontend/services/defaultAdminPasswordChangedService';
+
 describe('defaultAdminPasswordChangedService', function() {
-  beforeEach(module('defaultAdminPasswordChangedServiceModule'));
+  beforeEach(angular.mock.module(defaultAdminPasswordChangedServiceModule.name));
 
   describe('shouldDisplayDefaultPasswordWarning', function() {
     var $httpBackend,

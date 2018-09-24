@@ -1,7 +1,10 @@
+import angularCommonModule from '../../../main/frontend/util/AngularCommon';
+import utilityServicesModule from '../../../main/frontend/utility/services/utility.services.module';
+
 describe('AngularCommon', function() {
   var scope, compile, httpBackend, regex;
 
-  beforeEach(module('AngularCommon', 'CommonServices', 'utility.services', function($provide) {
+  beforeEach(angular.mock.module(angularCommonModule.name, utilityServicesModule.name, function($provide) {
     var $state = {
       current: {
         name: 'dashboard.component',

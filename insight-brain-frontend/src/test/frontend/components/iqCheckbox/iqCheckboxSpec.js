@@ -1,8 +1,10 @@
+import componentsModule from '../../../../main/frontend/components/module';
+
 describe('iq-checkbox component', function() {
 
   var getVm, $scope;
 
-  beforeEach(module('components'));
+  beforeEach(angular.mock.module(componentsModule.name));
   beforeEach(inject(function($componentController, $rootScope) {
     $scope = $rootScope.$new();
     getVm = function(bindings) {

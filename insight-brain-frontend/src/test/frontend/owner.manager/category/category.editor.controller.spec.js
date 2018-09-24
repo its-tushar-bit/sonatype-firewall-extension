@@ -1,8 +1,9 @@
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
 
 describe('category.editor.controller.spec.js', function() {
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, 'legacyConfiguration', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

@@ -1,7 +1,9 @@
+import applicationReportModule from '../../../main/frontend/applicationReport/module';
+
 describe('applicationReportActions', function() {
   var applicationReportActions, initialState, CLMLocations, $httpBackend;
 
-  beforeEach(module('applicationReportModule'));
+  beforeEach(angular.mock.module(applicationReportModule.name));
 
   beforeEach(inject(function($injector) {
     applicationReportActions = $injector.get('applicationReportActions');

@@ -1,7 +1,9 @@
+import stores from '../../../main/frontend/util/Stores';
+
 describe('Stores', function() {
   var getUrlSpy, cachedStore;
 
-  beforeEach(module('Stores'));
+  beforeEach(angular.mock.module(stores.name));
 
   describe('CachedStore', function() {
     beforeEach(inject(function(CachedStore) {

@@ -1,3 +1,5 @@
+import componentsModule from '../../../main/frontend/components/module';
+
 describe('iqTreeViewRadioSelect', function() {
 
   var getVm, onChange;
@@ -9,7 +11,7 @@ describe('iqTreeViewRadioSelect', function() {
     {id: null, name: 'NULL'}
   ];
 
-  beforeEach(module('components'));
+  beforeEach(angular.mock.module(componentsModule.name));
 
   beforeEach(inject(function($componentController) {
     onChange = jasmine.createSpy('onChange');

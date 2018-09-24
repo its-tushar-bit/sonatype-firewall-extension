@@ -1,5 +1,7 @@
+import configurationModule from '../../../../main/frontend/configuration/module';
+
 describe('automaticApplicationsConfigurationServiceSpec.js', function() {
-  beforeEach(module('CLMLocation', 'automaticApplicationsConfigurationModule'));
+  beforeEach(angular.mock.module(configurationModule.name));
 
   var automaticApplicationsConfigurationService,
       $httpBackend,

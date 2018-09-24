@@ -1,7 +1,10 @@
+import ownerManagerModule from '../../main/frontend/owner.manager/owner.manager.module';
+import legacyConfigurationModule from '../../main/frontend/LegacyConfigurationModule';
+
 describe('owner.tree-view.directive.spec.js', function() {
   var scope, $httpBackend, $state, $timeout, CLMLocations, CLMContextLocations, EventNameConstant;
 
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(function($provide) {
     // $state stub for spying
     $provide.service('$state', function() {
       return {
@@ -10,7 +13,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       };
     });
   }));
-  beforeEach(module('owner.manager.module', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name));
 
   afterEach(inject(function(_$httpBackend_) {
     _$httpBackend_.verifyNoOutstandingExpectation();
@@ -34,17 +37,17 @@ describe('owner.tree-view.directive.spec.js', function() {
         CLMContextLocations = _CLMContextLocations_;
         EventNameConstant = $injector.get('event.name.constant');
 
+        $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
+        $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'))
+            .respond(permissions);
+
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
         _$compile_(ownerTreeView)(scope);
-        SpecUtil.respondWithTemplate($httpBackend,
-            'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp);
         scope.$digest();
 
         spyOn($state, 'includes').and.returnValue(false);
 
-        $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
-        $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
         scope.$digest();
         $httpBackend.flush();
         $timeout.flush();
@@ -359,8 +362,6 @@ describe('owner.tree-view.directive.spec.js', function() {
       scope = _$rootScope_.$new();
       var ownerTreeView = angular.element('<div owner-tree-view></div>');
       _$compile_(ownerTreeView)(scope);
-      SpecUtil.respondWithTemplate($httpBackend,
-          'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp);
 
       spyOn($state, 'go');
     }));

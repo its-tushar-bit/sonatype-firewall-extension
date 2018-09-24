@@ -1,31 +1,37 @@
+import { unauthenticatedResponseHttpInterceptor } from '../../../main/frontend/util/HttpInterceptors';
+import utilityServicesModule from '../../../main/frontend/utility/services/utility.services.module';
+
 describe('HttpInterceptors.js', function() {
   var scope,
       modalSuccess;
 
-  beforeEach(module('UnauthenticatedResponseHttpInterceptor', 'legacyConfiguration', function($provide) {
-    $provide.value('$modalInstance', {
-      close: function() {}
-    });
-    $provide.value('Modal', {
-      open: function(config) {
-        scope.$close = function() {
-        };
-        inject(function($controller) {
-          $controller(config.controller, {
-            $scope: scope,
-            username: undefined
-          });
+  beforeEach(angular.mock.module(unauthenticatedResponseHttpInterceptor.name, utilityServicesModule.name,
+      'legacyConfiguration',
+      function($provide) {
+        $provide.value('$modalInstance', {
+          close: function() {}
         });
-        return {
-          result: {
-            then: function(success) {
-              modalSuccess = success;
-            }
+        $provide.value('Modal', {
+          open: function(config) {
+            scope.$close = function() {
+            };
+            inject(function($controller) {
+              $controller(config.controller, {
+                $scope: scope,
+                username: undefined
+              });
+            });
+            return {
+              result: {
+                then: function(success) {
+                  modalSuccess = success;
+                }
+              }
+            };
           }
-        };
+        });
       }
-    });
-  }));
+  ));
 
   beforeEach(inject(function($rootScope) {
     scope = $rootScope.$new();

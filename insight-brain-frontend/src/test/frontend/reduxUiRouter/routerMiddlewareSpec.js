@@ -1,9 +1,9 @@
+import reduxUiRouterModule from '../../../main/frontend/reduxUiRouter/module';
+
 describe('routerMiddleware', function() {
   var routerMiddleware, $state, next, successSpy;
 
-  beforeEach(module('reduxUiRouter'));
-
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(reduxUiRouterModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
 
     successSpy = jasmine.createSpy('successSpy');

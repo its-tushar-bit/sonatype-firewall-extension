@@ -1,7 +1,9 @@
+import applicationReportModule from '../../../main/frontend/applicationReport/module';
+
 describe('applicationReportReducer', function() {
   var reduce, otherObject;
 
-  beforeEach(module('applicationReportModule'));
+  beforeEach(angular.mock.module(applicationReportModule.name));
 
   beforeEach(inject(function($injector) {
     reduce = $injector.get('applicationReportReducer');

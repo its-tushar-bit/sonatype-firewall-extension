@@ -1,19 +1,15 @@
+import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('windowEventsFactory.spec', function() {
   var wEventsFactory,
       window,
       scope;
 
-  beforeEach(module('dashboard.utils'));
-
-  beforeEach(function() {
-    module(function($provide) {
-      $provide.value('$window', (function() {
-        return {
-          resize: angular.noop
-        };
-      }()));
+  beforeEach(angular.mock.module(dashboardUtilsModule.name, function($provide) {
+    $provide.value('$window', {
+      resize: angular.noop
     });
-  });
+  }));
 
   beforeEach(inject(function(windowEventsFactory, $rootScope, $window) {
     wEventsFactory = windowEventsFactory;

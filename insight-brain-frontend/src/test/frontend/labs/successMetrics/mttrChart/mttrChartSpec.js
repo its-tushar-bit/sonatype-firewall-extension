@@ -1,7 +1,8 @@
 import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
+import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
 
 describe('mttr-chart component', function() {
-  beforeEach(angular.mock.module(successMetricsModule.name, 'legacyConfiguration'));
+  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
 
   var getVm;
 

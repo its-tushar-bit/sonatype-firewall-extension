@@ -1,10 +1,10 @@
+import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+
 describe('dashboardFilterActions', function() {
   var dashboardFilterActions, initialState, dashboardDataServiceMock, $q, $rootScope, CLMLocations, $httpBackend,
       OrganizationStoreMock, ApplicationStoreMock, StageTypeStoreMock;
 
-  beforeEach(module('dashboardFilter'));
-
-  beforeEach(module(function ($provide) {
+  beforeEach(angular.mock.module(dashboardFilterModule.name, function ($provide) {
 
     dashboardDataServiceMock = jasmine.createSpyObj('dashboardDataServiceMock', ['getNewestRisks']);
     OrganizationStoreMock = jasmine.createSpyObj('OrganizationStoreMock', ['get']);

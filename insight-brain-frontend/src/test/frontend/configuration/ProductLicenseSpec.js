@@ -1,3 +1,6 @@
+import productLicenseModule from '../../../main/frontend/configuration/license/ProductLicenseModule';
+import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
+
 describe('ProductLicense', function() {
 
   var scope,
@@ -19,7 +22,7 @@ describe('ProductLicense', function() {
         productEdition: 'Lifecycle'
       });
 
-  beforeEach(module('utility.services', 'ProductLicense', 'HttpInterceptors', function($provide) {
+  beforeEach(angular.mock.module(productLicenseModule.name, httpInterceptors.name, function($provide) {
     modalResultSpy = jasmine.createSpy('modalResultSpy');
     modalOpenSpy = jasmine.createSpy('modalOpenSpy').and.returnValue({
       result: {

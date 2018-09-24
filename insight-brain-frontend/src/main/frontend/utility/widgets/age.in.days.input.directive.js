@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './age.in.days.input.directive.html';
+
 export default function AgeInDaysInput() {
   return {
     restrict: 'E',
@@ -10,7 +12,7 @@ export default function AgeInDaysInput() {
       ageInDaysModel: '=ngModel',
       name: '@'
     },
-    templateUrl: 'utility/widgets/age.in.days.input.directive.html',
+    template,
     controller: AgeInDaysInputController,
     controllerAs: 'vm',
     bindToController: true,

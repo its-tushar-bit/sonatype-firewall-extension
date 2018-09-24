@@ -1,10 +1,12 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('middle.click.directive.js', function() {
   var compile,
       element,
       event,
       scope;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($rootScope, $compile) {
     scope = $rootScope.$new();

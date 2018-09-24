@@ -1,8 +1,10 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+import utilityServicesModule from '../../../../main/frontend/utility/services/utility.services.module';
+
 describe('scrollspy.directive.spec.js', function() {
   var spy, controllerScope;
-  beforeEach(module('utility'));
 
-  beforeEach(module('utility.services', function($provide) {
+  beforeEach(angular.mock.module(utilityModule.name, utilityServicesModule.name, function($provide) {
     $provide.service('stable.body.service', function() {
       return { whenStable: function(f) { f(); }};
     });

@@ -1,8 +1,11 @@
+import componentsModule from '../../../main/frontend/components/module';
+import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
+
 describe('iq-back-button component', function() {
 
   var getVm, $state;
 
-  beforeEach(module('components', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(componentsModule.name, legacyConfigurationModule.name));
   beforeEach(inject(function($componentController) {
     $state = jasmine.createSpyObj('$state', ['get']);
     $state.get.and.callFake(function(stateName) {

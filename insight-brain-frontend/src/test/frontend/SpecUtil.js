@@ -20,40 +20,6 @@ window.SpecUtil = {
       };
     });
   },
-  getTemplate: function(url) {
-    // Karma Html2Js stores these html snippets on the window
-    if (window.__html__ && window.__html__['src/main/resources/assets/' + url.replace('../', '')]) {
-      return window.__html__['src/main/resources/assets/' + url.replace('../', '')];
-    }
-
-    url = url.split('/');
-    if (url[0] === '..') {
-      url.splice(0, 1);
-    }
-
-    if (location.hostname) {
-      url = 'src/main/resources/assets/' + url.join('/');
-    }
-    else {
-      url = 'src/' + url.join('/');
-    }
-
-    var data = null;
-    $.ajax({
-      async: false,
-      dataType: 'html',
-      url: url,
-      success: function(responseData) {
-        data = responseData;
-      }
-    });
-    return data;
-  },
-
-  respondWithTemplate: function(httpBackend, templateUrl) {
-    var ownerTreeViewTemplate = SpecUtil.getTemplate('../../../frontend/' + templateUrl);
-    httpBackend.expectGET(templateUrl).respond(ownerTreeViewTemplate);
-  },
 
   toRegExp: function toRegExp(url) {
     var addedTimestamp = false, parts = url.split('?');

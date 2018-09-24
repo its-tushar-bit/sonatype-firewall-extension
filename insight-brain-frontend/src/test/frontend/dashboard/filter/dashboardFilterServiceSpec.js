@@ -1,7 +1,9 @@
+import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+
 describe('dashboardFilterService', function() {
   var $httpBackend, dashboardFilterService, CLMLocations;
 
-  beforeEach(module('dashboard.module'));
+  beforeEach(angular.mock.module(dashboardFilterModule.name));
 
   beforeEach(inject(function($injector) {
     $httpBackend = $injector.get('$httpBackend');

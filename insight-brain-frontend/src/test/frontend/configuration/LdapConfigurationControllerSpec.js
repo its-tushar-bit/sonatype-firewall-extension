@@ -1,7 +1,10 @@
+import ldapModule from '../../../main/frontend/configuration/ldap/ldap.module';
+import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
+
 describe('Tests for the LdapConfigurationController', function() {
   var scope, dialogScope;
 
-  beforeEach(module('ldap.module', 'HttpInterceptors', function($provide) {
+  beforeEach(angular.mock.module(ldapModule.name, httpInterceptors.name, function($provide) {
     $provide.value('Modal', {
       open: function(config) {
         dialogScope = scope.$new();

@@ -1,7 +1,9 @@
+import dashboardModule from '../../../main/frontend/dashboard/dashboard.module';
+
 describe('dashboardReducer', function() {
   var reduce, otherObject;
 
-  beforeEach(module('dashboard.module'));
+  beforeEach(angular.mock.module(dashboardModule.name));
 
   beforeEach(inject(function($injector) {
     reduce = $injector.get('dashboardReducer');

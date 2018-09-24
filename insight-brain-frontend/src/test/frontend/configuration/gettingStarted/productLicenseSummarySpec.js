@@ -1,5 +1,7 @@
+import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
+
 describe('productLicenseSummary', function() {
-  beforeEach(module('gettingStartedModule'));
+  beforeEach(angular.mock.module(gettingStartedModule.name));
 
   var getVm;
 

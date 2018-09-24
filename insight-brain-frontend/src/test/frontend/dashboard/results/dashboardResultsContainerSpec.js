@@ -1,8 +1,9 @@
+import dashboardResultsModule from '../../../../main/frontend/dashboard/results/module';
+
 describe('dashboardResultsContainer', function() {
-  beforeEach(module('dashboardResultsModule'));
   var vm, CLMLocations;
 
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(dashboardResultsModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
   }));
 

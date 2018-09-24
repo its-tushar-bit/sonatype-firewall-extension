@@ -1,8 +1,10 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('enter.key.call.directive.js', function() {
   var element,
       scope;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($rootScope, $compile) {
     scope = $rootScope.$new();

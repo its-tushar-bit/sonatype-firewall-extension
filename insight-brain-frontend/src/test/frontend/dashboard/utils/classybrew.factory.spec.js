@@ -1,26 +1,22 @@
+import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('classybrew.factory.spec', function() {
 
   var ClassyBrew, brew;
 
-  beforeEach(module('dashboard.utils'));
-
-  beforeEach(function() {
-    module(function($provide) {
-      $provide.value('$window', (function() {
-        return {
-          classyBrew: function() {
-            this.colorSchemes = {};
-            this.setColorCode = jasmine.createSpy();
-            this.getColors = jasmine.createSpy();
-            this.getColorInRange = jasmine.createSpy();
-            this.setSeries = jasmine.createSpy();
-            this.setNumClasses = jasmine.createSpy();
-            this.classify = jasmine.createSpy();
-          }
-        };
-      }()));
+  beforeEach(angular.mock.module(dashboardUtilsModule.name, function($provide) {
+    $provide.value('$window', {
+      classyBrew: function() {
+        this.colorSchemes = {};
+        this.setColorCode = jasmine.createSpy();
+        this.getColors = jasmine.createSpy();
+        this.getColorInRange = jasmine.createSpy();
+        this.setSeries = jasmine.createSpy();
+        this.setNumClasses = jasmine.createSpy();
+        this.classify = jasmine.createSpy();
+      }
     });
-  });
+  }));
 
   beforeEach(inject(function(_ClassyBrew_) {
     ClassyBrew = _ClassyBrew_;

@@ -1,5 +1,7 @@
+import userModule from '../../../../main/frontend/security/UserModule';
+import LegacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+
 /* global describe, beforeEach, it, expect, spyOn */
-/* global module, inject */
 describe('userForm', function() {
 
   var $componentController,
@@ -15,7 +17,7 @@ describe('userForm', function() {
     }, bindings);
   }
 
-  beforeEach(module('UserModule', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(userModule.name, LegacyConfigurationModule.name));
   beforeEach(inject(function(_$componentController_, _$rootScope_, _UserStore_, _Dialog_) {
     $componentController = _$componentController_;
     $rootScope = _$rootScope_;

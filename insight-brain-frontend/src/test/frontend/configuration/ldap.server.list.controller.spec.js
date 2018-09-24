@@ -1,6 +1,9 @@
+import ldapModule from '../../../main/frontend/configuration/ldap/ldap.module';
+import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
+
 describe('ldap.server.list.controller.spec.js', function() {
 
-  beforeEach(module('ldap.module', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(ldapModule.name, legacyConfigurationModule.name));
 
   var vm,
       $httpBackend,

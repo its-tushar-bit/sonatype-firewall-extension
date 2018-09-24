@@ -1,7 +1,7 @@
+import utilityServicesModule from '../../../../main/frontend/utility/services/utility.services.module';
+
 describe('systemConfigurationPropertyServiceSpec.js', function() {
-  beforeEach(function() {
-    module('utility.services');
-  });
+  beforeEach(angular.mock.module(utilityServicesModule.name));
 
   var systemConfigurationPropertyService,
       $httpBackend,

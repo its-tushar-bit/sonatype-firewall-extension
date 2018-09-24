@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './owner.tree.view.directive.html';
+
 function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLocations, organizationStore,
                                  applicationStore, OwnerEditor, PermissionService, ownerConstant, EventNameConstant,
                                  LastSelectedOrganization) {
@@ -275,7 +277,7 @@ OwnerTreeViewController.$inject = [
 
 export default function ownerTreeView() {
   return {
-    templateUrl: 'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp,
+    template,
     controller: OwnerTreeViewController,
     controllerAs: 'vm'
   };

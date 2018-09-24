@@ -1,3 +1,5 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('DeleteModalReduxController', function() {
   var $controller,
       unsubscribeSpy,
@@ -6,7 +8,7 @@ describe('DeleteModalReduxController', function() {
       maskDeferred,
       $q;
 
-  beforeEach(module('utility', function($provide) {
+  beforeEach(angular.mock.module(utilityModule.name, function($provide) {
     unsubscribeSpy = SpecUtil.mockNgRedux($provide);
   }));
 

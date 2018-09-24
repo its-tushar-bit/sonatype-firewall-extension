@@ -1,5 +1,7 @@
+import configurationModule from '../../../../main/frontend/configuration/module';
+
 describe('automaticApplicationsConfigurationControllerSpec.js', function() {
-  beforeEach(module('automaticApplicationsConfigurationModule', function($provide) {
+  beforeEach(angular.mock.module(configurationModule.name, function($provide) {
     SpecUtil.mockPermissionService($provide);
   }));
 

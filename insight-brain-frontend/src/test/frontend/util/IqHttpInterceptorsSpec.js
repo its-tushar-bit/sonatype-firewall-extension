@@ -1,3 +1,5 @@
+import iqHttpInterceptors from '../../../main/frontend/util/IqHttpInterceptors';
+
 /* global describe, it, expect, spyOn, beforeEach */
 /* global module, inject */
 describe('IqHttpInterceptors', function() {
@@ -5,7 +7,7 @@ describe('IqHttpInterceptors', function() {
   var $httpBackend,
       $http;
 
-  beforeEach(module('IqHttpInterceptors'));
+  beforeEach(angular.mock.module(iqHttpInterceptors.name));
 
   beforeEach(inject(function(_$httpBackend_, _$http_) {
     $httpBackend = _$httpBackend_;

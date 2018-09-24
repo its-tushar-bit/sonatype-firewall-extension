@@ -1,9 +1,11 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('cached.service.spec', function () {
 
   var service,
       swapUrl;
 
-  beforeEach(module('utility'));
+  beforeEach(angular.mock.module(utilityModule.name));
 
   beforeEach(inject(['cached.service.factory', function(cachedServiceFactory) {
     var callCounter = 0;

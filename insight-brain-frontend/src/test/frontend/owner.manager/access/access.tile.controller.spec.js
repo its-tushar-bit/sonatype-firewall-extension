@@ -1,4 +1,5 @@
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import accessMockData from '../../stores/access/access.mock.data';
 
 describe('access.tile.controller.spec.js', function() {
   var vm,
@@ -30,15 +31,15 @@ describe('access.tile.controller.spec.js', function() {
   });
 
   it('Properly Loading Membership Mappings', function() {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
 
-    expect(vm.ownerName).toEqual(AccessMockData.getRoleMappings().membersByRole[0].membersByOwner[0].ownerName);
-    expect(vm.membersByRole.length).toEqual(AccessMockData.getRoleMappings().membersByRole.length);
+    expect(vm.ownerName).toEqual(accessMockData.getRoleMappings().membersByRole[0].membersByOwner[0].ownerName);
+    expect(vm.membersByRole.length).toEqual(accessMockData.getRoleMappings().membersByRole.length);
     vm.membersByRole.forEach(function(role, roleIndex) {
-      expect(role.roleName).toEqual(AccessMockData.getRoleMappings().membersByRole[roleIndex].roleName);
+      expect(role.roleName).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex].roleName);
       role.membersByOwner.forEach(function(owner, ownerIndex) {
-        expect(owner.members).toEqual(AccessMockData.getRoleMappings().membersByRole[roleIndex].membersByOwner[ownerIndex].members);
+        expect(owner.members).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex].membersByOwner[ownerIndex].members);
       });
     });
   });
@@ -50,24 +51,24 @@ describe('access.tile.controller.spec.js', function() {
     expect(vm.error).toBeDefined();
 
     vm.doLoad();
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
 
     expect(vm.error).toBeUndefined();
   });
 
   it('Reloads on broadcasted owner summary reload event', function() {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
 
     expect(vm.ownerName).not.toEqual('Bob');

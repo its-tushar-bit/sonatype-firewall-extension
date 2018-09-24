@@ -1,7 +1,9 @@
+import componentDisplayModule from '../../../main/frontend/ComponentDisplay/module';
+
 describe('ComponentDisplay', function() {
   var $compile, scope;
 
-  beforeEach(module('ComponentDisplay'));
+  beforeEach(angular.mock.module(componentDisplayModule.name));
 
   beforeEach(inject(function(_$compile_, $rootScope) {
     $compile = _$compile_;

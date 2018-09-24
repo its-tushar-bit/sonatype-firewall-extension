@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var SystemNoticeMockData = {
+export default {
   getSystemNotice: function(message, enabled) {
     return {
       'message': message,

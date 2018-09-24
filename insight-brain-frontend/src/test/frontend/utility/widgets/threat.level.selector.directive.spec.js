@@ -1,24 +1,22 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('threat.level.selector.directive.spec.js', function() {
   var $compile,
-      $httpBackend,
       element;
 
-  beforeEach(module('utility'));
-  beforeEach(inject(function(_$compile_, $rootScope, _$httpBackend_) {
+  beforeEach(angular.mock.module(utilityModule.name));
+  beforeEach(inject(function(_$compile_, $rootScope) {
     var scope = $rootScope.$new();
 
     $compile = _$compile_;
-    $httpBackend = _$httpBackend_;
-
-    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/threat.level.selector.directive.html');
 
     element = $compile('<threat-level-selector ng-model="testLevel" threat-type="ltg" ng-disabled="disabled"></threat-level-selector>')(scope);
     scope.disabled = false;
     scope.testLevel = 0;
-    $httpBackend.flush();
   }));
 
   it('Directive creates full list of possible threat levels', function() {
+    element.isolateScope().$digest();
     expect(element.find('.dropdown-menu li').length).toBe(11);
     element.find('.dropdown-menu li a').each(function(index) {
       // We convert classList in an array since it is a DOMTokentList. Jasmine allows array-like objects as of v2.3.4.

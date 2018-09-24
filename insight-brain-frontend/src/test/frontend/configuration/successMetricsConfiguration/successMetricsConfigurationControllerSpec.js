@@ -1,5 +1,7 @@
+import configurationModule from '../../../../main/frontend/configuration/module';
+
 describe('successMetricsConfigurationSpec.js', function() {
-  beforeEach(module('successMetricsConfigurationModule', function($provide) {
+  beforeEach(angular.mock.module(configurationModule.name, function($provide) {
     SpecUtil.mockPermissionService($provide);
   }));
 

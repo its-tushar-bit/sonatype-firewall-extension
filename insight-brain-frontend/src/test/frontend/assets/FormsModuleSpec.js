@@ -1,6 +1,8 @@
+import formsModule from '../../../main/frontend/FormsModule';
+
 describe('Forms module', function() {
 
-  beforeEach(module('FormsModule'));
+  beforeEach(angular.mock.module(formsModule.name));
 
   describe('clmInput', function () {
     var compile, scope;

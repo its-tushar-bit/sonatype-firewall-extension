@@ -1,4 +1,6 @@
-/* globals describe, beforeEach, afterEach, inject, AccessMockData, it, expect, SpecUtil, jasmine */
+import roleMembershipModule from '../../../main/frontend/role.membership/role.membership.module';
+import accessMockData from '../stores/access/access.mock.data';
+
 describe('role.membership.controller.spec.js', function() {
 
   var vm,
@@ -8,7 +10,7 @@ describe('role.membership.controller.spec.js', function() {
       $q,
       CLMContextLocations;
 
-  beforeEach(module('role.membership.module'));
+  beforeEach(angular.mock.module(roleMembershipModule.name));
 
   beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$q_, _CLMContextLocations_) {
     $httpBackend = _$httpBackend_;
@@ -54,7 +56,7 @@ describe('role.membership.controller.spec.js', function() {
 
   it('sets vm.members', function() {
     createController({
-      originalMembers: AccessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members
+      originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members
     });
 
     expect(vm.members.length).toBe(2);
@@ -70,7 +72,7 @@ describe('role.membership.controller.spec.js', function() {
 
     expect(vm.members.length).toBe(0);
 
-    vm.originalMembers = AccessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members;
+    vm.originalMembers = accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members;
     $rootScope.$digest();
 
     expect(vm.members.length).toBe(2);
@@ -82,7 +84,7 @@ describe('role.membership.controller.spec.js', function() {
   describe('search', function() {
     beforeEach(function() {
       createController({
-        originalMembers: AccessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members
+        originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members
       });
 
       vm.accessEditorSearchMask = {wrap: SpecUtil.promiseWrapper($q)};
@@ -94,7 +96,7 @@ describe('role.membership.controller.spec.js', function() {
       vm.search();
 
       $httpBackend.expectGET(CLMContextLocations.getFindUsersUrl() + '?q=testSearch')
-          .respond(AccessMockData.getQueryResults());
+          .respond(accessMockData.getQueryResults());
     }
 
     it('sets search in progress flag', function() {
@@ -197,7 +199,7 @@ describe('role.membership.controller.spec.js', function() {
   });
 
   it('sets isDirty when the currentMembers have a different set of names from the originalMembers', function() {
-    var originalMembers = AccessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members;
+    var originalMembers = accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members;
 
     createController({ originalMembers: originalMembers });
 

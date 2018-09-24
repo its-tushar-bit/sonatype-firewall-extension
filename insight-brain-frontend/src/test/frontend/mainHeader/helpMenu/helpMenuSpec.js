@@ -1,7 +1,9 @@
+import mainHeaderModule from '../../../../main/frontend/mainHeader/module';
+
 describe('helpMenu', function() {
   var vm;
 
-  beforeEach(module('mainHeader'));
+  beforeEach(angular.mock.module(mainHeaderModule.name));
 
   beforeEach(inject(function($componentController) {
     window.clmServerVersion = '1.2.3-4';

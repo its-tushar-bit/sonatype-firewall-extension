@@ -1,6 +1,9 @@
+import mainHeaderModule from '../../../main/frontend/mainHeader/module';
+import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
+
 describe('mainHeaderSpec', function() {
 
-  beforeEach(module('mainHeader', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name));
 
   var $scope,
       $rootScope,

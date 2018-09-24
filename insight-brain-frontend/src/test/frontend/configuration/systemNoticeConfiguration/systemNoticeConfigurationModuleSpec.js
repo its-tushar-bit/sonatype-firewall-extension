@@ -1,12 +1,11 @@
+import systemNoticeConfigurationModule from '../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationModule';
+
 describe('systemNoticeConfigurationModuleSpec.js', function() {
-  beforeEach(function() {
-    module('ui.router');
-    module('systemNoticeConfigurationModule', function($provide) {
-      $provide.value('$cookies', {
-        get: angular.noop
-      });
+  beforeEach(angular.mock.module('ui.router', systemNoticeConfigurationModule.name, function($provide) {
+    $provide.value('$cookies', {
+      get: angular.noop
     });
-  });
+  }));
 
   var $state;
 

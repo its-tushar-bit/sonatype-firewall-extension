@@ -1,4 +1,4 @@
-window.AccessMockData = {
+const accessMockData = {
   getRoleMappings: function() {
     return {
       membersByRole: [
@@ -86,7 +86,7 @@ window.AccessMockData = {
   },
 
   getMoreRoleMappings: function() {
-    var base = AccessMockData.getRoleMappings();
+    var base = accessMockData.getRoleMappings();
     base.membersByRole[1] = {
       'roleId': 'abcdef',
       'roleName': 'Another Test Role',
@@ -113,3 +113,5 @@ window.AccessMockData = {
     return base;
   }
 };
+
+export default accessMockData;

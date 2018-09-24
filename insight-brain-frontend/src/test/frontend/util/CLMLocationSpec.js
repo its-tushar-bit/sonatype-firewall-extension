@@ -1,8 +1,10 @@
+import clmLocation from '../../../main/frontend/util/CLMLocation';
+
 describe('CLMLocation.js', function() {
   var CLMLocations,
       $window;
 
-  beforeEach(module('CLMLocation', function($provide) {
+  beforeEach(angular.mock.module(clmLocation.name, function($provide) {
     $provide.value('$window', {
     });
   }));

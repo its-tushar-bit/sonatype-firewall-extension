@@ -1,8 +1,10 @@
+import permissionServiceModule from '../../../main/frontend/util/PermissionService';
+
 /* global describe, beforeEach, module, it, inject, expect, afterEach */
 describe('PermissionService.js', function() {
   var successSpy, errorSpy;
 
-  beforeEach(module('PermissionServiceModule'));
+  beforeEach(angular.mock.module(permissionServiceModule.name));
 
   beforeEach(function() {
     successSpy = jasmine.createSpy('successSpy');

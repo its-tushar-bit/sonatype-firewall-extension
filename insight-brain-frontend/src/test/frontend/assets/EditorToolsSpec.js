@@ -1,8 +1,11 @@
+import editorToolsModule from '../../../main/frontend/EditorTools';
+import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
+
 describe('EditorToolsSpec', function() {
 
   var scope = null;
 
-  beforeEach(module('EditorTools', 'HttpInterceptors', function ($provide) {
+  beforeEach(angular.mock.module(editorToolsModule.name, httpInterceptors.name, function ($provide) {
     $provide.value('ApplicationId', {
       encoded: function() {
         return 'bom1-12345678';

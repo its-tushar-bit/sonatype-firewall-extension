@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var WebhookMockData = {
+export default {
   getWebhooks: function() {
     return [
       {

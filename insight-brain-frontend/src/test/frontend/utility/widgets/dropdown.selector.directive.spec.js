@@ -1,7 +1,10 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+
 describe('dropdown.selector.directive.spec.js', function() {
   var element;
 
-  beforeEach(module('utility', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(utilityModule.name, legacyConfigurationModule.name));
 
   describe('with Object Options', function() {
     beforeEach(inject(function($compile, $rootScope) {

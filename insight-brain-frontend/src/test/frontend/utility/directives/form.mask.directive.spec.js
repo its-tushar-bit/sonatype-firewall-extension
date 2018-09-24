@@ -1,6 +1,8 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('form.mask.directive.spec.js', function() {
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   describe('attached to Element', function() {
     maskTests('<div form-mask="formMask"><div>', false);

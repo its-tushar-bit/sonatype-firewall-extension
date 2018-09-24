@@ -1,3 +1,5 @@
+import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+
 describe('manageFiltersActions', function() {
   var manageFiltersActions,
       $httpBackend,
@@ -11,7 +13,7 @@ describe('manageFiltersActions', function() {
         }
       };
 
-  beforeEach(module('dashboardFilter'));
+  beforeEach(angular.mock.module(dashboardFilterModule.name));
 
   beforeEach(inject(function(_manageFiltersActions_, _$httpBackend_, _$rootScope_, _CLMLocations_, _$q_,
                              _dashboardFilterService_) {

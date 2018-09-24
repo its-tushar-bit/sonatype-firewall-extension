@@ -1,3 +1,6 @@
+import dashboardResultsModule from '../../../../main/frontend/dashboard/results/module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+
 describe('violationsTableRow.spec', function() {
 
   var scope,
@@ -13,7 +16,7 @@ describe('violationsTableRow.spec', function() {
         'scanId': '5d6a9955588f482a9e48d2d93f2236f0'
       };
 
-  beforeEach(module('dashboard.module', 'legacyConfiguration', function($provide) {
+  beforeEach(angular.mock.module(dashboardResultsModule.name, legacyConfigurationModule.name, function($provide) {
     mockWindow = jasmine.createSpyObj('$window', ['open']);
     mockState = {href: angular.noop};
     $provide.value('$window', mockWindow);

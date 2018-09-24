@@ -1,7 +1,11 @@
+import reportModule from '../../../main/frontend/ReportApp';
+import { MainModule } from '../../../main/frontend/MainModule';
+import applicationMockData from '../application/ApplicationMockData';
+
 describe('reportApp', function() {
   var scope, state, $httpBackend, CLMLocations, $controller;
 
-  beforeEach(module('ReportModule', 'MainModule', function($provide) {
+  beforeEach(angular.mock.module(reportModule.name, MainModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
 
     $provide.service('pendoService', function() {
@@ -52,7 +56,7 @@ describe('reportApp', function() {
 
     it('loads reports, sorts and assigns index', function() {
       var mockStageData = MockData.getActionStageData();
-      var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
+      var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(mockStageData);
       $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(
           mockApplicationSummaryData);
@@ -86,7 +90,7 @@ describe('reportApp', function() {
     beforeEach(function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
       $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(
-          ApplicationMockData.getApplicationSummaryData());
+          applicationMockData.getApplicationSummaryData());
       $controller('ReportViolationsController', { $scope: scope, $state: state });
       $httpBackend.flush();
     });
@@ -133,7 +137,7 @@ describe('reportApp', function() {
 
     describe('when sort field changes', function() {
       it('filters, sorts and assigns index', function() {
-        var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
+        var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
         scope.appFilter = 'big';
         scope.$digest();
         expect(scope.applications.length).toBe(2);

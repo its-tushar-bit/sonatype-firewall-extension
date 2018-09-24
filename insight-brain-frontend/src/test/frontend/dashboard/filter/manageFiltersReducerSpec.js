@@ -1,7 +1,9 @@
+import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+
 describe('manageFiltersReducer', function() {
   var reduce, otherObject;
 
-  beforeEach(module('dashboardFilter'));
+  beforeEach(angular.mock.module(dashboardFilterModule.name));
 
   beforeEach(inject(function($injector) {
     reduce = $injector.get('manageFiltersReducer');

@@ -1,10 +1,10 @@
+import dashboardFilterModule from '../../../../../main/frontend/dashboard/filter/module';
+
 describe('dashboard.filter.controller', function() {
 
   var vm, $componentController;
 
-  beforeEach(module('dashboardFilter'));
-
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(dashboardFilterModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
   }));
 

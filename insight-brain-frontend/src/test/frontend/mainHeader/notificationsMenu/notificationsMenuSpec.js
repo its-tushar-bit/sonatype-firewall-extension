@@ -1,7 +1,9 @@
+import mainHeaderModule from '../../../../main/frontend/mainHeader/module';
+
 describe('notificationsMenu', function () {
   var notificationScope, vm;
 
-  beforeEach(module('mainHeader'));
+  beforeEach(angular.mock.module(mainHeaderModule.name));
 
   beforeEach(inject(function($rootScope, $componentController) {
     notificationScope = $rootScope.$new();

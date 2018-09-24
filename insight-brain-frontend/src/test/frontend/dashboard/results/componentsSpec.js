@@ -1,10 +1,10 @@
+import dashboardResultsModule from '../../../../main/frontend/dashboard/results/module';
+
 describe('components component', function() {
 
   var $scope, vm, dashboardDataServiceMock;
 
-  beforeEach(module('dashboardResultsModule'));
-
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(dashboardResultsModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
   }));
 

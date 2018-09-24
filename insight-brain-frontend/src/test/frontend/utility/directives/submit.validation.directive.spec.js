@@ -1,8 +1,10 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('submit.validation.directive.spec.js', function() {
   var $compile,
       scope;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($rootScope, _$compile_) {
     $compile = _$compile_;

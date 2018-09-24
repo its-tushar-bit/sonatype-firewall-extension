@@ -1,26 +1,22 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('double.column.picker.directive.spec.js', function() {
   var $compile,
-      $httpBackend,
       scope,
       isolatedScope,
       vm,
       element;
 
-  beforeEach(module('utility'));
-  beforeEach(inject(function(_$compile_, $rootScope, _$httpBackend_) {
+  beforeEach(angular.mock.module(utilityModule.name));
+  beforeEach(inject(function(_$compile_, $rootScope) {
     scope = $rootScope.$new();
 
     $compile = _$compile_;
-    $httpBackend = _$httpBackend_;
-
-    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/double.column.picker.directive.html');
 
     element = $compile('<form><double-column-picker list="list" filter-placeholder="Filter" left-column-name="Left" ' +
         'right-column-name="Right" item-name-param="name"></double-column-picker></form>')(scope).children();
 
     scope.list = [];
-
-    $httpBackend.flush();
 
     isolatedScope = element.isolateScope();
     vm = isolatedScope.vm;

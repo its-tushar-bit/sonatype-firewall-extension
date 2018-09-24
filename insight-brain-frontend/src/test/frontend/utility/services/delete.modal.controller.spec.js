@@ -1,5 +1,7 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('delete.modal.controller.spec.js', function() {
-  beforeEach(module('utility'));
+  beforeEach(angular.mock.module(utilityModule.name));
 
   var vm,
       resource = ResourceUtils().createMockResource(),

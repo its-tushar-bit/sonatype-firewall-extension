@@ -1,13 +1,14 @@
+import configurationModule from '../../../../main/frontend/configuration/module';
+import systemNoticeModule from '../../../../main/frontend/systemNotice/systemNoticeModule';
+import SystemNoticeMockData from '../../systemNotice/systemNoticeMockData';
+
 describe('systemNoticeConfigurationControllerSpec.js', function() {
-  beforeEach(function() {
-    module('systemNoticeModule');
-    module('systemNoticeConfigurationModule', function($provide) {
-      SpecUtil.mockPermissionService($provide);
-      $provide.value('$cookies', {
-        get: angular.noop
-      });
+  beforeEach(angular.mock.module(systemNoticeModule.name, configurationModule.name, function($provide) {
+    SpecUtil.mockPermissionService($provide);
+    $provide.value('$cookies', {
+      get: angular.noop
     });
-  });
+  }));
 
   var $rootScope,
       $scope,

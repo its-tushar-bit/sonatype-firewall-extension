@@ -1,5 +1,7 @@
+import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
+
 describe('changeDefaultAdminPasswordNotice component', function() {
-  beforeEach(module('changeDefaultAdminPasswordNoticeModule'));
+  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
 
   var vm,
       $scope,

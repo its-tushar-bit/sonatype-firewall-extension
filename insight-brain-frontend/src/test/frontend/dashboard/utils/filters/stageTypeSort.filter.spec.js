@@ -1,6 +1,8 @@
+import dashboardUtilsModule from '../../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('stageTypeSort.filter.spec', function () {
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   it('sort by id', inject(function ($filter) {
     var result = $filter('stageTypeSort')([{ id: 'operate' }, { id: 'build' }, { id: 'release' }, { id: 'stage-release' }]);

@@ -1,10 +1,12 @@
+import { InitModule } from '../../../main/frontend/MainModule';
+
 /* global beforeEach, module, jasmine, afterEach, inject, describe, it, expect, SpecUtil */
 window.angularDebug = true;
 
 describe('mainModuleSpec', function() {
   var scope, telemetryServiceMock, pendoServiceMock;
 
-  beforeEach(module('InitModule', function($provide, $stateProvider) {
+  beforeEach(angular.mock.module(InitModule.name, function($provide, $stateProvider) {
     $provide.value('$window', {
       location: {
         href: 'http://blah',

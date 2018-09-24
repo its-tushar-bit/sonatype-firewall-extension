@@ -1,3 +1,5 @@
+import dashboardResultsModule from '../../../../main/frontend/dashboard/results/module';
+
 describe('dashboardResultsActions', function() {
   var dashboardResultsActions, initialState, dashboardDataServiceMock, $q, $rootScope;
 
@@ -16,9 +18,7 @@ describe('dashboardResultsActions', function() {
     }
   ];
 
-  beforeEach(module('dashboardResultsActionsModule'));
-
-  beforeEach(module(function ($provide) {
+  beforeEach(angular.mock.module(dashboardResultsModule.name, function ($provide) {
 
     dashboardDataServiceMock = jasmine.createSpyObj('dashboardDataServiceMock',
         ['getNewestRisks', 'getApplicationRisks', 'getComponentRisks']);

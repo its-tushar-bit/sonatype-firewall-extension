@@ -1,9 +1,10 @@
+import systemNoticeModule from '../../../main/frontend/systemNotice/systemNoticeModule';
+import clmLocation from '../../../main/frontend/util/CLMLocation';
+import SystemNoticeMockData from './systemNoticeMockData';
+
 describe('systemNoticeSpec', function() {
 
-  beforeEach(function() {
-    module('CLMLocation');
-    module('systemNoticeModule');
-  });
+  beforeEach(angular.mock.module(clmLocation.name, systemNoticeModule.name));
 
   var $rootScope,
       $scope,

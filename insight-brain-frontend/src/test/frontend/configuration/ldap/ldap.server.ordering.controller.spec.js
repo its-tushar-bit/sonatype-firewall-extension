@@ -1,8 +1,10 @@
+import ldapModule from '../../../../main/frontend/configuration/ldap/ldap.module';
+
 describe('ldap.server.ordering.controller.spec.js', function() {
 
   var scope;
 
-  beforeEach(module('ldap.module'));
+  beforeEach(angular.mock.module(ldapModule.name));
 
   beforeEach(inject(function($httpBackend, $controller, $rootScope, LdapConfigurationStore, CLMContextLocations) {
     $httpBackend.whenGET(CLMContextLocations.getLdapConfig()).respond([

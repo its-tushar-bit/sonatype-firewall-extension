@@ -1,6 +1,9 @@
+import webhookModule from '../../../../main/frontend/configuration/webhook/webhook.module';
+import webhookMockData from '../../stores/configuration/webhook/webhook.mock.data';
+
 describe('webhook.list.controller.spec.js', function() {
 
-  beforeEach(module('webhook.module', function($provide) {
+  beforeEach(angular.mock.module(webhookModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
@@ -25,11 +28,11 @@ describe('webhook.list.controller.spec.js', function() {
   });
 
   it('Properly Loads Webhooks', function() {
-    $httpBackend.expectGET(CLMLocations.getWebhooksUrl()).respond(WebhookMockData.getWebhooks());
+    $httpBackend.expectGET(CLMLocations.getWebhooksUrl()).respond(webhookMockData.getWebhooks());
     $httpBackend.flush();
 
-    expect(vm.webhooks.count).toEqual(WebhookMockData.getWebhooks().count);
-    expect(vm.webhooks[0].id).toEqual(WebhookMockData.getWebhooks()[0].id);
+    expect(vm.webhooks.count).toEqual(webhookMockData.getWebhooks().count);
+    expect(vm.webhooks[0].id).toEqual(webhookMockData.getWebhooks()[0].id);
   });
 
   it('Missing Webhooks', function() {

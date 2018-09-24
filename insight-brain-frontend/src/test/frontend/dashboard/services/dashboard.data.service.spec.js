@@ -1,9 +1,9 @@
+import dashboardServicesModule from '../../../../main/frontend/dashboard/services/module';
+
 describe('dashboard.data.service.spec', function() {
   var $httpBackend, dashboardDataService, CLMLocations, createDashboardDataRequestPayloadMock, classyBrewMock;
 
-  beforeEach(module('dashboard.module'));
-
-  beforeEach(module(function ($provide) {
+  beforeEach(angular.mock.module(dashboardServicesModule.name, function ($provide) {
     createDashboardDataRequestPayloadMock = jasmine.createSpy('createDashboardDataRequestPayload');
     createDashboardDataRequestPayloadMock.and.callFake(function(filter) {
       return filter;

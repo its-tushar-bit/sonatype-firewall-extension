@@ -1,3 +1,5 @@
+import roleModule from '../../../main/frontend/security/RoleModule';
+
 describe('RoleModuleSpec.js', function() {
   var scope,
       roleSummaries = [{
@@ -29,7 +31,7 @@ describe('RoleModuleSpec.js', function() {
 
   describe('RoleListController', function() {
 
-    beforeEach(module('RoleModule'));
+    beforeEach(angular.mock.module(roleModule.name));
 
     afterEach(inject(function($httpBackend) {
       $httpBackend.verifyNoOutstandingExpectation();
@@ -91,7 +93,7 @@ describe('RoleModuleSpec.js', function() {
 
   describe('RoleEditorController', function() {
 
-    beforeEach(module('RoleModule'));
+    beforeEach(angular.mock.module(roleModule.name));
 
     afterEach(inject(function($httpBackend) {
       $httpBackend.verifyNoOutstandingExpectation();

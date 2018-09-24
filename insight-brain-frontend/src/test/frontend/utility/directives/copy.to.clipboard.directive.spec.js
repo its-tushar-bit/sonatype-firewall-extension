@@ -1,9 +1,11 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('copy.to.clipboard.directive.js', function() {
   var element,
       scope,
       $window;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($rootScope, $compile, _$window_) {
     $window = _$window_;

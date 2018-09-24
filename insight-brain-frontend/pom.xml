@@ -77,7 +77,7 @@
               <specIncludes>
                 <include>frontend/SpecUtil.js</include>
                 <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
+                <include>frontend/**/LicenseGroupMockData.js</include>
                 <include>resources/assets/cip/**/*.js</include>
                 <include>resources/assets/**/cip*.js</include>
                 <include>resources/assets/**/CIP*.js</include>
@@ -122,7 +122,6 @@
               <specIncludes>
                 <include>frontend/SpecUtil.js</include>
                 <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
                 <include>resources/assets/audit-report/*.js</include>
               </specIncludes>
               <specExcludes>
@@ -131,48 +130,6 @@
               <fileSystemReporters>
                 <reporter>
                   <fileName>TEST-audit.xml</fileName>
-                  <reporterName>JUNIT_XML</reporterName>
-                </reporter>
-              </fileSystemReporters>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.brain.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>frontend/SpecUtil.js</source>
-                <source>root/target/classes/assets/bundle.js</source>
-                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
-              </preloadSources>
-              <sourceIncludes>
-              </sourceIncludes>
-              <sourceExcludes>
-              </sourceExcludes>
-              <specIncludes>
-                <include>frontend/**/*utils.js</include>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
-                <include>frontend/**/*.mock.data.js</include>
-                <include>frontend/**/*-spec.js</include>
-                <include>frontend/**/*.spec.js</include>
-                <include>frontend/**/*Spec.js</include>
-              </specIncludes>
-              <specExcludes>
-                <exclude>frontend/**/cip*.js</exclude>
-                <exclude>frontend/**/CIP*.js</exclude>
-                <exclude>frontend/brain-client/**/*.js</exclude>
-                <exclude>frontend/version-graph/**/*.js</exclude>
-                <exclude>frontend/owner.manager/**/*.js</exclude>
-                <exclude>frontend/pendo/sanitizeUrlServiceSpec.js</exclude>
-                <exclude>frontend/labs/**/*.js</exclude>
-              </specExcludes>
-              <fileSystemReporters>
-                <reporter>
-                  <fileName>TEST-server.xml</fileName>
                   <reporterName>JUNIT_XML</reporterName>
                 </reporter>
               </fileSystemReporters>

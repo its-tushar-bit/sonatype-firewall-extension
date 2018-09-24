@@ -1,6 +1,8 @@
+import validators from '../../../main/frontend/util/Validators';
+
 describe('ValidatorsSpec', function() {
 
-  beforeEach(module('Validators'));
+  beforeEach(angular.mock.module(validators.name));
 
   describe('Unique Validator', function() {
     var scope, element, formController;

@@ -1,9 +1,11 @@
+import productLicenseModule from '../../../main/frontend/configuration/license/ProductLicenseModule';
+
 describe('uninstall.license.controller.spec.js', function () {
   var vm,
       scope,
       reloadSpy;
 
-  beforeEach(module('ProductLicense'));
+  beforeEach(angular.mock.module(productLicenseModule.name));
 
   beforeEach(inject(function($rootScope, $controller, $q) {
     scope = $rootScope.$new();

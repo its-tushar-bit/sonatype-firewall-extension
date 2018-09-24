@@ -1,3 +1,6 @@
+import userModule from '../../../main/frontend/security/UserModule';
+import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
+
 describe('UserModuleSpec.js', function() {
   var listScope = null;
   var dialogScope = null;
@@ -12,7 +15,7 @@ describe('UserModuleSpec.js', function() {
     });
   }
 
-  beforeEach(module('UserModule', 'HttpInterceptors', function($provide) {
+  beforeEach(angular.mock.module(userModule.name, httpInterceptors.name, function($provide) {
     $provide.value('$modalInstance', {
       close: function() {}
     });

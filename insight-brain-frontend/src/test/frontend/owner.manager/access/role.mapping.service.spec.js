@@ -1,4 +1,5 @@
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import accessMockData from '../../stores/access/access.mock.data';
 
 describe('role.mapping.service.spec', function() {
 
@@ -11,7 +12,7 @@ describe('role.mapping.service.spec', function() {
     function(RoleMappingService, CLMContextLocations, $httpBackend) {
       roleMappingService = RoleMappingService;
 
-      $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+      $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
       roleMappingService.get().then(function(roleMappings) {
         loadedData = roleMappings;
         // Assertion in case test data is changed

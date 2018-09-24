@@ -1,7 +1,9 @@
+import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
+
 describe('gettingStarted routerListener', function() {
   var telemetryServiceMock, $state, $rootScope;
 
-  beforeEach(module('gettingStartedModule', function($provide, $stateProvider) {
+  beforeEach(angular.mock.module(gettingStartedModule.name, function($provide, $stateProvider) {
     telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
 
     $provide.service('gettingStartedUsageTelemetryService', function() {

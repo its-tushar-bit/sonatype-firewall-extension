@@ -1,12 +1,12 @@
-describe('applicationReportResultsSpec', function() {
+import applicationReportModule from '../../../../main/frontend/applicationReport/module';
+
+describe('applicationReportResults', function() {
 
   var vm;
 
-  beforeEach(function() {
-    module('applicationReportModule');
-  });
+  beforeEach(angular.mock.module(applicationReportModule.name));
 
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(function($provide) {
     SpecUtil.mockNgRedux($provide);
   }));
 

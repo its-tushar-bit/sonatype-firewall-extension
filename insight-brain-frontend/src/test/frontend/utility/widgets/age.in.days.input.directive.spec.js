@@ -1,3 +1,6 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+
 describe('age.in.days.input.directive.spec.js', function() {
   var element,
       scope,
@@ -6,7 +9,7 @@ describe('age.in.days.input.directive.spec.js', function() {
       $compile,
       $httpBackend;
 
-  beforeEach(module('utility', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(utilityModule.name, legacyConfigurationModule.name));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -18,20 +21,18 @@ describe('age.in.days.input.directive.spec.js', function() {
     $httpBackend = _$httpBackend_;
     $compile = _$compile_;
 
-    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/age.in.days.input.directive.html');
-
     scope = angular.extend(scope, {
       ageModel: '3'
     });
 
     element = $compile('<form name="testform"><age-in-days-input ng-model="ageModel"></age-in-days-input></form>')(scope).children();
-    $httpBackend.flush();
 
     isolatedScope = element.isolateScope();
     vm = isolatedScope.vm;
   }));
 
   it('Directive formats days into the correct age and parses age into days', function() {
+    scope.$digest();
     expect(element.find('input[type="number"]').val()).toEqual('3');
 
     expect(vm.modifierTypes.length).toBe(3);

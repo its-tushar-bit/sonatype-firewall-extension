@@ -1,7 +1,9 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('sort.directive.spec.js', function() {
   var vm;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($controller) {
     vm = $controller('sort.controller');

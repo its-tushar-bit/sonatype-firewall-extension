@@ -1,3 +1,7 @@
+import applicationSecurityModule from '../../../main/frontend/policy/AppSecurityController';
+import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
+import clmContextLocationModule from '../../../main/frontend/util/CLMContextLocation';
+
 describe('AppSecurityControllerSpec', function() {
   var mockCLMContextLocations = {
     getRoleMappingUrl: function() {
@@ -7,9 +11,11 @@ describe('AppSecurityControllerSpec', function() {
     }
   };
 
-  beforeEach(module('ApplicationSecurityModule', 'HttpInterceptors', 'CLMContextLocation', function ($provide) {
-    $provide.value('CLMContextLocations', mockCLMContextLocations);
-  }));
+  beforeEach(angular.mock.module(applicationSecurityModule.name, httpInterceptors.name, clmContextLocationModule.name,
+      function ($provide) {
+        $provide.value('CLMContextLocations', mockCLMContextLocations);
+      }
+  ));
 
   describe('AppSecurityController', function() {
     var scope = null, parentScope = null, role1 = null, role2 = null;

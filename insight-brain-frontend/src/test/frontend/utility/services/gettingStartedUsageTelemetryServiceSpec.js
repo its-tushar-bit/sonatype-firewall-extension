@@ -1,9 +1,11 @@
+import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
+
 describe('gettingStartedUsageTelemetryService', function() {
   var gettingStartedUsageTelemetryService,
       telemetryServiceMock,
       $ngReduxMock;
 
-  beforeEach(module('gettingStartedModule', function($provide) {
+  beforeEach(angular.mock.module(gettingStartedModule.name, function($provide) {
     telemetryServiceMock = jasmine.createSpyObj('telemetryService', ['submitData']);
     $ngReduxMock = jasmine.createSpyObj('$ngRedux', ['getState']);
 

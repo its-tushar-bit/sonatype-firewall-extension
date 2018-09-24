@@ -1,5 +1,8 @@
+import dashboardResultsModule from '../../../../main/frontend/dashboard/results/module';
+import dashboardModule from '../../../../main/frontend/dashboard/dashboard.module';
+import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('dashboardCommonResultsSpec', function() {
-  beforeEach(module('dashboard.utils'));
 
   var vm,
       dialogMock,
@@ -7,11 +10,13 @@ describe('dashboardCommonResultsSpec', function() {
       $ngRedux,
       dashboardFilterActionsMock;
 
-  beforeEach(module('dashboard.module', 'dashboard.utils', function($provide) {
-    $provide.service('$ngRedux', function() {
-      return jasmine.createSpyObj('$ngRedux', ['dispatch']);
-    });
-  }));
+  beforeEach(angular.mock.module(dashboardResultsModule.name, dashboardModule.name, dashboardUtilsModule.name,
+      function($provide) {
+        $provide.service('$ngRedux', function() {
+          return jasmine.createSpyObj('$ngRedux', ['dispatch']);
+        });
+      }
+  ));
 
   beforeEach(inject(
       function($componentController, _$ngRedux_) {

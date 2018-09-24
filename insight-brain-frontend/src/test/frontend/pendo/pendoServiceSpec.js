@@ -1,24 +1,27 @@
+import pendoModule from '../../../main/frontend/pendo/module';
+
 describe('pendoService', function() {
   var $httpBackend,
       CLMLocations,
       $window,
       pendoService;
 
-  beforeEach(module('pendoModule'), module(function($provide) {
+  beforeEach(angular.mock.module(pendoModule.name, function($provide) {
     var doc = {
       createElement: function() {
         return {};
       },
       getElementsByTagName: function() {
-        return {
+        return [{
           parentNode: {
             insertBefore: function() {}
           }
-        };
+        }];
       }
     };
     $provide.value('$document', [doc]);
   }));
+
   beforeEach(inject(function(_$httpBackend_, _CLMLocations_, _$window_, _pendoService_) {
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;

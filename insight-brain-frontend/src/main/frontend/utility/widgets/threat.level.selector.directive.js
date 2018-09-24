@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './threat.level.selector.directive.html';
 
 export default function ThreatLevelSelector() {
   return {
@@ -12,7 +13,7 @@ export default function ThreatLevelSelector() {
       threatType: '@',
       disabled: '=?ngDisabled'
     },
-    templateUrl: 'utility/widgets/threat.level.selector.directive.html',
+    template,
     controller: ThreatLevelSelectorController,
     controllerAs: 'vm',
     bindToController: true

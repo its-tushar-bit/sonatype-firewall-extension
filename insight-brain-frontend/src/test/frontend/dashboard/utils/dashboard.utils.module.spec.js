@@ -1,6 +1,8 @@
+import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('dashboard.utils.module', function() {
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   describe('createDashboardDataRequestPayload()', function() {
     var createDashboardDataRequestPayload;

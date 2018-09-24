@@ -1,7 +1,9 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('has.whitespace.validator.directive.spec.js', function() {
   var scope;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($compile, $rootScope) {
     scope = $rootScope.$new();

@@ -1,8 +1,11 @@
+import dashboardFilterModule from '../../../../../main/frontend/dashboard/filter/module';
+import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
+
 describe('deleteFiltersModalController', function() {
 
   var unsubscribeSpy;
 
-  beforeEach(module('dashboard.module', 'legacyConfiguration', function($provide) {
+  beforeEach(angular.mock.module(dashboardFilterModule.name, legacyConfigurationModule.name, function($provide) {
     unsubscribeSpy = SpecUtil.mockNgRedux($provide);
   }));
 

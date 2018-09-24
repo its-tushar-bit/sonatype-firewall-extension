@@ -1,6 +1,8 @@
+import dashboardUtilsModule from '../../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('emptyToEnd.filter.spec', function() {
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   var emptyToEnd, data = [
         { key: null },

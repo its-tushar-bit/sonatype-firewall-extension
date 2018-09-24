@@ -1,3 +1,5 @@
+import componentsModule from '../../../main/frontend/components/module';
+
 describe('iqTreeViewMultiSelect', function() {
 
   var vm, onChange;
@@ -10,7 +12,7 @@ describe('iqTreeViewMultiSelect', function() {
 
   var allSelected = new Set(['foo', 'bar', 'baz']);
 
-  beforeEach(module('components'));
+  beforeEach(angular.mock.module(componentsModule.name));
 
   beforeEach(inject(function($componentController) {
     onChange = jasmine.createSpy('onChange');

@@ -1,6 +1,8 @@
+import dashboardUtilsModule from '../../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+
 describe('stageFilter.filter.spec', function () {
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   it('empty filter', inject(function ($filter) {
     var stageList = [{ id: 'operate' }, { id: 'build' }, { id: 'release' }, { id: 'stage-release' }],

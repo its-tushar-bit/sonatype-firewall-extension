@@ -1,7 +1,9 @@
+import utilityServicesModule from '../../../../main/frontend/utility/services/utility.services.module';
+
 describe('state.history.service.spec.js', function() {
   var $rootScope, StateHistoryService;
 
-  beforeEach(module('utility.services'));
+  beforeEach(angular.mock.module(utilityServicesModule.name));
 
   beforeEach(inject([
     '$rootScope', 'state.history.service', function(_$rootScope_, _StateHistoryService_) {

@@ -1,8 +1,10 @@
+import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
+
 describe('load.wrapper.directive.spec.js', function() {
   var element,
       scope;
 
-  beforeEach(module('utility.directives'));
+  beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
   beforeEach(inject(function($compile, $rootScope) {
     scope = angular.extend($rootScope.$new(), {

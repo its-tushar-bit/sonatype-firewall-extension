@@ -1,7 +1,9 @@
+import telemetryServiceModule from '../../../../main/frontend/services/telemetryService';
+
 describe('telemetryService', function() {
   var CLMLocations, telemetryService, $cookies, $http;
 
-  beforeEach(module('telemetryServiceModule', function($provide) {
+  beforeEach(angular.mock.module(telemetryServiceModule.name, function($provide) {
     $cookies = jasmine.createSpyObj('$cookies', ['get']);
 
     $provide.value('$cookies', $cookies);
@@ -44,12 +46,14 @@ describe('telemetryService', function() {
 
     it('submits data synchronously when provided sync flag is true', function() {
       spyOn(XMLHttpRequest.prototype, 'open').and.callThrough();
+      spyOn(XMLHttpRequest.prototype, 'send');
       telemetryService.submitData('test_purpose', null, true);
       expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith('POST', CLMLocations.getTelemetryUrl(), false);
     });
 
     it('submits data asynchronously when provided sync flag is not true but truthy', function() {
       spyOn(XMLHttpRequest.prototype, 'open').and.callThrough();
+      spyOn(XMLHttpRequest.prototype, 'send');
       telemetryService.submitData('test_purpose', null, 1);
       expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith('POST', CLMLocations.getTelemetryUrl(), true);
     });

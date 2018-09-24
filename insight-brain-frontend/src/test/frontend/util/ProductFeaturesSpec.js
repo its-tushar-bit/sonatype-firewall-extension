@@ -1,5 +1,7 @@
+import productFeaturesModule from '../../../main/frontend/util/ProductFeatures';
+
 describe('ProductFeatures.js', function() {
-  beforeEach(module('ProductFeaturesModule'));
+  beforeEach(angular.mock.module(productFeaturesModule.name));
 
   it('Test that a feature from server is properly found in UI', inject(function(ProductFeatures, CLMLocations, $httpBackend) {
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['some-feature']);

@@ -1,3 +1,5 @@
+import mainHeaderModule from '../../../../main/frontend/mainHeader/module';
+
 describe('userMenu', function() {
   var scope,
       vm,
@@ -9,7 +11,7 @@ describe('userMenu', function() {
         flush: function() { return pendoFlushDeferred.promise; }
       };
 
-  beforeEach(module('mainHeader', function($provide) {
+  beforeEach(angular.mock.module(mainHeaderModule.name, function($provide) {
 
     $provide.value('CurrentUser', {
       then: function (success) {

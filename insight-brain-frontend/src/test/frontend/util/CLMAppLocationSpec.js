@@ -1,3 +1,5 @@
+import clmContextLocation from '../../../main/frontend/util/CLMContextLocation';
+
 describe('CLMContextLocation', function () {
   var appId, orgId, state;
 
@@ -21,7 +23,7 @@ describe('CLMContextLocation', function () {
     orgId = newOrgId;
   }
 
-  beforeEach(module('CLMContextLocation', function($provide) {
+  beforeEach(angular.mock.module(clmContextLocation.name, function($provide) {
     state = {};
 
     $provide.value('ApplicationId', {

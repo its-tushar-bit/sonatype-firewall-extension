@@ -1,9 +1,9 @@
+import reduxUiRouterModule from '../../../main/frontend/reduxUiRouter/module';
+
 describe('routerListener', function() {
   var routerListener, mockTransitions, mockTransition, store;
 
-  beforeEach(module('reduxUiRouter'));
-
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(reduxUiRouterModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
   }));
 

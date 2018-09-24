@@ -1,8 +1,9 @@
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
 
 describe('change.application.id.controller.spec.js', function() {
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, 'legacyConfiguration'));
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name));
 
   var vm,
       $rootScope,

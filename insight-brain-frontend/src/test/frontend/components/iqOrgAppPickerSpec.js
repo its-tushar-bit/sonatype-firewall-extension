@@ -1,3 +1,5 @@
+import componentsModule from '../../../main/frontend/components/module';
+
 describe('iqOrgAppPicker', function() {
 
   var getVm, onChange;
@@ -15,7 +17,7 @@ describe('iqOrgAppPicker', function() {
     {id: 'barApp2', name: 'Bar App 2', organizationId: 'barOrg'}
   ];
 
-  beforeEach(module('components'));
+  beforeEach(angular.mock.module(componentsModule.name));
 
   beforeEach(inject(function($componentController) {
     onChange = jasmine.createSpy('onChange');

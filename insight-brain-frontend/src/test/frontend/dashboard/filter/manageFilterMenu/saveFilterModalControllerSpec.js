@@ -1,3 +1,5 @@
+import dashboardFilterModule from '../../../../../main/frontend/dashboard/filter/module';
+
 describe('saveFilterModalController', function() {
   var unsubscribeSpy,
       maskDeferred,
@@ -27,7 +29,7 @@ describe('saveFilterModalController', function() {
     return scope;
   }
 
-  beforeEach(module('dashboard.module', function($provide) {
+  beforeEach(angular.mock.module(dashboardFilterModule.name, function($provide) {
     unsubscribeSpy = SpecUtil.mockNgRedux($provide);
   }));
 

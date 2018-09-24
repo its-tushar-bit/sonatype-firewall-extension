@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './double.column.picker.directive.html';
+
 export default function DoubleColumnPicker() {
   return {
     restrict: 'E',
@@ -17,7 +19,7 @@ export default function DoubleColumnPicker() {
       iconFn: '&?',
       tooltipFn: '&?'
     },
-    templateUrl: 'utility/widgets/double.column.picker.directive.html',
+    template,
     controller: DoubleColumnPickerController,
     controllerAs: 'vm',
     bindToController: true,
@@ -36,8 +38,8 @@ export default function DoubleColumnPicker() {
 
     scope.$watch(function() {
       return formCtrl.$pristine;
-    }, function(isPristine) {
-      if (isPristine) {
+    }, function(isPristine, wasPristine) {
+      if (isPristine && !wasPristine) {
         scope.vm.search = {};
         scope.vm.checkAllRight = false;
         scope.vm.checkAllLeft = false;

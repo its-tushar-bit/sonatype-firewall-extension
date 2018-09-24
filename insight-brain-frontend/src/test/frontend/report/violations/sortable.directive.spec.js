@@ -1,6 +1,8 @@
+import reportViolations from '../../../../main/frontend/report/ReportViolationsController';
+
 describe('sortable.directive.spec', function() {
 
-  beforeEach(module('ReportViolations'));
+  beforeEach(angular.mock.module(reportViolations.name));
 
   describe('sortable', function() {
     var barScope, fooScope, invertedScope, scope;

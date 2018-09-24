@@ -1,3 +1,5 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('sort.column.directive.spec.js', function() {
   var $compile,
       scope,
@@ -5,7 +7,7 @@ describe('sort.column.directive.spec.js', function() {
       vm,
       element;
 
-  beforeEach(module('utility'));
+  beforeEach(angular.mock.module(utilityModule.name));
   beforeEach(inject(function(_$compile_, $rootScope) {
     scope = $rootScope.$new();
 

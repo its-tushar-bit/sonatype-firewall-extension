@@ -1,5 +1,7 @@
+import componentModule from '../../../main/frontend/dashboard/ComponentController';
+
 describe('ComponentController tests', function() {
-  beforeEach(module('ComponentModule'));
+  beforeEach(angular.mock.module(componentModule.name));
 
   var applicationComponents = [
     {

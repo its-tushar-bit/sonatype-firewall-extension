@@ -1,8 +1,10 @@
+import utilityServicesModule from '../../../../main/frontend/utility/services/utility.services.module';
+
 describe('jira.service.js', function() {
   var $httpBackend,
       CLMLocations;
 
-  beforeEach(module('utility.services'));
+  beforeEach(angular.mock.module(utilityServicesModule.name));
 
   beforeEach(inject(function(_$httpBackend_, _CLMLocations_) {
     $httpBackend = _$httpBackend_;

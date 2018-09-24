@@ -1,3 +1,6 @@
+import resourceModule from '../../../main/frontend/Resource';
+import clmContextLocationModule from '../../../main/frontend/util/CLMContextLocation';
+
 describe('HierarchyStoreFactory', function() {
   var store,
       storeUrl = 'http://localhost:8234/rest/policy',
@@ -23,7 +26,7 @@ describe('HierarchyStoreFactory', function() {
     };
   }
 
-  beforeEach(module('ResourceModule', 'CLMContextLocation'));
+  beforeEach(angular.mock.module(resourceModule.name, clmContextLocationModule.name));
 
   beforeEach(inject(function(HierarchyStoreFactory) {
     store = HierarchyStoreFactory.getStore(

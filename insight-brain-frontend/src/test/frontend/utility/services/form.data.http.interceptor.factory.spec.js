@@ -1,5 +1,7 @@
+import utilityModule from '../../../../main/frontend/utility/utility.module';
+
 describe('form.data.http.interceptor.factory.spec.js', function() {
-  beforeEach(module('utility'));
+  beforeEach(angular.mock.module(utilityModule.name));
 
   beforeEach(inject(function($window) {
     $window.FormData = angular.noop;

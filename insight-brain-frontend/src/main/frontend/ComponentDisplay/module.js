@@ -5,44 +5,14 @@
  */
 import AngularCommonModule from '../util/AngularCommon';
 import componentName from './componentName';
+import filenameDisplay from './filenameDisplay';
+import linkedComponentDisplay from './linkedComponentDisplay';
 import componentDisplay from './componentDisplay';
 import periodDelimiter from './periodDelimiter';
 
 export default angular.module('ComponentDisplay', [AngularCommonModule.name])
-    .run(cacheTemplates)
-    .directive('componentName', componentName)
-    .directive('componentDisplay', componentDisplay)
+    .component('componentName', componentName)
+    .component('componentDisplay', componentDisplay)
+    .component('filenameDisplay', filenameDisplay)
+    .component('linkedComponentDisplay', linkedComponentDisplay)
     .filter('periodDelimiter', periodDelimiter);
-
-function cacheTemplates($templateCache) {
-  $templateCache.put('displayname',
-      '<span ng-repeat="part in displayName.parts">' +
-      '<span ng-if="part.field">{{ part.value | periodDelimiter }}</span>' +
-      '<span ng-if="!part.field" class="wrap-force-break">{{ part.value | periodDelimiter }}</span>' +
-      '</span>'
-  );
-  $templateCache.put('filename-display',
-      '<div class="filename">' +
-      '<em>{{component.filename}}</em>' +
-      '</div>'
-  );
-  $templateCache.put('unknown-display',
-      '<div>' +
-      '<em>Unknown</em>' +
-      '</div>'
-  );
-  $templateCache.put('component-display',
-      '<div>' +
-      '<div ng-if="component.displayName" ng-class="{\'truncate-ellipsis\': truncate}"><span component-name="component.displayName"></span></div>' +
-      '<div ng-if="!component.displayName && component.filename" ng-include="\'filename-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
-      '<div ng-if="!component.displayName && !component.filename" ng-include="\'unknown-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
-      '</div>'
-  );
-  $templateCache.put('linked-component-display',
-      '<a ui-sref="dashboard.component({ hash: component.hash })">' +
-      '<div ng-include="\'component-display\'"></div>' +
-      '</a>'
-  );
-}
-
-cacheTemplates.$inject = ['$templateCache'];

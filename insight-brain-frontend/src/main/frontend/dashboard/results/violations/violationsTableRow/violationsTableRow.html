@@ -28,7 +28,7 @@
        tooltip-only-on-overflow="true"
        tooltip-overflow-element-selector=".truncate-ellipsis"
        tooltip-text="{{::vm.risk.derivedComponentName}}">
-  <span component-display component="vm.risk" truncate="true"></span>
+  <linked-component-display component="vm.risk" truncate="true"></linked-component-display>
 </td><!--
 --><td class="iq-cell iq-cell--age">{{::vm.risk.firstOccurrenceTime | terseAgo}}</td><!--
 --><td class="iq-cell iq-cell--report">

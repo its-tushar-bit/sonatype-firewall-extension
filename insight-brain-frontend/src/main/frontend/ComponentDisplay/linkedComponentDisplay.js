@@ -7,11 +7,11 @@
 export default {
   controllerAs: 'vm',
   bindings: {
-    name: '<'
+    component: '<',
+    truncate: '<'
   },
   template: `
-    <span ng-repeat="part in vm.name.parts">
-      <span ng-if="part.field">{{ part.value | periodDelimiter }}</span>
-      <span ng-if="!part.field" class="wrap-force-break">{{ part.value | periodDelimiter }}</span>
-    </span>`
+      <a ui-sref="dashboard.component({ hash: vm.component.hash })">
+        <component-display component="vm.component" truncate="vm.truncate"></component-display>
+      </a>`
 };

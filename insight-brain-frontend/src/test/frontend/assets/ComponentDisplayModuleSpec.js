@@ -28,9 +28,9 @@ describe('ComponentDisplay', function() {
         },
         pathnames: []
       };
-      var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
+      var element = $compile(angular.element('<component-display component="component"></component-display>'))(scope);
       scope.$digest();
-      expect(element.text()).toContain('foo : bar : 1.0');
+      expect(element.text().trim().replace(/\s+/g, ' ')).toContain('foo : bar : 1.0');
     });
 
     it('Can show an element with a filename', function() {
@@ -38,14 +38,14 @@ describe('ComponentDisplay', function() {
         displayName: null,
         filename: 'foo.jar'
       };
-      var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
+      var element = $compile(angular.element('<component-display component="component"></component-display>'))(scope);
       scope.$digest();
       expect(element.text()).toContain('foo.jar');
     });
 
     it('Can show an element with no identifiers', function() {
       scope.component = { };
-      var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
+      var element = $compile(angular.element('<component-display component="component"></component-display>'))(scope);
       scope.$digest();
       expect(element.text()).toContain('Unknown');
     });

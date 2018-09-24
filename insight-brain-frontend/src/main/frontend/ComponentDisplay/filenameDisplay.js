@@ -7,11 +7,10 @@
 export default {
   controllerAs: 'vm',
   bindings: {
-    name: '<'
+    filename: '<'
   },
   template: `
-    <span ng-repeat="part in vm.name.parts">
-      <span ng-if="part.field">{{ part.value | periodDelimiter }}</span>
-      <span ng-if="!part.field" class="wrap-force-break">{{ part.value | periodDelimiter }}</span>
-    </span>`
+    <div class="filename">
+      <em>{{vm.filename}}</em>
+    </div>`
 };

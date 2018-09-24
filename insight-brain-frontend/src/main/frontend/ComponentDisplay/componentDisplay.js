@@ -4,15 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export default
-function componentDisplay() {
-  return {
-    restrict: 'A',
-    replace: true,
-    scope: {
-      component: '<',
-      truncate: '@'
-    },
-    templateUrl: 'linked-component-display'
-  };
-}
+export default {
+  controllerAs: 'vm',
+  bindings: {
+    component: '<',
+    truncate: '<'
+  },
+  template: `
+    <div>
+       <div ng-if="vm.component.displayName" ng-class="{'truncate-ellipsis': vm.truncate}">
+         <component-name name="vm.component.displayName"></component-name>
+       </div>
+       <div ng-if="!vm.component.displayName && vm.component.filename" ng-class="{'truncate-ellipsis': vm.truncate}">
+         <filename-display filename="vm.component.filename"></filename-display>
+       </div>
+       <div ng-if="!vm.component.displayName && !vm.component.filename" ng-class="{'truncate-ellipsis': vm.truncate}">
+         <div><em>Unknown</em></div>
+       </div>
+    </div>`
+};

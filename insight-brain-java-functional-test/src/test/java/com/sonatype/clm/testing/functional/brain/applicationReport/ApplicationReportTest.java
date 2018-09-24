@@ -24,6 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -69,4 +70,17 @@ public class ApplicationReportTest
     eyesWatcher.eyesCheck();
   }
 
+  @Test
+  public void testResults() {
+    reportPage.resultRows().shouldHaveSize(4);
+    for (int i = 1; i <= 4; i++) {
+      reportPage.resultRow(i).threatBar().shouldHave(cssClass("ignore"));
+      reportPage.resultRow(i).threatNumber().shouldHave(text("0"));
+      reportPage.resultRow(i).policyName().shouldHave(text("None"));
+    }
+    reportPage.resultRow(1).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    reportPage.resultRow(2).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    reportPage.resultRow(3).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    reportPage.resultRow(4).componentName().shouldHave(text("javancss : javancss : 29.50"));
+  }
 }

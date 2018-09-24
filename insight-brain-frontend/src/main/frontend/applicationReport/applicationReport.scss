@@ -1,0 +1,38 @@
+.iq-table--application-report {
+  display: block;
+  width: 100%;
+  
+  tbody, thead {
+    display: block;
+    width: 100%;
+  
+    .iq-table-row {
+      display: block;
+      width: 100%;
+    }
+  }
+  
+  .iq-cell {
+    display: inline-block;
+  }
+}
+
+.iq-cell--application-report-policy-threat-level {
+  $cell-width: 65px;
+  &.iq-cell--label {
+    padding-left: 0;
+    width: $cell-width + 12px; // add the left padding we just removed
+  }
+
+  width: $cell-width;
+}
+
+.iq-cell--application-report-policy-name {
+  width: 200px;
+}
+
+.iq-cell--application-report-component-display {
+  // first 2 cells (incl. padding/border ) + padding/border for this cell
+  width: calc(100% - (89px + 225px + 25px));
+  min-width: 0;
+}

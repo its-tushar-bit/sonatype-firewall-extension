@@ -9,8 +9,12 @@ import applicationReportResults from './results/applicationReportResults';
 import utilityModule from '../utility/utility.module';
 import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
+import ComponentDisplayModule from '../ComponentDisplay/module';
+import applicationReportService from './applicationReportService';
 
-export default angular.module('applicationReportModule', [CLMLocationsModule.name, utilityModule.name])
+export default angular.module('applicationReportModule',
+    [CLMLocationsModule.name, utilityModule.name, ComponentDisplayModule.name])
+    .service('applicationReportService', applicationReportService)
     .component('applicationReport', applicationReport)
     .component('applicationReportResults', applicationReportResults)
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
@@ -19,7 +23,7 @@ export default angular.module('applicationReportModule', [CLMLocationsModule.nam
 
 function routes($stateProvider) {
   $stateProvider.state('applicationReport', {
-    url: '/applicationReport/{publicId}/{scanId}',
+    url: '/applicationReport/{publicId}/{scanId}?unknownjs',
     component: 'applicationReport',
     data: {
       title: 'Application Report'

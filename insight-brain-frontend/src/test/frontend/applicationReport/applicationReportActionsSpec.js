@@ -1,7 +1,7 @@
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 
 describe('applicationReportActions', function() {
-  var applicationReportActions, initialState, CLMLocations, $httpBackend;
+  let applicationReportActions, initialState, CLMLocations, $httpBackend;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -22,8 +22,8 @@ describe('applicationReportActions', function() {
 
   describe('loadReport', function() {
     it('fires LOAD_REPORT_FAILED action if report request fails', function() {
-      var store = SpecUtil.mockReduxStore(initialState);
-      var errorSpy = jasmine.createSpy('errorSpy');
+      const store = SpecUtil.mockReduxStore(initialState);
+      const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport('appId', 'scanId')).catch(errorSpy);
 
       expect(store.getActions().length).toBe(1);
@@ -32,6 +32,8 @@ describe('applicationReportActions', function() {
       });
 
       $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond(500, 'test error');
+      $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(200);
+      $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(200);
       $httpBackend.flush();
 
       expect(errorSpy).toHaveBeenCalled();
@@ -43,8 +45,8 @@ describe('applicationReportActions', function() {
     });
 
     it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
-      var store = SpecUtil.mockReduxStore(initialState);
-      var errorSpy = jasmine.createSpy('errorSpy');
+      const store = SpecUtil.mockReduxStore(initialState);
+      const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport('appId', 'scanId')).catch(errorSpy);
 
       expect(store.getActions().length).toBe(1);
@@ -52,14 +54,40 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond('data');
+      $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond({reportTitle: 'test'});
+      $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(null);
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
-        payload: 'data'
+        payload: {reportTitle: 'test'}
+      });
+    });
+
+    it('fetches unknown js results when so told', function() {
+      const store = SpecUtil.mockReduxStore(initialState);
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions.loadReport('appId', 'scanId', true)).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_REPORT_REQUESTED'
+      });
+
+      $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond({reportTitle: 'test'});
+      $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(CLMLocations.getReportUnknownJsUrl('appId', 'scanId')).respond(null);
+      $httpBackend.flush();
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {reportTitle: 'test'}
       });
     });
   });

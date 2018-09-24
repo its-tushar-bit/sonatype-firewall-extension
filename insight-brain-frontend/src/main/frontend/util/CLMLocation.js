@@ -16,6 +16,11 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       return baseUrl.get() + (isRM ? '/rest/rm/user-telemetry' : '/rest/user-telemetry');
     }
 
+    function getBaseReportUrl(applicationPublicId, scanId) {
+      return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
+          encodeURIComponent(scanId);
+    }
+
     return {
       getLicensesUrl: function() {
         return baseUrl.get() + '/rest/license';
@@ -87,10 +92,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/config/ldap/priority';
       },
 
-      getReportUrl: function(applicationPublicId, scanId) {
-        return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
-            encodeURIComponent(scanId) + '/browseReport/index.html';
-      },
+      getReportUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/browseReport/index.html',
 
       getSessionUrl: function() {
         return baseUrl.get() + '/rest/user/session';
@@ -128,10 +131,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/user/' + userId + '/password';
       },
 
-      getReportMetadataUrl: function(applicationPublicId, scanId) {
-        return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
-            encodeURIComponent(scanId) + '/metadata';
-      },
+      getReportMetadataUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/metadata',
 
       getBundleUploadUrl: function(applicationPublicId, stageId, sendNotifications) {
         return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '?stageId=' + stageId +
@@ -345,7 +346,16 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,
 
-      getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`
+      getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`,
+
+      getReportPolicyThreatsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/browseReport/policythreats.json',
+
+      getReportBomUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/browseReport/bom.json',
+
+      getReportUnknownJsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/browseReport/unknownjs.json'
     };
   }
 ]);

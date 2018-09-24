@@ -10,9 +10,11 @@ import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ApplicationReportPage
     extends BasicElement<ApplicationReportPage>
@@ -37,5 +39,37 @@ public class ApplicationReportPage
 
   public IQDropdown optionsDropdown() {
     return new IQDropdown("#options-dropdown");
+  }
+
+  public ElementsCollection resultRows() {
+    return children(".iq-table--application-report tbody .iq-table-row");
+  }
+
+  public ResultRow resultRow(int i) {
+    return new ResultRow(childSelector(".iq-table--application-report tbody .iq-table-row", nthChild(i)));
+  }
+
+  public static class ResultRow
+      extends BasicElement<ResultRow>
+  {
+    public ResultRow(String childSelector) {
+      super(childSelector);
+    }
+
+    public SelenideElement threatBar() {
+      return child(".iq-threat-indication");
+    }
+
+    public SelenideElement threatNumber() {
+      return child(".iq-threat-number");
+    }
+
+    public SelenideElement policyName() {
+      return child(".iq-cell--application-report-policy-name");
+    }
+
+    public SelenideElement componentName() {
+      return child(".iq-cell--application-report-component-display");
+    }
   }
 }

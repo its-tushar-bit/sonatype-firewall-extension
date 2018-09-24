@@ -1,8 +1,8 @@
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
 
-describe('applicationReportResults', function() {
+describe('applicationReportResultsSpec', function() {
 
-  var vm;
+  let vm;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -19,7 +19,7 @@ describe('applicationReportResults', function() {
 
   describe('$onInit()', function() {
     it('loads correct report', function() {
-      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport');
+      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
     });
   });
 

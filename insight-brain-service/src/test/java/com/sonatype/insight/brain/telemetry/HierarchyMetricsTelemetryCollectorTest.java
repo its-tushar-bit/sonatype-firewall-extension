@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
@@ -26,11 +27,17 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-public class TelemetryCollectorTest
+public class HierarchyMetricsTelemetryCollectorTest
     extends AbstractComponentTest
 {
   @Inject
-  private TelemetryCollector telemetryCollector;
+  private HierarchyMetricsTelemetryCollector telemetryCollector;
+
+  @Test
+  public void testCollectData_TelemetryPurpose() throws Exception {
+    TelemetryData telemetryData = telemetryCollector.collectData();
+    assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.HIERARCHY_METRICS));
+  }
 
   @Test
   public void testCollectData_ZeroApps() throws Exception {
@@ -39,11 +46,11 @@ public class TelemetryCollectorTest
     long expectedMaxTimestamp = System.currentTimeMillis();
     assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
     assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("0"));
   }
 
   @Test
@@ -54,11 +61,11 @@ public class TelemetryCollectorTest
     long expectedMaxTimestamp = System.currentTimeMillis();
     assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
     assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("2"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("1"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("1"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("1.0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("2"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("1"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("1"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("1.0"));
   }
 
   @Test
@@ -69,11 +76,11 @@ public class TelemetryCollectorTest
     long expectedMaxTimestamp = System.currentTimeMillis();
     assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
     assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("11"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("55"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("10"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("9.8"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("11"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("55"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("10"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("9.8"));
   }
 
   @Test
@@ -84,11 +91,11 @@ public class TelemetryCollectorTest
     long expectedMaxTimestamp = System.currentTimeMillis();
     assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
     assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("21"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("210"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("20"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("18.8"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("21"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("210"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("20"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("18.8"));
   }
 
   @Test
@@ -100,16 +107,16 @@ public class TelemetryCollectorTest
     long expectedMaxTimestamp = System.currentTimeMillis();
     assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
     assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("1"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("1"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("1"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("1"));
-    assertThat(telemetryData.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("1.0"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("1"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("1"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("1"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("1"));
+    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("1.0"));
   }
 
   @Test
   public void testCollectData_OdsSizeBytes_InMemory() throws Exception {
-    assertThat(telemetryCollector.collectData().getAttributes().get(TelemetryCollector.ODS_SIZE_BYTES),
+    assertThat(telemetryCollector.collectData().getAttributes().get(HierarchyMetricsTelemetryCollector.ODS_SIZE_BYTES),
         is(nullValue()));
   }
 
@@ -122,7 +129,7 @@ public class TelemetryCollectorTest
       OperationalDataStoreProvider.init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods),
           false);
       String odsSizeBytes = (String) telemetryCollector.collectData().getAttributes()
-          .get(TelemetryCollector.ODS_SIZE_BYTES);
+          .get(HierarchyMetricsTelemetryCollector.ODS_SIZE_BYTES);
       assertThat(odsSizeBytes, is(notNullValue()));
       assertThat(Long.valueOf(odsSizeBytes), is(greaterThan(0L)));
     }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -18,29 +19,33 @@ import com.sonatype.insight.brain.security.SystemRunnable;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class TelemetryScheduler
     implements Managed
 {
-  private final TelemetryCollector telemetryCollector;
+  private static final Logger log = LoggerFactory.getLogger(TelemetryScheduler.class);
+
+  private final List<TelemetryCollector> telemetryCollectors;
 
   private final TelemetrySender telemetrySender;
 
   private final ScheduledExecutorService scheduledExecutorService;
 
   @Inject
-  public TelemetryScheduler(TelemetryCollector telemetryCollector, TelemetrySender telemetrySender) {
-    this(telemetryCollector, telemetrySender, getScheduledThreadPoolExecutor());
+  public TelemetryScheduler(List<TelemetryCollector> telemetryCollectors, TelemetrySender telemetrySender) {
+    this(telemetryCollectors, telemetrySender, getScheduledThreadPoolExecutor());
   }
 
   @VisibleForTesting
-  TelemetryScheduler(TelemetryCollector telemetryCollector,
+  TelemetryScheduler(List<TelemetryCollector> telemetryCollectors,
                      TelemetrySender telemetrySender,
                      ScheduledExecutorService scheduledExecutorService)
   {
-    this.telemetryCollector = telemetryCollector;
+    this.telemetryCollectors = telemetryCollectors;
     this.telemetrySender = telemetrySender;
     this.scheduledExecutorService = scheduledExecutorService;
   }
@@ -53,7 +58,14 @@ public class TelemetryScheduler
   @VisibleForTesting
   Runnable getTelemetryRunnable() {
     return new SystemRunnable(() -> {
-      telemetrySender.send(telemetryCollector.collectData());
+      for (TelemetryCollector telemetryCollector : telemetryCollectors) {
+        try {
+          telemetrySender.send(telemetryCollector.collectData());
+        }
+        catch (Exception e) {
+          log.debug("Unable to send telemetry for collector {}", telemetryCollector, e);
+        }
+      }
     });
   }
 

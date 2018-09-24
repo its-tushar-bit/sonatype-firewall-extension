@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -23,13 +26,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.telemetry.TelemetryCollector;
+import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
 import io.dropwizard.logging.AppenderFactory;
@@ -43,6 +48,7 @@ import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -88,49 +94,74 @@ public class InsightBrainServiceTest
 
   @Test
   public void testRun_TelemetryIsCalled() throws Exception {
-    final int[] status = new int[1];
-    final ByteArrayDataSource[] multipartDataSources = new ByteArrayDataSource[1];
+    final Map<ByteArrayDataSource, Integer> responses = new LinkedHashMap<>();
     VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
     TelemetryId telemetryId = getCLMServer().getInjector().getInstance(TelemetryId.class);
 
     Date expectedMinCreateTime = new Date();
     getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
-      status[0] = response.getStatus();
-      multipartDataSources[0] = new ByteArrayDataSource(request.getInputStream(), "multipart/form-data");
+      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
     }, 204);
     getCLMServer().stop();
     getCLMServer().start();
-    await().atMost(5, SECONDS).until(() -> status[0] != 0);
+    await().atMost(5, SECONDS).until(() -> responses.size() == 2);
     Date expectedMaxCreateTime = new Date();
-    MimeMultipart multipart = new MimeMultipart(multipartDataSources[0]);
-    BodyPart bodyPart = multipart.getBodyPart(0);
-    String filename = bodyPart.getFileName();
-    assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
-    assertThat(status[0], is(204));
-    try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
-      byte[] buffer = new byte[1024];
 
-      ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
-      assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
-      zipInputStream.read(buffer);
-      TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
-      assertThat(telemetryHeaderReceived.getCreateTime(), greaterThanOrEqualTo(expectedMinCreateTime));
-      assertThat(telemetryHeaderReceived.getCreateTime(), lessThanOrEqualTo(expectedMaxCreateTime));
-      assertThat(telemetryHeaderReceived.getTelemetryId(), is(telemetryId.getId()));
-      assertThat(telemetryHeaderReceived.getProduct(),
-          is(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion()));
-      assertThat(telemetryHeaderReceived.getFormat(), is(TelemetrySender.FILE_FORMAT));
+    List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();
+    for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
+      Integer status = response.getValue();
+      MimeMultipart multipart = new MimeMultipart(response.getKey());
+      BodyPart bodyPart = multipart.getBodyPart(0);
+      String filename = bodyPart.getFileName();
+      assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
+      assertThat(status, is(204));
+      try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
+        byte[] buffer = new byte[1024];
 
-      ZipEntry zipEntryData = zipInputStream.getNextEntry();
-      assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
-      zipInputStream.read(buffer);
-      TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("0"));
+        ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
+        assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
+        zipInputStream.read(buffer);
+        TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
+        assertThat(telemetryHeaderReceived.getCreateTime(), greaterThanOrEqualTo(expectedMinCreateTime));
+        assertThat(telemetryHeaderReceived.getCreateTime(), lessThanOrEqualTo(expectedMaxCreateTime));
+        assertThat(telemetryHeaderReceived.getTelemetryId(), is(telemetryId.getId()));
+        assertThat(telemetryHeaderReceived.getProduct(),
+            is(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion()));
+        assertThat(telemetryHeaderReceived.getFormat(), is(TelemetrySender.FILE_FORMAT));
+
+        ZipEntry zipEntryData = zipInputStream.getNextEntry();
+        assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
+        zipInputStream.read(buffer);
+        TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
+        TelemetryPurpose telemetryPurpose = telemetryDataReceived.getPurpose();
+
+        telemetryPurposes.add(telemetryPurpose);
+        switch (telemetryPurpose) {
+          case HIERARCHY_METRICS:
+            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS),
+                is("0"));
+            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS),
+                is("0"));
+            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG),
+                is("0"));
+            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG),
+                is("0"));
+            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG),
+                is("0"));
+            break;
+          case POLICY_STATUS_OVERRIDE:
+            assertThat(telemetryDataReceived.getAttributes()
+                .get(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT), is("0"));
+            break;
+          default:
+            // nothing to test
+            break;
+        }
+      }
     }
+
+    assertThat(telemetryPurposes,
+        containsInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE));
   }
 
   @Test

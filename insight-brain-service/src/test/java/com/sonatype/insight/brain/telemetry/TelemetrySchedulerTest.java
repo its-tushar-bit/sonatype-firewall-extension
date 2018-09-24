@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.Arrays;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -29,7 +30,10 @@ public class TelemetrySchedulerTest
     extends AbstractComponentTest
 {
   @Mock
-  private TelemetryCollector telemetryCollector;
+  private TelemetryCollector telemetryCollector1;
+
+  @Mock
+  private TelemetryCollector telemetryCollector2;
 
   @Mock
   private TelemetrySender telemetrySender;
@@ -41,7 +45,8 @@ public class TelemetrySchedulerTest
 
   @Before
   public void before() {
-    telemetryScheduler = new TelemetryScheduler(telemetryCollector, telemetrySender, scheduledExecutorService);
+    telemetryScheduler = new TelemetryScheduler(Arrays.asList(telemetryCollector1, telemetryCollector2),
+        telemetrySender, scheduledExecutorService);
   }
 
   @Test
@@ -67,13 +72,32 @@ public class TelemetrySchedulerTest
 
   @Test
   public void testGetTelemetryRunnableRun_SendSuccess() throws Exception {
-    TelemetryData telemetryData = mock(TelemetryData.class);
-    when(telemetryCollector.collectData()).thenReturn(telemetryData);
+    TelemetryData telemetryData1 = mock(TelemetryData.class);
+    when(telemetryCollector1.collectData()).thenReturn(telemetryData1);
+
+    TelemetryData telemetryData2 = mock(TelemetryData.class);
+    when(telemetryCollector2.collectData()).thenReturn(telemetryData2);
 
     telemetryScheduler.getTelemetryRunnable().run();
 
-    verify(telemetryCollector).collectData();
-    verify(telemetrySender).send(telemetryData);
+    verify(telemetryCollector1).collectData();
+    verify(telemetryCollector2).collectData();
+    verify(telemetrySender).send(telemetryData1);
+    verify(telemetrySender).send(telemetryData2);
+  }
+
+  @Test
+  public void testGetTelemetryRunnableRun_SendFailure() throws Exception {
+    when(telemetryCollector1.collectData()).thenThrow(new RuntimeException("Failure"));
+
+    TelemetryData telemetryData2 = mock(TelemetryData.class);
+    when(telemetryCollector2.collectData()).thenReturn(telemetryData2);
+
+    telemetryScheduler.getTelemetryRunnable().run();
+
+    verify(telemetryCollector1).collectData();
+    verify(telemetryCollector2).collectData();
+    verify(telemetrySender).send(telemetryData2);
   }
 
   @Test

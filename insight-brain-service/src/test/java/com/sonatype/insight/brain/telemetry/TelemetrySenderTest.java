@@ -58,7 +58,7 @@ public class TelemetrySenderTest
   private TelemetryId telemetryId;
 
   @Inject
-  private TelemetryCollector telemetryCollector;
+  private HierarchyMetricsTelemetryCollector telemetryCollector;
 
   private HdsClient mockHdsClient = mock(HdsClient.class);
 
@@ -107,11 +107,14 @@ public class TelemetrySenderTest
       assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
       zipInputStream.read(buffer);
       TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.NUMBER_OF_ORGS), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.NUMBER_OF_APPS), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.MAX_APPS_PER_ORG), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("0"));
+      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("0"));
+      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("0"));
+      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG),
+          is("0"));
+      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG),
+          is("0"));
+      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG),
+          is("0"));
       assertThat(telemetryDataReceived.getTimestamp(), is(telemetryDataSend.getTimestamp()));
     }
   }

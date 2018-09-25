@@ -231,6 +231,12 @@ public class InsightConfig
   @JsonProperty
   private boolean enableDefaultPasswordWarning = true;
 
+  /**
+   * @since 1.52
+   */
+  @JsonProperty
+  private String licenseFile;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -614,5 +620,13 @@ public class InsightConfig
 
   public void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
     this.enableDefaultPasswordWarning = enableDefaultPasswordWarning;
+  }
+
+  public String getLicenseFile() {
+    return licenseFile;
+  }
+
+  public void setLicenseFile(final String licenseFile) {
+    this.licenseFile = licenseFile;
   }
 }

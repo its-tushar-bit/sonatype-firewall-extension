@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.product.license;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
@@ -20,13 +22,16 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSumma
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.test.LogOutput;
 
 import org.sonatype.licensing.LicensingException;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -40,6 +45,9 @@ import static org.mockito.Mockito.verify;
 public class CLMLicenseManagerTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(CLMLicenseManager.class);
+  
   @Inject
   private CLMLicenseManager clmLicenseManager;
 
@@ -481,5 +489,66 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info, is(notNullValue()));
     assertThat(info.products, is(arrayContaining("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle", "Nexus Pro+")));
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed_Null_DoesNothing() throws Exception {
+    clmLicenseManager.uninstallLicense();
+
+    clmLicenseManager.installLicenseIfUnlicensed(null);
+
+    assertThat(clmLicenseManager.getLicenseFingerprint(), is(nullValue()));
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed_LicenseAlreadyInstalled_Warn() throws Exception {
+    installLicense();
+    String licenseFilePath = "path/to/license/file";
+
+    clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
+
+    logOutput.assertWarn(containsString(licenseFilePath));
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
+
+    clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
+
+    logOutput.assertInfo(containsString(licenseFilePath));
+    assertThat(clmLicenseManager.getLicenseFingerprint(), is(notNullValue()));
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed_FileNotFoundException() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    String licenseFilePath = "path/to/license/file";
+    try {
+      clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
+      fail("Expected FileNotFoundException");
+    }
+    catch (FileNotFoundException e) {
+      assertThat(e.getMessage(), containsString(new File(licenseFilePath).getPath()));
+    }
+    logOutput.assertInfo(containsString(licenseFilePath));
+    assertThat(clmLicenseManager.getLicenseFingerprint(), is(nullValue()));
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed_LicensingException() throws Exception {
+    licenseManager.setForceVerificationFailure(true);
+    clmLicenseManager.uninstallLicense();
+    String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
+    try {
+      clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
+      fail("Expected LicensingException");
+    }
+    catch (LicensingException e) {
+      // noop
+    }
+    logOutput.assertInfo(containsString(licenseFilePath));
+    assertThat(clmLicenseManager.getLicenseFingerprint(), is(nullValue()));
   }
 }

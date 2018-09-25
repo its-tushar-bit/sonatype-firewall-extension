@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.migration.DataMigrator;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -173,6 +174,9 @@ public class InsightBrainService
     initializeDatabases(configuration);
 
     super.run(configuration, environment);
+
+    // If a license is not installed and the config has a license file path, then try to install it from there.
+    getInstance(CLMLicenseManager.class).installLicenseIfUnlicensed(configuration.getLicenseFile());
 
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
 

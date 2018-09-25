@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -191,6 +192,20 @@ public class CLMLicenseManager
     catch (LicensingException e) {
       log.debug("Unable to load license details", e);
       clearLicenseCache();
+    }
+  }
+
+  public void installLicenseIfUnlicensed(String licenseFilePath) throws IOException, LicensingException {
+    if (licenseFilePath == null) {
+      return;
+    }
+    if (getLicenseFingerprint() != null) {
+      log.warn("A license is already installed, ignoring {}.", licenseFilePath);
+      return;
+    }
+    log.info("Installing license {}.", licenseFilePath);
+    try (FileInputStream fileInputStream = new FileInputStream(licenseFilePath)) {
+      installLicense(fileInputStream);
     }
   }
 

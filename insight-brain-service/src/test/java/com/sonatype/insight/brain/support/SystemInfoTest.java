@@ -9,12 +9,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.file.FileStore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +27,7 @@ import java.util.TreeSet;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -33,6 +36,8 @@ import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -66,6 +71,8 @@ public class SystemInfoTest
 
   private static final String REQUEST_LOG_FILENAME = "myRequestLogFilename";
 
+  private static final String AUDIT_LOG_FILENAME = "myAuditLogFilename";
+
   @Inject
   private SystemInfo systemInfo;
 
@@ -83,6 +90,22 @@ public class SystemInfoTest
     FileAppenderFactory<IAccessEvent> requestFileAppenderFactory = new FileAppenderFactory<>();
     requestFileAppenderFactory.setCurrentLogFilename(REQUEST_LOG_FILENAME);
     logbackAccessRequestLogFactory.setAppenders(ImmutableList.of(requestFileAppenderFactory));
+
+    defaultLoggingFactory.setLoggers(getAuditLoggers());
+  }
+
+  private Map<String, JsonNode> getAuditLoggers() {
+    Map<String, JsonNode> logger = new HashMap<>();
+    String loggerJson =
+        "{ \"appenders\": [{\"type\": \"file\", \"currentLogFilename\": \"" + AUDIT_LOG_FILENAME + "\" }] }";
+    try {
+      JsonNode loggerNode = new ObjectMapper().readTree(loggerJson);
+      logger.put(AuditRecorder.BASE_LOGGER_NAME, loggerNode);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return logger;
   }
 
   @Test
@@ -262,7 +285,12 @@ public class SystemInfoTest
     final File requestFile = new File(requestValue);
     assertThat(requestFile.isAbsolute(), is(true));
 
-    assertThat(entries.toString(), entries.size(), is(11));
+    final String auditLog = (String) entries.get("auditLog");
+    assertThat(auditLog, endsWith(AUDIT_LOG_FILENAME));
+    final File auditFile = new File(auditLog);
+    assertThat(auditFile.isAbsolute(), is(true));
+
+    assertThat(entries.toString(), entries.size(), is(12));
   }
 
   @Test

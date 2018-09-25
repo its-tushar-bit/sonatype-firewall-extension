@@ -14,15 +14,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -37,6 +40,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.google.common.io.ByteStreams;
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.DefaultLoggingFactory;
@@ -124,6 +129,15 @@ class SupportService
       log.warn("Multiple request log files {}", requestLogFilenames);
     }
     return new File(requestLogFilenames.get(0));
+  }
+
+  static File getAuditLog(final InsightConfig config) {
+    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
+    Map<String, JsonNode> loggers = loggingFactory.getLoggers();
+    JsonNode loggerNode = loggers.getOrDefault(AuditRecorder.BASE_LOGGER_NAME, MissingNode.getInstance());
+    return StreamSupport.stream(loggerNode.path("appenders").spliterator(), false)
+        .map(appender -> appender.path("currentLogFilename")).filter(JsonNode::isTextual)
+        .map(nameNode -> new File(nameNode.asText())).findFirst().orElse(null);
   }
 
   private static List<String> getFilenames(List<? extends AppenderFactory<?>> appenderFactories) {
@@ -217,6 +231,7 @@ class SupportService
     final List<SupportFile> filesToZip = new ArrayList<>();
     addLogFileIfExists(filesToZip, getServerLog(config), "clm-server.log");
     addLogFileIfExists(filesToZip, getRequestLog(config), "request.log");
+    addLogFileIfExists(filesToZip, getAuditLog(config), "audit.log");
 
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
         SupportFileType.CONFIG, true);

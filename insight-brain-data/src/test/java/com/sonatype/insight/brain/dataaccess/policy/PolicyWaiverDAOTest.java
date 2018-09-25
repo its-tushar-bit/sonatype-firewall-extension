@@ -334,4 +334,17 @@ public class PolicyWaiverDAOTest
       assertThat(waivers.get(0).getId(), is(waiver2.getId()));
     }
   }
+
+  @Test
+  public void testGetCount() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    assertThat(dao.getCount(), is(0));
+    Policy policy1 = tempEntity.newPolicy(application.getId(), "policy-1");
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "policy-2");
+    Policy policy3 = tempEntity.newPolicy(organization.getId(), "policy-3");
+    tempEntity.newWaiver(policy1.getId(), application.getId());
+    tempEntity.newWaiver(policy2.getId(), application.getId());
+    tempEntity.newWaiver(policy3.getId(), application.getId());
+    assertThat(dao.getCount(), is(3));
+  }
 }

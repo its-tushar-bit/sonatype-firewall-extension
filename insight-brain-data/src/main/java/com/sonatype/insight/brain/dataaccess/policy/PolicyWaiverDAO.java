@@ -122,6 +122,14 @@ public class PolicyWaiverDAO
     return get(tx, sQuery, hash, policyId, ownerId);
   }
 
+  /**
+   * @since 1.52
+   */
+  public int getCount() {
+    String sQuery = "SELECT COUNT(entity.id) FROM PolicyWaiver entity";
+    return getSingle(Number.class, sQuery).intValue();
+  }
+
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
     PolicyWaiver other = getByHashAndPolicyIdAndOwnerId(tx, entity.getHash(), entity.getPolicyId(), entity.getOwnerId());

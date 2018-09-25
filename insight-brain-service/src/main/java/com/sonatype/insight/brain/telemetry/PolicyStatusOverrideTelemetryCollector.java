@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -25,11 +26,18 @@ public class PolicyStatusOverrideTelemetryCollector
 {
   private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
   public static final String SECURITY_VULNERABILITY_OVERRIDE_COUNT = "security_vulnerability_override_count";
 
+  public static final String POLICY_WAIVER_COUNT = "policy_waiver_count";
+
   @Inject
-  public PolicyStatusOverrideTelemetryCollector(SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO) {
+  public PolicyStatusOverrideTelemetryCollector(SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+                                                PolicyWaiverDAO policyWaiverDAO)
+  {
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
   }
 
   @Override
@@ -37,6 +45,7 @@ public class PolicyStatusOverrideTelemetryCollector
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_STATUS_OVERRIDE);
     Map<String, Object> attributes = telemetryData.getAttributes();
     attributes.put(SECURITY_VULNERABILITY_OVERRIDE_COUNT, String.valueOf(securityVulnerabilityOverrideDAO.getCount()));
+    attributes.put(POLICY_WAIVER_COUNT, String.valueOf(policyWaiverDAO.getCount()));
     return telemetryData;
   }
 

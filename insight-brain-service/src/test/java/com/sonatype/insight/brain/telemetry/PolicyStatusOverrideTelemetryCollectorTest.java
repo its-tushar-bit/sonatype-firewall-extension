@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.telemetry;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -20,6 +23,8 @@ import static org.hamcrest.Matchers.is;
 public class PolicyStatusOverrideTelemetryCollectorTest
     extends AbstractComponentTest
 {
+  private static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
+
   @Inject
   private PolicyStatusOverrideTelemetryCollector telemetryCollector;
 
@@ -47,5 +52,22 @@ public class PolicyStatusOverrideTelemetryCollectorTest
         telemetryCollector.collectData().getAttributes()
             .get(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT),
         is("3"));
+  }
+
+  @Test
+  public void testCollectData_PolicyWaiverCount() throws Exception {
+    assertThat(telemetryCollector.collectData().getAttributes()
+        .get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT), is("0"));
+    Organization organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
+    Application application = tempEntity
+        .newApplication("PolicyWaiverCount-AppName", "PolicyWaiverCount-AppPublicId", organization.getId());
+    Policy policy1 = tempEntity.newPolicy(application.getId(), "policy-1");
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "policy-2");
+    Policy policy3 = tempEntity.newPolicy(organization.getId(), "policy-3");
+    tempEntity.newWaiver(policy1.getId(), application.getId());
+    tempEntity.newWaiver(policy2.getId(), application.getId());
+    tempEntity.newWaiver(policy3.getId(), application.getId());
+    assertThat(telemetryCollector.collectData().getAttributes()
+        .get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT), is("3"));
   }
 }

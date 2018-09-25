@@ -152,6 +152,9 @@ public class InsightBrainServiceTest
           case POLICY_STATUS_OVERRIDE:
             assertThat(telemetryDataReceived.getAttributes()
                 .get(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT), is("0"));
+            assertThat(
+                telemetryDataReceived.getAttributes().get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT),
+                is("0"));
             break;
           default:
             // nothing to test

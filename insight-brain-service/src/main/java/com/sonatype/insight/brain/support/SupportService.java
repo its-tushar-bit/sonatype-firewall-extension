@@ -231,7 +231,10 @@ class SupportService
     final List<SupportFile> filesToZip = new ArrayList<>();
     addLogFileIfExists(filesToZip, getServerLog(config), "clm-server.log");
     addLogFileIfExists(filesToZip, getRequestLog(config), "request.log");
-    addLogFileIfExists(filesToZip, getAuditLog(config), "audit.log");
+
+    if (includeDb) { // audit log file might have sensitive information, using this flag to control adding
+      addLogFileIfExists(filesToZip, getAuditLog(config), "audit.log");
+    }
 
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
         SupportFileType.CONFIG, true);

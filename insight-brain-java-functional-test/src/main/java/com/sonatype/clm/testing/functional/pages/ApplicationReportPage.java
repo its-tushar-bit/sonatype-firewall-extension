@@ -71,5 +71,9 @@ public class ApplicationReportPage
     public SelenideElement componentName() {
       return child(".iq-cell--application-report-component-display");
     }
+
+    public SelenideElement waivedIndicator() {
+      return child(".iq-text-indicator--waived");
+    }
   }
 }

@@ -886,6 +886,14 @@ public class TemporaryEntity
     return newPolicy(policy);
   }
 
+  public Policy newPolicy(String name, Constraint constraint) {
+    Policy policy = new Policy(null, name);
+    policy.setThreatLevel(5);
+    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    policy.addConstraint(constraint);
+    return newPolicy(policy);
+  }
+
   public HashComponentIdentifier newClaimedComponent(String hash, ComponentIdentifier componentIdentifier) {
     HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
     claimedComponent.setComment("testing");

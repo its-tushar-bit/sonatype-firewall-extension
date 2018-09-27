@@ -15,6 +15,11 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
@@ -37,6 +42,10 @@ public class ApplicationReportTest
 
   private Application app;
 
+  private TestReportEvaluator evaluator;
+
+  private Policy policy;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(DashboardPage.URL);
@@ -48,7 +57,11 @@ public class ApplicationReportTest
     app = tempEntity.newApplicationWithParent("ApplicationReportTest", "ApplicationReportTest");
     URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work).evaluatePolicy();
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    Constraint constraint = new Constraint("C1", "All coordinates", LogicalOperator.AND);
+    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:javancss*"));
+    policy = tempEntity.newPolicy("ApplicationReportTest Policy", constraint);
+    evaluator.evaluatePolicy();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 
@@ -73,14 +86,31 @@ public class ApplicationReportTest
   @Test
   public void testResults() {
     reportPage.resultRows().shouldHaveSize(4);
-    for (int i = 1; i <= 4; i++) {
+    reportPage.resultRow(1).threatBar().shouldHave(cssClass("severe"));
+    reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
+    reportPage.resultRow(1).policyName().shouldHave(text(policy.getName()));
+    for (int i = 2; i <= 4; i++) {
       reportPage.resultRow(i).threatBar().shouldHave(cssClass("ignore"));
       reportPage.resultRow(i).threatNumber().shouldHave(text("0"));
       reportPage.resultRow(i).policyName().shouldHave(text("None"));
     }
-    reportPage.resultRow(1).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    reportPage.resultRow(2).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    reportPage.resultRow(3).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
-    reportPage.resultRow(4).componentName().shouldHave(text("javancss : javancss : 29.50"));
+    reportPage.resultRow(1).componentName().shouldHave(text("javancss : javancss : 29.50"));
+    reportPage.resultRow(2).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    reportPage.resultRow(3).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    reportPage.resultRow(4).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+  }
+
+  @Test
+  public void testWaivedIndicator() throws Exception {
+    reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
+    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+
+    tempEntity.newWaiver(policy.getId(), app.getId());
+    evaluator.reevaluatePolicy();
+    refresh();
+
+    reportPage.resultRows().shouldHaveSize(5); // because we're not hiding waived violations ATM
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    eyesWatcher.eyesCheck();
   }
 }

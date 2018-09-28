@@ -23,6 +23,7 @@ pipeline {
   agent { label 'ubuntu-zion' }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
+    timestamps()
   }
   stages {
     stage('Release JIRA Version') {

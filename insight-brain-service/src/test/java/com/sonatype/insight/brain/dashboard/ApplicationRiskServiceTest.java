@@ -207,6 +207,7 @@ public class ApplicationRiskServiceTest
     assertThat(result.dashboardResults, hasSize(1));
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertRisk(appDTO.totalApplicationRisk, 0, 5, 3, 0, 8);
+    assertEquals("Organization name was set right", org.getName(), appDTO.organizationName);
     assertEquals("Risk name was set right", app1.getName(), appDTO.applicationName);
     assertEquals("Risk public appID was set right", app1.getPublicId(), appDTO.applicationId);
     assertThat(appDTO.stageRisks, hasSize(1));
@@ -253,7 +254,7 @@ public class ApplicationRiskServiceTest
         "test scan app0 id", new Date());
     tempEntity.newPolicyViolation(policyEvaluation0, orgPolicy);
 
-    Application app3 = tempEntity.newApplicationWithParent();
+    Application app3 = tempEntity.newApplication("app3", "app3", org.getId());
     Policy policy3 = tempEntity.newPolicy(app3.getId(), "app owned policy", 9);
     PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID,
         "test scan app3 id", new Date());
@@ -268,21 +269,25 @@ public class ApplicationRiskServiceTest
     // app0 and app2 have the same risk, so app0 must be before app2 based on their IDs.
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
+    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
     assertEquals(app3.getName(), applicationRiskScoreDTO.applicationName);
     assertEquals(app3.getPublicId(), applicationRiskScoreDTO.applicationId);
     assertEquals(9, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
 
     applicationRiskScoreDTO = result.dashboardResults.get(1);
+    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
     assertEquals(app1.getName(), applicationRiskScoreDTO.applicationName);
     assertEquals(app1.getPublicId(), applicationRiskScoreDTO.applicationId);
     assertEquals(8, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
 
     applicationRiskScoreDTO = result.dashboardResults.get(2);
+    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
     assertEquals(app0.getName(), applicationRiskScoreDTO.applicationName);
     assertEquals(app0.getPublicId(), applicationRiskScoreDTO.applicationId);
     assertEquals(3, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
 
     applicationRiskScoreDTO = result.dashboardResults.get(3);
+    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
     assertEquals(app2.getName(), applicationRiskScoreDTO.applicationName);
     assertEquals(app2.getPublicId(), applicationRiskScoreDTO.applicationId);
     assertEquals(3, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
@@ -323,7 +328,7 @@ public class ApplicationRiskServiceTest
 
   @Test
   public void testGetApplicationRisks_TwoStages() {
-    Application app = tempEntity.newApplicationWithParent();
+    Application app = tempEntity.newApplication("ts-app", "ts-app", org.getId());
     Policy policy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID,
         "test scan app id1", new Date());
@@ -340,6 +345,7 @@ public class ApplicationRiskServiceTest
     assertThat(result.dashboardResults, hasSize(1));
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
     assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 0, 12, 0, 0, 12);
+    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
     assertEquals(app.getName(), applicationRiskScoreDTO.applicationName);
     assertEquals(app.getPublicId(), applicationRiskScoreDTO.applicationId);
     assertThat(applicationRiskScoreDTO.stageRisks, hasSize(2));
@@ -354,7 +360,7 @@ public class ApplicationRiskServiceTest
   }
   @Test
   public void testGetApplicationRisks_TwoStagesTwoApps() {
-    Application app1 = tempEntity.newApplicationWithParent();
+    Application app1 = tempEntity.newApplication("tsta-app1", "tsta-app1", org.getId());
     Policy policy11 = tempEntity.newPolicy(app1.getId(), "app owned policy11", 5);
     PolicyEvaluation policyEvaluation11 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID,
         "test scan app id11", new Date());
@@ -364,7 +370,7 @@ public class ApplicationRiskServiceTest
         "test scan app id12", new Date());
     tempEntity.newPolicyViolation(policyEvaluation12, policy12);
 
-    Application app2 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplication("tsta-app2", "tsta-app2", org.getId());
     Policy policy21 = tempEntity.newPolicy(app2.getId(), "app owned policy21", 1);
     PolicyEvaluation policyEvaluation21 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
         "test scan app id21", new Date());
@@ -383,6 +389,7 @@ public class ApplicationRiskServiceTest
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO1 = result.dashboardResults.get(0);
     assertRisk(applicationRiskScoreDTO1.totalApplicationRisk, 0, 12, 0, 0, 12);
+    assertEquals(org.getName(), applicationRiskScoreDTO1.organizationName);
     assertEquals(app1.getName(), applicationRiskScoreDTO1.applicationName);
     assertEquals(app1.getPublicId(), applicationRiskScoreDTO1.applicationId);
     assertThat(applicationRiskScoreDTO1.stageRisks, hasSize(2));
@@ -397,6 +404,7 @@ public class ApplicationRiskServiceTest
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO2 = result.dashboardResults.get(1);
     assertRisk(applicationRiskScoreDTO2.totalApplicationRisk, 0, 0, 3, 1, 4);
+    assertEquals(org.getName(), applicationRiskScoreDTO2.organizationName);
     assertEquals(app2.getName(), applicationRiskScoreDTO2.applicationName);
     assertEquals(app2.getPublicId(), applicationRiskScoreDTO2.applicationId);
     assertThat(applicationRiskScoreDTO2.stageRisks, hasSize(2));

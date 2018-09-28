@@ -17,6 +17,11 @@ public class ApplicationRiskScoreDTO implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 
+  /**
+   * @since 1.52
+   */
+  public String organizationName;
+
   public String applicationName;
 
   public String applicationId;
@@ -25,9 +30,11 @@ public class ApplicationRiskScoreDTO implements CsvWritable
 
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
-  public ApplicationRiskScoreDTO(final String applicationName,
+  public ApplicationRiskScoreDTO(final String organizationName,
+                                 final String applicationName,
                                  final String applicationId)
   {
+    this.organizationName = organizationName;
     this.applicationName = applicationName;
     this.applicationId = applicationId;
   }
@@ -46,12 +53,13 @@ public class ApplicationRiskScoreDTO implements CsvWritable
   }
 
   public static String getCsvHeader() {
-    return "Application Name,Total Risk,Critical,Severe,Moderate,Low";
+    return "Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low";
   }
 
   @Override
   public String toCsvLine() {
-    return joiner.join(applicationName, totalApplicationRisk.totalRisk, totalApplicationRisk.criticalRisk,
-        totalApplicationRisk.severeRisk, totalApplicationRisk.moderateRisk, totalApplicationRisk.lowRisk);
+    return joiner.join(organizationName, applicationName, totalApplicationRisk.totalRisk,
+        totalApplicationRisk.criticalRisk, totalApplicationRisk.severeRisk, totalApplicationRisk.moderateRisk,
+        totalApplicationRisk.lowRisk);
   }
 }

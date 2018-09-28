@@ -19,6 +19,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -41,16 +42,20 @@ public class ApplicationRiskService
 
   private final ApplicationService applicationService;
 
+  private final OrganizationDAO organizationDAO;
+
   private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
 
   @Inject
   public ApplicationRiskService(ApplicationService applicationService,
+                                OrganizationDAO organizationDAO,
                                 PolicyViolationLoader policyViolationLoader,
                                 DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
+    this.organizationDAO = organizationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
   }
@@ -95,10 +100,18 @@ public class ApplicationRiskService
   }
 
   private List<ApplicationRiskScoreDTO> createApplicationRiskScores(Collection<ApplicationView> appViews) {
+    Map<String, String> orgNames = new HashMap<>();
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
     for (ApplicationView appView : appViews) {
-      ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(appView.getApplication().getName(),
-          appView.getApplication().getPublicId());
+      // We must limit ourselves only to the organization name in order to avoid leaking other information
+      // to users which may not have READ access to organization details. Organization names can still be
+      // shown in exports similar to how we show organization names in the sidebar via the SidebarService.
+      // Also store the org names once fetched to avoid multiple fetches incurring a performance penalty.
+      String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
+          orgId -> organizationDAO.getByIdNotNull(orgId).getName());
+
+      ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(orgName,
+          appView.getApplication().getName(), appView.getApplication().getPublicId());
 
       updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
       if (applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {

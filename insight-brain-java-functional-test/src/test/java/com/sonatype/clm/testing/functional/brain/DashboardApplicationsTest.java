@@ -181,11 +181,11 @@ public class DashboardApplicationsTest
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
-        "App5,14,8,4,2,0",  //
-        "App4,10,10,0,0,0", //
-        "App3,7,0,7,0,0",   //
-        "App2,3,0,0,3,0",   //
-        "App1,1,0,0,0,1"    //
+        "DashboardApplicationsTest,App5,14,8,4,2,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App2,3,0,0,3,0", //
+        "DashboardApplicationsTest,App1,1,0,0,0,1" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -204,11 +204,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App1,1,0,0,0,1",   //
-        "App2,3,0,0,3,0",   //
-        "App3,7,0,7,0,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,14,8,4,2,0"   //
+        "DashboardApplicationsTest,App1,1,0,0,0,1", //
+        "DashboardApplicationsTest,App2,3,0,0,3,0", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0", //
+        "DashboardApplicationsTest,App5,14,8,4,2,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -222,11 +222,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App2,3,0,0,3,0",   //
-        "App3,7,0,7,0,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,14,8,4,2,0",  //
-        "App1,1,0,0,0,1"    //
+        "DashboardApplicationsTest,App2,3,0,0,3,0", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0", //
+        "DashboardApplicationsTest,App5,14,8,4,2,0", //
+        "DashboardApplicationsTest,App1,1,0,0,0,1" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -240,11 +240,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App1,1,0,0,0,1",   //
-        "App3,7,0,7,0,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,14,8,4,2,0",  //
-        "App2,3,0,0,3,0"    //
+        "DashboardApplicationsTest,App1,1,0,0,0,1", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0", //
+        "DashboardApplicationsTest,App5,14,8,4,2,0", //
+        "DashboardApplicationsTest,App2,3,0,0,3,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -258,11 +258,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App1,1,0,0,0,1",   //
-        "App2,3,0,0,3,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,14,8,4,2,0",  //
-        "App3,7,0,7,0,0"    //
+        "DashboardApplicationsTest,App1,1,0,0,0,1", //
+        "DashboardApplicationsTest,App2,3,0,0,3,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0", //
+        "DashboardApplicationsTest,App5,14,8,4,2,0", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -276,11 +276,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App1,1,0,0,0,1",   //
-        "App2,3,0,0,3,0",   //
-        "App3,7,0,7,0,0",   //
-        "App5,14,8,4,2,0",  //
-        "App4,10,10,0,0,0"  //
+        "DashboardApplicationsTest,App1,1,0,0,0,1", //
+        "DashboardApplicationsTest,App2,3,0,0,3,0", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App5,14,8,4,2,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -292,10 +292,10 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App2,3,0,0,3,0",   //
-        "App3,7,0,7,0,0",   //
-        "App5,14,8,4,2,0",  //
-        "App4,10,10,0,0,0"  //
+        "DashboardApplicationsTest,App2,3,0,0,3,0", //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App5,14,8,4,2,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -307,9 +307,9 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App3,7,0,7,0,0",   //
-        "App5,10,8,0,2,0",  //
-        "App4,10,10,0,0,0"  //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App5,10,8,0,2,0", //
+        "DashboardApplicationsTest,App4,10,10,0,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -321,8 +321,8 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "App3,7,0,7,0,0",   //
-        "App5,10,8,0,2,0"   //
+        "DashboardApplicationsTest,App3,7,0,7,0,0", //
+        "DashboardApplicationsTest,App5,10,8,0,2,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
   }
@@ -451,7 +451,7 @@ public class DashboardApplicationsTest
 
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
-    assertEquals("Application Name,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
+    assertEquals("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
     assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
   }

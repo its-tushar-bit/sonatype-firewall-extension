@@ -277,14 +277,16 @@ public class DashboardResourceTest
 
   @Test
   public void testGetApplicationRisksExport() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("app1", "test application");
+    Organization org = tempEntity.newOrganization("test organization");
+    Application app = tempEntity.newApplication("test application", "app1", org.getId());
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
     // same app, different stage
     Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
     createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID);
     // different app, same stage
-    Application app2 = tempEntity.newApplicationWithParent("app2", "test application 2");
+    Organization org2 = tempEntity.newOrganization("test organization 2");
+    Application app2 = tempEntity.newApplication("test application 2", "app2", org2.getId());
     Policy buildPolicy2 = tempEntity.newPolicy(app2.getId(), "build policy");
     createFirstOccurrencePolicyViolation(app2, buildPolicy2, BuildStageType.ID);
 
@@ -296,8 +298,8 @@ public class DashboardResourceTest
     String[] lines = response.getBodyText().split("\r\n");
     assertThat(lines.length, is(3));
     assertThat(lines[0], is(ApplicationRiskScoreDTO.getCsvHeader()));
-    assertThat(lines[1], is("test application,10,0,10,0,0"));
-    assertThat(lines[2], is("test application 2,5,0,5,0,0"));
+    assertThat(lines[1], is("test organization,test application,10,0,10,0,0"));
+    assertThat(lines[2], is("test organization 2,test application 2,5,0,5,0,0"));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
     filterJson = new String(JsonUtils.generate(filter));
@@ -307,7 +309,7 @@ public class DashboardResourceTest
     lines = response.getBodyText().split("\r\n");
     assertThat(lines.length, is(2));
     assertThat(lines[0], is(ApplicationRiskScoreDTO.getCsvHeader()));
-    assertThat(lines[1], is("test application,5,0,5,0,0"));
+    assertThat(lines[1], is("test organization,test application,5,0,5,0,0"));
   }
 
   @Test

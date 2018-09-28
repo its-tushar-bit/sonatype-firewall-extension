@@ -35,4 +35,8 @@
   // first 2 cells (incl. padding/border ) + padding/border for this cell
   width: calc(100% - (89px + 225px + 25px));
   min-width: 0;
+
+  .iq-text-indicator {
+    margin-left: 12px;
+  }
 }

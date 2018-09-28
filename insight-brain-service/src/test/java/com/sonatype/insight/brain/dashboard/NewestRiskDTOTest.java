@@ -23,6 +23,7 @@ public class NewestRiskDTOTest
     risk.threatLevel = 7;
     risk.policyName = "p";
     risk.applicationName = "a";
+    risk.organizationName = "o";
     risk.firstOccurrenceTime = 0;
     risk.displayName = new ComponentDisplayName();
     risk.displayName.add("nameField", "nameValue");
@@ -32,28 +33,28 @@ public class NewestRiskDTOTest
 
   @Test
   public void testToCsvLine_WithDisplayName() throws Exception {
-    assertThat(risk.toCsvLine(), is("7,p,a,nameValue,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine(), is("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0"));
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayName() throws Exception {
     risk.displayName = null;
-    assertThat(risk.toCsvLine(), is("7,p,a,filename,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine(), is("7,p,o,a,filename,1970-01-01T00:00:00Z,0"));
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayNameOrFilename() throws Exception {
     risk.displayName = null;
     risk.filename = null;
-    assertThat(risk.toCsvLine(), is("7,p,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine(), is("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
     risk.filename = "";
-    assertThat(risk.toCsvLine(), is("7,p,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine(), is("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
   }
 
   @Test
   public void testToCsvLine_QuotedIfNecessary() {
     risk.displayName = null;
     risk.filename = "c,d.jar";
-    assertThat(risk.toCsvLine(), is("7,p,a,\"c,d.jar\",1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine(), is("7,p,o,a,\"c,d.jar\",1970-01-01T00:00:00Z,0"));
   }
 }

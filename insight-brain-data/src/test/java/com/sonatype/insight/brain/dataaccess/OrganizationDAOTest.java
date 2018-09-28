@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.BaseMatcher;
@@ -159,6 +160,27 @@ public class OrganizationDAOTest
     assertThat(dao.getAll(false), hasSize(orgCount + 1));
     assertThat(dao.getAll(false), not(hasItem(rootOrgMatcher)));
 
+  }
+
+  @Test
+  public void testGetByIdNotNull() {
+    Organization expected = tempEntity.newOrganization();
+    Organization actual = dao.getByIdNotNull(expected.getId());
+
+    assertThat(actual.getId(), is(expected.getId()));
+    assertThat(actual.getName(), is(expected.getName()));
+    assertThat(actual.getParentOrganizationId(), is(expected.getParentOrganizationId()));
+  }
+
+  @Test
+  public void testGetByIdNotNull_null() {
+    try {
+      dao.getByIdNotNull("non-existent-org");
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException expected) {
+      // expected exception
+    }
   }
 
   @Test

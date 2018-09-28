@@ -26,6 +26,8 @@ public class NewestRiskDTO implements CsvWritable
 
   public String applicationName;
 
+  public String organizationName;
+
   public int threatLevel;
 
   public long firstOccurrenceTime;
@@ -51,7 +53,7 @@ public class NewestRiskDTO implements CsvWritable
   public long lastOccurrenceTime;
 
   public static String getCsvHeader() {
-    return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
+    return "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
   }
 
   @Override
@@ -64,7 +66,7 @@ public class NewestRiskDTO implements CsvWritable
     }
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return joiner.join(threatLevel, policyName, applicationName, componentName, formatter.format(firstOccurrenceTime),
-        firstOccurrenceTime);
+    return joiner.join(threatLevel, policyName, organizationName, applicationName, componentName,
+        formatter.format(firstOccurrenceTime), firstOccurrenceTime);
   }
 }

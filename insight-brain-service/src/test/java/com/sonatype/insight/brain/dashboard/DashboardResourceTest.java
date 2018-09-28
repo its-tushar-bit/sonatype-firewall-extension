@@ -200,7 +200,7 @@ public class DashboardResourceTest
 
   @Test
   public void testGetNewestRisksExport() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("app1", "test application");
+    Application app = tempEntity.newApplicationWithParent("app1", "test application", "test organization");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     PolicyViolation v1 = createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
     Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
@@ -216,8 +216,10 @@ public class DashboardResourceTest
     String[] lines = response.getBodyText().split("\r\n");
     assertThat(lines.length, is(3));
     assertThat(lines[0], is(NewestRiskDTO.getCsvHeader()));
-    assertThat(lines[1], is("5,stage policy,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
-    assertThat(lines[2], is("5,build policy,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1)));
+    assertThat(lines[1],
+        is("5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
+    assertThat(lines[2],
+        is("5,build policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1)));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
     filterJson = new String(JsonUtils.generate(filter));
@@ -227,7 +229,8 @@ public class DashboardResourceTest
     lines = response.getBodyText().split("\r\n");
     assertThat(lines.length, is(2));
     assertThat(lines[0], is(NewestRiskDTO.getCsvHeader()));
-    assertThat(lines[1], is("5,stage policy,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
+    assertThat(lines[1],
+        is("5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
   }
 
   @Test

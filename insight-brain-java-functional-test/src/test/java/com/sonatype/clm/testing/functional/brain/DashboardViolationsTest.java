@@ -74,7 +74,7 @@ public class DashboardViolationsTest
 
   private static final String MAX_RESULTS_MSG = "First 100 results shown";
 
-  private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
+  private static final String CSV_HEADERS = "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
 
   private static final String NEWEST_RISK_URL = BaseUrl.resolvePageUrl("/dashboard/newest-risk");
 
@@ -112,8 +112,8 @@ public class DashboardViolationsTest
 
   @Before
   public void init() throws IOException {
-    app1 = tempEntity.newApplicationWithParent("app1", "DVT App1");
-    app2 = tempEntity.newApplicationWithParent("app2", "DVT App2 With A Long Name Just To Force Overflow");
+    app1 = tempEntity.newApplicationWithParent("app1", "DVT App1", "DVT Org1");
+    app2 = tempEntity.newApplicationWithParent("app2", "DVT App2 With A Long Name Just To Force Overflow", "DVT Org2");
     licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId(), "DVTLicensePolicy");
     securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId(), "DVTSecurityPolicyWithAnotherUnnecessarilyLongName");
     buildEvalNow = tempEntity
@@ -248,10 +248,12 @@ public class DashboardViolationsTest
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     Map<String, Date> expectedResults = ImmutableMap.of(
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now,         //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
-        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo   //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now, //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -263,10 +265,12 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,   //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
-        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now           //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -280,10 +284,12 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,   //
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now,          //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo //
+        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now, //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -299,10 +305,12 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now,         //
-        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo   //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now, //
+        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -318,10 +326,12 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
-        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now,         //
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo   //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now, //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -337,10 +347,12 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,   //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
-        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now           //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "1,DVTLicensePolicy,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -351,9 +363,10 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,   //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
-        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now           //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo, //
+        "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -365,8 +378,9 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,    //
-        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo //
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo, //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT Org2,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
+        twoDaysAgo //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -378,7 +392,7 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo
     );
     assertViolationsCsv(exportCsv, expectedResults);
 

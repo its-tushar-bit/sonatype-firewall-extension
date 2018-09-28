@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -36,12 +38,12 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 
 import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -53,16 +55,20 @@ public class NewestRiskService
 
   private final ApplicationService applicationService;
 
+  private final OrganizationDAO organizationDAO;
+
   private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
 
   @Inject
   public NewestRiskService(ApplicationService applicationService,
+                           OrganizationDAO organizationDAO,
                            PolicyViolationLoader policyViolationLoader,
                            DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
+    this.organizationDAO = organizationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
   }
@@ -108,10 +114,21 @@ public class NewestRiskService
     final AtomicInteger policyEvaluationCount = new AtomicInteger(0);
     final AtomicInteger policyViolationCount = new AtomicInteger(0);
 
+    Map<String, String> orgNames = new ConcurrentHashMap<>();
     List<CompletableFuture<List<NewestRiskDTO>>> dtoFutures = appViews.stream()
         .map(appView -> CompletableFuture.supplyAsync(() -> {
 
           Application app = appView.getApplication();
+
+          // We must limit ourselves only to the organization name to preserve access controls. We cannot use
+          // an approach with auth checks as it's possible to not have rights on the parent organization, but
+          // we still want to display the organization name. The organization name is already viewable in the
+          // sidebar using the same approach in situations where the user does not have any access rights, so
+          // this should be consistent with existing behavior and information visibility (see SidebarService).
+          // Also store the org names once fetched to avoid multiple fetches incurring a performance penalty.
+          String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
+              orgId -> organizationDAO.getByIdNotNull(orgId).getName());
+
           List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
           Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
 
@@ -131,7 +148,7 @@ public class NewestRiskService
             PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
                 .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
             for (PolicyViolation policyViolation : diff.getAppeared()) {
-              NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, policyEvaluation, policyViolation);
+              NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, orgName, policyEvaluation, policyViolation);
               newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
               localDTOs.add(newestRiskDTO);
             }
@@ -161,12 +178,14 @@ public class NewestRiskService
   }
 
   private NewestRiskDTO createNewestRiskDTO(Application app,
+                                            String orgName,
                                             PolicyEvaluation policyEvaluation,
                                             PolicyViolation policyViolation)
   {
     NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
     newestRiskDTO.applicationPublicId = app.getPublicId();
     newestRiskDTO.applicationName = app.getName();
+    newestRiskDTO.organizationName = orgName;
     newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
     newestRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     newestRiskDTO.policyId = policyViolation.getPolicyId();

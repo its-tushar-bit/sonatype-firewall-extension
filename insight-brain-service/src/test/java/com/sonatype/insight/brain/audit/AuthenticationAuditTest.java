@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.audit;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.HttpCookie;
 import java.util.List;
 
@@ -17,7 +18,6 @@ import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Before;

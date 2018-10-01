@@ -219,7 +219,7 @@ public class ApiComponentEvaluationServiceV2
 
       try {
         File componentDetailsFile = work.getComponentDetailsFile(application.getId(), evaluationTicketDTO.resultId);
-        log.debug("Writing component evaluation results for appliction id {} and result id {} to file {}",
+        log.debug("Writing component evaluation results for application id {} and result id {} to file {}",
             application.getId(), evaluationTicketDTO.resultId, componentDetailsFile.getAbsolutePath());
 
         // Write first to a temp file and rename it in the end to avoid the read of an incomplete results' file.

@@ -22,19 +22,21 @@ public class ConstraintSection
   private static final String rootSelector = "#policy-edit-constraints";
 
   public ElementsCollection constraintSummaries() {
-    return $$(rootSelector + " .constraint-summary");
+    return $$(rootSelector + " .iq-policy-constraint-summaries");
   }
 
   public ConstraintSummary constraintSummary(int i) {
-    return new ConstraintSummary(rootSelector + "  .constraint:nth-child(" + (i + 1) + ") .constraint-summary");
+    return new ConstraintSummary(
+        rootSelector + "  .iq-policy-constraint:nth-child(" + (i + 1) + ") .iq-policy-constraint-summaries");
   }
 
   public ElementsCollection constraintEditors() {
-    return $$(rootSelector + " .constraint-editor");
+    return $$(rootSelector + " .iq-policy-constraint-editor");
   }
 
   public ConstraintEditSection constraintEditor(int i) {
-    return new ConstraintEditSection(rootSelector + "  .constraint:nth-child(" + (i + 1) + ") .constraint-editor", i);
+    return new ConstraintEditSection(
+        rootSelector + "  .iq-policy-constraint:nth-child(" + (i + 1) + ") .iq-policy-constraint-editor", i);
   }
 
   public SelenideElement addConstraintButton() {
@@ -59,27 +61,27 @@ public class ConstraintSection
     }
 
     public SelenideElement name() {
-      return $(rootSelector + " .constraint-summary-name");
+      return $(rootSelector + " .iq-policy-constraint-summary__name");
     }
 
     public SelenideElement subheader() {
-      return $(rootSelector + " .constraint-summary-subheader");
+      return $(rootSelector + " .iq-policy-constraint-summary__subheader");
     }
 
     public SelenideElement editConstraintButton() {
-      return $(rootSelector + " .edit-constraint-button");
+      return $(rootSelector + " .iq-btn--edit-constraint-button");
     }
 
     public SelenideElement deleteConstraintButton() {
-      return $(rootSelector + " .delete-constraint-button");
+      return $(rootSelector + " .iq-btn--delete-constraint-button");
     }
 
     public ElementsCollection conditions() {
-      return $$(rootSelector + " .constraint-summary-condition");
+      return $$(rootSelector + " .test-constraint-summary-condition");
     }
 
     public SelenideElement condition(int i) {
-      return $(rootSelector + " .constraint-summary-condition:nth-child(" + (i + 4) + ")");
+      return $(rootSelector + " .test-constraint-summary-condition:nth-child(" + (i + 1) + ")");
     }
   }
 
@@ -103,31 +105,36 @@ public class ConstraintSection
     }
 
     public ElementsCollection conditions() {
-      return $$(rootSelector + " .policy-conditions .policy-condition");
+      return $$(rootSelector + " .iq-policy-conditions .iq-policy-condition");
     }
 
     public SelenideElement addConditionButton() {
-      return $(rootSelector + " .add-condition-button");
+      return $(rootSelector + " .iq-btn--add-condition-button");
     }
 
     public ConditionEditSection<?> condition(int i) {
-      return new ConditionEditSection<>(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+      return new ConditionEditSection<>(rootSelector, ".iq-policy-conditions .iq-policy-condition",
+          nthChild(i + 1));
     }
 
     public AgeConditionEditSection ageCondition(int i) {
-      return new AgeConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+      return new AgeConditionEditSection(rootSelector, ".iq-policy-conditions .iq-policy-condition",
+          nthChild(i + 1));
     }
 
     public DropdownConditionEditSection dropdownCondition(int i) {
-      return new DropdownConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+      return new DropdownConditionEditSection(rootSelector, ".iq-policy-conditions .iq-policy-condition",
+          nthChild(i + 1));
     }
 
     public InputConditionEditSection inputCondition(int i) {
-      return new InputConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+      return new InputConditionEditSection(rootSelector, ".iq-policy-conditions .iq-policy-condition",
+          nthChild(i + 1));
     }
 
     public CoordinatesCondition coordinatesCondition(int i) {
-      return new CoordinatesCondition(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+      return new CoordinatesCondition(rootSelector, ".iq-policy-conditions .iq-policy-condition",
+          nthChild(i + 1));
     }
 
     public static class ConditionEditSection<T>
@@ -139,15 +146,15 @@ public class ConstraintSection
       }
 
       public Dropdown type() {
-        return new Dropdown(childSelector(".condition-type"));
+        return new Dropdown(childSelector(".iq-policy-editor-condition--type"));
       }
 
       public Dropdown operator() {
-        return new Dropdown(childSelector(".condition-operator"));
+        return new Dropdown(childSelector(".iq-policy-editor-condition--operator"));
       }
 
       public SelenideElement deleteConditionButton() {
-        return child(".delete-condition-button");
+        return child(".iq-btn--delete-condition-button");
       }
     }
 
@@ -160,7 +167,7 @@ public class ConstraintSection
       }
 
       public Dropdown value() {
-        return new Dropdown(childSelector(".condition-value"));
+        return new Dropdown(childSelector(".iq-policy-editor-condition--value"));
       }
     }
 
@@ -173,7 +180,7 @@ public class ConstraintSection
       }
 
       public AgeInput value() {
-        return new AgeInput(childSelector(".condition-value"));
+        return new AgeInput(childSelector(".iq-policy-editor-condition--value"));
       }
     }
 
@@ -186,7 +193,7 @@ public class ConstraintSection
       }
 
       public SelenideElement value() {
-        return child(".condition-value input");
+        return child(".iq-policy-editor-condition--value input");
       }
     }
 
@@ -205,39 +212,39 @@ public class ConstraintSection
       }
 
       public Dropdown format() {
-        return new Dropdown(childSelector(".condition-value", "dropdown-selector"));
+        return new Dropdown(childSelector(".iq-policy-editor-condition--value", "dropdown-selector"));
       }
 
       public SelenideElement groupId() {
-        return child(".condition-value", "input[name*=\"groupid\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"groupid\"]");
       }
 
       public SelenideElement artifactId() {
-        return child(".condition-value", "input[name*=\"artifactid\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"artifactid\"]");
       }
 
       public SelenideElement name() {
-        return child(".condition-value", "input[name*=\"name\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"name\"]");
       }
 
       public SelenideElement qualifier() {
-        return child(".condition-value", "input[name*=\"qualifier\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"qualifier\"]");
       }
 
       public SelenideElement version() {
-        return child(".condition-value", "input[name*=\"version\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"version\"]");
       }
 
       public SelenideElement extension() {
-        return child(".condition-value", "input[name*=\"extension\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"extension\"]");
       }
 
       public SelenideElement classifier() {
-        return child(".condition-value", "input[name*=\"classifier\"]");
+        return child(".iq-policy-editor-condition--value", "input[name*=\"classifier\"]");
       }
 
       public SelenideElement value() {
-        return child(".condition-value", ".condition-value input");
+        return child(".iq-policy-editor-condition--value", ".iq-policy-editor-condition--value input");
       }
     }
   }

@@ -18,7 +18,7 @@ public class AgeInput
   }
 
   public SelenideElement age() {
-    return $(rootSelector + " .age-input");
+    return $(rootSelector + " .iq-text-input--age-input");
   }
 
   public Dropdown modifier() {

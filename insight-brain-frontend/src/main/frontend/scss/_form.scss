@@ -99,6 +99,10 @@ $iq-form-element-wide: 395px;
   display: block;
   font-size: 16px;
   margin-bottom: 7px;
+  
+  &:not(.iq-radio):not(.iq-checkbox__label).disabled {
+    color: #cacaca;
+  }
 }
 
 .iq-label--optional {
@@ -164,7 +168,7 @@ textarea {
     padding: 0 8px;
     width: 219px;
     
-    // The :focus styling is required to over-ride Bootstrap styles. 
+    // The :focus styling is required to over-ride Bootstrap styles.
     &:focus {
       @include box-shadow(none);
       

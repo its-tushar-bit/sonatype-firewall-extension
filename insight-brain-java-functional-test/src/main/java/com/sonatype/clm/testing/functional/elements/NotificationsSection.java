@@ -24,7 +24,7 @@ public class NotificationsSection
   }
 
   public static AddNotificationItem addNotification() {
-    return new AddNotificationItem(".add-notification");
+    return new AddNotificationItem(".iq-policy-editor__add-notification");
   }
 
   public static ElementsCollection notifications() {
@@ -88,11 +88,11 @@ public class NotificationsSection
     }
 
     public Dropdown notificationType() {
-      return new Dropdown(rootSelector, ".editor-notification-type");
+      return new Dropdown(rootSelector, ".iq-policy-editor__editor-notification-type");
     }
 
     public SelenideElement email() {
-      return $(createSelector(rootSelector, ".editor-notification-email"));
+      return $(createSelector(rootSelector, ".iq-policy-editor__editor-notification-email"));
     }
 
     public Dropdown role() {

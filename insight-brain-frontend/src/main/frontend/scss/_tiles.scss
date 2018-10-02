@@ -27,7 +27,7 @@ $iq-tile-actions-margin-top: 8px;
       
       h2 {
         margin-top: 10px;
-      } 
+      }
     }
     
     .iq-tile-header + .iq-tile-content {
@@ -60,6 +60,7 @@ $iq-tile-actions-margin-top: 8px;
   border: none;
   margin-top: 0;
   padding-top: 0;
+  position: relative;
 }
 
 .iq-tile--title-only {
@@ -213,6 +214,22 @@ $iq-tile-actions-margin-top: 8px;
   .well:last-child {
     padding-bottom: 19px;
   }
+}
+
+.iq-tile__section-header {
+  @include semi-bold();
+
+  border-bottom: 1px solid $iq-grey-4;
+  font-size: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.iq-tile__section-header--simple {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .iq-tile-footer {

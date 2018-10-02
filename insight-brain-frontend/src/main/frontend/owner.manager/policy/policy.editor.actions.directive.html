@@ -3,11 +3,11 @@
     <thead>
       <tr class="iq-table-row">
         <th class="iq-cell iq-cell--header">
-          <span class="header-text">ACTION</span>
+          ACTION
         </th>
         <th ng-repeat="actionStage in vm.actionStages"
             class="{{::actionStage.shortName | lowercase}} iq-cell iq-cell--header">
-          <span class="header-text">{{::actionStage.shortName}}</span>
+          {{::actionStage.shortName}}
         </th>
         <th class="iq-cell iq-cell--header"></th>
         <th class="iq-cell iq-cell--header iq-cell--header--noborder"></th>
@@ -15,9 +15,9 @@
     </thead>
     <tbody>
       <tr class="iq-table-row tm-no-action-row">
-        <td class="iq-cell action-name">No Action</td>
+        <td class="iq-cell iq-cell--action-name">No Action</td>
         <td ng-repeat="actionStage in vm.actionStages"
-            class="action iq-cell {{::actionStage.shortName | lowercase}}"
+            class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
             ng-class="{active: vm.activeColumn === $index}"
             ng-mouseover="vm.activeColumn = $index"
             ng-mouseleave="vm.activeColumn = -1">
@@ -27,31 +27,34 @@
         <td class="iq-cell"></td>
       </tr>
       <tr class="iq-table-row tm-row-warn">
-        <td class="iq-cell action-name">
+        <td class="iq-cell iq-cell--action-name">
           <i class="fa fa-exclamation-triangle warn size-16px"></i>Warn
         </td>
         <td ng-repeat="actionStage in vm.actionStages"
-            class="action iq-cell {{::actionStage.shortName | lowercase}}"
+            class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
             ng-class="{active: vm.activeColumn === $index}"
             ng-mouseover="vm.activeColumn = $index"
             ng-mouseleave="vm.activeColumn = -1">
           <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'warn'"><!--
-            --><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn'}"></i>
+         --><i class="fa fa-exclamation-triangle warn size-16px" ng-if="vm.actions[actionStage.stageTypeId] === 'warn'">
+            </i>
           </iq-radio>
         </td>
         <td class="iq-cell"></td>
         <td class="iq-cell"></td>
       </tr>
       <tr class="iq-table-row tm-fail-row">
-        <td class="iq-cell action-name">
+        <td class="iq-cell iq-cell--action-name">
           <i class="fa fa-exclamation-circle fail size-16px"></i>Fail
         </td>
         <td ng-repeat="actionStage in vm.actionStages"
-            class="action iq-cell {{::actionStage.shortName | lowercase}}"
+            class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
             ng-class="{active: vm.activeColumn === $index}"
-            ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
+            ng-mouseover="vm.activeColumn = $index"
+            ng-mouseleave="vm.activeColumn = -1">
           <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'fail'"><!--
-            --><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail'}"></i>
+         --><i class="fa fa-exclamation-circle fail size-16px" ng-if="vm.actions[actionStage.stageTypeId] === 'fail'">
+            </i>
           </iq-radio>
         </td>
         <td class="iq-cell"></td>

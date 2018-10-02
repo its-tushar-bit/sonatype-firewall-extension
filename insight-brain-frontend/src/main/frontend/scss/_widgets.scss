@@ -881,27 +881,6 @@ double-column-picker {
   }
 }
 
-age-in-days-input {
-  display: inline-block;
-  width: 261px;
-
-  .age-in-days-input {
-    white-space: nowrap;
-    width: inherit;
-
-    > input[type="number"].age-input {
-      display: inline-block;
-      margin-right: 4px;
-      vertical-align: initial;
-      width: calc(50% - 25px);
-    }
-    > dropdown-selector {
-      display: inline-block;
-      width: calc(50% - 9px);
-    }
-  }
-}
-
 /*
   ## Greedy Table
 
@@ -1140,7 +1119,7 @@ root-organization-migrate {
 */
 .dropdown-menu.multiselect-container > li:hover {
   background-color: #E0E0E0;
-  background-image: none;  
+  background-image: none;
   color: black;
 }
 

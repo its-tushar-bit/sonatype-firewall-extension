@@ -18,7 +18,8 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
       const promises = [
         $http.get(CLMLocations.getReportMetadataUrl(applicationPublicId, scanId)),
         $http.get(CLMLocations.getReportPolicyThreatsUrl(applicationPublicId, scanId)),
-        $http.get(CLMLocations.getReportBomUrl(applicationPublicId, scanId))
+        $http.get(CLMLocations.getReportBomUrl(applicationPublicId, scanId)),
+        $http.get(CLMLocations.getReportDataUrl(applicationPublicId, scanId))
       ];
 
       if (isUnknownJs) {
@@ -30,9 +31,11 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
             const metadata = results[0].data;
             const policyResult = results[1].data;
             const bomResult = results[2].data;
-            const unknownJsResult = isUnknownJs ? results[3].unknownJsResult : null;
-            const reportData = applicationReportService.createReportData(policyResult, bomResult, unknownJsResult);
-            dispatch(loadReportFulfilled({...metadata, ...reportData}));
+            const dataResult = results[3].data;
+            const unknownJsResult = isUnknownJs ? results[4].unknownJsResult : null;
+            const reportEntries = applicationReportService.createReportEntries(policyResult, bomResult,
+                unknownJsResult);
+            dispatch(loadReportFulfilled({...metadata, ...reportEntries, ...dataResult}));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));

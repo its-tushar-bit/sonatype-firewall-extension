@@ -354,6 +354,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getReportBomUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
           '/browseReport/bom.json',
 
+      getReportDataUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/browseReport/data.json',
+
       getReportUnknownJsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
           '/browseReport/unknownjs.json'
     };

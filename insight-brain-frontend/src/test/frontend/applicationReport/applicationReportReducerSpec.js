@@ -62,11 +62,21 @@ describe('applicationReportReducer', function() {
         selectedReport: null,
         other: otherObject
       });
-      const newState = reduce(state, {type: 'LOAD_REPORT_FULFILLED', payload: 'report'});
+      const aaData = [{policyThreatLevel: 1}, {policyThreatLevel: 3}, {policyThreatLevel: 6}, {policyThreatLevel: 9}];
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {aaData}
+      });
       expect(newState).toEqual({
         loading: false,
         loadError: null,
-        selectedReport: 'report',
+        selectedReport: {
+          aaData,
+          moderateViolationCount: 1,
+          severeViolationCount: 1,
+          criticalViolationCount: 1,
+          nonLowViolationCount: 3
+        },
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

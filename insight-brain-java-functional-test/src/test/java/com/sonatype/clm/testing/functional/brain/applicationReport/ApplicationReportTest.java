@@ -66,11 +66,16 @@ public class ApplicationReportTest
   }
 
   @Test
-  public void testNavigation() {
+  public void testSummary() {
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
+    reportPage.threatIndicators().critical().shouldHave(text("0"));
+    reportPage.threatIndicators().severe().shouldHave(text("0"));
+    reportPage.threatIndicators().moderate().shouldHave(text("0"));
+    reportPage.threatIndicators().caption().shouldHave(text("0 Violations"));
+    reportPage.threatIndicators().subCaption().shouldHave(text("Affecting 0 components"));
   }
 
   @Test

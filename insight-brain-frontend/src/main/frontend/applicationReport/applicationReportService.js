@@ -7,7 +7,7 @@
 export default
 function applicationReportService() {
   return {
-    createReportData: createReportData
+    createReportEntries: createReportData
   };
 }
 

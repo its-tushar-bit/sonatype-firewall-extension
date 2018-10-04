@@ -34,6 +34,7 @@ describe('applicationReportActions', function() {
       $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond(500, 'test error');
       $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(200);
       $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(200);
+      $httpBackend.expectGET(CLMLocations.getReportDataUrl('appId', 'scanId')).respond(200);
       $httpBackend.flush();
 
       expect(errorSpy).toHaveBeenCalled();
@@ -57,6 +58,8 @@ describe('applicationReportActions', function() {
       $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond({reportTitle: 'test'});
       $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(null);
       $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(CLMLocations.getReportDataUrl('appId', 'scanId')).respond(null);
+
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
@@ -80,6 +83,7 @@ describe('applicationReportActions', function() {
       $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond({reportTitle: 'test'});
       $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(null);
       $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(CLMLocations.getReportDataUrl('appId', 'scanId')).respond(null);
       $httpBackend.expectGET(CLMLocations.getReportUnknownJsUrl('appId', 'scanId')).respond(null);
       $httpBackend.flush();
 

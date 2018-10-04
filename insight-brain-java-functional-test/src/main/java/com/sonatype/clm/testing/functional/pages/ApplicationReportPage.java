@@ -41,6 +41,10 @@ public class ApplicationReportPage
     return new IQDropdown("#options-dropdown");
   }
 
+  public IQThreatIndicators threatIndicators() {
+    return new IQThreatIndicators(childSelector(".iq-threat-indicators"));
+  }
+
   public ElementsCollection resultRows() {
     return children(".iq-table--application-report tbody .iq-table-row");
   }
@@ -74,6 +78,34 @@ public class ApplicationReportPage
 
     public SelenideElement waivedIndicator() {
       return child(".iq-text-indicator--waived");
+    }
+  }
+
+  public static class IQThreatIndicators
+  extends BasicElement<IQThreatIndicators>
+  {
+    public IQThreatIndicators(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement critical() {
+      return child(".iq-threat-indicator.critical");
+    }
+
+    public SelenideElement severe() {
+      return child(".iq-threat-indicator.severe");
+    }
+
+    public SelenideElement moderate() {
+      return child(".iq-threat-indicator.moderate");
+    }
+
+    public SelenideElement caption() {
+      return child(".iq-caption__text");
+    }
+
+    public SelenideElement subCaption() {
+      return child(".iq-caption__sub-text");
     }
   }
 }

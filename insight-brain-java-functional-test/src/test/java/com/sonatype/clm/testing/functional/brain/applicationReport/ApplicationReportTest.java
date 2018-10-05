@@ -72,10 +72,10 @@ public class ApplicationReportTest
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("0"));
-    reportPage.threatIndicators().severe().shouldHave(text("0"));
+    reportPage.threatIndicators().severe().shouldHave(text("1"));
     reportPage.threatIndicators().moderate().shouldHave(text("0"));
-    reportPage.threatIndicators().caption().shouldHave(text("0 Violations"));
-    reportPage.threatIndicators().subCaption().shouldHave(text("Affecting 0 components"));
+    reportPage.threatIndicators().caption().shouldHave(text("1 Violation"));
+    reportPage.threatIndicators().subCaption().shouldHave(text("Affecting 1 component"));
   }
 
   @Test

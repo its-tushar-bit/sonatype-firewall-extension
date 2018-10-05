@@ -62,21 +62,21 @@ public class AuditRecorderTest
   public void testRecordUserEvent() {
     HttpServletRequest httpRequest = mockHttpServletRequest();
     AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
-    AuditSession auditSession = auditRecorder.recordUserEvent(httpRequest);
-    assertThat(auditSession, is(notNullValue()));
+    try (AuditSession auditSession = auditRecorder.recordUserEvent(httpRequest)) {
+      assertThat(auditSession, is(notNullValue()));
 
-    AuditData auditData = AuditData.get();
-    assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
-    ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
+      AuditData auditData = AuditData.get();
+      assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
+      ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
 
-    AuditData childAuditData = proxyAuditData.auditData;
-    assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
-    RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
-    RequestData requestData = recordingAuditData.getRequestData();
-    assertThat(requestData.getMethod(), is(httpRequest.getMethod()));
+      AuditData childAuditData = proxyAuditData.auditData;
+      assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
+      RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
+      RequestData requestData = recordingAuditData.getRequestData();
+      assertThat(requestData.getMethod(), is(httpRequest.getMethod()));
+    }
 
     // ensure that commitAuditData is called and correct httpRequest value set
-    auditSession.close();
     ArgumentCaptor<RecordingAuditData> argumentCaptor = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor.capture());
     assertThat(argumentCaptor.getValue().getRequestData().getMethod(), is(httpRequest.getMethod()));
@@ -92,23 +92,23 @@ public class AuditRecorderTest
     AuditEvent auditEvent = AuditEvent.LOGIN;  // may not be a proper system event
     AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
     doNothing().when(auditRecorder).recordAuditData(isA(RecordingAuditData.class), isNull());
-    AuditSession auditSession = auditRecorder.recordSystemEvent(auditEvent);
-    assertThat(auditSession, is(notNullValue()));
+    try (AuditSession auditSession = auditRecorder.recordSystemEvent(auditEvent)) {
+      assertThat(auditSession, is(notNullValue()));
 
-    AuditData auditData = AuditData.get();
-    assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
-    ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
+      AuditData auditData = AuditData.get();
+      assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
+      ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
 
-    AuditData childAuditData = proxyAuditData.auditData;
-    assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
-    RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
+      AuditData childAuditData = proxyAuditData.auditData;
+      assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
+      RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
 
-    AuditEvent event = recordingAuditData.getEvent();
-    assertThat(event.getType(), is(AuditEvent.LOGIN.getType()));
-    assertThat(event.getDomain(), is(AuditEvent.LOGIN.getDomain()));
-    assertThat(recordingAuditData.getUsername(), is(MDCUsernameScope.SYSTEM));
+      AuditEvent event = recordingAuditData.getEvent();
+      assertThat(event.getType(), is(AuditEvent.LOGIN.getType()));
+      assertThat(event.getDomain(), is(AuditEvent.LOGIN.getDomain()));
+      assertThat(recordingAuditData.getUsername(), is(MDCUsernameScope.SYSTEM));
+    }
 
-    auditSession.close();
     // ensure that commitAuditData is called and correct httpRequest value set
     ArgumentCaptor<RecordingAuditData> argumentCaptor = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor.capture());
@@ -285,15 +285,16 @@ public class AuditRecorderTest
     HttpServletRequest httpRequest = mockHttpServletRequest();
     servletRequestConsumer.accept(httpRequest);
 
-    AuditSession auditSession = auditRecorder.recordUserEvent(httpRequest);
-    assertThat(auditSession, is(notNullValue()));
+    RecordingAuditData recordingAuditData;
+    try (AuditSession auditSession = auditRecorder.recordUserEvent(httpRequest)) {
+      assertThat(auditSession, is(notNullValue()));
 
-    ProxyAuditData proxyAuditData = (ProxyAuditData) AuditData.get();
-    RecordingAuditData recordingAuditData = (RecordingAuditData) proxyAuditData.auditData;
+      ProxyAuditData proxyAuditData = (ProxyAuditData) AuditData.get();
+      recordingAuditData = (RecordingAuditData) proxyAuditData.auditData;
 
-    recordingAuditDataConsumer.accept(recordingAuditData);
+      recordingAuditDataConsumer.accept(recordingAuditData);
+    }
 
-    auditSession.close();
     // ensure that commitAuditData is called and error is set
     ArgumentCaptor<RecordingAuditData> argumentCaptor = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor.capture());

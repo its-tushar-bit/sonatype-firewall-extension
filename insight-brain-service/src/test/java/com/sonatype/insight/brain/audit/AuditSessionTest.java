@@ -24,8 +24,9 @@ public class AuditSessionTest
   @Test
   public void testClose_commit() {
     AuditData auditData = spy(AuditData.get());
-    AuditSession auditSession = new AuditSession(auditData);
-    auditSession.close();
+    try (AuditSession auditSession = new AuditSession(auditData)) {
+      // noop
+    }
     verify(auditData).commit();
   }
 
@@ -35,10 +36,9 @@ public class AuditSessionTest
     AuditData auditData1 = AuditData.get();
 
     AuditData auditData2 = mock(AuditData.class);
-    AuditSession auditSession = new AuditSession(auditData2);
-    assertThat(AuditData.get(), is(auditData2));
-
-    auditSession.close();
+    try (AuditSession auditSession = new AuditSession(auditData2)) {
+      assertThat(AuditData.get(), is(auditData2));
+    }
     assertThat(AuditData.get(), is(auditData1));
   }
 }

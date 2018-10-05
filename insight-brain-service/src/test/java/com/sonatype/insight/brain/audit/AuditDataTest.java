@@ -84,11 +84,11 @@ public class AuditDataTest
     AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
     when(auditData.forSubEvent(null, false)).thenReturn(auditData);
 
-    AuditSession auditSession = auditData.recordSubEvent(null, false);
+    try (AuditSession auditSession = auditData.recordSubEvent(null, false)) {
+      assertThat(auditSession, is(notNullValue()));
+      verify(auditData).forSubEvent(null, false);
+    }
 
-    assertThat(auditSession, is(notNullValue()));
-    verify(auditData).forSubEvent(null, false);
-    auditSession.close();
     verify(auditData).commit();
   }
 

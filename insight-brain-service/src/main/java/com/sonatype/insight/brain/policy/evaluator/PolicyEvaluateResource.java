@@ -19,6 +19,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -39,10 +42,12 @@ public class PolicyEvaluateResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_APPLICATION)
   public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
                                          @QueryParam("scanId") final String scanId,
                                          final Stage stage) throws IOException
   {
+    AuditData.get().addApplicationPublicId(applicationPublicId).addScanId(scanId);
     return policyEvaluateService.evaluate(applicationPublicId, scanId, stage);
   }
 }

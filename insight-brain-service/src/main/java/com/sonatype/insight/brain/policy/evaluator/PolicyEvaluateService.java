@@ -12,6 +12,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -38,17 +39,19 @@ public class PolicyEvaluateService
     this.policyAlertNotifier = policyAlertNotifier;
   }
 
-  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
-  public PolicyEvaluationResult evaluate(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                         String scanId,
-                                         Stage stage)
-      throws IOException
-  {
+  public PolicyEvaluationResult evaluate(String applicationPublicId, String scanId, Stage stage) throws IOException {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    AuditData.get().addApplicationId(application.getId()).addApplicationName(application.getName());
     log.debug("Received request to evaluate policy for app public id {}, scan id {}, stageTypeId {}",
         applicationPublicId, scanId, stage.getStageTypeId());
+    return evaluate(application, scanId, stage);
+  }
 
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
+  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  PolicyEvaluationResult evaluate(@AuthzContext(AuthzContext.Key.APPLICATION) Application application,
+                                  String scanId,
+                                  Stage stage) throws IOException
+  {
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);

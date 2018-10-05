@@ -35,11 +35,11 @@
    --><div class="iq-caption">
         <h3 class="iq-caption__text">
           {{vm.selectedReport.nonLowViolationCount}}
-          VIOLATION{{vm.selectedReport.nonLowViolationCount === 1 ? 's' : ''}}
+          VIOLATION{{vm.selectedReport.nonLowViolationCount === 1 ? '' : 's'}}
         </h3>
         <p class="iq-caption__sub-text">
           Affecting {{vm.selectedReport.policyComponentCount}}
-          component{{vm.selectedReport.policyComponentCount === 1 ? 's' : ''}}
+          component{{vm.selectedReport.policyComponentCount === 1 ? '' : 's'}}
         </p>
       </div>
     </div>

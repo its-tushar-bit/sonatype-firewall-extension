@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -74,8 +75,8 @@ public class ApplicationReportTest
     reportPage.threatIndicators().critical().shouldHave(text("0"));
     reportPage.threatIndicators().severe().shouldHave(text("1"));
     reportPage.threatIndicators().moderate().shouldHave(text("0"));
-    reportPage.threatIndicators().caption().shouldHave(text("1 Violation"));
-    reportPage.threatIndicators().subCaption().shouldHave(text("Affecting 1 component"));
+    reportPage.threatIndicators().caption().shouldHave(exactText("1 Violation"));
+    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 1 component"));
   }
 
   @Test

@@ -50,6 +50,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -272,21 +275,33 @@ public class ReportResource
    */
   @POST
   @Path("reevaluatePolicy")
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public Response reevaluatePolicy(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+  @Audited(AuditEvent.EVALUATE_APPLICATION)
+  public Response reevaluatePolicy(@PathParam("applicationPublicId") final String applicationPublicId,
                                    @PathParam("scanId") final String scanId) throws IOException
   {
+    AuditData.get().addApplicationPublicId(applicationPublicId).addScanId(scanId).addIsReevaluation(true);
+
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    String appId = application.getId();
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+
+    AuditData.get().addApplicationId(application.getId()).addApplicationName(application.getName());
+
+    reevaluatePolicy(application, scanId);
+
+    return Response.ok().build();
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  void reevaluatePolicy(@AuthzContext(AuthzContext.Key.APPLICATION) final Application application,
+                        final String scanId) throws IOException
+  {
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO
+        .getLastByApplicationIdAndScanId(application.getId(), scanId);
 
     if (policyEvaluation == null) {
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()));
-
-    return Response.ok().build();
   }
 
   @GET

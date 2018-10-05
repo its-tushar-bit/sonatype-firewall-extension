@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -15,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -348,5 +350,16 @@ public abstract class AbstractBrainServiceTest
 
   protected String getUsername() {
     return getCLMServer().getClientConfiguration().getServerAuth().getUsername();
+  }
+
+  protected void createScanFile(String applicationId, String scanId) {
+    File scanFile = getCLMServer().getInjector().getInstance(InsightWork.class).getScanFile(applicationId, scanId);
+    try {
+      Files.createDirectories(scanFile.getParentFile().toPath());
+      Files.write(scanFile.toPath(), new byte[0]);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

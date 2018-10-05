@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,9 +37,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import com.google.inject.Injector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,8 +65,6 @@ public class ApiEvaluationResourceV2Test
 
   private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
-  private InsightWork insightWork;
-
   private static final String SCAN_ID = "scanId";
 
   private HttpRequest restRequest(String applicationId) {
@@ -83,8 +75,6 @@ public class ApiEvaluationResourceV2Test
   public void setupApplication() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
-    Injector injector = getCLMServer().getInjector();
-    insightWork = injector.getInstance(InsightWork.class);
   }
 
   @Test
@@ -480,7 +470,7 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testPromoteScan() throws Exception {
-    createScanFile();
+    createScanFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2 = ApiPromoteScanRequestDTOV2
         .fromScan(SCAN_ID, Stage.ID_OPERATE);
@@ -496,7 +486,7 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testGetScanStatus() throws Exception {
-    createScanFile();
+    createScanFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
         .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
@@ -542,16 +532,5 @@ public class ApiEvaluationResourceV2Test
       Thread.sleep(RETRY_INTERVAL);
     }
     return response;
-  }
-
-  private void createScanFile() {
-    File scanFile = insightWork.getScanFile(app.getId(), SCAN_ID);
-    try {
-      Files.createDirectories(scanFile.getParentFile().toPath());
-      Files.write(scanFile.toPath(), Collections.singletonList("test"));
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

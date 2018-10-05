@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.HttpCookie;
 import java.util.List;
 
@@ -15,27 +13,19 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.UserSessionResource;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 public class AuthenticationAuditTest
-    extends AbstractBrainServiceTest
+    extends AbstractAuditTest
 {
   private static final String RESTRICTED_PATH = "/" + ApplicationResource.RESOURCE_PATH;
 
@@ -43,21 +33,11 @@ public class AuthenticationAuditTest
 
   private static final String AUTH_RESOURCE_PATH = "/" + UserSessionResource.RESOURCE_PATH;
 
-  private static final String AUDIT_LOGGER = "com.sonatype.insight.audit.authentication";
-
-  @Rule
-  public LogOutput logOutput = new LogOutput("com.sonatype.insight.audit");
-
-  @Before
-  public void before() {
-    logOutput.before();
-  }
-
   @Test
   public void testLoginLogout() throws Exception {
     HttpCookie sessionCookie = restRequest().path(UserSessionResource.RESOURCE_PATH).post().getSessionCookie();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.LOGIN, 1);
     AuditDTO log = parseAuditLog(auditAuthenticationMessages.get(0));
     assertThat(log.domain, is("authentication"));
     assertThat(log.type, is("login"));
@@ -70,7 +50,7 @@ public class AuthenticationAuditTest
     restRequest().path(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).anon().cookie(sessionCookie)
         .delete();
 
-    auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 2);
+    auditAuthenticationMessages = awaitLogMessages(AuditEvent.LOGOUT, 2);
     log = parseAuditLog(auditAuthenticationMessages.get(1));
     assertThat(log.domain, is("authentication"));
     assertThat(log.type, is("logout"));
@@ -91,7 +71,7 @@ public class AuthenticationAuditTest
 
     restRequest().path(RESTRICTED_PATH).anon().header(rutConfig.getUsernameHeader(), username).get();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.LOGIN, 1);
     AuditDTO log = parseAuditLog(auditAuthenticationMessages.get(0));
     assertThat(log.domain, is("authentication"));
     assertThat(log.type, is("login"));
@@ -106,7 +86,7 @@ public class AuthenticationAuditTest
   public void testNoAuthenticationHeadersOrCookies() throws Exception {
     restRequest().anon().path(RESTRICTED_PATH).get();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.AUTHENTICATION_FAILURE, 1);
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "unauthenticated");
   }
 
@@ -114,7 +94,7 @@ public class AuthenticationAuditTest
   public void testInvalidUserNamePassword() throws Exception {
     restRequest().auth("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.AUTHENTICATION_FAILURE, 1);
     assertAuditLog(auditAuthenticationMessages.get(0), "POST", AUTH_RESOURCE_PATH, "bad-authentication");
   }
 
@@ -122,7 +102,7 @@ public class AuthenticationAuditTest
   public void testInvalidCsrfToken() throws Exception {
     restRequest().path(RESTRICTED_UNSAFE_PATH).noCsrfToken().delete();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.AUTHENTICATION_FAILURE, 1);
     assertAuditLog(auditAuthenticationMessages.get(0), "DELETE", RESTRICTED_UNSAFE_PATH, "bad-csrf-token");
   }
 
@@ -130,7 +110,7 @@ public class AuthenticationAuditTest
   public void testBadSessionCookie() throws Exception {
     restRequest().path(RESTRICTED_PATH).anon().cookie(SecurityModule.SESSION_COOKIE_NAME, "bad").get();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.AUTHENTICATION_FAILURE, 1);
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "bad-session");
   }
 
@@ -142,22 +122,8 @@ public class AuthenticationAuditTest
 
     restRequest().auth("user", "pass").path(RESTRICTED_PATH).get();
 
-    List<String> auditAuthenticationMessages = awaitLogMessages(AUDIT_LOGGER, 1);
+    List<String> auditAuthenticationMessages = awaitLogMessages(AuditEvent.AUTHENTICATION_FAILURE, 1);
     assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, AuditRecorder.SERVER_ERROR);
-  }
-
-  private List<String> awaitLogMessages(String logger, int count) {
-    return await().atMost(5, SECONDS)
-        .until(() -> logOutput.getInfoMessages(logger), hasSize(greaterThanOrEqualTo(count)));
-  }
-
-  private AuditDTO parseAuditLog(String auditLogEntry) {
-    try {
-      return JsonUtils.parse(auditLogEntry, AuditDTO.class);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 
   private void assertAuditLog(final String auditLogEntry,

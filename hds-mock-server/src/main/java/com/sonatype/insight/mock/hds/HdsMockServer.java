@@ -265,12 +265,12 @@ public class HdsMockServer
     }
   }
 
-  class RestHandler
+  public class RestHandler
       extends AbstractHandler
   {
     private static final String REPORT_PATH_PREFIX = "/rest/application/analysis/";
 
-    private static final String SCAN_ID = "SCAN-ID";
+    public static final String SCAN_ID = "SCAN-ID";
 
     private void handleMatchedRequest(HttpServletRequest request) throws IOException {
       validateLicense(request);

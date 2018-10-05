@@ -176,4 +176,19 @@ public abstract class AuditData
     addData("scope", "all-repositories");
     return this;
   }
+
+  public AuditData addStageId(String stageId) {
+    addData("stageId", stageId);
+    return this;
+  }
+
+  public AuditData addScanId(String scanId) {
+    addData("scanId", scanId);
+    return this;
+  }
+
+  public AuditData addIsReevaluation(boolean isReevaluation) {
+    addData("isReevaluation", isReevaluation);
+    return this;
+  }
 }

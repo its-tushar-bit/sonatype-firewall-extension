@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -139,6 +140,8 @@ public class ScanPolicyEvaluator
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
     }
 
+    AuditData.get().addStageId(stage.getStageTypeId());
+
     String appId = application.getId();
 
     final File reportFile = reportService.fetchReport(work, appId, scanId, true);
@@ -215,6 +218,7 @@ public class ScanPolicyEvaluator
 
         // Persist the policy evaluation
         boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null);
+        AuditData.get().addIsReevaluation(isReevaluation);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
         PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,

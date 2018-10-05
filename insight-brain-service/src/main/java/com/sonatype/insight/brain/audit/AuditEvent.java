@@ -13,7 +13,8 @@ public enum AuditEvent
   AUTHENTICATION_FAILURE(Domain.AUTHENTICATION, Type.FAILURE),
   LOGIN(Domain.AUTHENTICATION, Type.LOGIN),
   LOGOUT(Domain.AUTHENTICATION, Type.LOGOUT),
-  CREATE_APPLICATION(Domain.APPLICATION, Type.CREATE);
+  CREATE_APPLICATION(Domain.APPLICATION, Type.CREATE),
+  EVALUATE_APPLICATION(Domain.EVALUATION, Type.CREATE);
 
   private final String domain;
 
@@ -37,6 +38,8 @@ public enum AuditEvent
     String AUTHENTICATION = "authentication";
 
     String APPLICATION = "application";
+
+    String EVALUATION = "evaluation";
   }
 
   private interface Type

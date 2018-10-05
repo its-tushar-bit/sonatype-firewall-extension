@@ -59,7 +59,6 @@ import com.sonatype.insight.test.LogOutput;
 import org.sonatype.micromailer.Address;
 
 import com.google.inject.Binder;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -75,6 +74,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -133,21 +133,16 @@ public class PolicyAlertEmailerTest
   @Test
   public void testNotificationEmailSubject() throws Exception {
     String ownerName = "ownerName";
-    Assert.assertEquals("Policy Alert for ownerName: 1 critical violation out of 15",
-        policyAlertEmailer
-            .createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName));
-    Assert.assertEquals("Policy Alert for ownerName: 2 severe violations out of 14",
-        policyAlertEmailer
-            .createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName));
-    Assert.assertEquals("Policy Alert for ownerName: 3 moderate violations out of 12",
-        policyAlertEmailer
-            .createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName));
-    Assert.assertEquals("Policy Alert for ownerName: 9 neutral violations out of 9",
-        policyAlertEmailer
-            .createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName));
-    Assert.assertEquals("Policy Alert for ownerName: 5 neutral violations out of 5",
-        policyAlertEmailer
-            .createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName));
+    assertEquals("Policy Alert for ownerName: 1 critical violation out of 15",
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName));
+    assertEquals("Policy Alert for ownerName: 2 severe violations out of 14",
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName));
+    assertEquals("Policy Alert for ownerName: 3 moderate violations out of 12",
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName));
+    assertEquals("Policy Alert for ownerName: 9 neutral violations out of 9",
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName));
+    assertEquals("Policy Alert for ownerName: 5 neutral violations out of 5",
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName));
   }
 
   @Test

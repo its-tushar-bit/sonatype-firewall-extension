@@ -25,7 +25,6 @@ public class ReportResourceAuditTest
 
   @Before
   public void before() {
-    setupLogger();
     app = tempEntity.newApplicationWithParent("ReportResourceAuditTest_AppId");
   }
 
@@ -48,8 +47,8 @@ public class ReportResourceAuditTest
     response = restRequest(app.getPublicId(), SCAN_ID).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
-    assertEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName(), stage.getStageTypeId(), SCAN_ID,
-        true);
+    assertEvaluationAuditLog(awaitLogMessages(EVALUATION_AUDIT_LOGGER, 2).get(1), null, app.getId(), app.getPublicId(),
+        app.getName(), stage.getStageTypeId(), SCAN_ID, true);
   }
 
   @Test

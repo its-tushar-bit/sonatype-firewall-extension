@@ -16,6 +16,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -49,6 +50,15 @@ public abstract class AbstractAuditTest
         .until(() -> logOutput.getInfoMessages(logger), hasSize(greaterThanOrEqualTo(count)));
   }
 
+  private void assertEntryOrAbsentIfNullValue(Map<String, Object> map, String key, Object value) {
+    if (value == null) {
+      assertThat(map, not(hasKey(key)));
+    }
+    else {
+      assertThat(map, hasEntry(key, value));
+    }
+  }
+
   protected static AuditDTO parseAuditLog(String auditLogEntry) {
     try {
       return JsonUtils.parse(auditLogEntry, AuditDTO.class);
@@ -79,14 +89,30 @@ public abstract class AbstractAuditTest
                                           String scanId,
                                           Boolean isReevaluation)
   {
+    assertEvaluationAuditLog(message, error, applicationId, applicationPublicId, applicationName, stageId, scanId,
+        isReevaluation, not(isEmptyOrNullString()), not(isEmptyOrNullString()), not(isEmptyOrNullString()));
+  }
+
+  protected void assertEvaluationAuditLog(String message,
+                                          String error,
+                                          String applicationId,
+                                          String applicationPublicId,
+                                          String applicationName,
+                                          String stageId,
+                                          String scanId,
+                                          Boolean isReevaluation,
+                                          Matcher<? super String> matchWithUsername,
+                                          Matcher<? super String> matchWithRemoteIp,
+                                          Matcher<? super String> matchWithUserAgent)
+  {
     AuditDTO auditDTO = parseAuditLog(message);
     assertThat(auditDTO.timestamp, not(isEmptyOrNullString()));
     assertThat(auditDTO.requestMethod, is(nullValue()));
     assertThat(auditDTO.requestUri, is(nullValue()));
-    assertThat(auditDTO.remoteIpAddress, not(isEmptyOrNullString()));
+    assertThat(auditDTO.remoteIpAddress, matchWithRemoteIp);
     assertThat(auditDTO.forwarded, is(nullValue()));
-    assertThat(auditDTO.userAgent, not(isEmptyOrNullString()));
-    assertThat(auditDTO.username, not(isEmptyOrNullString()));
+    assertThat(auditDTO.userAgent, matchWithUserAgent);
+    assertThat(auditDTO.username, matchWithUsername);
     assertThat(auditDTO.domain, is(AuditEvent.EVALUATE_APPLICATION.getDomain()));
     assertThat(auditDTO.type, is(AuditEvent.EVALUATE_APPLICATION.getType()));
     assertThat(auditDTO.error, is(error));
@@ -96,14 +122,5 @@ public abstract class AbstractAuditTest
     assertEntryOrAbsentIfNullValue(auditDTO.data, "stageId", stageId);
     assertEntryOrAbsentIfNullValue(auditDTO.data, "scanId", scanId);
     assertEntryOrAbsentIfNullValue(auditDTO.data, "isReevaluation", isReevaluation);
-  }
-
-  private void assertEntryOrAbsentIfNullValue(Map<String, Object> map, String key, Object value) {
-    if (value == null) {
-      assertThat(map, not(hasKey(key)));
-    }
-    else {
-      assertThat(map, hasEntry(key, value));
-    }
   }
 }

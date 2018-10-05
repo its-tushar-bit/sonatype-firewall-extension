@@ -18,6 +18,10 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -52,18 +56,22 @@ public class PolicyMonitor
 
   private final CLMLicenseManager licenseManager;
 
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public PolicyMonitor(InsightWork work,
                        ScanUploader uploader,
                        ScanPolicyEvaluator scanPolicyEvaluator,
                        PolicyAlertNotifier policyAlertNotifier,
-                       CLMLicenseManager licenseManager)
+                       CLMLicenseManager licenseManager,
+                       AuditRecorder auditRecorder)
   {
     this.work = work;
     this.uploader = uploader;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.licenseManager = licenseManager;
+    this.auditRecorder = auditRecorder;
   }
 
   public void run() {
@@ -103,16 +111,23 @@ public class PolicyMonitor
         continue;
       }
 
-      try {
-        evaluate(app, policyMonitoring);
-      }
-      catch (InterruptedException e) {
-        log.error(e.getMessage(), e);
-        Thread.currentThread().interrupt();
-        return;
-      }
-      catch (IOException | RuntimeException e) {
-        log.error("Failed policy monitoring for application '{}': {}", app.getName(), e.getMessage(), e);
+      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+        try {
+          AuditData.get().addApplicationId(app.getId())
+              .addApplicationName(app.getName())
+              .addApplicationPublicId(app.getPublicId());
+          evaluate(app, policyMonitoring);
+        }
+        catch (InterruptedException e) {
+          AuditData.get().setException(e);
+          log.error(e.getMessage(), e);
+          Thread.currentThread().interrupt();
+          return;
+        }
+        catch (IOException | RuntimeException e) {
+          AuditData.get().setException(e);
+          log.error("Failed policy monitoring for application '{}': {}", app.getName(), e.getMessage(), e);
+        }
       }
     }
 
@@ -130,6 +145,7 @@ public class PolicyMonitor
     PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
         app.getId(), policyMonitoring.getStageTypeId());
     if (lastPrimaryPolicyEvaluation == null) {
+      AuditData.get().setEvent(null);
       log.info("There is nothing to monitor for application '{}' because there is no scan for stage '{}'",
           app.getName(), policyMonitoring.getStageTypeId());
       return;

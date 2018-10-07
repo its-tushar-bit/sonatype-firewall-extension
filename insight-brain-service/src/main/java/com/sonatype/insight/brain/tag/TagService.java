@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.tag;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -37,8 +39,6 @@ import com.sonatype.insight.brain.tag.TagResource.TagsByOwner;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.common.collect.Iterables;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
@@ -92,19 +92,16 @@ class TagService
 
   public List<Tag> getTagsUsedByApplications() {
     List<Application> applications = applicationService.getApplications();
-    List<Tag> allTags = new ArrayList<>();
+    Map<String, Tag> allTagsById = new LinkedHashMap<>();
 
     for (Application application : applications) {
       final List<Tag> applicationTags = tagDAO.getByApplicationId(application.getId());
-
       for (final Tag tag : applicationTags) {
-        if (!Iterables.any(allTags, IdUtils.getIsEqualPredicate(tag))) {
-          allTags.add(tag);
-        }
+        allTagsById.put(tag.getId(), tag);
       }
     }
 
-    return allTags;
+    return new ArrayList<>(allTagsById.values());
   }
 
   @Authorize(permission = Permission.READ)

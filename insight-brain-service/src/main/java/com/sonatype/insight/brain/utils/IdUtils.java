@@ -12,9 +12,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.model.HasStringId;
-
-import com.google.common.base.Predicate;
 
 public class IdUtils
 {
@@ -56,15 +53,5 @@ public class IdUtils
     }
 
     throw new IllegalStateException("Unknown owner type: " + ownerType);
-  }
-
-  public static Predicate<HasStringId> getIsEqualPredicate(final HasStringId compareTo) {
-    return new Predicate<HasStringId>()
-    {
-      @Override
-      public boolean apply(final HasStringId existing) {
-        return existing.getId().equals(compareTo.getId());
-      }
-    };
   }
 }

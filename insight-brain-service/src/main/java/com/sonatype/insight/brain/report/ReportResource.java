@@ -275,33 +275,26 @@ public class ReportResource
    */
   @POST
   @Path("reevaluatePolicy")
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
-  public Response reevaluatePolicy(@PathParam("applicationPublicId") final String applicationPublicId,
-                                   @PathParam("scanId") final String scanId) throws IOException
+  public Response reevaluatePolicy(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
+      final String applicationPublicId,
+      @PathParam("scanId") final String scanId) throws IOException
   {
-    AuditData.get().addApplicationPublicId(applicationPublicId).addScanId(scanId).addIsReevaluation(true);
+    AuditData.get().addScanId(scanId);
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    AuditData.get().addApplicationId(application.getId()).addApplicationName(application.getName());
-
-    reevaluatePolicy(application, scanId);
-
-    return Response.ok().build();
-  }
-
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  void reevaluatePolicy(@AuthzContext(AuthzContext.Key.APPLICATION) final Application application,
-                        final String scanId) throws IOException
-  {
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO
-        .getLastByApplicationIdAndScanId(application.getId(), scanId);
+    String appId = application.getId();
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
 
     if (policyEvaluation == null) {
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()));
+
+    return Response.ok().build();
   }
 
   @GET

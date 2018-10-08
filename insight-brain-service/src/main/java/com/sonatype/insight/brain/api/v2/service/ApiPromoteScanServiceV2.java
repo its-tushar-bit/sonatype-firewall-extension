@@ -150,18 +150,13 @@ public class ApiPromoteScanServiceV2
     return Stage.isValidStageTypeId(stageId) && !Stage.ID_DEVELOP.equals(stageId);
   }
 
-  public ApiPromoteScanResultDTOV2 promoteScan(final String applicationId,
-                                               final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public ApiPromoteScanResultDTOV2 promoteScan(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+      final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2)
   {
     final Application application = applicationDAO.getByIdNotNull(applicationId);
-    AuditData.get().addApplicationPublicId(application.getPublicId()).addApplicationName(application.getName());
-    return promoteScan(application, apiPromoteScanRequestDTOV2);
-  }
 
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  ApiPromoteScanResultDTOV2 promoteScan(@AuthzContext(AuthzContext.Key.APPLICATION) final Application application,
-                                        final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2)
-  {
     validateRequest(apiPromoteScanRequestDTOV2, application.getId());
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
@@ -174,7 +169,7 @@ public class ApiPromoteScanServiceV2
             executor::submit));
 
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = new ApiPromoteScanResultDTOV2();
-    apiPromoteScanResultDTOV2.statusUrl = getStatusUrl(application.getId(), statusId);
+    apiPromoteScanResultDTOV2.statusUrl = getStatusUrl(applicationId, statusId);
     return apiPromoteScanResultDTOV2;
   }
 

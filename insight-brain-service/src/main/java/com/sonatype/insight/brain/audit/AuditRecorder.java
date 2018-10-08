@@ -168,10 +168,10 @@ public class AuditRecorder
 
   @VisibleForTesting
   static Logger toLogger(AuditEvent auditEvent) {
-    return LoggerFactory.getLogger(toLoggerName(auditEvent));
+    return LoggerFactory.getLogger(toLoggerName(auditEvent.getDomain()));
   }
 
-  static String toLoggerName(AuditEvent auditEvent) {
-    return LOGGER_NAME_PREFIX + auditEvent.getDomain();
+  public static String toLoggerName(String domain) {
+    return LOGGER_NAME_PREFIX + domain;
   }
 }

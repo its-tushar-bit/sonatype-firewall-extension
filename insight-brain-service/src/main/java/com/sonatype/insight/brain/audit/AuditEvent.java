@@ -13,8 +13,7 @@ public enum AuditEvent
   AUTHENTICATION_FAILURE(Domain.AUTHENTICATION, Type.FAILURE),
   LOGIN(Domain.AUTHENTICATION, Type.LOGIN),
   LOGOUT(Domain.AUTHENTICATION, Type.LOGOUT),
-  CREATE_APPLICATION(Domain.APPLICATION, Type.CREATE),
-  EVALUATE_APPLICATION(Domain.EVALUATION, Type.CREATE);
+  EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE);
 
   private final String domain;
 
@@ -37,9 +36,15 @@ public enum AuditEvent
   {
     String AUTHENTICATION = "authentication";
 
-    String APPLICATION = "application";
+    String GOVERNANCE = "governance";
 
-    String EVALUATION = "evaluation";
+    String GOVERNANCE_EVALUATION = join(GOVERNANCE, "evaluation");
+
+    String GOVERNANCE_EVALUATION_APPLICATION = join(GOVERNANCE_EVALUATION, "application");
+
+    static String join(String parent, String child) {
+      return parent + "." + child;
+    }
   }
 
   private interface Type
@@ -50,6 +55,6 @@ public enum AuditEvent
 
     String LOGOUT = "logout";
 
-    String CREATE = "create";
+    String EVALUATE = "evaluate";
   }
 }

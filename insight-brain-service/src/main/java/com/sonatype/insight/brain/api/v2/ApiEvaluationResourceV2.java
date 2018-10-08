@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
-import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
@@ -84,7 +83,6 @@ public class ApiEvaluationResourceV2
   public ApiPromoteScanResultDTOV2 promoteScan(@PathParam("applicationId") final String applicationId,
                                                final ApiPromoteScanRequestDTOV2 promoteScanRequest)
   {
-    AuditData.get().addApplicationId(applicationId);
     return promoteScanService.promoteScan(applicationId, promoteScanRequest);
   }
 

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -46,16 +47,16 @@ public class PolicyMonitorAuditTest
 
     policyMonitor.run();
 
-    assertEvaluationAuditLog(awaitLogMessages(EVALUATION_AUDIT_LOGGER, 1).get(0), null, app.getId(), app.getPublicId(),
-        app.getName(), ReleaseStageType.ID, scanId2, false, is(MDCUsernameScope.SYSTEM), is(nullValue()),
-        is(nullValue()));
+    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
+        app.getPublicId(), app.getName(), ReleaseStageType.ID, scanId2, false, is(MDCUsernameScope.SYSTEM),
+        is(nullValue()), is(nullValue()));
   }
 
   @Test
   public void testRunEvaluation_AppWithMonitoring_WithNoLastPrimaryEvaluation() {
     policyMonitor.run();
 
-    awaitLogMessages(EVALUATION_AUDIT_LOGGER, 0);
+    awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 0);
   }
 
   @Test
@@ -64,7 +65,7 @@ public class PolicyMonitorAuditTest
 
     policyMonitor.run();
 
-    assertEvaluationAuditLog(awaitLogMessages(EVALUATION_AUDIT_LOGGER, 1).get(0), "server-error", app.getId(),
+    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "server-error", app.getId(),
         app.getPublicId(), app.getName(), null, null, null, is(MDCUsernameScope.SYSTEM), is(nullValue()),
         is(nullValue()));
   }

@@ -35,8 +35,6 @@ import static org.hamcrest.Matchers.nullValue;
 public abstract class AbstractAuditTest
     extends AbstractResourceTest
 {
-  protected static final String EVALUATION_AUDIT_LOGGER = AuditRecorder.BASE_LOGGER_NAME + ".evaluation";
-
   @Rule
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
@@ -45,9 +43,10 @@ public abstract class AbstractAuditTest
     logOutput.before();
   }
 
-  protected List<String> awaitLogMessages(String logger, int count) {
+  protected List<String> awaitLogMessages(AuditEvent auditEvent, int count) {
     return await().atMost(5, SECONDS)
-        .until(() -> logOutput.getInfoMessages(logger), hasSize(greaterThanOrEqualTo(count)));
+        .until(() -> logOutput.getInfoMessages(AuditRecorder.toLoggerName(auditEvent.getDomain())),
+            hasSize(greaterThanOrEqualTo(count)));
   }
 
   private void assertEntryOrAbsentIfNullValue(Map<String, Object> map, String key, Object value) {
@@ -76,7 +75,7 @@ public abstract class AbstractAuditTest
                                           String scanId,
                                           Boolean isReevaluation)
   {
-    assertEvaluationAuditLog(awaitLogMessages(EVALUATION_AUDIT_LOGGER, 1).get(0), error, applicationId,
+    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), error, applicationId,
         applicationPublicId, applicationName, stageId, scanId, isReevaluation);
   }
 

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -38,8 +39,8 @@ public class PolicyEvaluateResourceAuditTest
     String scanId = mockReport("/AbstractAuditTest/report.zip");
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
-    assertEvaluationAuditLog(awaitLogMessages(EVALUATION_AUDIT_LOGGER, 2).get(1), null, app.getId(), app.getPublicId(),
-        app.getName(), Stage.ID_BUILD, scanId, true);
+    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
+        app.getPublicId(), app.getName(), Stage.ID_BUILD, scanId, true);
   }
 
   @Test

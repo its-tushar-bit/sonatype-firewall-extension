@@ -113,9 +113,7 @@ public class PolicyMonitor
 
       try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
         try {
-          AuditData.get().addApplicationId(app.getId())
-              .addApplicationName(app.getName())
-              .addApplicationPublicId(app.getPublicId());
+          AuditData.get().setApplication(app);
           evaluate(app, policyMonitoring);
         }
         catch (InterruptedException e) {

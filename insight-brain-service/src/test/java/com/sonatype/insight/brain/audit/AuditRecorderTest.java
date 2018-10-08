@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 public class AuditRecorderTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput("com.sonatype.insight.audit.authentication");
+  public LogOutput logOutput = new LogOutput(AuditRecorder.toLoggerName(AuditEvent.LOGIN.getDomain()));
 
   @Before
   public void before() {
@@ -384,7 +384,7 @@ public class AuditRecorderTest
   @Test
   public void testToObjectNode_NonAuthentication_ExcludesMethodPath() {
     RecordingAuditData recordingAuditData = recordingAuditData();
-    recordingAuditData.setEvent(AuditEvent.CREATE_APPLICATION);
+    recordingAuditData.setEvent(AuditEvent.EVALUATE_APPLICATION);
     ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
 
     assertThat(objectNode.has("requestMethod"), is(false));

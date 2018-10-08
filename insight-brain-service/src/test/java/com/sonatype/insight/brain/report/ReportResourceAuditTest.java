@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
@@ -47,8 +48,8 @@ public class ReportResourceAuditTest
     response = restRequest(app.getPublicId(), SCAN_ID).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
-    assertEvaluationAuditLog(awaitLogMessages(EVALUATION_AUDIT_LOGGER, 2).get(1), null, app.getId(), app.getPublicId(),
-        app.getName(), stage.getStageTypeId(), SCAN_ID, true);
+    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
+        app.getPublicId(), app.getName(), stage.getStageTypeId(), SCAN_ID, true);
   }
 
   @Test
@@ -59,7 +60,7 @@ public class ReportResourceAuditTest
         .path("reevaluatePolicy").post();
     assertResponseStatus(403, response);
 
-    assertEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName(), null, SCAN_ID, true);
+    assertEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName(), null, null, null);
   }
 
   @Test
@@ -69,7 +70,7 @@ public class ReportResourceAuditTest
     HttpResponse response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
     assertResponseStatus(400, response);
 
-    assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, scanId, true);
+    assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, scanId, null);
   }
 
   @Test
@@ -78,6 +79,6 @@ public class ReportResourceAuditTest
     HttpResponse response = restRequest(appId, SCAN_ID).path("reevaluatePolicy").post();
     assertResponseStatus(404, response);
 
-    assertEvaluationAuditLog("not-found", null, appId, null, null, SCAN_ID, true);
+    assertEvaluationAuditLog("not-found", null, appId, null, null, null, null);
   }
 }

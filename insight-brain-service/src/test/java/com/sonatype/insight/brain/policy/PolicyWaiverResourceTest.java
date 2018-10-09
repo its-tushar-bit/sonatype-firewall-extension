@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.WaiversByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,33 +50,48 @@ public class PolicyWaiverResourceTest
   public void testCRUD_Application() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
+    String constraintFactsJson = JsonUtils.format(Collections.singletonList(new ConstraintFact()));
 
-    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId());
+    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId(), constraintFactsJson);
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
+    String constraintFactsJson = JsonUtils.format(Collections.singletonList(new ConstraintFact()));
 
-    testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
+    testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId(), constraintFactsJson);
   }
 
   @Test
   public void testCRUD_Repository() throws Exception {
     Repository repository = tempEntity.newRepository("foo");
+    String constraintFactsJson = JsonUtils.format(Collections.singletonList(new ConstraintFact()));
 
-    testCRUD(OwnerType.REPOSITORY, repository.getId(), repository.getId());
+    testCRUD(OwnerType.REPOSITORY, repository.getId(), repository.getId(), constraintFactsJson);
   }
 
-  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
+  @Test
+  public void testCRUD_NullConstraintFacts() throws Exception {
+    String appPublicId = "PolicyWaiverResourceTest_AppId";
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
+
+    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId(), null);
+  }
+
+  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
+      throws Exception
+  {
     String policyId = createPolicy(ownerId).getId();
 
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
+    policyWaiver.setConstraintFactsJson(constraintFactsJson);
     HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyWaiver).post();
     assertResponseStatus(200, response);
     policyWaiver = response.getBody(PolicyWaiver.class);
     assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
+    assertEquals(constraintFactsJson, new PolicyWaiverDAO().getById(policyWaiver.getId()).getConstraintFactsJson());
 
     // Get
     response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();

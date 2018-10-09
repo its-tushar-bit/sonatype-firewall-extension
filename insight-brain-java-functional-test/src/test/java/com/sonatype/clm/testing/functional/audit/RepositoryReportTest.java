@@ -42,6 +42,7 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -56,6 +57,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -76,9 +78,20 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -512,6 +525,23 @@ public class RepositoryReportTest
     RepositoryReportPage.table().rows().shouldHaveSize(1);
     RepositoryReportPage.filter().allViolations().click();
     RepositoryReportPage.table().row(0).waived().should(exist).click();
+
+    // Verify repository policy violation and policy waiver both contain the correct content
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = new RepositoryPolicyViolationDAO()
+        .getByRepositoryId(repo.getId());
+    assertThat(repositoryPolicyViolations, hasSize(4));
+
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(repo.getId());
+    assertThat(policyWaivers, hasSize(1));
+
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    RepositoryPolicyViolation repositoryPolicyViolation = repositoryPolicyViolations.stream()
+        .filter(violation -> policyWaiver.getConstraintFactsJson().equals(violation.getConstraintFactsJson()))
+        .findFirst().get();
+
+    assertThat(policyWaiver.getPolicyId(), is(repositoryPolicyViolation.getPolicyId()));
+    assertThat(policyWaiver.getOwnerId(), is(repositoryPolicyViolation.getRepositoryId()));
+    assertThat(policyWaiver.getHash(), is(criticalComponentHash));
 
     // re-open CIP
     RepositoryReportPage.table().cipTab("Policy").click();

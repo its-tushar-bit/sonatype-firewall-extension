@@ -136,6 +136,7 @@ describe('CIP Policy Waiver tests', function() {
               conditionReason: 'Age was 7 years, 8 months and 17 days'
             }]
           }],
+          constraintFactsJson: undefined,
           actions: [{
             actionType : '1',
             actionSummary : 'This is an action'
@@ -159,6 +160,7 @@ describe('CIP Policy Waiver tests', function() {
               conditionReason: 'Age was 7 years, 8 months and 17 days'
             }]
           }],
+          constraintFactsJson: undefined,
           actions: [{
             actionType : '1',
             actionSummary : 'This is an action'
@@ -318,7 +320,8 @@ describe('CIP Policy Waiver tests', function() {
           appId: "bom1-12345678"
         },
         policy : {
-          id: 'policyId'
+          id: 'policyId',
+          constraintFactsJson: 'constraint-facts-json'
         }
       });
       $httpBackend.flush();
@@ -337,7 +340,8 @@ describe('CIP Policy Waiver tests', function() {
         hash: "3102cdd0edd5a05afe00",
         ownerId : 'orgId',
         policyId: "policyId",
-        comment: "this is my comment!"
+        comment: "this is my comment!",
+        constraintFactsJson: "constraint-facts-json"
       }).respond({});
 
       _scope.acceptWaiveComponent();
@@ -359,7 +363,68 @@ describe('CIP Policy Waiver tests', function() {
         hash: "3102cdd0edd5a05afe00",
         ownerId : 'bom1-12345678',
         policyId: "policyId",
-        comment: "this is my comment!"
+        comment: "this is my comment!",
+        constraintFactsJson: "constraint-facts-json"
+      }).respond({});
+
+      _scope.acceptWaiveComponent();
+
+      $httpBackend.flush();
+      expect(modalSpy).toHaveBeenCalled();
+    }));
+  });
+  
+  describe('Legacy AddWaiverController', function () {
+
+    // setup our http backend to return what we want
+    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+      _scope = $rootScope.$new();
+      _scope.$close = angular.noop;
+      _scope.$dismiss = angular.noop;
+
+      const expectedUrl = '../brain/rest/policyWaiver/application/bom1-12345678/applicable/context/policyId';
+      $httpBackend.expectGET(SpecUtil.toRegExp(expectedUrl)).respond({
+        id: 'orgId',
+        name: 'org',
+        type: 'organization',
+        children: [
+          {
+            id: 'bom1-12345678',
+            name: 'app',
+            type: 'application',
+            children: null
+          }
+        ]
+      });
+
+      $controller('AddWaiverController', {
+        $scope: _scope,
+        PolicyViolationData: {
+          hash: "3102cdd0edd5a05afe00",
+          appId: "bom1-12345678"
+        },
+        policy : {
+          id: 'policyId'
+        }
+      });
+      $httpBackend.flush();
+    }));
+
+    it('Test waive policy without constraintFactsJson present', inject(function($httpBackend) {
+      var modalSpy = spyOn(_scope, '$close');
+
+      _scope.$apply(function () {
+        _scope.waiver.ownerId = 'orgId';
+        _scope.waiver.comment = 'this is my comment!';
+        _scope.owner.type = 'organization';
+      });
+
+      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/organization/orgId'), {
+        hash: "3102cdd0edd5a05afe00",
+        ownerId : 'orgId',
+        policyId: "policyId",
+        comment: "this is my comment!",
+        constraintFactsJson: null
       }).respond({});
 
       _scope.acceptWaiveComponent();

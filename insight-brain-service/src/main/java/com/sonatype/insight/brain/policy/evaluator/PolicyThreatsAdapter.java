@@ -87,6 +87,7 @@ public class PolicyThreatsAdapter
     result.grandfathered = violation.isGrandfathered();
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
+    result.constraintFactsJson = violation.getConstraintFactsJson();
     return result;
   }
 

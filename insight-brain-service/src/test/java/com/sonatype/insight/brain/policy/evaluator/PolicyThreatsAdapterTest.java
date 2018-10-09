@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +25,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class PolicyThreatsAdapterTest
 {
@@ -126,6 +128,30 @@ public class PolicyThreatsAdapterTest
 
     for (PolicyThreats.Component component : threats.aaData) {
       Assert.assertThat(component.allViolations, hasSize(1));
+    }
+
+    assertPolicyThreats(threats, violations);
+  }
+
+  @Test
+  public void testCreatePolicyThreats_ConstraintFactsJson() {
+    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
+
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false, true,
+        Action.ID_FAIL);
+    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false, true,
+        Action.ID_FAIL);
+
+    mavenViolation.setConstraintFacts(Collections.singletonList(new ConstraintFact("id1", "name1", "op1")));
+    nugetViolation.setConstraintFacts(Collections.singletonList(new ConstraintFact("id2", "name2", "op2")));
+
+    List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
+
+    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+
+    for (PolicyThreats.Component component : threats.aaData) {
+      assertThat(component.allViolations, hasSize(1));
     }
 
     assertPolicyThreats(threats, violations);
@@ -280,7 +306,8 @@ public class PolicyThreatsAdapterTest
                                                    List<PolicyViolation> violations)
   {
     for (PolicyViolation violation : violations) {
-      if (policyViolation.policyId.equals(violation.getPolicyId())) {
+      if (policyViolation.policyId.equals(violation.getPolicyId())
+          && policyViolation.constraintFactsJson.equals(violation.getConstraintFactsJson())) {
         assertPolicyThreatsPolicyViolations(policyViolation, violation);
         return;
       }
@@ -296,6 +323,7 @@ public class PolicyThreatsAdapterTest
     Assert.assertThat(policyViolation.policyName, is(violation.getPolicyName()));
     Assert.assertThat(policyViolation.waived, is(violation.isWaived()));
     Assert.assertThat(policyViolation.grandfathered, is(violation.isGrandfathered()));
+    Assert.assertThat(policyViolation.constraintFactsJson, is(violation.getConstraintFactsJson()));
 
     for (PolicyThreats.PolicyAction action : policyViolation.actions) {
       Assert.assertThat(action.actionType, is(violation.getActionTypeId()));

@@ -192,7 +192,8 @@ public class RepositoryService
           .toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
       activeRepositoryViolationDTOs.add(new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
           repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
-          Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints));
+          Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints,
+          repositoryPolicyViolation.getConstraintFactsJson()));
     }
 
     return new RepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);

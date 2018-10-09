@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -104,7 +105,7 @@ public class InsightBrainServiceTest
     }, 204);
     getCLMServer().stop();
     getCLMServer().start();
-    await().atMost(5, SECONDS).until(() -> responses.size() == 2);
+    await().atMost(5, SECONDS).until(() -> responses.size() == 3);
     Date expectedMaxCreateTime = new Date();
 
     List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();
@@ -156,15 +157,20 @@ public class InsightBrainServiceTest
                 telemetryDataReceived.getAttributes().get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT),
                 is("0"));
             break;
+          case DATABASE:
+            // The database is in memory, so the reported size is null.
+            assertThat(telemetryDataReceived.getAttributes().get(DatabaseTelemetryCollector.ODS_SIZE_BYTES),
+                is(nullValue()));
+            break;
           default:
-            // nothing to test
+            fail("Unexpected telemetry purpose: " + telemetryPurpose);
             break;
         }
       }
     }
 
-    assertThat(telemetryPurposes,
-        containsInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE));
+    assertThat(telemetryPurposes, containsInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE));
   }
 
   @Test

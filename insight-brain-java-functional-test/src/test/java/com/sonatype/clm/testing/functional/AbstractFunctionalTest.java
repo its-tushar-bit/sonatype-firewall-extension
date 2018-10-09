@@ -226,6 +226,7 @@ public abstract class AbstractFunctionalTest
   private static void setViewPortSize(WebDriver driver) {
     JavascriptExecutor executor = (JavascriptExecutor) WebDriverRunner.getWebDriver();
     // get the windows size for the specified view port
+    @SuppressWarnings("rawtypes")
     List<Long> sizes = (List) executor.executeScript(
         "return [window.outerWidth - window.innerWidth + arguments[0], " + 
             "window.outerHeight - window.innerHeight + arguments[1]];",

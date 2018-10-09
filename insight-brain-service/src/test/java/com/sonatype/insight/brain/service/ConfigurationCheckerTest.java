@@ -74,7 +74,9 @@ public class ConfigurationCheckerTest
         not(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
   }
 
-  private void assertConfigException(String configFileName, Class exceptionType, Matcher<String> matcher)
+  private void assertConfigException(String configFileName,
+                                     Class<? extends Throwable> exceptionType,
+                                     Matcher<String> matcher)
   {
     try {
       new ConfigurationChecker()

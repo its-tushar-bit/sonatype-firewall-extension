@@ -26,6 +26,12 @@ function ApplicationReportResultsController($state, $ngRedux, applicationReportA
 
     doLoad() {
       vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
+    },
+
+    coveragePercent() {
+      const { totalArtifactCount, knownArtifactCount } = vm.selectedReport;
+
+      return totalArtifactCount ? Math.round(100 * knownArtifactCount / totalArtifactCount) : 0;
     }
   });
 }

@@ -1,5 +1,5 @@
 .iq-threat-indicators {
-  margin-bottom: 8px;
+  display: inline-block;
 }
 
 .iq-threat-indicator {
@@ -36,28 +36,4 @@
   &.critical {
     background: $iq-threat-color-critical;
   }
-}
-
-.iq-caption {
-  display: inline-block;
-  height: 26px;
-  margin-left: 10px;
-  vertical-align: top;
-}
-
-.iq-caption__text {
-  display: block;
-  font-size: 14px;
-  line-height: 12px;
-  margin: 0 0 2px 0;
-  padding: 0;
-  text-transform: uppercase;
-}
-  
-.iq-caption__sub-text {
-  display: block;
-  font-size: 14px;
-  line-height: 14px;
-  margin: 0;
-  padding: 0;
 }

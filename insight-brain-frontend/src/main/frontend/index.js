@@ -30,6 +30,7 @@ import 'es6-collections';
 // should enable it.  As a workaround we point to the specific file that has the es6 imports
 // See https://stackoverflow.com/questions/39909200/d3-4-0-import-statement-gives-moduleexports-wrapper
 import * as d3 from 'd3/index.js';
+import pv from './lib/protovis/protovis.min';
 
 import 'zeroclipboard';
 import Fuse from 'fuse.js';
@@ -48,3 +49,4 @@ window.Fuse = Fuse;
 window.d3 = d3;
 window.Plottable = Plottable;
 window.classyBrew = ClassyBrew;
+window.pv = pv;

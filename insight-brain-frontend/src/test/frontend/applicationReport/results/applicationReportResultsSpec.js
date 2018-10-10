@@ -30,4 +30,24 @@ describe('applicationReportResultsSpec', function() {
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('coveragePercent', function() {
+    it('returns 0 if the totalArtifactCount is 0', function() {
+      vm.selectedReport = { totalArtifactCount: 0, knownArtifactCount: 0 };
+
+      expect(vm.coveragePercent()).toBe(0);
+    });
+
+    it('returns the ratio of knownArtifactCount to totalArtifactCount as a percent', function() {
+      vm.selectedReport = { totalArtifactCount: 60, knownArtifactCount: 45 };
+
+      expect(vm.coveragePercent()).toBe(75);
+    });
+
+    it('rounds the returned percent to a whole number', function() {
+      vm.selectedReport = { totalArtifactCount: 300, knownArtifactCount: 151 };
+
+      expect(vm.coveragePercent()).toBe(50);
+    });
+  });
 });

@@ -28,23 +28,39 @@
     <div class="iq-tile-header__subtitle visual-testing-ignore">
       {{vm.selectedReport.reportTime | date: 'yyyy-MM-dd'}}
     </div>
-    <div class="iq-threat-indicators">
-      <div class="iq-threat-indicator critical">{{vm.selectedReport.criticalViolationCount}}</div><!--
-   --><div class="iq-threat-indicator severe">{{vm.selectedReport.severeViolationCount}}</div><!--
-   --><div class="iq-threat-indicator moderate">{{vm.selectedReport.moderateViolationCount}}</div><!--
-   --><div class="iq-caption">
-        <h3 class="iq-caption__text">
-          {{vm.selectedReport.nonLowViolationCount}}
-          VIOLATION{{vm.selectedReport.nonLowViolationCount === 1 ? '' : 's'}}
-        </h3>
-        <p class="iq-caption__sub-text">
-          Affecting {{vm.selectedReport.policyComponentCount}}
-          component{{vm.selectedReport.policyComponentCount === 1 ? '' : 's'}}
-        </p>
-      </div>
-    </div>
   </div>
   <div class="iq-tile-content">
+    <div class="iq-indicator-row">
+      <div class="iq-threat-indicators">
+        <div class="iq-threat-indicator critical">{{vm.selectedReport.criticalViolationCount}}</div><!--
+     --><div class="iq-threat-indicator severe">{{vm.selectedReport.severeViolationCount}}</div><!--
+     --><div class="iq-threat-indicator moderate">{{vm.selectedReport.moderateViolationCount}}</div><!--
+     --><div class="iq-caption">
+          <h3 class="iq-caption__text">
+            {{vm.selectedReport.nonLowViolationCount}}
+            VIOLATION{{vm.selectedReport.nonLowViolationCount === 1 ? '' : 's'}}
+          </h3>
+          <p class="iq-caption__sub-text">
+            Affecting {{vm.selectedReport.policyComponentCount}}
+            component{{vm.selectedReport.policyComponentCount === 1 ? '' : 's'}}
+          </p>
+        </div>
+      </div><!--
+   --><div class="iq-coverage-indicator">
+        <span coverage-donut="vm.coveragePercent()"
+              donut-width="30"
+              donut-height="30"
+              line-width="0"
+              inner-radius="6"
+              outer-radius="15"
+              fill-colors="['#97cbed', '#006bbf']">
+        </span><!--
+     --><div class="iq-caption">
+          <h3 class="iq-caption__text">{{vm.selectedReport.totalArtifactCount}} COMPONENTS</h3>
+          <p class="iq-caption__sub-text">{{vm.coveragePercent() | number: 0}}% of all components identified.</p>
+        </div>
+      </div>
+    </div>
     <table class="iq-table iq-table--application-report">
       <thead>
         <tr class="iq-table-row">

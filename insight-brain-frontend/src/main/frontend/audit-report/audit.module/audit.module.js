@@ -8,9 +8,9 @@
 import legacyConfigurationModule from '../../LegacyConfigurationModule';
 import auditReportPendoModule from '../pendo/module';
 import componentInformationPanelModule from '../cip/component.information.panel.module';
+import componentsModule from '../../components/module';
 
 import auditSummaryController from './audit.summary.controller';
-import coverageDonutDirective from './coverage.donut.directive';
 import auditThreatDirective from './audit.threat.directive';
 import ownerContextService from './owner.context.service';
 import repositoryViolationTableFilterDirective from './repository.violation.table.filter.directive';
@@ -44,9 +44,9 @@ window.CLM = {
 
   angular.module('audit',
       ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-        auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name])
+        auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name,
+        componentsModule.name])
       .controller('audit.summary.controller', auditSummaryController)
-      .directive('coverageDonut', coverageDonutDirective)
       .directive('auditThreat', auditThreatDirective)
       .service('OwnerContext', ownerContextService)
       .directive('repositoryViolationTableFilter', repositoryViolationTableFilterDirective)

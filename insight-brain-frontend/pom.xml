@@ -105,6 +105,7 @@
                 <source>resources/assets/cip/cip-test-util.js</source>
                 <include>node_modules/jquery/dist/jquery.js</include>
                 <include>node_modules/angular/angular.js</include>
+                <include>node_modules/angular-aria/angular-aria.js</include>
                 <include>frontend/lib/protovis/protovis.min.js</include>
                 <include>node_modules/angular-ui-bootstrap/ui-bootstrap-tpls.js</include>
                 <source>root/target/classes/assets/audit-report.js</source>

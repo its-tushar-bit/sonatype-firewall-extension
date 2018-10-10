@@ -11,7 +11,9 @@
 @import "iq-grid";
 @import "iq-list";
 @import "iq-buttons";
+@import "iq-indicator-row";
 @import "iq-threat-indicators";
+@import "iq-coverage-indicator";
 @import "iq-counter";
 @import "iq-nav-pills";
 @import "../role.membership/role.membership.view.scss";
@@ -1449,3 +1451,27 @@ root-organization-migrate {
   }
 }
 // End styles from management.css
+
+.iq-caption {
+  display: inline-block;
+  height: 26px;
+  margin-left: 10px;
+  vertical-align: top;
+}
+
+.iq-caption__text {
+  display: block;
+  font-size: 14px;
+  line-height: 12px;
+  margin: 0 0 2px 0;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.iq-caption__sub-text {
+  display: block;
+  font-size: 14px;
+  line-height: 14px;
+  margin: 0;
+  padding: 0;
+}

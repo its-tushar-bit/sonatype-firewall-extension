@@ -9,6 +9,10 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -222,6 +227,83 @@ public class AuditDataTest
     verify(auditData).setException(t);
     verify(auditData).commit();
     assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+  }
+
+  @Test
+  public void testSetApplication() {
+    Application application = new Application();
+    application.setId("appId");
+    application.setPublicId("appPublicId");
+    application.setName("appName");
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setApplication(application);
+
+    verify(auditData).addData("applicationId", application.getId());
+    verify(auditData).addData("applicationPublicId", application.getPublicId());
+    verify(auditData).addData("applicationName", application.getName());
+  }
+
+  @Test
+  public void testSetApplication_Null_DoesNothing() {
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setApplication(null);
+
+    verify(auditData, never()).addData(anyString(), any());
+  }
+
+  @Test
+  public void testSetOrganization() {
+    Organization organization = new Organization();
+    organization.setId("orgId");
+    organization.setName("orgName");
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setOrganization(organization);
+
+    verify(auditData).addData("organizationId", organization.getId());
+    verify(auditData).addData("organizationName", organization.getName());
+  }
+
+  @Test
+  public void testSetOrganization_Null_DoesNothing() {
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setOrganization(null);
+
+    verify(auditData, never()).addData(anyString(), any());
+  }
+
+  @Test
+  public void testSetRepository() {
+    Repository repository = new Repository();
+    repository.setId("repoId");
+    repository.setPublicId("repoPublicId");
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setRepository(repository);
+
+    verify(auditData).addData("repositoryId", repository.getId());
+    verify(auditData).addData("repositoryPublicId", repository.getPublicId());
+  }
+
+  @Test
+  public void testSetRepository_Null_DoesNothing() {
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setRepository(null);
+
+    verify(auditData, never()).addData(anyString(), any());
+  }
+
+  @Test
+  public void testSetRepositoryContainer() {
+    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
+
+    auditData.setRepositoryContainer();
+
+    verify(auditData).addData("scope", "all-repositories");
   }
 
   private Function<Runnable, Void> runnableSubmitter() {

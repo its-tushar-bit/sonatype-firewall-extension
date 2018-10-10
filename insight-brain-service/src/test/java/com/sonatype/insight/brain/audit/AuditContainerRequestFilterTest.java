@@ -9,43 +9,85 @@ import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
+
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AuditContainerRequestFilterTest
 {
+  private static final String BAD_ID = "badId";
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   @Mock
   private ResourceInfo mockResourceInfo;
 
   @Mock
-  private ContainerRequestContext containerRequestContext;
+  private ContainerRequestContext mockContainerRequestContext;
 
   @Mock
+  private UriInfo mockUriInfo;
+
+  @Mock(answer = Answers.CALLS_REAL_METHODS)
   private AuditData mockAuditData;
 
+  @Captor
+  private ArgumentCaptor<Owner> ownerArgumentCaptor;
+
   private AuditContainerRequestFilter auditContainerRequestFilter;
+
+  private MultivaluedMap<String, String> pathParameters;
+
+  private Organization organization;
+
+  private Application application;
+
+  private Repository repository;
 
   @Before
   public void before() {
     MockitoAnnotations.initMocks(this);
+    when(mockContainerRequestContext.getUriInfo()).thenReturn(mockUriInfo);
+    pathParameters = new MultivaluedHashMap<>();
+    when(mockUriInfo.getPathParameters()).thenReturn(pathParameters);
     AuditData.instance.remove();
     AuditData.set(mockAuditData);
     auditContainerRequestFilter = new AuditContainerRequestFilter(mockResourceInfo);
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
+    repository = tempEntity.newRepository();
   }
 
   @Test
   public void testFilter_NullMethod_DoesNothing() {
-    auditContainerRequestFilter.filter(containerRequestContext);
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
 
     verify(mockAuditData, never()).setEvent(any());
   }
@@ -54,7 +96,7 @@ public class AuditContainerRequestFilterTest
   public void testFilter_AuditedMethod_SetsEvent() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
 
-    auditContainerRequestFilter.filter(containerRequestContext);
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
 
     verify(mockAuditData).setEvent(AuditEvent.AUTHENTICATION_FAILURE);
   }
@@ -63,7 +105,7 @@ public class AuditContainerRequestFilterTest
   public void testFilter_NonAuditedMethod_DoesNothing() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("notAudited"));
 
-    auditContainerRequestFilter.filter(containerRequestContext);
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
 
     verify(mockAuditData, never()).setEvent(any());
   }
@@ -72,7 +114,7 @@ public class AuditContainerRequestFilterTest
   public void testFilter_AuditedMethod_Guice_SetsEvent() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("audited"));
 
-    auditContainerRequestFilter.filter(containerRequestContext);
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
 
     verify(mockAuditData).setEvent(AuditEvent.AUTHENTICATION_FAILURE);
   }
@@ -82,7 +124,170 @@ public class AuditContainerRequestFilterTest
     when(mockResourceInfo.getResourceMethod())
         .thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("onlyInAuditedAnnotationTestGuice$$"));
 
-    auditContainerRequestFilter.filter(containerRequestContext);
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+  }
+
+  @Test
+  public void testFilter_ApplicationId_SetsApplication() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("applicationId", application.getId());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setApplicationId(application.getId());
+    verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
+    assertThat(application.getId(), is(ownerArgumentCaptor.getValue().getId()));
+  }
+
+  @Test
+  public void testFilter_BadApplicationId_SetsApplicationId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("applicationId", BAD_ID);
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setApplicationId(BAD_ID);
+    verify(mockAuditData).setApplication(null);
+  }
+
+  @Test
+  public void testFilter_ApplicationPublicId_SetsApplication() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("applicationPublicId", application.getPublicId());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setApplicationPublicId(application.getPublicId());
+    verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
+    assertThat(application.getId(), is(ownerArgumentCaptor.getValue().getId()));
+  }
+
+  @Test
+  public void testFilter_BadApplicationPublicId_SetsApplicationPublicId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("applicationPublicId", BAD_ID);
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setApplicationPublicId(BAD_ID);
+    verify(mockAuditData).setApplication(null);
+  }
+
+  @Test
+  public void testFilter_ApplicationOwnerIdAndType_SetsApplication() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", application.getPublicId());
+    pathParameters.add("ownerType", OwnerType.APPLICATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setApplicationPublicId(application.getPublicId());
+    verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
+    assertThat(application.getId(), is(ownerArgumentCaptor.getValue().getId()));
+  }
+
+  @Test
+  public void testFilter_BadApplicationOwnerIdAndType_SetsApplicationId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", BAD_ID);
+    pathParameters.add("ownerType", OwnerType.APPLICATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setApplicationPublicId(BAD_ID);
+    verify(mockAuditData).setApplication(null);
+  }
+
+  @Test
+  public void testFilter_OrganizationOwnerIdAndType_SetsOrganization() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", organization.getId());
+    pathParameters.add("ownerType", OwnerType.ORGANIZATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setOrganizationId(organization.getId());
+    verify(mockAuditData).setOrganization((Organization) ownerArgumentCaptor.capture());
+    assertThat(organization.getId(), is(ownerArgumentCaptor.getValue().getId()));
+  }
+
+  @Test
+  public void testFilter_BadOrganizationOwnerIdAndType_SetsOrganizationId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", BAD_ID);
+    pathParameters.add("ownerType", OwnerType.ORGANIZATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setOrganizationId(BAD_ID);
+    verify(mockAuditData).setOrganization(null);
+  }
+
+  @Test
+  public void testFilter_RepositoryOwnerIdAndType_SetsRepository() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", repository.getId());
+    pathParameters.add("ownerType", OwnerType.REPOSITORY.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setRepositoryId(repository.getId());
+    verify(mockAuditData).setRepository((Repository) ownerArgumentCaptor.capture());
+    assertThat(repository.getId(), is(ownerArgumentCaptor.getValue().getId()));
+  }
+
+  @Test
+  public void testFilter_BadRepositoryOwnerIdAndType_SetsRepositoryId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", BAD_ID);
+    pathParameters.add("ownerType", OwnerType.REPOSITORY.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setRepositoryId(BAD_ID);
+    verify(mockAuditData).setRepository(null);
+  }
+
+  @Test
+  public void testFilter_AnyIdAndRepositoryContainerOwnerType_SetsRepositoryContainer() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", "anyId");
+    pathParameters.add("ownerType", OwnerType.REPOSITORY_CONTAINER.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setRepositoryContainer();
+  }
+
+  @Test
+  public void testFilter_JustOwnerId_DoesNothing() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", "ownerId");
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, never()).addData(anyString(), any());
+  }
+
+  @Test
+  public void testFilter_JustOwnerType_DoesNothing() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerType", OwnerType.APPLICATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, never()).addData(anyString(), any());
+  }
+
+  @Test
+  public void testFilter_OwnerIdAndBadType_DoesNothing() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", application.getId());
+    pathParameters.add("ownerType", "unknown");
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, never()).addData(anyString(), any());
   }
 
   @Test

@@ -14,8 +14,12 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.service.RestComponent;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -35,6 +39,12 @@ class AuditContainerRequestFilter
 {
   @Context
   private ResourceInfo resInfo;
+
+  private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   @VisibleForTesting
   public AuditContainerRequestFilter() {}
@@ -63,7 +73,61 @@ class AuditContainerRequestFilter
       }
       if (audited != null) {
         AuditData.get().setEvent(audited.value());
+        MultivaluedMap<String, String> pathParameters = requestContext.getUriInfo().getPathParameters();
+        String applicationId = pathParameters.getFirst("applicationId");
+        if (applicationId != null) {
+          setByApplicationId(applicationId);
+          return;
+        }
+        String applicationPublicId = pathParameters.getFirst("applicationPublicId");
+        if (applicationPublicId != null) {
+          setByApplicationPublicId(applicationPublicId);
+          return;
+        }
+        String ownerId = pathParameters.getFirst("ownerId");
+        String ownerType = pathParameters.getFirst("ownerType");
+        if (ownerId != null && ownerType != null) {
+          setByOwnerIdAndType(ownerId, ownerType);
+        }
       }
     }
+  }
+
+  private void setByOwnerIdAndType(String ownerId, String ownerType) {
+    switch (ownerType) {
+      case "application": {
+        setByApplicationPublicId(ownerId);
+        break;
+      }
+      case "organization": {
+        setByOrganizationId(ownerId);
+        break;
+      }
+      case "repository": {
+        setByRepositoryId(ownerId);
+        break;
+      }
+      case "repository_container": {
+        AuditData.get().setRepositoryContainer();
+        break;
+      }
+    }
+  }
+
+  private void setByApplicationId(String applicationId) {
+    AuditData.get().setApplicationId(applicationId).setApplication(applicationDAO.getById(applicationId));
+  }
+
+  private void setByApplicationPublicId(String applicationPublicId) {
+    AuditData.get().setApplicationPublicId(applicationPublicId)
+        .setApplication(applicationDAO.getByPublicId(applicationPublicId));
+  }
+
+  private void setByOrganizationId(String organizationId) {
+    AuditData.get().setOrganizationId(organizationId).setOrganization(organizationDAO.getById(organizationId));
+  }
+
+  private void setByRepositoryId(String repositoryId) {
+    AuditData.get().setRepositoryId(repositoryId).setRepository(repositoryDAO.getById(repositoryId));
   }
 }

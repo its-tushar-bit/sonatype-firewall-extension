@@ -9,6 +9,10 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
+
 import com.google.common.annotations.VisibleForTesting;
 
 /**
@@ -107,4 +111,69 @@ public abstract class AuditData
   public abstract void setHttpStatus(int httpStatus);
 
   public abstract void addData(String key, Object value);
+
+  public AuditData setApplication(Application application) {
+    if (application != null) {
+      setApplicationId(application.getId());
+      setApplicationPublicId(application.getPublicId());
+      setApplicationName(application.getName());
+    }
+    return this;
+  }
+
+  AuditData setApplicationId(String applicationId) {
+    addData("applicationId", applicationId);
+    return this;
+  }
+
+  AuditData setApplicationPublicId(String applicationPublicId) {
+    addData("applicationPublicId", applicationPublicId);
+    return this;
+  }
+
+  AuditData setApplicationName(String applicationName) {
+    addData("applicationName", applicationName);
+    return this;
+  }
+
+  public AuditData setOrganization(Organization organization) {
+    if (organization != null) {
+      setOrganizationId(organization.getId());
+      setOrganizationName(organization.getName());
+    }
+    return this;
+  }
+
+  AuditData setOrganizationId(String organizationId) {
+    addData("organizationId", organizationId);
+    return this;
+  }
+
+  AuditData setOrganizationName(String organizationName) {
+    addData("organizationName", organizationName);
+    return this;
+  }
+
+  public AuditData setRepository(Repository repository) {
+    if (repository != null) {
+      setRepositoryId(repository.getId());
+      setRepositoryPublicId(repository.getPublicId());
+    }
+    return this;
+  }
+
+  AuditData setRepositoryId(String repositoryId) {
+    addData("repositoryId", repositoryId);
+    return this;
+  }
+
+  AuditData setRepositoryPublicId(String repositoryPublicId) {
+    addData("repositoryPublicId", repositoryPublicId);
+    return this;
+  }
+
+  AuditData setRepositoryContainer() {
+    addData("scope", "all-repositories");
+    return this;
+  }
 }

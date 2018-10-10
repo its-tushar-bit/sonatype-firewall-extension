@@ -312,6 +312,7 @@ public class ScanPolicyEvaluator
               oldPolicyViolation.setActionTypeId(newPolicyViolation.getActionTypeId());
               oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
               oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
+              oldPolicyViolation.setPolicyName(newPolicyViolation.getPolicyName());
               if (!oldPolicyViolation.isWaived()) {
                 oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
                 oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());

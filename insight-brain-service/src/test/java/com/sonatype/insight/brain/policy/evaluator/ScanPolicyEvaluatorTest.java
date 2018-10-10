@@ -170,6 +170,35 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_PolicyNameChange() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report.zip");
+    Policy policy = newSecurityPolicy();
+
+    ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId, stage);
+    for (PolicyViolation violation : results1.activeViolations) {
+      assertThat(violation.getPolicyName(), is(policy.getName()));
+    }
+    List<PolicyViolation> persistedViolations1 = new PolicyViolationDAO().getByApplicationId(application.getId());
+    for (PolicyViolation violation : persistedViolations1) {
+      assertThat(violation.getPolicyName(), is(policy.getName()));
+    }
+
+    policy.setName("PolicyName1");
+    new PolicyDAO().update(policy);
+
+    String scanId2 = simulateReportIsAvailable("report.zip");
+    ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage);
+    for (PolicyViolation violation : results2.activeViolations) {
+      assertThat(violation.getPolicyName(), is(policy.getName()));
+    }
+    List<PolicyViolation> persistedViolations2 = new PolicyViolationDAO().getByApplicationId(application.getId());
+    for (PolicyViolation violation : persistedViolations2) {
+      assertThat(violation.getPolicyName(), is(policy.getName()));
+    }
+  }
+
+  @Test
   public void testEvaluate_Results_WaivedViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report.zip");

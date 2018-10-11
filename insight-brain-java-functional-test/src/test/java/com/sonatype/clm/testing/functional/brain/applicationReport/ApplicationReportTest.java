@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
@@ -77,6 +78,11 @@ public class ApplicationReportTest
     reportPage.threatIndicators().moderate().shouldHave(text("0"));
     reportPage.threatIndicators().caption().shouldHave(exactText("1 Violation"));
     reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 1 component"));
+
+    IQCoverageIndicator coverageIndicator = reportPage.coverageIndicator();
+    coverageIndicator.caption().shouldHave(exactText("4 COMPONENTS"));
+    coverageIndicator.subCaption().shouldHave(exactText("100% of all components identified"));
+    coverageIndicator.donutChart().shouldBe(visible);
   }
 
   @Test

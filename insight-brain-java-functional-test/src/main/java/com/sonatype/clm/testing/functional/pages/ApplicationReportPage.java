@@ -45,6 +45,10 @@ public class ApplicationReportPage
     return new IQThreatIndicators(childSelector(".iq-threat-indicators"));
   }
 
+  public IQCoverageIndicator coverageIndicator() {
+    return new IQCoverageIndicator(childSelector(".iq-coverage-indicator"));
+  }
+
   public ElementsCollection resultRows() {
     return children(".iq-table--application-report tbody .iq-table-row");
   }
@@ -106,6 +110,26 @@ public class ApplicationReportPage
 
     public SelenideElement subCaption() {
       return child(".iq-caption__sub-text");
+    }
+  }
+
+  public static class IQCoverageIndicator
+      extends BasicElement<IQCoverageIndicator>
+  {
+    public IQCoverageIndicator(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement caption() {
+      return child(".iq-caption__text");
+    }
+
+    public SelenideElement subCaption() {
+      return child(".iq-caption__sub-text");
+    }
+
+    public SelenideElement donutChart() {
+      return child("span[coverage-donut] svg");
     }
   }
 }

@@ -31,7 +31,12 @@ public class ComponentDisplayFilename
   public ComponentDisplayFilename addPathnames(Collection<String> pathnames) {
     if (pathnames != null) {
       for (String pathname : pathnames) {
-        String filename = FilenameUtils.getName(FilenameUtils.normalizeNoEndSeparator(pathname));
+        int separator = FilenameUtils.indexOfLastSeparator(pathname);
+        if (separator >= 0 && separator == pathname.length() - 1) {
+          pathname = pathname.substring(0, pathname.length() - 1);
+          separator = FilenameUtils.indexOfLastSeparator(pathname);
+        }
+        String filename = pathname.substring(separator + 1);
         Integer filenameFrequency = filenameFrequencies.get(filename);
         filenameFrequency = filenameFrequency == null ? 1 : filenameFrequency + 1;
         filenameFrequencies.put(filename, filenameFrequency);

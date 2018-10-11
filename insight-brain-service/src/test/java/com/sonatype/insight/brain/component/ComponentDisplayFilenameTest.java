@@ -35,6 +35,11 @@ public class ComponentDisplayFilenameTest
   }
 
   @Test
+  public void testGetFilename_FromPathWithUnresolvableParentDirectory() {
+    assertThat(getFilename("../sub/dir/some.jar"), is("some.jar"));
+  }
+
+  @Test
   public void testGetFilename_FromDependency() {
     assertThat(getFilename("dependency:/project.gid:project.aid:jar:1.2/dep.gid:dep.aid:jar:1.2.3"),
         is("dep.gid:dep.aid:jar:1.2.3"));

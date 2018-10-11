@@ -22,6 +22,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
@@ -61,6 +64,7 @@ public class ScanResource
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Audited(AuditEvent.EVALUATE_APPLICATION)
   public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,
                                @FormDataParam("file") InputStream is,
                                @FormDataParam("file") FormDataContentDisposition fileDetail,
@@ -90,6 +94,7 @@ public class ScanResource
     }
     catch (Exception e) {
       if (noFormData) {
+        AuditData.get().setException(e);
         String msg = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
         return Response.ok(msg, ErrorResponse.CONTENT_TYPE).build();
       }

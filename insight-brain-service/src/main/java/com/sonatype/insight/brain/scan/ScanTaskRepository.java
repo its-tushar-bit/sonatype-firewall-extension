@@ -18,6 +18,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -61,7 +62,7 @@ public class ScanTaskRepository
     scanTask.init(app, binFile, filename, stage, sendNotifications);
     scanTasks.put(scanTask.getId(), scanTask);
     log.debug("Scheduling scan task {}", scanTask.getId());
-    executor.submit(new SystemRunnable(scanTask));
+    AuditData.get().continueAsync(new SystemRunnable(scanTask), executor::submit);
     return scanTask;
   }
 

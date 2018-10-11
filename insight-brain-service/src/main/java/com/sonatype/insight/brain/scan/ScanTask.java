@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.hds.ScanUploader;
@@ -215,6 +216,7 @@ class ScanTask
       scanId = scanReceipt.getScanId();
     }
     catch (Exception e) {
+      AuditData.get().setException(e);
       error = e;
       errorId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 

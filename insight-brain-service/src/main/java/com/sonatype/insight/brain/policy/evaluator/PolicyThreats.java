@@ -87,7 +87,7 @@ public class PolicyThreats
     public boolean grandfathered;
 
     /**
-     * @since NewWaiversFeatureBranch
+     * @since 1.53
      */
     public String constraintFactsJson;
 

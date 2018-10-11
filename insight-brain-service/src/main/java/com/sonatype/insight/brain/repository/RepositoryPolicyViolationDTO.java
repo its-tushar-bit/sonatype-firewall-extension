@@ -26,7 +26,7 @@ public class RepositoryPolicyViolationDTO
   public boolean blocksUnquarantine;
 
   /**
-   * @since NewWaiversFeatureBranch
+   * @since 1.53
    */
   public String constraintFactsJson;
 

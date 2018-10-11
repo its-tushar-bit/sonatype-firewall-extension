@@ -52,7 +52,7 @@ public class PolicyWaiver
   private Date createTime;
 
   /**
-   * @since 1.52
+   * @since 1.53
    */
   @Column(name = "constraint_facts_json")
   private String constraintFactsJson;

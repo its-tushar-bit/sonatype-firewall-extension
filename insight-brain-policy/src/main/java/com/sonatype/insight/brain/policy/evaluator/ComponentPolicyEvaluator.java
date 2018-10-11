@@ -160,7 +160,7 @@ public class ComponentPolicyEvaluator
         if (policyWaiver.getHash() == null
             || policyWaiver.getHash().equals(policyFact.getComponentFacts().get(0).getHash())) {
           if (policyWaiver.getConstraintFacts() == null) {
-            // This is a legacy waiver (before Brain 1.52). It matches the policy fact, but there may be a more specific
+            // This is a legacy waiver (before Brain 1.53). It matches the policy fact, but there may be a more specific
             // waiver. Continue looking...
             legacyWaiver = policyWaiver;
           }

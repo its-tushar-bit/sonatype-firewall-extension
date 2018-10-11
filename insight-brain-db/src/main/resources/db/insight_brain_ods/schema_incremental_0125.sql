@@ -1,4 +1,4 @@
--- Since 1.52
+-- Since 1.53
 SET SCHEMA insight_brain_ods;
 
 ALTER TABLE policy_waiver ADD COLUMN constraint_facts_json CLOB NULL;

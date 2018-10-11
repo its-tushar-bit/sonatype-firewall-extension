@@ -969,7 +969,7 @@ public class ComponentPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_LegacyPolicyWaiver() {
-    // Before Brain 1.52, policy waivers did not store the constraint facts from the policy alert that was waived.
+    // Before Brain 1.53, policy waivers did not store the constraint facts from the policy alert that was waived.
     // Although there are other tests that use legacy waivers, I added this explicit test for legacy waivers, just in
     // case the other tests are updated to use new waivers.
     Application app = tempEntity.newApplicationWithParent();

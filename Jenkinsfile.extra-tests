@@ -27,13 +27,15 @@ def gebTests() {
 
 def functionalTests(String browser, String testRegex) {
   copyRepo()
-  String mavenOptions = "'-Dit.test=%regex[${testRegex}]'"
-  mavenOptions += ' -Drun-functional-tests=docker'
-  mavenOptions += " -Dbrowser=${browser}"
-  mavenOptions += ' -DapplitoolsKey=bg21K3t6KY1073109q6J9lZzCQBfxEDGh5tHgYR9wl1kHxk110'
-  def testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
-  Applitools('https://eyes.applitools.com') {
-    mvn testConfig, 'clean verify'
+  withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
+    String mavenOptions = "'-Dit.test=%regex[${testRegex}]'"
+    mavenOptions += ' -Drun-functional-tests=docker'
+    mavenOptions += " -Dbrowser=${browser}"
+    mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
+    def testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
+    Applitools('https://eyes.applitools.com') {
+      mvn testConfig, 'clean verify'
+    }
   }
 }
 

@@ -50,7 +50,7 @@ public class ScanResourceAuditTest
     HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH).post();
     assertResponseStatus(200, response);
 
-    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
         app.getPublicId(), app.getName(), Stage.ID_BUILD, RestHandler.SCAN_ID, false);
   }
 

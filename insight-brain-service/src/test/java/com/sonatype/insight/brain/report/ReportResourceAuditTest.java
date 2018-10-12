@@ -48,7 +48,7 @@ public class ReportResourceAuditTest
     response = restRequest(app.getPublicId(), SCAN_ID).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
-    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
         app.getPublicId(), app.getName(), stage.getStageTypeId(), SCAN_ID, true);
   }
 

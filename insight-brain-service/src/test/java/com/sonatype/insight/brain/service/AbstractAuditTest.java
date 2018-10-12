@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Rule;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -43,10 +44,11 @@ public abstract class AbstractAuditTest
     logOutput.before();
   }
 
-  protected List<String> awaitLogMessages(AuditEvent auditEvent, int count) {
-    return await().atMost(5, SECONDS)
-        .until(() -> logOutput.getInfoMessages(AuditRecorder.toLoggerName(auditEvent.getDomain())),
-            hasSize(greaterThanOrEqualTo(count)));
+  protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {
+    String loggerName = AuditRecorder.toLoggerName(auditEvent.getDomain());
+    return await().atMost(5, SECONDS).until(
+        () -> logOutput.getInfoMessages(loggerName).stream().map(AbstractAuditTest::parseAuditLog).collect(toList()),
+        hasSize(greaterThanOrEqualTo(count)));
   }
 
   private void assertEntryOrAbsentIfNullValue(Map<String, Object> map, String key, Object value) {
@@ -58,7 +60,7 @@ public abstract class AbstractAuditTest
     }
   }
 
-  protected static AuditDTO parseAuditLog(String auditLogEntry) {
+  private static AuditDTO parseAuditLog(String auditLogEntry) {
     try {
       return JsonUtils.parse(auditLogEntry, AuditDTO.class);
     }
@@ -75,11 +77,11 @@ public abstract class AbstractAuditTest
                                           String scanId,
                                           Boolean isReevaluation)
   {
-    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), error, applicationId,
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), error, applicationId,
         applicationPublicId, applicationName, stageId, scanId, isReevaluation);
   }
 
-  protected void assertEvaluationAuditLog(String message,
+  protected void assertEvaluationAuditLog(AuditDTO auditDTO,
                                           String error,
                                           String applicationId,
                                           String applicationPublicId,
@@ -88,11 +90,11 @@ public abstract class AbstractAuditTest
                                           String scanId,
                                           Boolean isReevaluation)
   {
-    assertEvaluationAuditLog(message, error, applicationId, applicationPublicId, applicationName, stageId, scanId,
+    assertEvaluationAuditLog(auditDTO, error, applicationId, applicationPublicId, applicationName, stageId, scanId,
         isReevaluation, not(isEmptyOrNullString()), not(isEmptyOrNullString()), not(isEmptyOrNullString()));
   }
 
-  protected void assertEvaluationAuditLog(String message,
+  protected void assertEvaluationAuditLog(AuditDTO auditDTO,
                                           String error,
                                           String applicationId,
                                           String applicationPublicId,
@@ -104,7 +106,6 @@ public abstract class AbstractAuditTest
                                           Matcher<? super String> matchWithRemoteIp,
                                           Matcher<? super String> matchWithUserAgent)
   {
-    AuditDTO auditDTO = parseAuditLog(message);
     assertThat(auditDTO.timestamp, not(isEmptyOrNullString()));
     assertThat(auditDTO.requestMethod, is(nullValue()));
     assertThat(auditDTO.requestUri, is(nullValue()));

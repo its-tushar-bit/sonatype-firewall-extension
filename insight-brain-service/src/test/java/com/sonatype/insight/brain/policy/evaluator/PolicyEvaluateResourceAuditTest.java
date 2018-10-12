@@ -39,7 +39,7 @@ public class PolicyEvaluateResourceAuditTest
     String scanId = mockReport("/AbstractAuditTest/report.zip");
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
-    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
         app.getPublicId(), app.getName(), Stage.ID_BUILD, scanId, true);
   }
 

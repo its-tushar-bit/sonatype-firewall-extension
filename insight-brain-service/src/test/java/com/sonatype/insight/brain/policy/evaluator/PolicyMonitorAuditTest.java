@@ -47,7 +47,7 @@ public class PolicyMonitorAuditTest
 
     policyMonitor.run();
 
-    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
         app.getPublicId(), app.getName(), ReleaseStageType.ID, scanId2, false, is(MDCUsernameScope.SYSTEM),
         is(nullValue()), is(nullValue()));
   }
@@ -56,7 +56,7 @@ public class PolicyMonitorAuditTest
   public void testRunEvaluation_AppWithMonitoring_WithNoLastPrimaryEvaluation() {
     policyMonitor.run();
 
-    awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 0);
+    awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 0);
   }
 
   @Test
@@ -65,7 +65,7 @@ public class PolicyMonitorAuditTest
 
     policyMonitor.run();
 
-    assertEvaluationAuditLog(awaitLogMessages(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "server-error", app.getId(),
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "server-error", app.getId(),
         app.getPublicId(), app.getName(), null, null, null, is(MDCUsernameScope.SYSTEM), is(nullValue()),
         is(nullValue()));
   }

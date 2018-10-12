@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -40,7 +41,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 
-import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,25 +90,49 @@ public class NewestRiskService
   {
     dashboardUtils.validateDashboardLicensed();
 
-    if (maxDaysOld != null && maxDaysOld < 1) {
-      throw new IllegalArgumentException("Max Days Old must be a positive integer");
-    }
+    validateMaxDaysOld(maxDaysOld);
 
     long start = System.currentTimeMillis();
 
-    NewestRiskDTOComparator comparator = new NewestRiskDTOComparator(orderBy);
-    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
-        applicationIds, tagIds);
-    log.debug("getNewestRisks: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
-        applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
+    List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
 
+    Collection<ApplicationView> appViews = getPolicyViolations(applications, stageIds, policyThreatCategoryFilter,
+        policyThreatLevelFilter, policyViolationStateFilter, maxDaysOld);
+
+    List<NewestRiskDTO> riskDTOs = buildRiskDTOs(appViews);
+
+    sort(riskDTOs, orderBy);
+
+    DashboardResultsDTO<NewestRiskDTO> result = buildResultsDTO(riskDTOs, maxResults);
+
+    log.debug("getNewestRisks finished in {} ms", System.currentTimeMillis() - start);
+
+    return result;
+  }
+
+  private void validateMaxDaysOld(Integer maxDaysOld) {
+    if (maxDaysOld != null && maxDaysOld < 1) {
+      throw new IllegalArgumentException("Max Days Old must be a positive integer");
+    }
+  }
+
+  private Collection<ApplicationView> getPolicyViolations(List<Application> applications,
+                                                          Set<String> stageIds,
+                                                          PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                          PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                          PolicyViolationStateFilter policyViolationStateFilter,
+                                                          Integer maxDaysOld)
+  {
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    Date minDate = (maxDaysOld == null) ? null : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter, minDate);
+    Date minDate = (maxDaysOld == null) ? null
+        : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
+    return policyViolationLoader.getViolations(applications, stageTypes, false, filter, minDate);
+  }
 
+  private List<NewestRiskDTO> buildRiskDTOs(Collection<ApplicationView> appViews) {
     List<NewestRiskDTO> riskDTOs = new ArrayList<>();
 
     final AtomicInteger policyEvaluationCount = new AtomicInteger(0);
@@ -117,7 +141,6 @@ public class NewestRiskService
     Map<String, String> orgNames = new ConcurrentHashMap<>();
     List<CompletableFuture<List<NewestRiskDTO>>> dtoFutures = appViews.stream()
         .map(appView -> CompletableFuture.supplyAsync(() -> {
-
           Application app = appView.getApplication();
 
           // We must limit ourselves only to the organization name to preserve access controls. We cannot use
@@ -165,16 +188,38 @@ public class NewestRiskService
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
 
-    Collections.sort(riskDTOs, comparator);
-    DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
-    result.numResults = riskDTOs.size();
-    result.dashboardResults = riskDTOs.subList(0, Math.min(riskDTOs.size(), maxResults));
     log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
         policyViolationCount);
 
-    log.debug("getNewestRisks finished in {} ms", System.currentTimeMillis() - start);
+    return riskDTOs;
+  }
+
+  private DashboardResultsDTO<NewestRiskDTO> buildResultsDTO(List<NewestRiskDTO> riskDTOs, int maxResults) {
+    DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
+    result.numResults = riskDTOs.size();
+    result.dashboardResults = riskDTOs.subList(0, Math.min(riskDTOs.size(), maxResults));
 
     return result;
+  }
+
+  private void sort(List<NewestRiskDTO> riskDTOs, String orderBy) {
+    NewestRiskDTOComparator comparator = new NewestRiskDTOComparator(orderBy);
+    Collections.sort(riskDTOs, comparator);
+  }
+
+  private List<Application> getApplications(Set<String> organizationIds,
+                                            Set<String> applicationIds,
+                                            Set<String> tagIds)
+  {
+    long start = System.currentTimeMillis();
+
+    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
+        applicationIds, tagIds);
+
+    log.debug("getNewestRisks: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
+        applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
+
+    return applications;
   }
 
   private NewestRiskDTO createNewestRiskDTO(Application app,

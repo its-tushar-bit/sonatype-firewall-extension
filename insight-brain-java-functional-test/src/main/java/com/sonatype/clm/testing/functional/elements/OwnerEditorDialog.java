@@ -30,7 +30,7 @@ public class OwnerEditorDialog
   }
 
   public static SelenideElement saveButton() {
-    return root().find(".iq-modal-footer .btn-primary");
+    return root().find(".iq-modal-footer .iq-btn--primary");
   }
 
   public static SelenideElement cancelButton() {
@@ -58,7 +58,7 @@ public class OwnerEditorDialog
     }
 
     public static SelenideElement icon() {
-      return $(SelectorUtils.createSelector(ROOT, ".owner-icon"));
+      return $(SelectorUtils.createSelector(ROOT, ".iq-owner-icon"));
     }
   }
 }

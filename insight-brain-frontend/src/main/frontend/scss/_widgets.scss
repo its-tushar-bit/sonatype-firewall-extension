@@ -476,8 +476,20 @@
   }
 }
 
+.iq-owner-icon-preview {
+  margin-top: 16px;
+}
+
+.iq-form-row--owner-editor {
+  margin-bottom: 0;
+
+  .iq-form-group {
+    width: 254px;
+  }
+}
+
 /*
-  ##Owner Icons
+  ##Owner Editor modal
 */
 @mixin owner-icon-template($size) {
   float: left;
@@ -487,15 +499,15 @@
   vertical-align: top;
 }
 
-.owner-icon {
+.iq-owner-icon {
   @include owner-icon-template(20px);
 }
 
-.owner-icon-large {
+.iq-owner-icon-large {
   @include owner-icon-template(26px);
 }
 
-.owner-icon-tiny {
+.iq-owner-icon-tiny {
   @include owner-icon-template(16px);
 }
 

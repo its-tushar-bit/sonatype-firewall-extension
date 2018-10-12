@@ -121,7 +121,7 @@ public class ApplicationReportTest
     evaluator.reevaluatePolicy();
     refresh();
 
-    reportPage.resultRows().shouldHaveSize(5); // because we're not hiding waived violations ATM
+    reportPage.resultRows().shouldHaveSize(4);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     eyesWatcher.eyesCheck();
   }

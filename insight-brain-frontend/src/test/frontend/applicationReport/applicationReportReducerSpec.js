@@ -62,16 +62,17 @@ describe('applicationReportReducer', function() {
         selectedReport: null,
         other: otherObject
       });
-      const aaData = [{policyThreatLevel: 1}, {policyThreatLevel: 3}, {policyThreatLevel: 6}, {policyThreatLevel: 9}];
+      const entries = [{policyThreatLevel: 1}, {policyThreatLevel: 3}, {policyThreatLevel: 6}, {policyThreatLevel: 9}];
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
-        payload: {aaData}
+        payload: {allEntries: entries}
       });
       expect(newState).toEqual({
         loading: false,
         loadError: null,
         selectedReport: {
-          aaData,
+          allEntries: entries,
+          displayedEntries: entries,
           moderateViolationCount: 1,
           severeViolationCount: 1,
           criticalViolationCount: 1,

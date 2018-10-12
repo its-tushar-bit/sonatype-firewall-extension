@@ -66,7 +66,10 @@ describe('applicationReportActions', function() {
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
-        payload: {reportTitle: 'test'}
+        payload: {
+          reportTitle: 'test',
+          allEntries: []
+        }
       });
     });
 
@@ -91,7 +94,10 @@ describe('applicationReportActions', function() {
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
-        payload: {reportTitle: 'test'}
+        payload: {
+          reportTitle: 'test',
+          allEntries: []
+        }
       });
     });
   });

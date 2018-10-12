@@ -3,11 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { createReportEntries } from './applicationReportService.new';
+
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
 export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
+export const SET_AGGREGATE_REPORT_ENTRIES = 'AGGREGATE_REPORT_ENTRIES';
 
-export default function applicationReportActions($http, $q, CLMLocations, Messages, applicationReportService) {
+// TODO for CLM-10988 I just add a simple boolean action to enable/disable a hardcoded filter
+export const SET_FILTERING = 'SET_FILTERING';
+export const SET_SORTING = 'SET_SORTING';
+
+export default function applicationReportActions($http, $q, CLMLocations, Messages) {
 
   function loadReport(applicationPublicId, scanId, isUnknownJs) {
     return dispatch => {
@@ -29,13 +36,12 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
       return $q.all(promises)
           .then((results) => {
             const metadata = results[0].data;
-            const policyResult = results[1].data;
-            const bomResult = results[2].data;
+            const policyResult = results[1].data || undefined;
+            const bomResult = results[2].data || undefined;
             const dataResult = results[3].data;
-            const unknownJsResult = isUnknownJs ? results[4].unknownJsResult : null;
-            const reportEntries = applicationReportService.createReportEntries(policyResult, bomResult,
-                unknownJsResult);
-            dispatch(loadReportFulfilled({...metadata, ...reportEntries, ...dataResult}));
+            const unknownJsResult = isUnknownJs ? results[4].unknownJsResult : undefined;
+            const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult);
+            dispatch(loadReportFulfilled({ ...metadata, allEntries, ...dataResult }));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
@@ -58,9 +64,42 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
+  /**
+   * @param isAggregated a boolean for whether or not to aggregate
+   */
+  function setAggregateReportEntries(isAggregated) {
+    return {
+      type: SET_AGGREGATE_REPORT_ENTRIES,
+      payload: isAggregated
+    };
+  }
+
+  function setFiltering(isFiltering) {
+    return {
+      type: SET_FILTERING,
+
+      // hardcoded filter for demonstration purposes in CLM-10988
+      payload: isFiltering ? { matchState: ['unknown'] } : {}
+    };
+  }
+
+  function setSorting(sortByPolicy) {
+    return {
+      type: SET_SORTING,
+
+      // hardcoded sort options for demonstration purposes in CLM-10988
+      payload: sortByPolicy ?
+        { sortCol: 'policyName', sortReversed: false } :
+        { sortCol: 'policyThreatLevel', sortReversed: true }
+    };
+  }
+
   return {
-    loadReport
+    loadReport,
+    setAggregateReportEntries,
+    setFiltering,
+    setSorting
   };
 }
 
-applicationReportActions.$inject = ['$http', '$q', 'CLMLocations', 'Messages', 'applicationReportService'];
+applicationReportActions.$inject = ['$http', '$q', 'CLMLocations', 'Messages'];

@@ -3,11 +3,26 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {LOAD_REPORT_FAILED, LOAD_REPORT_FULFILLED, LOAD_REPORT_REQUESTED} from './applicationReportActions';
+import { identity, lensPath, pick, pipe, set } from 'ramda';
+
+import {
+  LOAD_REPORT_FAILED,
+  LOAD_REPORT_FULFILLED,
+  LOAD_REPORT_REQUESTED,
+  SET_AGGREGATE_REPORT_ENTRIES,
+  SET_FILTERING,
+  SET_SORTING
+} from './applicationReportActions';
+
+import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService.new';
 
 const initState = {
   loading: false,
   loadError: null,
+  aggregate: false,
+  sortCol: 'policyThreatLevel',
+  sortReversed: true,
+  filters: {},
   selectedReport: null
 };
 
@@ -17,26 +32,48 @@ export default function(state = initState, {type, payload}) {
       return {...state, loading: true, loadError: null, selectedReport: null};
 
     case LOAD_REPORT_FULFILLED:
-      return {
+      return updateDisplayedEntries({
         ...state,
         loading: false,
-        selectedReport: {...payload, ...getViolationCountsPerThreatLevel(payload)}
-      };
+        selectedReport: {...payload, ...getViolationCountsPerThreatLevel(payload.allEntries)}
+      });
 
     case LOAD_REPORT_FAILED:
       return {...state, loading: false, loadError: payload};
+
+    case SET_AGGREGATE_REPORT_ENTRIES:
+      return updateDisplayedEntries({...state, aggregate: payload});
+
+    case SET_FILTERING:
+      return updateDisplayedEntries({...state, filters: payload});
+
+    case SET_SORTING:
+      return updateDisplayedEntries({...state, ...pick(['sortCol', 'sortReversed'], payload)});
 
     default:
       return state;
   }
 }
 
-function getViolationCountsPerThreatLevel({aaData}) {
+function updateDisplayedEntries(state) {
+  const { selectedReport, sortCol, sortReversed, aggregate, filters } = state,
+      { allEntries } = selectedReport,
+      processEntries = pipe(
+          aggregate ? aggregateReportEntries : identity,
+          filterReportEntries(filters),
+          sortReportEntries(sortCol, sortReversed)
+      ),
+      newDisplayedEntries = processEntries(allEntries);
+
+  return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, state);
+}
+
+function getViolationCountsPerThreatLevel(entries) {
   return {
-    moderateViolationCount: aaData.filter(between(2, 4)).length,
-    severeViolationCount: aaData.filter(between(4, 8)).length,
-    criticalViolationCount: aaData.filter(between(8, 11)).length,
-    nonLowViolationCount: aaData.filter(between(2, 11)).length
+    moderateViolationCount: entries.filter(between(2, 4)).length,
+    severeViolationCount: entries.filter(between(4, 8)).length,
+    criticalViolationCount: entries.filter(between(8, 11)).length,
+    nonLowViolationCount: entries.filter(between(2, 11)).length
   };
 }
 

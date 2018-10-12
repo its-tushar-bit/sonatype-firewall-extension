@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.model.policy.facts;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
 public class MatchFact
 {
@@ -26,13 +25,6 @@ public class MatchFact
    * condition was triggered.)
    */
   private final List<ConditionTrigger> conditionTriggers;
-
-  /**
-   * The policy waiver that waives this fact.
-   * 
-   * @since 1.12
-   */
-  private PolicyWaiver policyWaiver;
 
   public MatchFact(final Component component,
                    final String policyId,
@@ -75,14 +67,6 @@ public class MatchFact
   public String toString() {
     return "(Policy id:" + policyId + ", Constraint id:" + constraintId + ", Condition index:" + conditionIndex
         + ", Condition triggers: " + conditionTriggers + ") @ " + component;
-  }
-
-  public PolicyWaiver getPolicyWaiver() {
-    return policyWaiver;
-  }
-
-  public void setPolicyWaiver(PolicyWaiver policyWaiver) {
-    this.policyWaiver = policyWaiver;
   }
 
   public List<ConditionTrigger> getConditionTriggers() {

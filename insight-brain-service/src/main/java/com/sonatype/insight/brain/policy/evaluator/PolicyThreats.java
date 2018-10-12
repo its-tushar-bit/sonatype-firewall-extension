@@ -86,6 +86,11 @@ public class PolicyThreats
      */
     public boolean grandfathered;
 
+    /**
+     * @since 1.53
+     */
+    public String constraintFactsJson;
+
     public List<PolicyAction> actions = new ArrayList<>();
 
     public List<PolicyConstraint> constraints = new ArrayList<>();

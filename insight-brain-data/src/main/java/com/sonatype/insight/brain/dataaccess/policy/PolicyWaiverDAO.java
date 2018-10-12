@@ -112,14 +112,15 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId, ownerIds);
   }
 
-  private PolicyWaiver getByHashAndPolicyIdAndOwnerId(TransactionContext tx,
-                                                      String hash,
-                                                      String policyId,
-                                                      String ownerId)
+  private PolicyWaiver getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(TransactionContext tx,
+                                                                        String hash,
+                                                                        String policyId,
+                                                                        String ownerId,
+                                                                        String constraintFactsJson)
   {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3";
-    return get(tx, sQuery, hash, policyId, ownerId);
+        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3 AND entity.constraintFactsJson=?4";
+    return get(tx, sQuery, hash, policyId, ownerId, constraintFactsJson);
   }
 
   /**
@@ -132,7 +133,8 @@ public class PolicyWaiverDAO
 
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
-    PolicyWaiver other = getByHashAndPolicyIdAndOwnerId(tx, entity.getHash(), entity.getPolicyId(), entity.getOwnerId());
+    PolicyWaiver other = getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(), entity.getPolicyId(),
+        entity.getOwnerId(), entity.getConstraintFactsJson());
     if (other != null) {
       throw new BadRequestException("This policy waiver already exists.");
     }
@@ -149,9 +151,10 @@ public class PolicyWaiverDAO
 
   @Override
   public void update(TransactionContext tx, PolicyWaiver entity) {
-    PolicyWaiver other = getByHashAndPolicyIdAndOwnerId(tx, entity.getHash(), entity.getPolicyId(), entity.getOwnerId());
+    PolicyWaiver other = getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(), entity.getPolicyId(),
+        entity.getOwnerId(), entity.getConstraintFactsJson());
     if (other != null && !other.getId().equals(entity.getId())) {
-      throw new BadRequestException("A policy waiver for the same hash, policy and owner already exists.");
+      throw new BadRequestException("A policy waiver for the same policy violation already exists.");
     }
     if (entity.getComment() != null && entity.getComment().length() > 1000) {
       throw new BadRequestException("Comment length must not exceed 1000 characters.");

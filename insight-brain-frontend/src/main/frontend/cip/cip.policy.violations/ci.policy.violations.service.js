@@ -115,6 +115,7 @@ export default function CIPolicyViolations($http, $q, SelectedComponent) {
                   threatLevel: activeViolation.policyThreatLevel,
                   hash: policyThreat.hash,
                   constraints: activeViolation.constraints,
+                  constraintFactsJson: activeViolation.constraintFactsJson,
                   actions: actions
                 });
               });

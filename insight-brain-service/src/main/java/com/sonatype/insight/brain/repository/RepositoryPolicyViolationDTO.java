@@ -25,6 +25,11 @@ public class RepositoryPolicyViolationDTO
 
   public boolean blocksUnquarantine;
 
+  /**
+   * @since 1.53
+   */
+  public String constraintFactsJson;
+
   // Needed for de-serialization
   public RepositoryPolicyViolationDTO() {
   }
@@ -33,12 +38,14 @@ public class RepositoryPolicyViolationDTO
                                       final String policyName,
                                       final int policyThreatLevel,
                                       final boolean blocksUnquarantine,
-                                      final List<PolicyThreats.PolicyConstraint> constraints)
+                                      final List<PolicyThreats.PolicyConstraint> constraints,
+                                      final String constraintFactsJson)
   {
     this.policyId = policyId;
     this.policyName = policyName;
     this.policyThreatLevel = policyThreatLevel;
     this.constraints = constraints;
     this.blocksUnquarantine = blocksUnquarantine;
+    this.constraintFactsJson = constraintFactsJson;
   }
 }

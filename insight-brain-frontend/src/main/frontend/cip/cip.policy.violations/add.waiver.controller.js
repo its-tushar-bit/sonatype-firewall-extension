@@ -50,6 +50,7 @@ export default function AddWaiverController($http, $scope, OwnerContext, Selecte
         hash: SelectedComponent.get().hash,
         policyId: $scope.policy.id,
         ownerId: $scope.waiverTargets[0].id,
+        constraintFactsJson: $scope.policy.constraintFactsJson || null,
         comment: ''
       };
       $scope.owner = {

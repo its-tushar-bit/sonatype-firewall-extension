@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.report;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
@@ -20,10 +21,14 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -41,6 +46,9 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class WaiverTest
     extends AbstractFunctionalTest
@@ -78,6 +86,21 @@ public class WaiverTest
     waiveComponent();
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
     AddWaiverDialog.root().should(disappear);
+
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
+    assertThat(policyViolations, hasSize(4));
+
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    assertThat(policyWaivers, hasSize(1));
+
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    PolicyViolation policyViolation = policyViolations.stream()
+        .filter(violation -> policyWaiver.getConstraintFactsJson().equals(violation.getConstraintFactsJson()))
+        .findFirst().get();
+
+    assertThat(policyWaiver.getPolicyId(), is(policyViolation.getPolicyId()));
+    assertThat(policyWaiver.getOwnerId(), is(policyViolation.getApplicationId()));
+    assertThat(policyWaiver.getHash(), is(policyViolation.getHash()));
 
     evaluator.reevaluatePolicy();
 

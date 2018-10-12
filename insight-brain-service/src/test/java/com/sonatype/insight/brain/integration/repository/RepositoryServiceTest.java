@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -257,14 +258,17 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     String pathname = "path1";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, true, "policyId1", "policyName1",
-        componentIdentifier);
+    RepositoryPolicyViolation repositoryPolicyViolation1 = tempEntity.newRepositoryPolicyViolation(repository.getId(),
+        8, pathname, false, true, "policyId1", "policyName1", componentIdentifier);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, pathname, true, true, "policyId2", "policyName2",
         componentIdentifier);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, false, "policyId3", "policyName3",
         componentIdentifier);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, true, Action.ID_FAIL, "policyId4",
         "policyName4", componentIdentifier);
+
+    repositoryPolicyViolation1.setConstraintFacts(Collections.singletonList(new ConstraintFact("id", "name", "op")));
+    new RepositoryPolicyViolationDAO().update(repositoryPolicyViolation1);
 
     tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
     tempEntity.newRepositoryComponent(repository.getId(), "path4", new Date(), null);
@@ -277,6 +281,7 @@ public class RepositoryServiceTest
     assertThat(repositoryViolationDTO.policyId, is("policyId1"));
     assertThat(repositoryViolationDTO.policyName, is("policyName1"));
     assertThat(repositoryViolationDTO.policyThreatLevel, is(8));
+    assertThat(repositoryViolationDTO.constraintFactsJson, is(repositoryPolicyViolation1.getConstraintFactsJson()));
     assertFalse(repositoryViolationDTO.blocksUnquarantine);
 
     repositoryViolationDTO = repositoryService.getPolicyThreats(repository.getId(), "path4").activePolicyViolations

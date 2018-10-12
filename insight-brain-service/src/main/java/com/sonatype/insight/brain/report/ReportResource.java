@@ -282,7 +282,7 @@ public class ReportResource
       final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
-    AuditData.get().addScanId(scanId);
+    AuditData.get().setScanId(scanId);
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();

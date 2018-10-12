@@ -110,7 +110,7 @@ public abstract class AuditData
 
   public abstract void setHttpStatus(int httpStatus);
 
-  public abstract void addData(String key, Object value);
+  public abstract void setData(String key, Object value);
 
   public AuditData setApplication(Application application) {
     if (application != null) {
@@ -122,17 +122,17 @@ public abstract class AuditData
   }
 
   AuditData setApplicationId(String applicationId) {
-    addData("applicationId", applicationId);
+    setData("applicationId", applicationId);
     return this;
   }
 
   AuditData setApplicationPublicId(String applicationPublicId) {
-    addData("applicationPublicId", applicationPublicId);
+    setData("applicationPublicId", applicationPublicId);
     return this;
   }
 
   AuditData setApplicationName(String applicationName) {
-    addData("applicationName", applicationName);
+    setData("applicationName", applicationName);
     return this;
   }
 
@@ -145,12 +145,12 @@ public abstract class AuditData
   }
 
   AuditData setOrganizationId(String organizationId) {
-    addData("organizationId", organizationId);
+    setData("organizationId", organizationId);
     return this;
   }
 
   AuditData setOrganizationName(String organizationName) {
-    addData("organizationName", organizationName);
+    setData("organizationName", organizationName);
     return this;
   }
 
@@ -163,32 +163,32 @@ public abstract class AuditData
   }
 
   AuditData setRepositoryId(String repositoryId) {
-    addData("repositoryId", repositoryId);
+    setData("repositoryId", repositoryId);
     return this;
   }
 
   AuditData setRepositoryPublicId(String repositoryPublicId) {
-    addData("repositoryPublicId", repositoryPublicId);
+    setData("repositoryPublicId", repositoryPublicId);
     return this;
   }
 
   AuditData setRepositoryContainer() {
-    addData("scope", "all-repositories");
+    setData("scope", "all-repositories");
     return this;
   }
 
-  public AuditData addStageId(String stageId) {
-    addData("stageId", stageId);
+  public AuditData setStageId(String stageId) {
+    setData("stageId", stageId);
     return this;
   }
 
-  public AuditData addScanId(String scanId) {
-    addData("scanId", scanId);
+  public AuditData setScanId(String scanId) {
+    setData("scanId", scanId);
     return this;
   }
 
-  public AuditData addIsReevaluation(boolean isReevaluation) {
-    addData("isReevaluation", isReevaluation);
+  public AuditData setIsReevaluation(boolean isReevaluation) {
+    setData("isReevaluation", isReevaluation);
     return this;
   }
 }

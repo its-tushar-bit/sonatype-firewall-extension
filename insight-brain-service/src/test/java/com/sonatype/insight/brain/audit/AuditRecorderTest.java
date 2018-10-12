@@ -431,8 +431,8 @@ public class AuditRecorderTest
     recordingAuditData.setException(new Exception("exception"));
     recordingAuditData.setUsername("username");
     recordingAuditData.setHttpStatus(500);
-    recordingAuditData.addData("key1", "value1");
-    recordingAuditData.addData("key2", 1);
+    recordingAuditData.setData("key1", "value1");
+    recordingAuditData.setData("key2", 1);
     return recordingAuditData;
   }
 

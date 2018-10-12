@@ -239,9 +239,9 @@ public class AuditDataTest
 
     auditData.setApplication(application);
 
-    verify(auditData).addData("applicationId", application.getId());
-    verify(auditData).addData("applicationPublicId", application.getPublicId());
-    verify(auditData).addData("applicationName", application.getName());
+    verify(auditData).setData("applicationId", application.getId());
+    verify(auditData).setData("applicationPublicId", application.getPublicId());
+    verify(auditData).setData("applicationName", application.getName());
   }
 
   @Test
@@ -250,7 +250,7 @@ public class AuditDataTest
 
     auditData.setApplication(null);
 
-    verify(auditData, never()).addData(anyString(), any());
+    verify(auditData, never()).setData(anyString(), any());
   }
 
   @Test
@@ -262,8 +262,8 @@ public class AuditDataTest
 
     auditData.setOrganization(organization);
 
-    verify(auditData).addData("organizationId", organization.getId());
-    verify(auditData).addData("organizationName", organization.getName());
+    verify(auditData).setData("organizationId", organization.getId());
+    verify(auditData).setData("organizationName", organization.getName());
   }
 
   @Test
@@ -272,7 +272,7 @@ public class AuditDataTest
 
     auditData.setOrganization(null);
 
-    verify(auditData, never()).addData(anyString(), any());
+    verify(auditData, never()).setData(anyString(), any());
   }
 
   @Test
@@ -284,8 +284,8 @@ public class AuditDataTest
 
     auditData.setRepository(repository);
 
-    verify(auditData).addData("repositoryId", repository.getId());
-    verify(auditData).addData("repositoryPublicId", repository.getPublicId());
+    verify(auditData).setData("repositoryId", repository.getId());
+    verify(auditData).setData("repositoryPublicId", repository.getPublicId());
   }
 
   @Test
@@ -294,7 +294,7 @@ public class AuditDataTest
 
     auditData.setRepository(null);
 
-    verify(auditData, never()).addData(anyString(), any());
+    verify(auditData, never()).setData(anyString(), any());
   }
 
   @Test
@@ -303,7 +303,7 @@ public class AuditDataTest
 
     auditData.setRepositoryContainer();
 
-    verify(auditData).addData("scope", "all-repositories");
+    verify(auditData).setData("scope", "all-repositories");
   }
 
   private Function<Runnable, Void> runnableSubmitter() {

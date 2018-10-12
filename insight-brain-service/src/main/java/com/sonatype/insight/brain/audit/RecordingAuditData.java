@@ -133,7 +133,7 @@ class RecordingAuditData
   }
 
   @Override
-  public void addData(String key, Object value) {
+  public void setData(String key, Object value) {
     data.put(key, value);
   }
 

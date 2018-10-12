@@ -72,7 +72,7 @@ public class ScanUploader
 
   void augmentScanReceipt(String applicationPublicId, ScanReceipt receipt) {
     log.debug("Successfully uploaded scan id {}", receipt.getScanId());
-    AuditData.get().addScanId(receipt.getScanId());
+    AuditData.get().setScanId(receipt.getScanId());
 
     // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
     receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));

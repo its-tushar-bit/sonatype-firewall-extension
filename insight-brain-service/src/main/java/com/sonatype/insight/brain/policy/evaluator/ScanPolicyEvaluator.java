@@ -140,7 +140,7 @@ public class ScanPolicyEvaluator
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
     }
 
-    AuditData.get().addStageId(stage.getStageTypeId());
+    AuditData.get().setStageId(stage.getStageTypeId());
 
     String appId = application.getId();
 
@@ -218,7 +218,7 @@ public class ScanPolicyEvaluator
 
         // Persist the policy evaluation
         boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null);
-        AuditData.get().addIsReevaluation(isReevaluation);
+        AuditData.get().setIsReevaluation(isReevaluation);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
         PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,

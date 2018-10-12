@@ -266,7 +266,7 @@ public class AuditContainerRequestFilterTest
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);
 
-    verify(mockAuditData, never()).addData(anyString(), any());
+    verify(mockAuditData, never()).setData(anyString(), any());
   }
 
   @Test
@@ -276,7 +276,7 @@ public class AuditContainerRequestFilterTest
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);
 
-    verify(mockAuditData, never()).addData(anyString(), any());
+    verify(mockAuditData, never()).setData(anyString(), any());
   }
 
   @Test
@@ -287,7 +287,7 @@ public class AuditContainerRequestFilterTest
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);
 
-    verify(mockAuditData, never()).addData(anyString(), any());
+    verify(mockAuditData, never()).setData(anyString(), any());
   }
 
   @Test

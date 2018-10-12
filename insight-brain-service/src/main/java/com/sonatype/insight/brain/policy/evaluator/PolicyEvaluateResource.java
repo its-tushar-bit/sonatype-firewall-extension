@@ -47,7 +47,7 @@ public class PolicyEvaluateResource
                                          @QueryParam("scanId") final String scanId,
                                          final Stage stage) throws IOException
   {
-    AuditData.get().addScanId(scanId);
+    AuditData.get().setScanId(scanId);
     return policyEvaluateService.evaluate(applicationPublicId, scanId, stage);
   }
 }

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -16,9 +16,9 @@ import static org.mockito.Mockito.verify;
 
 public class AuditSessionTest
 {
-  @Before
-  public void before() {
-    AuditData.set(null);
+  @After
+  public void after() {
+    AuditData.instance.remove();
   }
 
   @Test

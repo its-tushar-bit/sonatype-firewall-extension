@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,12 +78,16 @@ public class AuditContainerRequestFilterTest
     when(mockContainerRequestContext.getUriInfo()).thenReturn(mockUriInfo);
     pathParameters = new MultivaluedHashMap<>();
     when(mockUriInfo.getPathParameters()).thenReturn(pathParameters);
-    AuditData.instance.remove();
     AuditData.set(mockAuditData);
     auditContainerRequestFilter = new AuditContainerRequestFilter(mockResourceInfo);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     repository = tempEntity.newRepository();
+  }
+
+  @After
+  public void after() {
+    AuditData.instance.remove();
   }
 
   @Test

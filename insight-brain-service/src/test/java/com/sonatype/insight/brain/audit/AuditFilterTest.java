@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.audit.AuditFilter.ResponseWrapper;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,11 +39,15 @@ public class AuditFilterTest
 
   @Before
   public void before() {
-    AuditData.instance.remove();
     auditData = mock(AuditData.class);
     AuditData.set(auditData);
     httpServletResponse = mock(HttpServletResponse.class);
     responseWrapper = new ResponseWrapper(httpServletResponse);
+  }
+
+  @After
+  public void after() {
+    AuditData.instance.remove();
   }
 
   @Test

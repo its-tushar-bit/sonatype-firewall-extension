@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +39,10 @@ public class AuditDataTest
   @Before
   public void before() {
     MockitoAnnotations.initMocks(this);
+  }
+
+  @After
+  public void after() {
     AuditData.instance.remove();
   }
 

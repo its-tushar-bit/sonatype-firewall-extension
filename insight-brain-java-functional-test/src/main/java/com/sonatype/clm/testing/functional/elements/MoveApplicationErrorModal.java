@@ -21,6 +21,6 @@ public class MoveApplicationErrorModal
   }
 
   public SelenideElement okButton() {
-    return child(".iq-modal-footer .btn-primary");
+    return child(".iq-modal-footer .iq-btn--primary");
   }
 }

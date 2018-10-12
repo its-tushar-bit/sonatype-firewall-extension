@@ -33,7 +33,7 @@ public class MoveApplicationDialog
   }
 
   public SelenideElement moveButton() {
-    return child(FOOTER_SELECTOR, ".btn-primary");
+    return child(FOOTER_SELECTOR, ".iq-btn--primary");
   }
 
   public SelenideElement dismissButton() {
@@ -41,11 +41,11 @@ public class MoveApplicationDialog
   }
 
   public SelenideElement detailsButton() {
-    return child(FOOTER_SELECTOR, ".btn-tertiary");
+    return child(FOOTER_SELECTOR, ".iq-btn--tertiary");
   }
 
   public SelenideElement retryButton() {
-    return child(FOOTER_SELECTOR, ".btn.btn-error");
+    return child(FOOTER_SELECTOR, ".iq-btn--error");
   }
 
 }

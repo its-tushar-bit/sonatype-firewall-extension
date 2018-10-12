@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiEvaluationResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -66,8 +67,9 @@ public class ApiEvaluationResourceV2AuditTest
 
   @Test
   public void testPromoteScan_Unauthorized() throws Exception {
-    assertResponseStatus(403, promoteScan(false, false, tempEntity.newUser(), app.getId(), SCAN_ID, Stage.ID_OPERATE));
-    assertEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName(), null, null, null);
+    assertResponseStatus(403, promoteScan(false, false, unauthorizedUser, app.getId(), SCAN_ID, Stage.ID_OPERATE));
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
+        app.getPublicId(), app.getName(), null, null, null, unauthorizedUser.getUsername());
   }
 
   private HttpResponse promoteScan(boolean createScanFile,

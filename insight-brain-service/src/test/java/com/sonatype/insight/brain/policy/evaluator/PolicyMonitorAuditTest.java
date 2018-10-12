@@ -17,9 +17,6 @@ import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-
 public class PolicyMonitorAuditTest
     extends AbstractAuditTest
 {
@@ -48,8 +45,7 @@ public class PolicyMonitorAuditTest
     policyMonitor.run();
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
-        app.getPublicId(), app.getName(), ReleaseStageType.ID, scanId2, false, is(MDCUsernameScope.SYSTEM),
-        is(nullValue()), is(nullValue()));
+        app.getPublicId(), app.getName(), ReleaseStageType.ID, scanId2, false, MDCUsernameScope.SYSTEM);
   }
 
   @Test
@@ -66,8 +62,7 @@ public class PolicyMonitorAuditTest
     policyMonitor.run();
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "server-error", app.getId(),
-        app.getPublicId(), app.getName(), null, null, null, is(MDCUsernameScope.SYSTEM), is(nullValue()),
-        is(nullValue()));
+        app.getPublicId(), app.getName(), null, null, null, MDCUsernameScope.SYSTEM);
   }
 
   private void mockScanReceiptAndReport(String scanId) {

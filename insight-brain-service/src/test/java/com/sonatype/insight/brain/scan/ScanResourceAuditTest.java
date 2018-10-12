@@ -65,11 +65,11 @@ public class ScanResourceAuditTest
 
   @Test
   public void testUploadBinary_Unauthorized() throws Exception {
-    User user = tempEntity.newUser();
-    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH, user).post();
+    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH, unauthorizedUser).post();
     assertResponseStatus(403, response);
 
-    assertEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName(), null, null, null);
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
+        app.getPublicId(), app.getName(), null, null, null, unauthorizedUser.getUsername());
   }
 
   @Test

@@ -12,11 +12,12 @@ import java.util.Map;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -39,9 +40,12 @@ public abstract class AbstractAuditTest
   @Rule
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
+  protected User unauthorizedUser;
+
   @Before
   public void setupLogger() {
     logOutput.before();
+    unauthorizedUser = tempEntity.newUser();
   }
 
   protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {
@@ -69,6 +73,24 @@ public abstract class AbstractAuditTest
     }
   }
 
+  protected void assertStandardData(AuditDTO auditDTO, AuditEvent auditEvent, String error) {
+    assertStandardData(auditDTO, auditEvent, error, User.ADMIN_USERNAME);
+  }
+
+  protected void assertStandardData(AuditDTO auditDTO, AuditEvent auditEvent, String error, String username) {
+    boolean systemEvent = MDCUsernameScope.SYSTEM.equals(username);
+    assertThat(auditDTO.domain, is(auditEvent.getDomain()));
+    assertThat(auditDTO.type, is(auditEvent.getType()));
+    assertThat(auditDTO.error, is(error));
+    assertThat(auditDTO.timestamp, not(isEmptyOrNullString()));
+    assertThat(auditDTO.requestMethod, is(nullValue()));
+    assertThat(auditDTO.requestUri, is(nullValue()));
+    assertThat(auditDTO.remoteIpAddress, systemEvent ? nullValue() : not(isEmptyOrNullString()));
+    assertThat(auditDTO.forwarded, is(nullValue()));
+    assertThat(auditDTO.userAgent, systemEvent ? nullValue() : not(isEmptyOrNullString()));
+    assertThat(auditDTO.username, is(username));
+  }
+
   protected void assertEvaluationAuditLog(String error,
                                           String applicationId,
                                           String applicationPublicId,
@@ -91,7 +113,7 @@ public abstract class AbstractAuditTest
                                           Boolean isReevaluation)
   {
     assertEvaluationAuditLog(auditDTO, error, applicationId, applicationPublicId, applicationName, stageId, scanId,
-        isReevaluation, not(isEmptyOrNullString()), not(isEmptyOrNullString()), not(isEmptyOrNullString()));
+        isReevaluation, User.ADMIN_USERNAME);
   }
 
   protected void assertEvaluationAuditLog(AuditDTO auditDTO,
@@ -102,20 +124,9 @@ public abstract class AbstractAuditTest
                                           String stageId,
                                           String scanId,
                                           Boolean isReevaluation,
-                                          Matcher<? super String> matchWithUsername,
-                                          Matcher<? super String> matchWithRemoteIp,
-                                          Matcher<? super String> matchWithUserAgent)
+                                          String username)
   {
-    assertThat(auditDTO.timestamp, not(isEmptyOrNullString()));
-    assertThat(auditDTO.requestMethod, is(nullValue()));
-    assertThat(auditDTO.requestUri, is(nullValue()));
-    assertThat(auditDTO.remoteIpAddress, matchWithRemoteIp);
-    assertThat(auditDTO.forwarded, is(nullValue()));
-    assertThat(auditDTO.userAgent, matchWithUserAgent);
-    assertThat(auditDTO.username, matchWithUsername);
-    assertThat(auditDTO.domain, is(AuditEvent.EVALUATE_APPLICATION.getDomain()));
-    assertThat(auditDTO.type, is(AuditEvent.EVALUATE_APPLICATION.getType()));
-    assertThat(auditDTO.error, is(error));
+    assertStandardData(auditDTO, AuditEvent.EVALUATE_APPLICATION, error, username);
     assertEntryOrAbsentIfNullValue(auditDTO.data, "applicationId", applicationId);
     assertEntryOrAbsentIfNullValue(auditDTO.data, "applicationPublicId", applicationPublicId);
     assertEntryOrAbsentIfNullValue(auditDTO.data, "applicationName", applicationName);

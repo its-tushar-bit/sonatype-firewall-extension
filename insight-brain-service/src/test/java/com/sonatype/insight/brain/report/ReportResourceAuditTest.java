@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -55,12 +54,12 @@ public class ReportResourceAuditTest
   @Test
   public void testReevaluatePolicy_Unauthorized() throws Exception {
     // Attempt to re-evaluate with a user that doesn't have permissions
-    User user = tempEntity.newUser();
-    HttpResponse response = restRequest(app.getPublicId(), SCAN_ID).auth(user.getUsername(), user.getPassword())
-        .path("reevaluatePolicy").post();
+    HttpResponse response = restRequest(app.getPublicId(), SCAN_ID)
+        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).path("reevaluatePolicy").post();
     assertResponseStatus(403, response);
 
-    assertEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName(), null, null, null);
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
+        app.getPublicId(), app.getName(), null, null, null, unauthorizedUser.getUsername());
   }
 
   @Test

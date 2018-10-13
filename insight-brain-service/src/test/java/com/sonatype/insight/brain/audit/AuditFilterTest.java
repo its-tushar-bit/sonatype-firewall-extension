@@ -11,10 +11,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.audit.AuditFilter.ResponseWrapper;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -29,25 +33,26 @@ import static org.mockito.Mockito.when;
 
 public class AuditFilterTest
 {
+  @Rule
+  public TestAuditSession testAuditSession = new TestAuditSession();
+
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+  @Mock
   private AuditData auditData;
 
   private final static String MESSAGE = "message";
 
+  @Mock
   private HttpServletResponse httpServletResponse;
 
   private ResponseWrapper responseWrapper;
 
   @Before
   public void before() {
-    auditData = mock(AuditData.class);
-    AuditData.set(auditData);
-    httpServletResponse = mock(HttpServletResponse.class);
+    testAuditSession.set(auditData);
     responseWrapper = new ResponseWrapper(httpServletResponse);
-  }
-
-  @After
-  public void after() {
-    AuditData.instance.remove();
   }
 
   @Test
@@ -75,6 +80,7 @@ public class AuditFilterTest
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testSetStatus_WithMessage_NotFound() {
     responseWrapper.setStatus(HttpServletResponse.SC_NOT_FOUND, MESSAGE);
 
@@ -83,6 +89,7 @@ public class AuditFilterTest
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testSetStatus_WithMessage_Ok() {
     responseWrapper.setStatus(HttpServletResponse.SC_OK, MESSAGE);
 
@@ -91,6 +98,7 @@ public class AuditFilterTest
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testSetStatus_WithMessage_BadRequest() {
     responseWrapper.setStatus(HttpServletResponse.SC_BAD_REQUEST, MESSAGE);
 

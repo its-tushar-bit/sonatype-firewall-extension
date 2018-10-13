@@ -5,25 +5,37 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class AuditSessionTest
 {
-  @After
-  public void after() {
-    AuditData.instance.remove();
+  @Rule
+  public TestAuditSession testAuditSession = new TestAuditSession();
+
+  @Test(expected = NullPointerException.class)
+  public void testConstructor_RejectNullData() {
+    try (AuditSession auditSession = new AuditSession(null)) {
+      // noop
+    }
   }
 
   @Test
-  public void testClose_commit() {
-    AuditData auditData = spy(AuditData.get());
+  public void testConstructor_SetThreadLocal() {
+    AuditData auditData = mock(AuditData.class);
+    try (AuditSession auditSession = new AuditSession(auditData)) {
+      assertThat(AuditSession.getCurrent(), is(auditData));
+    }
+  }
+
+  @Test
+  public void testClose_CommitData() {
+    AuditData auditData = mock(AuditData.class);
     try (AuditSession auditSession = new AuditSession(auditData)) {
       // noop
     }
@@ -31,14 +43,12 @@ public class AuditSessionTest
   }
 
   @Test
-  public void testClose_nesting_behavior() {
-    AuditData.set(mock(AuditData.class));
-    AuditData auditData1 = AuditData.get();
-
-    AuditData auditData2 = mock(AuditData.class);
-    try (AuditSession auditSession = new AuditSession(auditData2)) {
-      assertThat(AuditData.get(), is(auditData2));
+  public void testClose_RestoreThreadLocal() {
+    AuditData previous = mock(AuditData.class);
+    testAuditSession.set(previous);
+    try (AuditSession auditSession = new AuditSession(mock(AuditData.class))) {
+      // noop
     }
-    assertThat(AuditData.get(), is(auditData1));
+    assertThat(AuditSession.getCurrent(), is(previous));
   }
 }

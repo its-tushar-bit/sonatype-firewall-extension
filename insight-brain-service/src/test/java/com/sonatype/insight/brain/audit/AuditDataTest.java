@@ -13,13 +13,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -33,18 +35,17 @@ import static org.mockito.Mockito.when;
 
 public class AuditDataTest
 {
+  @Rule
+  public TestAuditSession testAuditSession = new TestAuditSession();
+
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+  @Mock(answer = Answers.CALLS_REAL_METHODS)
+  private AuditData auditData;
+
   @Captor
   private ArgumentCaptor<Function<AuditData, Void>> functionArgumentCaptor;
-
-  @Before
-  public void before() {
-    MockitoAnnotations.initMocks(this);
-  }
-
-  @After
-  public void after() {
-    AuditData.instance.remove();
-  }
 
   @Test
   public void testGet_Initial() {
@@ -52,61 +53,28 @@ public class AuditDataTest
   }
 
   @Test
-  public void testSet_Null() {
-    AuditData.set(null);
-
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
-  }
-
-  @Test
-  public void testSet_NoopAuditData() {
-    AuditData.set(NoopAuditData.INSTANCE);
-
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
-  }
-
-  @Test
-  public void testSet_RecordingAuditData() {
-    RecordingAuditData recordingAuditData = new RecordingAuditData(null, null);
-    AuditData.set(recordingAuditData);
-
-    assertThat(AuditData.get(), is(recordingAuditData));
-  }
-
-  @Test
-  public void testSet_ProxyAuditData() {
-    ProxyAuditData proxyAuditData = new ProxyAuditData(null);
-    AuditData.set(proxyAuditData);
-
-    assertThat(AuditData.get(), is(proxyAuditData));
-  }
-
-  @Test
-  public void testSet_ReturnsPrevious() {
-    RecordingAuditData recordingAuditData = new RecordingAuditData(null, null);
-
-    assertThat(AuditData.set(recordingAuditData), is(NoopAuditData.INSTANCE));
-    assertThat(AuditData.set(new ProxyAuditData(null)), is(recordingAuditData));
+  public void testGet_Current() {
+    testAuditSession.set(auditData);
+    assertThat(AuditData.get(), is(auditData));
   }
 
   @Test
   public void testRecordSubEvent() {
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
-    when(auditData.forSubEvent(null, false)).thenReturn(auditData);
+    AuditData subAuditData = mock(AuditData.class);
+    when(auditData.forSubEvent(null, false)).thenReturn(subAuditData);
 
     try (AuditSession auditSession = auditData.recordSubEvent(null, false)) {
       assertThat(auditSession, is(notNullValue()));
       verify(auditData).forSubEvent(null, false);
     }
 
-    verify(auditData).commit();
+    verify(subAuditData).commit();
   }
 
   @Test
   public void testContinueAsync_Runnable() {
     String[] result = new String[1];
     Runnable runnable = () -> result[0] = "result";
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.continueAsync(runnable, runnableSubmitter());
 
@@ -126,7 +94,6 @@ public class AuditDataTest
     Runnable runnable = () -> {
       throw t;
     };
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.continueAsync(runnable, runnableSubmitter());
 
@@ -151,7 +118,6 @@ public class AuditDataTest
       result[0] = "result";
       return null;
     };
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.continueAsync(callable, callableSubmitter());
 
@@ -171,7 +137,6 @@ public class AuditDataTest
     Callable<Void> callable = () -> {
       throw t;
     };
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.continueAsync(callable, callableSubmitter());
 
@@ -196,7 +161,6 @@ public class AuditDataTest
       result[0] = "result";
       return null;
     };
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.continueAsync(supplier, supplierSubmitter());
 
@@ -216,7 +180,6 @@ public class AuditDataTest
     Supplier<Void> supplier = () -> {
       throw t;
     };
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.continueAsync(supplier, supplierSubmitter());
 
@@ -240,7 +203,6 @@ public class AuditDataTest
     application.setId("appId");
     application.setPublicId("appPublicId");
     application.setName("appName");
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.setApplication(application);
 
@@ -251,8 +213,6 @@ public class AuditDataTest
 
   @Test
   public void testSetApplication_Null_DoesNothing() {
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
-
     auditData.setApplication(null);
 
     verify(auditData, never()).setData(anyString(), any());
@@ -263,7 +223,6 @@ public class AuditDataTest
     Organization organization = new Organization();
     organization.setId("orgId");
     organization.setName("orgName");
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.setOrganization(organization);
 
@@ -273,8 +232,6 @@ public class AuditDataTest
 
   @Test
   public void testSetOrganization_Null_DoesNothing() {
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
-
     auditData.setOrganization(null);
 
     verify(auditData, never()).setData(anyString(), any());
@@ -285,7 +242,6 @@ public class AuditDataTest
     Repository repository = new Repository();
     repository.setId("repoId");
     repository.setPublicId("repoPublicId");
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
 
     auditData.setRepository(repository);
 
@@ -295,8 +251,6 @@ public class AuditDataTest
 
   @Test
   public void testSetRepository_Null_DoesNothing() {
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
-
     auditData.setRepository(null);
 
     verify(auditData, never()).setData(anyString(), any());
@@ -304,8 +258,6 @@ public class AuditDataTest
 
   @Test
   public void testSetRepositoryContainer() {
-    AuditData auditData = mock(AuditData.class, Mockito.CALLS_REAL_METHODS);
-
     auditData.setRepositoryContainer();
 
     verify(auditData).setData("scope", "all-repositories");

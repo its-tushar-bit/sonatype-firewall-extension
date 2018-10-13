@@ -13,30 +13,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * The data for one audit record. Code populates audit data for the current operation/event using
  * {@link AuditData#get()}.
  */
 public abstract class AuditData
 {
-  @VisibleForTesting
-  static final ThreadLocal<AuditData> instance = ThreadLocal.withInitial(() -> NoopAuditData.INSTANCE);
-
   public static AuditData get() {
-    return instance.get();
-  }
-
-  static AuditData set(AuditData auditData) {
-    AuditData previous = instance.get();
-    if (auditData == null || auditData == NoopAuditData.INSTANCE) {
-      instance.remove();
-    }
-    else {
-      instance.set(auditData);
-    }
-    return previous;
+    return AuditSession.getCurrent();
   }
 
   public final AuditSession recordSubEvent(AuditEvent event, boolean independent) {

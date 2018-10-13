@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +27,9 @@ import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -36,6 +37,7 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,6 +48,12 @@ public class AuditContainerRequestFilterTest
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Rule
+  public TestAuditSession testAuditSession = new TestAuditSession();
+
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private ResourceInfo mockResourceInfo;
@@ -74,20 +82,14 @@ public class AuditContainerRequestFilterTest
 
   @Before
   public void before() {
-    MockitoAnnotations.initMocks(this);
-    when(mockContainerRequestContext.getUriInfo()).thenReturn(mockUriInfo);
+    lenient().when(mockContainerRequestContext.getUriInfo()).thenReturn(mockUriInfo);
     pathParameters = new MultivaluedHashMap<>();
-    when(mockUriInfo.getPathParameters()).thenReturn(pathParameters);
-    AuditData.set(mockAuditData);
+    lenient().when(mockUriInfo.getPathParameters()).thenReturn(pathParameters);
+    testAuditSession.set(mockAuditData);
     auditContainerRequestFilter = new AuditContainerRequestFilter(mockResourceInfo);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     repository = tempEntity.newRepository();
-  }
-
-  @After
-  public void after() {
-    AuditData.instance.remove();
   }
 
   @Test

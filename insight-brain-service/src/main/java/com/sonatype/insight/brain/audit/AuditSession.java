@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.Objects;
+
 /**
  * Marks the scope of a given audit event which is automatically committed to the audit log at the end. While the
  * session is active, the current thread can populate audit data using {@link AuditData#get()}. Audit sessions
@@ -13,13 +15,20 @@ package com.sonatype.insight.brain.audit;
 public class AuditSession
     implements AutoCloseable
 {
+  private static final ThreadLocal<AuditData> currentOfThread = ThreadLocal.withInitial(() -> NoopAuditData.INSTANCE);
+
+  static AuditData getCurrent() {
+    return currentOfThread.get();
+  }
+
   private final AuditData current;
 
   private final AuditData previous;
 
   AuditSession(AuditData auditData) {
-    current = auditData;
-    previous = AuditData.set(auditData);
+    current = Objects.requireNonNull(auditData);
+    previous = currentOfThread.get();
+    currentOfThread.set(current);
   }
 
   @Override
@@ -28,7 +37,12 @@ public class AuditSession
       current.commit();
     }
     finally {
-      AuditData.set(previous);
+      if (previous == NoopAuditData.INSTANCE) {
+        currentOfThread.remove();
+      }
+      else {
+        currentOfThread.set(previous);
+      }
     }
   }
 }

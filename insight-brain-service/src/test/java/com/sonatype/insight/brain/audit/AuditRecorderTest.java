@@ -24,7 +24,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.HttpHeaders;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -53,10 +52,8 @@ public class AuditRecorderTest
   @Rule
   public LogOutput logOutput = new LogOutput(AuditRecorder.toLoggerName(AuditEvent.LOGIN.getDomain()));
 
-  @After
-  public void after() {
-    AuditData.instance.remove();
-  }
+  @Rule
+  public TestAuditSession tempAuditData = new TestAuditSession();
 
   @Test
   public void testRecordUserEvent() {

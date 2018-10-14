@@ -199,15 +199,15 @@ public class AuditDataTest
   }
 
   @Test
-  public void testSetData_EnumValue() {
-    auditData.setData("key", ElementType.ANNOTATION_TYPE);
+  public void testSetEnum_NonNullValue() {
+    auditData.setEnum("key", ElementType.ANNOTATION_TYPE);
     verify(auditData).setData("key", "annotation-type");
   }
 
   @Test
-  public void testSetData_EnumValueNull() {
-    auditData.setData("key", (Enum<?>) null);
-    verify(auditData).setData("key", (String) null);
+  public void testSetEnum_NullValue() {
+    auditData.setEnum("key", null);
+    verify(auditData).setData("key", null);
   }
 
   @Test

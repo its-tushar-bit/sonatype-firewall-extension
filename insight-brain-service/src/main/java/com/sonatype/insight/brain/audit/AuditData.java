@@ -97,7 +97,7 @@ public abstract class AuditData
 
   public abstract AuditData setData(String key, Object value);
 
-  public AuditData setData(String key, Enum<?> enumValue) {
+  public AuditData setEnum(String key, Enum<?> enumValue) {
     setData(key, enumValue != null ? enumValue.name().toLowerCase(Locale.ROOT).replace('_', '-') : null);
     return this;
   }

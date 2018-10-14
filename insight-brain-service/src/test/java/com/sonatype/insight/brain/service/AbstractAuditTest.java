@@ -7,11 +7,13 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -55,15 +57,6 @@ public abstract class AbstractAuditTest
         hasSize(greaterThanOrEqualTo(count)));
   }
 
-  private void assertEntryOrAbsentIfNullValue(Map<String, Object> map, String key, Object value) {
-    if (value == null) {
-      assertThat(map, not(hasKey(key)));
-    }
-    else {
-      assertThat(map, hasEntry(key, value));
-    }
-  }
-
   private static AuditDTO parseAuditLog(String auditLogEntry) {
     try {
       return JsonUtils.parse(auditLogEntry, AuditDTO.class);
@@ -74,11 +67,14 @@ public abstract class AbstractAuditTest
   }
 
   protected void assertStandardData(AuditDTO auditDTO, AuditEvent auditEvent, String error) {
-    assertStandardData(auditDTO, auditEvent, error, User.ADMIN_USERNAME);
+    assertStandardData(auditDTO, auditEvent, error, null);
   }
 
   protected void assertStandardData(AuditDTO auditDTO, AuditEvent auditEvent, String error, String username) {
     boolean systemEvent = MDCUsernameScope.SYSTEM.equals(username);
+    if (username == null) {
+      username = "unauthorized".equals(error) ? unauthorizedUser.getUsername() : User.ADMIN_USERNAME;
+    }
     assertThat(auditDTO.domain, is(auditEvent.getDomain()));
     assertThat(auditDTO.type, is(auditEvent.getType()));
     assertThat(auditDTO.error, is(error));
@@ -89,6 +85,46 @@ public abstract class AbstractAuditTest
     assertThat(auditDTO.forwarded, is(nullValue()));
     assertThat(auditDTO.userAgent, systemEvent ? nullValue() : not(isEmptyOrNullString()));
     assertThat(auditDTO.username, is(username));
+  }
+
+  protected void assertCustomData(AuditDTO auditDTO, String key, Object value) {
+    assertThat(auditDTO.data, value == null ? not(hasKey(key)) : hasEntry(key, value));
+  }
+
+  protected void assertOrganizationData(AuditDTO auditDTO, Organization organization) {
+    assertOrganizationData(auditDTO, organization.getId(), organization.getName());
+  }
+
+  protected void assertOrganizationData(AuditDTO auditDTO, String organizationId, String organizationName) {
+    assertCustomData(auditDTO, "organizationId", organizationId);
+    assertCustomData(auditDTO, "organizationName", organizationName);
+  }
+
+  protected void assertApplicationData(AuditDTO auditDTO, Application application) {
+    assertApplicationData(auditDTO, application.getId(), application.getPublicId(), application.getName());
+  }
+
+  protected void assertApplicationData(AuditDTO auditDTO,
+                                       String applicationId,
+                                       String applicationPublicId,
+                                       String applicationName)
+  {
+    assertCustomData(auditDTO, "applicationId", applicationId);
+    assertCustomData(auditDTO, "applicationPublicId", applicationPublicId);
+    assertCustomData(auditDTO, "applicationName", applicationName);
+  }
+
+  protected void assertRepositoryData(AuditDTO auditDTO, Repository repository) {
+    assertRepositoryData(auditDTO, repository.getId(), repository.getPublicId());
+  }
+
+  protected void assertRepositoryData(AuditDTO auditDTO, String repositoryId, String repositoryPublicId) {
+    assertCustomData(auditDTO, "repositoryId", repositoryId);
+    assertCustomData(auditDTO, "repositoryPublicId", repositoryPublicId);
+  }
+
+  protected void assertRepositoryContainerData(AuditDTO auditDTO) {
+    assertThat(auditDTO.data, hasEntry("scope", "all-repositories"));
   }
 
   protected void assertEvaluationAuditLog(String error,
@@ -127,11 +163,9 @@ public abstract class AbstractAuditTest
                                           String username)
   {
     assertStandardData(auditDTO, AuditEvent.EVALUATE_APPLICATION, error, username);
-    assertEntryOrAbsentIfNullValue(auditDTO.data, "applicationId", applicationId);
-    assertEntryOrAbsentIfNullValue(auditDTO.data, "applicationPublicId", applicationPublicId);
-    assertEntryOrAbsentIfNullValue(auditDTO.data, "applicationName", applicationName);
-    assertEntryOrAbsentIfNullValue(auditDTO.data, "stageId", stageId);
-    assertEntryOrAbsentIfNullValue(auditDTO.data, "scanId", scanId);
-    assertEntryOrAbsentIfNullValue(auditDTO.data, "isReevaluation", isReevaluation);
+    assertApplicationData(auditDTO, applicationId, applicationPublicId, applicationName);
+    assertCustomData(auditDTO, "stageId", stageId);
+    assertCustomData(auditDTO, "scanId", scanId);
+    assertCustomData(auditDTO, "isReevaluation", isReevaluation);
   }
 }

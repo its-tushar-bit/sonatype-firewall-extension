@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.lang.annotation.ElementType;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -195,6 +196,18 @@ public class AuditDataTest
     verify(auditData).setException(t);
     verify(auditData).commit();
     assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+  }
+
+  @Test
+  public void testSetData_EnumValue() {
+    auditData.setData("key", ElementType.ANNOTATION_TYPE);
+    verify(auditData).setData("key", "annotation-type");
+  }
+
+  @Test
+  public void testSetData_EnumValueNull() {
+    auditData.setData("key", (Enum<?>) null);
+    verify(auditData).setData("key", (String) null);
   }
 
   @Test

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -95,6 +96,11 @@ public abstract class AuditData
   public abstract void setHttpStatus(int httpStatus);
 
   public abstract AuditData setData(String key, Object value);
+
+  public AuditData setData(String key, Enum<?> enumValue) {
+    setData(key, enumValue != null ? enumValue.name().toLowerCase(Locale.ROOT).replace('_', '-') : null);
+    return this;
+  }
 
   public AuditData setApplication(Application application) {
     if (application != null) {

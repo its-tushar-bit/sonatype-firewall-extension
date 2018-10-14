@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.audit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -35,7 +35,7 @@ class RecordingAuditData
 
   private Throwable exception;
 
-  private Map<String, Object> data = new HashMap<>();
+  private Map<String, Object> data = new LinkedHashMap<>();
 
   RecordingAuditData(Consumer<RecordingAuditData> recorder, RequestData requestData) {
     independent = true;
@@ -133,8 +133,14 @@ class RecordingAuditData
   }
 
   @Override
-  public void setData(String key, Object value) {
-    data.put(key, value);
+  public AuditData setData(String key, Object value) {
+    if (value != null) {
+      data.put(key, value);
+    }
+    else {
+      data.remove(key);
+    }
+    return this;
   }
 
   List<RecordingAuditData> getChildren() {

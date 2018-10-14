@@ -66,7 +66,8 @@ class ProxyAuditData
   }
 
   @Override
-  public void setData(String key, Object value) {
+  public AuditData setData(String key, Object value) {
     auditData.setData(key, value);
+    return this;
   }
 }

@@ -51,6 +51,7 @@ class NoopAuditData
   }
 
   @Override
-  public void setData(String key, Object value) {
+  public AuditData setData(String key, Object value) {
+    return this;
   }
 }

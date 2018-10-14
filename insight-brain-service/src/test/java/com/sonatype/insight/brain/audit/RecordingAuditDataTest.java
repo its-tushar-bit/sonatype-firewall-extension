@@ -95,4 +95,12 @@ public class RecordingAuditDataTest
 
     assertThat(result[0], is(childRecordingAuditData.toString()));
   }
+
+  @Test
+  public void testSetData_NullValue() {
+    RecordingAuditData auditData = new RecordingAuditData(null, null);
+    auditData.setData("some-key", "some-value");
+    auditData.setData("some-key", null);
+    assertThat(auditData.getData().keySet(), is(empty()));
+  }
 }

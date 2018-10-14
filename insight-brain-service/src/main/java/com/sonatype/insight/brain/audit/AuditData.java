@@ -94,7 +94,7 @@ public abstract class AuditData
 
   public abstract void setHttpStatus(int httpStatus);
 
-  public abstract void setData(String key, Object value);
+  public abstract AuditData setData(String key, Object value);
 
   public AuditData setApplication(Application application) {
     if (application != null) {

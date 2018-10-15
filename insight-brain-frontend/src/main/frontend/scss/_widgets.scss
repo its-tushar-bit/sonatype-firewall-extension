@@ -480,11 +480,13 @@
   margin-top: 16px;
 }
 
-.iq-form-row--owner-editor {
-  margin-bottom: 0;
+.iq-form-row {
+  &.iq-form-row--owner-editor {
+    margin-bottom: 0;
 
-  .iq-form-group {
-    width: 254px;
+    .iq-form-group {
+      width: 254px;
+    }
   }
 }
 

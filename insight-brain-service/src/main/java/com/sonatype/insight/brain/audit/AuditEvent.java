@@ -13,6 +13,9 @@ public enum AuditEvent
   AUTHENTICATION_FAILURE(Domain.AUTHENTICATION, Type.FAILURE),
   LOGIN(Domain.AUTHENTICATION, Type.LOGIN),
   LOGOUT(Domain.AUTHENTICATION, Type.LOGOUT),
+
+  UPDATE_COMPONENT_VULNERABILITY(Domain.GOVERNANCE_COMPONENT_VULNERABILITY, Type.UPDATE),
+
   EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE);
 
   private final String domain;
@@ -38,6 +41,10 @@ public enum AuditEvent
 
     String GOVERNANCE = "governance";
 
+    String GOVERNANCE_COMPONENT = join(GOVERNANCE, "component");
+
+    String GOVERNANCE_COMPONENT_VULNERABILITY = join(GOVERNANCE_COMPONENT, "vulnerability");
+
     String GOVERNANCE_EVALUATION = join(GOVERNANCE, "evaluation");
 
     String GOVERNANCE_EVALUATION_APPLICATION = join(GOVERNANCE_EVALUATION, "application");
@@ -56,5 +63,7 @@ public enum AuditEvent
     String LOGOUT = "logout";
 
     String EVALUATE = "evaluate";
+
+    String UPDATE = "update";
   }
 }

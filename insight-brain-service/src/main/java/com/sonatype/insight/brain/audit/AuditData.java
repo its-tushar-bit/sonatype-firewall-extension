@@ -181,4 +181,14 @@ public abstract class AuditData
     setData("isReevaluation", isReevaluation);
     return this;
   }
+
+  public AuditData setComponentHash(String componentHash) {
+    setData("componentHash", componentHash);
+    return this;
+  }
+
+  public AuditData setComment(String comment) {
+    setData("comment", comment);
+    return this;
+  }
 }

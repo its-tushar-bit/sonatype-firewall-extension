@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.component;
+
+import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.audit.AuditDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+public class HashComponentIdentifierResourceAuditTest
+    extends AbstractAuditTest
+{
+  private static final String COMPONENT_HASH = "componentHash";
+
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier
+      .createMavenCoordinates("groupId", "artifactId", "version", "classifier", "extension");
+
+  private static final String COMMENT = "comment";
+
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+
+  @Before
+  public void before() throws Exception {
+    mockComponentSummary(COMPONENT_IDENTIFIER, ComponentSummary.create(false));
+  }
+
+  @After
+  public void after() {
+    hashComponentIdentifierDAO.delete(hashComponentIdentifierDAO.getByHash(COMPONENT_HASH));
+  }
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(HashComponentIdentifierResource.RESOURCE_PATH);
+  }
+
+  @Test
+  public void testSet() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifier(COMPONENT_HASH, COMPONENT_IDENTIFIER,
+        COMMENT);
+
+    restRequest().body(hashComponentIdentifier).post();
+
+    assertHashComponentIdentifierData(assertAuditLog(null), hashComponentIdentifier);
+  }
+
+  @Test
+  public void testSet_NullComment() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifier(COMPONENT_HASH, COMPONENT_IDENTIFIER,
+        null);
+
+    restRequest().body(hashComponentIdentifier).post();
+
+    assertHashComponentIdentifierData(assertAuditLog(null), hashComponentIdentifier);
+  }
+
+  @Test
+  public void testSet_Unauthorized() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifier(COMPONENT_HASH, COMPONENT_IDENTIFIER,
+        COMMENT);
+
+    restRequest().auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).body(hashComponentIdentifier)
+        .post();
+
+    assertHashComponentIdentifierData(assertAuditLog("unauthorized"), hashComponentIdentifier(null, null, null));
+  }
+
+  private HashComponentIdentifier hashComponentIdentifier(String componentHash,
+                                                          ComponentIdentifier componentIdentifier,
+                                                          String comment)
+  {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(componentHash, componentIdentifier);
+    hashComponentIdentifier.setComment(comment);
+    return hashComponentIdentifier;
+  }
+
+  private AuditDTO assertAuditLog(String error) {
+    AuditDTO auditDTO = awaitLogEntries(AuditEvent.SET_COMPONENT_IDENTITY, 1).get(0);
+    assertStandardData(auditDTO, AuditEvent.SET_COMPONENT_IDENTITY, error);
+    return auditDTO;
+  }
+
+  private void assertHashComponentIdentifierData(AuditDTO auditDTO, HashComponentIdentifier hashComponentIdentifier) {
+    assertCustomData(auditDTO, "componentHash", hashComponentIdentifier.getHash());
+    assertCustomObject(auditDTO, "componentIdentifier", hashComponentIdentifier.getComponentIdentifier());
+    assertCustomData(auditDTO, "comment", hashComponentIdentifier.getComment());
+  }
+}

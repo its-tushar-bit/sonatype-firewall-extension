@@ -16,6 +16,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
@@ -45,6 +47,7 @@ public class HashComponentIdentifierResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.SET_COMPONENT_IDENTITY)
   public HashComponentIdentifierDTO set(final HashComponentIdentifier hashComponentIdentifier) {
     return hashComponentIdentifierService.set(hashComponentIdentifier);
   }

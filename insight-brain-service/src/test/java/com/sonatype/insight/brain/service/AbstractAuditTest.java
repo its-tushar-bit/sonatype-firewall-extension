@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -20,6 +21,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -43,11 +45,14 @@ public abstract class AbstractAuditTest
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
   protected User unauthorizedUser;
+  
+  private ObjectMapper objectMapper;
 
   @Before
   public void setupLogger() {
     logOutput.before();
     unauthorizedUser = tempEntity.newUser();
+    objectMapper = new ObjectMapper();
   }
 
   protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {
@@ -89,6 +94,10 @@ public abstract class AbstractAuditTest
 
   protected void assertCustomData(AuditDTO auditDTO, String key, Object value) {
     assertThat(auditDTO.data, value == null ? not(hasKey(key)) : hasEntry(key, value));
+  }
+
+  protected void assertCustomObject(AuditDTO auditDTO, String key, Object pojo) {
+    assertCustomData(auditDTO, key, objectMapper.convertValue(pojo, Map.class));
   }
 
   protected void assertOrganizationData(AuditDTO auditDTO, Organization organization) {

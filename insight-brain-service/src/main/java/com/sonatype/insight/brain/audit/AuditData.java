@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -189,6 +190,11 @@ public abstract class AuditData
 
   public AuditData setComment(String comment) {
     setData("comment", comment);
+    return this;
+  }
+
+  public AuditData setComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    setData("componentIdentifier", componentIdentifier);
     return this;
   }
 }

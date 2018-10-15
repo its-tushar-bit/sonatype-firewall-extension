@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -53,6 +54,7 @@ public class HashComponentIdentifierService
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
   public HashComponentIdentifierDTO set(final HashComponentIdentifier hashComponentIdentifier) {
+    auditHashComponentIdentifier(hashComponentIdentifier);
     ComponentIdentifierValidator.validate(hashComponentIdentifier.getComponentIdentifier());
 
     ensureUnknownComponent(hashComponentIdentifier);
@@ -122,5 +124,13 @@ public class HashComponentIdentifierService
     Map<String, String> queryParams = Collections.singletonMap("componentIdentifier",
         ComponentIdentifierAdapter.toJson(componentIdentifier));
     return client.get(ComponentSummary.class, "rest/component/summary", queryParams);
+  }
+
+  private void auditHashComponentIdentifier(HashComponentIdentifier hashComponentIdentifier) {
+    if (hashComponentIdentifier != null) {
+      AuditData.get().setComponentHash(hashComponentIdentifier.getHash())
+          .setComponentIdentifier(hashComponentIdentifier.getComponentIdentifier())
+          .setComment(hashComponentIdentifier.getComment());
+    }
   }
 }

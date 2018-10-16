@@ -117,10 +117,12 @@ describe('gettingStarted component', function() {
 
       var permissionsDeferred = $q.defer();
       permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
 
       vm.$onInit();
       permissionsDeferred.reject('get Permissions Error');
       $scope.$digest();
+      $httpBackend.flush();
 
       expect(vm.error).toBe('get Permissions Error');
     });
@@ -135,9 +137,12 @@ describe('gettingStarted component', function() {
       it('is fired before data is loaded if application is licensed', function() {
         $rootScope.licensed = true;
         permissionServiceMock.getValidPermissions.and.returnValue($q.defer().promise);
+        $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
         vm.$onInit();
         // fired before getValidPermissions result is resolved
         expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('VISITED');
+
+        $httpBackend.flush();
       });
     });
   });

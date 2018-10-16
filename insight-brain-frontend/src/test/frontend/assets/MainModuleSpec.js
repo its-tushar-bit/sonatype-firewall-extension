@@ -120,8 +120,20 @@ describe('mainModuleSpec', function() {
   });
 
   describe('on licenseInstalled event', function() {
+    let $httpBackend;
+
+    beforeEach(inject(function(_$httpBackend_, CLMLocations) {
+      $httpBackend = _$httpBackend_;
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
+    }));
+
     it('fires "REDIRECTED" telemetry event', inject(function(initService, $state) {
       initService.start();
+      $httpBackend.flush();
       $state.go('someOtherState');
       scope.$digest();
       scope.$emit('licenseInstalled');
@@ -132,9 +144,21 @@ describe('mainModuleSpec', function() {
   });
 
   describe('on beforeunload event', function() {
+    let $httpBackend;
+
+    beforeEach(inject(function(_$httpBackend_, CLMLocations) {
+      $httpBackend = _$httpBackend_;
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
+    }));
+
     it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted',
         inject(function(initService, $state) {
           initService.start();
+          $httpBackend.flush();
           $state.go('gettingStarted');
           scope.$digest();
           window.dispatchEvent(new Event('beforeunload'));
@@ -144,6 +168,7 @@ describe('mainModuleSpec', function() {
 
     it('does not fire "DEPARTED" telemetry event if current page is not gettingStarted', inject(function(initService) {
       initService.start();
+      $httpBackend.flush();
       window.dispatchEvent(new Event('beforeunload'));
       expect(telemetryServiceMock.submitData).not.toHaveBeenCalled();
     }));

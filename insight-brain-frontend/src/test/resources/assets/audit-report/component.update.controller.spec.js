@@ -10,6 +10,9 @@ describe('component.update.controller', function() {
     });
     $provide.value('componentKey', {hash: 'abcd'});
     $provide.value('reevaluate', true);
+    $provide.value('pendoService', {
+      start: angular.noop
+    });
   }));
 
   beforeEach(inject(function($rootScope, $controller, $q) {

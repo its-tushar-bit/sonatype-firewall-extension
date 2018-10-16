@@ -7,6 +7,9 @@ describe('component.update.optional.controller', function() {
       ownerId: 'foo',
       ownerType: 'repository'
     });
+    $provide.value('pendoService', {
+      start: angular.noop
+    });
   }));
 
   beforeEach(inject(function($rootScope, $controller) {

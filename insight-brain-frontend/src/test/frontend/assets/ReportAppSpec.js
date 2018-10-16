@@ -1,11 +1,10 @@
 import reportModule from '../../../main/frontend/ReportApp';
-import { MainModule } from '../../../main/frontend/MainModule';
 import applicationMockData from '../application/ApplicationMockData';
 
 describe('reportApp', function() {
   var scope, state, $httpBackend, CLMLocations, $controller;
 
-  beforeEach(angular.mock.module(reportModule.name, MainModule.name, function($provide) {
+  beforeEach(angular.mock.module(reportModule.name, function($provide) {
     SpecUtil.mockNgRedux($provide);
 
     $provide.service('pendoService', function() {
@@ -32,8 +31,8 @@ describe('reportApp', function() {
   describe('doLoad', function() {
     it('handles no reports', function() {
       var mockStageData = MockData.getActionStageData();
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(mockStageData);
-      $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond([]);
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
+      $httpBackend.expectGET('/rest/application/services/summary').respond([]);
       $controller('ReportViolationsController', { $scope: scope, $state: state });
 
       expect(scope.stages).toBeUndefined();
@@ -57,8 +56,8 @@ describe('reportApp', function() {
     it('loads reports, sorts and assigns index', function() {
       var mockStageData = MockData.getActionStageData();
       var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(mockStageData);
-      $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
+      $httpBackend.expectGET('/rest/application/services/summary').respond(
           mockApplicationSummaryData);
       $controller('ReportViolationsController', { $scope: scope, $state: state });
 
@@ -88,8 +87,8 @@ describe('reportApp', function() {
 
   describe('$watch', function () {
     beforeEach(function() {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-      $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      $httpBackend.expectGET('/rest/application/services/summary').respond(
           applicationMockData.getApplicationSummaryData());
       $controller('ReportViolationsController', { $scope: scope, $state: state });
       $httpBackend.flush();

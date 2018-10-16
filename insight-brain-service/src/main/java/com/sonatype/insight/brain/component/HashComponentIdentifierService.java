@@ -105,6 +105,7 @@ public class HashComponentIdentifierService
     if (toDelete == null) {
       throw new BadRequestException("Unable to find a claimed component with hash: " + hash + ".");
     }
+    auditHashComponentIdentifier(toDelete);
 
     hashComponentIdentifierDAO.delete(toDelete);
     ReportService.flushReportChanges();

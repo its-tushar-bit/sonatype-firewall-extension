@@ -52,7 +52,7 @@ public class HashComponentIdentifierResourceAuditTest
 
     restRequest().body(hashComponentIdentifier).post();
 
-    assertHashComponentIdentifierData(assertAuditLog(null), hashComponentIdentifier);
+    assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, null), hashComponentIdentifier);
   }
 
   @Test
@@ -62,7 +62,7 @@ public class HashComponentIdentifierResourceAuditTest
 
     restRequest().body(hashComponentIdentifier).post();
 
-    assertHashComponentIdentifierData(assertAuditLog(null), hashComponentIdentifier);
+    assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, null), hashComponentIdentifier);
   }
 
   @Test
@@ -73,7 +73,20 @@ public class HashComponentIdentifierResourceAuditTest
     restRequest().auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).body(hashComponentIdentifier)
         .post();
 
-    assertHashComponentIdentifierData(assertAuditLog("unauthorized"), hashComponentIdentifier(null, null, null));
+    assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, "unauthorized"),
+        hashComponentIdentifier(null, null, null));
+  }
+
+  @Test
+  public void testDelete() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifier(COMPONENT_HASH, COMPONENT_IDENTIFIER,
+        COMMENT);
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+
+    restRequest().path(COMPONENT_HASH).delete();
+
+    assertHashComponentIdentifierData(assertAuditLog(AuditEvent.UNSET_COMPONENT_IDENTITY, null),
+        hashComponentIdentifier);
   }
 
   private HashComponentIdentifier hashComponentIdentifier(String componentHash,
@@ -85,9 +98,9 @@ public class HashComponentIdentifierResourceAuditTest
     return hashComponentIdentifier;
   }
 
-  private AuditDTO assertAuditLog(String error) {
-    AuditDTO auditDTO = awaitLogEntries(AuditEvent.SET_COMPONENT_IDENTITY, 1).get(0);
-    assertStandardData(auditDTO, AuditEvent.SET_COMPONENT_IDENTITY, error);
+  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
+    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
+    assertStandardData(auditDTO, auditEvent, error);
     return auditDTO;
   }
 

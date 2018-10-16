@@ -89,6 +89,17 @@ public class HashComponentIdentifierResourceAuditTest
         hashComponentIdentifier);
   }
 
+  @Test
+  public void testUpdate() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifier(COMPONENT_HASH, COMPONENT_IDENTIFIER,
+        COMMENT);
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+    hashComponentIdentifier.setId("new-id");
+    restRequest().body(hashComponentIdentifier).put();
+
+    assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, null), hashComponentIdentifier);
+  }
+
   private HashComponentIdentifier hashComponentIdentifier(String componentHash,
                                                           ComponentIdentifier componentIdentifier,
                                                           String comment)

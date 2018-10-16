@@ -70,6 +70,7 @@ public class HashComponentIdentifierService
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
   public HashComponentIdentifierDTO update(final HashComponentIdentifier hashComponentIdentifier) {
+    auditHashComponentIdentifier(hashComponentIdentifier);
     ComponentIdentifierValidator.validate(hashComponentIdentifier.getComponentIdentifier());
 
     ensureUnknownComponent(hashComponentIdentifier);

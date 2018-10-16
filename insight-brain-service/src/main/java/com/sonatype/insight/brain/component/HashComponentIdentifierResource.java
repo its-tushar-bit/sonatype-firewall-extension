@@ -55,6 +55,7 @@ public class HashComponentIdentifierResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.SET_COMPONENT_IDENTITY)
   public HashComponentIdentifierDTO update(final HashComponentIdentifier hashComponentIdentifier) {
     return hashComponentIdentifierService.update(hashComponentIdentifier);
   }

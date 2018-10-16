@@ -13,7 +13,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -35,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
@@ -716,14 +716,15 @@ public class ComponentDetailServiceTest
     PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId3");
 
     tempEntity.newPolicyViolation(policyEvaluation1, policy, componentId1, hash1, "reason1", "b.jar");
-    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash2, "reason2", "foo");
-    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash3, "reason3", "foo");
+    ComponentIdentifier nullComponentIdentifier = null;
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, nullComponentIdentifier, hash2, "reason2", "foo");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, nullComponentIdentifier, hash3, "reason3", "foo");
 
-    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash2, "reason2", "foo");
-    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash3, "reason3", "foo");
-    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash4, "reason4");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, nullComponentIdentifier, hash2, "reason2", "foo");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, nullComponentIdentifier, hash3, "reason3", "foo");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, nullComponentIdentifier, hash4, "reason4");
 
-    tempEntity.newPolicyViolation(policyEvaluation3, policy, null, hash3, "reason3");
+    tempEntity.newPolicyViolation(policyEvaluation3, policy, nullComponentIdentifier, hash3, "reason3");
 
     ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
     assertThat(componentDetailsDTO, notNullValue());

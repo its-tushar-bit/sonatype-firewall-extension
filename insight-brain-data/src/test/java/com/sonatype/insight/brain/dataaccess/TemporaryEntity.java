@@ -1110,6 +1110,16 @@ public class TemporaryEntity
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
                                             Policy policy,
+                                            String groupId,
+                                            String artifactId,
+                                            String version,
+                                            String hash)
+  {
+    return newPolicyViolation(evaluation, policy, groupId, artifactId, version, hash, null);
+  }
+
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
+                                            Policy policy,
                                             int threatLevel,
                                             PolicyThreatCategory category,
                                             ComponentIdentifier componentIdentifier,

@@ -69,4 +69,24 @@ public class NewestRiskDTO implements CsvWritable
     return joiner.join(threatLevel, policyName, organizationName, applicationName, componentName,
         formatter.format(firstOccurrenceTime), firstOccurrenceTime);
   }
+
+  public String getApplicationName() {
+    return applicationName;
+  }
+
+  public long getFirstOccurrenceTime() {
+    return firstOccurrenceTime;
+  }
+
+  public String getPolicyId() {
+    return policyId;
+  }
+
+  public String getDerivedComponentName() {
+    return derivedComponentName;
+  }
+
+  public String getScanId() {
+    return scanId;
+  }
 }

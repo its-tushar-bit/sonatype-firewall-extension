@@ -11,12 +11,16 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -160,11 +164,11 @@ public class NewestRiskServiceTest
 
   @Test
   public void testGetNewestRisks_FilterByPolicyThreatCategory() throws Exception {
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 5,
-        PolicyThreatCategory.OTHER, "gid", "aid", "1", "hash1");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1",
+        "hash1");
 
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null, null, null,
-        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER), null, null, null, 
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY), null, null, null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -174,8 +178,9 @@ public class NewestRiskServiceTest
 
   @Test
   public void testGetNewestRisks_FilterByPolicyThreatLevel() throws Exception {
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 7,
-        PolicyThreatCategory.OTHER, "gid", "aid", "1", "hash1");
+    Policy app1Policy1 = tempEntity.newPolicy(app1.getId(), "app owned policy1", 7);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy1, "gid", "aid",
+        "1", "hash1");
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null, null, null, null,
         new PolicyThreatLevelFilter(7, 7), null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
     assertThat(result.dashboardResults, hasSize(1));
@@ -291,15 +296,16 @@ public class NewestRiskServiceTest
 
   @Test
   public void testGetNewestRisks_Unknown() throws Exception {
+    ComponentIdentifier nullComponentIdentifier = null;
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
-    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", null, "a.zip/b.zip",
-        MatchState.UNKNOWN, false, evaluation.getTime());
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", nullComponentIdentifier,
+        "a.zip/b.zip", MatchState.UNKNOWN, false, evaluation.getTime());
 
-    // create 2 violations with no component identifier and give one no pathname and one with a pathname. 
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
-    PolicyViolation policyViolationPathName = tempEntity
-        .newPolicyViolation(evaluation, app1Policy, null, "filename-hash", "unknown2",
-            "b.zip");
+    // create 2 violations with no component identifier and give one no pathname and one with a pathname.
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, nullComponentIdentifier,
+        "hash-4", "unknown");
+    PolicyViolation policyViolationPathName = tempEntity.newPolicyViolation(evaluation, app1Policy,
+        nullComponentIdentifier, "filename-hash", "unknown2", "b.zip");
 
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null,
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, "COMPONENT_NAME",
@@ -478,6 +484,40 @@ public class NewestRiskServiceTest
     assertNewestRiskDTO(riskDTO, app2, org2, policyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, BuildStageType.ID, buildEvaluation.getScanId(),
         policyViolation.getActionTypeId(), buildEvaluation.getTime());
+  }
+
+  @Test
+  public void testGetNewestRisks_Deduplicate() throws Exception {
+    Application app = tempEntity.newApplication(org1.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation, org1Policy);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation, org1Policy);
+    // Set different constraint facts on the policy violations to ensure they are different.
+    violation1.setConstraintFacts(Collections.singletonList(buildConstraintFact(org1Policy, "trigger1")));
+    new PolicyViolationDAO().update(violation1);
+    violation2.setConstraintFacts(Collections.singletonList(buildConstraintFact(org1Policy, "trigger1")));
+    new PolicyViolationDAO().update(violation2);
+
+    DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null,
+        Collections.singleton(app.getId()), null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD,
+        1000);
+
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
+    NewestRiskDTO riskDTO = result.dashboardResults.get(0);
+    assertNewestRiskDTO(riskDTO, app, org1, violation1, evaluation.getTime());
+  }
+
+  private ConstraintFact buildConstraintFact(Policy policy, String trigger) {
+    Constraint constraint = policy.getConstraints().get(0);
+    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
+        constraint.getOperator().toString());
+    ConditionFact conditionFact = new ConditionFact(constraint.getConditions().get(0).getConditionTypeId(), 0,
+        "summary", "reason");
+    conditionFact.setTriggerJson(trigger);
+    constraintFact.addConditionFact(conditionFact);
+
+    return constraintFact;
   }
 
   private void assertNewestRiskDTO(NewestRiskDTO actual,

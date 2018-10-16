@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -26,11 +27,11 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -112,9 +113,20 @@ public class PolicyViolationLoader
 
     filterViolations(violations, violationFilter, appViewsByAppId);
 
+    // Sort violations using the standard violation comparator in order to get consistent results.
+    sortViolations(appViewsByAppId);
+
     log.debug("Created policy violation views in {} ms", System.currentTimeMillis() - start);
 
     return appViewsByAppId.values();
+  }
+
+  private void sortViolations(Map<String, ApplicationView> appViewsByAppId) {
+    for (ApplicationView appView : appViewsByAppId.values()) {
+      for (ApplicationStageView appStageView : appView.stageViewsByStageTypeId.values()) {
+        appStageView.getFilteredViolations().sort(PolicyViolationComparator.COMPARATOR);
+      }
+    }
   }
 
   private Collection<PolicyEvaluation> loadEvaluations(Set<String> applicationIds,
@@ -238,7 +250,7 @@ public class PolicyViolationLoader
 
     PolicyEvaluation lastEvaluation;
 
-    Collection<PolicyViolation> filteredViolations;
+    List<PolicyViolation> filteredViolations;
 
     public StageType getStageType() {
       return stageType;
@@ -248,7 +260,7 @@ public class PolicyViolationLoader
       return lastEvaluation;
     }
 
-    public Collection<PolicyViolation> getFilteredViolations() {
+    public List<PolicyViolation> getFilteredViolations() {
       return filteredViolations;
     }
   }

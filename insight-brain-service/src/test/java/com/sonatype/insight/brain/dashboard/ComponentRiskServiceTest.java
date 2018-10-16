@@ -40,8 +40,8 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
+import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -730,8 +730,10 @@ public class ComponentRiskServiceTest
         MatchState.UNKNOWN, false, evaluation.getTime());
 
     // Create 2 violations without component identifiers: one with a pathname and one without. 
-    tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
-    tempEntity.newPolicyViolation(evaluation, app1Policy, null, "filename-hash", "unknown2", "b.zip");
+    ComponentIdentifier nullComponentIdentifier = null;
+    tempEntity.newPolicyViolation(evaluation, app1Policy, nullComponentIdentifier, "hash-4", "unknown");
+    tempEntity.newPolicyViolation(evaluation, app1Policy, nullComponentIdentifier, "filename-hash", "unknown2",
+        "b.zip");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, null,
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, "NAME", 2);

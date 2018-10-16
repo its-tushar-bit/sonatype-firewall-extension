@@ -34,9 +34,14 @@ import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -114,8 +119,9 @@ public class DashboardViolationsTest
   public void init() throws IOException {
     app1 = tempEntity.newApplicationWithParent("app1", "DVT App1", "DVT Org1");
     app2 = tempEntity.newApplicationWithParent("app2", "DVT App2 With A Long Name Just To Force Overflow", "DVT Org2");
-    licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId(), "DVTLicensePolicy");
-    securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId(), "DVTSecurityPolicyWithAnotherUnnecessarilyLongName");
+    licensePolicy = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy", 5);
+    securityPolicy = createSecurityPolicy(app2.getParentOwnerId(), "DVTSecurityPolicyWithAnotherUnnecessarilyLongName",
+        5);
     buildEvalNow = tempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "now", now);
     buildEval2MonthsAgo = tempEntity
@@ -123,7 +129,7 @@ public class DashboardViolationsTest
     releaseEval2DaysAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "2dAgo", twoDaysAgo);
     operateEval1WeekAgo = tempEntity
-        .newPolicyEvaluation(app1.getId(), OperateStageType.ID, "1yAgo", oneWeekAgo);
+        .newPolicyEvaluation(app1.getId(), OperateStageType.ID, "1wAgo", oneWeekAgo);
     buildComponent = tempEntity
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "g1a1v1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
@@ -414,7 +420,7 @@ public class DashboardViolationsTest
 
   @Test
   public void testShouldNotShowMaxResultsMessageWhen100Results() {
-    createViolations(100, 5, buildEvalNow);
+    createViolations(100, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.violationsView().results().maxResultsMessage().shouldBe(hidden);
@@ -422,7 +428,7 @@ public class DashboardViolationsTest
 
   @Test
   public void testShouldShowMaxResultsMessageWhen101Results() {
-    createViolations(101, 5, buildEvalNow);
+    createViolations(101, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.violationsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
@@ -430,21 +436,25 @@ public class DashboardViolationsTest
 
   @Test
   public void testSortsOnBackendByAgeAndThreat() {
+    Policy licensePolicy2 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 2);
+    Policy licensePolicy3 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy3", 3);
+    Policy licensePolicy4 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy4", 4);
+    Policy licensePolicy5 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy5", 5);
 
     for (int i = 1; i <= 25; i++) {
       // 50 violations 1min old: 25 with threatLevel 2, 25 with threatLevel 3
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 2, LICENSE);
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 3, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy2, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy3, "G", "A", "V" + i, "Hash" + i);
 
       // 50 violations 2d old: 25 with threatLevel 4, 25 with threatLevel 5
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 4, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy4, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy5, "G", "A", "V" + i, "Hash" + i);
     }
 
     // 20 violations 2d old: 10 with threatLevel 2, 10 with threatLevel 3
     for (int i = 1; i <= 10; i++) {
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 2, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 3, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy2, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy3, "G", "A", "V" + i, "Hash" + i);
     }
 
     refresh();
@@ -492,21 +502,24 @@ public class DashboardViolationsTest
 
   @Test
   public void testSortsOnBackendByThreatAndAge() {
+    Policy licensePolicy2 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 2);
+    Policy licensePolicy3 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy3", 3);
+    Policy licensePolicy4 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy4", 4);
 
     for (int i = 1; i <= 25; i++) {
       // 50 violations with threatLevel 3: 25 - 1min old, 25 - 2d old
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 3, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 3, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy3, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy3, "G", "A", "V" + i, "Hash" + i);
 
       // 50 violations with threatLevel 4: 25 - 1min old, 25 - 2d old
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 4, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy4, "G", "A", "V" + i, "Hash" + i);
     }
 
     // 20 violations with threatLevel 2: 10 - 1min old, 10 - 2d old
     for (int i = 1; i <= 10; i++) {
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 2, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 2, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy2, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy2, "G", "A", "V" + i, "Hash" + i);
     }
 
     refresh();
@@ -554,17 +567,17 @@ public class DashboardViolationsTest
   public void testSortsOnBackendByPolicyAndAge() {
     for (int i = 1; i <= 25; i++) {
       // 50 licensePolicy violations: 25 - 1min old, 25 - 2d old
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, "G", "A", "V" + i, "Hash" + i);
 
       // 50 securityPolicy violations: 25 - 1min old, 25 - 2d old
-      tempEntity.newPolicyViolation(buildEvalNow, securityPolicy, 5, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, securityPolicy, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, "G", "A", "V" + i, "Hash" + i);
     }
 
     // 25 licensePolicy violations 1 week old
-    for (int i = 1; i <= 25; i++) {
-      tempEntity.newPolicyViolation(operateEval1WeekAgo, licensePolicy, 6, LICENSE);
+    for (int i = 26; i <= 50; i++) {
+      tempEntity.newPolicyViolation(operateEval1WeekAgo, licensePolicy, "G", "A", "V" + i, "Hash" + i);
     }
 
     refresh();
@@ -604,20 +617,23 @@ public class DashboardViolationsTest
 
   @Test
   public void testSortsOnBackendByApplicationAndThreat() {
+    Policy licensePolicy4 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy4", 4);
+    Policy licensePolicy5 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy5", 5);
+    Policy securityPolicy2 = createSecurityPolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 2);
 
     for (int i = 1; i <= 25; i++) {
       // 50 violations for App1: 25 with threat 4, 25 with threat 5
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE);
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy5, "G", "A", "V" + i, "Hash" + i);
 
       // 50 violations for App2: 25 with threat 4, 25 with threat 5
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 4, LICENSE);
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy4, "G", "A", "V" + i, "Hash" + i);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy5, "G", "A", "V" + i, "Hash" + i);
     }
 
     // 25 violations for App2: with threat 2
     for (int i = 1; i <= 25; i++) {
-      tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 2, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy2, "G", "A", "V" + i, "Hash" + i);
     }
 
     refresh();
@@ -660,20 +676,23 @@ public class DashboardViolationsTest
 
   @Test
   public void testSortsOnBackendByComponentNameAndThreat() {
+    Policy licensePolicy2 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 2);
+    Policy licensePolicy4 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy4", 4);
+    Policy licensePolicy5 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy5", 5);
 
     for (int i = 1; i <= 25; i++) {
       // 50 violations for 'group1' component: 25 with threatLevel 4, 25 with threatLevel 5
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE, "group1", "artifact", "version");
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE, "group1", "artifact", "version");
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "group1", "artifact", "version" + i, null);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy5, "group1", "artifact", "version" + i, null);
 
       // 50 violations for 'group2' component: 25 with threatLevel 4, 25 with threatLevel 5
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE, "group2", "artifact", "version");
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE, "group2", "artifact", "version");
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "group2", "artifact", "version" + i, null);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy5, "group2", "artifact", "version" + i, null);
     }
 
     // 25 violations for 'group2' component with threatLevel 2
     for (int i = 1; i <= 25; i++) {
-      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 2, LICENSE, "group2", "artifact", "version");
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy2, "group2", "artifact", "version" + i, null);
     }
 
     refresh();
@@ -749,16 +768,35 @@ public class DashboardViolationsTest
     }
   }
 
-  private void createViolations(int numViolations, int threatLevel, PolicyEvaluation policyEvaluation) {
+  private void createViolations(int numViolations, PolicyEvaluation policyEvaluation) {
     for (int i = 1; i <= numViolations; i++) {
       String group = "Group" + i;
       String artifact = "artifact" + i;
       String version = "version" + i;
       String hash = randomAlphanumeric(20);
 
-      tempEntity.newPolicyViolation(policyEvaluation, licensePolicy, threatLevel,
-          LICENSE, group, artifact, version, hash, FailActionType.ID);
+      tempEntity.newPolicyViolation(policyEvaluation, licensePolicy, group, artifact, version, hash, FailActionType.ID);
     }
+  }
+
+  private Policy createLicensePolicy(String ownerId, String name, int threatLevel) {
+    Policy policy = new Policy(null, name);
+    policy.setThreatLevel(threatLevel);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    policy.addConstraint(constraint);
+    return tempEntity.newPolicy(policy);
+  }
+
+  private Policy createSecurityPolicy(String ownerId, String name, int threatLevel) {
+    Policy policy = new Policy(null, name);
+    policy.setThreatLevel(threatLevel);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+    return tempEntity.newPolicy(policy);
   }
 
   private void showLowRiskViolations() {

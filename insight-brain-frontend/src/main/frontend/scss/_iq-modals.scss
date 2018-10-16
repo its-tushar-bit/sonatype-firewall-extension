@@ -87,6 +87,10 @@ $iq-modal-bottom-spacing: 8px;
     margin-right: -1px;
     margin-bottom: -1px;
     margin-left: -1px;
+    
+    > .iq-alert--error {
+      border: none;
+    }
   }
   
   .btn {

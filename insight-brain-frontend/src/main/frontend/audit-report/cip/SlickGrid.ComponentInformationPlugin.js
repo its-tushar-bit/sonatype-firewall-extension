@@ -43,7 +43,28 @@
       me.rowChangedFn.apply(me, arguments);
     });
 
-    this.node = this.compile('<div component-information-panel/>')(this.scope.$new());
+    const cipScope = this.scope.$new();
+    cipScope.tabs = [{
+      title: 'Component Info',
+      directive: 'information-panel'
+    }, {
+      title: 'Policy',
+      directive: 'cip-policy-violations'
+    },{
+      title: 'Licenses',
+      directive: 'cip-license-editor',
+      matchedOnly: true
+    }, {
+      title: 'Vulnerabilities',
+      directive: 'cip-vulnerability-editor',
+      matchedOnly: true
+    }, {
+      title: 'Labels',
+      directive: 'cip-label-editor',
+      matchedOnly: true
+    }];
+
+    this.node = this.compile('<div component-information-panel tabs="tabs"/>')(cipScope);
     this.node.appendTo(grid.getCanvasNode());
   };
 

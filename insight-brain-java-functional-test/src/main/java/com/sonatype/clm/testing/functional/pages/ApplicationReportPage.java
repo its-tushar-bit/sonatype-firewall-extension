@@ -10,9 +10,11 @@ import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -55,6 +57,10 @@ public class ApplicationReportPage
 
   public ResultRow resultRow(int i) {
     return new ResultRow(childSelector(".iq-table--application-report tbody .iq-table-row", nthChild(i)));
+  }
+
+  public CipModal cipModal() {
+    return new CipModal("#cip-modal");
   }
 
   public static class ResultRow
@@ -130,6 +136,36 @@ public class ApplicationReportPage
 
     public SelenideElement donutChart() {
       return child("span[coverage-donut] svg");
+    }
+  }
+
+  public static class CipModal
+      extends BasicElement<CipModal>
+  {
+    public static final Condition ACTIVE_CLASS = cssClass("active");
+
+    CipModal(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement header() {
+      return child("#cip-modal-header");
+    }
+
+    public SelenideElement tabLink(int i) {
+      return child(".nav-tabs li", nthChild(i));
+    }
+
+    public SelenideElement previousButton() {
+      return child("#cip-modal-previous-button");
+    }
+
+    public SelenideElement nextButton() {
+      return child("#cip-modal-next-button");
+    }
+
+    public SelenideElement closeButton() {
+      return child("#cip-modal-close-button");
     }
   }
 }

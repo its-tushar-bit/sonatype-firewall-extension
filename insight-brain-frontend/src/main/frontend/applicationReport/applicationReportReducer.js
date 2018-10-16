@@ -11,7 +11,8 @@ import {
   LOAD_REPORT_REQUESTED,
   SET_AGGREGATE_REPORT_ENTRIES,
   SET_FILTERING,
-  SET_SORTING
+  SET_SORTING,
+  SELECT_COMPONENT
 } from './applicationReportActions';
 
 import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService.new';
@@ -23,7 +24,8 @@ const initState = {
   sortCol: 'policyThreatLevel',
   sortReversed: true,
   filters: {},
-  selectedReport: null
+  selectedReport: null,
+  selectedComponentIndex: null
 };
 
 export default function(state = initState, {type, payload}) {
@@ -49,6 +51,9 @@ export default function(state = initState, {type, payload}) {
 
     case SET_SORTING:
       return updateDisplayedEntries({...state, ...pick(['sortCol', 'sortReversed'], payload)});
+
+    case SELECT_COMPONENT:
+      return {...state, selectedComponentIndex: payload};
 
     default:
       return state;

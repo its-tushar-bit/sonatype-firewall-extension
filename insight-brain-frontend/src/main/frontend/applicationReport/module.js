@@ -3,17 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import cipModalModule from './results/cipModal/module';
 import CLMLocationsModule from '../util/CLMLocation';
+import utilityModule from '../utility/utility.module';
+import ComponentDisplayModule from '../ComponentDisplay/module';
+
 import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
-import utilityModule from '../utility/utility.module';
 import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
-import ComponentDisplayModule from '../ComponentDisplay/module';
 import applicationReportService from './applicationReportService';
 
 export default angular.module('applicationReportModule',
-    [CLMLocationsModule.name, utilityModule.name, ComponentDisplayModule.name])
+    [
+      cipModalModule.name, CLMLocationsModule.name, utilityModule.name, ComponentDisplayModule.name
+    ])
     .service('applicationReportService', applicationReportService)
     .component('applicationReport', applicationReport)
     .component('applicationReportResults', applicationReportResults)

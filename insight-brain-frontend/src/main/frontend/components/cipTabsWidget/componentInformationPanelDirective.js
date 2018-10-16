@@ -3,38 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './componentInformationPanelDirective.html';
+
+/**
+ * component-information-panel directive
+ *
+ * Parameters:
+ *   tabs <Object>: tabs config
+ *   hide-close-button <no value>: if present, the close button (x) will be hidden
+ */
 export default function ComponentInformationPanel() {
   return {
-    templateUrl: 'cip/component.information.panel.directive.html',
+    template,
+    scope: {
+      tabs: '<'
+    },
     controllerAs: 'vm',
+    bindToController: true,
+    require: 'componentInformationPanel',
+    link(scope, element, attrs, controller) {
+      controller.showCloseButton = attrs.hideCloseButton == null;
+    },
     controller: ['$scope', 'SelectedComponent', function ($scope, selectedComponent) {
       var vm = this;
 
       vm.hide = hide;
       vm.showCIP = false;
       vm.selectedTab = undefined;
-      vm.tabs = [];
       vm.tabShown = tabShown;
-
-      vm.tabs = [{
-        title: 'Component Info',
-        directive: 'information-panel'
-      }, {
-        title: 'Policy',
-        directive: 'cip-policy-violations'
-      },{
-        title: 'Licenses',
-        directive: 'cip-license-editor',
-        matchedOnly: true
-      }, {
-        title: 'Vulnerabilities',
-        directive: 'cip-vulnerability-editor',
-        matchedOnly: true
-      }, {
-        title: 'Labels',
-        directive: 'cip-label-editor',
-        matchedOnly: true
-      }];
 
       function hide() {
         selectedComponent.toggle();

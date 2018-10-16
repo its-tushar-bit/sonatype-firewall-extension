@@ -1,8 +1,8 @@
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
 
-describe('applicationReportResultsSpec', function() {
+describe('applicationReportResults', function() {
 
-  let vm;
+  let vm, scope, OwnerContext, mockModal, $q;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -10,16 +10,41 @@ describe('applicationReportResultsSpec', function() {
     SpecUtil.mockNgRedux($provide);
   }));
 
-  beforeEach(inject(function(_$componentController_) {
+  beforeEach(inject(function(_$componentController_, $rootScope, _OwnerContext_, _$q_) {
+    OwnerContext = _OwnerContext_;
+    scope = $rootScope.$new();
+    $q = _$q_;
+    mockModal = jasmine.createSpyObj('Modal', ['open']);
     vm = _$componentController_('applicationReportResults', {
-      $state: {params: {publicId: 'testApp', scanId: 'testReport'}}
+      $state: {params: {publicId: 'testApp', scanId: 'testReport'}},
+      $scope: scope,
+      Modal: mockModal
     });
+    scope.vm = vm;
     vm.$onInit();
   }));
 
   describe('$onInit()', function() {
     it('loads correct report', function() {
       expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
+    });
+
+    it('watches vm.selectedReport and sets OwnerId in OwnerContext', function() {
+      spyOn(OwnerContext, 'setOwnerId');
+      vm.selectedReport = {
+        application: {
+          publicId: 'test-application-23424iufg'
+        }
+      };
+      scope.$digest();
+      expect(OwnerContext.setOwnerId).toHaveBeenCalledWith('test-application-23424iufg');
+    });
+
+    it('watches vm.selectedReport and handles null value', function() {
+      spyOn(OwnerContext, 'setOwnerId');
+      vm.selectedReport = null;
+      scope.$digest();
+      expect(OwnerContext.setOwnerId).not.toHaveBeenCalled();
     });
   });
 
@@ -48,6 +73,17 @@ describe('applicationReportResultsSpec', function() {
       vm.selectedReport = { totalArtifactCount: 300, knownArtifactCount: 151 };
 
       expect(vm.coveragePercent()).toBe(50);
+    });
+  });
+
+  describe('openCipModal', function() {
+    it('calls selects component with provided index and opens cip modal', function() {
+      mockModal.open.and.returnValue({
+        result: $q.resolve('foo')
+      });
+      vm.openCipModal(42);
+      expect(vm.selectComponent).toHaveBeenCalledWith(42);
+      expect(mockModal.open).toHaveBeenCalled();
     });
   });
 });

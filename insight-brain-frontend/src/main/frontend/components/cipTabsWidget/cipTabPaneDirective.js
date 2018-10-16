@@ -5,7 +5,7 @@
  */
 export default function CIPTabPane() {
   return {
-    scope : {
+    scope: {
       directive: '=cipTabPane'
     },
     controller: ['$scope', '$element', '$compile', function($scope, $element, $compile) {

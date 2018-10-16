@@ -1,0 +1,21 @@
+@import "../../../version-graph/buttons";
+@import "../../../version-graph/content";
+@import "../../../version-graph/detail-table";
+
+.iq-modal__cip {
+  width: 920px;
+  left: calc(50% - 460px);
+}
+
+#informationPanel {
+  height: 320px;
+
+  .tab-content {
+    width: 100%;
+    padding-top: 5px;
+  }
+}
+
+component-information-panel {
+  display: block;
+}

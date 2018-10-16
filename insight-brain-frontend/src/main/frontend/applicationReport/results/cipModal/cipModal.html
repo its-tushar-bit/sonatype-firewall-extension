@@ -1,0 +1,27 @@
+<section id="cip-modal">
+  <header id="cip-modal-header" class="iq-modal-header">
+    <h2>
+      <component-display component="vm.selectedComponent" truncate="true"></component-display>
+    </h2>
+  </header>
+  <component-information-panel class="iq-modal-content" tabs="vm.tabs" hide-close-button></component-information-panel>
+  <footer class="iq-modal-footer">
+    <button id="cip-modal-close-button" type="button" class="iq-btn" ng-click="vm.dismiss()">
+      Close
+    </button>
+    <button id="cip-modal-previous-button"
+            type="button"
+            class="iq-btn iq-btn--tertiary"
+            ng-click="vm.previous()"
+            ng-disabled="vm.isPreviousDisabled()">
+      <i class="fa fa-arrow-up"></i>Previous
+    </button>
+    <button id="cip-modal-next-button"
+            type="button"
+            class="iq-btn iq-btn--tertiary"
+            ng-click="vm.next()"
+            ng-disabled="vm.isNextDisabled()">
+      <i class="fa fa-arrow-down"></i>Next
+    </button>
+  </footer>
+</section>

@@ -10,9 +10,11 @@ import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
@@ -31,9 +33,13 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
 
 public class ApplicationReportTest
     extends AbstractFunctionalTest
@@ -113,6 +119,56 @@ public class ApplicationReportTest
   }
 
   @Test
+  public void testCIP() {
+    setupHdsResponse();
+    CipModal cipModal = reportPage.cipModal();
+
+    // Close, Prev and Next buttons
+    reportPage.resultRow(1).click();
+    cipModal.getElement().shouldBe(visible);
+
+    cipModal.header().shouldHave(exactText("javancss : javancss : 29.50"));
+    cipModal.previousButton().shouldBe(disabled);
+    cipModal.nextButton().shouldBe(enabled).click();
+
+    cipModal.header().shouldHave(exactText("ch.qos.logback : logback-access : 0.6"));
+    cipModal.previousButton().shouldBe(enabled);
+    cipModal.nextButton().shouldBe(enabled).click();
+    cipModal.closeButton().click();
+    cipModal.getElement().shouldBe(hidden);
+
+    reportPage.resultRow(4).click();
+    cipModal.getElement().shouldBe(visible);
+
+    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    cipModal.nextButton().shouldBe(disabled);
+    cipModal.previousButton().shouldBe(enabled).click();
+
+    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
+    cipModal.nextButton().shouldBe(enabled);
+    cipModal.previousButton().shouldBe(enabled);
+    cipModal.closeButton().click();
+    cipModal.getElement().shouldBe(hidden);
+
+    // Component Info tab
+    reportPage.resultRow(1).click();
+    cipModal.getElement().shouldBe(visible);
+    cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
+    VersionsCIP.groupId().shouldHave(text("critical"));
+    VersionsCIP.artifactId().shouldHave(text("threat"));
+    VersionsCIP.version().shouldHave(text("1.0"));
+    VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
+    VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
+    VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
+    VersionsCIP.securityCount().shouldHave(text("3"));
+    VersionsCIP.matchState().shouldHave(text("exact"));
+    VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
+    VersionsCIP.showDetailsLink().shouldBe(visible).click();
+    VersionsCIP.hideDetailsLink().shouldBe(visible);
+  }
+
+  @Test
   public void testWaivedIndicator() throws Exception {
     reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
@@ -129,5 +185,12 @@ public class ApplicationReportTest
     reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 0 components"));
 
     eyesWatcher.eyesCheck();
+  }
+
+  private void setupHdsResponse() {
+    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
+        getClass().getClassLoader().getResource("componentDetails/componentDetails.json"), 200);
+    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
+        getClass().getClassLoader().getResource("componentDetails/componentDetailsList.json"), 200);
   }
 }

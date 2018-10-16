@@ -156,7 +156,7 @@ form.form-horizontal .control-label {
   margin: 0px !important
 }
 
-.alert {
+#version-graph .alert {
   margin-top: 10px;
 }
 

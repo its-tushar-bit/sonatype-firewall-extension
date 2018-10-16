@@ -106,4 +106,18 @@ describe('applicationReportReducer', function() {
     });
   });
 
+  describe('SELECT_COMPONENT action', function() {
+    it('sets selectedComponentIndex to payload', function() {
+      const state = Object.freeze({
+        selectedComponentIndex: null,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'SELECT_COMPONENT', payload: 42});
+      expect(newState).toEqual({
+        selectedComponentIndex: 42,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
 });

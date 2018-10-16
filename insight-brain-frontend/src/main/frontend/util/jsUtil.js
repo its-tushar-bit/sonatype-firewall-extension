@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {curry, set, lensProp, lensPath, prop, flip} from 'ramda';
+import {curry, set, lensProp, lensPath, prop, flip, toPairs, filter, nth, compose, isNil, not, join, map} from 'ramda';
 
 /**
  * Convert Set to Array (in IE9 compatible way)
@@ -41,3 +41,12 @@ export const pathSet = curry((path, value, target) => set(lensPath(path), value,
 export const lookup = flip(prop);
 
 export const getDaysFromNow = timestamp => Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
+
+const toNonNullPairs = compose(filter(compose(not, isNil, nth(1))), toPairs);
+const pairToURIParam = compose(join('='), map(encodeURIComponent));
+
+/**
+ * {k: String} -> String
+ * Converts object to URI params string omitting empty values
+ */
+export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);

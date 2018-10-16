@@ -10,17 +10,12 @@ import cipLicenseEditorModule from '../../cip/cip.license.editor/cip.license.edi
 import cipVersionGraphModule from '../../cip/cip.version.graph/cip.version.graph.module';
 import cipPolicyViolationsModule from '../../cip/cip.policy.violations/cip.policy.violations.module';
 import cipVulnerabilityEditorModule from './cip.vulnerability.editor/cip.vulnerability.editor.module';
+import cipTabsWidgetModule from '../../components/cipTabsWidget/module';
 
-import SelectedComponent from './selected.component.service';
-import componentInformationPanelDirective from './component.information.panel.directive';
 import repositoryPolicyViolationsService from './repository.policy.violations.service';
-import cipTabPaneDirective from './cip.tab.pane.directive';
 
 export default angular.module('component.information.panel', [
   cipLabelEditorModule.name, cipPolicyViolationsModule.name, cipVulnerabilityEditorModule.name,
-  cipLicenseEditorModule.name, cipVersionGraphModule.name
+  cipLicenseEditorModule.name, cipVersionGraphModule.name, cipTabsWidgetModule.name
 ])
-    .service('SelectedComponent', SelectedComponent)
-    .directive('componentInformationPanel', componentInformationPanelDirective)
-    .service('PolicyViolations', repositoryPolicyViolationsService)
-    .directive('cipTabPane', cipTabPaneDirective);
+    .service('PolicyViolations', repositoryPolicyViolationsService);

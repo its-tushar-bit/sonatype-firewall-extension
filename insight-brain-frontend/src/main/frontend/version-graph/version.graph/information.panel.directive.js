@@ -8,7 +8,8 @@ export default function cipVersionGraph($window) {
   return {
     templateUrl: $window.CLM.assetsPath + 'version-graph/version-graph.html',
     controllerAs: 'vm',
-    controller: 'CIPController'
+    controller: 'CIPController',
+    scope: true
   };
 }
 

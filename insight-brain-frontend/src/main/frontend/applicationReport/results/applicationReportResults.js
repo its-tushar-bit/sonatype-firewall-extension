@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './applicationReportResults.html';
+import cipModalWrapper from './cipModalWrapper.html';
 
 export default {
   template,
@@ -11,7 +12,7 @@ export default {
   controller: ApplicationReportResultsController
 };
 
-function ApplicationReportResultsController($state, $ngRedux, applicationReportActions) {
+function ApplicationReportResultsController($state, $ngRedux, $scope, applicationReportActions, Modal, OwnerContext) {
   const vm = this;
 
   Object.assign(vm, {
@@ -25,6 +26,11 @@ function ApplicationReportResultsController($state, $ngRedux, applicationReportA
     },
 
     doLoad() {
+      $scope.$watch('vm.selectedReport', function(selectedReport) {
+        if (selectedReport) {
+          OwnerContext.setOwnerId(selectedReport.application.publicId);
+        }
+      });
       vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
     },
 
@@ -32,6 +38,15 @@ function ApplicationReportResultsController($state, $ngRedux, applicationReportA
       const { totalArtifactCount, knownArtifactCount } = vm.selectedReport;
 
       return totalArtifactCount ? Math.round(100 * knownArtifactCount / totalArtifactCount) : 0;
+    },
+
+    openCipModal(componentIndex) {
+      vm.selectComponent(componentIndex);
+      Modal.open({
+        template: cipModalWrapper,
+        windowClass: 'iq-modal iq-modal__cip',
+        backdropClass: 'iq-modal-backdrop'
+      });
     }
   });
 }
@@ -40,4 +55,6 @@ function mapStateToThis({applicationReport}) {
   return applicationReport;
 }
 
-ApplicationReportResultsController.$inject = ['$state', '$ngRedux', 'applicationReportActions'];
+ApplicationReportResultsController.$inject = [
+  '$state', '$ngRedux', '$scope', 'applicationReportActions', 'Modal', 'OwnerContext'
+];

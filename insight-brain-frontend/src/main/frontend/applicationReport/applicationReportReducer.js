@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { identity, lensPath, pick, pipe, set } from 'ramda';
+import { identity, inc, lensPath, pick, pipe, reduceBy, reject, set, sum, values } from 'ramda';
 
 import {
   LOAD_REPORT_FAILED,
@@ -69,14 +69,12 @@ function updateDisplayedEntries(state) {
 }
 
 function getViolationCountsPerThreatLevel(entries) {
-  return {
-    moderateViolationCount: entries.filter(between(2, 4)).length,
-    severeViolationCount: entries.filter(between(4, 8)).length,
-    criticalViolationCount: entries.filter(between(8, 11)).length,
-    nonLowViolationCount: entries.filter(between(2, 11)).length
-  };
-}
-
-function between(from, to) {
-  return v => v.policyThreatLevel >= from && v.policyThreatLevel < to;
+  const zeroCounts = {'criticalViolationCount': 0, 'severeViolationCount': 0, 'moderateViolationCount': 0};
+  const groupByThreatLevel = v => v.policyThreatLevel >= 8 ? 'criticalViolationCount' : v.policyThreatLevel >= 4 ?
+    'severeViolationCount' : v.policyThreatLevel >= 2 ? 'moderateViolationCount' : undefined;
+  const reduceToCountsByThreatLevel = reduceBy(inc, 0)(groupByThreatLevel);
+  const rejectIgnored = reject(v => v.grandfathered || v.waived || v.policyThreatLevel < 2);
+  const nonZeroCounts = pipe(rejectIgnored, reduceToCountsByThreatLevel)(entries);
+  const nonLowViolationCount = sum(values(nonZeroCounts));
+  return {...zeroCounts, ...nonZeroCounts, nonLowViolationCount};
 }

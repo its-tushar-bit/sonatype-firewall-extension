@@ -123,6 +123,11 @@ public class ApplicationReportTest
 
     reportPage.resultRows().shouldHaveSize(4);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+
+    reportPage.threatIndicators().severe().shouldHave(text("0"));
+    reportPage.threatIndicators().caption().shouldHave(exactText("0 Violations"));
+    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 0 components"));
+
     eyesWatcher.eyesCheck();
   }
 }

@@ -62,7 +62,10 @@ describe('applicationReportReducer', function() {
         selectedReport: null,
         other: otherObject
       });
-      const entries = [{policyThreatLevel: 1}, {policyThreatLevel: 3}, {policyThreatLevel: 6}, {policyThreatLevel: 9}];
+      const entries = [
+        {policyThreatLevel: 1}, {policyThreatLevel: 3}, {policyThreatLevel: 4, waived: true}, {policyThreatLevel: 6},
+        {policyThreatLevel: 9}, {policyThreatLevel: 10, grandfathered: true}
+      ];
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {allEntries: entries}

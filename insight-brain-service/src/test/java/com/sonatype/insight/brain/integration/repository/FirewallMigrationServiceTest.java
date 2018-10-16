@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -39,7 +39,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.google.common.base.Function;
 import org.awaitility.core.ThrowingRunnable;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -50,7 +49,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.google.common.collect.Lists.transform;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO.getErrMsgMissingRepo;
 import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
@@ -369,65 +367,39 @@ public class FirewallMigrationServiceTest
                                                                               final boolean ignoreIds)
   {
     return new IsIterableContainingInAnyOrder<>(
-        transform(components, new Function<RepositoryComponent, Matcher<? super RepositoryComponent>>()
-        {
-          @Override
-          public Matcher<? super RepositoryComponent> apply(@Nullable final RepositoryComponent input) {
-            return new RepositoryComponentMatcher(input, ignoreIds);
-          }
-        }));
+        components.stream().map(repositoryComponent -> new RepositoryComponentMatcher(repositoryComponent, ignoreIds))
+            .collect(Collectors.toList()));
   }
 
   private Matcher<Iterable<? extends RepositoryPolicyViolation>> containsViolations(List<RepositoryPolicyViolation> violations,
                                                                                     final boolean ignoreIds)
   {
-    return new IsIterableContainingInAnyOrder<>(
-        transform(violations, new Function<RepositoryPolicyViolation, Matcher<? super RepositoryPolicyViolation>>()
-        {
-          @Override
-          public Matcher<? super RepositoryPolicyViolation> apply(@Nullable final RepositoryPolicyViolation input) {
-            return new RepositoryPolicyViolationMatcher(input, ignoreIds);
-          }
-        }));
+    return new IsIterableContainingInAnyOrder<>(violations.stream()
+        .map(repositoryPolicyViolation -> new RepositoryPolicyViolationMatcher(repositoryPolicyViolation, ignoreIds))
+        .collect(Collectors.toList()));
   }
 
   private Matcher<Iterable<? extends LicenseOverride>> containsLicenseOverrides(List<LicenseOverride> licenseOverrides,
                                                                                 final boolean ignoreIds)
   {
-    return new IsIterableContainingInAnyOrder<>(
-        transform(licenseOverrides, new Function<LicenseOverride, Matcher<? super LicenseOverride>>()
-        {
-          @Override
-          public Matcher<? super LicenseOverride> apply(@Nullable final LicenseOverride input) {
-            return new LicenseOverrideMatcher(input, ignoreIds);
-          }
-        }));
+    return new IsIterableContainingInAnyOrder<>(licenseOverrides.stream()
+        .map(licenseOverride -> new LicenseOverrideMatcher(licenseOverride, ignoreIds)).collect(Collectors.toList()));
   }
 
   private Matcher<Iterable<? extends SecurityVulnerabilityOverride>> containsVulnerabilityOverrides(List<SecurityVulnerabilityOverride> overrides,
                                                                                                     final boolean ignoreIds)
   {
-    return new IsIterableContainingInAnyOrder<>(transform(overrides,
-        new Function<SecurityVulnerabilityOverride, Matcher<? super SecurityVulnerabilityOverride>>()
-        {
-          @Override
-          public Matcher<? super SecurityVulnerabilityOverride> apply(@Nullable final SecurityVulnerabilityOverride input) {
-            return new SecurityVulnerabilityOverrideMatcher(input, ignoreIds);
-          }
-        }));
+    return new IsIterableContainingInAnyOrder<>(overrides.stream()
+        .map(securityVulnerabilityOverride -> new SecurityVulnerabilityOverrideMatcher(securityVulnerabilityOverride,
+            ignoreIds))
+        .collect(Collectors.toList()));
   }
 
   private Matcher<Iterable<? extends PolicyWaiver>> containsPolicyWaivers(List<PolicyWaiver> policyWaivers,
                                                                           final boolean ignoreIds)
   {
-    return new IsIterableContainingInAnyOrder<>(
-        transform(policyWaivers, new Function<PolicyWaiver, Matcher<? super PolicyWaiver>>()
-        {
-          @Override
-          public Matcher<? super PolicyWaiver> apply(@Nullable final PolicyWaiver input) {
-            return new PolicyWaiverMatcher(input, ignoreIds);
-          }
-        }));
+    return new IsIterableContainingInAnyOrder<>(policyWaivers.stream()
+        .map(policyWaiver -> new PolicyWaiverMatcher(policyWaiver, ignoreIds)).collect(Collectors.toList()));
   }
 
   private static class GeneratedRepositoryData

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -60,7 +61,6 @@ import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.common.base.Functions;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -290,7 +290,7 @@ public class ComponentInfoService
 
     // All policies that were part of this evaluation, indexed by id
     Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerId(owner.getId()).stream()
-        .collect(Collectors.toMap(Policy::getId, Functions.identity()));
+        .collect(Collectors.toMap(Policy::getId, Function.identity()));
 
     List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());
     for (ComponentDetails componentDetails : componentDetailsList) {

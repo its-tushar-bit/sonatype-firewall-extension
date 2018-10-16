@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -23,10 +25,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Collections2;
 
 /**
  * @since 1.11
@@ -55,7 +53,7 @@ public class StageTypeService
   @Inject
   public StageTypeService(final CLMLicenseManager licenseManager) {
     this.licenseManager = licenseManager;
-    contextFilterMap.put(ALL_CONTEXT, Predicates.<StageType> alwaysTrue());
+    contextFilterMap.put(ALL_CONTEXT, x -> true);
     contextFilterMap.put(CI_CONTEXT, new CIFilter());
     contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
     contextFilterMap.put(QA_CONTEXT, new CIFilter());
@@ -89,7 +87,7 @@ public class StageTypeService
       throw new IllegalArgumentException("Invalid context " + context);
     }
     Collection<StageType> allowed = orderStages(calculateLicensedStages());
-    allowed = Collections2.filter(allowed, filter);
+    allowed = allowed.stream().filter(filter).collect(Collectors.toList());
     return Collections.unmodifiableCollection(allowed);
   }
 
@@ -158,10 +156,7 @@ public class StageTypeService
       implements Predicate<StageType>
   {
     @Override
-    public boolean apply(@Nullable final StageType input) {
-      if (input == null) {
-        return false;
-      }
+    public boolean test(@Nullable final StageType input) {
       return !DevelopStageType.ID.equals(input.getId()) && !ProxyStageType.ID.equals(input.getId());
     }
   }
@@ -169,12 +164,8 @@ public class StageTypeService
   private static class BuildFilter
       implements Predicate<StageType>
   {
-
     @Override
-    public boolean apply(StageType input) {
-      if (input == null) {
-        return false;
-      }
+    public boolean test(StageType input) {
       return !ProxyStageType.ID.equals(input.getId());
     }
   }
@@ -182,12 +173,8 @@ public class StageTypeService
   private static class DashboardFilter
       implements Predicate<StageType>
   {
-
     @Override
-    public boolean apply(StageType input) {
-      if (input == null) {
-        return false;
-      }
+    public boolean test(StageType input) {
       return !StageTypes.isIgnoredForDashboard(input.getId());
     }
   }

@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.webhook;
 
 import java.util.Date;
+import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -33,8 +33,6 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.eventbus.Subscribe;
 import io.dropwizard.lifecycle.Managed;
 
@@ -148,13 +146,8 @@ public class WebhookDispatcher
   }
 
   private Iterable<Webhook> getWebhooksOfEventType(final WebhookEventType webhookEventType) {
-    return Iterables.filter(webhookService.getAll_Unauthorized(), new Predicate<Webhook>()
-    {
-      @Override
-      public boolean apply(@Nullable final Webhook webhook) {
-        return webhook.getEventTypes().contains(webhookEventType);
-      }
-    });
+    return webhookService.getAll_Unauthorized().stream()
+        .filter(webhook -> webhook.getEventTypes().contains(webhookEventType)).collect(Collectors.toList());
   }
 
   private void sendLicenseOverridePayload(final Webhook webhook, final LicenseOverrideEvent event) {

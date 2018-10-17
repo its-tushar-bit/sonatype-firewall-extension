@@ -12,13 +12,11 @@ import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
 import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
-import applicationReportService from './applicationReportService';
 
 export default angular.module('applicationReportModule',
     [
       cipModalModule.name, CLMLocationsModule.name, utilityModule.name, ComponentDisplayModule.name
     ])
-    .service('applicationReportService', applicationReportService)
     .component('applicationReport', applicationReport)
     .component('applicationReportResults', applicationReportResults)
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it

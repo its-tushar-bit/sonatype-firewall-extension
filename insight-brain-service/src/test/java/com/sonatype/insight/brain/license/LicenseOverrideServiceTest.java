@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
@@ -27,9 +28,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEvent;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import com.google.common.collect.ImmutableSet;
@@ -100,7 +101,7 @@ public class LicenseOverrideServiceTest
   @Before
   public void setup() {
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
-    service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(),
+    service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(), new LicenseDAO(),
         rootOrganizationConfigMigrationUtils, licenseOverrideEventService);
   }
 

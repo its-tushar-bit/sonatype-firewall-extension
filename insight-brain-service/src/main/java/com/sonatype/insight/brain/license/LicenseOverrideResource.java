@@ -21,6 +21,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -49,6 +51,7 @@ public class LicenseOverrideResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_COMPONENT_LICENSE)
   public LicenseOverride addLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
                                             @PathParam("ownerId") String ownerId,
                                             LicenseOverride licenseOverride,

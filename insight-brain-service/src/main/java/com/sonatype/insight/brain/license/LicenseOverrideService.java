@@ -8,18 +8,22 @@ package com.sonatype.insight.brain.license;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -52,6 +56,8 @@ public class LicenseOverrideService
 
   private final OwnerDAO ownerDAO;
 
+  private final LicenseDAO licenseDAO;
+
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   private final LicenseOverrideEventService licenseOverrideEventService;
@@ -61,6 +67,7 @@ public class LicenseOverrideService
                                 final OwnerDAO ownerDAO,
                                 final CurrentUser currentUser,
                                 final LicenseOverrideDAO licenseOverrideDAO,
+                                final LicenseDAO licenseDAO,
                                 final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
                                 final LicenseOverrideEventService licenseOverrideEventService)
   {
@@ -68,6 +75,7 @@ public class LicenseOverrideService
     this.currentUser = currentUser;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.ownerDAO = ownerDAO;
+    this.licenseDAO = licenseDAO;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.licenseOverrideEventService = licenseOverrideEventService;
   }
@@ -97,12 +105,27 @@ public class LicenseOverrideService
       licenseOverrideDAO.insert(licenseOverride);
       licenseOverrideEventService.postEvent(CREATED, licenseOverride);
     }
+    auditLicenseOverride(licenseOverride);
 
     String user = currentUser.getUsername();
     String ipAddress = currentUser.getIP(request);
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, false /* isDelete */);
 
     return licenseOverride;
+  }
+
+  private void auditLicenseOverride(LicenseOverride licenseOverride) {
+    List<String> selectedOverriddenLicenseNames = licenseOverride.getLicenseIds().stream().map(licenseDAO::getById)
+        .map(License::getShortDisplayName).collect(Collectors.toList());
+
+    if (!selectedOverriddenLicenseNames.isEmpty()) {
+      AuditData.get().setData("licenseNames", selectedOverriddenLicenseNames);
+    }
+
+    AuditData.get() //
+        .setComponentIdentifier(licenseOverride.getComponentIdentifier()) //
+        .setEnum("status", licenseOverride.getStatus()) //
+        .setComment(licenseOverride.getComment());
   }
 
   private void auditLicenseOverride(String ownerId,

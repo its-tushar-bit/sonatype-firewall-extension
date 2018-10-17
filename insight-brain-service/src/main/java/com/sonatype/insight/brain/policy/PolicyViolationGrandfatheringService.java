@@ -76,6 +76,7 @@ public class PolicyViolationGrandfatheringService
         }
 
         tx.commit();
+        auditChangedPolicyViolationCount(grandfatheredPolicyViolations.size());
       }
     }
   }

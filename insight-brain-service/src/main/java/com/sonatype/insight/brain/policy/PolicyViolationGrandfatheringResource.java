@@ -47,6 +47,7 @@ public class PolicyViolationGrandfatheringResource
 
   @PUT
   @Path(REVOKE_PATH)
+  @Audited(AuditEvent.REVOKE_GRANDFATHERING)
   public void revokeGrandfathering(@PathParam("applicationPublicId") String applicationPublicId) {
     policyViolationGrandfatheringService.revokeGrandfathering(applicationPublicId);
   }

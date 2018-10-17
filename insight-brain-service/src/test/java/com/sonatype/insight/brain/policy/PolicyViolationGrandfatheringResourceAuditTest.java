@@ -27,9 +27,12 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 {
   private Application application;
 
+  private PolicyEvaluation policyEvaluation;
+
   @Before
   public void before() {
     application = tempEntity.newApplicationWithParent();
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
   }
 
   @Override
@@ -39,7 +42,6 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 
   @Test
   public void testGrandfather() throws Exception {
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
     Policy policyGrandfatheringAllowed = tempEntity.newPolicy("policyGrandfatheringAllowed");
     policyGrandfatheringAllowed.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policyGrandfatheringAllowed);
@@ -75,6 +77,17 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_GRANDFATHERING, "unauthorized");
     assertApplicationData(auditDTO, application);
     assertGrandfatheringData(auditDTO, null);
+  }
+
+  @Test
+  public void testRevokeGrandfathering() throws Exception {
+    tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, tempEntity.newPolicy("policy"));
+
+    restRequest().path(PolicyViolationGrandfatheringResource.REVOKE_PATH).parameter(application.getPublicId()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_GRANDFATHERING, null);
+    assertApplicationData(auditDTO, application);
+    assertGrandfatheringData(auditDTO, 1);
   }
 
   private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {

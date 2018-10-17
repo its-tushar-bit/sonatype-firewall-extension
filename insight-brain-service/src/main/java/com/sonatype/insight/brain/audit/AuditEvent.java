@@ -23,7 +23,8 @@ public enum AuditEvent
 
   EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE),
 
-  APPLY_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.APPLY);
+  APPLY_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.APPLY),
+  REVOKE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.REVOKE);
 
   private final String domain;
 
@@ -90,5 +91,7 @@ public enum AuditEvent
     String REMOVE = "remove";
 
     String APPLY = "apply";
+
+    String REVOKE = "revoke";
   }
 }

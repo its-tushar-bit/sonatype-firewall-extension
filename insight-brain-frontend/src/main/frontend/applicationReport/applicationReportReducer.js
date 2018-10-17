@@ -15,7 +15,7 @@ import {
   SELECT_COMPONENT
 } from './applicationReportActions';
 
-import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService.new';
+import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService';
 
 const initState = {
   loading: false,

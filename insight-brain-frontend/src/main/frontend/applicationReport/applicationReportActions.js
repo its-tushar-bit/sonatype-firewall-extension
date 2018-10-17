@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createReportEntries } from './applicationReportService.new';
+import { createReportEntries } from './applicationReportService';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';

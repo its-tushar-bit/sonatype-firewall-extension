@@ -3,186 +3,199 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import {
+  all,
+  apply,
+  compose,
+  concat,
+  contains,
+  curry,
+  filter,
+  flatten,
+  flip,
+  head,
+  into,
+  isEmpty,
+  groupBy,
+  isNil,
+  map,
+  mapObjIndexed,
+  pick,
+  pipe,
+  prop,
+  propEq,
+  reduce,
+  sort,
+  tail,
+  toPairs,
+  values
+} from 'ramda';
 
-export default
-function applicationReportService() {
-  return {
-    createReportEntries: createReportData
-  };
+const flatMap = pipe(map, flatten),
+    toKey = component => component.hash || (component.pathnames || []).join('\t'),
+    nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
+    indexComponentsByKey = components => mapObjIndexed(([data]) => data, groupBy(toKey, components)),
+    makeNonViolatingComponentEntry = component => ({
+      policyThreatLevel: 0,
+      policyName: 'None',
+      waived: false,
+      grandfathered: false,
+      ...component
+    });
+
+/**
+ * In this version, each entry in policyResult represents a component, with nested lists of violations
+ * for each
+ */
+function makeViolationEntriesV3(policyResult, bomDataByKey) {
+  function makeEntriesForComponent(component) {
+    const key = toKey(component),
+        bomComponent = bomDataByKey[key],
+        makeEntryForViolation = violation => ({
+          ...pick(['policyThreatLevel', 'policyName', 'waived', 'grandfathered'], violation),
+          ...bomComponent
+        });
+
+    return map(makeEntryForViolation, component.allViolations);
+  }
+
+  return flatMap(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
 }
 
-// copied from HDS
-function createReportData(policyResult, bomResult, unknownJsResult) {
-  const $ = window.jQuery;
-  function toKey(item) {
-    return item.hash || 'error: ' + (item.pathnames || []).join('\t');
-  }
-
-  if (policyResult === null || bomResult === null) {
-    return [];
-  }
-
-  var componentMap = {},
-      componentUsedMap = {}, // Used to find components w/o violations
-      componentWaivedMap = {}, // Used to find components with waived violations
-      componentGrandfatheredMap = {}, // Used to find grandfathered components
-      entries = [];
-
-  $.each(bomResult.aaData, function (index, component) {
-    var componentKey = toKey(component);
-    componentMap[componentKey] = component;
-    componentUsedMap[componentKey] = false;
-    componentWaivedMap[componentKey] = false;
-    componentGrandfatheredMap[componentKey] = false;
-  });
-
-  if (unknownJsResult) {
-    $.each(unknownJsResult.aaData, function (index, component) {
-      var componentKey = toKey(component);
-      componentMap[componentKey] = component;
-      componentUsedMap[componentKey] = false;
-      componentWaivedMap[componentKey] = false;
-      componentGrandfatheredMap[componentKey] = false;
-    });
-  }
-
-  if (policyResult.version === 3) {
-    $('#policy-violation-filter').show();
-    $('#policy-violations-grandfathered').show();
-    $.each(policyResult.aaData, function (componentIndex, component) {
-      var key = toKey(component);
-      if (!component.hash || component.hash === 'null') {
-        return true; // CLM-1863
-      }
-
-      component.allViolations.sort(function (a, b) {
-        var grandfathered = (b.grandfathered | 0) - (a.grandfathered | 0),
-            waived = (b.waived | 0) - (a.waived | 0);
-        if (grandfathered !== 0) {
-          return grandfathered;
-        }
-        else if (waived !== 0) {
-          return waived;
-        }
-        else {
-          return b.policyThreatLevel - a.policyThreatLevel;
-        }
-      });
-
-      var summary = true;
-      $.each(component.allViolations, function(violationIndex, violation) {
-        var active = !violation.waived && !violation.grandfathered;
-        componentUsedMap[key] = active;
-        componentWaivedMap[key] = violation.waived;
-        componentGrandfatheredMap[key] = violation.grandfathered;
-        entries.push($.extend({
-          policyThreatLevel: violation.policyThreatLevel,
-          policyName: violation.policyName,
-          groupId: component.groupId,
-          artifactId: component.artifactId,
-          version: component.version,
-          hash: component.hash,
-          componentIdentifier: component.componentIdentifier,
-          summary: active && summary,
-          waived: violation.waived,
-          grandfathered: violation.grandfathered,
-          all: true
-        }, componentMap[key]));
-        if (active) {
-          summary = false;
-        }
-      });
-    });
-  }
-  else if (policyResult.version) {
-    $('#policy-violation-filter').show();
-    $.each(policyResult.aaData, function (componentIndex, component) {
-      var key = toKey(component);
-      if (!component.hash || component.hash === 'null') {
-        return true; // CLM-1863
-      }
-
-      if (component.activeViolations.length) {
-        componentUsedMap[key] = true;
-        component.activeViolations.sort(function(a, b) {
-          return b.policyThreatLevel - a.policyThreatLevel;
+/**
+ * In these version, each entry in policyResult is a component, with separate lists for activeViolations
+ * and waivedViolations
+ */
+function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
+  function makeEntriesForComponent(component) {
+    const key = toKey(component),
+        bomComponent = bomDataByKey[key],
+        makeEntryForViolation = waived => violation => ({
+          waived,
+          grandfathered: false,
+          ...pick(['policyThreatLevel', 'policyName'], violation),
+          ...bomComponent
         });
 
-        $.each(component.activeViolations, function(violationIndex, violation) {
-          entries.push($.extend({
-            policyThreatLevel: violation.policyThreatLevel,
-            policyName: violation.policyName,
-            groupId: component.groupId,
-            artifactId: component.artifactId,
-            version: component.version,
-            hash: component.hash,
-            componentIdentifier: component.componentIdentifier,
-            summary: violationIndex === 0,
-            waived: false,
-            all: true
-          }, componentMap[key]));
-        });
-      }
+    return concat(
+        map(makeEntryForViolation(false), component.activeViolations),
+        map(makeEntryForViolation(true), component.waivedViolations)
+    );
+  }
 
-      if (component.waivedViolations.length) {
-        componentWaivedMap[key] = true;
+  return flatMap(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
+}
 
-        $.each(component.waivedViolations, function (waivedViolationIndex, waivedViolation) {
-          entries.push($.extend({
-            policyThreatLevel: waivedViolation.policyThreatLevel,
-            policyName: waivedViolation.policyName,
-            groupId: component.groupId,
-            artifactId: component.artifactId,
-            version: component.version,
-            hash: component.hash,
-            componentIdentifier: component.componentIdentifier,
-            summary: false,
-            waived: true,
-            all: true
-          }, componentMap[key]));
-        });
-      }
-    });
+/**
+ * In these versions, each entry is a violation
+ */
+function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
+  function makeEntryForViolation(violation) {
+    const key = toKey(violation),
+        bomComponent = bomDataByKey[key];
+
+    return {
+      waived: false,
+      grandfathered: false,
+      ...pick(['policyThreatLevel', 'policyName'], violation),
+      ...bomComponent
+    };
+  }
+
+  return map(makeEntryForViolation, filter(nullHashCheck, policyResult.aaData));
+}
+
+// A map of makeViolationEntries functions, indexed by policyResult version
+const makeViolationEntriesMap = new window.Map([
+  [3, makeViolationEntriesV3],
+  [2, makeViolationEntriesV1V2],
+  [1, makeViolationEntriesV1V2],
+  [null, makeViolationEntriesNoVersion]
+]);
+
+const defaultParamValue = { aaData: [] };
+
+export function createReportEntries(policyResult = defaultParamValue, bomResult = defaultParamValue,
+                                    unknownJsResult = defaultParamValue) {
+
+  // BOM (and unknownJS) records indexed by their key
+  const bomDataByKey = indexComponentsByKey(concat(bomResult.aaData, unknownJsResult.aaData)),
+
+      // select the right processing function for this version of the data
+      makeViolationEntries = makeViolationEntriesMap.get(policyResult.version || null),
+
+      // make entries for all violations
+      violationEntries = makeViolationEntries(policyResult, bomDataByKey),
+      violatingEntriesByKey = groupBy(toKey, violationEntries);
+
+  function isKeyInactive([key]) {
+    const violations = violatingEntriesByKey[key];
+
+    return isNil(violations) || all(propEq('grandfathered', true), violations);
+  }
+
+  const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),
+      nonViolatingComponentEntries = map(makeNonViolatingComponentEntry, nonViolatingBomData);
+
+  return concat(violationEntries, nonViolatingComponentEntries);
+}
+
+/**
+ * Take a list of all report entries and return a list of just the "aggregated" entries (ie one entry per component).
+ * The violation selected for each component is the one with the highest threat level, that is unwaived. If none are
+ * unwaived, a non-violating component entry is added for that component
+ */
+export function aggregateReportEntries(entries) {
+  const entriesByKey = groupBy(toKey, entries),
+
+      highestViolationReducer =
+          (acc, entry) => !entry.waived && entry.policyThreatLevel > acc.policyThreatLevel ? entry : acc,
+
+      findHighestViolation =
+          componentEntries => reduce(highestViolationReducer, head(componentEntries), tail(componentEntries)),
+
+      highestViolationsByKey = map(findHighestViolation, entriesByKey),
+      waivedViolationTransformer = entry => entry.waived ? makeNonViolatingComponentEntry(entry) : entry;
+
+  return map(waivedViolationTransformer, values(highestViolationsByKey));
+}
+
+/**
+ * Take a list of all report entries and return a new list of only entries that have allowed values for all properties
+ * in the filterConfig
+ * @param filters an object mapping from property name to list of allowed values
+ */
+export const filterReportEntries = curry(function filterReportEntries(filterConfig, entries) {
+  const filterPairs = toPairs(filterConfig);
+
+  if (isEmpty(filterPairs)) {
+    return entries;
   }
   else {
-    // Support for policythreats.json generated by CLM Server 1.8 and earlier
-    $.each(policyResult.aaData, function (index, violation) {
-      var key = toKey(violation);
-      if (!violation.hash || violation.hash === 'null') {
-        return true; // CLM-1863
-      }
+    const hasAllowedPropValue = (propName, allowedValues) => entry => contains(entry[propName], allowedValues),
 
-      componentUsedMap[key] = true;
+        // make a partially applied filter function for each property
+        filters = map(([propName, allowedValues]) => filter(hasAllowedPropValue(propName, allowedValues)), filterPairs),
+        overallFilter = apply(compose)(filters);
 
-      entries.push($.extend({
-        policyThreatLevel: violation.policyThreatLevel,
-        policyName: violation.policyName,
-        groupId: violation.groupId,
-        artifactId: violation.artifactId,
-        version: violation.version,
-        hash: violation.hash,
-        summary: true,
-        waived: false,
-        all: true
-      }, componentMap[key]));
-    });
+    return into([], overallFilter, entries);
   }
+});
 
-  // Add components w/o violations
-  $.each(componentUsedMap, function(componentKey, used) {
-    if (!used) {
-      entries.push($.extend(true, {
-        policyThreatLevel: 0,
-        policyName: 'None',
-        summary: true,
-        waived: false,
-        grandfathered: false,
-        all: componentWaivedMap[componentKey] === false && componentGrandfatheredMap[componentKey] === false
-        // if the component has a waived violation, we don't want to show none on the all view as it would already
-        // show the waived item
-      }, componentMap[componentKey]));
-    }
-  });
+/**
+ * Return a list of the specified entries sorted by the specified property, optionally in reverse
+ */
+export const sortReportEntries = curry(function sortReportEntries(sortProperty, reverse, entries) {
+  const propGetter = prop(sortProperty),
+      sortFn = (a, b) => {
+        const aProp = propGetter(a),
+            bProp = propGetter(b);
 
-  return { aaData: entries };
-}
+        return aProp < bProp ? -1 :
+          aProp > bProp ? 1 :
+            0;
+      },
+      sorter = sort(reverse ? flip(sortFn) : sortFn);
+
+  return sorter(entries);
+});

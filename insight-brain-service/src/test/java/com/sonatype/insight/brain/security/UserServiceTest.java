@@ -308,6 +308,23 @@ public class UserServiceTest
     assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
   }
 
+  @Test
+  public void testShouldDisplayDefaultPasswordWarning_NoAdminUser() {
+    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+
+    User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
+    admin.setUsername("admin2");
+    userDAO.update(admin);
+
+    try {
+      assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
+    }
+    finally {
+      admin.setUsername(User.ADMIN_USERNAME);
+      userDAO.update(admin);
+    }
+  }
+
   private void assertMember(FindMembersDTO findMembersDTO,
                             String error,
                             MemberType type,

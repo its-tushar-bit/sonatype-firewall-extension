@@ -26,6 +26,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
@@ -234,12 +235,16 @@ public class UserService
     }
 
     try {
-      clmRealm.getAuthenticationInfo(new UsernamePasswordToken(User.ADMIN_USERNAME, ADMIN_DEFAULT_PASSWORD));
+      AuthenticationInfo adminAuthInfo =
+          clmRealm.getAuthenticationInfo(new UsernamePasswordToken(User.ADMIN_USERNAME, ADMIN_DEFAULT_PASSWORD));
+
+      // if adminAuthInfo is null, then the admin user doesn't even exist so we shouldn't show the warning
+      return adminAuthInfo != null;
     }
     catch (AuthenticationException e) {
+      // the current password is not the default - so no warning
       return false;
     }
-    return true;
   }
 
   private void clearUserPassword(User user) {

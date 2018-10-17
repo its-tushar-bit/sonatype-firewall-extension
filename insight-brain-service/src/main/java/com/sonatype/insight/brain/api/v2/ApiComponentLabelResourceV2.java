@@ -14,6 +14,8 @@ import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentLabelServiceV2;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -38,6 +40,7 @@ public class ApiComponentLabelResourceV2
    * Assigns an existing label to a component identified by hash in a given app.
    */
   @POST
+  @Audited(AuditEvent.ASSIGN_COMPONENT_LABEL)
   public void setApplicationComponentLabel(@PathParam("applicationId") final String applicationId,
                                            @PathParam("componentHash") final String componentHash,
                                            @PathParam("labelName") final String labelName)

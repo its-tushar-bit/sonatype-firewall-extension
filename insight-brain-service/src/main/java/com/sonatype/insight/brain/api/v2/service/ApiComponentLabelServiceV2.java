@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -47,8 +48,10 @@ public class ApiComponentLabelServiceV2
                                            final String componentHash,
                                            final String labelName)
   {
-    String labelId = getLabelId(applicationId, labelName);
-    ComponentLabel componentLabel = new ComponentLabel(applicationId, labelId, HashHelper.truncateHash(componentHash));
+    Label label = getLabel(applicationId, labelName);
+    String truncatedComponentHash = HashHelper.truncateHash(componentHash);
+    AuditData.get().setComponentHash(truncatedComponentHash).setLabel(label);
+    ComponentLabel componentLabel = new ComponentLabel(applicationId, label.getId(), truncatedComponentHash);
     componentLabelDAO.insert(componentLabel);
   }
 
@@ -60,19 +63,18 @@ public class ApiComponentLabelServiceV2
                                               final String componentHash,
                                               final String labelName)
   {
-    String labelId = getLabelId(applicationId, labelName);
+    Label label = getLabel(applicationId, labelName);
     ComponentLabel componentLabel = componentLabelDAO
-        .getByOwnerIdAndHashAndLabelId(applicationId, HashHelper.truncateHash(componentHash), labelId);
+        .getByOwnerIdAndHashAndLabelId(applicationId, HashHelper.truncateHash(componentHash), label.getId());
     componentLabelDAO.delete(componentLabel);
   }
 
-  private String getLabelId(final String applicationId,
-                            final String labelName)
+  private Label getLabel(final String applicationId, final String labelName)
   {
     List<Label> labels = labelDAO.getByOwnerId(applicationId, true);
     for (Label label : labels) {
       if (label.getLabel().equalsIgnoreCase(labelName)) {
-        return label.getId();
+        return label;
       }
     }
     throw new NotFoundException("Could not find a label with name '" + labelName + "' for application with ID " + applicationId + ".");

@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 /**
@@ -195,6 +196,24 @@ public abstract class AuditData
 
   public AuditData setComponentIdentifier(ComponentIdentifier componentIdentifier) {
     setData("componentIdentifier", componentIdentifier);
+    return this;
+  }
+
+  public AuditData setLabel(Label label) {
+    if (label != null) {
+      setLabelId(label.getId());
+      setLabelName(label.getLabel());
+    }
+    return this;
+  }
+
+  AuditData setLabelId(String labelId) {
+    setData("labelId", labelId);
+    return this;
+  }
+
+  AuditData setLabelName(String labelName) {
+    setData("labelName", labelName);
     return this;
   }
 }

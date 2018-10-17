@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -92,17 +93,20 @@ public class PolicyViolationGrandfatheringService
         tx.begin();
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
+        int changedPolicyViolationCount = 0;
         for (PolicyViolation policyViolation : policyViolations) {
           if (!policyViolation.isGrandfathered()) {
             Policy policy = policyDAO.getById(tx, policyViolation.getPolicyId());
             if (policy == null || policy.isPolicyViolationGrandfatheringAllowed()) {
               policyViolation.setGrandfatherTime(now);
               policyViolationDAO.update(tx, policyViolation);
+              changedPolicyViolationCount++;
             }
           }
         }
 
         tx.commit();
+        auditChangedPolicyViolationCount(changedPolicyViolationCount);
       }
     }
   }
@@ -172,6 +176,10 @@ public class PolicyViolationGrandfatheringService
     }
 
     return policyViolationGrandfatheringDTO;
+  }
+
+  private void auditChangedPolicyViolationCount(int changedPolicyViolationCount) {
+    AuditData.get().setData("changedPolicyViolationCount", changedPolicyViolationCount);
   }
 
   public static class PolicyViolationGrandfatheringDTO

@@ -15,6 +15,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 
@@ -51,6 +53,7 @@ public class PolicyViolationGrandfatheringResource
 
   @PUT
   @Path(GRANDFATHER_PATH)
+  @Audited(AuditEvent.APPLY_GRANDFATHERING)
   public void grandfather(@PathParam("applicationPublicId") String applicationPublicId) {
     policyViolationGrandfatheringService.grandfather(applicationPublicId);
   }

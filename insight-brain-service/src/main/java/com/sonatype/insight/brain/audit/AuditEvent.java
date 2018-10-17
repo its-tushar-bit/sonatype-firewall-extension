@@ -21,7 +21,9 @@ public enum AuditEvent
   ASSIGN_COMPONENT_LABEL(Domain.GOVERNANCE_COMPONENT_LABEL, Type.ASSIGN),
   REMOVE_COMPONENT_LABEL(Domain.GOVERNANCE_COMPONENT_LABEL, Type.REMOVE),
 
-  EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE);
+  EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE),
+
+  APPLY_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.APPLY);
 
   private final String domain;
 
@@ -60,6 +62,8 @@ public enum AuditEvent
 
     String GOVERNANCE_COMPONENT_LICENSE = join(GOVERNANCE_COMPONENT, "license");
 
+    String GOVERNANCE_GRANDFATHERING = join(GOVERNANCE, "grandfathering");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -84,5 +88,7 @@ public enum AuditEvent
     String ASSIGN = "assign";
 
     String REMOVE = "remove";
+
+    String APPLY = "apply";
   }
 }

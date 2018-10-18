@@ -105,7 +105,7 @@ public class LicenseOverrideService
       licenseOverrideDAO.insert(licenseOverride);
       licenseOverrideEventService.postEvent(CREATED, licenseOverride);
     }
-    auditLicenseOverride(licenseOverride);
+    auditLicenseOverride(licenseOverride, false);
 
     String user = currentUser.getUsername();
     String ipAddress = currentUser.getIP(request);
@@ -114,18 +114,21 @@ public class LicenseOverrideService
     return licenseOverride;
   }
 
-  private void auditLicenseOverride(LicenseOverride licenseOverride) {
-    List<String> selectedOverriddenLicenseNames = licenseOverride.getLicenseIds().stream().map(licenseDAO::getById)
-        .map(License::getShortDisplayName).collect(Collectors.toList());
+  private void auditLicenseOverride(LicenseOverride licenseOverride, boolean isDelete) {
+    if (isDelete) {
+      AuditData.get().setData("status", "inherited");
+    }
+    else {
+      AuditData.get().setEnum("status", licenseOverride.getStatus()).setComment(licenseOverride.getComment());
 
-    if (!selectedOverriddenLicenseNames.isEmpty()) {
-      AuditData.get().setData("licenseNames", selectedOverriddenLicenseNames);
+      List<String> selectedOverriddenLicenseNames = licenseOverride.getLicenseIds().stream().map(licenseDAO::getById)
+          .map(License::getShortDisplayName).collect(Collectors.toList());
+      if (!selectedOverriddenLicenseNames.isEmpty()) {
+        AuditData.get().setData("licenseNames", selectedOverriddenLicenseNames);
+      }
     }
 
-    AuditData.get() //
-        .setComponentIdentifier(licenseOverride.getComponentIdentifier()) //
-        .setEnum("status", licenseOverride.getStatus()) //
-        .setComment(licenseOverride.getComment());
+    AuditData.get().setComponentIdentifier(licenseOverride.getComponentIdentifier());
   }
 
   private void auditLicenseOverride(String ownerId,
@@ -165,6 +168,8 @@ public class LicenseOverrideService
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, true /* isDelete */);
 
     licenseOverrideDAO.delete(licenseOverride);
+
+    auditLicenseOverride(licenseOverride, true);
 
     licenseOverrideEventService.postEvent(DELETED, licenseOverride);
   }

@@ -63,6 +63,7 @@ public class LicenseOverrideResource
 
   @DELETE
   @Path("{licenseOverrideId}")
+  @Audited(AuditEvent.UPDATE_COMPONENT_LICENSE)
   public void deleteLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
                                     @PathParam("ownerId") String ownerId,
                                     @PathParam("licenseOverrideId") String licenseOverrideId,

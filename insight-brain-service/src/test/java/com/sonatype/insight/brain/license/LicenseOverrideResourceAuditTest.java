@@ -36,6 +36,8 @@ public class LicenseOverrideResourceAuditTest
 {
   private LicenseOverride licenseOverride;
 
+  private Application app;
+
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
@@ -51,14 +53,23 @@ public class LicenseOverrideResourceAuditTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     licenseOverride = new LicenseOverride(null /* ownerId */, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
         new HashSet<>(Arrays.asList("Apache-2.0", "GPL-2.0")), null);
+    app = tempEntity.newApplicationWithParent();
+  }
+
+  private void assertOverrideData(AuditDTO auditDTO, LicenseOverride override, String... selectedOverriddenLicenseNames)
+  {
+    assertOverrideData(auditDTO, override, false, selectedOverriddenLicenseNames);
   }
 
   @SuppressWarnings("unchecked")
-  private void assertOverrideData(AuditDTO auditDTO, LicenseOverride override, String... selectedOverriddenLicenseNames)
+  private void assertOverrideData(AuditDTO auditDTO,
+                                  LicenseOverride override,
+                                  boolean isDelete,
+                                  String... selectedOverriddenLicenseNames)
   {
     assertCustomObject(auditDTO, "componentIdentifier", override.getComponentIdentifier());
-    assertCustomData(auditDTO, "status", override.getStatus().name().toLowerCase(Locale.ROOT));
-    assertCustomData(auditDTO, "comment", override.getComment());
+    assertCustomData(auditDTO, "status", isDelete ? "inherited" : override.getStatus().name().toLowerCase(Locale.ROOT));
+    assertCustomData(auditDTO, "comment", isDelete ? null : override.getComment());
     if (selectedOverriddenLicenseNames.length > 0) {
       assertThat(auditDTO.data, hasKey("licenseNames"));
       assertThat((List<String>) auditDTO.data.get("licenseNames"), containsInAnyOrder(selectedOverriddenLicenseNames));
@@ -70,8 +81,6 @@ public class LicenseOverrideResourceAuditTest
 
   @Test
   public void testAddLicenseOverride_Application() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("LicenseOverrideResourceAuditTest");
-
     licenseOverride.setComment("My comment");
     LicenseOverride response = restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride).post()
         .getBody(LicenseOverride.class);
@@ -125,6 +134,32 @@ public class LicenseOverrideResourceAuditTest
 
     restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride)
         .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).post();
+
+    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
+  @Test
+  public void testDeleteLicenseOverride() throws Exception {
+    LicenseOverride toBeDeleted = tempEntity
+        .newLicenseOverride(app.getId(), licenseOverride.getComponentIdentifier(), licenseOverride.getStatus(),
+            licenseOverride.getLicenseIds(), "Existing comment");
+
+    restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(toBeDeleted.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(null);
+    assertOverrideData(auditDTO, toBeDeleted, true);
+    assertApplicationData(auditDTO, app);
+  }
+
+  @Test
+  public void testDeleteLicenseOverride_Unauthorized() throws Exception {
+    LicenseOverride toBeDeleted = tempEntity
+        .newLicenseOverride(app.getId(), licenseOverride.getComponentIdentifier(), licenseOverride.getStatus(),
+            licenseOverride.getLicenseIds(), "Existing comment");
+
+    restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(toBeDeleted.getId())
+        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).delete();
 
     AuditDTO auditDTO = assertAuditLog("unauthorized");
     assertApplicationData(auditDTO, app);

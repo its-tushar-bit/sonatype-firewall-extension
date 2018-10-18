@@ -14,9 +14,12 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -25,12 +28,15 @@ import org.junit.Test;
 public class PolicyViolationGrandfatheringResourceAuditTest
     extends AbstractAuditTest
 {
+  private Organization organization;
+
   private Application application;
 
   private PolicyEvaluation policyEvaluation;
 
   @Before
   public void before() {
+    organization = tempEntity.newOrganization();
     application = tempEntity.newApplicationWithParent();
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
   }
@@ -90,6 +96,46 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     assertGrandfatheringData(auditDTO, 1);
   }
 
+  @Test
+  public void testSetGrandfathering_NoOverrideByChild_InheritLocalSetting() throws Exception {
+    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = new PolicyViolationGrandfatheringDTO();
+    policyViolationGrandfatheringDTO.enabled = null;
+
+    restRequest().path(PolicyViolationGrandfatheringResource.GET_PATH)
+        .parameter(OwnerType.APPLICATION, application.getPublicId()).body(policyViolationGrandfatheringDTO).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_GRANDFATHERING, null);
+    assertApplicationData(auditDTO, application);
+    assertGrandfatheringConfigurationData(auditDTO, null, "inherit");
+  }
+
+  @Test
+  public void testSetGrandfathering_AllowOverrideByChild_EnableLocalSetting() throws Exception {
+    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = new PolicyViolationGrandfatheringDTO();
+    policyViolationGrandfatheringDTO.enabled = true;
+    policyViolationGrandfatheringDTO.allowOverride = true;
+
+    restRequest().path(PolicyViolationGrandfatheringResource.GET_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId()).body(policyViolationGrandfatheringDTO).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_GRANDFATHERING, null);
+    assertOrganizationData(auditDTO, organization);
+    assertGrandfatheringConfigurationData(auditDTO, "allow", "enable");
+  }
+
+  @Test
+  public void testSetGrandfathering_DisallowOverrideByChild_DisableLocalSetting() throws Exception {
+    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = new PolicyViolationGrandfatheringDTO();
+    policyViolationGrandfatheringDTO.enabled = false;
+
+    restRequest().path(PolicyViolationGrandfatheringResource.GET_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId()).body(policyViolationGrandfatheringDTO).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_GRANDFATHERING, null);
+    assertOrganizationData(auditDTO, organization);
+    assertGrandfatheringConfigurationData(auditDTO, "disallow", "disable");
+  }
+
   private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
     AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
     assertStandardData(auditDTO, auditEvent, error);
@@ -98,5 +144,10 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 
   private void assertGrandfatheringData(AuditDTO auditDTO, Integer changedPolicyViolationCount) {
     assertCustomData(auditDTO, "changedPolicyViolationCount", changedPolicyViolationCount);
+  }
+
+  private void assertGrandfatheringConfigurationData(AuditDTO auditDTO, String overrideByChild, String localSetting) {
+    assertCustomData(auditDTO, "overrideByChild", overrideByChild);
+    assertCustomData(auditDTO, "localSetting", localSetting);
   }
 }

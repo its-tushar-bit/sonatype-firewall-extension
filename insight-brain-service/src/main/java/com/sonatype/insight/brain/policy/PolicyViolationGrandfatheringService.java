@@ -171,10 +171,14 @@ public class PolicyViolationGrandfatheringService
         org.setPolicyViolationGrandfatheringEnabled(policyViolationGrandfatheringDTO.enabled);
         org.setAllowPolicyViolationGrandfatheringOverride(policyViolationGrandfatheringDTO.allowOverride);
         organizationDAO.update(org);
+        AuditData.get()
+            .setData("overrideByChild", policyViolationGrandfatheringDTO.allowOverride ? "allow" : "disallow");
         break;
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
+    AuditData.get().setData("localSetting", policyViolationGrandfatheringDTO.enabled ==
+        null ? "inherit" : policyViolationGrandfatheringDTO.enabled ? "enable" : "disable");
 
     return policyViolationGrandfatheringDTO;
   }

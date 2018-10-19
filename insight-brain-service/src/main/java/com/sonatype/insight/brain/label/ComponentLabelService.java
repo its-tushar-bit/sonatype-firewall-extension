@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -71,11 +72,13 @@ public class ComponentLabelService
   public void setComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                 @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                 final String hash,
-                                final Label label)
+                                Label label)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    label = labelDAO.getByIdNotNull(label.getId());
     ComponentLabel componentLabel = new ComponentLabel(internalOwnerId, label.getId(), hash);
     componentLabelDAO.insert(componentLabel);
+    AuditData.get().setComponentHash(componentLabel.getHash()).setLabel(label);
   }
 
   /**

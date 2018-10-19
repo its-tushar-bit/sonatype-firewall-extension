@@ -16,6 +16,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.label.ComponentLabelService.AppliedLabels;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
@@ -58,6 +60,7 @@ public class ComponentLabelResource
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.ASSIGN_COMPONENT_LABEL)
   public void setComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
                                 @PathParam("ownerId") final String ownerId,
                                 @PathParam("hash") final String hash,

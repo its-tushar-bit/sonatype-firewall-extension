@@ -156,7 +156,7 @@ public abstract class AbstractPolicyEvaluationTest
     }
 
     for (ConditionFact conditionFact : conditionFacts) {
-      if (conditionFact.getTriggerJson().equals(JsonUtils.format(expectedConditionTrigger))) {
+      if (conditionFact.getTriggerJson().equals(JsonUtils.writeUnformatted(expectedConditionTrigger))) {
         return conditionFacts;
       }
     }

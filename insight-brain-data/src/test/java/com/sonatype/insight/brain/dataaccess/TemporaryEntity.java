@@ -739,10 +739,10 @@ public class TemporaryEntity
   public PolicyWaiver newWaiver(String hash,
                                 String policyId,
                                 String ownerId,
-                                String constraintFactsJson,
+                                List<ConstraintFact> constraintFacts,
                                 String comment)
   {
-    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFactsJson, comment);
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     waiverDAO.insert(waiver);
     return waiver;
   }

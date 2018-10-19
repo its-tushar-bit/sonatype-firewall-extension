@@ -50,7 +50,7 @@ public class PolicyWaiverResourceTest
   public void testCRUD_Application() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    String constraintFactsJson = JsonUtils.format(Collections.singletonList(new ConstraintFact()));
+    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
 
     testCRUD(OwnerType.APPLICATION, appPublicId, application.getId(), constraintFactsJson);
   }
@@ -58,7 +58,7 @@ public class PolicyWaiverResourceTest
   @Test
   public void testCRUD_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
-    String constraintFactsJson = JsonUtils.format(Collections.singletonList(new ConstraintFact()));
+    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
 
     testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId(), constraintFactsJson);
   }
@@ -66,7 +66,7 @@ public class PolicyWaiverResourceTest
   @Test
   public void testCRUD_Repository() throws Exception {
     Repository repository = tempEntity.newRepository("foo");
-    String constraintFactsJson = JsonUtils.format(Collections.singletonList(new ConstraintFact()));
+    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
 
     testCRUD(OwnerType.REPOSITORY, repository.getId(), repository.getId(), constraintFactsJson);
   }

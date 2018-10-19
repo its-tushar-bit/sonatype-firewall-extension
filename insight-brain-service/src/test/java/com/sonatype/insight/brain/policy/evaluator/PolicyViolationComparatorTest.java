@@ -325,14 +325,16 @@ public class PolicyViolationComparatorTest
   public void testCompare_ConditionFactsTriggers_ConditionTypeStoresTriggerData() {
     ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
-    conditionFact1.setTriggerJson("trigger1");
+    conditionFact1.setTriggerJson(
+        "{\"conditionIndex\" : 0, \"trigger\" : {\"refId\" : \"CVE-2013-0001\",\"statusId\" : \"OPEN\"}}");
     ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact1);
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact1));
 
     ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
-    conditionFact2.setTriggerJson("trigger2");
+    conditionFact2.setTriggerJson(
+        "{\"conditionIndex\" : 0, \"trigger\" : {\"refId\" : \"CVE-2013-0002\",\"statusId\" : \"OPEN\"}}");
     ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact2));
@@ -353,6 +355,60 @@ public class PolicyViolationComparatorTest
     ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
     conditionFact2.setTriggerJson("trigger");
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact2));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  // Before Brain 1.53, constraint facts were serialized as formatted json and condition fact triggers were formatted
+  // twice, which caused line separators to be encoded in json.
+  public void testCompare_ConditionFactsTriggers_LegacyTriggerContainsEncodedLineSeparators() {
+    // New policy violation with condition trigger serialized as unformatted json.
+    ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact1
+        .setTriggerJson("{\"conditionIndex\":0,\"trigger\":{\"refId\":\"CVE-2013-0329\",\"statusId\":\"OPEN\"}}");
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact1));
+
+    // Legacy policy violation with Windows line separators.
+    ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact2.setTriggerJson(
+        "{\r\n  \"conditionIndex\" : 0,\r\n  \"trigger\" : {\r\n    \"refId\" : \"CVE-2013-0329\",\r\n    \"statusId\" : \"OPEN\"\r\n  }\r\n}");
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact2));
+    compareAndAssert(v1, v2, 0);
+
+    // Legacy policy violation with unix line separators.
+    conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0 /* conditionIndex */,
+        "test summary", "test reason");
+    conditionFact2.setTriggerJson(
+        "{\n  \"conditionIndex\" : 0,\n  \"trigger\" : {\n    \"refId\" : \"CVE-2013-0329\",\n    \"statusId\" : \"OPEN\"\n  }\n}");
+    constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
+    v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA, Lists.newArrayList(constraintFact2));
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsTriggers_TriggerAttributeOrderDoesNotMatter() {
+    ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact1
+        .setTriggerJson("{\"conditionIndex\":0,\"trigger\":{\"refId\":\"CVE-2013-0329\",\"statusId\":\"OPEN\"}}");
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact1));
+
+    ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact2
+        .setTriggerJson("{\"conditionIndex\":0,\"trigger\":{\"statusId\":\"OPEN\",\"refId\":\"CVE-2013-0329\"}}");
     ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact2));

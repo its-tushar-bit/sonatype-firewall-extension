@@ -493,9 +493,11 @@ public class NewestRiskServiceTest
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation, org1Policy);
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation, org1Policy);
     // Set different constraint facts on the policy violations to ensure they are different.
-    violation1.setConstraintFacts(Collections.singletonList(buildConstraintFact(org1Policy, "trigger1")));
+    violation1.setConstraintFacts(Collections
+        .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar\"}}")));
     new PolicyViolationDAO().update(violation1);
-    violation2.setConstraintFacts(Collections.singletonList(buildConstraintFact(org1Policy, "trigger1")));
+    violation2.setConstraintFacts(Collections
+        .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar\"}}")));
     new PolicyViolationDAO().update(violation2);
 
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null,

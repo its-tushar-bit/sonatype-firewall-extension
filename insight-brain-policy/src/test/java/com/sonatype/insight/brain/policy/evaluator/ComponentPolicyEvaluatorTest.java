@@ -54,8 +54,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class ComponentPolicyEvaluatorTest
@@ -1034,7 +1036,11 @@ public class ComponentPolicyEvaluatorTest
     assertThat(actual.getConditionTypeId(), is(expectedConditionTypeId));
     assertThat(actual.getReason(), is(expectedReason));
     assertThat(actual.getSummary(), is(expectedSummary));
-    assertThat(actual.getTriggerJson(), is(JsonUtils.format(expectedConditionTrigger)));
+    assertThat(actual.getTriggerJson(), is(JsonUtils.writeUnformatted(expectedConditionTrigger)));
+    assertThat(actual.getTriggerJson(), not(containsString("\n")));
+    assertThat(actual.getTriggerJson(), not(containsString("\r")));
+    assertThat(actual.getTriggerJson(), not(containsString("\\n")));
+    assertThat(actual.getTriggerJson(), not(containsString("\\r")));
   }
 
   private ConditionTrigger newConditionTriggerWithSeverity(int conditionIndex,

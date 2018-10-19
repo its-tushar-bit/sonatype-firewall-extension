@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Comparator;
 
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
+import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 
 public class PolicyViolationComparator
     implements Comparator<PolicyViolationComparable>

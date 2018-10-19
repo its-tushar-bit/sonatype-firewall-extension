@@ -154,7 +154,7 @@ abstract class AbstractPolicyViolation
     }
 
     this.constraintFacts = constraintFacts;
-    constraintFactsJson = JsonUtils.format(constraintFacts);
+    constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
   }
 
   @Override

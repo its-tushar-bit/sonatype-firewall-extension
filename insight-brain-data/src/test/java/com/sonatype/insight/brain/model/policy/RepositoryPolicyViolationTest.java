@@ -19,8 +19,10 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.fail;
 
 public class RepositoryPolicyViolationTest
@@ -31,20 +33,24 @@ public class RepositoryPolicyViolationTest
   @Test
   public void testConstructorConstraintFacts() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.format(constraintFacts);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
     // Test construction of RepositoryPolicyViolation with constraint facts.
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
         constraintFacts);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
+    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\n")));
+    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\r")));
+    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\\n")));
+    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\\r")));
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
 
   @Test
   public void testConstructorConstraintFactsJson() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.format(constraintFacts);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
@@ -58,7 +64,7 @@ public class RepositoryPolicyViolationTest
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.format(constraintFacts);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyViolation.setConstraintFactsJson(constraintFactsJson);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);

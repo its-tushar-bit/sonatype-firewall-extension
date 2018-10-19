@@ -74,10 +74,15 @@ public class PolicyWaiver
     setHash(hash);
   }
 
-  public PolicyWaiver(String hash, String policyId, String ownerId, String constraintFactsJson, String comment) {
+  public PolicyWaiver(String hash,
+                      String policyId,
+                      String ownerId,
+                      List<ConstraintFact> constraintFacts,
+                      String comment)
+  {
     this(policyId, ownerId, comment);
     setHash(hash);
-    setConstraintFactsJson(constraintFactsJson);
+    setConstraintFacts(constraintFacts);
   }
 
   @Override
@@ -127,12 +132,13 @@ public class PolicyWaiver
   }
 
   public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
-    this.constraintFacts = constraintFacts;
-    if (constraintFacts == null) {
+    if (constraintFacts == null || constraintFacts.isEmpty()) {
+      this.constraintFacts = null;
       constraintFactsJson = null;
     }
     else {
-      constraintFactsJson = JsonUtils.format(constraintFacts);
+      this.constraintFacts = constraintFacts;
+      constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     }
   }
 

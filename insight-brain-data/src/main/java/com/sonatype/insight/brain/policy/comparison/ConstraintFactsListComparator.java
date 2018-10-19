@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.policy.evaluator;
+package com.sonatype.insight.brain.policy.comparison;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,7 +12,8 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 
-class ConstraintFactsListComparator implements Comparator<List<ConstraintFact>>
+public class ConstraintFactsListComparator
+    implements Comparator<List<ConstraintFact>>
 {
   public static final Comparator<List<ConstraintFact>> CONSTRAINT_FACTS_LIST_COMPARATOR = new ConstraintFactsListComparator();
 

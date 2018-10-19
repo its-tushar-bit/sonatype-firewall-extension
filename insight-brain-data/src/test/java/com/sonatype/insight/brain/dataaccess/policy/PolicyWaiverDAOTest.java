@@ -8,12 +8,17 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -25,6 +30,7 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -60,6 +66,7 @@ public class PolicyWaiverDAOTest
 
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyId, ownerId, comment);
+    policyWaiver.setConstraintFacts(createRandomConstraintFacts());
     assertNull(policyWaiver.getId());
     long beforeInsert = System.currentTimeMillis();
     dao.insert(policyWaiver);
@@ -121,12 +128,12 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
-    String constraintFactsJson = "foo";
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, constraintFactsJson, comment);
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     dao.insert(policyWaiver1);
 
-    PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, constraintFactsJson, comment);
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     try {
       dao.insert(policyWaiver2);
       fail("Expected BadRequestException");
@@ -145,12 +152,12 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
-    String constraintFactsJson = "foo";
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    PolicyWaiver policyWaiver1 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFactsJson, comment);
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFacts, comment);
     dao.insert(policyWaiver1);
 
-    PolicyWaiver policyWaiver2 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFactsJson, comment);
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFacts, comment);
     try {
       dao.insert(policyWaiver2);
       fail("Expected BadRequestException");
@@ -246,10 +253,10 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
-    String constraintFactsJson = "foo";
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    tempEntity.newWaiver(hash1, policyId, ownerId, constraintFactsJson, comment);
-    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId, constraintFactsJson, comment);
+    tempEntity.newWaiver(hash1, policyId, ownerId, constraintFacts, comment);
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId, constraintFacts, comment);
 
     policyWaiver2.setHash(hash1);
     try {
@@ -270,11 +277,10 @@ public class PolicyWaiverDAOTest
     String policyId1 = policy1.getId();
     String policyId2 = policy2.getId();
     String ownerId = organization.getId();
-    String constraintFactsJson = "foo";
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    tempEntity.newWaiver(null /* hash */, policyId1, ownerId, constraintFactsJson, comment);
-    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(null /* hash */, policyId2, ownerId, constraintFactsJson,
-        comment);
+    tempEntity.newWaiver(null /* hash */, policyId1, ownerId, constraintFacts, comment);
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(null /* hash */, policyId2, ownerId, constraintFacts, comment);
 
     policyWaiver2.setPolicyId(policyId1);
     try {
@@ -353,5 +359,58 @@ public class PolicyWaiverDAOTest
     tempEntity.newWaiver(policy2.getId(), application.getId());
     tempEntity.newWaiver(policy3.getId(), application.getId());
     assertThat(dao.getCount(), is(3));
+  }
+
+  @Test
+  public void testGetByHashAndPolicyIdAndOwnerIdAndConstraintFacts() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String comment = "My comment";
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    tempEntity.newWaiver(hash, policyId, ownerId, createRandomConstraintFacts(), comment);
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      PolicyWaiver foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
+          constraintFacts);
+      assertThat(foundPolicyWaiver.getId(), is(policyWaiver1.getId()));
+    }
+  }
+
+  @Test
+  public void testGetByHashAndPolicyIdAndOwnerIdAndConstraintFacts_NullConstraintFacts() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "My comment";
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(hash, policyId, ownerId, null /* constraintFacts */, comment);
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Get using null constraint facts
+      PolicyWaiver foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
+          null /* constraintFacts */);
+      assertThat(foundPolicyWaiver.getId(), is(policyWaiver1.getId()));
+
+      // Get using not null constraint facts
+      foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
+          createRandomConstraintFacts());
+      assertThat(foundPolicyWaiver, is(nullValue()));
+    }
+  }
+
+  private List<ConstraintFact> createRandomConstraintFacts() {
+    ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact.setTriggerJson(
+        "{\"conditionIndex\":1,\"trigger\":{\"refId\":\"" + UUID.randomUUID() + "\",\"severity\":5.7}}");
+    ConstraintFact constraintFact = new ConstraintFact("constraint Id", "constraint Name",
+        LogicalOperator.AND.toString());
+    constraintFact.addConditionFact(conditionFact);
+    return Collections.singletonList(constraintFact);
   }
 }

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -233,7 +234,7 @@ public class ComponentPolicyEvaluator
     if (matchFact != null && !matchFact.getConditionTriggers().isEmpty()) {
       ConditionTrigger conditionTrigger = matchFact.getConditionTriggerByConditionIndex(condition.getConditionIndex());
       if (conditionTrigger != null) {
-        conditionFact.setTriggerJson(JsonUtils.format(conditionTrigger));
+        conditionFact.setTriggerJson(JsonUtils.writeUnformatted(conditionTrigger));
       }
     }
     return conditionFact;

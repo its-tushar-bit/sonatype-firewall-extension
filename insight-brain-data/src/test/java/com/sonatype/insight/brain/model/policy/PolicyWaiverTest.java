@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,8 +19,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -56,7 +59,7 @@ public class PolicyWaiverTest
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.format(constraintFacts);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyWaiver.setConstraintFactsJson(constraintFactsJson);
     assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
@@ -87,9 +90,13 @@ public class PolicyWaiverTest
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.format(constraintFacts);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyWaiver.setConstraintFacts(constraintFacts);
     assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\n")));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\r")));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\n")));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\r")));
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
   }
 
@@ -104,31 +111,45 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testConstructorConstraintFactsJson() throws Exception {
-    List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.format(constraintFacts);
+  public void testSetConstraintFacts_Empty() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
 
-    PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFactsJson, "comment");
-
-    assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
-    assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
-  }
-
-  @Test
-  public void testConstructorConstraintFactsJson_Null() throws Exception {
-    String constraintFactsJson = null;
-
-    PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFactsJson, "comment");
+    policyWaiver.setConstraintFacts(Collections.emptyList());
 
     assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
     assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
   }
 
   @Test
-  public void testConstructorConstraintFactsJson_Empty() throws Exception {
-    String constraintFactsJson = " ";
+  public void testConstructorConstraintFacts() throws Exception {
+    List<ConstraintFact> constraintFacts = createConstraintFacts(2);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
-    PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFactsJson, "comment");
+    PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
+
+    assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\n")));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\r")));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\n")));
+    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\r")));
+    assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
+  }
+
+  @Test
+  public void testConstructorConstraintFacts_Null() throws Exception {
+    List<ConstraintFact> constraintFacts = null;
+
+    PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
+
+    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+  }
+
+  @Test
+  public void testConstructorConstraintFacts_Empty() throws Exception {
+    List<ConstraintFact> constraintFacts = Collections.emptyList();
+
+    PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
 
     assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
     assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));

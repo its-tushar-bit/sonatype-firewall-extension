@@ -10,10 +10,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -112,15 +114,29 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId, ownerIds);
   }
 
-  private PolicyWaiver getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(TransactionContext tx,
-                                                                        String hash,
-                                                                        String policyId,
-                                                                        String ownerId,
-                                                                        String constraintFactsJson)
+  PolicyWaiver getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(TransactionContext tx,
+                                                                String hash,
+                                                                String policyId,
+                                                                String ownerId,
+                                                                List<ConstraintFact> constraintFacts)
   {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3 AND entity.constraintFactsJson=?4";
-    return get(tx, sQuery, hash, policyId, ownerId, constraintFactsJson);
+        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3";
+    if (constraintFacts == null) {
+      sQuery += " AND entity.constraintFactsJson IS NULL";
+      return get(tx, sQuery, hash, policyId, ownerId);
+    }
+
+    List<PolicyWaiver> policyWaivers = getList(tx, sQuery, hash, policyId, ownerId);
+    for (PolicyWaiver policyWaiver : policyWaivers) {
+      if (policyWaiver.getConstraintFacts() != null && //
+          ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(constraintFacts,
+              policyWaiver.getConstraintFacts()) == 0) {
+        return policyWaiver;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -134,7 +150,7 @@ public class PolicyWaiverDAO
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
     PolicyWaiver other = getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(), entity.getPolicyId(),
-        entity.getOwnerId(), entity.getConstraintFactsJson());
+        entity.getOwnerId(), entity.getConstraintFacts());
     if (other != null) {
       throw new BadRequestException("This policy waiver already exists.");
     }
@@ -152,7 +168,7 @@ public class PolicyWaiverDAO
   @Override
   public void update(TransactionContext tx, PolicyWaiver entity) {
     PolicyWaiver other = getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(), entity.getPolicyId(),
-        entity.getOwnerId(), entity.getConstraintFactsJson());
+        entity.getOwnerId(), entity.getConstraintFacts());
     if (other != null && !other.getId().equals(entity.getId())) {
       throw new BadRequestException("A policy waiver for the same policy violation already exists.");
     }

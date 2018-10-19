@@ -3,11 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.policy.evaluator;
+package com.sonatype.insight.brain.policy.comparison;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Comparator;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.json.store.JsonUtils;
 
 class ConditionFactComparator implements Comparator<ConditionFact>
 {
@@ -33,11 +37,25 @@ class ConditionFactComparator implements Comparator<ConditionFact>
       // Condition trigger
       // Not all condition types store trigger data.
       if (conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
+        try {
+          // This deserializes json into ConditionTrigger instances where ConditionTrigger.trigger is a map of the
+          // property names/values of the original object that triggered the policy condition.
+          // So we compare two maps for equality below...
+          ConditionTrigger conditionTrigger1 = JsonUtils.parse(conditionFact1.getTriggerJson(), ConditionTrigger.class);
+          ConditionTrigger conditionTrigger2 = JsonUtils.parse(conditionFact2.getTriggerJson(), ConditionTrigger.class);
+          if (conditionTrigger1.getTrigger().equals(conditionTrigger2.getTrigger())) {
+            return 0;
+          }
+        }
+        catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+        // If the triggers are not equal, then the order is not important as long as it is consistent.
+        // The comparison of the triggers as json should be good enough.
         result = conditionFact1.getTriggerJson().compareTo(conditionFact2.getTriggerJson());
       }
-      if (result != 0) {
-        return result;
-      }
+
+      return result;
     }
 
     return 0;

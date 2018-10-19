@@ -10,12 +10,15 @@ public class ConditionTrigger
   /**
    * The condition index (or number) in the policy constraint. It matches the {@link MatchFact.conditionNumber}.
    */
-  private final int conditionIndex;
+  private int conditionIndex;
 
   /**
    * The actual condition trigger. It can be a security vulnerability, license threat group, etc.
    */
-  private final Object trigger;
+  private Object trigger;
+
+  public ConditionTrigger() {
+  }
 
   public ConditionTrigger(int conditionIndex, Object trigger) {
     this.conditionIndex = conditionIndex;

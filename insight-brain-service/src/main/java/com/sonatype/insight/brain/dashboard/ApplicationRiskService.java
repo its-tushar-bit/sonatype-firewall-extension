@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 
 import javax.inject.Inject;
@@ -26,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
@@ -37,8 +40,6 @@ import org.slf4j.LoggerFactory;
 public class ApplicationRiskService
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationRiskService.class);
-
-  private static final String SECRET_JOIN_STRING = "$";
 
   private final ApplicationService applicationService;
 
@@ -138,17 +139,16 @@ public class ApplicationRiskService
                                            final Collection<ApplicationStageView> appStageViews)
   {
     // squish down any dupes we have across stages
-    final Map<String, PolicyViolation> compHashToViolation = new HashMap<>();
+    final SortedSet<PolicyViolation> dedupedViolations = new TreeSet<>(PolicyViolationComparator.COMPARATOR);
     for (ApplicationStageView appStageView : sortByLastEvaluationTimeDescending(appStageViews)) {
-      for (final PolicyViolation violation1 : appStageView.getFilteredViolations()) {
-        String vioHash = violation1.getPolicyId() + SECRET_JOIN_STRING + violation1.getHash();
+      for (final PolicyViolation violation : appStageView.getFilteredViolations()) {
         // first time we see a violation, we make it, any later occurrence is from an older evaluation
-        compHashToViolation.putIfAbsent(vioHash, violation1);
+        dedupedViolations.add(violation);
       }
     }
 
     // update the total risks based on the deduped risks
-    for (final PolicyViolation violation : compHashToViolation.values()) {
+    for (final PolicyViolation violation : dedupedViolations) {
       updateRisk(applicationRiskScore.totalApplicationRisk, violation.getThreatLevel());
     }
   }

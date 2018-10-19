@@ -313,7 +313,7 @@ public class ApplicationRiskServiceTest
     assertThat(result.dashboardResults, hasSize(1));
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
-    assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 10, 0, 0, 0, 10);
+    assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 10, 5, 0, 0, 15);
     assertThat(applicationRiskScoreDTO.stageRisks, hasSize(3));
 
     StageRiskScoreDTO buildStageRisk = applicationRiskScoreDTO.getStageRiskScore(BuildStageType.ID);

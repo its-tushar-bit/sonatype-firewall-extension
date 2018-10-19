@@ -64,8 +64,10 @@ public class ApiComponentLabelServiceV2
                                               final String labelName)
   {
     Label label = getLabel(applicationId, labelName);
+    String truncatedComponentHash = HashHelper.truncateHash(componentHash);
+    AuditData.get().setComponentHash(truncatedComponentHash).setLabel(label);
     ComponentLabel componentLabel = componentLabelDAO
-        .getByOwnerIdAndHashAndLabelId(applicationId, HashHelper.truncateHash(componentHash), label.getId());
+        .getByOwnerIdAndHashAndLabelId(applicationId, truncatedComponentHash, label.getId());
     componentLabelDAO.delete(componentLabel);
   }
 

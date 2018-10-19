@@ -52,6 +52,7 @@ public class ApiComponentLabelResourceV2
    * Deletes the component label identified by hash in a given app.
    */
   @DELETE
+  @Audited(AuditEvent.REMOVE_COMPONENT_LABEL)
   public void deleteApplicationComponentLabel(@PathParam("applicationId") final String applicationId,
                                               @PathParam("componentHash") final String componentHash,
                                               @PathParam("labelName") final String labelName)

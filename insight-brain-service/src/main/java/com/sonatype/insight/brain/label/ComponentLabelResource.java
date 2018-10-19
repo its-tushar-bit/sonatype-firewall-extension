@@ -76,6 +76,7 @@ public class ComponentLabelResource
    */
   @DELETE
   @Path("{labelId}")
+  @Audited(AuditEvent.REMOVE_COMPONENT_LABEL)
   public void deleteComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
                                    @PathParam("ownerId") final String ownerId,
                                    @PathParam("hash") final String hash,

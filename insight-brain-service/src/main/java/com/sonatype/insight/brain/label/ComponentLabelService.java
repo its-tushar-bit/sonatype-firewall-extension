@@ -91,12 +91,14 @@ public class ComponentLabelService
                                    final String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    ComponentLabel label = componentLabelDAO.getByOwnerIdAndHashAndLabelId(internalOwnerId, hash, labelId);
-    if (label == null) {
+    Label label = labelDAO.getByIdNotNull(labelId);
+    ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(internalOwnerId, hash, labelId);
+    if (componentLabel == null) {
       throw new NotFoundException("Cannot find the label with ID " + labelId + " for " + ownerType + " ID " + ownerId
           + " on the component " + hash + ".");
     }
-    componentLabelDAO.delete(label);
+    componentLabelDAO.delete(componentLabel);
+    AuditData.get().setComponentHash(componentLabel.getHash()).setLabel(label);
   }
 
   /**

@@ -32,6 +32,10 @@ public class ComponentLabelResourceAuditTest
     return restRequest().path(ComponentLabelResource.RESOURCE_PATH).parameter(ownerType, ownerId, hash);
   }
 
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId, String hash, String labelId) {
+    return restRequest().path(ComponentLabelResource.RESOURCE_PATH, labelId).parameter(ownerType, ownerId, hash);
+  }
+
   private AuditDTO assertAuditLog(final AuditEvent auditEvent, final String error) {
     final AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
     assertStandardData(auditDTO, auditEvent, error);
@@ -98,6 +102,61 @@ public class ComponentLabelResourceAuditTest
         .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_AppLevel() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH, label.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
+    assertApplicationData(auditDTO, application);
+    assertComponentLabelData(auditDTO);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_OrgLevel() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    tempEntity.newComponentLabel(organization.getId(), label.getId(), COMPONENT_HASH);
+    restRequest(OwnerType.ORGANIZATION, organization.getId(), COMPONENT_HASH, label.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
+    assertOrganizationData(auditDTO, organization);
+    assertComponentLabelData(auditDTO);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_RepoLevel() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    tempEntity.newComponentLabel(repository.getId(), label.getId(), COMPONENT_HASH);
+    restRequest(OwnerType.REPOSITORY, repository.getId(), COMPONENT_HASH, label.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
+    assertRepositoryData(auditDTO, repository);
+    assertComponentLabelData(auditDTO);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_RepoContainerLevel() throws Exception {
+    tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, label.getId(), COMPONENT_HASH);
+    restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, COMPONENT_HASH,
+        label.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
+    assertRepositoryContainerData(auditDTO);
+    assertComponentLabelData(auditDTO);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH, label.getId())
+        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 }

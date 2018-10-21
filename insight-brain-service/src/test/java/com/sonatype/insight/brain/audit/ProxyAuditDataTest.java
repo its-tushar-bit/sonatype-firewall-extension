@@ -68,11 +68,11 @@ public class ProxyAuditDataTest
   public void testCommit() {
     AuditData auditData = mock(AuditData.class);
     ProxyAuditData proxyAuditData = new ProxyAuditData(auditData);
-    assertThat(proxyAuditData.auditData, is(auditData));
+    assertThat(proxyAuditData.getAuditData(), is(auditData));
 
     proxyAuditData.commit();
 
     verify(auditData).commit();
-    assertThat(proxyAuditData.auditData, is(NoopAuditData.INSTANCE));
+    assertThat(proxyAuditData.getAuditData(), is(NoopAuditData.INSTANCE));
   }
 }

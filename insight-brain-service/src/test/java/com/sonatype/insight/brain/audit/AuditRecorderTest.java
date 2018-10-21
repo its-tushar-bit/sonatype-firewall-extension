@@ -66,7 +66,7 @@ public class AuditRecorderTest
       assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
       ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
 
-      AuditData childAuditData = proxyAuditData.auditData;
+      AuditData childAuditData = proxyAuditData.getAuditData();
       assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
       RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
       RequestData requestData = recordingAuditData.getRequestData();
@@ -96,7 +96,7 @@ public class AuditRecorderTest
       assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
       ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
 
-      AuditData childAuditData = proxyAuditData.auditData;
+      AuditData childAuditData = proxyAuditData.getAuditData();
       assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
       RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
 
@@ -287,7 +287,7 @@ public class AuditRecorderTest
       assertThat(auditSession, is(notNullValue()));
 
       ProxyAuditData proxyAuditData = (ProxyAuditData) AuditData.get();
-      recordingAuditData = (RecordingAuditData) proxyAuditData.auditData;
+      recordingAuditData = (RecordingAuditData) proxyAuditData.getAuditData();
 
       recordingAuditDataConsumer.accept(recordingAuditData);
     }

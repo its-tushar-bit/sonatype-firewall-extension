@@ -12,11 +12,15 @@ import com.google.common.annotations.VisibleForTesting;
 class ProxyAuditData
     extends AuditData
 {
-  @VisibleForTesting
-  AuditData auditData;
+  private AuditData auditData;
 
   public ProxyAuditData(AuditData auditData) {
     this.auditData = auditData;
+  }
+
+  @VisibleForTesting
+  AuditData getAuditData() {
+    return auditData;
   }
 
   @Override

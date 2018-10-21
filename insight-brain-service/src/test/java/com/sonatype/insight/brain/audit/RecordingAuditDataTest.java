@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.audit;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.junit.Test;
 
@@ -18,7 +17,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 
 public class RecordingAuditDataTest
@@ -28,74 +26,81 @@ public class RecordingAuditDataTest
     new RecordingAuditData(null, null).continueAsync(null);
   }
 
+  private void awaitNextTimestamp() throws Exception {
+    long now = System.currentTimeMillis();
+    while (System.currentTimeMillis() <= now) {
+      Thread.sleep(1);
+    }
+  }
+
   @Test
   public void testForSubEvent_Dependent() throws Exception {
-    String[] result = new String[1];
-    Consumer<RecordingAuditData> recorder = recordingAuditData -> result[0] = recordingAuditData.toString();
+    List<RecordingAuditData> committed = new ArrayList<>();
     RequestData requestData = mock(RequestData.class);
-    RecordingAuditData recordingAuditData = new RecordingAuditData(recorder, requestData);
+    RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, requestData);
     recordingAuditData.setUsername("username");
-    Thread.sleep(10);
+    awaitNextTimestamp();
 
-    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, false);
+    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false);
 
     assertThat(auditData, is(instanceOf(RecordingAuditData.class)));
+    assertThat(auditData, is(not(recordingAuditData)));
+    assertThat(recordingAuditData.getChildren(), contains(auditData));
     RecordingAuditData childRecordingAuditData = (RecordingAuditData) auditData;
     assertThat(childRecordingAuditData.getTimestamp(), is(recordingAuditData.getTimestamp()));
-    childRecordingAuditData.commit();
-    assertThat(result[0], is(nullValue()));
     assertThat(childRecordingAuditData.getRequestData(), is(requestData));
     assertThat(childRecordingAuditData.getUsername(), is("username"));
-    assertThat(recordingAuditData, not(auditData));
-    assertThat(recordingAuditData.getChildren(), contains(auditData));
   }
 
   @Test
   public void testForSubEvent_Independent() throws Exception {
-    String[] result = new String[1];
-    Consumer<RecordingAuditData> recorder = recordingAuditData -> result[0] = recordingAuditData.toString();
+    List<RecordingAuditData> committed = new ArrayList<>();
     RequestData requestData = mock(RequestData.class);
-    RecordingAuditData recordingAuditData = new RecordingAuditData(recorder, requestData);
+    RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, requestData);
     recordingAuditData.setUsername("username");
-    Thread.sleep(10);
+    awaitNextTimestamp();
 
-    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, true);
+    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true);
 
     assertThat(auditData, is(instanceOf(RecordingAuditData.class)));
+    assertThat(auditData, is(not(recordingAuditData)));
+    assertThat(recordingAuditData.getChildren(), is(empty()));
     RecordingAuditData childRecordingAuditData = (RecordingAuditData) auditData;
     assertThat(childRecordingAuditData.getTimestamp(), greaterThan(recordingAuditData.getTimestamp()));
-    childRecordingAuditData.commit();
-    assertThat(result[0], is(childRecordingAuditData.toString()));
     assertThat(childRecordingAuditData.getRequestData(), is(requestData));
     assertThat(childRecordingAuditData.getUsername(), is("username"));
-    assertThat(recordingAuditData, not(auditData));
-    assertThat(recordingAuditData.getChildren(), is(empty()));
   }
 
   @Test
-  public void testCommit_Dependent() {
-    String[] result = new String[1];
-    Consumer<RecordingAuditData> recorder = recordingAuditData -> result[0] = recordingAuditData.toString();
-    RecordingAuditData recordingAuditData = new RecordingAuditData(recorder, null);
-    RecordingAuditData childRecordingAuditData = (RecordingAuditData) recordingAuditData
-        .forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, false);
+  public void testCommit_Self() {
+    List<RecordingAuditData> committed = new ArrayList<>();
+    RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
 
-    childRecordingAuditData.commit();
+    recordingAuditData.commit();
 
-    assertThat(result[0], is(nullValue()));
+    assertThat(committed, contains(recordingAuditData));
   }
 
   @Test
-  public void testCommit_Independent() {
-    String[] result = new String[1];
-    Consumer<RecordingAuditData> recorder = recordingAuditData -> result[0] = recordingAuditData.toString();
-    RecordingAuditData recordingAuditData = new RecordingAuditData(recorder, null);
-    RecordingAuditData childRecordingAuditData = (RecordingAuditData) recordingAuditData
-        .forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, true);
+  public void testCommit_DependentSubEvent() {
+    List<RecordingAuditData> committed = new ArrayList<>();
+    RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
+    AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false);
 
-    childRecordingAuditData.commit();
+    childAuditData.commit();
 
-    assertThat(result[0], is(childRecordingAuditData.toString()));
+    assertThat(committed, is(empty()));
+  }
+
+  @Test
+  public void testCommit_IndependentSubEvent() {
+    List<RecordingAuditData> committed = new ArrayList<>();
+    RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
+    AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true);
+
+    childAuditData.commit();
+
+    assertThat(committed, contains(childAuditData));
   }
 
   @Test

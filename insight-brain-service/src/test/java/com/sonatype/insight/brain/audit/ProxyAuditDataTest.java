@@ -8,15 +8,14 @@ package com.sonatype.insight.brain.audit;
 import java.util.function.Function;
 
 import org.junit.Test;
-import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,16 +23,15 @@ public class ProxyAuditDataTest
 {
   @Test
   public void testContinueAsync() {
-    Function<AuditData, AuditData> taskSubmitter = auditData -> auditData;
     AuditData auditData = mock(AuditData.class);
     ProxyAuditData proxyAuditData = new ProxyAuditData(auditData);
 
-    AuditData childProxyAuditData = proxyAuditData.continueAsync(taskSubmitter);
+    AuditData childProxyAuditData = proxyAuditData.continueAsync(Function.identity());
 
     proxyAuditData.commit();
     verify(auditData, never()).commit();
     assertThat(childProxyAuditData, is(instanceOf(ProxyAuditData.class)));
-    assertThat(childProxyAuditData, not(proxyAuditData));
+    assertThat(childProxyAuditData, is(not(proxyAuditData)));
     childProxyAuditData.commit();
     verify(auditData).commit();
   }
@@ -42,21 +40,15 @@ public class ProxyAuditDataTest
   public void testForSubEvent() {
     AuditData mockParentAuditData = mock(AuditData.class);
     AuditData mockChildAuditData = mock(AuditData.class);
-    String[] result = new String[1];
-    doAnswer((Answer<Void>) invocation -> {
-      result[0] = "result";
-      return null;
-    }).when(mockChildAuditData).commit();
-    when(mockParentAuditData.forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, false)).thenReturn(mockChildAuditData);
+    when(mockParentAuditData.forSubEvent(AuditEvent.LOGIN, true)).thenReturn(mockChildAuditData);
     ProxyAuditData proxyAuditData = new ProxyAuditData(mockParentAuditData);
 
-    AuditData childProxyAuditData = proxyAuditData.forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, false);
-
+    AuditData childProxyAuditData = proxyAuditData.forSubEvent(AuditEvent.LOGIN, true);
     assertThat(childProxyAuditData, is(instanceOf(ProxyAuditData.class)));
-    assertThat(childProxyAuditData, not(proxyAuditData));
-    verify(mockParentAuditData).forSubEvent(AuditEvent.AUTHENTICATION_FAILURE, false);
+    assertThat(childProxyAuditData, is(not(proxyAuditData)));
+
     childProxyAuditData.commit();
-    assertThat(result[0], is("result"));
+    verify(mockChildAuditData).commit();
   }
 
   @Test(expected = NullPointerException.class)
@@ -68,12 +60,12 @@ public class ProxyAuditDataTest
   public void testCommit() {
     AuditData auditData = mock(AuditData.class);
     ProxyAuditData proxyAuditData = new ProxyAuditData(auditData);
-    assertThat(proxyAuditData.getAuditData(), is(auditData));
 
     proxyAuditData.commit();
-
     verify(auditData).commit();
-    assertThat(proxyAuditData.getAuditData(), is(NoopAuditData.INSTANCE));
+
+    proxyAuditData.commit();
+    verify(auditData).commit();
   }
 
   @Test
@@ -82,8 +74,9 @@ public class ProxyAuditDataTest
     ProxyAuditData proxyAuditData = new ProxyAuditData(auditData);
 
     proxyAuditData.commitSubEvents();
-
     verify(auditData).commitSubEvents();
-    assertThat(proxyAuditData.getAuditData(), is(auditData));
+
+    proxyAuditData.commitSubEvents();
+    verify(auditData, times(2)).commitSubEvents();
   }
 }

@@ -75,4 +75,15 @@ public class ProxyAuditDataTest
     verify(auditData).commit();
     assertThat(proxyAuditData.getAuditData(), is(NoopAuditData.INSTANCE));
   }
+
+  @Test
+  public void testCommitSubEvents() {
+    AuditData auditData = mock(AuditData.class);
+    ProxyAuditData proxyAuditData = new ProxyAuditData(auditData);
+
+    proxyAuditData.commitSubEvents();
+
+    verify(auditData).commitSubEvents();
+    assertThat(proxyAuditData.getAuditData(), is(auditData));
+  }
 }

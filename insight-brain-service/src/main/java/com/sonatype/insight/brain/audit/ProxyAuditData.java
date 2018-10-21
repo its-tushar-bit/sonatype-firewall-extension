@@ -45,6 +45,11 @@ class ProxyAuditData
   }
 
   @Override
+  public void commitSubEvents() {
+    auditData.commitSubEvents();
+  }
+
+  @Override
   public void setUsername(String username) {
     auditData.setUsername(username);
   }

@@ -31,6 +31,10 @@ class NoopAuditData
   }
 
   @Override
+  public void commitSubEvents() {
+  }
+
+  @Override
   public void setUsername(String username) {
   }
 

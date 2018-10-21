@@ -87,6 +87,8 @@ public abstract class AuditData
 
   public abstract void commit();
 
+  public abstract void commitSubEvents();
+
   public abstract void setUsername(String username);
 
   public abstract void setEvent(AuditEvent event);

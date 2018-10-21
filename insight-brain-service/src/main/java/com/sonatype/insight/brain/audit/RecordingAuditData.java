@@ -5,9 +5,10 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -19,7 +20,7 @@ class RecordingAuditData
 
   private final Consumer<RecordingAuditData> recorder;
 
-  private final List<RecordingAuditData> children = new ArrayList<>();
+  private final Deque<RecordingAuditData> children = new ArrayDeque<>();
 
   private final long timestamp;
 
@@ -72,6 +73,13 @@ class RecordingAuditData
   public void commit() {
     if (independent) {
       recorder.accept(this);
+    }
+  }
+
+  @Override
+  public void commitSubEvents() {
+    while (!children.isEmpty()) {
+      recorder.accept(children.pop());
     }
   }
 
@@ -143,7 +151,7 @@ class RecordingAuditData
     return this;
   }
 
-  List<RecordingAuditData> getChildren() {
+  Collection<RecordingAuditData> getChildren() {
     return children;
   }
 }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.junit.Test;
@@ -94,6 +96,19 @@ public class RecordingAuditDataTest
     childRecordingAuditData.commit();
 
     assertThat(result[0], is(childRecordingAuditData.toString()));
+  }
+
+  @Test
+  public void testCommitSubEvents() {
+    List<RecordingAuditData> committedChildren = new ArrayList<>();
+    RecordingAuditData auditData = new RecordingAuditData(committedChildren::add, null);
+    AuditData child1 = auditData.forSubEvent(AuditEvent.LOGIN, false);
+    AuditData child2 = auditData.forSubEvent(AuditEvent.LOGIN, false);
+    AuditData child3 = auditData.forSubEvent(AuditEvent.LOGIN, false);
+    assertThat(auditData.getChildren(), contains(child1, child2, child3));
+    auditData.commitSubEvents();
+    assertThat(auditData.getChildren(), is(empty()));
+    assertThat(committedChildren, contains(child1, child2, child3));
   }
 
   @Test

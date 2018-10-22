@@ -1,20 +1,34 @@
 @import "../../../version-graph/buttons";
 @import "../../../version-graph/content";
 @import "../../../version-graph/detail-table";
+@import '../../../cip/cip.policy.violations/cip-policy-violations';
 
 .iq-modal__cip {
-  width: 920px;
   left: calc(50% - 460px);
-}
+  width: 920px;
 
-#informationPanel {
-  height: 320px;
+  .iq-modal-content {
+    // adjust padding to resemble CIP
+    padding: 5px 5px 0 5px;
 
-  .tab-content {
-    width: 100%;
-    padding-top: 5px;
+    #informationPanel {
+      height: 325px;
+
+      .tab-content {
+        padding-top: 5px;
+        width: 100%;
+
+        .cip-policy-wrapper {
+          .table {
+            // avoid scroll bar when possible
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
   }
 }
+
 
 component-information-panel {
   display: block;

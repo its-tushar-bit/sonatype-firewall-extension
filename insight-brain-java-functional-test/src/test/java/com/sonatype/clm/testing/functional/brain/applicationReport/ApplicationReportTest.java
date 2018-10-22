@@ -15,9 +15,15 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.WaiverCip;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -37,6 +43,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
@@ -119,7 +126,7 @@ public class ApplicationReportTest
   }
 
   @Test
-  public void testCIP() {
+  public void testCIP() throws Exception {
     setupHdsResponse();
     CipModal cipModal = reportPage.cipModal();
 
@@ -150,7 +157,12 @@ public class ApplicationReportTest
     cipModal.closeButton().click();
     cipModal.getElement().shouldBe(hidden);
 
-    // Component Info tab
+    testComponentInfoTab();
+    testPolicyTab();
+  }
+
+  private void testComponentInfoTab() {
+    CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();
     cipModal.getElement().shouldBe(visible);
     cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
@@ -166,6 +178,73 @@ public class ApplicationReportTest
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
+  }
+
+  private void testPolicyTab() throws Exception {
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(2).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+    WaiverCip.rows().shouldHaveSize(1);
+    WaiverCip.row(0).shouldBe(
+        "cip-policy-orange",
+        "ApplicationReportTest Policy",
+        new String[] { "All coordinates" },
+        new String[] { "Coordinates were javancss : javancss : 29.50" });
+
+    // check that there are no existing waivers
+    WaiverCip.viewWaivers().shouldBe(visible).click();
+    ViewWaiversDialog.rows().shouldHaveSize(0);
+    ViewWaiversDialog.closeButton().click();
+
+    // Waive violation
+    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
+    AddWaiverDialog.scope(app.getPublicId()).shouldBe(visible, selected);
+    AddWaiverDialog.scope(app.getOrganizationId()).shouldBe(visible).shouldNotBe(selected);
+    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible).shouldNotBe(selected);
+
+    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected);
+    AddWaiverDialog.selectedComponent().shouldBe(visible, selected);
+    AddWaiverDialog.selectedComponent().parent()
+        .shouldHave(exactText("Selected component (javancss : javancss : 29.50)"));
+
+    AddWaiverDialog.comment().setValue("TEST COMMENT");
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+
+    // check that there is new waiver
+    WaiverCip.viewWaivers().shouldBe(visible).click();
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+    ExistingWaiver waiver = ViewWaiversDialog.row(0);
+    waiver.policy().shouldHave(text("ApplicationReportTest Policy"));
+    waiver.owner().shouldHave(text("ApplicationReportTest"));
+    waiver.comment().shouldHave(text("TEST COMMENT"));
+    waiver.removeButton().shouldBe(visible, enabled);
+
+    ViewWaiversDialog.closeButton().click();
+    cipModal.closeButton().click();
+
+    // check that policy has been waived
+    evaluator.reevaluatePolicy();
+    reportPage.resultRow(1).click();
+    cipModal.tabLink(2).click();
+    WaiverCip.rows().shouldHaveSize(1);
+    WaiverCip.rows().get(0).shouldHave(text("No Policy Violations"));
+
+    // Remove waiver
+    WaiverCip.viewWaivers().shouldBe(visible).click();
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+    ViewWaiversDialog.row(0).removeButton().shouldBe(visible, enabled).click();
+    ConfirmRemoveWaiverDialog.removeButton().shouldBe(visible, enabled).click();
+    ViewWaiversDialog.closeButton().click();
+    cipModal.closeButton().click();
+
+    // check that violation has been un-waived
+    evaluator.reevaluatePolicy();
+    reportPage.resultRow(1).click();
+    cipModal.tabLink(2).click();
+    WaiverCip.rows().shouldHaveSize(1);
+    WaiverCip.row(0).policyName().shouldHave(text("ApplicationReportTest Policy"));
   }
 
   @Test

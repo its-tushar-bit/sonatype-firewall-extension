@@ -2,7 +2,7 @@ describe('policy.violations.controller', function() {
   var scope,
       policyViolationsSpy;
 
-  beforeEach(module('cip.policy.violations', function($provide) {
+  beforeEach(module('cip.policy.violations', 'ui.router', function($provide) {
     var component = {
       componentIdentifier: {
         groupId: 'tomcat',

@@ -1,7 +1,7 @@
 describe('CIP Policy Waiver tests', function() {
   var _scope, _viewScope;
 
-  beforeEach(module('cip.policy.violations', 'TestComponentProvider'));
+  beforeEach(module('cip.policy.violations', 'TestComponentProvider', 'ui.router'));
 
   afterEach(inject(function($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();

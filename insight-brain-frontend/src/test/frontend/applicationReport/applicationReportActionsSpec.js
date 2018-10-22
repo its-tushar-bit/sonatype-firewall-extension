@@ -31,10 +31,11 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond(500, 'test error');
-      $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(200);
-      $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(200);
-      $httpBackend.expectGET(CLMLocations.getReportDataUrl('appId', 'scanId')).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(500,
+          'test error');
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(200);
       $httpBackend.flush();
 
       expect(errorSpy).toHaveBeenCalled();
@@ -55,10 +56,12 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond({reportTitle: 'test'});
-      $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(null);
-      $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(null);
-      $httpBackend.expectGET(CLMLocations.getReportDataUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
+          {reportTitle: 'test'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
+          null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
 
       $httpBackend.flush();
 
@@ -83,11 +86,13 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(CLMLocations.getReportMetadataUrl('appId', 'scanId')).respond({reportTitle: 'test'});
-      $httpBackend.expectGET(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId')).respond(null);
-      $httpBackend.expectGET(CLMLocations.getReportBomUrl('appId', 'scanId')).respond(null);
-      $httpBackend.expectGET(CLMLocations.getReportDataUrl('appId', 'scanId')).respond(null);
-      $httpBackend.expectGET(CLMLocations.getReportUnknownJsUrl('appId', 'scanId')).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
+          {reportTitle: 'test'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
+          null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond(null);
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();

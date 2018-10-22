@@ -60,7 +60,8 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
       title: 'Component Info',
       directive: 'information-panel'
     }, {
-      title: 'Policy'
+      title: 'Policy',
+      directive: 'cip-policy-violations'
     }, {
       title: 'Licenses'
     }, {

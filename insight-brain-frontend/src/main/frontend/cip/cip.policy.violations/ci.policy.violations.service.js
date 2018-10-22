@@ -48,7 +48,7 @@ function processConstraint(constraint) {
   return processedConstraint;
 }
 
-export default function CIPolicyViolations($http, $q, SelectedComponent) {
+export default function CIPolicyViolations($http, $q, SelectedComponent, CLMLocations, $state) {
 
   function doLegacyLoad(deferred) {
     $q.all([$http.get(CLM.path + 'rest/policy/actionType'), $http.get('policyalerts.json')]).then(function(result) {
@@ -92,7 +92,12 @@ export default function CIPolicyViolations($http, $q, SelectedComponent) {
     get: function () {
       var deferred = $q.defer();
 
-      $http.get('policythreats.json').then(function(result) {
+      // for iframe reports just use policythreats.json relative to current url
+      const url = $state.params.scanId
+        ? CLMLocations.getReportPolicyThreatsUrl($state.params.publicId, $state.params.scanId)
+        : 'policythreats.json';
+
+      $http.get(url).then(function(result) {
         var policyThreats = result.data.aaData || [];
         // if version isn't set we are dealing with old data, so revert to old request and massage data as
         // necessary
@@ -131,4 +136,4 @@ export default function CIPolicyViolations($http, $q, SelectedComponent) {
     }
   };
 }
-CIPolicyViolations.$inject = ['$http', '$q', 'SelectedComponent'];
+CIPolicyViolations.$inject = ['$http', '$q', 'SelectedComponent', 'CLMLocations', '$state'];

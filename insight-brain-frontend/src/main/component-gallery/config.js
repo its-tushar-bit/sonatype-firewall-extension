@@ -60,7 +60,8 @@ export default angular.module('config',
       'iq-threat-indicators': 'styles/iq-threat-indicators.html',
       'iq-counter': 'styles/iq-counter.html',
       'iq-text-indicators': 'styles/iq-text-indicators.html',
-      'iq-threat-bar': 'styles/iq-threat-bar.html'
+      'iq-threat-bar': 'styles/iq-threat-bar.html',
+      'iq-pagination': 'styles/iq-pagination.html'
     })
 
     .constant('htmlConfig', {

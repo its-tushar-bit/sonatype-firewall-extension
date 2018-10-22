@@ -11,6 +11,18 @@
   }
 }
 
+.iq-list-header {
+  height: 32px;
+  padding-right: 4px;
+  padding-bottom: 4px;
+  
+  .iq-list__title {
+    display: inline-block;
+    padding-top: 12px;
+  }
+}
+
+// Note this class is named incorrectly - see: https://issues.sonatype.org/browse/CLM-11115
 .iq-list--header {
   margin-bottom: 0;
 }
@@ -19,6 +31,11 @@
   color: $iq-off-black;
   line-height: 14px;
   margin: 0 0 9px 0;
+}
+
+.iq-list-footer {
+  height: 32px;
+  padding: 4px 4px 4px 0;
 }
 
 .iq-list__item {

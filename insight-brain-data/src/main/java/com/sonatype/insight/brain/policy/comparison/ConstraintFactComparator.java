@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.model.NameHelper;
 
 class ConstraintFactComparator implements Comparator<ConstraintFact>
 {
@@ -20,14 +19,6 @@ class ConstraintFactComparator implements Comparator<ConstraintFact>
   public int compare(ConstraintFact constraintFact1, ConstraintFact constraintFact2) {
     // Constraint id
     int result = constraintFact1.getConstraintId().compareTo(constraintFact2.getConstraintId());
-    if (result != 0) {
-      return result;
-    }
-
-    // Constraint name
-    String constraintFact1Name = NameHelper.normalize(constraintFact1.getConstraintName());
-    String constraintFact2Name = NameHelper.normalize(constraintFact2.getConstraintName());
-    result = constraintFact1Name.compareTo(constraintFact2Name);
     if (result != 0) {
       return result;
     }

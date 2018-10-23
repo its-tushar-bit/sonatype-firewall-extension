@@ -478,35 +478,61 @@ describe('AngularCommon', function() {
   });
 
   describe('threatClass', function() {
-    it('applies threat classes', inject(function($compile) {
-      var expectedResults = [
-        {
-          clazz: 'ignore',
-          threatLevels: [0]
-        }, {
-          clazz: 'none',
-          threatLevels: [1]
-        }, {
-          clazz: 'moderate',
-          threatLevels: [2, 3]
-        }, {
-          clazz: 'severe',
-          threatLevels: [4, 5, 6, 7]
-        }, {
-          clazz: 'critical',
-          threatLevels: [8, 9, 10]
-        }
-      ];
+    let $compile;
+
+    beforeEach(inject(function(_$compile_) {
+      $compile = _$compile_;
+    }));
+
+    it('applies threat classes', function() {
+      const allClasses = ['ignore', 'none', 'moderate', 'severe', 'critical'],
+          expectedResults = [{
+            clazz: 'ignore',
+            threatLevels: [0]
+          }, {
+            clazz: 'none',
+            threatLevels: [1]
+          }, {
+            clazz: 'moderate',
+            threatLevels: [2, 3]
+          }, {
+            clazz: 'severe',
+            threatLevels: [4, 5, 6, 7]
+          }, {
+            clazz: 'critical',
+            threatLevels: [8, 9, 10]
+          }];
 
       angular.forEach(expectedResults, function(result) {
         angular.forEach(result.threatLevels, function(threatLevel) {
           scope.threatLevel = threatLevel;
           var element = angular.element('<div threat-class="threatLevel"></div>');
           element = $compile(element)(scope);
-          expect(element.attr('class')).toContain(result.clazz);
+          scope.$digest();
+
+          const elementClassAttr = element.attr('class');
+          expect(elementClassAttr).toContain(result.clazz);
+
+          allClasses.filter(c => c !== result.clazz).forEach(function(cls) {
+            expect(elementClassAttr).not.toContain(cls);
+          });
         });
       });
-    }));
+    });
+
+    it('updates threat classes in response to scope changes', function() {
+      scope.threatLevel = 2;
+      const element = $compile('<div threat-class="threatLevel"></div>')(scope);
+      scope.$digest();
+
+      expect(element.attr('class')).toContain('moderate');
+
+      scope.threatLevel = 6;
+      scope.$digest();
+
+      expect(element.attr('class')).toContain('severe');
+      expect(element.attr('class')).not.toContain('moderate');
+    });
   });
 
   describe('safeDivide', function() {

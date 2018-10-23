@@ -35,7 +35,7 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions)
 }
 
 function mapStateToThis(state) {
-  return pick(['aggregate', 'sortCol', 'filters'], state.selectedReport || {});
+  return pick(['aggregate', 'sortCol', 'filters'], state.applicationReport || {});
 }
 
 ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];

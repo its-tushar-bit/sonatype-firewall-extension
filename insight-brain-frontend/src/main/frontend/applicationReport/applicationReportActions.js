@@ -8,7 +8,7 @@ import { createReportEntries } from './applicationReportService';
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
 export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
-export const SET_AGGREGATE_REPORT_ENTRIES = 'AGGREGATE_REPORT_ENTRIES';
+export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 
 // TODO for CLM-10988 I just add a simple boolean action to enable/disable a hardcoded filter

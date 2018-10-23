@@ -15,7 +15,7 @@ const middleware = [thunk, 'routerMiddleware'];
 if (window.angularDebug && window.console && window.console.log.apply) {
   // use require because es6 import redux-logger breaks in IE9
   const createLogger = require('redux-logger').createLogger;
-  const logger = createLogger({level: 'info', collapsed: true, diff: true});
+  const logger = createLogger({level: 'info', collapsed: true, diff: false});
   middleware.push(logger);
 }
 

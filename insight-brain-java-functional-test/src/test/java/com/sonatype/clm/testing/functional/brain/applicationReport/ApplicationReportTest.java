@@ -256,6 +256,10 @@ public class ApplicationReportTest
     evaluator.reevaluatePolicy();
     refresh();
 
+    // TODO check waived row (or lack thereof) when aggregating
+    reportPage.showAllViolationsRadio().click();
+    reportPage.showAllViolationsRadio().shouldBe(selected);
+
     reportPage.resultRows().shouldHaveSize(4);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
 
@@ -264,6 +268,31 @@ public class ApplicationReportTest
     reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 0 components"));
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testAggregation() {
+    reportPage.showAggregatedViolationsRadio().shouldBe(selected);
+    reportPage.showAllViolationsRadio().shouldNotBe(selected);
+
+    reportPage.showAllViolationsRadio().click();
+
+    reportPage.showAggregatedViolationsRadio().shouldNotBe(selected);
+    reportPage.showAllViolationsRadio().shouldBe(selected);
+
+    reportPage.resultRows().shouldHaveSize(4);
+    reportPage.resultRow(1).threatBar().shouldHave(cssClass("severe"));
+    reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
+    reportPage.resultRow(1).policyName().shouldHave(text(policy.getName()));
+    for (int i = 2; i <= 4; i++) {
+      reportPage.resultRow(i).threatBar().shouldHave(cssClass("ignore"));
+      reportPage.resultRow(i).threatNumber().shouldHave(text("0"));
+      reportPage.resultRow(i).policyName().shouldHave(text("None"));
+    }
+    reportPage.resultRow(1).componentName().shouldHave(text("javancss : javancss : 29.50"));
+    reportPage.resultRow(2).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    reportPage.resultRow(3).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    reportPage.resultRow(4).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
   }
 
   private void setupHdsResponse() {

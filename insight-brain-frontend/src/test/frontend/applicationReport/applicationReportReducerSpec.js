@@ -32,6 +32,7 @@ describe('applicationReportReducer', function() {
       expect(newState.loading).toBe(false);
       expect(newState.loadError).toBe(null);
       expect(newState.selectedReport).toBe(null);
+      expect(newState.aggregate).toBe(true);
     });
   });
 
@@ -85,6 +86,51 @@ describe('applicationReportReducer', function() {
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
+
+    it('sets the displayedEntries in the selectedReport based on the current aggregation etc settings', function() {
+      const state = Object.freeze({
+            selectedReport: null,
+            aggregate: true,
+            filters: {
+              policyThreatLevel: [1, 4, 5, 6]
+            },
+            sortCol: 'policyThreatLevel',
+            sortReversed: true
+          }),
+          entries = [{
+            hash: '1',
+            policyThreatLevel: 1
+          }, {
+            hash: '2',
+            policyThreatLevel: 3
+          }, {
+            hash: '4',
+            policyThreatLevel: 4,
+            waived: true
+          }, {
+            hash: '1',
+            policyThreatLevel: 6
+          }, {
+            hash: '5',
+            policyThreatLevel: 4
+          }, {
+            hash: '6',
+            policyThreatLevel: 10,
+            grandfathered: true
+          }],
+          newState = reduce(state, {
+            type: 'LOAD_REPORT_FULFILLED',
+            payload: {allEntries: entries}
+          });
+
+      expect(newState.selectedReport.displayedEntries).toEqual([{
+        hash: '1',
+        policyThreatLevel: 6
+      }, {
+        hash: '5',
+        policyThreatLevel: 4
+      }]);
+    });
   });
 
   describe('LOAD_REPORT_FAILED action', function() {
@@ -118,6 +164,81 @@ describe('applicationReportReducer', function() {
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SET_AGGREGATE_REPORT_ENTRIES', function() {
+    it('sets the aggregate flag from the payload', function() {
+      const state = Object.freeze({
+            aggregate: false,
+            other: otherObject
+          }),
+          action = { type: 'SET_AGGREGATE_REPORT_ENTRIES', payload: true },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        aggregate: true,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('updates the displayedEntries in the selectedReport', function() {
+      const entries = [{
+            hash: '6',
+            policyThreatLevel: 10
+          }, {
+            hash: '4',
+            policyThreatLevel: 8,
+            waived: true
+          }, {
+            hash: '1',
+            policyThreatLevel: 6,
+            waived: true
+          }, {
+            hash: '5',
+            policyThreatLevel: 4
+          }, {
+            hash: '2',
+            policyThreatLevel: 3
+          }, {
+            hash: '1',
+            policyThreatLevel: 1
+          }],
+          state = Object.freeze({
+            selectedReport: {
+              allEntries: entries,
+              displayedEntries: entries
+            },
+            aggregate: false,
+            filters: {},
+            sortCol: 'policyThreatLevel',
+            sortReversed: true
+          }),
+          newState = reduce(state, {
+            type: 'SET_AGGREGATE_REPORT_ENTRIES',
+            payload: true
+          });
+
+      expect(newState.selectedReport.displayedEntries).toEqual([{
+        hash: '6',
+        policyThreatLevel: 10
+      }, {
+        hash: '5',
+        policyThreatLevel: 4
+      }, {
+        hash: '2',
+        policyThreatLevel: 3
+      }, {
+        hash: '1',
+        policyThreatLevel: 1
+      }, {
+        hash: '4',
+        policyThreatLevel: 0,
+        policyName: 'None',
+        waived: false,
+        grandfathered: false
+      }]);
     });
   });
 });

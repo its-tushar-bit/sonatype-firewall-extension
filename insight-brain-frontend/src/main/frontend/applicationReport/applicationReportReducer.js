@@ -20,7 +20,7 @@ import { aggregateReportEntries, filterReportEntries, sortReportEntries } from '
 const initState = {
   loading: false,
   loadError: null,
-  aggregate: false,
+  aggregate: true,
   sortCol: 'policyThreatLevel',
   sortReversed: true,
   filters: {},
@@ -61,16 +61,22 @@ export default function(state = initState, {type, payload}) {
 }
 
 function updateDisplayedEntries(state) {
-  const { selectedReport, sortCol, sortReversed, aggregate, filters } = state,
-      { allEntries } = selectedReport,
-      processEntries = pipe(
-          aggregate ? aggregateReportEntries : identity,
-          filterReportEntries(filters),
-          sortReportEntries(sortCol, sortReversed)
-      ),
-      newDisplayedEntries = processEntries(allEntries);
+  const { selectedReport, sortCol, sortReversed, aggregate, filters } = state;
 
-  return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, state);
+  if (selectedReport) {
+    const { allEntries } = selectedReport,
+        processEntries = pipe(
+            aggregate ? aggregateReportEntries : identity,
+            filterReportEntries(filters),
+            sortReportEntries(sortCol, sortReversed)
+        ),
+        newDisplayedEntries = processEntries(allEntries);
+
+    return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, state);
+  }
+  else {
+    return state;
+  }
 }
 
 function getViolationCountsPerThreatLevel(entries) {

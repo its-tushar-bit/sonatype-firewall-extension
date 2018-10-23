@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -61,6 +62,14 @@ public class ApplicationReportPage
 
   public CipModal cipModal() {
     return new CipModal("#cip-modal");
+  }
+
+  public IqRadio showAggregatedViolationsRadio() {
+    return new IqRadio(child("#aggregate-by-component-radio"));
+  }
+
+  public IqRadio showAllViolationsRadio() {
+    return new IqRadio(child("#no-aggregation-radio"));
   }
 
   public static class ResultRow

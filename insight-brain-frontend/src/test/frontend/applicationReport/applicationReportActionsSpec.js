@@ -106,4 +106,14 @@ describe('applicationReportActions', function() {
       });
     });
   });
+
+  describe('setAggregateReportEntries', function() {
+    it('returns a SET_AGGREGATE_REPORT_ENTRIES action with the specified payload value', function() {
+      const payload = {},
+          action = applicationReportActions.setAggregateReportEntries(payload);
+
+      expect(action.type).toBe('SET_AGGREGATE_REPORT_ENTRIES');
+      expect(action.payload).toBe(payload);
+    });
+  });
 });

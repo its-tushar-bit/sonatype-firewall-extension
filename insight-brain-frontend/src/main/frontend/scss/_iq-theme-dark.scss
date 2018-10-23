@@ -8,11 +8,19 @@ $iq-theme-dark-box-shadow: $iq-off-black;
   background-color: $iq-theme-dark-background;
   border-right: 1px solid $iq-off-black;
   color: $iq-theme-dark-text;
+  padding-right: 8px;
+  padding-left: 8px;
 
   .iq-label {
     color: $iq-off-white;
   }
-  
+
+  legend.iq-label {
+    border-bottom: 1px solid $iq-off-white;
+    font-size: 18px;
+    padding-bottom: 6px;
+  }
+
   dropdown-selector {
     border: 1px solid $iq-theme-dark-text;
     width: 238px; // adjust for narrower left border

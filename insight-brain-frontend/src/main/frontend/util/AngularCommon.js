@@ -634,26 +634,18 @@ angularCommon.directive('multiSelect', ['$compile', '$timeout', function($compil
 angularCommon.directive('threatClass', function() {
   return {
     scope: {
-      threatClass: '='
+      threatClass: '<'
     },
     link: function(scope, element) {
-      var clazz;
-      if (scope.threatClass >= 8) {
-        clazz = 'critical';
+      function updateClass(threatClass) {
+        element.toggleClass('critical', threatClass >= 8);
+        element.toggleClass('severe', threatClass >= 4 && threatClass < 8);
+        element.toggleClass('moderate', threatClass >= 2 && threatClass < 4);
+        element.toggleClass('none', threatClass === 1);
+        element.toggleClass('ignore', threatClass < 1);
       }
-      else if (scope.threatClass >= 4) {
-        clazz = 'severe';
-      }
-      else if (scope.threatClass >= 2) {
-        clazz = 'moderate';
-      }
-      else if (scope.threatClass === 1) {
-        clazz = 'none';
-      }
-      else {
-        clazz = 'ignore';
-      }
-      element.addClass(clazz);
+
+      scope.$watch('threatClass', updateClass);
     }
   };
 });

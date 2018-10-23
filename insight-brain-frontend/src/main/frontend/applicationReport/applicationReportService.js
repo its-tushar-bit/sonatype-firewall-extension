@@ -10,10 +10,10 @@ import {
   concat,
   contains,
   curry,
+  either,
   filter,
   flatten,
   flip,
-  head,
   into,
   isEmpty,
   groupBy,
@@ -24,9 +24,8 @@ import {
   pipe,
   prop,
   propEq,
-  reduce,
+  reduceBy,
   sort,
-  tail,
   toPairs,
   values
 } from 'ramda';
@@ -36,11 +35,11 @@ const flatMap = pipe(map, flatten),
     nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
     indexComponentsByKey = components => mapObjIndexed(([data]) => data, groupBy(toKey, components)),
     makeNonViolatingComponentEntry = component => ({
+      ...component,
       policyThreatLevel: 0,
       policyName: 'None',
       waived: false,
-      grandfathered: false,
-      ...component
+      grandfathered: false
     });
 
 /**
@@ -142,20 +141,19 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
 
 /**
  * Take a list of all report entries and return a list of just the "aggregated" entries (ie one entry per component).
- * The violation selected for each component is the one with the highest threat level, that is unwaived. If none are
- * unwaived, a non-violating component entry is added for that component
+ * The violation selected for each component is the one with the highest threat level, that is unwaived and
+ * ungrandfathered. If none are unwaived/ungrandfathered, a non-violating component entry is added for that component
  */
 export function aggregateReportEntries(entries) {
-  const entriesByKey = groupBy(toKey, entries),
+  const waivedOrGrandfathered = either(prop('waived'), prop('grandfathered')),
 
-      highestViolationReducer =
-          (acc, entry) => !entry.waived && entry.policyThreatLevel > acc.policyThreatLevel ? entry : acc,
+      highestViolationReducer = (acc, entry) =>
+        !acc || waivedOrGrandfathered(acc) || !waivedOrGrandfathered(entry) &&
+          entry.policyThreatLevel > acc.policyThreatLevel ? entry : acc,
 
-      findHighestViolation =
-          componentEntries => reduce(highestViolationReducer, head(componentEntries), tail(componentEntries)),
-
-      highestViolationsByKey = map(findHighestViolation, entriesByKey),
-      waivedViolationTransformer = entry => entry.waived ? makeNonViolatingComponentEntry(entry) : entry;
+      highestViolationsByKey = reduceBy(highestViolationReducer, null, toKey, entries),
+      waivedViolationTransformer = entry =>
+        waivedOrGrandfathered(entry) ? makeNonViolatingComponentEntry(entry) : entry;
 
   return map(waivedViolationTransformer, values(highestViolationsByKey));
 }
@@ -186,16 +184,21 @@ export const filterReportEntries = curry(function filterReportEntries(filterConf
  * Return a list of the specified entries sorted by the specified property, optionally in reverse
  */
 export const sortReportEntries = curry(function sortReportEntries(sortProperty, reverse, entries) {
-  const propGetter = prop(sortProperty),
-      sortFn = (a, b) => {
-        const aProp = propGetter(a),
-            bProp = propGetter(b);
+  if (sortProperty) {
+    const propGetter = prop(sortProperty),
+        sortFn = (a, b) => {
+          const aProp = propGetter(a),
+              bProp = propGetter(b);
 
-        return aProp < bProp ? -1 :
-          aProp > bProp ? 1 :
-            0;
-      },
-      sorter = sort(reverse ? flip(sortFn) : sortFn);
+          return aProp < bProp ? -1 :
+            aProp > bProp ? 1 :
+              0;
+        },
+        sorter = sort(reverse ? flip(sortFn) : sortFn);
 
-  return sorter(entries);
+    return sorter(entries);
+  }
+  else {
+    return entries;
+  }
 });

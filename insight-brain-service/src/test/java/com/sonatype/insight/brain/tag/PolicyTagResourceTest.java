@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -25,9 +26,8 @@ import static org.junit.Assert.assertThat;
 public class PolicyTagResourceTest
     extends AbstractResourceTest
 {
-  @Override
-  protected HttpRequest restRequest() {
-    return super.restRequest().path(PolicyTagResource.RESOURCE_PATH);
+  private HttpRequest restRequest(String policyId, OwnerType ownerType, String ownerId) {
+    return super.restRequest().path(PolicyTagResource.RESOURCE_PATH).parameter(policyId, ownerType, ownerId);
   }
 
   @Test
@@ -38,8 +38,7 @@ public class PolicyTagResourceTest
     String policyId = tempEntity.newPolicy(org.getId(), "Test").getId();
     tempEntity.newPolicyTag(policyId, tag1.getId());
 
-    HttpResponse response = restRequest().parameter(policyId).query("ownerId", org.getId())
-        .query("ownerType", "organization").get();
+    HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).get();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags, is(arrayWithSize(1)));
@@ -54,8 +53,7 @@ public class PolicyTagResourceTest
     String policyId = tempEntity.newPolicy(app.getParentOwnerId(), "Test").getId();
     tempEntity.newPolicyTag(policyId, tag1.getId());
 
-    HttpResponse response = restRequest().parameter(policyId).query("ownerId", app.getPublicId())
-        .query("ownerType", "application").get();
+    HttpResponse response = restRequest(policyId, OwnerType.APPLICATION, app.getPublicId()).get();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags, is(arrayWithSize(1)));
@@ -68,7 +66,7 @@ public class PolicyTagResourceTest
     Tag tag = tempEntity.newTag(org.getId());
     String policyId = tempEntity.newPolicy(org.getId(), "Test").getId();
 
-    HttpResponse response = restRequest().parameter(policyId).body(Arrays.asList(tag)).put();
+    HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).body(Arrays.asList(tag)).put();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags, is(arrayWithSize(1)));

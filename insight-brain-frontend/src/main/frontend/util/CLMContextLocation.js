@@ -174,8 +174,7 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getPolicyTagUrl: function(policyId) {
-        return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '?ownerId=' +
-            encodeURIComponent(getId(true)) + '&ownerType=' + getServicePath();
+        return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '/' + getServicePathWithId();
       },
 
       getPermissionTestUrl: function(global) {

@@ -13,7 +13,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -37,6 +36,7 @@ import com.sonatype.insight.brain.tag.TagResource.ApplicationTagsByOwner;
 import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
 import com.sonatype.insight.brain.tag.TagResource.TagsByOwner;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -233,16 +233,17 @@ class TagService
     return tagDAO.getByPolicyId(policyId);
   }
 
-  List<Tag> updatePolicyTags(String policyId, final List<Tag> newTags) {
-    final Policy policy = policyDAO.getByIdNotNull(policyId);
-    return updatePolicyTags(policy.getOwnerId(), policyId, newTags);
-  }
-
   @Authorize(permission = Permission.WRITE)
-  List<Tag> updatePolicyTags(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
+  List<Tag> updatePolicyTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+                             @AuthzContext(AuthzContext.Key.ID) String ownerId,
                              String policyId,
                              final List<Tag> newTags)
   {
+    String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    if (!internalId.equals(policyDAO.getByIdNotNull(policyId).getOwnerId())) {
+      throw new NotFoundException("Cannot find a policy with id " + policyId + " for owner id " + ownerId);
+    }
+
     try (TransactionContext tx = policyTagDAO.createTransactionContext()) {
       tx.begin();
 

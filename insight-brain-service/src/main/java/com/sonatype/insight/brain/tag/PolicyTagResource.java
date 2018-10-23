@@ -15,7 +15,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.OwnerType;
@@ -34,7 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PolicyTagResource.RESOURCE_PATH)
 public class PolicyTagResource
 {
-  public static final String RESOURCE_PATH = "rest/appliedTag/policy/{policyId}";
+  public static final String RESOURCE_PATH = "rest/appliedTag/policy/{policyId}/{ownerType}/{ownerId}";
 
   private final TagService tagService;
 
@@ -45,8 +44,8 @@ public class PolicyTagResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getPolicyTags(@QueryParam("ownerType") OwnerType ownerType,
-                                 @QueryParam("ownerId") String ownerId,
+  public List<Tag> getPolicyTags(@PathParam("ownerType") OwnerType ownerType,
+                                 @PathParam("ownerId") String ownerId,
                                  @PathParam("policyId") String policyId)
   {
     return tagService.getPolicyTags(ownerType, ownerId, policyId);
@@ -60,7 +59,11 @@ public class PolicyTagResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> updatePolicyTags(@PathParam("policyId") String policyId, List<Tag> tags) {
-    return tagService.updatePolicyTags(policyId, tags);
+  public List<Tag> updatePolicyTags(@PathParam("ownerType") OwnerType ownerType,
+                                    @PathParam("ownerId") String ownerId,
+                                    @PathParam("policyId") String policyId,
+                                    List<Tag> tags)
+  {
+    return tagService.updatePolicyTags(ownerType, ownerId, policyId, tags);
   }
 }

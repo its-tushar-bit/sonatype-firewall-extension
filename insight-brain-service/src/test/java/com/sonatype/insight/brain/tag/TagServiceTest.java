@@ -123,10 +123,27 @@ public class TagServiceTest
     updatedPolicyTags.add(tagTwo);
     updatedPolicyTags.add(tagThree);
 
-    updatedPolicyTags = tagService.updatePolicyTags(organization.getId(), policy.getId(), updatedPolicyTags);
+    updatedPolicyTags = tagService
+        .updatePolicyTags(OwnerType.ORGANIZATION, organization.getId(), policy.getId(), updatedPolicyTags);
     assertThat(updatedPolicyTags, hasSize(2));
     assertTagInList(updatedPolicyTags, tagTwo);
     assertTagInList(updatedPolicyTags, tagThree);
+  }
+
+  @Test
+  public void testUpdatePolicyTags_PolicyNotBelongingToOrg() throws Exception {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(org2.getId(), "testUpdatePolicyTags_PolicyNotBelongingToOrg");
+
+    try {
+      tagService.updatePolicyTags(OwnerType.ORGANIZATION, org1.getId(), policy.getId(), new ArrayList<>());
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(),
+          is("Cannot find a policy with id " + policy.getId() + " for owner id " + org1.getId()));
+    }
   }
 
   /**

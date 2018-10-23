@@ -36,6 +36,27 @@ $iq-cell-affected-apps-width: 109px;
   }
 }
 
+.iq-tab {
+  .fa {
+
+    &.fa-exclamation {
+      line-height: 16px;
+      text-align: center;
+      vertical-align: 1px;
+      width: 16px;
+    }
+
+    &.fa-terminal {
+      font-size: 12px;
+      height: 16px;
+      line-height: 12px;
+      text-align: center;
+      vertical-align: 3px;
+      width: 16px;
+    }
+  }
+}
+
 .iq-table--dashboard-violations,
 .iq-table--dashboard-applications,
 .iq-table--dashboard-components {

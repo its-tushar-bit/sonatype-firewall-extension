@@ -10,6 +10,10 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
@@ -36,14 +40,18 @@ class NewInstancePopulator
 
   private final InsightConfig insightConfig;
 
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public NewInstancePopulator(final ReferencePolicyFetcher referencePolicyFetcher,
                               final PolicyImportExport policyImportExport,
-                              final InsightConfig insightConfig)
+                              final InsightConfig insightConfig,
+                              final AuditRecorder auditRecorder)
   {
     this.referencePolicyFetcher = referencePolicyFetcher;
     this.policyImportExport = policyImportExport;
     this.insightConfig = insightConfig;
+    this.auditRecorder = auditRecorder;
   }
 
   void populateIfNewInstance() {
@@ -72,12 +80,20 @@ class NewInstancePopulator
     if (insightConfig.isImportReferencePoliciesFromHDS()) {
       log.info("Importing Reference Policies");
 
-      try {
-        policyImportExport.importOrganizationWithoutAuthorizationCheck(rootOrganization,
-            referencePolicyFetcher.getReferencePolicies());
-      }
-      catch (Exception e) {
-        log.error("Unable to import Reference Policies from HDS", e);
+      try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.IMPORT)) {
+        AuditData.get().setOrganization(rootOrganization);
+        try {
+          policyImportExport.importOrganizationWithoutAuthorizationCheck(rootOrganization,
+              referencePolicyFetcher.getReferencePolicies());
+        }
+        catch (Exception e) {
+          log.error("Unable to import Reference Policies from HDS", e);
+          AuditData.get().setException(e);
+        }
+        catch (Throwable t) {
+          AuditData.get().setException(t);
+          throw t;
+        }
       }
     }
   }

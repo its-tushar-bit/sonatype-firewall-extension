@@ -15,6 +15,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -110,6 +111,11 @@ public class PolicyImportExport
                                                                         PolicyExportResult exportDTO)
   {
     checkOrgImportPreconditions(organization, exportDTO);
+
+    AuditData.get().setData("policyCount", exportDTO.policies.size())
+        .setData("componentLabelCount", exportDTO.labels.size())
+        .setData("licenseThreatGroupCount", exportDTO.licenseThreatGroups.size())
+        .setData("applicationCategoryCount", exportDTO.tags.size());
 
     String orgId = organization.getId();
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {

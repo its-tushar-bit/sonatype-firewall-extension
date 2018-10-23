@@ -29,6 +29,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -231,6 +233,7 @@ public class PolicyResource
   @POST
   @Path("import")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Audited(AuditEvent.IMPORT)
   public Response importPolicies(@PathParam("ownerType") final OwnerType ownerType,
                                  @PathParam("ownerId") final String ownerId,
                                  @FormDataParam("file") final InputStream is,

@@ -25,6 +25,8 @@ public enum AuditEvent
 
   CONFIGURE_PROPRIETARY_COMPONENTS(Domain.GOVERNANCE_PROPRIETARY_COMPONENTS, Type.CONFIGURE),
 
+  IMPORT(Domain.GOVERNANCE_IMPORT, Type.IMPORT),
+
   APPLY_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.APPLY),
   REVOKE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.REVOKE),
   CONFIGURE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.CONFIGURE);
@@ -66,6 +68,8 @@ public enum AuditEvent
 
     String GOVERNANCE_COMPONENT_LICENSE = join(GOVERNANCE_COMPONENT, "license");
 
+    String GOVERNANCE_IMPORT = join(GOVERNANCE, "import");
+
     String GOVERNANCE_GRANDFATHERING = join(GOVERNANCE, "grandfathering");
 
     String GOVERNANCE_PROPRIETARY_COMPONENTS = join(GOVERNANCE, "proprietary-components");
@@ -100,5 +104,7 @@ public enum AuditEvent
     String REVOKE = "revoke";
 
     String CONFIGURE = "configure";
+
+    String IMPORT = "import";
   }
 }

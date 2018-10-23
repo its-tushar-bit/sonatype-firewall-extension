@@ -19,6 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
@@ -31,7 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Produces(MediaType.APPLICATION_JSON)
 public class ProprietaryConfigResource
 {
-  public static final String RESOURCE_PATH = "rest/proprietary/{ownerType: application|organization}/{publicOwnerId}";
+  public static final String RESOURCE_PATH = "rest/proprietary/{ownerType: application|organization}/{ownerId}";
 
   public static final String ADD_FILE_PATH_REGEX = "add";
 
@@ -44,27 +46,29 @@ public class ProprietaryConfigResource
 
   @GET
   public ProprietaryConfigHierarchy getProprietaryConfigHierarchy(@PathParam("ownerType") final OwnerType ownerType,
-                                                                  @PathParam("publicOwnerId")
-                                                                  final String publicOwnerId)
+                                                                  @PathParam("ownerId")
+                                                                  final String ownerId)
   {
-    return proprietaryConfigService.getProprietaryConfigHierarchy(ownerType, publicOwnerId);
+    return proprietaryConfigService.getProprietaryConfigHierarchy(ownerType, ownerId);
   }
 
   @PUT
+  @Audited(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS)
   public ProprietaryConfig upsertProprietaryConfig(@PathParam("ownerType") final OwnerType ownerType,
-                                                   @PathParam("publicOwnerId") final String publicOwnerId,
+                                                   @PathParam("ownerId") final String ownerId,
                                                    ProprietaryConfig proprietaryConfig)
   {
-    return proprietaryConfigService.upsertProprietaryConfig(ownerType, publicOwnerId, proprietaryConfig);
+    return proprietaryConfigService.upsertProprietaryConfig(ownerType, ownerId, proprietaryConfig);
   }
 
   @POST
   @Path(ADD_FILE_PATH_REGEX)
+  @Audited(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS)
   public ProprietaryConfig addFilePathRegexToProprietaryConfig(@PathParam("ownerType") final OwnerType ownerType,
-                                                               @PathParam("publicOwnerId") final String publicOwnerId,
+                                                               @PathParam("ownerId") final String ownerId,
                                                                final FilePathRegex filePathRegex)
   {
-    return proprietaryConfigService.addFilePathRegexToProprietaryConfig(ownerType, publicOwnerId, filePathRegex);
+    return proprietaryConfigService.addFilePathRegexToProprietaryConfig(ownerType, ownerId, filePathRegex);
   }
 
   public static class FilePathRegex

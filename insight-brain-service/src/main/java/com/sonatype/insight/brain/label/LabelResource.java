@@ -21,6 +21,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelService.ApplicableLabels;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -92,6 +94,7 @@ public class LabelResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_LABEL)
   public Label addLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId, Label label)
   {
     return labelService.addLabel(ownerType, ownerId, label);

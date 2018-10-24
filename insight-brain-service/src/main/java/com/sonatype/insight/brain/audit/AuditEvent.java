@@ -24,6 +24,8 @@ public enum AuditEvent
   CREATE_WAIVER(Domain.GOVERNANCE_WAIVER, Type.CREATE),
   DELETE_WAIVER(Domain.GOVERNANCE_WAIVER, Type.DELETE),
 
+  CREATE_LABEL(Domain.GOVERNANCE_LABEL, Type.CREATE),
+
   EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE),
 
   CONFIGURE_PROPRIETARY_COMPONENTS(Domain.GOVERNANCE_PROPRIETARY_COMPONENTS, Type.CONFIGURE),
@@ -82,6 +84,8 @@ public enum AuditEvent
     String GOVERNANCE_PROPRIETARY_COMPONENTS = join(GOVERNANCE, "proprietary-components");
 
     String GOVERNANCE_CONTINUOUS_MONITORING = join(GOVERNANCE, "continuous-monitoring");
+
+    String GOVERNANCE_LABEL = join(GOVERNANCE, "component-label");
 
     static String join(String parent, String child) {
       return parent + "." + child;

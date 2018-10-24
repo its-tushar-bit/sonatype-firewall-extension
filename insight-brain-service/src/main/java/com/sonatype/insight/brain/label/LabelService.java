@@ -12,6 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -179,6 +180,7 @@ public class LabelService
     labelDAO.insert(label);
 
     managementEventService.postEvent(CREATED, label);
+    setAuditLogLabelData(label);
 
     return label;
   }
@@ -266,5 +268,10 @@ public class LabelService
       }
     }
     return false;
+  }
+
+  private void setAuditLogLabelData(Label label) {
+    AuditData.get().setLabel(label).setData("labelDescription", label.getDescription())
+        .setEnum("labelColor", label.getColor());
   }
 }

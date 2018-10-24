@@ -106,6 +106,7 @@ public class LabelResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_LABEL)
   public Label updateLabel(@PathParam("ownerType") OwnerType ownerType,
                            @PathParam("ownerId") String ownerId,
                            Label label)

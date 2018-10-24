@@ -201,6 +201,7 @@ public class LabelService
     labelDAO.update(label);
 
     managementEventService.postEvent(UPDATED, label);
+    setAuditLogLabelData(label);
 
     return label;
   }

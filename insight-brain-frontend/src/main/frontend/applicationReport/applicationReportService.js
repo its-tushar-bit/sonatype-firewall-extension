@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
-  all,
   apply,
   compose,
   concat,
@@ -19,11 +18,9 @@ import {
   groupBy,
   isNil,
   map,
-  mapObjIndexed,
   pick,
   pipe,
   prop,
-  propEq,
   reduceBy,
   sort,
   toPairs,
@@ -33,7 +30,7 @@ import {
 const flatMap = pipe(map, flatten),
     toKey = component => component.hash || (component.pathnames || []).join('\t'),
     nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
-    indexComponentsByKey = components => mapObjIndexed(([data]) => data, groupBy(toKey, components)),
+    indexComponentsByKey = reduceBy((acc, c) => c, null, toKey),
     makeNonViolatingComponentEntry = component => ({
       ...component,
       policyThreatLevel: 0,
@@ -130,7 +127,7 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
   function isKeyInactive([key]) {
     const violations = violatingEntriesByKey[key];
 
-    return isNil(violations) || all(propEq('grandfathered', true), violations);
+    return isNil(violations);
   }
 
   const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),

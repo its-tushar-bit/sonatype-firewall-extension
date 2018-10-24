@@ -1,6 +1,476 @@
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
 
 describe('applicationReportService', function() {
+  describe('createReportEntries', function() {
+    const bomData = {
+          aaData: [{
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1'
+              }
+            }
+          }, {
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2'
+              }
+            }
+          }]
+        },
+        unknownJSData = {
+          aaData: [{
+            hash: 'bazHash',
+            otherProp: 'baz'
+          }]
+        };
+
+    it('creates entries from report V3 data', function() {
+      const policyThreatData = {
+            version: 3,
+            aaData: [{
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9,
+              activeViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: false
+              }],
+              waivedViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8,
+                waived: true,
+                grandfathered: false
+              }],
+              allViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: false
+              }, {
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8,
+                waived: true,
+                grandfathered: false
+              }]
+            }, {
+              hash: 'barHash',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9,
+              activeViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: true
+              }],
+              waivedViolations: [],
+              allViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: true
+              }]
+            }]
+          },
+          result = applicationReportService.createReportEntries(policyThreatData, bomData, unknownJSData);
+
+      expect(result.length).toEqual(4);
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'License-High',
+        policyThreatLevel: 8,
+        waived: true,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'barHash',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'barGroup',
+            artifactId: 'bar',
+            version: '2'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: true
+      });
+
+      expect(result).toContain({
+        hash: 'bazHash',
+        otherProp: 'baz',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        waived: false,
+        grandfathered: false
+      });
+    });
+
+    it('creates entries from report V1/V2 data', function() {
+      const policyThreatData = {
+            version: 1,
+            aaData: [{
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9,
+              activeViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9
+              }],
+              waivedViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8
+              }]
+            }, {
+              hash: 'barHash',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9,
+              activeViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9
+              }],
+              waivedViolations: []
+            }]
+          },
+          policyThreatData2 = { ...policyThreatData, version: 2 },
+          result = applicationReportService.createReportEntries(policyThreatData, bomData, unknownJSData),
+          result2 = applicationReportService.createReportEntries(policyThreatData2, bomData, unknownJSData);
+
+      expect(result.length).toEqual(4);
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'License-High',
+        policyThreatLevel: 8,
+        waived: true,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'barHash',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'barGroup',
+            artifactId: 'bar',
+            version: '2'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'bazHash',
+        otherProp: 'baz',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result2).toEqual(result);
+    });
+
+    it('creates entries from report pre-V1 data', function() {
+      const policyThreatData = {
+            aaData: [{
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9
+            }, {
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+              policyName: 'License-High',
+              policyThreatLevel: 8
+            }, {
+              hash: 'barHash',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9
+            }]
+          },
+          result = applicationReportService.createReportEntries(policyThreatData, bomData, unknownJSData);
+
+      expect(result.length).toEqual(4);
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'License-High',
+        policyThreatLevel: 8,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'barHash',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'barGroup',
+            artifactId: 'bar',
+            version: '2'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'bazHash',
+        otherProp: 'baz',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        waived: false,
+        grandfathered: false
+      });
+    });
+
+    it('treats the unknownJSResult parameter as optional', function() {
+      const policyThreatData = {
+            aaData: [{
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9
+            }, {
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+              policyName: 'License-High',
+              policyThreatLevel: 8
+            }, {
+              hash: 'barHash',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9
+            }]
+          },
+          result = applicationReportService.createReportEntries(policyThreatData, bomData);
+
+      expect(result.length).toEqual(3);
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        policyName: 'License-High',
+        policyThreatLevel: 8,
+        waived: false,
+        grandfathered: false
+      });
+
+      expect(result).toContain({
+        hash: 'barHash',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'barGroup',
+            artifactId: 'bar',
+            version: '2'
+          }
+        },
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false
+      });
+    });
+
+    it('can handle undefined values for all parameters', function() {
+      expect(applicationReportService.createReportEntries(undefined, undefined)).toEqual([]);
+    });
+  });
+
   describe('aggregateReportEntries', function() {
     const input = [{
       hash: '1',

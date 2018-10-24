@@ -42,6 +42,8 @@ public class PolicyMonitoringResource
 {
   public static final String RESOURCE_PATH = "rest/policyMonitoring/{ownerType: application|organization}/{ownerId}";
 
+  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
@@ -49,7 +51,7 @@ public class PolicyMonitoringResource
                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    return loadPolicyMonitoring(internalOwnerId);
+    return policyMonitoringDAO.getByOwnerId(internalOwnerId);
   }
 
   /**
@@ -71,7 +73,7 @@ public class PolicyMonitoringResource
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       PolicyMonitoringByOwner policyMonitoringByOwner = new PolicyMonitoringByOwner();
       policyMonitoringByOwner.ownerName = owner.getName();
-      policyMonitoringByOwner.policyMonitoring = loadPolicyMonitoring(owner.getId());
+      policyMonitoringByOwner.policyMonitoring = policyMonitoringDAO.getByOwnerId(owner.getId());
       results.policyMonitoringByOwner.add(policyMonitoringByOwner);
     }
 
@@ -93,7 +95,7 @@ public class PolicyMonitoringResource
     }
 
     policyMonitoring.setOwnerId(ownerId);
-    new PolicyMonitoringDAO().set(policyMonitoring);
+    policyMonitoringDAO.set(policyMonitoring);
 
     return policyMonitoring;
   }
@@ -105,13 +107,8 @@ public class PolicyMonitoringResource
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-    PolicyMonitoring policyMonitoring = new PolicyMonitoringDAO().getByOwnerIdNotNull(ownerId);
-    dao.delete(policyMonitoring);
-  }
-
-  private PolicyMonitoring loadPolicyMonitoring(final String ownerId) {
-    return new PolicyMonitoringDAO().getByOwnerId(ownerId);
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerIdNotNull(ownerId);
+    policyMonitoringDAO.delete(policyMonitoring);
   }
 
   public static class ApplicablePolicyMonitors

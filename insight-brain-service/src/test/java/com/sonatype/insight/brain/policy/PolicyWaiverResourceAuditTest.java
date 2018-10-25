@@ -104,6 +104,68 @@ public class PolicyWaiverResourceAuditTest
     assertApplicationData(auditDTO, application);
   }
 
+  @Test
+  public void testDeletePolicyWaiver_Application() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyWaiver policyWaiver = savePolicyWaiver(application.getId());
+
+    restRequest(application).path(policyWaiver.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
+    assertApplicationData(auditDTO, application);
+    assertPolicyWaiverData(auditDTO, policyWaiver, true);
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Organization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    PolicyWaiver policyWaiver = savePolicyWaiver(organization.getId());
+
+    restRequest(organization).path(policyWaiver.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyWaiverData(auditDTO, policyWaiver, true);
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    PolicyWaiver policyWaiver = savePolicyWaiver(repository.getId());
+
+    restRequest(repository).path(policyWaiver.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
+    assertRepositoryData(auditDTO, repository);
+    assertPolicyWaiverData(auditDTO, policyWaiver, true);
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_RepositoryContainer() throws Exception {
+    PolicyWaiver policyWaiver = savePolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    restRequest(RepositoryContainer.SINGLETON).path(policyWaiver.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
+    assertRepositoryContainerData(auditDTO);
+    assertPolicyWaiverData(auditDTO, policyWaiver, true);
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Unauthorized() throws Exception {
+    PolicyWaiver policyWaiver = savePolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    restRequest(RepositoryContainer.SINGLETON).auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword())
+        .path(policyWaiver.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, "unauthorized");
+    assertRepositoryContainerData(auditDTO);
+  }
+
+  private PolicyWaiver savePolicyWaiver(String ownerId) {
+    return tempEntity.newWaiver("hash", policy.getId(), ownerId, constraintFacts(), "comment");
+  }
+
   private PolicyWaiver policyWaiver() {
     return policyWaiver("hash", constraintFacts());
   }

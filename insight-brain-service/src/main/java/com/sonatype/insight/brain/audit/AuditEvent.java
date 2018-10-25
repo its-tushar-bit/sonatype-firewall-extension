@@ -22,6 +22,7 @@ public enum AuditEvent
   REMOVE_COMPONENT_LABEL(Domain.GOVERNANCE_COMPONENT_LABEL, Type.REMOVE),
 
   CREATE_WAIVER(Domain.GOVERNANCE_WAIVER, Type.CREATE),
+  DELETE_WAIVER(Domain.GOVERNANCE_WAIVER, Type.DELETE),
 
   EVALUATE_APPLICATION(Domain.GOVERNANCE_EVALUATION_APPLICATION, Type.EVALUATE),
 
@@ -120,5 +121,7 @@ public enum AuditEvent
     String IMPORT = "import";
 
     String CREATE = "create";
+
+    String DELETE = "delete";
   }
 }

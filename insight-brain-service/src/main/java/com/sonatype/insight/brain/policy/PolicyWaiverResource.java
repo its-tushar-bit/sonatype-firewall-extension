@@ -81,6 +81,7 @@ public class PolicyWaiverResource
   @DELETE
   @Path("{policyWaiverId}")
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.DELETE_WAIVER)
   public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                  @PathParam("policyWaiverId") String policyWaiverId)
@@ -94,6 +95,7 @@ public class PolicyWaiverResource
           + " ID " + ownerId);
     }
 
+    auditPolicyWaiver(policyWaiver, true);
     policyWaiverDAO.delete(policyWaiver);
   }
 

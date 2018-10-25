@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -107,6 +108,7 @@ public class PolicyMonitoringResource
 
   @DELETE
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
   public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
@@ -114,6 +116,7 @@ public class PolicyMonitoringResource
 
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerIdNotNull(ownerId);
     policyMonitoringDAO.delete(policyMonitoring);
+    AuditData.get().setStageId(Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? "none" : "inherited");
   }
 
   public static class ApplicablePolicyMonitors

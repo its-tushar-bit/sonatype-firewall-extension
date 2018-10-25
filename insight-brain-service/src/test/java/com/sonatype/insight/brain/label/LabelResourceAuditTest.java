@@ -130,6 +130,39 @@ public class LabelResourceAuditTest
   }
 
   @Test
+  public void testDeleteLabel_AppLevel() throws Exception {
+    Label toBeDeleted = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+
+    restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
+        .subpath(toBeDeleted.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, null);
+    assertApplicationData(auditDTO, application);
+    assertLabelData(auditDTO, toBeDeleted);
+  }
+
+  @Test
+  public void testDeleteLabel_OrgLevel() throws Exception {
+    Label toBeDeleted = tempEntity.newLabel(organization.getId());
+
+    restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.ORGANIZATION, organization.getPublicId())
+        .subpath(toBeDeleted.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, null);
+    assertOrganizationData(auditDTO, organization);
+    assertLabelData(auditDTO, toBeDeleted);
+  }
+
+  @Test
+  public void testDeleteLabel_Unauthorized() throws Exception {
+    restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
+        .subpath("labelId").auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
   public void testUpdateLabel_Unauthorized() throws Exception {
     final Label label = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
     restRequest(OwnerType.APPLICATION, application.getPublicId(), label)

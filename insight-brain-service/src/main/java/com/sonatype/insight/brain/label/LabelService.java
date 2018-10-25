@@ -222,6 +222,8 @@ public class LabelService
 
     labelDAO.delete(label);
 
+    setAuditLogLabelData(label);
+
     managementEventService.postEvent(DELETED, label);
   }
 

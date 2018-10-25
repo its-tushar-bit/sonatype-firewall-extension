@@ -119,6 +119,7 @@ public class LabelResource
    */
   @DELETE
   @Path("{labelId}")
+  @Audited(AuditEvent.DELETE_LABEL)
   public void deleteLabel(@PathParam("ownerType") OwnerType ownerType,
                           @PathParam("ownerId") String ownerId,
                           @PathParam("labelId") String labelId)

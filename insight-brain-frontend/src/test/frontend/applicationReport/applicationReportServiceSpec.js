@@ -761,7 +761,7 @@ describe('applicationReportService', function() {
           [0, 'None', 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29']
         ]);
       });
-      
+
       it('returns the list unchanged if no properties to sort by are supplied', function() {
         const result = applicationReportService.sortReportEntries([], input);
         expect(result).toBe(input);

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -20,6 +21,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -56,6 +60,7 @@ public class PolicyWaiverResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CREATE_WAIVER)
   public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                       PolicyWaiver policyWaiver)
@@ -69,6 +74,7 @@ public class PolicyWaiverResource
     policyWaiver.setId(null);
     policyWaiver.setOwnerId(internalOwnerId);
     new PolicyWaiverDAO().insert(policyWaiver);
+    auditPolicyWaiver(policyWaiver, false);
     return policyWaiver;
   }
 
@@ -224,5 +230,16 @@ public class PolicyWaiverResource
       extends PolicyWaiver
   {
     public String policyName;
+  }
+
+  private void auditPolicyWaiver(PolicyWaiver policyWaiver, boolean isDelete) {
+    AuditData.get().setData("policyWaiverId", policyWaiver.getId())
+        .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
+        .setComment(isDelete ? null : policyWaiver.getComment())
+        .setComponentHash(policyWaiver.getHash());
+    if (policyWaiver.getConstraintFacts() != null) {
+      AuditData.get().setData("policyConstraints",
+          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    }
   }
 }

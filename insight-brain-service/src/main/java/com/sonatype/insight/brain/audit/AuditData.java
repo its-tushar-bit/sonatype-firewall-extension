@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 /**
@@ -216,6 +217,24 @@ public abstract class AuditData
 
   AuditData setLabelName(String labelName) {
     setData("labelName", labelName);
+    return this;
+  }
+
+  public AuditData setPolicy(Policy policy) {
+    if (policy != null) {
+      setPolicyId(policy.getId());
+      setPolicyName(policy.getName());
+    }
+    return this;
+  }
+
+  AuditData setPolicyId(String policyId) {
+    setData("policyId", policyId);
+    return this;
+  }
+
+  AuditData setPolicyName(String policyName) {
+    setData("policyName", policyName);
     return this;
   }
 }

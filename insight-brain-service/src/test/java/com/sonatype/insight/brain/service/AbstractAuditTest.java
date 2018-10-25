@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -47,7 +49,7 @@ public abstract class AbstractAuditTest
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
   protected User unauthorizedUser;
-  
+
   private ObjectMapper objectMapper;
 
   @Before
@@ -103,7 +105,13 @@ public abstract class AbstractAuditTest
   }
 
   protected void assertCustomObject(AuditDTO auditDTO, String key, Object pojo) {
-    assertCustomData(auditDTO, key, objectMapper.convertValue(pojo, Map.class));
+    if (pojo instanceof Collection<?>) {
+      assertCustomData(auditDTO, key, ((Collection<?>) pojo).stream().map(p -> objectMapper.convertValue(p, Map.class))
+          .collect(Collectors.toList()));
+    }
+    else {
+      assertCustomData(auditDTO, key, objectMapper.convertValue(pojo, Map.class));
+    }
   }
 
   protected void assertOrganizationData(AuditDTO auditDTO, Organization organization) {

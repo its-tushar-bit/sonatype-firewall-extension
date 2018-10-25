@@ -32,28 +32,28 @@ public class DashboardApplications
       super(ROOT, ".iq-dashboard-headers");
     }
 
-    public DashboardResultHeader totalRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--total-risk a"));
+    public IqSortingHeader totalRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--total-risk a"));
     }
 
-    public DashboardResultHeader lowRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--low-risk a"));
+    public IqSortingHeader lowRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--low-risk a"));
     }
 
-    public DashboardResultHeader moderateRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--moderate-risk a"));
+    public IqSortingHeader moderateRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--moderate-risk a"));
     }
 
-    public DashboardResultHeader severeRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--severe-risk a"));
+    public IqSortingHeader severeRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--severe-risk a"));
     }
 
-    public DashboardResultHeader criticalRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--critical-risk a"));
+    public IqSortingHeader criticalRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--critical-risk a"));
     }
 
-    public DashboardResultHeader applicationNameHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--application-name a"));
+    public IqSortingHeader applicationNameHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--application-name a"));
     }
   }
 

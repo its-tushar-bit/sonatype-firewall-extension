@@ -9,13 +9,13 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
 
-public class DashboardResultHeader
-    extends BasicElement<DashboardResultHeader>
+public class IqSortingHeader
+    extends BasicElement<IqSortingHeader>
 {
   private static Condition UP = Condition.cssClass("up");
   private static Condition DOWN = Condition.cssClass("down");
 
-  DashboardResultHeader(String selector) {
+  public IqSortingHeader(String selector) {
     super(selector);
   }
 

@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -121,8 +123,8 @@ public class ApplicationReportTest
     }
     reportPage.resultRow(1).componentName().shouldHave(text("javancss : javancss : 29.50"));
     reportPage.resultRow(2).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    reportPage.resultRow(3).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    reportPage.resultRow(4).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    reportPage.resultRow(3).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    reportPage.resultRow(4).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
   }
 
   @Test
@@ -147,11 +149,11 @@ public class ApplicationReportTest
     reportPage.resultRow(4).click();
     cipModal.getElement().shouldBe(visible);
 
-    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
     cipModal.nextButton().shouldBe(disabled);
     cipModal.previousButton().shouldBe(enabled).click();
 
-    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
+    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
     cipModal.nextButton().shouldBe(enabled);
     cipModal.previousButton().shouldBe(enabled);
     cipModal.closeButton().click();
@@ -291,8 +293,39 @@ public class ApplicationReportTest
     }
     reportPage.resultRow(1).componentName().shouldHave(text("javancss : javancss : 29.50"));
     reportPage.resultRow(2).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    reportPage.resultRow(3).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    reportPage.resultRow(4).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    reportPage.resultRow(3).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    reportPage.resultRow(4).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+  }
+
+  @Test
+  public void testSorting() {
+    AppReportHeaders headers = reportPage.headers();
+    ElementsCollection violations = reportPage.resultRows();
+    // by threat level
+    headers.threatHeader().sortArrowDown().shouldBeSelected();
+    violations.shouldHave(texts("5", "0", "0", "0"));
+    // check that '0' entries have also been sorted by component name
+    violations.shouldHave(texts("javancss", "ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+    headers.threatHeader().click();
+    headers.threatHeader().sortArrowUp().shouldBeSelected();
+    violations.shouldHave(texts("0", "0", "0", "5"));
+    violations.shouldHave(texts("ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty", "javancss"));
+    // by policy name
+    headers.policyNameHeader().click();
+    headers.policyNameHeader().sortArrowUp().shouldBeSelected();
+    violations.shouldHave(texts("ApplicationReportTest Policy", "None", "None", "None"));
+    violations.shouldHave(texts("javancss", "ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+    headers.policyNameHeader().click();
+    headers.policyNameHeader().sortArrowDown().shouldBeSelected();
+    violations.shouldHave(texts("None", "None", "None", "ApplicationReportTest Policy"));
+    violations.shouldHave(texts("ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty", "javancss"));
+    // by component name
+    headers.componentNameHeader().click();
+    headers.componentNameHeader().sortArrowUp().shouldBeSelected();
+    violations.shouldHave(texts("ch.qos.logback", "javancss", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+    headers.componentNameHeader().click();
+    headers.componentNameHeader().sortArrowDown().shouldBeSelected();
+    violations.shouldHave(texts("org.mortbay.jetty", "org.apache.geronimo.framework", "javancss", "ch.qos.logback"));
   }
 
   private void setupHdsResponse() {

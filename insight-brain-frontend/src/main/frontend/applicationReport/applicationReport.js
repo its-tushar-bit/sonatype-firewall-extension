@@ -16,14 +16,13 @@ export default {
 function ApplicationReportController($scope, $ngRedux, applicationReportActions) {
   const vm = this;
 
-  $scope.$watchGroup(['vm.sortCol', 'vm.filters'], function([sortCol, filters]) {
-    vm.sortByPolicy = sortCol === 'policyName';
+  $scope.$watch('vm.filters', function(filters) {
     vm.hasFilter = !isEmpty(keys(filters));
   });
 
   Object.assign(vm, {
     $onInit() {
-      const actions = pick(['setAggregateReportEntries', 'setSorting', 'setFiltering'], applicationReportActions);
+      const actions = pick(['setAggregateReportEntries', 'setFiltering'], applicationReportActions);
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
     },
@@ -35,7 +34,7 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions)
 }
 
 function mapStateToThis(state) {
-  return pick(['aggregate', 'sortCol', 'filters'], state.applicationReport || {});
+  return pick(['aggregate', 'filters'], state.applicationReport || {});
 }
 
 ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];

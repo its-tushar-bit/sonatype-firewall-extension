@@ -116,4 +116,14 @@ describe('applicationReportActions', function() {
       expect(action.payload).toBe(payload);
     });
   });
+
+  describe('setSorting', function() {
+    it('returns a SET_SORTING action with the specified payload value', function() {
+      const payload = {},
+          action = applicationReportActions.setSorting(payload);
+
+      expect(action.type).toBe('SET_SORTING');
+      expect(action.payload).toBe(payload);
+    });
+  });
 });

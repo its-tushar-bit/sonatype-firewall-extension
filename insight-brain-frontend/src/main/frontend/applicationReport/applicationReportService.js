@@ -13,16 +13,16 @@ import {
   filter,
   flatten,
   flip,
+  groupBy,
   into,
   isEmpty,
-  groupBy,
   isNil,
   map,
   pick,
   pipe,
   prop,
   reduceBy,
-  sort,
+  sortWith,
   toPairs,
   values
 } from 'ramda';
@@ -36,7 +36,8 @@ const flatMap = pipe(map, flatten),
       policyThreatLevel: 0,
       policyName: 'None',
       waived: false,
-      grandfathered: false
+      grandfathered: false,
+      derivedComponentName: deriveComponentNameFromDisplayName(component.displayName)
     });
 
 /**
@@ -49,7 +50,8 @@ function makeViolationEntriesV3(policyResult, bomDataByKey) {
         bomComponent = bomDataByKey[key],
         makeEntryForViolation = violation => ({
           ...pick(['policyThreatLevel', 'policyName', 'waived', 'grandfathered'], violation),
-          ...bomComponent
+          ...bomComponent,
+          derivedComponentName: deriveComponentNameFromDisplayName(bomComponent.displayName)
         });
 
     return map(makeEntryForViolation, component.allViolations);
@@ -70,7 +72,8 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
           waived,
           grandfathered: false,
           ...pick(['policyThreatLevel', 'policyName'], violation),
-          ...bomComponent
+          ...bomComponent,
+          derivedComponentName: deriveComponentNameFromDisplayName(bomComponent.displayName)
         });
 
     return concat(
@@ -94,11 +97,16 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
       waived: false,
       grandfathered: false,
       ...pick(['policyThreatLevel', 'policyName'], violation),
-      ...bomComponent
+      ...bomComponent,
+      derivedComponentName: deriveComponentNameFromDisplayName(bomComponent.displayName)
     };
   }
 
   return map(makeEntryForViolation, filter(nullHashCheck, policyResult.aaData));
+}
+
+function deriveComponentNameFromDisplayName(displayName) {
+  return displayName.parts.map(p => p.field ? p.value.toLowerCase() : '').filter(s => s !== '').join('\u001F');
 }
 
 // A map of makeViolationEntries functions, indexed by policyResult version
@@ -180,20 +188,23 @@ export const filterReportEntries = curry(function filterReportEntries(filterConf
 /**
  * Return a list of the specified entries sorted by the specified property, optionally in reverse
  */
-export const sortReportEntries = curry(function sortReportEntries(sortProperty, reverse, entries) {
-  if (sortProperty) {
-    const propGetter = prop(sortProperty),
-        sortFn = (a, b) => {
-          const aProp = propGetter(a),
-              bProp = propGetter(b);
+export const sortReportEntries = curry(function sortReportEntries(sortFields, entries) {
+  if (!either(isNil, isEmpty)(sortFields)) {
+    const sorters = sortFields.map(f => {
+      const reverse = f.indexOf('-') === 0,
+          sortProperty = f.match(/\w+/)[0],
+          propGetter = prop(sortProperty),
+          sortFn = (a, b) => {
+            const aProp = propGetter(a),
+                bProp = propGetter(b);
 
-          return aProp < bProp ? -1 :
-            aProp > bProp ? 1 :
-              0;
-        },
-        sorter = sort(reverse ? flip(sortFn) : sortFn);
-
-    return sorter(entries);
+            return aProp < bProp ? -1 :
+              aProp > bProp ? 1 :
+                0;
+          };
+      return reverse ? flip(sortFn) : sortFn;
+    });
+    return sortWith(sorters, entries);
   }
   else {
     return entries;

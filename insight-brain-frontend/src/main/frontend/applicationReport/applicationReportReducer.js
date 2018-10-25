@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { identity, inc, lensPath, pick, pipe, reduceBy, reject, set, sum, values } from 'ramda';
+import { identity, inc, lensPath, pipe, reduceBy, reject, set, sum, values } from 'ramda';
 
 import {
   LOAD_REPORT_FAILED,
@@ -21,8 +21,7 @@ const initState = {
   loading: false,
   loadError: null,
   aggregate: true,
-  sortCol: 'policyThreatLevel',
-  sortReversed: true,
+  sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
   filters: {},
   selectedReport: null,
   selectedComponentIndex: null
@@ -50,7 +49,7 @@ export default function(state = initState, {type, payload}) {
       return updateDisplayedEntries({...state, filters: payload});
 
     case SET_SORTING:
-      return updateDisplayedEntries({...state, ...pick(['sortCol', 'sortReversed'], payload)});
+      return updateDisplayedEntries({...state, sortFields: payload});
 
     case SELECT_COMPONENT:
       return {...state, selectedComponentIndex: payload};
@@ -61,14 +60,14 @@ export default function(state = initState, {type, payload}) {
 }
 
 function updateDisplayedEntries(state) {
-  const { selectedReport, sortCol, sortReversed, aggregate, filters } = state;
+  const { selectedReport, sortFields, aggregate, filters } = state;
 
   if (selectedReport) {
     const { allEntries } = selectedReport,
         processEntries = pipe(
             aggregate ? aggregateReportEntries : identity,
             filterReportEntries(filters),
-            sortReportEntries(sortCol, sortReversed)
+            sortReportEntries(sortFields)
         ),
         newDisplayedEntries = processEntries(allEntries);
 

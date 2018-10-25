@@ -63,23 +63,19 @@
     </div>
     <table class="iq-table iq-table--application-report">
       <thead>
-        <tr class="iq-table-row">
-          <th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-threat-level">
-            <div class="iq-col-sort-icons">
-              <i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i>
-            </div>
+        <tr class="iq-table-row"
+            sort="vm.sortFields"
+            on-sort-change="vm.setSorting(sortFields)">
+          <th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-threat-level"
+              sort-column="-policyThreatLevel,policyName,derivedComponentName">
             Threat
           </th><!--
-       --><th class="iq-cell iq-cell--header iq-clickable iq-cell--selected iq-cell--application-report-policy-name">
-            <div class="iq-col-sort-icons">
-              <i class="fa fa-caret-up"></i><i class="fa fa-caret-down down"></i>
-            </div>
+       --><th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-name"
+              sort-column="policyName,-policyThreatLevel,derivedComponentName">
             Policy
           </th><!--
-       --><th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-component-display">
-            <div class="iq-col-sort-icons">
-              <i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i>
-            </div>
+       --><th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-component-display"
+              sort-column="derivedComponentName,-policyThreatLevel,policyName">
             Component
           </th>
         </tr>

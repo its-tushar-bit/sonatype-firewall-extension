@@ -1,4 +1,5 @@
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
+import {map, props} from 'ramda';
 
 describe('applicationReportService', function() {
   describe('createReportEntries', function() {
@@ -11,6 +12,11 @@ describe('applicationReportService', function() {
                 name: 'foo',
                 version: '1'
               }
+            },
+            displayName: {
+              parts: [
+                {field: 'a-name', value: 'foo'}, {field: 'version', value: '1'}
+              ]
             }
           }, {
             hash: 'barHash',
@@ -21,12 +27,22 @@ describe('applicationReportService', function() {
                 artifactId: 'bar',
                 version: '2'
               }
+            },
+            displayName: {
+              parts: [
+                {field: 'Group', value: 'barGroup'}, {field: 'Artifact', value: 'bar'}, {field: 'Version', value: '2'}
+              ]
             }
           }]
         },
         unknownJSData = {
           aaData: [{
             hash: 'bazHash',
+            displayName: {
+              parts: [
+                {field: 'Filename', value: 'unknown_js_file'}
+              ]
+            },
             otherProp: 'baz'
           }]
         };
@@ -107,7 +123,7 @@ describe('applicationReportService', function() {
 
       expect(result.length).toEqual(4);
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -116,13 +132,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -131,13 +148,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: true,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'barHash',
         componentIdentifier: {
           format: 'maven',
@@ -147,20 +165,22 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        derivedComponentName: 'bargroupbar2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: true
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'bazHash',
         otherProp: 'baz',
+        derivedComponentName: 'unknown_js_file',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
         grandfathered: false
-      });
+      }));
     });
 
     it('creates entries from report V1/V2 data', function() {
@@ -215,7 +235,7 @@ describe('applicationReportService', function() {
 
       expect(result.length).toEqual(4);
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -224,13 +244,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -239,13 +260,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: true,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'barHash',
         componentIdentifier: {
           format: 'maven',
@@ -255,20 +277,22 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        derivedComponentName: 'bargroupbar2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'bazHash',
         otherProp: 'baz',
+        derivedComponentName: 'unknown_js_file',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
         grandfathered: false
-      });
+      }));
 
       expect(result2).toEqual(result);
     });
@@ -318,7 +342,7 @@ describe('applicationReportService', function() {
 
       expect(result.length).toEqual(4);
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -327,13 +351,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -342,13 +367,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'barHash',
         componentIdentifier: {
           format: 'maven',
@@ -358,20 +384,22 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        derivedComponentName: 'bargroupbar2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'bazHash',
         otherProp: 'baz',
+        derivedComponentName: 'unknown_js_file',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
         grandfathered: false
-      });
+      }));
     });
 
     it('treats the unknownJSResult parameter as optional', function() {
@@ -419,7 +447,7 @@ describe('applicationReportService', function() {
 
       expect(result.length).toEqual(3);
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -428,13 +456,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
           format: 'a-name',
@@ -443,13 +472,14 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        derivedComponentName: 'foo1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: false,
         grandfathered: false
-      });
+      }));
 
-      expect(result).toContain({
+      expect(result).toContain(jasmine.objectContaining({
         hash: 'barHash',
         componentIdentifier: {
           format: 'maven',
@@ -459,11 +489,12 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        derivedComponentName: 'bargroupbar2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
         grandfathered: false
-      });
+      }));
     });
 
     it('can handle undefined values for all parameters', function() {
@@ -471,175 +502,270 @@ describe('applicationReportService', function() {
     });
   });
 
-  describe('aggregateReportEntries', function() {
-    const input = [{
-      hash: '1',
-      policyThreatLevel: 9,
-      policyName: 'Policy 4',
-      waived: true,
-      grandfathered: false,
-      componentIdentifier: 'bar'
-    }, {
-      hash: '2',
-      policyThreatLevel: 4,
-      policyName: 'Policy 2',
-      waived: false,
-      grandfathered: false,
-      componentIdentifier: 'baz'
-    }, {
-      hash: '2',
-      policyThreatLevel: 3,
-      policyName: 'Policy 3',
-      waived: false,
-      grandfathered: false,
-      componentIdentifier: 'baz'
-    }, {
-      hash: '1',
-      policyThreatLevel: 4,
-      policyName: 'Policy 1',
-      waived: false,
-      grandfathered: false,
-      componentIdentifier: 'bar'
-    }, {
-      hash: '3',
-      policyThreatLevel: 4,
-      policyName: 'Policy 5',
-      waived: true,
-      grandfathered: false,
-      componentIdentifier: 'qux'
-    }, {
-      hash: '1',
-      policyThreatLevel: 8,
-      policyName: 'Policy 6',
-      waived: false,
-      grandfathered: false,
-      componentIdentifier: 'bar'
-    }, {
-      hash: '1',
-      policyThreatLevel: 9,
-      policyName: 'Policy 9',
-      waived: true,
-      grandfathered: false,
-      componentIdentifier: 'bar'
-    }, {
-      hash: '3',
-      policyThreatLevel: 5,
-      policyName: 'Policy 7',
-      waived: true,
-      grandfathered: false,
-      componentIdentifier: 'qux'
-    }, {
-      hash: '3',
-      policyThreatLevel: 4,
-      policyName: 'Policy 8',
-      waived: true,
-      grandfathered: false,
-      componentIdentifier: 'qux'
-    }, {
-      hash: '4',
-      policyThreatLevel: 0,
-      policyName: 'None',
-      waived: false,
-      grandfathered: false,
-      componentIdentifier: 'apache'
-    }, {
-      hash: '5',
-      policyThreatLevel: 3,
-      policyName: 'Policy 11',
-      waived: false,
-      grandfathered: true,
-      componentIdentifier: 'foo'
-    }, {
-      hash: '5',
-      policyThreatLevel: 2,
-      policyName: 'Policy 10',
-      waived: false,
-      grandfathered: false,
-      componentIdentifier: 'foo'
-    }, {
-      hash: '5',
-      policyThreatLevel: 5,
-      policyName: 'Policy 12',
-      waived: false,
-      grandfathered: true,
-      componentIdentifier: 'foo'
-    }, {
-      hash: '6',
-      policyThreatLevel: 5,
-      policyName: 'Policy 12',
-      waived: false,
-      grandfathered: true,
-      componentIdentifier: 'foo2'
-    }];
+  describe('aggregation, filtering and sorting', function() {
+    const input = [
+      {
+        hash: '1',
+        policyThreatLevel: 9,
+        policyName: 'Policy 4',
+        waived: true,
+        grandfathered: false,
+        componentIdentifier: 'bar',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'junit'}, {value: ' : '}, {field: 'Artifact', value: 'junit'}, {value: ' : '},
+            {field: 'Version', value: '4.12'}
+          ]
+        },
+        derivedComponentName: 'junit.junit.4.12'
+      }, {
+        hash: '2',
+        policyThreatLevel: 4,
+        policyName: 'Policy 2',
+        waived: false,
+        grandfathered: false,
+        componentIdentifier: 'baz',
+        derivedComponentName: 'junit.junit.4.8'
+      }, {
+        hash: '2',
+        policyThreatLevel: 3,
+        policyName: 'Policy 3',
+        waived: false,
+        grandfathered: false,
+        componentIdentifier: 'baz',
+        derivedComponentName: 'ant.ant.1.62'
+      }, {
+        hash: '1',
+        policyThreatLevel: 4,
+        policyName: 'Policy 1',
+        waived: false,
+        grandfathered: false,
+        componentIdentifier: 'bar',
+        derivedComponentName: 'junit.junit.4.12'
+      }, {
+        hash: '3',
+        policyThreatLevel: 4,
+        policyName: 'Policy 5',
+        waived: true,
+        grandfathered: false,
+        componentIdentifier: 'qux',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'junit'}, {value: ' : '}, {field: 'Artifact', value: 'junit'}, {value: ' : '},
+            {field: 'Version', value: '4.12'}
+          ]
+        },
+        derivedComponentName: 'junit.junit.4.12'
+      }, {
+        hash: '1',
+        policyThreatLevel: 8,
+        policyName: 'Policy 6',
+        waived: false,
+        grandfathered: false,
+        componentIdentifier: 'bar',
+        derivedComponentName: 'junit.junit.4.12'
+      }, {
+        hash: '1',
+        policyThreatLevel: 9,
+        policyName: 'Policy 9',
+        waived: true,
+        grandfathered: false,
+        componentIdentifier: 'bar',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'junit'}, {value: ' : '}, {field: 'Artifact', value: 'junit'}, {value: ' : '},
+            {field: 'Version', value: '4.12'}
+          ]
+        },
+        derivedComponentName: 'junit.junit.4.12'
+      }, {
+        hash: '3',
+        policyThreatLevel: 5,
+        policyName: 'Policy 7',
+        waived: true,
+        grandfathered: false,
+        componentIdentifier: 'qux',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'xpp'}, {value: ' : '}, {field: 'Artifact', value: 'xpp3_min'}, {value: ' : '},
+            {field: 'Version', value: '1.1.4c'}
+          ]
+        },
+        derivedComponentName: 'xpp.xpp3_min.1.1.4c'
+      }, {
+        hash: '3',
+        policyThreatLevel: 4,
+        policyName: 'Policy 8',
+        waived: true,
+        grandfathered: false,
+        componentIdentifier: 'qux',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'org.springframework'}, {value: ' : '}, {field: 'Artifact', value: 'spring-webmvc'},
+            {value: ' : '}, {field: 'Version', value: '4.3.16.RELEASE'}
+          ]
+        },
+        derivedComponentName: 'org.springframework.spring-webmvc.4.3.16.RELEASE'
+      }, {
+        hash: '4',
+        policyThreatLevel: 0,
+        policyName: 'None',
+        waived: false,
+        grandfathered: false,
+        componentIdentifier: 'apache',
+        derivedComponentName: 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29'
+      }, {
+        hash: '5',
+        policyThreatLevel: 3,
+        policyName: 'Policy 11',
+        waived: false,
+        grandfathered: true,
+        componentIdentifier: 'foo',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'com.fasterxml'}, {value: ' : '},
+            {field: 'Artifact', value: 'jackson.core.jackson-annotations'}, {value: ' : '},
+            {field: 'Version', value: '2.8.11.1'}
+          ]
+        },
+        derivedComponentName: 'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1'
+      }, {
+        hash: '5',
+        policyThreatLevel: 2,
+        policyName: 'Policy 10',
+        waived: false,
+        grandfathered: false,
+        componentIdentifier: 'foo',
+        derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'
+      }, {
+        hash: '5',
+        policyThreatLevel: 5,
+        policyName: 'Policy 12',
+        waived: false,
+        grandfathered: true,
+        componentIdentifier: 'foo',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'ognl'}, {value: ' : '}, {field: 'Artifact', value: 'ognl'}, {value: ' : '},
+            {field: 'Version', value: '3.0.8'}
+          ]
+        },
+        derivedComponentName: 'ognl.ognl.3.0.8'
+      }, {
+        hash: '6',
+        policyThreatLevel: 5,
+        policyName: 'Policy 12',
+        waived: false,
+        grandfathered: true,
+        componentIdentifier: 'foo2',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'org.postgresql'}, {value: ' : '}, {field: 'Artifact', value: 'postgresql'},
+            {value: ' : '}, {field: 'Version', value: '42.2.2'}
+          ]
+        },
+        derivedComponentName: 'org.postgresql.postgresql.42.2.2'
+      }
+    ];
 
-    it('returns a list including only the highest-threat unwaived ungrandfathered violation for each component',
-        function() {
-          const result = applicationReportService.aggregateReportEntries(input),
-              hash1Result = result.filter(r => r.hash === '1'),
-              hash2Result = result.filter(r => r.hash === '2'),
-              hash5Result = result.filter(r => r.hash === '5');
+    describe('aggregateReportEntries', function() {
+      it('returns a list including only the highest-threat unwaived ungrandfathered violation for each component',
+          function() {
+            const result = applicationReportService.aggregateReportEntries(input),
+                hash1Result = result.filter(r => r.hash === '1'),
+                hash2Result = result.filter(r => r.hash === '2'),
+                hash5Result = result.filter(r => r.hash === '5');
 
-          expect(hash1Result.length).toBe(1);
-          expect(hash2Result.length).toBe(1);
+            expect(hash1Result.length).toBe(1);
+            expect(hash2Result.length).toBe(1);
 
-          expect(hash1Result[0].policyThreatLevel).toBe(8);
-          expect(hash1Result[0].policyName).toBe('Policy 6');
-          expect(hash1Result[0].waived).toBe(false);
-          expect(hash1Result[0].grandfathered).toBe(false);
-          expect(hash1Result[0].componentIdentifier).toBe('bar');
+            expect(hash1Result[0].policyThreatLevel).toBe(8);
+            expect(hash1Result[0].policyName).toBe('Policy 6');
+            expect(hash1Result[0].waived).toBe(false);
+            expect(hash1Result[0].grandfathered).toBe(false);
+            expect(hash1Result[0].componentIdentifier).toBe('bar');
 
-          expect(hash2Result[0].policyThreatLevel).toBe(4);
-          expect(hash2Result[0].policyName).toBe('Policy 2');
-          expect(hash2Result[0].waived).toBe(false);
-          expect(hash2Result[0].grandfathered).toBe(false);
-          expect(hash2Result[0].componentIdentifier).toBe('baz');
+            expect(hash2Result[0].policyThreatLevel).toBe(4);
+            expect(hash2Result[0].policyName).toBe('Policy 2');
+            expect(hash2Result[0].waived).toBe(false);
+            expect(hash2Result[0].grandfathered).toBe(false);
+            expect(hash2Result[0].componentIdentifier).toBe('baz');
 
-          expect(hash5Result[0].policyThreatLevel).toBe(2);
-          expect(hash5Result[0].policyName).toBe('Policy 10');
-          expect(hash5Result[0].waived).toBe(false);
-          expect(hash5Result[0].grandfathered).toBe(false);
-          expect(hash5Result[0].componentIdentifier).toBe('foo');
+            expect(hash5Result[0].policyThreatLevel).toBe(2);
+            expect(hash5Result[0].policyName).toBe('Policy 10');
+            expect(hash5Result[0].waived).toBe(false);
+            expect(hash5Result[0].grandfathered).toBe(false);
+            expect(hash5Result[0].componentIdentifier).toBe('foo');
 
-        }
-    );
+          }
+      );
 
-    it('includes a zero-threat record in the output if all violations for a component are waived', function() {
-      const result = applicationReportService.aggregateReportEntries(input),
-          hash3Result = result.filter(r => r.hash === '3');
+      it('includes a zero-threat record in the output if all violations for a component are waived', function() {
+        const result = applicationReportService.aggregateReportEntries(input),
+            hash3Result = result.filter(r => r.hash === '3');
 
-      expect(hash3Result.length).toBe(1);
+        expect(hash3Result.length).toBe(1);
 
-      expect(hash3Result[0].policyThreatLevel).toBe(0);
-      expect(hash3Result[0].policyName).toBe('None');
-      expect(hash3Result[0].waived).toBe(false);
-      expect(hash3Result[0].grandfathered).toBe(false);
-      expect(hash3Result[0].componentIdentifier).toBe('qux');
+        expect(hash3Result[0].policyThreatLevel).toBe(0);
+        expect(hash3Result[0].policyName).toBe('None');
+        expect(hash3Result[0].waived).toBe(false);
+        expect(hash3Result[0].grandfathered).toBe(false);
+        expect(hash3Result[0].componentIdentifier).toBe('qux');
+      });
+
+      it('includes a zero-threat record in the output if all violations for a component are grandfathered', function() {
+        const result = applicationReportService.aggregateReportEntries(input),
+            hash6Result = result.filter(r => r.hash === '6');
+
+        expect(hash6Result.length).toBe(1);
+
+        expect(hash6Result[0].policyThreatLevel).toBe(0);
+        expect(hash6Result[0].policyName).toBe('None');
+        expect(hash6Result[0].waived).toBe(false);
+        expect(hash6Result[0].grandfathered).toBe(false);
+        expect(hash6Result[0].componentIdentifier).toBe('foo2');
+      });
+
+      it('passes through zero-threat records from the input', function() {
+        const result = applicationReportService.aggregateReportEntries(input),
+            hash4Result = result.filter(r => r.hash === '4');
+
+        expect(hash4Result.length).toBe(1);
+
+        expect(hash4Result[0].policyThreatLevel).toBe(0);
+        expect(hash4Result[0].policyName).toBe('None');
+        expect(hash4Result[0].waived).toBe(false);
+        expect(hash4Result[0].grandfathered).toBe(false);
+        expect(hash4Result[0].componentIdentifier).toBe('apache');
+      });
     });
 
-    it('includes a zero-threat record in the output if all violations for a component are grandfathered', function() {
-      const result = applicationReportService.aggregateReportEntries(input),
-          hash6Result = result.filter(r => r.hash === '6');
-
-      expect(hash6Result.length).toBe(1);
-
-      expect(hash6Result[0].policyThreatLevel).toBe(0);
-      expect(hash6Result[0].policyName).toBe('None');
-      expect(hash6Result[0].waived).toBe(false);
-      expect(hash6Result[0].grandfathered).toBe(false);
-      expect(hash6Result[0].componentIdentifier).toBe('foo2');
-    });
-
-    it('passes through zero-threat records from the input', function() {
-      const result = applicationReportService.aggregateReportEntries(input),
-          hash4Result = result.filter(r => r.hash === '4');
-
-      expect(hash4Result.length).toBe(1);
-
-      expect(hash4Result[0].policyThreatLevel).toBe(0);
-      expect(hash4Result[0].policyName).toBe('None');
-      expect(hash4Result[0].waived).toBe(false);
-      expect(hash4Result[0].grandfathered).toBe(false);
-      expect(hash4Result[0].componentIdentifier).toBe('apache');
+    describe('sortReportEntries', function() {
+      it('sorts by supplied properties (in descending order if prefixed with a \'-\')', function() {
+        const result = applicationReportService.sortReportEntries(
+            ['-policyThreatLevel', 'policyName', 'derivedComponentName'], input);
+        expect(map(props(['policyThreatLevel', 'policyName', 'derivedComponentName']))(result)).toEqual([
+          [9, 'Policy 4', 'junit.junit.4.12'],
+          [9, 'Policy 9', 'junit.junit.4.12'],
+          [8, 'Policy 6', 'junit.junit.4.12'],
+          [5, 'Policy 12', 'ognl.ognl.3.0.8'],
+          [5, 'Policy 12', 'org.postgresql.postgresql.42.2.2'],
+          [5, 'Policy 7', 'xpp.xpp3_min.1.1.4c'],
+          [4, 'Policy 1', 'junit.junit.4.12'],
+          [4, 'Policy 2', 'junit.junit.4.8'],
+          [4, 'Policy 5', 'junit.junit.4.12'],
+          [4, 'Policy 8', 'org.springframework.spring-webmvc.4.3.16.RELEASE'],
+          [3, 'Policy 11', 'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1'],
+          [3, 'Policy 3', 'ant.ant.1.62'],
+          [2, 'Policy 10', 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'],
+          [0, 'None', 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29']
+        ]);
+      });
+      
+      it('returns the list unchanged if no properties to sort by are supplied', function() {
+        const result = applicationReportService.sortReportEntries([], input);
+        expect(result).toBe(input);
+      });
     });
   });
 });

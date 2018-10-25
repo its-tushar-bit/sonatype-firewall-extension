@@ -71,32 +71,32 @@ public class DashboardComponents
       super(ROOT, ".iq-dashboard-headers");
     }
 
-    public DashboardResultHeader componentNameHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--component-name", "a"));
+    public IqSortingHeader componentNameHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--component-name", "a"));
   }
 
-    public DashboardResultHeader totalRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--total-risk", "a"));
+    public IqSortingHeader totalRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--total-risk", "a"));
     }
 
-    public DashboardResultHeader lowRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--low-risk", "a"));
+    public IqSortingHeader lowRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--low-risk", "a"));
     }
 
-    public DashboardResultHeader moderateRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--moderate-risk", "a"));
+    public IqSortingHeader moderateRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--moderate-risk", "a"));
     }
 
-    public DashboardResultHeader severeRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--severe-risk", "a"));
+    public IqSortingHeader severeRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--severe-risk", "a"));
     }
 
-    public DashboardResultHeader criticalRiskHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--critical-risk", "a"));
+    public IqSortingHeader criticalRiskHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--critical-risk", "a"));
     }
 
-    public DashboardResultHeader affectedAppsHeader() {
-      return new DashboardResultHeader(childSelector(".iq-cell--affected-apps", "a"));
+    public IqSortingHeader affectedAppsHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--affected-apps", "a"));
     }
   }
 

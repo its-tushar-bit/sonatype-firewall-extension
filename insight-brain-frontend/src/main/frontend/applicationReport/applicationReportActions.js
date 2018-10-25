@@ -84,14 +84,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function setSorting(sortByPolicy) {
+  function setSorting(sortFields) {
     return {
       type: SET_SORTING,
-
-      // hardcoded sort options for demonstration purposes in CLM-10988
-      payload: sortByPolicy ?
-        { sortCol: 'policyName', sortReversed: false } :
-        { sortCol: 'policyThreatLevel', sortReversed: true }
+      payload: sortFields
     };
   }
 

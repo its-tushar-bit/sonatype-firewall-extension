@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -70,6 +71,10 @@ public class ApplicationReportPage
 
   public IqRadio showAllViolationsRadio() {
     return new IqRadio(child("#no-aggregation-radio"));
+  }
+
+  public AppReportHeaders headers() {
+    return new AppReportHeaders();
   }
 
   public static class ResultRow
@@ -175,6 +180,26 @@ public class ApplicationReportPage
 
     public SelenideElement closeButton() {
       return child("#cip-modal-close-button");
+    }
+  }
+
+  public static class AppReportHeaders
+      extends BasicElement<AppReportHeaders>
+  {
+    public AppReportHeaders() {
+      super(ROOT, ".iq-table--application-report thead");
+    }
+
+    public IqSortingHeader threatHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--application-report-policy-threat-level a"));
+    }
+
+    public IqSortingHeader policyNameHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--application-report-policy-name a"));
+    }
+
+    public IqSortingHeader componentNameHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--application-report-component-display a"));
     }
   }
 }

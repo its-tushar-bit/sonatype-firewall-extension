@@ -33,6 +33,7 @@ describe('applicationReportReducer', function() {
       expect(newState.loadError).toBe(null);
       expect(newState.selectedReport).toBe(null);
       expect(newState.aggregate).toBe(true);
+      expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
     });
   });
 
@@ -94,8 +95,7 @@ describe('applicationReportReducer', function() {
             filters: {
               policyThreatLevel: [1, 4, 5, 6]
             },
-            sortCol: 'policyThreatLevel',
-            sortReversed: true
+            sortFields: ['-policyThreatLevel']
           }),
           entries = [{
             hash: '1',
@@ -106,7 +106,8 @@ describe('applicationReportReducer', function() {
           }, {
             hash: '4',
             policyThreatLevel: 4,
-            waived: true
+            waived: true,
+            displayName: {parts: []}
           }, {
             hash: '1',
             policyThreatLevel: 6
@@ -116,7 +117,8 @@ describe('applicationReportReducer', function() {
           }, {
             hash: '6',
             policyThreatLevel: 10,
-            grandfathered: true
+            grandfathered: true,
+            displayName: {parts: []}
           }],
           newState = reduce(state, {
             type: 'LOAD_REPORT_FULFILLED',
@@ -190,11 +192,13 @@ describe('applicationReportReducer', function() {
           }, {
             hash: '4',
             policyThreatLevel: 8,
-            waived: true
+            waived: true,
+            displayName: {parts: []}
           }, {
             hash: '1',
             policyThreatLevel: 6,
-            waived: true
+            waived: true,
+            displayName: {parts: []}
           }, {
             hash: '5',
             policyThreatLevel: 4
@@ -212,8 +216,7 @@ describe('applicationReportReducer', function() {
             },
             aggregate: false,
             filters: {},
-            sortCol: 'policyThreatLevel',
-            sortReversed: true
+            sortFields: ['-policyThreatLevel']
           }),
           newState = reduce(state, {
             type: 'SET_AGGREGATE_REPORT_ENTRIES',
@@ -237,7 +240,57 @@ describe('applicationReportReducer', function() {
         policyThreatLevel: 0,
         policyName: 'None',
         waived: false,
-        grandfathered: false
+        grandfathered: false,
+        displayName: {parts: []},
+        derivedComponentName: ''
+      }]);
+    });
+  });
+
+  describe('SET_SORTING', function() {
+    it('sets the sorting fields from the payload', function() {
+      const state = Object.freeze({
+            sortFields: ['foo'],
+            other: otherObject
+          }),
+          action = { type: 'SET_SORTING', payload: ['bar'] },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        sortFields: ['bar'],
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('sorts the displayedEntries in the selectedReport', function() {
+      const entries = [{
+            policyThreatLevel: 10
+          }, {
+            policyThreatLevel: 5
+          }, {
+            policyThreatLevel: 1
+          }],
+          state = Object.freeze({
+            selectedReport: {
+              allEntries: entries,
+              displayedEntries: entries
+            },
+            aggregate: false,
+            filters: {},
+            sortFields: ['-policyThreatLevel']
+          }),
+          newState = reduce(state, {
+            type: 'SET_SORTING',
+            payload: ['policyThreatLevel']
+          });
+
+      expect(newState.selectedReport.displayedEntries).toEqual([{
+        policyThreatLevel: 1
+      }, {
+        policyThreatLevel: 5
+      }, {
+        policyThreatLevel: 10
       }]);
     });
   });

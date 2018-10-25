@@ -29,7 +29,9 @@ public enum AuditEvent
 
   APPLY_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.APPLY),
   REVOKE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.REVOKE),
-  CONFIGURE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.CONFIGURE);
+  CONFIGURE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.CONFIGURE),
+
+  CONFIGURE_CONTINUOUS_MONITORING(Domain.GOVERNANCE_CONTINUOUS_MONITORING, Type.CONFIGURE);
 
   private final String domain;
 
@@ -73,6 +75,8 @@ public enum AuditEvent
     String GOVERNANCE_GRANDFATHERING = join(GOVERNANCE, "grandfathering");
 
     String GOVERNANCE_PROPRIETARY_COMPONENTS = join(GOVERNANCE, "proprietary-components");
+
+    String GOVERNANCE_CONTINUOUS_MONITORING = join(GOVERNANCE, "continuous-monitoring");
 
     static String join(String parent, String child) {
       return parent + "." + child;

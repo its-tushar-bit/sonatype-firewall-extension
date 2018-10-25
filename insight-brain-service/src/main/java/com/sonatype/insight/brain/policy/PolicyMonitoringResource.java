@@ -19,6 +19,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Owner;
@@ -84,6 +87,7 @@ public class PolicyMonitoringResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
   public PolicyMonitoring set(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                               PolicyMonitoring policyMonitoring)
@@ -96,6 +100,7 @@ public class PolicyMonitoringResource
 
     policyMonitoring.setOwnerId(ownerId);
     policyMonitoringDAO.set(policyMonitoring);
+    AuditData.get().setStageId(policyMonitoring.getStageTypeId());
 
     return policyMonitoring;
   }

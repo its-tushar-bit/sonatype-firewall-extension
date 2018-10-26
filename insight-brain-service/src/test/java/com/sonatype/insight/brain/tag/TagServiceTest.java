@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.tag.TagResource.ApplicableTags;
 import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
@@ -36,6 +37,7 @@ import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -143,6 +145,20 @@ public class TagServiceTest
     catch (NotFoundException e) {
       assertThat(e.getMessage(),
           is("Cannot find a policy with id " + policy.getId() + " for owner id " + org1.getId()));
+    }
+  }
+
+  @Test
+  public void testUpdatePolicyTags_AppLevelPolicy() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "Test Policy");
+
+    try {
+      tagService.updatePolicyTags(OwnerType.APPLICATION, app.getPublicId(), policy.getId(), new ArrayList<>());
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), containsString("policy owned by application"));
     }
   }
 

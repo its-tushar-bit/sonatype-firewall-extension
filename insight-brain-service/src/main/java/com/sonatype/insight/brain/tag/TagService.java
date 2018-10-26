@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.tag.TagResource.TagsByOwner;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
@@ -242,6 +243,9 @@ class TagService
     String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     if (!internalId.equals(policyDAO.getByIdNotNull(policyId).getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policyId + " for owner id " + ownerId);
+    }
+    if (!OwnerType.ORGANIZATION.equals(ownerType)) {
+      throw new BadRequestException("Cannot configure application categories for policy owned by " + ownerType);
     }
 
     try (TransactionContext tx = policyTagDAO.createTransactionContext()) {

@@ -13,13 +13,14 @@ import cipComponentUtilModule from '../../../cip/cip-component-util';
 import proprietaryMatchersModule from '../../../cip/proprietary.matchers.modal/proprietary.matchers.module';
 import cipPolicyViolationsModule from '../../../cip/cip.policy.violations/cip.policy.violations.module';
 import cipLicenseEditorModule from '../../../cip/cip.license.editor/cip.license.editor.module';
+import cipLabelEditorModule from '../../../cip/cip.label.editor/cip.label.editor.module';
 
 import cipModal from './cipModal';
 
 export default angular.module('cipModal',
     [
       cipTabsWidgetModule.name, versionGraphModule.name, cipComponentUtilModule.name, proprietaryMatchersModule.name,
-      cipPolicyViolationsModule.name, cipLicenseEditorModule.name
+      cipPolicyViolationsModule.name, cipLicenseEditorModule.name, cipLabelEditorModule.name
     ])
     .component('cipModal', cipModal)
     .service('OwnerContext', OwnerContext);

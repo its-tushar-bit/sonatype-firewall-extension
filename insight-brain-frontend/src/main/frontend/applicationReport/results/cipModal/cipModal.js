@@ -63,13 +63,25 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
       title: 'Policy',
       directive: 'cip-policy-violations'
     }, {
+      title: 'Similar'
+    }, {
+      title: 'Occurrences'
+    }, {
       title: 'Licenses',
       directive: 'cip-license-editor',
       matchedOnly: true
     }, {
-      title: 'Vulnerabilities'
+      title: 'Vulnerabilities',
+      matchedOnly: true
     }, {
-      title: 'Labels'
+      title: 'Labels',
+      directive: 'cip-label-editor',
+      matchedOnly: true
+    }, {
+      title: 'Claim Component'
+    }, {
+      title: 'Audit Log',
+      matchedOnly: true
     }]
   });
 

@@ -8,10 +8,14 @@ package com.sonatype.clm.testing.functional.brain.applicationReport;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.LabelsCIP;
+import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
+import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
@@ -27,9 +31,13 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -37,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
@@ -60,6 +69,7 @@ public class ApplicationReportTest
 
   private static final ComponentIdentifier JAVANCSS_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("javancss",
       "javancss", "29.50");
+  private static final String JAVANCSS_HASH = "9aba4af169a1a3baa67f";
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
@@ -168,6 +178,7 @@ public class ApplicationReportTest
     testComponentInfoTab();
     testPolicyTab();
     testLicensesTab();
+    testLabelsTab();
   }
 
   private void testComponentInfoTab() {
@@ -261,8 +272,8 @@ public class ApplicationReportTest
   private void testLicensesTab() {
     reportPage.resultRow(1).click();
     CipModal cipModal = reportPage.cipModal();
-    cipModal.tabLink(3).shouldNotHave(ACTIVE_CLASS).click();
-    cipModal.tabLink(3).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(5).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
 
     // License sidebar
@@ -310,6 +321,69 @@ public class ApplicationReportTest
     LicenseCIP.updateButton().shouldBe(disabled);
     override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
     assertNull(override);
+
+    cipModal.closeButton().click();
+  }
+
+  private void testLabelsTab() throws Exception {
+    Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.dark_blue);
+    Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.dark_red);
+    tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elMagnifico.getId(), JAVANCSS_HASH);
+
+    createPolicy(1, "Bad Label", LabelConditionType.ID, "is", elJunko.getId());
+
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(1).click();
+    cipModal.tabLink(7).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(7).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    LabelsCIP.appliedLabels().shouldHaveSize(1);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.dark_blue)).action()
+        .should(exist);
+
+    LabelsCIP.availableLabels().shouldHaveSize(1);
+    LabelsCIP.availableLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.dark_red)).action()
+        .click();
+
+    // Modal
+    AddLabelModal.root().shouldBe(visible);
+    AddLabelModal.scopes().shouldHaveSize(3);
+    AddLabelModal.saveButton().click();
+    AddLabelModal.root().shouldBe(hidden);
+
+    // label persisted
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH).size(), is(2));
+
+    // Check new policy violation was added
+    evaluator.reevaluatePolicy();
+    cipModal.tabLink(2).click();
+    WaiverCip.rows().shouldHaveSize(2);
+    WaiverCip.row(1).shouldBe(
+        "cip-policy-darkblue",
+        "Bad Label",
+        new String[] { "Bad Label constraint" },
+        new String[] { "Found label 'El Junko'" });
+
+    // Remove the label we added
+    cipModal.tabLink(7).click();
+    LabelsCIP.appliedLabels().shouldHaveSize(2);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko")).action().click();
+
+    // Confirmation modal
+    RemoveLabelModal.root().should(appear);
+    RemoveLabelModal.confirmButton().click();
+    RemoveLabelModal.root().should(disappear);
+
+    // backend check that it was removed
+    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH);
+    assertThat(appliedLabels.size(), is(1));
+    assertThat(appliedLabels.get(0).getLabelId(), is(elMagnifico.getId()));
+
+    // Check new policy violation is gone
+    evaluator.reevaluatePolicy();
+    cipModal.tabLink(2).click();
+    WaiverCip.rows().shouldHaveSize(1);
 
     cipModal.closeButton().click();
   }
@@ -398,5 +472,17 @@ public class ApplicationReportTest
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails.json"), 200);
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
+  }
+
+  private Policy createPolicy(int threatLevel, String name, String conditionType, String operator, String value) {
+    Policy p = new Policy(null, name);
+    p.setThreatLevel(threatLevel);
+    p.setOwnerId(app.getId());
+    Constraint constraint = new Constraint(null, name + " constraint", LogicalOperator.AND);
+    com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
+        conditionType, operator, value);
+    constraint.setConditions(Collections.singletonList(condition));
+    p.setConstraints(Collections.singletonList(constraint));
+    return tempEntity.newPolicy(p);
   }
 }

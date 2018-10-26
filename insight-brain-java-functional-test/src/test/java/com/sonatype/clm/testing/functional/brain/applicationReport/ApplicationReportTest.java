@@ -7,15 +7,19 @@ package com.sonatype.clm.testing.functional.brain.applicationReport;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
+import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
@@ -23,8 +27,11 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -40,20 +47,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
 
 public class ApplicationReportTest
     extends AbstractFunctionalTest
 {
   public static final String SCAN_ID = "306e0a923df34c64b836358182b1b902";
+
+  private static final ComponentIdentifier JAVANCSS_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("javancss",
+      "javancss", "29.50");
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
@@ -161,6 +167,7 @@ public class ApplicationReportTest
 
     testComponentInfoTab();
     testPolicyTab();
+    testLicensesTab();
   }
 
   private void testComponentInfoTab() {
@@ -168,22 +175,23 @@ public class ApplicationReportTest
     reportPage.resultRow(1).click();
     cipModal.getElement().shouldBe(visible);
     cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
-    VersionsCIP.groupId().shouldHave(text("critical"));
-    VersionsCIP.artifactId().shouldHave(text("threat"));
-    VersionsCIP.version().shouldHave(text("1.0"));
+    VersionsCIP.groupId().shouldHave(text("javancss"));
+    VersionsCIP.artifactId().shouldHave(text("javancss"));
+    VersionsCIP.version().shouldHave(text("29.50"));
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
-    VersionsCIP.securityCount().shouldHave(text("3"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"), cssClass("unspecified"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
+    cipModal.closeButton().click();
   }
 
   private void testPolicyTab() throws Exception {
     CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(1).click();
     cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
     cipModal.tabLink(2).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
@@ -247,6 +255,63 @@ public class ApplicationReportTest
     cipModal.tabLink(2).click();
     WaiverCip.rows().shouldHaveSize(1);
     WaiverCip.row(0).policyName().shouldHave(text("ApplicationReportTest Policy"));
+    cipModal.closeButton().click();
+  }
+
+  private void testLicensesTab() {
+    reportPage.resultRow(1).click();
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.tabLink(3).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(3).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    // License sidebar
+    LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(0), texts("Apache-2.0"));
+    LicenseCIP.observedLicenses().shouldHave(LicenseCIP.licenseThreats(9), texts("GPL-2.0"));
+    LicenseCIP.effectiveLicenses().shouldHave(LicenseCIP.licenseThreats(0, 9), texts("Apache-2.0", "GPL-2.0"));
+
+    // Editor default state
+    LicenseCIP.scopes().shouldHave(texts("ApplicationReportTest", "ApplicationReportTest", "Root Organization"));
+    LicenseCIP.scope().shouldHave(value("string:ApplicationReportTest"));
+    LicenseCIP.statuses().shouldHave(
+        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    LicenseCIP.status().shouldHave(value("Open"));
+    LicenseCIP.licenseSelector().shouldNot(exist);
+    LicenseCIP.updateButton().shouldNotBe(enabled);
+
+    // Update to Selected state
+    LicenseCIP.status().selectOption("Selected");
+    LicenseCIP.licenseSelector().button().shouldBe(visible).click();
+    LicenseCIP.licenseSelector().entries().shouldHave(texts("Apache-2.0", "GPL-2.0"));
+    LicenseCIP.licenseSelector().entry(0).click();
+    LicenseCIP.licenseSelector().button().click();
+    LicenseCIP.comment().setValue("not bad");
+    LicenseCIP.updateButton().shouldBe(enabled).click();
+
+    // Check for our override
+    LicenseCIP.effectiveLicenses().shouldHave(texts("Apache-2.0"));
+    LicenseCIP.scope().shouldHave(value("string:ApplicationReportTest"));
+    LicenseCIP.status().shouldHave(value("SELECTED"));
+    LicenseCIP.licenseSelector().should(exist);
+    LicenseCIP.updateButton().shouldNotBe(enabled);
+
+    // Verify override on backend
+    final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
+    assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
+    assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
+
+    // remove
+    LicenseCIP.status().selectOption("Inherit Status (Open)");
+    LicenseCIP.updateButton().shouldBe(enabled).click();
+
+    RepositoryReportPage.waitForComponentUpdater();
+
+    LicenseCIP.updateButton().shouldBe(disabled);
+    override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
+    assertNull(override);
+
+    cipModal.closeButton().click();
   }
 
   @Test
@@ -330,8 +395,8 @@ public class ApplicationReportTest
 
   private void setupHdsResponse() {
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/componentDetails.json"), 200);
+        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails.json"), 200);
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/componentDetailsList.json"), 200);
+        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
   }
 }

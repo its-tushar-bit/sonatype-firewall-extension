@@ -2,19 +2,21 @@
 @import "../../../version-graph/content";
 @import "../../../version-graph/detail-table";
 @import '../../../cip/cip.policy.violations/cip-policy-violations';
+@import '../../../cip/cip.license.editor/cip-license-editor';
 
 .iq-modal__cip {
-  left: calc(50% - 460px);
-  width: 920px;
+  left: calc(50% - 450px);
+  width: 901px;
 
   .iq-modal-content {
     // adjust padding to resemble CIP
-    padding: 5px 5px 0 5px;
+    padding: 0;
 
     #informationPanel {
       height: 325px;
 
       .tab-content {
+        overflow: hidden;
         padding-top: 5px;
         width: 100%;
 
@@ -24,11 +26,50 @@
             margin-bottom: 0;
           }
         }
+
+        #license-editor {
+          #licenseList li.license {
+            line-height: 10px;
+            vertical-align: bottom;
+            padding-bottom: 8px;
+          }
+
+          .well .form-horizontal {
+            label {
+              width: 85px;
+            }
+
+            .controls {
+              margin-left: 105px;
+            }
+          }
+
+          // compensate for discrepancies in Bootstrap in CIP - v2.0.4 vs IQ - v2.3.2
+          .table th, .table td {
+            line-height: 18px;
+          }
+          label, .nav-header {
+            line-height: 18px;
+          }
+          .btn {
+            line-height: 18px;
+            padding: 4px 10px;
+
+            .dropdown-toggle {
+              padding: 4px 8px;
+            }
+          }
+          .btn-group {
+            display: block;
+          }
+          select {
+            height: 28px;
+          }
+        }
       }
     }
   }
 }
-
 
 component-information-panel {
   display: block;

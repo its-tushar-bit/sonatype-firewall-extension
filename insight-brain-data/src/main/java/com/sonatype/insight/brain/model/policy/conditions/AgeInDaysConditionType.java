@@ -59,6 +59,11 @@ public class AgeInDaysConditionType
   }
 
   @Override
+  public String explainCondition(Condition condition) {
+    return getName() + ' ' + condition.getOperator() + ' ' + condition.getValue() + " days";
+  }
+
+  @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     String age = "unknown";
     final Long catalogDate = matchFact.getComponent().getCatalogDate();

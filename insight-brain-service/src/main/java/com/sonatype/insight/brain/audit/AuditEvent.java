@@ -93,8 +93,6 @@ public enum AuditEvent
 
     String EVALUATE = "evaluate";
 
-    String UPDATE = "update";
-
     String SET = "set";
 
     String UNSET = "unset";
@@ -108,6 +106,12 @@ public enum AuditEvent
     String REVOKE = "revoke";
 
     String CONFIGURE = "configure";
+
+    String CREATE = "create";
+
+    String UPDATE = "update";
+
+    String DELETE = "delete";
 
     String IMPORT = "import";
   }

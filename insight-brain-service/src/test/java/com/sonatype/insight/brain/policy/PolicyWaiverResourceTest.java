@@ -75,8 +75,12 @@ public class PolicyWaiverResourceTest
   public void testCRUD_NullConstraintFacts() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
+    String policyId = createPolicy(application.getId()).getId();
 
-    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId(), null);
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
+    HttpResponse response = restRequest(OwnerType.APPLICATION, application.getPublicId()).body(policyWaiver).post();
+    assertResponseStatus(400, response);
+    assertEquals("Policy waiver must have constraint facts.", response.getBodyText());
   }
 
   private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
@@ -235,7 +239,8 @@ public class PolicyWaiverResourceTest
   {
     String policyId = createPolicy(ownerId1).getId();
 
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */,
+        Collections.singletonList(new ConstraintFact("id", "name", "operator")), "My comment");
     HttpResponse response = restRequest(ownerType, ownerPublicId1).body(policyWaiver).post();
     assertResponseStatus(200, response);
     policyWaiver = response.getBody(PolicyWaiver.class);

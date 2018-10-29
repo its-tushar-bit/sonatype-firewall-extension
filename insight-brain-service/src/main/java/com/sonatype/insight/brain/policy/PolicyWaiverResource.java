@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -60,6 +61,10 @@ public class PolicyWaiverResource
                                       PolicyWaiver policyWaiver)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    if (policyWaiver.getConstraintFactsJson() == null || policyWaiver.getConstraintFactsJson().isEmpty()) {
+      throw new BadRequestException("Policy waiver must have constraint facts.");
+    }
 
     policyWaiver.setId(null);
     policyWaiver.setOwnerId(internalOwnerId);

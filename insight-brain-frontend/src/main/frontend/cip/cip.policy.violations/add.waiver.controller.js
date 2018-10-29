@@ -10,6 +10,9 @@ export default function AddWaiverController($http, $scope, OwnerContext, Selecte
     $scope.component = SelectedComponent.get();
     $scope.waiverLoading = true;
 
+    // Prior to IQ Brain 1.53 policy violations stored in the report did not include constraint facts
+    $scope.legacyReport = !policy.constraintFactsJson;
+
     if (!$scope.component.componentDisplayText && $scope.component.displayName &&
         $scope.component.displayName.parts) {
       $scope.component.componentDisplayText = '';

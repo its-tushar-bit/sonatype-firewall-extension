@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Collections;
+
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -35,13 +38,15 @@ public class PolicyWaiverResourceAuthzTest
   public void testAddPolicyWaiver() throws Exception {
     grantWritePermission(app.getId());
 
-    HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
+    HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null,
+        Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
     HttpResponse response = testAuthzPost(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
     new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
 
     grantWritePermission(org.getId());
 
-    request.body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
+    request.body(new PolicyWaiver("hash", policy.getId(), null,
+        Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
     response = testAuthzPost(request.parameter(OwnerType.ORGANIZATION, org.getId()));
     new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
   }

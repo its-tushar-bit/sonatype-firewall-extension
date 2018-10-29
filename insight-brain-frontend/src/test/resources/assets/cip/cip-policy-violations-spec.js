@@ -344,6 +344,8 @@ describe('CIP Policy Waiver tests', function() {
         constraintFactsJson: "constraint-facts-json"
       }).respond({});
 
+      expect(_scope.legacyReport).toBe(false);
+
       _scope.acceptWaiveComponent();
 
       $httpBackend.flush();
@@ -366,6 +368,8 @@ describe('CIP Policy Waiver tests', function() {
         comment: "this is my comment!",
         constraintFactsJson: "constraint-facts-json"
       }).respond({});
+
+      expect(_scope.legacyReport).toBe(false);
 
       _scope.acceptWaiveComponent();
 
@@ -411,26 +415,13 @@ describe('CIP Policy Waiver tests', function() {
     }));
 
     it('Test waive policy without constraintFactsJson present', inject(function($httpBackend) {
-      var modalSpy = spyOn(_scope, '$close');
-
       _scope.$apply(function () {
         _scope.waiver.ownerId = 'orgId';
         _scope.waiver.comment = 'this is my comment!';
         _scope.owner.type = 'organization';
       });
 
-      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/organization/orgId'), {
-        hash: "3102cdd0edd5a05afe00",
-        ownerId : 'orgId',
-        policyId: "policyId",
-        comment: "this is my comment!",
-        constraintFactsJson: null
-      }).respond({});
-
-      _scope.acceptWaiveComponent();
-
-      $httpBackend.flush();
-      expect(modalSpy).toHaveBeenCalled();
+      expect(_scope.legacyReport).toBe(true);
     }));
   });
 

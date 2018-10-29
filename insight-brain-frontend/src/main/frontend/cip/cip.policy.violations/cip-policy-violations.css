@@ -83,6 +83,10 @@
   display: block;
 }
 
+#add-waiver-modal .iq-alert {
+  margin-bottom: 10px;
+}
+
 #add-waiver-modal .radio-container {
   margin-bottom: 10px;
 }

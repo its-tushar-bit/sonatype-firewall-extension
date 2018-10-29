@@ -9,6 +9,10 @@
         <i class="icon icon-time"></i> Loading...
       </div>
       <div ng-show="!waiverLoading">
+      	<div id="add-waiver-legacy-message" class="iq-alert iq-alert--error" ng-show="legacyReport">
+			This report has not been upgraded for the new waiver functionality introduced in release 53.
+			Re-evaluate to update and then create the waiver.
+		</div>
         <div id="add-waiver-scope" ng-show="waiverSelectOwner" class="radio-container">
           <div>The waiver should be limited to:</div>
           <label class="radio" ng-repeat="waiverTarget in waiverTargets">
@@ -36,7 +40,7 @@
     </div>
     <div class="iq-modal-footer">
       <div class="iq-alert iq-alert--error" ng-show="waiveAssignError">{{waiveAssignError}}</div>
-      <button type="button" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Waive</button>
+      <button type="button" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving || legacyReport">Waive</button>
       <button type="button" class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
     </div>
   </div>

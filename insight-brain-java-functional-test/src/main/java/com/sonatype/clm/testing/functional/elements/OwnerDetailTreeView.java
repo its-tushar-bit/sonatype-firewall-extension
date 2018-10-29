@@ -24,11 +24,11 @@ public class OwnerDetailTreeView
   }
 
   public static SelenideElement header() {
-    return root().$(".owner-tree-view__header");
+    return root().$(".iq-owner-tree-view__header");
   }
 
   public static SelenideElement backLink() {
-    return $(SelectorUtils.createSelector(DETAIL_TREE_VIEW_SELECTOR, ".owner-tree-view__header", "a"));
+    return $(SelectorUtils.createSelector(DETAIL_TREE_VIEW_SELECTOR, ".iq-owner-tree-view__header", "a"));
   }
 
   public static String headerHref() {
@@ -86,7 +86,7 @@ public class OwnerDetailTreeView
       }
 
       public SelenideElement icon() {
-        return child(".owner-tree-view__icon");
+        return child(".iq-owner-tree-view__icon");
       }
     }
   }

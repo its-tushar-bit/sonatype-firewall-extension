@@ -20,7 +20,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class OwnerTreeView
 {
   public static SelenideElement filter() {
-    return $(".owner-tree-view__filter input");
+    return $(".iq-owner-tree-view__filter input");
   }
 
   public static ElementsCollection organizationElements() {
@@ -74,7 +74,7 @@ public class OwnerTreeView
     }
 
     public SelenideElement newApplicationButton() {
-      return child(".owner-tree-view__new-application button");
+      return child(".iq-owner-tree-view__new-application button");
     }
 
     public ElementsCollection applicationElements() {

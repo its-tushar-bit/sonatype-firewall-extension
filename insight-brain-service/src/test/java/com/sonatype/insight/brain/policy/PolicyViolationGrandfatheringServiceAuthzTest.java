@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -41,6 +42,8 @@ public class PolicyViolationGrandfatheringServiceAuthzTest
   @Test
   public void testGrandfather_Authorized() throws Exception {
     grantWritePermission(app.getId());
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(app);
     policyViolationGrandfatheringService.grandfather(app.getPublicId());
   }
 

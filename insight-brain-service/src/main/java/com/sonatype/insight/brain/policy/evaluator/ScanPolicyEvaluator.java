@@ -31,8 +31,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -40,7 +38,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -48,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -86,8 +84,6 @@ public class ScanPolicyEvaluator
 
   private final ReportService reportService;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
@@ -98,6 +94,8 @@ public class ScanPolicyEvaluator
 
   private final ApplicationEvaluationEventService applicationEvaluationEventService;
 
+  private final PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+
   private final TelemetrySender telemetrySender;
 
   @Inject
@@ -106,6 +104,7 @@ public class ScanPolicyEvaluator
                              final PolicyThreatsAdapter policyThreatsAdapter,
                              final ComponentPolicyEvaluator componentPolicyEvaluator,
                              final ApplicationEvaluationEventService applicationEvaluationEventService,
+                             final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
                              final TelemetrySender telemetrySender,
                              final PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
   {
@@ -114,6 +113,7 @@ public class ScanPolicyEvaluator
     this.policyThreatsAdapter = policyThreatsAdapter;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
+    this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
     this.telemetrySender = telemetrySender;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
   }
@@ -365,7 +365,8 @@ public class ScanPolicyEvaluator
                                                 List<PolicyViolation> policyViolations)
   {
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
-    if (isPolicyViolationGrandfatheringEnabled(tx, app.getId()) && isFirstEvaluation(tx, app)) {
+    if (policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId())
+        && isFirstEvaluation(tx, app)) {
       Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
       // Only policy violations with threat level <= 8 should be grandfathered.
       policyViolations.stream() //
@@ -389,42 +390,6 @@ public class ScanPolicyEvaluator
   private boolean isFirstEvaluation(TransactionContext tx, Application app) {
     // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
     return new PolicyEvaluationDAO().getCountByApplicationId(tx, app.getId()) == 1;
-  }
-
-  /**
-   * @since 1.50
-   */
-  private boolean isPolicyViolationGrandfatheringEnabled(String appId) {
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
-      return isPolicyViolationGrandfatheringEnabled(tx, appId);
-    }
-  }
-
-  private boolean isPolicyViolationGrandfatheringEnabled(TransactionContext tx, String appId) {
-    Application app = applicationDAO.getById(tx, appId);
-    Boolean enabled = app.isPolicyViolationGrandfatheringEnabled();
-
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    String parentOrgId = app.getOrganizationId();
-    while (parentOrgId != null) {
-      Organization org = orgDAO.getById(tx, parentOrgId);
-
-      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
-        enabled = org.isPolicyViolationGrandfatheringEnabled();
-      }
-      else if (enabled == null) {
-        enabled = org.isPolicyViolationGrandfatheringEnabled();
-      }
-
-      parentOrgId = org.getParentOrganizationId();
-    }
-
-    if (enabled == null) {
-      enabled = false;
-    }
-
-    return enabled;
   }
 
   private String getFilename(ComponentFact componentFact) {
@@ -667,7 +632,8 @@ public class ScanPolicyEvaluator
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
-    attributes.put("grandfathering_enabled", String.valueOf(isPolicyViolationGrandfatheringEnabled(applicationId)));
+    attributes.put("grandfathering_enabled",
+        String.valueOf(policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(applicationId)));
     attributes.put("number_of_grandfathered_violations", String.valueOf(grandfatheredPolicyViolationCount));
     if (grandfatheredPolicyViolationCount > 0) {
       for (Entry<ThreatLevel, Long> entry : threatLevels.entrySet()) {

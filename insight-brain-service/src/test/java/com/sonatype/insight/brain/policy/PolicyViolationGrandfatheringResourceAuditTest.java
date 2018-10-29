@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -48,6 +49,9 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 
   @Test
   public void testGrandfather() throws Exception {
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
     Policy policyGrandfatheringAllowed = tempEntity.newPolicy("policyGrandfatheringAllowed");
     policyGrandfatheringAllowed.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policyGrandfatheringAllowed);

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,12 @@ public class PolicyViolationGrandfatheringService
   @Authorize(permission = Permission.WRITE)
   public void grandfather(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+
+    if (!isPolicyViolationGrandfatheringEnabled(app.getId())) {
+      throw new BadRequestException(
+          "Policy violation grandfathering is not enabled for application '" + app.getName() + "'.");
+    }
+
     log.info("Grandfathering policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
 
     Object lock = policyViolationPersistenceLocks.getLock(app.getId());
@@ -185,6 +192,37 @@ public class PolicyViolationGrandfatheringService
 
   private void auditChangedPolicyViolationCount(int changedPolicyViolationCount) {
     AuditData.get().setData("changedPolicyViolationCount", changedPolicyViolationCount);
+  }
+
+  public boolean isPolicyViolationGrandfatheringEnabled(String appId) {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      return isPolicyViolationGrandfatheringEnabled(tx, appId);
+    }
+  }
+
+  public boolean isPolicyViolationGrandfatheringEnabled(TransactionContext tx, String appId) {
+    Application app = applicationDAO.getById(tx, appId);
+    Boolean enabled = app.isPolicyViolationGrandfatheringEnabled();
+
+    String parentOrgId = app.getOrganizationId();
+    while (parentOrgId != null) {
+      Organization org = organizationDAO.getById(tx, parentOrgId);
+
+      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
+        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      }
+      else if (enabled == null) {
+        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      }
+
+      parentOrgId = org.getParentOrganizationId();
+    }
+
+    if (enabled == null) {
+      enabled = false;
+    }
+
+    return enabled;
   }
 
   public static class PolicyViolationGrandfatheringDTO

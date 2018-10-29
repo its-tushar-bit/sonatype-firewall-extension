@@ -52,6 +52,8 @@ public class PolicyViolationGrandfatheringResourceTest
   @Test
   public void testGrandfather() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
     Policy policy = tempEntity.newPolicy("test");
     policy.setPolicyViolationGrandfatheringAllowed(true);

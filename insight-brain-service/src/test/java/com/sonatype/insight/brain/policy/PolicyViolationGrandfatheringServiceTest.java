@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
@@ -31,6 +32,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 
 public class PolicyViolationGrandfatheringServiceTest
     extends AbstractComponentTest
@@ -62,16 +64,13 @@ public class PolicyViolationGrandfatheringServiceTest
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered(), is(true));
   }
 
-  @Test
-  public void testGrandfather() throws Exception {
-    Application app1 = tempEntity.newApplicationWithParent();
-    Application app2 = tempEntity.newApplicationWithParent();
+  private void testGrandfather(Application app, boolean grandfatheringAllowed) throws Exception {
     Policy policy1 = tempEntity.newPolicy("test1");
     policy1.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policy1);
     Policy policy2 = tempEntity.newPolicy("test2");
 
-    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scanId1");
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId1");
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation unfixedPolicyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation fixedPolicyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
@@ -81,28 +80,141 @@ public class PolicyViolationGrandfatheringServiceTest
     Date inThePast = new Date(System.currentTimeMillis() - 1);
     grandfatheredPolicyViolation1.setGrandfatherTime(inThePast);
     policyViolationDAO.update(grandfatheredPolicyViolation1);
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy1.getId(), app1.getId());
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy1.getId(), app.getId());
     PolicyViolation waivedPolicyViolation1 = tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1,
         policyWaiver);
     PolicyViolation unfixedPolicyViolation1PolicyDoesNotExist = tempEntity.newPolicyViolation(policyEvaluation1,
         policy2);
     new PolicyDAO().delete(policy2);
 
+    Application app2 = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "scanId2");
     PolicyViolation unfixedPolicyViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy1);
 
     Date before = new Date();
-    policyViolationGrandfatheringService.grandfather(app1.getPublicId());
+    try {
+      policyViolationGrandfatheringService.grandfather(app.getPublicId());
+      if (!grandfatheringAllowed) {
+        fail("Expected exception");
+      }
+    }
+    catch (BadRequestException e) {
+      if (grandfatheringAllowed) {
+        throw e;
+      }
+      assertThat(e.getMessage(),
+          is("Policy violation grandfathering is not enabled for application '" + app.getName() + "'."));
+    }
     Date after = new Date();
 
     assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isGrandfathered(), is(false));
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).getGrandfatherTime(),
         is(inThePast));
-    assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1, before, after);
-    assertPolicyViolationGrandfatherTime(waivedPolicyViolation1, before, after);
-    assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
+    if (grandfatheringAllowed) {
+      assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1, before, after);
+      assertPolicyViolationGrandfatherTime(waivedPolicyViolation1, before, after);
+      assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
+    }
+    else {
+      assertThat(policyViolationDAO.getById(unfixedPolicyViolation1.getId()).isGrandfathered(), is(false));
+      assertThat(policyViolationDAO.getById(waivedPolicyViolation1.getId()).isGrandfathered(), is(false));
+      assertThat(policyViolationDAO.getById(unfixedPolicyViolation1PolicyDoesNotExist.getId()).isGrandfathered(),
+          is(false));
+    }
 
     assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isGrandfathered(), is(false));
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringNotConfiguredForAppOrOrg() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(null);
+    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(null);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, false);
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringEnabledForApp_AppCanOverrideGrandfathering() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(null);
+    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, true);
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringDisabledForApp_AppCanOverrideGrandfathering() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, false);
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringEnabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(false);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, false);
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringDisabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, true);
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringEnabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, true);
+  }
+
+  @Test
+  public void testGrandfather_GrandfatheringDisabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    Organization organization = tempEntity.newOrganization();
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    testGrandfather(application, true);
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {

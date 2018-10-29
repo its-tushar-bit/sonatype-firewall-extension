@@ -89,6 +89,19 @@ class AuditContainerRequestFilter
           setByOrganizationId(organizationId);
           return;
         }
+        String repositoryId = pathParameters.getFirst("repositoryId");
+        if (repositoryId != null) {
+          setByRepositoryId(repositoryId);
+          return;
+        }
+        String repositoryPublicId = pathParameters.getFirst("repositoryPublicId");
+        if (repositoryPublicId != null) {
+          String repositoryManagerInstanceId = pathParameters.getFirst("repositoryManagerInstanceId");
+          if (repositoryManagerInstanceId != null) {
+            setByRepositoryPublicId(repositoryPublicId, repositoryManagerInstanceId);
+            return;
+          }
+        }
         String ownerId = pathParameters.getFirst("ownerId");
         String ownerType = pathParameters.getFirst("ownerType");
         if (ownerId != null && ownerType != null) {
@@ -134,5 +147,10 @@ class AuditContainerRequestFilter
 
   private void setByRepositoryId(String repositoryId) {
     AuditData.get().setRepositoryId(repositoryId).setRepository(repositoryDAO.getById(repositoryId));
+  }
+
+  private void setByRepositoryPublicId(String repositoryPublicId, String repositoryManagerInstanceId) {
+    AuditData.get().setRepositoryPublicId(repositoryPublicId).setRepository(
+        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId));
   }
 }

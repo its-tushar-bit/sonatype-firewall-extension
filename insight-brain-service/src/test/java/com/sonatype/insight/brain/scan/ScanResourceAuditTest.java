@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
@@ -40,10 +39,6 @@ public class ScanResourceAuditTest
         .part("filename", resource);
   }
 
-  private HttpRequest uploadRequest(String appPublicId, String stageId, String resource, User user) {
-    return uploadRequest(appPublicId, stageId, resource).auth(user.getUsername(), user.getPassword());
-  }
-
   @Test
   public void testUploadBinary() throws Exception {
     mockReport(RestHandler.SCAN_ID, RESOURCE_PATH);
@@ -65,7 +60,8 @@ public class ScanResourceAuditTest
 
   @Test
   public void testUploadBinary_Unauthorized() throws Exception {
-    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH, unauthorizedUser).post();
+    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH).with(unauthorizedUser())
+        .post();
     assertResponseStatus(403, response);
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),

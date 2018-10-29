@@ -47,8 +47,7 @@ public class ApiComponentLabelResourceV2AuditTest
 
   @Test
   public void testAssignComponentLabelToApplication_Unauthorized() throws Exception {
-    restRequest().auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword())
-        .parameter(COMPONENT_HASH, label.getLabel(), application.getId()).post();
+    restRequest().with(unauthorizedUser()).parameter(COMPONENT_HASH, label.getLabel(), application.getId()).post();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -67,8 +66,7 @@ public class ApiComponentLabelResourceV2AuditTest
   @Test
   public void testRemoveComponentLabelFromApplication_Unauthorized() throws Exception {
     tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
-    restRequest().auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword())
-        .parameter(COMPONENT_HASH, label.getLabel(), application.getId()).delete();
+    restRequest().with(unauthorizedUser()).parameter(COMPONENT_HASH, label.getLabel(), application.getId()).delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);

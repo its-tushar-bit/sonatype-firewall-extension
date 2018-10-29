@@ -54,8 +54,8 @@ public class ReportResourceAuditTest
   @Test
   public void testReevaluatePolicy_Unauthorized() throws Exception {
     // Attempt to re-evaluate with a user that doesn't have permissions
-    HttpResponse response = restRequest(app.getPublicId(), SCAN_ID)
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).path("reevaluatePolicy").post();
+    HttpResponse response = restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path("reevaluatePolicy")
+        .post();
     assertResponseStatus(403, response);
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),

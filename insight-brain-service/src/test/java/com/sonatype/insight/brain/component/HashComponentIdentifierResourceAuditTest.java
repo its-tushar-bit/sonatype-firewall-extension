@@ -70,8 +70,7 @@ public class HashComponentIdentifierResourceAuditTest
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifier(COMPONENT_HASH, COMPONENT_IDENTIFIER,
         COMMENT);
 
-    restRequest().auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).body(hashComponentIdentifier)
-        .post();
+    restRequest().with(unauthorizedUser()).body(hashComponentIdentifier).post();
 
     assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, "unauthorized"),
         hashComponentIdentifier(null, null, null));

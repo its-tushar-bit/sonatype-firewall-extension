@@ -77,8 +77,8 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 
   @Test
   public void testGrandfather_Unauthorized() throws Exception {
-    restRequest().auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword())
-        .path(PolicyViolationGrandfatheringResource.GRANDFATHER_PATH).parameter(application.getPublicId()).put();
+    restRequest().with(unauthorizedUser()).path(PolicyViolationGrandfatheringResource.GRANDFATHER_PATH)
+        .parameter(application.getPublicId()).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_GRANDFATHERING, "unauthorized");
     assertApplicationData(auditDTO, application);

@@ -48,8 +48,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
 
-    restRequest(OwnerType.ORGANIZATION, organization.getId())
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).path("import")
+    restRequest(OwnerType.ORGANIZATION, organization.getId()).with(unauthorizedUser()).path("import")
         .part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "unauthorized");

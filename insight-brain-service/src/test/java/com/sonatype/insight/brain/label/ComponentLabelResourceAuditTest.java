@@ -99,7 +99,7 @@ public class ComponentLabelResourceAuditTest
   public void testSetComponentLabel_Unauthorized() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH).body(labelWithIdOnly)
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).post();
+        .with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -154,7 +154,7 @@ public class ComponentLabelResourceAuditTest
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
     restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH, label.getId())
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).delete();
+        .with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);

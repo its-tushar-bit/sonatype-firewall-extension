@@ -132,8 +132,7 @@ public class LicenseOverrideResourceAuditTest
   public void testAddLicenseOverride_Unauthorized() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
-    restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride)
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).post();
+    restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride).with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog("unauthorized");
     assertApplicationData(auditDTO, app);
@@ -145,7 +144,7 @@ public class LicenseOverrideResourceAuditTest
         .newLicenseOverride(app.getId(), licenseOverride.getComponentIdentifier(), licenseOverride.getStatus(),
             licenseOverride.getLicenseIds(), "Existing comment");
 
-    restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(toBeDeleted.getId()).delete();
+    restRequest(OwnerType.APPLICATION, app.getPublicId()).path(toBeDeleted.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(null);
     assertOverrideData(auditDTO, toBeDeleted, true);
@@ -158,8 +157,7 @@ public class LicenseOverrideResourceAuditTest
         .newLicenseOverride(app.getId(), licenseOverride.getComponentIdentifier(), licenseOverride.getStatus(),
             licenseOverride.getLicenseIds(), "Existing comment");
 
-    restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(toBeDeleted.getId())
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).delete();
+    restRequest(OwnerType.APPLICATION, app.getPublicId()).path(toBeDeleted.getId()).with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog("unauthorized");
     assertApplicationData(auditDTO, app);

@@ -5,14 +5,16 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.function.Consumer;
+
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiEvaluationResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
@@ -67,14 +69,14 @@ public class ApiEvaluationResourceV2AuditTest
 
   @Test
   public void testPromoteScan_Unauthorized() throws Exception {
-    assertResponseStatus(403, promoteScan(false, false, unauthorizedUser, app.getId(), SCAN_ID, Stage.ID_OPERATE));
+    assertResponseStatus(403, promoteScan(false, false, unauthorizedUser(), app.getId(), SCAN_ID, Stage.ID_OPERATE));
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
         app.getPublicId(), app.getName(), null, null, null, unauthorizedUser.getUsername());
   }
 
   private HttpResponse promoteScan(boolean createScanFile,
                                    boolean createReport,
-                                   User user,
+                                   Consumer<HttpRequest> user,
                                    String applicationId,
                                    String scanId,
                                    String stageId) throws Exception
@@ -85,7 +87,7 @@ public class ApiEvaluationResourceV2AuditTest
     if (createReport) {
       mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report.zip");
     }
-    return (user == null ? restRequest() : restRequest().auth(user.getUsername(), user.getPassword()))
+    return restRequest().with(user)
         .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(applicationId).body(ApiPromoteScanRequestDTOV2.fromScan(scanId, stageId)).post();
   }

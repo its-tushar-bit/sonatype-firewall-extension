@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.function.Consumer;
+
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -63,14 +65,13 @@ public class PolicyEvaluateResourceAuditTest
 
   @Test
   public void testEvaluate_Unauthorized() throws Exception {
-    assertResponseStatus(403, evaluate(unauthorizedUser, app.getPublicId(), SCAN_ID, Stage.ID_BUILD));
+    assertResponseStatus(403, evaluate(unauthorizedUser(), app.getPublicId(), SCAN_ID, Stage.ID_BUILD));
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
         app.getPublicId(), app.getName(), null, SCAN_ID, null, unauthorizedUser.getUsername());
   }
 
-  private HttpResponse evaluate(User user, String applicationPublicId, String scanId, String stageId) throws Exception {
-    return (user == null ? restRequest() : restRequest().auth(user.getUsername(), user.getPassword()))
-        .path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(applicationPublicId)
-        .body(new Stage(stageId)).post();
+  private HttpResponse evaluate(Consumer<HttpRequest> user, String applicationPublicId, String scanId, String stageId) throws Exception {
+    return restRequest().with(user).path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(applicationPublicId).body(new Stage(stageId)).post();
   }
 }

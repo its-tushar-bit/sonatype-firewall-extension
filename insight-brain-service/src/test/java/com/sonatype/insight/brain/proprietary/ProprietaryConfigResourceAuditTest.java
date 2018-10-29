@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.proprietary;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigResource.FilePathRegex;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -74,7 +74,7 @@ public class ProprietaryConfigResourceAuditTest
 
   @Test
   public void testUpsert_Unauthorized() throws Exception {
-    upsert(unauthorizedUser, org, new ProprietaryConfig(org.getId(), new ArrayList<>(), new ArrayList<>()));
+    upsert(unauthorizedUser(), org, new ProprietaryConfig(org.getId(), new ArrayList<>(), new ArrayList<>()));
 
     AuditDTO auditDTO = assertAuditLog("unauthorized");
     assertOrganizationData(auditDTO, org);
@@ -133,27 +133,27 @@ public class ProprietaryConfigResourceAuditTest
   @Test
   public void testAddFilePathRegex_Unauthorized() throws Exception {
     FilePathRegex filePathRegex = new FilePathRegex();
-    addFilePathRegex(unauthorizedUser, org, filePathRegex);
+    addFilePathRegex(unauthorizedUser(), org, filePathRegex);
 
     AuditDTO auditDTO = assertAuditLog("unauthorized");
     assertOrganizationData(auditDTO, org);
   }
 
-  private void addFilePathRegex(User user, Owner owner, FilePathRegex filePathRegex)
+  private void addFilePathRegex(Consumer<HttpRequest> user, Owner owner, FilePathRegex filePathRegex)
       throws Exception
   {
     restRequest(user, owner).path(ProprietaryConfigResource.ADD_FILE_PATH_REGEX).body(filePathRegex).post();
   }
 
-  private void upsert(User user, Owner owner, ProprietaryConfig proprietaryConfig)
+  private void upsert(Consumer<HttpRequest> user, Owner owner, ProprietaryConfig proprietaryConfig)
       throws Exception
   {
     restRequest(user, owner).body(proprietaryConfig).put();
   }
 
-  private HttpRequest restRequest(User user, Owner owner) {
-    return (user == null ? restRequest() : restRequest().auth(user.getUsername(), user.getPassword()))
-        .path(ProprietaryConfigResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());
+  private HttpRequest restRequest(Consumer<HttpRequest> user, Owner owner) {
+    return restRequest().with(user).path(ProprietaryConfigResource.RESOURCE_PATH).parameter(owner.getType(),
+        owner.getPublicId());
   }
 
   private AuditDTO assertAuditLog(String error) {

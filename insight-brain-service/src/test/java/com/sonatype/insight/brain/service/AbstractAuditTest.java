@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -53,6 +55,10 @@ public abstract class AbstractAuditTest
     logOutput.before();
     unauthorizedUser = tempEntity.newUser();
     objectMapper = new ObjectMapper();
+  }
+
+  protected Consumer<HttpRequest> unauthorizedUser() {
+    return httpRequest -> httpRequest.auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword());
   }
 
   protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {

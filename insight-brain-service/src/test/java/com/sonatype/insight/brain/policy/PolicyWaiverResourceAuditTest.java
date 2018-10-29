@@ -88,9 +88,8 @@ public class PolicyWaiverResourceAuditTest
 
     restRequest(application).body(policyWaiver(null, null)).post();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "bad-request");
     assertApplicationData(auditDTO, application);
-    assertPolicyWaiverData(auditDTO);
   }
 
   @Test

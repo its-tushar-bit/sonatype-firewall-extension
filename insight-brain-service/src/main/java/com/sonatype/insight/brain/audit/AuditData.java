@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -235,6 +236,22 @@ public abstract class AuditData
 
   AuditData setPolicyName(String policyName) {
     setData("policyName", policyName);
+    return this;
+  }
+
+  public AuditData setOwner(Owner owner) {
+    if (owner != null) {
+      switch (owner.getType()) {
+        case APPLICATION:
+          return setApplication((Application) owner);
+        case ORGANIZATION:
+          return setOrganization((Organization) owner);
+        case REPOSITORY:
+          return setRepository((Repository) owner);
+        case REPOSITORY_CONTAINER:
+          return setRepositoryContainer();
+      }
+    }
     return this;
   }
 }

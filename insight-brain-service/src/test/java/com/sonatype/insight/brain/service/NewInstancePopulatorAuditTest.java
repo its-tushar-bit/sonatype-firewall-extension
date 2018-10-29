@@ -10,10 +10,6 @@ import java.util.Collections;
 
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.AbstractPolicyImportAuditTest;
@@ -22,24 +18,11 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
-import org.junit.After;
 import org.junit.Test;
 
 public class NewInstancePopulatorAuditTest
     extends AbstractPolicyImportAuditTest
 {
-  @After
-  public void after() {
-    PolicyDAO policyDAO = new PolicyDAO();
-    policyDAO.getAll().forEach(policyDAO::delete);
-    LabelDAO labelDAO = new LabelDAO();
-    labelDAO.getAll().forEach(labelDAO::delete);
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    licenseThreatGroupDAO.getAll().forEach(licenseThreatGroupDAO::delete);
-    TagDAO tagDAO = new TagDAO();
-    tagDAO.getAll().forEach(tagDAO::delete);
-  }
-
   @Test
   @ManualServerInit
   public void testPopulateIfNewInstance() throws Exception {

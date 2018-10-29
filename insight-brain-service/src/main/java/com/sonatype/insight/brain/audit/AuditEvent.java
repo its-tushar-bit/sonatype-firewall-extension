@@ -119,9 +119,5 @@ public enum AuditEvent
     String DELETE = "delete";
 
     String IMPORT = "import";
-
-    String CREATE = "create";
-
-    String DELETE = "delete";
   }
 }

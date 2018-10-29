@@ -11,11 +11,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -133,6 +136,7 @@ public class PolicyImportExport
       // in the same transaction, so they would need to take a TransactionContext as param, which is not worth it in my
       // opinion.
       tx.commit();
+      AuditData.get().commitSubEvents();
 
       tx.begin();
       for (Policy policy : exportDTO.policies) {
@@ -155,7 +159,7 @@ public class PolicyImportExport
     for (Owner childOwner : ownerDAO.getChildOwners(tx, owner)) {
       deleteFromOwnerAndDescendants(tx, childOwner);
     }
-    deletePolicyWaivers(tx, owner.getId());
+    deletePolicyWaivers(tx, owner);
     deleteLicenseThreatGroups(tx, owner.getId());
     policyDAO.deleteByOwnerId(tx, owner.getId());
   }
@@ -175,10 +179,13 @@ public class PolicyImportExport
   /**
    * Delete all PolicyWaivers from the specified owner.
    */
-  private void deletePolicyWaivers(TransactionContext tx, String ownerId) {
-    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(tx, ownerId)) {
-      log.debug("Deleting policyWaiver: {} during import from ownerId: {}", policyWaiver.getId(), ownerId);
-      policyWaiverDAO.delete(tx, policyWaiver);
+  private void deletePolicyWaivers(TransactionContext tx, Owner owner) {
+    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(tx, owner.getId())) {
+      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_WAIVER, false)) {
+        auditDeletePolicyWaiver(tx, owner, policyWaiver);
+        log.debug("Deleting policyWaiver: {} during import from ownerId: {}", policyWaiver.getId(), owner.getId());
+        policyWaiverDAO.delete(tx, policyWaiver);
+      }
     }
   }
 
@@ -430,5 +437,16 @@ public class PolicyImportExport
     policyExportResult.licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(ownerId);
 
     return policyExportResult;
+  }
+
+  private void auditDeletePolicyWaiver(TransactionContext tx, Owner owner, PolicyWaiver policyWaiver) {
+    AuditData.get().setOwner(owner)
+        .setData("policyWaiverId", policyWaiver.getId())
+        .setPolicy(policyDAO.getById(tx, policyWaiver.getPolicyId()))
+        .setComponentHash(policyWaiver.getHash());
+    if (policyWaiver.getConstraintFacts() != null) {
+      AuditData.get().setData("policyConstraints",
+          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    }
   }
 }

@@ -9,6 +9,10 @@ import java.util.Collections;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.audit.AuditDTO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -18,9 +22,23 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.After;
+
 public abstract class AbstractPolicyImportAuditTest
     extends AbstractAuditTest
 {
+  @After
+  public void after() {
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.getAll().forEach(policyDAO::delete);
+    LabelDAO labelDAO = new LabelDAO();
+    labelDAO.getAll().forEach(labelDAO::delete);
+    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+    licenseThreatGroupDAO.getAll().forEach(licenseThreatGroupDAO::delete);
+    TagDAO tagDAO = new TagDAO();
+    tagDAO.getAll().forEach(tagDAO::delete);
+  }
+
   protected Policy policy() {
     Policy policy = new Policy();
     policy.setName(UUID.randomUUID().toString());

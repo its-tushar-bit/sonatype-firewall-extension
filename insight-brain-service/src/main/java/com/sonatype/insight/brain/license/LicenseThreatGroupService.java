@@ -13,6 +13,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -105,6 +106,7 @@ public class LicenseThreatGroupService
     licenseThreatGroup.setOwnerId(orgId);
     licenseThreatGroupDAO.insert(licenseThreatGroup);
 
+    auditLicenseThreatGroup(licenseThreatGroup);
     managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
 
     return licenseThreatGroup;
@@ -149,6 +151,13 @@ public class LicenseThreatGroupService
     licenseThreatGroupDAO.delete(licenseThreatGroup);
 
     managementEventService.postEvent(EventAction.DELETED, licenseThreatGroup);
+  }
+
+  private void auditLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {
+    AuditData.get() //
+        .setData("licenseThreatGroupId", licenseThreatGroup.getId())
+        .setData("licenseThreatGroupName", licenseThreatGroup.getName())
+        .setData("licenseThreatGroupThreatLevel", licenseThreatGroup.getThreatLevel());
   }
 
   public static class ApplicableLicenseThreatGroups

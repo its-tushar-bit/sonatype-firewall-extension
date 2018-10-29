@@ -40,6 +40,8 @@ public enum AuditEvent
 
   IMPORT(Domain.GOVERNANCE_IMPORT, Type.IMPORT),
 
+  CREATE_LICENSE_THREAT_GROUP(Domain.GOVERNANCE_LICENSE_THREAT_GROUP, Type.CREATE),
+
   APPLY_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.APPLY),
   REVOKE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.REVOKE),
   CONFIGURE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.CONFIGURE),
@@ -96,6 +98,8 @@ public enum AuditEvent
     String GOVERNANCE_CONTINUOUS_MONITORING = join(GOVERNANCE, "continuous-monitoring");
 
     String GOVERNANCE_LABEL = join(GOVERNANCE, "component-label");
+
+    String GOVERNANCE_LICENSE_THREAT_GROUP = join(GOVERNANCE, "license-threat-group");
 
     static String join(String parent, String child) {
       return parent + "." + child;

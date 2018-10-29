@@ -143,7 +143,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setApplicationId(application.getId());
     verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
-    assertThat(application.getId(), is(ownerArgumentCaptor.getValue().getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId(), is(application.getId()));
   }
 
   @Test
@@ -166,7 +166,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setApplicationPublicId(application.getPublicId());
     verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
-    assertThat(application.getId(), is(ownerArgumentCaptor.getValue().getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId(), is(application.getId()));
   }
 
   @Test
@@ -213,7 +213,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setApplicationPublicId(application.getPublicId());
     verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
-    assertThat(application.getId(), is(ownerArgumentCaptor.getValue().getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId(), is(application.getId()));
   }
 
   @Test
@@ -238,7 +238,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setOrganizationId(organization.getId());
     verify(mockAuditData).setOrganization((Organization) ownerArgumentCaptor.capture());
-    assertThat(organization.getId(), is(ownerArgumentCaptor.getValue().getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId(), is(organization.getId()));
   }
 
   @Test
@@ -263,7 +263,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setRepositoryId(repository.getId());
     verify(mockAuditData).setRepository((Repository) ownerArgumentCaptor.capture());
-    assertThat(repository.getId(), is(ownerArgumentCaptor.getValue().getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId(), is(repository.getId()));
   }
 
   @Test

@@ -84,6 +84,11 @@ class AuditContainerRequestFilter
           setByApplicationPublicId(applicationPublicId);
           return;
         }
+        String organizationId = pathParameters.getFirst("organizationId");
+        if (organizationId != null) {
+          setByOrganizationId(organizationId);
+          return;
+        }
         String ownerId = pathParameters.getFirst("ownerId");
         String ownerType = pathParameters.getFirst("ownerType");
         if (ownerId != null && ownerType != null) {

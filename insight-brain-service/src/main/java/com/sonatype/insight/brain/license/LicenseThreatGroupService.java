@@ -127,6 +127,7 @@ public class LicenseThreatGroupService
     licenseThreatGroup.setOwnerId(internalOwnerId);
     licenseThreatGroupDAO.update(licenseThreatGroup);
 
+    auditLicenseThreatGroup(licenseThreatGroup);
     managementEventService.postEvent(EventAction.UPDATED, licenseThreatGroup);
 
     return licenseThreatGroup;

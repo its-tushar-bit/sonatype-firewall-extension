@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.license;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -52,6 +53,41 @@ public class LicenseThreatGroupResourceAuditTest
     restRequest(organization).with(unauthorizedUser()).body(ltg).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LICENSE_THREAT_GROUP, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testUpdateLicenseThreatGroup_Application() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    LicenseThreatGroup ltg = new LicenseThreatGroup(null, "Lawyer Nightmare", 7);
+    ltg.setId(tempEntity.newLicenseThreatGroup(application.getId(), "Old Name", 5).getId());
+    restRequest(application).body(ltg).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LICENSE_THREAT_GROUP, null);
+    assertApplicationData(auditDTO, application);
+    assertLicenseThreatGroupData(auditDTO, ltg);
+  }
+
+  @Test
+  public void testUpdateLicenseThreatGroup_Organization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    LicenseThreatGroup ltg = new LicenseThreatGroup(null, "Lawyer Nightmare", 7);
+    ltg.setId(tempEntity.newLicenseThreatGroup(organization.getId(), "Old Name", 5).getId());
+    restRequest(organization).body(ltg).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LICENSE_THREAT_GROUP, null);
+    assertOrganizationData(auditDTO, organization);
+    assertLicenseThreatGroupData(auditDTO, ltg);
+  }
+
+  @Test
+  public void testUpdateLicenseThreatGroup_Unauthorized() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    LicenseThreatGroup ltg = new LicenseThreatGroup(null, "Lawyer Nightmare", 7);
+    ltg.setId(tempEntity.newLicenseThreatGroup(organization.getId(), "Old Name", 5).getId());
+    restRequest(organization).with(unauthorizedUser()).body(ltg).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LICENSE_THREAT_GROUP, "unauthorized");
     assertOrganizationData(auditDTO, organization);
   }
 }

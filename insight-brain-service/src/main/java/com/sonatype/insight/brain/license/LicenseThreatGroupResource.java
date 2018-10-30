@@ -79,6 +79,7 @@ public class LicenseThreatGroupResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_LICENSE_THREAT_GROUP)
   public LicenseThreatGroup updateLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
                                                      @PathParam("ownerId") String ownerId,
                                                      LicenseThreatGroup licenseThreatGroup)

@@ -77,8 +77,8 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     // add two policy violations for a stage
-    Policy policy1 = tempEntity.newPolicy(app2.getId(), "policy1", 1);
-    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    Policy policy1 = tempEntity.newPolicy(app2);
+    Policy policy2 = tempEntity.newPolicy(app2);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash, "reason2");
@@ -122,7 +122,7 @@ public class ComponentDetailServiceTest
     policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policy2.getId(), appComponentDetailsDTO.policyViolations);
     assertThat(policyViolationSummaryDTO, notNullValue());
     assertThat(policyViolationSummaryDTO.policyName, is(policy2.getName()));
-    assertThat(policyViolationSummaryDTO.threatLevel, is(1));
+    assertThat(policyViolationSummaryDTO.threatLevel, is(5));
     assertThat(policyViolationSummaryDTO.stageDetails, hasSize(4));
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
         policyEvaluation1.getScanId(), policyEvaluation1.getTime().getTime());
@@ -138,7 +138,7 @@ public class ComponentDetailServiceTest
     Application app = tempEntity.newApplicationWithParent("app");
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Policy policy = tempEntity.newPolicy(app.getId(), "policy", 1);
+    Policy policy = tempEntity.newPolicy(app);
     String policyId = policy.getId();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
     tempEntity.newPolicyViolation(policyEvaluation, policy, "groupId", "artifactId", "version", hash, "reason");
@@ -155,8 +155,8 @@ public class ComponentDetailServiceTest
     PolicyViolationSummaryDTO policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policyId,
         appComponentDetailsDTO.policyViolations);
     assertThat(policyViolationSummaryDTO, notNullValue());
-    assertThat(policyViolationSummaryDTO.policyName, is("policy"));
-    assertThat(policyViolationSummaryDTO.threatLevel, is(1));
+    assertThat(policyViolationSummaryDTO.policyName, is(policy.getName()));
+    assertThat(policyViolationSummaryDTO.threatLevel, is(5));
     assertThat(policyViolationSummaryDTO.stageDetails, hasSize(4));
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
         policyEvaluation.getScanId(), policyEvaluation.getTime().getTime());
@@ -172,14 +172,14 @@ public class ComponentDetailServiceTest
     Application app1 = tempEntity.newApplicationWithParent("app1");
     tempEntity.newApplicationComponent(app1.getId(), DevelopStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(evaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
 
     Application app2 = tempEntity.newApplicationWithParent("app2");
     tempEntity.newApplicationComponent(app2.getId(), DevelopStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    Policy policy2 = tempEntity.newPolicy(app2);
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(evaluation2, policy2, "groupId", "artifactId", "version", hash, "reason1");
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash,
@@ -214,7 +214,7 @@ public class ComponentDetailServiceTest
     Application app1 = tempEntity.newApplicationWithParent("app1");
     ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
+    Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date(
         System.currentTimeMillis() - 1000));
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
@@ -246,8 +246,8 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, component.getHash(),
         component.getComponentIdentifier());
 
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
-    Policy policy2 = tempEntity.newPolicy(app1.getId(), "policy2");
+    Policy policy1 = tempEntity.newPolicy(app1);
+    Policy policy2 = tempEntity.newPolicy(app1);
 
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(), policy1.getThreatCategory(),
@@ -384,8 +384,8 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     // add two policy violations for a stage
-    Policy policy1 = tempEntity.newPolicy(app2.getId(), "policy1", 1);
-    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    Policy policy1 = tempEntity.newPolicy(app2);
+    Policy policy2 = tempEntity.newPolicy(app2);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash, "reason2");
@@ -433,7 +433,7 @@ public class ComponentDetailServiceTest
     ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
         ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));
 
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "scanId1");
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
@@ -470,7 +470,7 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash1, waivedComponentId);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2, unwaivedComponentId);
 
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    Policy policy1 = tempEntity.newPolicy(app1);
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId1",
         before);
@@ -519,7 +519,7 @@ public class ComponentDetailServiceTest
         false, date);
 
     // add three policy violations for a stage
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "Z2", "artifactId2", "version2", hash2, "reason2");
@@ -557,7 +557,7 @@ public class ComponentDetailServiceTest
     Date date = new Date();
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
 
     List<ApplicationComponent> components = new ArrayList<>();
@@ -613,7 +613,7 @@ public class ComponentDetailServiceTest
         ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"), null, MatchState.EXACT,
         false, olderDate);
 
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation policyEvaluation1 = tempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", newerDate);
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
@@ -632,7 +632,7 @@ public class ComponentDetailServiceTest
         ComponentIdentifier.createMavenCoordinates("groupId3", "artifactId3", "version3"), null, MatchState.EXACT,
         false, olderDate);
 
-    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    Policy policy2 = tempEntity.newPolicy(app2);
     PolicyEvaluation policyEvaluation4 = tempEntity
         .newPolicyEvaluation(app2.getId(), OperateStageType.ID, "scanId3", olderDate);
 
@@ -710,7 +710,7 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app3.getId(), BuildStageType.ID, hash3, null, null, MatchState.EXACT, false,
         date);
 
-    Policy policy = tempEntity.newPolicy(org.getId(), "policy", 1);
+    Policy policy = tempEntity.newPolicy(org);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2");
     PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId3");

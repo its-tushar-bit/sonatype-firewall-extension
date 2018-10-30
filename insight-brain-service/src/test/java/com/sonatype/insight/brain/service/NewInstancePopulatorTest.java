@@ -122,7 +122,7 @@ public class NewInstancePopulatorTest
   @Test
   @ManualServerInit
   public void testPopulateIfNewInstance_ExistingPolicy_SampleDataEnabled_SampleDataNotCreated() throws Exception {
-    tempEntity.newPolicy("policy");
+    tempEntity.newPolicy();
 
     initServer(true, false);
     assertSampleDataCreated(false);
@@ -160,7 +160,7 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_ExistingPolicy_PolicyImportEnabled_ReferencePoliciesNotImported()
       throws Exception
   {
-    tempEntity.newPolicy("policy");
+    tempEntity.newPolicy();
 
     initServer(false, true);
     assertReferencePoliciesImported(false);

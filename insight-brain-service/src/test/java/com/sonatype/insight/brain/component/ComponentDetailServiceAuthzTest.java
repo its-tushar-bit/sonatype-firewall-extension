@@ -14,7 +14,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -22,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class ComponentDetailServiceAuthzTest
   public void before() {
     ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Policy licensePolicy = tempEntity.newPolicy(app.getParentOwnerId(), "TestLicensePolicy");
+    Policy licensePolicy = tempEntity.newPolicy(org);
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "now", new Date());
     tempEntity.newPolicyViolation(buildEval, licensePolicy, 7, LICENSE, buildComponent.getComponentIdentifier(),
         buildComponent.getHash(), FailActionType.ID);

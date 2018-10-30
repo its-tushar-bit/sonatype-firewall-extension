@@ -45,7 +45,7 @@ public class PolicyEvaluationSummaryResourceTest
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
         scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
+    Policy policy = tempEntity.newPolicy(application);
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = summaryRequest(application.getId(), stage.getStageTypeId()).get();

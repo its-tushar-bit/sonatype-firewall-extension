@@ -95,7 +95,7 @@ public class GrandfatherTest
 
   @Test
   public void testGrandfather_Grandfather() {
-    Policy policy = tempEntity.newPolicy(application.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(application);
     policy.setPolicyViolationGrandfatheringAllowed(true);
     policyDAO.update(policy);
 
@@ -116,7 +116,7 @@ public class GrandfatherTest
 
   @Test
   public void testGrandfather_Cancel() {
-    Policy policy = tempEntity.newPolicy(application.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(application);
     policy.setPolicyViolationGrandfatheringAllowed(true);
     policyDAO.update(policy);
 

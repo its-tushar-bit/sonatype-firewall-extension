@@ -71,12 +71,12 @@ public class PolicyResourceAuthzTest
   public void testUpdatePolicy() throws Exception {
     grantWritePermission(app.getId());
 
-    Policy policy = tempEntity.newPolicy(app.getId(), "testUpdatePolicy app");
+    Policy policy = tempEntity.newPolicy(app);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
 
-    policy = tempEntity.newPolicy(org.getId(), "testUpdatePolicy org");
+    policy = tempEntity.newPolicy(org);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
@@ -86,12 +86,12 @@ public class PolicyResourceAuthzTest
 
     grantWritePermission(app.getId());
 
-    Policy policy = tempEntity.newPolicy(app.getId(), "testDeletePolicy");
+    Policy policy = tempEntity.newPolicy(app);
     testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), policy.getId()));
 
     grantWritePermission(org.getId());
 
-    policy = tempEntity.newPolicy(org.getId(), "testDeletePolicy");
+    policy = tempEntity.newPolicy(org);
     testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
   }
 }

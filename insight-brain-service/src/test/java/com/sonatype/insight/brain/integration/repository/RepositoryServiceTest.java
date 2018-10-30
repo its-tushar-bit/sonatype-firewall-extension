@@ -892,7 +892,7 @@ public class RepositoryServiceTest
 
     String hash = "h";
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     tempEntity.newWaiver(hash, policy.getId(), repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
@@ -1108,7 +1108,7 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_MultipleComponents() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
 
@@ -2222,7 +2222,7 @@ public class RepositoryServiceTest
   }
 
   private Policy createQuarantiningPolicy(Repository repository) {
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
     new PolicyDAO().update(policy);
     return policy;

@@ -68,7 +68,7 @@ public class DashboardComponentsTest
   @Before
   public void init() {
     app = tempEntity.newApplicationWithParent(DashboardComponentsTest.class.getSimpleName());
-    policy = tempEntity.newPolicy(app.getParentOwnerId(), "DashboardComponentsTestPolicy");
+    policy = tempEntity.newPolicy(app.getParentOwnerId());
     policyEvaluation = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "DashboardComponentsTestFirstEval");
     refreshOrOpen(DashboardPage.COMPONENTS_URL);
@@ -325,7 +325,7 @@ public class DashboardComponentsTest
 
     // add low risk components also to second app
     app = tempEntity.newApplicationWithParent(DashboardComponentsTest.class.getSimpleName() + 2);
-    policy = tempEntity.newPolicy(app.getParentOwnerId(), "AnotherPolicy");
+    policy = tempEntity.newPolicy(app.getParentOwnerId());
     policyEvaluation = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "AnotherAppEval");
     refreshOrOpen(DashboardPage.COMPONENTS_URL);

@@ -39,7 +39,7 @@ public class OwnerDTOUtilTest
     Tag tag = tempEntity.newTag(organization.getId());
     Label label = tempEntity.newLabel(organization.getId());
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(organization.getId());
-    Policy policy = tempEntity.newPolicy(organization.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(organization);
     User user = tempEntity.newUser();
     Role role = tempEntity.newRole(false, Permission.READ);
     MembershipMapping member = tempEntity.newMembershipMapping(organization.getId(), role.getId(), user.getUsername());
@@ -89,7 +89,7 @@ public class OwnerDTOUtilTest
     Application application = tempEntity.newApplicationWithParent("publicId");
     Label label = tempEntity.newLabel(application.getId());
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(application.getId());
-    Policy policy = tempEntity.newPolicy(application.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(application);
     User user = tempEntity.newUser();
     Role role = tempEntity.newRole(false, Permission.READ);
     MembershipMapping member = tempEntity.newMembershipMapping(application.getId(), role.getId(), user.getUsername());

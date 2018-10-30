@@ -41,7 +41,7 @@ public class ApiSearchResourceV2AuthzTest
     List<ComponentInfo> app1ComponentInfos = new ArrayList<>();
     app1ComponentInfos.add(new ComponentInfo("1249e25aebb15358bedd", ComponentIdentifier.createMavenCoordinates(
         "tomcat", "tomcat-util", "5.5.23", "", "jar"), null));
-    helper.createScanForApp(app.getId(), Stage.ID_BUILD, app1ComponentInfos);
+    helper.createScanForApp(app, Stage.ID_BUILD, app1ComponentInfos);
 
     grantReadPermission(app.getId());
 

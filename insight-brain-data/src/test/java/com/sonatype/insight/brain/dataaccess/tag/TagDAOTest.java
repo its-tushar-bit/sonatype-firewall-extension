@@ -491,7 +491,7 @@ public class TagDAOTest
 
   @Test
   public void testDenyCascadeDeleteToPolicyTags() {
-    Policy policy = tempEntity.newPolicy(organization.getId(), "TagDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     Tag tag = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policy.getId(), tag.getId());
 
@@ -515,10 +515,10 @@ public class TagDAOTest
     List<Tag> org1Tags = new ArrayList<>();
     List<Tag> org2Tags = new ArrayList<>();
 
-    Policy policy1 = tempEntity.newPolicy(org1.getId(), "TagDAOTest1");
-    Policy policy2 = tempEntity.newPolicy(org1.getId(), "TagDAOTest2");
-    Policy policy3 = tempEntity.newPolicy(org2.getId(), "TagDAOTest3");
-    Policy policy4 = tempEntity.newPolicy(org2.getId(), "TagDAOTest4");
+    Policy policy1 = tempEntity.newPolicy(org1);
+    Policy policy2 = tempEntity.newPolicy(org1);
+    Policy policy3 = tempEntity.newPolicy(org2);
+    Policy policy4 = tempEntity.newPolicy(org2);
 
     // Create tags and apply to policies
     org1Tags.add(tempEntity.newTag(org1.getId()));

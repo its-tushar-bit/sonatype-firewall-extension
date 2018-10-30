@@ -37,7 +37,7 @@ public class TagServiceAuthzTest
 
   @Before
   public void init() {
-    policyId = tempEntity.newPolicy(org.getId(), "TagServiceAuthzTest").getId();
+    policyId = tempEntity.newPolicy(org).getId();
   }
 
   @Test(expected = UnauthorizedException.class)

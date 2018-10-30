@@ -51,7 +51,7 @@ public class SuccessMetricsChartsSingleApplicationTest
   public static void startup() {
     Application app1 = staticTempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
 
-    Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId(), "SuccessMetricsChartTestLicensePolicy");
+    Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId());
 
     PolicyEvaluation buildEval3MonthsAgo = staticTempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "threeMonthsAgo", threeMonthsAgo.toDate());

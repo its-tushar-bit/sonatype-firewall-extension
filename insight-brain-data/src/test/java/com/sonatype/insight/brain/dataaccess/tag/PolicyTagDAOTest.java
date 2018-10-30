@@ -48,7 +48,7 @@ public class PolicyTagDAOTest
 
   @Test
   public void testCRUD() throws Exception {
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyTagDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
 
     // Create
@@ -71,7 +71,7 @@ public class PolicyTagDAOTest
 
   @Test
   public void testUpdateNotSupported() throws Exception {
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyTagDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
     dao.insert(policyTag);
 
@@ -89,9 +89,9 @@ public class PolicyTagDAOTest
 
   @Test
   public void testGetByPolicyId() throws Exception {
-    Policy policy1 = tempEntity.newPolicy(organization.getId(), "PolicyTagDAOTest1");
+    Policy policy1 = tempEntity.newPolicy(organization);
     String policy1Id = policy1.getId();
-    Policy policy2 = tempEntity.newPolicy(organization.getId(), "PolicyTagDAOTest2");
+    Policy policy2 = tempEntity.newPolicy(organization);
     String policy2Id = policy2.getId();
     List<Tag> policy1Tags = new ArrayList<>();
     List<Tag> policy2Tags = new ArrayList<>();
@@ -121,10 +121,10 @@ public class PolicyTagDAOTest
     List<PolicyTag> org1PolicyTags = new ArrayList<>();
     List<PolicyTag> org2PolicyTags = new ArrayList<>();
 
-    Policy policy1 = tempEntity.newPolicy(org1.getId(), "PolicyTagDAOTest1");
-    Policy policy2 = tempEntity.newPolicy(org1.getId(), "PolicyTagDAOTest2");
-    Policy policy3 = tempEntity.newPolicy(org2.getId(), "PolicyTagDAOTest3");
-    Policy policy4 = tempEntity.newPolicy(org2.getId(), "PolicyTagDAOTest4");
+    Policy policy1 = tempEntity.newPolicy(org1);
+    Policy policy2 = tempEntity.newPolicy(org1);
+    Policy policy3 = tempEntity.newPolicy(org2);
+    Policy policy4 = tempEntity.newPolicy(org2);
 
     // Create tags and apply to policies
     org1PolicyTags.add(tempEntity.newPolicyTag(policy1.getId(), tempEntity.newTag(org1.getId()).getId()));
@@ -182,7 +182,7 @@ public class PolicyTagDAOTest
 
   @Test
   public void testIsPolicyApplicable() throws Exception {
-    Policy policy = tempEntity.newPolicy(organization.getId());
+    Policy policy = tempEntity.newPolicy(organization);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(true));

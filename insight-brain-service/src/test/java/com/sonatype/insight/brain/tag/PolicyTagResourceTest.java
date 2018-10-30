@@ -35,7 +35,7 @@ public class PolicyTagResourceTest
     Organization org = tempEntity.newOrganization();
     Tag tag1 = tempEntity.newTag(org.getId());
     tempEntity.newTag(org.getId());
-    String policyId = tempEntity.newPolicy(org.getId(), "Test").getId();
+    String policyId = tempEntity.newPolicy(org).getId();
     tempEntity.newPolicyTag(policyId, tag1.getId());
 
     HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).get();
@@ -50,7 +50,7 @@ public class PolicyTagResourceTest
     Application app = tempEntity.newApplicationWithParent("getpolicytags");
     Tag tag1 = tempEntity.newTag(app.getParentOwnerId());
     tempEntity.newTag(app.getParentOwnerId());
-    String policyId = tempEntity.newPolicy(app.getParentOwnerId(), "Test").getId();
+    String policyId = tempEntity.newPolicy(app.getParentOwnerId()).getId();
     tempEntity.newPolicyTag(policyId, tag1.getId());
 
     HttpResponse response = restRequest(policyId, OwnerType.APPLICATION, app.getPublicId()).get();
@@ -64,7 +64,7 @@ public class PolicyTagResourceTest
   public void testUpdatePolicyTags() throws Exception {
     Organization org = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(org.getId());
-    String policyId = tempEntity.newPolicy(org.getId(), "Test").getId();
+    String policyId = tempEntity.newPolicy(org).getId();
 
     HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).body(Arrays.asList(tag)).put();
     assertResponseStatus(200, response);

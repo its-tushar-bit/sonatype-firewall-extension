@@ -684,7 +684,7 @@ public class ApiMetricsReportingServiceV2Test
     Application application = tempEntity.newApplicationWithParent();
     DateTime now = new DateTime();
 
-    Policy policy = tempEntity.newPolicy("policy");
+    Policy policy = tempEntity.newPolicy();
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1",
         now.minusMonths(1).toDate());
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1",

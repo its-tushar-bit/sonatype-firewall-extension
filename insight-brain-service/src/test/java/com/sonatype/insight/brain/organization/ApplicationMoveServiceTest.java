@@ -207,10 +207,10 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_ApplicableOrgPolicyMissingInNewParentOrg() {
-    Policy policy1 = tempEntity.newPolicy(oldOrg.getId(), "Inherited Policy");
-    Policy policy2 = tempEntity.newPolicy(oldOrg.getId(), "Tagged Policy");
+    Policy inheritedPolicy = tempEntity.newPolicy(oldOrg.getId(), "Inherited Policy");
+    Policy taggedPolicy = tempEntity.newPolicy(oldOrg.getId(), "Tagged Policy");
     Tag oldTag = tempEntity.newTag(oldOrg.getId(), "Matched Tag");
-    tempEntity.newPolicyTag(policy2.getId(), oldTag.getId());
+    tempEntity.newPolicyTag(taggedPolicy.getId(), oldTag.getId());
     tempEntity.newApplicationTag(app.getId(), oldTag.getId());
     tempEntity.newTag(newOrg.getId(), "matchedtag");
     Tag otherTag = tempEntity.newTag(newOrg.getId(), "othertag");
@@ -222,15 +222,15 @@ public class ApplicationMoveServiceTest
       fail("Expected exception");
     }
     catch (ApplicationMoveException e) {
-      assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, policy1, oldOrg),
-          policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, policy2, oldOrg));
+      assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, inheritedPolicy, oldOrg),
+          policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, taggedPolicy, oldOrg));
     }
   }
 
   @Test
   public void testMoveApplication_NonApplicableOrgPolicyMissingInNewParentOrg() {
-    Policy policy = tempEntity.newPolicy(oldOrg.getId(), "Inherited Policy");
-    tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(oldOrg.getId()).getId());
+    Policy inheritedPolicy = tempEntity.newPolicy(oldOrg);
+    tempEntity.newPolicyTag(inheritedPolicy.getId(), tempEntity.newTag(oldOrg.getId()).getId());
 
     assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
@@ -280,7 +280,7 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_OldAppPolicyUnmatchedByNewOrgPolicy() {
-    Policy oldPolicy = tempEntity.newPolicy(app.getId(), "Unmatched Policy");
+    Policy oldPolicy = tempEntity.newPolicy(app);
 
     assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
@@ -290,8 +290,8 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_OldAppPolicyClashesWithNonApplicableOrgPolicy() {
-    Policy oldPolicy = tempEntity.newPolicy(app.getId(), "Policy");
-    Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), "Policy");
+    Policy oldPolicy = tempEntity.newPolicy(app);
+    Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     tempEntity.newPolicyTag(newPolicy.getId(), tempEntity.newTag(newOrg.getId()).getId());
 
     try {
@@ -318,7 +318,7 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_AppPolicyWaiver() {
-    Policy oldPolicy = tempEntity.newPolicy(app.getId(), "Matched Policy");
+    Policy oldPolicy = tempEntity.newPolicy(app);
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     PolicyWaiver waiver = tempEntity.newWaiver(oldPolicy.getId(), app.getId());
 
@@ -330,7 +330,7 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_OldOrgPolicyWaiverMatchedByNewOrgPolicyWaiver() {
-    Policy oldPolicy = tempEntity.newPolicy(oldOrg.getId(), "Matched Policy");
+    Policy oldPolicy = tempEntity.newPolicy(oldOrg);
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     PolicyWaiver oldWaiver = tempEntity.newWaiver("hash", oldPolicy.getId(), oldOrg.getId());
     tempEntity.newWaiver(newPolicy.getId(), newOrg.getId());
@@ -344,7 +344,7 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_OldOrgPolicyWaiverNotMatchedByNewOrgPolicyWaivers() {
-    Policy oldPolicy = tempEntity.newPolicy(oldOrg.getId(), "Matched Policy");
+    Policy oldPolicy = tempEntity.newPolicy(oldOrg);
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     PolicyWaiver oldWaiver = tempEntity.newWaiver("hash", oldPolicy.getId(), oldOrg.getId());
     tempEntity.newWaiver("other-hash", newPolicy.getId(), newOrg.getId());

@@ -69,7 +69,7 @@ public class DashboardTabNavigationTest
     org = staticTempEntity.newOrganization("DashboardPolicySummarySpec");
     app = staticTempEntity
         .newApplication("DashboardPolicySummarySpecApp", "DashboardPolicySummarySpecApp", org.getPublicId());
-    policy = staticTempEntity.newPolicy(org.getPublicId(), "DashboardPolicySummarySpec");
+    policy = staticTempEntity.newPolicy(org);
 
     DateTime now = DateTime.now();
     for (int weeksAgo = 12; weeksAgo >= 0; weeksAgo--) {

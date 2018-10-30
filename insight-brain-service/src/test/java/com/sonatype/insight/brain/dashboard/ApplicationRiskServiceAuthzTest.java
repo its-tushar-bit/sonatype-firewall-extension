@@ -30,7 +30,7 @@ public class ApplicationRiskServiceAuthzTest
   public void setup() {
     tempEntity.newPolicyViolation(tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId"),
-        tempEntity.newPolicy(org.getId(), "policy", 3));
+        tempEntity.newPolicy(org));
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
   }

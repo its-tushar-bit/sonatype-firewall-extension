@@ -343,7 +343,7 @@ public class RootOrganizationConfigMigratorTest
 
     Organization otherOrg = tempEntity.newOrganization("otherOrg");
     Application app = tempEntity.newApplication(otherOrg.getId());
-    Policy policy = tempEntity.newPolicy(app.getId(), "name");
+    Policy policy = tempEntity.newPolicy(app);
     Tag otherTag1 = tempEntity.newTag(otherOrg.getId(), tagName);
     tempEntity.newApplicationTag(app.getId(), otherTag1.getId());
     tempEntity.newPolicyTag(policy.getId(), otherTag1.getId());
@@ -431,7 +431,7 @@ public class RootOrganizationConfigMigratorTest
   @Test
   public void testMigrate_RootOrgHasPolicy() throws Exception {
     createSourceOrg();
-    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy name");
+    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
     try {
       migrator.migrate();

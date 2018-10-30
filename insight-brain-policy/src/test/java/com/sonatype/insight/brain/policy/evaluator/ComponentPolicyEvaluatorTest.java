@@ -865,7 +865,7 @@ public class ComponentPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyWaiverForSpecificComponent() {
     Application app = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+    Policy policy = tempEntity.newPolicy(app);
 
     Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
     String hash1 = "hash1";
@@ -893,7 +893,7 @@ public class ComponentPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyWaiverNotForSpecificComponent() {
     Application app = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+    Policy policy = tempEntity.newPolicy(app);
 
     Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
     String hash1 = "hash1";
@@ -925,7 +925,7 @@ public class ComponentPolicyEvaluatorTest
   public void testEvaluate_PolicyWaiver_InheritedFromOrganization() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    Policy policy = tempEntity.newPolicy(org.getId(), "Test policy");
+    Policy policy = tempEntity.newPolicy(org);
 
     Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     String hash = "hash";
@@ -949,7 +949,7 @@ public class ComponentPolicyEvaluatorTest
   public void testEvaluate_PolicyWaiver_InheritedFromRootOrganization() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    Policy policy = tempEntity.newPolicy(org.getParentOrganizationId(), "Test policy");
+    Policy policy = tempEntity.newPolicy(org.getParentOrganizationId());
 
     Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     String hash = "hash";
@@ -975,7 +975,7 @@ public class ComponentPolicyEvaluatorTest
     // Although there are other tests that use legacy waivers, I added this explicit test for legacy waivers, just in
     // case the other tests are updated to use new waivers.
     Application app = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+    Policy policy = tempEntity.newPolicy(app);
 
     Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     String hash = "hash";
@@ -997,7 +997,7 @@ public class ComponentPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyWaiverWithConstraintFactsArePreferred() {
     Application app = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(app.getId(), "Test policy");
+    Policy policy = tempEntity.newPolicy(app);
 
     Component component = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     String hash = "hash";

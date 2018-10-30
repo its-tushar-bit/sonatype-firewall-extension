@@ -276,7 +276,7 @@ public class ApplicationResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
-    tempEntity.newPolicy(application.getId(), "policy 1");
+    tempEntity.newPolicy(application);
     final String scanId1 = "ScanId1", scanId2 = "ScanId2", scanId3 = "ScanId3";
     mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
     mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");

@@ -30,7 +30,6 @@ import org.joda.time.LocalDate;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.ONE_HOUR;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -57,7 +56,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetChartData_ExplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
 
     try {
@@ -72,7 +71,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetChartData_ExplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
     login();
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
     assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
@@ -80,7 +79,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetChartData_ExplicitOrganizationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
 
     try {
@@ -95,7 +94,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetChartData_ExplicitOrganizationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
     login();
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
     assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
@@ -105,8 +104,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_Mttrs_ExplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+    createPolicyViolation(app, today, ONE_HOUR);
+    createPolicyViolation(app2, today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
@@ -118,8 +117,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_Mttrs_ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+    createPolicyViolation(app, today, ONE_HOUR);
+    createPolicyViolation(app2, today, ONE_HOUR * 2);
 
     grantReadPermission(app.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
@@ -131,8 +130,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+    createPolicyViolation(app, today, ONE_HOUR);
+    createPolicyViolation(app2, today, ONE_HOUR * 2);
 
     grantReadPermission(org.getId());
 
@@ -143,7 +142,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetChartData_ImplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
 
     try {
@@ -158,7 +157,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetChartData_ImplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
     login();
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
@@ -168,8 +167,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_Mttrs_ImplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+    createPolicyViolation(app, today, ONE_HOUR);
+    createPolicyViolation(app2, today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
@@ -179,8 +178,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_Averages__ExplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
 
     grantReadPermission(app.getId());
 
@@ -193,8 +192,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_Averages__ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
 
     grantReadPermission(app.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
@@ -206,8 +205,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
 
     grantReadPermission(org.getId());
 
@@ -220,8 +219,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_Averages__ImplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+    createPolicyViolation(app, today, ONE_HOUR);
+    createPolicyViolation(app2, today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
@@ -231,8 +230,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_ApplicationCounts_ExplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
@@ -245,8 +244,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_ApplicationCounts_ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
 
     grantReadPermission(app.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
@@ -259,8 +258,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
 
     grantReadPermission(org.getId());
 
@@ -274,8 +273,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void testGetChartData_ApplicationCounts_ImplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    createPolicyViolation(app.getId(), today);
-    createPolicyViolation(app2.getId(), today);
+    createPolicyViolation(app, today);
+    createPolicyViolation(app2, today);
     grantReadPermission(app.getId());
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     assertApplicationCountsResult(
@@ -291,7 +290,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
 
     login();
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app, today, ONE_HOUR);
 
     // cause the initial report data to be generated
     successMetricsReportDataService.getChartData(successMetricsReport.getId());
@@ -308,18 +307,18 @@ public class SuccessMetricsReportDataServiceAuthzTest
     assertAveragesResults(results.averages);
   }
 
-  private void createPolicyViolation(String appId, LocalDate today) {
-    createPolicyViolation(appId, today, ONE_HOUR);
+  private void createPolicyViolation(Application app, LocalDate today) {
+    createPolicyViolation(app, today, ONE_HOUR);
   }
 
-  private void createPolicyViolation(String appId, LocalDate today, long violationResolutionTimeMs) {
+  private void createPolicyViolation(Application app, LocalDate today, long violationResolutionTimeMs) {
     Date eval1Date = today.withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date eval2Date = new Date(eval1Date.getTime() + violationResolutionTimeMs);
 
-    Policy policy = tempEntity.newPolicy(appId, "test policy name", 5);
+    Policy policy = tempEntity.newPolicy(app);
 
-    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "eval1", eval1Date);
-    tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "eval2", eval2Date);
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "eval1", eval1Date);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "eval2", eval2Date);
 
     // violation appears in eval1 but is resolved in eval2
     PolicyViolation violation = tempEntity.newPolicyViolation(eval1, policy);

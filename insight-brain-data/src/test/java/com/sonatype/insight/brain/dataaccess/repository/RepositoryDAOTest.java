@@ -194,7 +194,7 @@ public class RepositoryDAOTest
   @Test
   public void testCascadeDeleteToPolicyWaivers() {
     Repository repository = tempEntity.newRepository();
-    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "testCascadeDeleteToPolicyWaivers");
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), repository.getId(), "Comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);

@@ -31,7 +31,7 @@ public class PolicyWaiverResourceAuthzTest
 
   @Before
   public void init() {
-    policy = tempEntity.newPolicy(app.getId(), "Test Policy");
+    policy = tempEntity.newPolicy(app);
   }
 
   @Test

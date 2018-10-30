@@ -79,7 +79,7 @@ public class PolicyResourceTest
   @Test
   public void testUpdatePolicy_DifferentOwnerId() throws Exception {
     Organization ownerOrg = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(ownerOrg.getId(), "foo");
+    Policy policy = tempEntity.newPolicy(ownerOrg);
 
     Organization otherOrg = tempEntity.newOrganization();
     policy.setOwnerId(otherOrg.getId());
@@ -259,7 +259,7 @@ public class PolicyResourceTest
         applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the application
-    Policy appPolicy = tempEntity.newPolicy(appId, "testGetApplicablePolicies App Policy");
+    Policy appPolicy = tempEntity.newPolicy(app);
 
     // Verify the applicable policies for the application
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
@@ -293,7 +293,7 @@ public class PolicyResourceTest
         applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the organization
-    Policy orgPolicy = tempEntity.newPolicy(orgId, "testGetApplicablePolicies Org Policy");
+    Policy orgPolicy = tempEntity.newPolicy(org);
 
     // Verify the applicable policies for the application
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
@@ -329,7 +329,7 @@ public class PolicyResourceTest
         applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the parent organization
-    Policy parentOrgPolicy = tempEntity.newPolicy(parentOrgId, "testGetApplicablePolicies Parent Org Policy");
+    Policy parentOrgPolicy = tempEntity.newPolicy(parentOrg);
 
     // Verify the applicable policies for the application
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
@@ -379,18 +379,18 @@ public class PolicyResourceTest
     Tag tag2 = tempEntity.newTag(org.getId());
 
     // Create a tagged policy for the org that doesn't match an app tag. This policy should not appear in the result.
-    Policy orgPolicy1 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 1");
+    Policy orgPolicy1 = tempEntity.newPolicy(org);
     tempEntity.newPolicyTag(orgPolicy1.getId(), tag1.getId());
     // Create another tagged policy for the org that matches an app tag. This policy should appear in the result.
-    Policy orgPolicy2 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 2");
+    Policy orgPolicy2 = tempEntity.newPolicy(org);
     tempEntity.newPolicyTag(orgPolicy2.getId(), tag2.getId());
 
     // Create a tagged policy for the parent org that doesn't match an app tag. This policy should not appear in the
     // result.
-    Policy parentOrgPolicy1 = tempEntity.newPolicy(parentOrg.getId(), "testGetApplicablePolicies Parent Org Policy 1");
+    Policy parentOrgPolicy1 = tempEntity.newPolicy(parentOrg);
     tempEntity.newPolicyTag(parentOrgPolicy1.getId(), tag1.getId());
     // Create another tagged policy for the parentorg that matches an app tag. This policy should appear in the result.
-    Policy parentOrgPolicy2 = tempEntity.newPolicy(parentOrg.getId(), "testGetApplicablePolicies Parent Org Policy 2");
+    Policy parentOrgPolicy2 = tempEntity.newPolicy(parentOrg);
     tempEntity.newPolicyTag(parentOrgPolicy2.getId(), tag2.getId());
 
     tempEntity.newApplicationTag(app.getId(), tag2.getId());
@@ -438,7 +438,7 @@ public class PolicyResourceTest
     Application app1 = tempEntity.newApplication(appPublicId1, org.getId());
     String appPublicId2 = "PolicyResourceTest_AppId2";
     tempEntity.newApplication(appPublicId2, org.getId());
-    Policy policy = tempEntity.newPolicy(app1.getId(), "testDeletePolicyOwnerIdMismatch");
+    Policy policy = tempEntity.newPolicy(app1);
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId2).path(policy.getId()).delete();
     assertResponseStatus(404, response);
@@ -452,14 +452,14 @@ public class PolicyResourceTest
   public void testExportImport() throws Exception {
     // Export
     Organization fromOrg = tempEntity.newOrganization();
-    tempEntity.newPolicy(fromOrg.getId(), "Test Policy");
+    Policy policy = tempEntity.newPolicy(fromOrg);
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, fromOrg.getId()).path("export").get();
     assertResponseStatus(200, response);
     PolicyExportResult policyExportResult = response.getBody(PolicyExportResult.class);
     assertThat(policyExportResult, is(notNullValue()));
     assertThat(policyExportResult.policies, hasSize(1));
-    assertThat(policyExportResult.policies.get(0).getName(), is("Test Policy"));
+    assertThat(policyExportResult.policies.get(0).getName(), is(policy.getName()));
 
     new OrganizationDAO().delete(fromOrg);
 
@@ -474,7 +474,7 @@ public class PolicyResourceTest
 
     List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());
     assertThat(policies, hasSize(1));
-    assertThat(policies.get(0).getName(), is("Test Policy"));
+    assertThat(policies.get(0).getName(), is(policy.getName()));
   }
 
   @Test

@@ -67,7 +67,7 @@ public class RevokeGrandfatheringTest
 
   @Test
   public void testRevokeGrandfathering_Revoke() {
-    Policy policy = tempEntity.newPolicy(application.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
@@ -85,7 +85,7 @@ public class RevokeGrandfatheringTest
 
   @Test
   public void testRevokeGrandfathering_Cancel() {
-    Policy policy = tempEntity.newPolicy(application.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));

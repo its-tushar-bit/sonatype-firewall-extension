@@ -116,12 +116,11 @@ public class SuccessMetricsChartsTest
     Application app2 = staticTempEntity.newApplicationWithParent("app2", "SuccessMetricsChart Test App2");
     Application app3 = staticTempEntity.newApplicationWithParent("app3", "SuccessMetricsChart Test App3");
 
-    Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId(), "SuccessMetricsChartTestLicensePolicy");
-    Policy securityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId(),
-        "SuccessMetricsChartTestSecurityPolicy");
-    Policy qualityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId(), "SuccessMetricsChartTestQualityPolicy");
-    Policy otherPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId(), "SuccessMetricsChartTestOtherPolicy");
-    Policy app3Policy = staticTempEntity.newPolicy(app3.getParentOwnerId(), "SuccessMetricsChartApp3Policy");
+    Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId());
+    Policy securityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId());
+    Policy qualityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId());
+    Policy otherPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId());
+    Policy app3Policy = staticTempEntity.newPolicy(app3.getParentOwnerId());
 
     PolicyEvaluation buildEval4MonthsAgo = staticTempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "fourMonthsAgo", fourMonthsAgo.toDate());

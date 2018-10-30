@@ -112,21 +112,21 @@ public class SearchTestHelper
   {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(appPublicId.toUpperCase(Locale.ENGLISH), appPublicId, org.getId());
-    createScanForApp(app.getId(), stageId, componentInfos);
+    createScanForApp(app, stageId, componentInfos);
     return app;
   }
 
-  public void createScanForApp(String appId, String stageId, List<ComponentInfo> componentInfos) throws Exception {
+  void createScanForApp(Application app, String stageId, List<ComponentInfo> componentInfos) throws Exception {
     String scanId = UUID.randomUUID().toString().replace("-", "");
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(appId, stageId, scanId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
 
     Map<String, Policy> policies = new HashMap<>();
     for (ComponentInfo componentInfo : componentInfos) {
-      tempEntity.newApplicationComponent(appId, stageId, componentInfo.hash, componentInfo.componentIdentifier);
+      tempEntity.newApplicationComponent(app.getId(), stageId, componentInfo.hash, componentInfo.componentIdentifier);
       for (PolicyViolationInfo policyViolationInfo : componentInfo.policyViolationInfos) {
         Policy policy = policies.get(policyViolationInfo.policyName);
         if (policy == null) {
-          policy = tempEntity.newPolicy(appId, policyViolationInfo.policyName, policyViolationInfo.threatLevel);
+          policy = tempEntity.newPolicy(app.getId(), policyViolationInfo.policyName, policyViolationInfo.threatLevel);
           policies.put(policy.getName(), policy);
         }
         tempEntity.newPolicyViolation(policyEvaluation, policy, componentInfo.componentIdentifier, componentInfo.hash,

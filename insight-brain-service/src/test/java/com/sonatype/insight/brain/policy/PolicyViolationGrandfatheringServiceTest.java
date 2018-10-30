@@ -44,7 +44,7 @@ public class PolicyViolationGrandfatheringServiceTest
   public void testRevokeGrandfathering() throws Exception {
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy("test");
+    Policy policy = tempEntity.newPolicy();
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scanId1");
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation fixedGrandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation1,
@@ -65,10 +65,10 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   private void testGrandfather(Application app, boolean grandfatheringAllowed) throws Exception {
-    Policy policy1 = tempEntity.newPolicy("test1");
+    Policy policy1 = tempEntity.newPolicy();
     policy1.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policy1);
-    Policy policy2 = tempEntity.newPolicy("test2");
+    Policy policy2 = tempEntity.newPolicy();
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId1");
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();

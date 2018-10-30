@@ -77,7 +77,7 @@ public class DashboardResourceTest
   public void testGetNewestRisks() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+    Policy buildPolicy = tempEntity.newPolicy(app);
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
@@ -262,7 +262,7 @@ public class DashboardResourceTest
   public void testGetNewestRisks_InvalidOrderBy() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+    Policy buildPolicy = tempEntity.newPolicy(app);
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
@@ -279,15 +279,15 @@ public class DashboardResourceTest
   public void testGetApplicationRisksExport() throws Exception {
     Organization org = tempEntity.newOrganization("test organization");
     Application app = tempEntity.newApplication("test application", "app1", org.getId());
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+    Policy buildPolicy = tempEntity.newPolicy(app);
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
     // same app, different stage
-    Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
+    Policy stagePolicy = tempEntity.newPolicy(app);
     createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID);
     // different app, same stage
     Organization org2 = tempEntity.newOrganization("test organization 2");
     Application app2 = tempEntity.newApplication("test application 2", "app2", org2.getId());
-    Policy buildPolicy2 = tempEntity.newPolicy(app2.getId(), "build policy");
+    Policy buildPolicy2 = tempEntity.newPolicy(app2);
     createFirstOccurrencePolicyViolation(app2, buildPolicy2, BuildStageType.ID);
 
     RisksFilterDTO filter = new RisksFilterDTO();
@@ -373,7 +373,7 @@ public class DashboardResourceTest
   @Test
   public void testGetComponentRisksExport_returnValidCsvContent() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test_app_1", "test app 1");
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+    Policy buildPolicy = tempEntity.newPolicy(app);
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
     tempEntity.newPolicyViolation(evaluation, buildPolicy);
     tempEntity.newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact2", "Version1", "Hash1", "reason");

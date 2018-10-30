@@ -49,7 +49,7 @@ public class SidebarServiceTest
   public void testGetOwnerDetails_Organization() {
     Organization organization = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(organization.getId());
-    Policy policy = tempEntity.newPolicy(organization.getId(), organization.getName() + " Policy");
+    Policy policy = tempEntity.newPolicy(organization);
     Label label = tempEntity.newLabel(organization.getId());
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(organization.getId());
 
@@ -73,7 +73,7 @@ public class SidebarServiceTest
   public void testGetOwnerDetails_Application() {
     Application application = tempEntity.newApplicationWithParent("OwnerManagerServiceTestApplication");
 
-    Policy policy = tempEntity.newPolicy(application.getId(), application.getName() + " Policy");
+    Policy policy = tempEntity.newPolicy(application);
     Label label = tempEntity.newLabel(application.getId());
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(application.getId());
 

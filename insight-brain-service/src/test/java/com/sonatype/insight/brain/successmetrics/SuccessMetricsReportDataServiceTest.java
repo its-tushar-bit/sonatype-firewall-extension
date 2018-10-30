@@ -125,7 +125,7 @@ public class SuccessMetricsReportDataServiceTest
     Date app2Eval1Date = new LocalDate().withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date app2Eval2Date = new Date(app2Eval1Date.getTime() + 500000);
 
-    Policy app2Policy = tempEntity.newPolicy(appId2, "test policy name", 5);
+    Policy app2Policy = tempEntity.newPolicy(app2);
     StageType stageType = StageTypes.BUILD;
 
     PolicyEvaluation app2Eval1 = tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval1", app2Eval1Date);
@@ -330,7 +330,7 @@ public class SuccessMetricsReportDataServiceTest
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
     String appId = application.getId();
-    Policy policy1 = tempEntity.newPolicy(appId, "policy1", 5);
+    Policy policy1 = tempEntity.newPolicy(application);
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), "scan1",
         toDate(today.minusMonths(5)));
@@ -399,7 +399,7 @@ public class SuccessMetricsReportDataServiceTest
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
     String appId = application.getId();
-    Policy policy1 = tempEntity.newPolicy(appId, "policy1", 5);
+    Policy policy1 = tempEntity.newPolicy(application);
     StageType stageType = StageTypes.BUILD;
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan1",
         toDate(today.minusMonths(4)));
@@ -480,7 +480,7 @@ public class SuccessMetricsReportDataServiceTest
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
     String appId = application.getId();
-    Policy policy1 = tempEntity.newPolicy(appId, "policy1", 5);
+    Policy policy1 = tempEntity.newPolicy(application);
     StageType stageType = StageTypes.BUILD;
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan1",
         toDate(today.withDayOfMonth(2).minusMonths(2)));
@@ -531,7 +531,7 @@ public class SuccessMetricsReportDataServiceTest
     Date app2Eval1Date = new LocalDate().withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date app2Eval2Date = new Date(app2Eval1Date.getTime() + 500000);
 
-    Policy app2Policy = tempEntity.newPolicy(appId2, "test policy name", 5);
+    Policy app2Policy = tempEntity.newPolicy(app2);
     StageType stageType = StageTypes.BUILD;
 
     PolicyEvaluation app2Eval1 = tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval1", app2Eval1Date);
@@ -606,7 +606,7 @@ public class SuccessMetricsReportDataServiceTest
     Application application = tempEntity.newApplicationWithParent("averages-app");
     String appId = application.getId();
 
-    Policy policy = tempEntity.newPolicy(appId, "policy", 5);
+    Policy policy = tempEntity.newPolicy(application);
     Date fiveMonthsAgo = new LocalDate().withDayOfMonth(1).minusMonths(5).toDate();
 
     // Generate a policy violation in the develop stage so we can check that it is filtered out
@@ -647,7 +647,7 @@ public class SuccessMetricsReportDataServiceTest
   @Test
   public void testIncludeLatestData() {
     LocalDate startOfMonth = now().withDayOfMonth(1).toLocalDate();
-    Policy policy = tempEntity.newPolicy("some policy");
+    Policy policy = tempEntity.newPolicy();
     Application app = tempEntity.newApplicationWithParent("appy");
 
     DateTime fakeNow = setTimeTo(now());
@@ -825,7 +825,7 @@ public class SuccessMetricsReportDataServiceTest
     Application application = tempEntity.newApplicationWithParent("counts-app");
     String appId = application.getId();
 
-    Policy policy = tempEntity.newPolicy(appId, "policy", 5);
+    Policy policy = tempEntity.newPolicy(application);
     Date fiveMonthsAgo = new LocalDate().withDayOfMonth(1).minusMonths(5).toDate();
 
     // Generate a policy violation in the develop stage so we can check that it is filtered out
@@ -1059,7 +1059,7 @@ public class SuccessMetricsReportDataServiceTest
     Date app2Eval1Date = new LocalDate().withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date app2Eval2Date = new Date(app2Eval1Date.getTime() + 500000);
 
-    Policy app2Policy = tempEntity.newPolicy(appId2, "test policy name", 5);
+    Policy app2Policy = tempEntity.newPolicy(app2);
     StageType stageType = StageTypes.BUILD;
 
     PolicyEvaluation app2Eval1 = tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval1", app2Eval1Date);
@@ -1124,7 +1124,7 @@ public class SuccessMetricsReportDataServiceTest
     Application application = tempEntity.newApplicationWithParent("averages-app");
     String appId = application.getId();
 
-    Policy policy = tempEntity.newPolicy(appId, "policy", 5);
+    Policy policy = tempEntity.newPolicy(application);
     Date fiveWeeksAgo = new LocalDate().withDayOfWeek(1).minusWeeks(5).toDate();
 
     // Generate a policy violation in the develop stage so we can check that it is filtered out
@@ -1141,7 +1141,7 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_ViolationCounts_UpdateAggregationsAfterSeveralWeeks() {
     Application app = tempEntity.newApplicationWithParent("appId");
     String stageId = StageTypes.BUILD.getId();
-    Policy policy = tempEntity.newPolicy(app.getId(), "test policy name", 5);
+    Policy policy = tempEntity.newPolicy(app);
     DateTime now = now();
     tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan1", now.minusWeeks(6).toDate());
     setTimeTo(now.minusWeeks(5));
@@ -1195,7 +1195,7 @@ public class SuccessMetricsReportDataServiceTest
     Date app2Eval1Date = new LocalDate().withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date app2Eval2Date = new Date(app2Eval1Date.getTime() + 500000);
 
-    Policy app2Policy = tempEntity.newPolicy(appId2, "test policy name", 5);
+    Policy app2Policy = tempEntity.newPolicy(app2);
     StageType stageType = StageTypes.BUILD;
 
     PolicyEvaluation app2Eval1 = tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval1", app2Eval1Date);
@@ -1272,7 +1272,7 @@ public class SuccessMetricsReportDataServiceTest
     Application application = tempEntity.newApplicationWithParent("averages-app");
     String appId = application.getId();
 
-    Policy policy = tempEntity.newPolicy(appId, "policy", 5);
+    Policy policy = tempEntity.newPolicy(application);
     Date fiveWeeksAgo = new LocalDate().withDayOfWeek(1).minusWeeks(5).toDate();
 
     // Generate a policy violation in the develop stage so we can check that it is filtered out
@@ -1289,7 +1289,7 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_ViolationTotalsByCategory_UpdateAggregationsAfterSeveralWeeks() {
     Application app = tempEntity.newApplicationWithParent("appId");
     String stageId = StageTypes.BUILD.getId();
-    Policy policy = tempEntity.newPolicy(app.getId(), "test policy name", 5);
+    Policy policy = tempEntity.newPolicy(app);
     DateTime now = now();
     tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan1", now.minusWeeks(8).toDate());
     setTimeTo(now.minusWeeks(7));
@@ -1346,7 +1346,7 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_ViolationTotalsByCategory_UpdateAggregationsAfterSeveralWeeks_IncludeLatestData() {
     Application app = tempEntity.newApplicationWithParent("appId");
     String stageId = StageTypes.BUILD.getId();
-    Policy policy = tempEntity.newPolicy(app.getId(), "test policy name", 5);
+    Policy policy = tempEntity.newPolicy(app);
     DateTime now = now();
     tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan1", now.minusWeeks(8).toDate());
     setTimeTo(now.minusWeeks(7));
@@ -1405,7 +1405,7 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_ViolationTotalsByCategory_FullMonthWithPartialWeek() {
     Application app = tempEntity.newApplicationWithParent("appId");
     String stageId = StageTypes.BUILD.getId();
-    Policy policy = tempEntity.newPolicy(app.getId(), "test policy name", 5);
+    Policy policy = tempEntity.newPolicy(app);
 
     // Add a violation at the end of the month
     DateTime now = now().withYear(2018).withMonthOfYear(7).withDayOfMonth(31);

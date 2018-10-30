@@ -114,7 +114,7 @@ public class TagServiceTest
   @Test
   public void testUpdatePolicyTags() {
     Organization organization = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(organization.getId(), "testUpdatePolicyTags_Policy");
+    Policy policy = tempEntity.newPolicy(organization);
     Tag tagOne = tempEntity.newTag(organization.getId());
     Tag tagTwo = tempEntity.newTag(organization.getId());
     Tag tagThree = tempEntity.newTag(organization.getId());
@@ -136,7 +136,7 @@ public class TagServiceTest
   public void testUpdatePolicyTags_PolicyNotBelongingToOrg() throws Exception {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(org2.getId(), "testUpdatePolicyTags_PolicyNotBelongingToOrg");
+    Policy policy = tempEntity.newPolicy(org2);
 
     try {
       tagService.updatePolicyTags(OwnerType.ORGANIZATION, org1.getId(), policy.getId(), new ArrayList<>());
@@ -151,7 +151,7 @@ public class TagServiceTest
   @Test
   public void testUpdatePolicyTags_AppLevelPolicy() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(app.getId(), "Test Policy");
+    Policy policy = tempEntity.newPolicy(app);
 
     try {
       tagService.updatePolicyTags(OwnerType.APPLICATION, app.getPublicId(), policy.getId(), new ArrayList<>());
@@ -289,7 +289,7 @@ public class TagServiceTest
   public void testGetAppliedPolicyTags() {
     Organization org = tempEntity.newOrganization();
     Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
-    Policy policy = tempEntity.newPolicy(org.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(org);
 
     PolicyTag orgTag = tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(org.getId(), "Org Tag").getId());
     PolicyTag parentTag = tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(parentOrg.getId(), "Root Tag")

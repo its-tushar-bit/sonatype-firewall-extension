@@ -196,8 +196,8 @@ public class CategoryEditorTest
   @Test
   public void testDeleteCategoryAssociatedToPolicy() {
     Tag category = tempEntity.newTag(org.getId());
-    Policy policy1 = tempEntity.newPolicy("policy UNO");
-    Policy policy2 = tempEntity.newPolicy("policy DOS");
+    Policy policy1 = tempEntity.newPolicy();
+    Policy policy2 = tempEntity.newPolicy();
     tempEntity.newPolicyTag(policy1.getId(), category.getId());
     tempEntity.newPolicyTag(policy2.getId(), category.getId());
 
@@ -205,7 +205,8 @@ public class CategoryEditorTest
     refresh();
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
     DeleteErrorModal.root().shouldBe(visible);
-    DeleteErrorModal.message().shouldHave(DeleteErrorModal.associatedPoliciesText("policy UNO", "policy DOS"));
+    DeleteErrorModal.message()
+        .shouldHave(DeleteErrorModal.associatedPoliciesText(policy1.getName(), policy2.getName()));
     DeleteErrorModal.closeButton().shouldBe(visible).click();
     DeleteErrorModal.root().shouldBe(hidden);
   }

@@ -45,8 +45,7 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_noPolicyIds() {
-    createPolicyTestData("org-policy1", "scanId1App1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"),
-        "h1", "r1");
+    createPolicyTestData("scanId1App1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1");
 
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(Collections.<String> emptySet());
@@ -56,12 +55,11 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_filteredByPolicyId() {
-    PolicyData appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1",
+    PolicyData appPolicyData1 = createPolicyTestData("scanId1App1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1");
-    PolicyData appPolicyData2 = createPolicyTestData("org-policy2", "scanId1App2",
+    PolicyData appPolicyData2 = createPolicyTestData("scanId1App2",
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), "h2", "r2");
-    createPolicyTestData("org-policy3", "scanId1App3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"),
-        "h3", "r3");
+    createPolicyTestData("scanId1App3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), "h3", "r3");
 
     // Get the policy violations for two (out of three) policies
     Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId(), appPolicyData2.orgPolicy.getId());
@@ -86,10 +84,9 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_nuGetFilteredByPolicyId() {
-    PolicyData appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1",
+    PolicyData appPolicyData1 = createPolicyTestData("scanId1App1",
         ComponentIdentifier.createNugetCoordinates("nuget1", "v1"), "h3", "r4");
-    createPolicyTestData("org-policy2", "scanId1App2", ComponentIdentifier.createNugetCoordinates("nuget2", "v1"), "h4",
-        "r5");
+    createPolicyTestData("scanId1App2", ComponentIdentifier.createNugetCoordinates("nuget2", "v1"), "h4", "r5");
 
     Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
@@ -104,8 +101,7 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_unknownComponent() {
-    PolicyData appPolicyData = createPolicyTestData("org-policy", "scanId", null /* componentIdentifier */, "testhash",
-        "testreason");
+    PolicyData appPolicyData = createPolicyTestData("scanId", null /* componentIdentifier */, "testhash", "testreason");
 
     Set<String> policyIds = Collections.singleton(appPolicyData.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
@@ -119,8 +115,7 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_ExcludeWaivedViolations() {
-    PolicyData policyData = createPolicyTestData("org-policy", "scanId", null /* componentIdentifier */, "testhash",
-        "testreason");
+    PolicyData policyData = createPolicyTestData("scanId", null /* componentIdentifier */, "testhash", "testreason");
     tempEntity.newWaivedPolicyViolation(policyData.policyEvaluation1, policyData.orgPolicy,
         tempEntity.newWaiver(policyData.orgPolicy.getId(), policyData.organization.getId()));
 
@@ -198,8 +193,7 @@ public class ApiPolicyViolationServiceV2Test
         .getConditionFacts().get(0).getReason()));
   }
 
-  private PolicyData createPolicyTestData(String orgPolicyNName,
-                                          String scanId,
+  private PolicyData createPolicyTestData(String scanId,
                                           ComponentIdentifier componentIdentifier,
                                           String hash,
                                           String reason)
@@ -207,7 +201,7 @@ public class ApiPolicyViolationServiceV2Test
     PolicyData policyTestData = new PolicyData();
     policyTestData.organization = tempEntity.newOrganization();
     policyTestData.application = tempEntity.newApplication(policyTestData.organization.getId());
-    policyTestData.orgPolicy = tempEntity.newPolicy(policyTestData.organization.getId(), orgPolicyNName);
+    policyTestData.orgPolicy = tempEntity.newPolicy(policyTestData.organization);
 
     // Create one violation in the past for build stage
     long time = System.currentTimeMillis() - 1000;

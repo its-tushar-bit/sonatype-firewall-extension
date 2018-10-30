@@ -1456,7 +1456,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   private Policy newPolicy(LogicalOperator conditionOperator, Condition... conditions) {
-    return tempEntity.newPolicy(application.getId(), 5, conditionOperator, conditions);
+    return tempEntity.newPolicy(application, 5, conditionOperator, conditions);
   }
 
   private List<PolicyViolation> getInactiveViolations(ScanPolicyEvaluatorResults scanPolicyEvaluatorResults) {

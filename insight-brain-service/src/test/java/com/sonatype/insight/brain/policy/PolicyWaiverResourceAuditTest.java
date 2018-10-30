@@ -37,7 +37,7 @@ public class PolicyWaiverResourceAuditTest
 
   @Before
   public void before() {
-    policy = tempEntity.newPolicy("policy");
+    policy = tempEntity.newPolicy();
   }
 
   @Test

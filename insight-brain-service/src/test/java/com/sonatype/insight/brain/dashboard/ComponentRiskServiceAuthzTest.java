@@ -29,7 +29,7 @@ public class ComponentRiskServiceAuthzTest
   @Before
   public void init() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
-    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
+    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app));
   }
 
   @Test

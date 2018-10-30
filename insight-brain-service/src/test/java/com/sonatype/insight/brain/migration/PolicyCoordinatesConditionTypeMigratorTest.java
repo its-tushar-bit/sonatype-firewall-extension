@@ -166,7 +166,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   }
 
   private String createObsoletePolicy(String policyJsonResourceName) throws IOException {
-    String policyId = tempEntity.newPolicy("Test").getId();
+    String policyId = tempEntity.newPolicy().getId();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setContent(getPolicyContent(policyJsonResourceName));
     policyInternalDAO.update(policyInternal);

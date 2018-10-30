@@ -55,7 +55,7 @@ public class PolicyClientTest
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
         scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
+    Policy policy = tempEntity.newPolicy(application);
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     policyEvaluationSummary = policyClient.getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));

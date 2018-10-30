@@ -29,7 +29,7 @@ public class RepositoryPolicyViolationDAOTest
 
   @Test
   public void testCRUD() throws Exception {
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "testPolicy");
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
 
     // Create
     Date now = new Date();

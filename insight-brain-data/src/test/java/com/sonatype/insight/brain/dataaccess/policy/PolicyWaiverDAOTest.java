@@ -59,7 +59,7 @@ public class PolicyWaiverDAOTest
     String hash = "123456789012345678901";
     assertTrue(hash.length() > 20);
     String truncatedHash = hash.substring(0, 20);
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";
@@ -125,7 +125,7 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
@@ -149,7 +149,7 @@ public class PolicyWaiverDAOTest
   public void testInsert_Duplicate_PolicyLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
@@ -172,9 +172,9 @@ public class PolicyWaiverDAOTest
   @Test
   public void testGetApplicableByOwnerId() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
-    Policy policyApp = tempEntity.newPolicy(application.getId(), "PolicyWaiverDAOTest1");
-    Policy policyOrg = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
-    Policy policyParentOrg = tempEntity.newPolicy(organization.getParentOrganizationId(), "PolicyWaiverDAOTest3");
+    Policy policyApp = tempEntity.newPolicy(application);
+    Policy policyOrg = tempEntity.newPolicy(organization);
+    Policy policyParentOrg = tempEntity.newPolicy(organization.getParentOrganizationId());
 
     PolicyWaiver policyWaiverParentOrg = tempEntity.newWaiver("0", policyParentOrg.getId(),
         organization.getParentOrganizationId());
@@ -223,7 +223,7 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testUpdate_CommentTooLong() throws Exception {
-    Policy policy = tempEntity.newPolicy(application.getId(), "name");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     String comment = StringUtils.repeat("X", 1001);
@@ -250,7 +250,7 @@ public class PolicyWaiverDAOTest
 
     String hash1 = "11111111111111111111";
     String hash2 = "11111111111111111112";
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
@@ -272,8 +272,8 @@ public class PolicyWaiverDAOTest
   public void testUpdate_Duplicate_PolicyLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
-    Policy policy1 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest1");
-    Policy policy2 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
     String policyId1 = policy1.getId();
     String policyId2 = policy2.getId();
     String ownerId = organization.getId();
@@ -297,7 +297,7 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "Just testing";
@@ -318,7 +318,7 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testDeleteDoesNotCascadeToWaivedPolicyViolation() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testDeleteDoesNotCascadeToWaivedPolicyViolation");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), applicationId);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyWaiverDAOTest");
@@ -334,8 +334,8 @@ public class PolicyWaiverDAOTest
   public void testGetByPolicyIdAndOwnerIds() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
-    Policy policy1 = tempEntity.newPolicy(application.getId(), "policy-1");
-    Policy policy2 = tempEntity.newPolicy(organization.getId(), "policy-2");
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(organization);
     tempEntity.newWaiver(policy1.getId(), application.getId());
     PolicyWaiver waiver2 = tempEntity.newWaiver(policy2.getId(), application.getId());
     tempEntity.newWaiver(policy2.getId(), organization.getId());
@@ -352,9 +352,9 @@ public class PolicyWaiverDAOTest
   public void testGetCount() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     assertThat(dao.getCount(), is(0));
-    Policy policy1 = tempEntity.newPolicy(application.getId(), "policy-1");
-    Policy policy2 = tempEntity.newPolicy(organization.getId(), "policy-2");
-    Policy policy3 = tempEntity.newPolicy(organization.getId(), "policy-3");
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    Policy policy3 = tempEntity.newPolicy(organization);
     tempEntity.newWaiver(policy1.getId(), application.getId());
     tempEntity.newWaiver(policy2.getId(), application.getId());
     tempEntity.newWaiver(policy3.getId(), application.getId());
@@ -364,7 +364,7 @@ public class PolicyWaiverDAOTest
   @Test
   public void testGetByHashAndPolicyIdAndOwnerIdAndConstraintFacts() {
     String hash = "hash";
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
@@ -383,7 +383,7 @@ public class PolicyWaiverDAOTest
   @Test
   public void testGetByHashAndPolicyIdAndOwnerIdAndConstraintFacts_NullConstraintFacts() {
     String hash = "hash";
-    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";

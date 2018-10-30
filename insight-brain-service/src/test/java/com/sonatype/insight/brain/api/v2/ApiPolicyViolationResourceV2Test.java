@@ -31,13 +31,11 @@ import static org.hamcrest.core.Is.is;
 public class ApiPolicyViolationResourceV2Test
     extends AbstractResourceTest
 {
-  private static final String ORG_POLICY_NAME1 = "org-policy1";
-
   @Test
   public void testGetPolicyViolations() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    Policy orgPolicy = tempEntity.newPolicy(org.getId(), ORG_POLICY_NAME1);
+    Policy orgPolicy = tempEntity.newPolicy(org);
     PolicyEvaluation pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 

@@ -925,7 +925,7 @@ public class ReportResourceTest
     LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(app.getId(),
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
-    Policy policy = tempEntity.newPolicy(app.getId(), testName.getMethodName().replaceAll("[_]", ""));
+    Policy policy = tempEntity.newPolicy(app);
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
@@ -1014,7 +1014,7 @@ public class ReportResourceTest
     LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(app.getId(),
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
         "EPL-1.0");
-    Policy policy = tempEntity.newPolicy(app.getId(), testName.getMethodName());
+    Policy policy = tempEntity.newPolicy(app);
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
@@ -1101,7 +1101,7 @@ public class ReportResourceTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.webjars.npm",
         "reactivex:rxjs", "5.0.0-alpha.7", "", "jar");
-    Policy policy = tempEntity.newPolicy(app.getId(), testName.getMethodName());
+    Policy policy = tempEntity.newPolicy(app);
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();

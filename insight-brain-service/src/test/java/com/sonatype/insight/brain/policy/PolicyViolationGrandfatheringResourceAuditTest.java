@@ -52,7 +52,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    Policy policyGrandfatheringAllowed = tempEntity.newPolicy("policyGrandfatheringAllowed");
+    Policy policyGrandfatheringAllowed = tempEntity.newPolicy();
     policyGrandfatheringAllowed.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policyGrandfatheringAllowed);
 
@@ -66,7 +66,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     tempEntity.newPolicyViolation(policyEvaluation, new Policy("doesNotExistId", "doesNotExistName"));
 
     // Policy violation for a policy that does not allow grandfathering - is not counted
-    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy("policyGrandfatheringNotAllowed"));
+    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy());
 
     // Policy violation that is not grandfathered - is counted
     tempEntity.newPolicyViolation(policyEvaluation, policyGrandfatheringAllowed);
@@ -91,7 +91,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 
   @Test
   public void testRevokeGrandfathering() throws Exception {
-    tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, tempEntity.newPolicy("policy"));
+    tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, tempEntity.newPolicy());
 
     restRequest().path(PolicyViolationGrandfatheringResource.REVOKE_PATH).parameter(application.getPublicId()).put();
 

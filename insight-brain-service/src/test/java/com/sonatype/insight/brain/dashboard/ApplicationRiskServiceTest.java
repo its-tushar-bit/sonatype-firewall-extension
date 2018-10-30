@@ -154,7 +154,7 @@ public class ApplicationRiskServiceTest
     assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
     assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(app1Policy.getThreatLevel()));
 
-    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1.getId(), "policy Grandfather", 5);
+    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1);
     tempEntity.newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
     result = applicationRiskService

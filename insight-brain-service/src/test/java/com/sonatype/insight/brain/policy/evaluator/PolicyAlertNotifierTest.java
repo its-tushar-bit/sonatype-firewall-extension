@@ -67,8 +67,7 @@ public class PolicyAlertNotifierTest
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
-    PolicyViolation grandfatheredViolation = tempEntity
-        .newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy("grandfatheredPolicy"));
+    PolicyViolation grandfatheredViolation = tempEntity.newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy());
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = eval;
     results.notifiableViolations = Arrays.asList(violation);
@@ -79,7 +78,7 @@ public class PolicyAlertNotifierTest
   }
 
   private PolicyViolation newPolicyViolationWantingAlerts(final Application app, final PolicyEvaluation eval) {
-    Policy policy = tempEntity.newPolicy(app.getId(), "test");
+    Policy policy = tempEntity.newPolicy(app);
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
     String emailAddress3 = "test3@sonatype.com";

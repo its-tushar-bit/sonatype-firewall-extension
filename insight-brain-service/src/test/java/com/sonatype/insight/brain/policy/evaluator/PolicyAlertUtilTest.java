@@ -54,7 +54,7 @@ public class PolicyAlertUtilTest
   @Test
   public void testCreatePolicyAlerts_NoUnnecessaryData() {
     Application app = tempEntity.newApplicationWithParent("app-id");
-    Policy policy = tempEntity.newPolicy(app.getId(), "Test Policy");
+    Policy policy = tempEntity.newPolicy(app);
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
     ConditionFact conditionFact0 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
@@ -93,7 +93,7 @@ public class PolicyAlertUtilTest
   @Test
   public void testCreatePolicyAlerts_OnePolicyAlertForEachPolicyViolation() {
     Application app = tempEntity.newApplicationWithParent("app-id");
-    Policy policy = tempEntity.newPolicy("Test Policy");
+    Policy policy = tempEntity.newPolicy();
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     String hash = "hash";

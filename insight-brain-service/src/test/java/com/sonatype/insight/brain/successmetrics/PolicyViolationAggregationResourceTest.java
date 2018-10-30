@@ -58,7 +58,7 @@ public class PolicyViolationAggregationResourceTest
     Date date3 = new Date(date1.getTime() + 5000);
     String appId1 = app1.getId();
     String appId2 = app2.getId();
-    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 5);
+    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId1, BuildStageType.ID, "scan1", date1);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy1);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId2, BuildStageType.ID, "scan2", date1);

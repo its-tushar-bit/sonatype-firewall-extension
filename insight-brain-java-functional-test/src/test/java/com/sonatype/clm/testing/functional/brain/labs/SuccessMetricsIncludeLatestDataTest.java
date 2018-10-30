@@ -47,7 +47,7 @@ public class SuccessMetricsIncludeLatestDataTest
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent("pocApp", "SuccessMetricsPoCTestApp");
-    policy = tempEntity.newPolicy(app.getParentOwnerId(), "SuccessMetricsPoCTestSecurityPolicy");
+    policy = tempEntity.newPolicy(app.getParentOwnerId());
   }
 
   @After

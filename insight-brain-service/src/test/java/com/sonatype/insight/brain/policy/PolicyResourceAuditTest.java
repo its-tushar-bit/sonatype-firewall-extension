@@ -82,7 +82,7 @@ public class PolicyResourceAuditTest
 
   @Test
   public void testImportPolicies_DeletesExistingPolicyWaivers() throws Exception {
-    Policy policy = tempEntity.newPolicy("policy");
+    Policy policy = tempEntity.newPolicy();
     Application application = tempEntity.newApplication(organization.getId());
     PolicyWaiver rootOrganizationPolicyWaiver = savePolicyWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
     PolicyWaiver organizationPolicyWaiver = savePolicyWaiver(policy.getId(), organization.getId());
@@ -103,7 +103,7 @@ public class PolicyResourceAuditTest
 
   @Test
   public void testImportPolicies_DoesNotDeleteExistingPolicyWaivers_BadRequest() throws Exception {
-    Policy policy = tempEntity.newPolicy("policy");
+    Policy policy = tempEntity.newPolicy();
     PolicyWaiver policyWaiver = savePolicyWaiver(policy.getId(), organization.getId());
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());

@@ -87,7 +87,7 @@ public class FirewallMigrationServiceTest
 
   @Before
   public void createPolicy() throws Exception {
-    policy = tempEntity.newPolicy("FirewallMigrationServiceTest");
+    policy = tempEntity.newPolicy();
   }
 
   @After

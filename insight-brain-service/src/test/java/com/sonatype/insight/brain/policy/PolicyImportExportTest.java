@@ -83,13 +83,21 @@ public class PolicyImportExportTest
   private Application fromApp;
 
   private PolicyDAO policyDAO = new PolicyDAO();
+
   private LabelDAO labelDAO = new LabelDAO();
+
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
   private TagDAO tagDAO = new TagDAO();
+
   private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+
   private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Before
@@ -161,8 +169,8 @@ public class PolicyImportExportTest
   public void testDeletionOfPolicyWaiversFromOrg() {
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
-    Policy orgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy Name");
-    Policy appPolicy = tempEntity.newPolicy(toApp.getId(), "App Policy Name");
+    Policy orgPolicy = tempEntity.newPolicy(toOrg);
+    Policy appPolicy = tempEntity.newPolicy(toApp);
     tempEntity.newWaiver("hash", orgPolicy.getId(), toOrg.getId());
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -178,7 +186,7 @@ public class PolicyImportExportTest
   @SuppressWarnings("deprecation")
   public void testImportAndMergeTags_UpdateTag() throws Exception {
     Tag fromTag = tempEntity.newTag(fromOrg.getId(), "tagname", Color.dark_purple);
-    Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
+    Policy policy = tempEntity.newPolicy(fromOrg);
     tempEntity.newPolicyTag(policy.getId(), fromTag.getId());
 
     PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
@@ -202,7 +210,7 @@ public class PolicyImportExportTest
   @Test
   public void testImportAndMergeTags_NewTag() throws Exception {
     Tag tag = tempEntity.newTag(fromOrg.getId(), "Tag Name", Color.dark_purple);
-    Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
+    Policy policy = tempEntity.newPolicy(fromOrg);
     tempEntity.newPolicyTag(policy.getId(), tag.getId());
 
     PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
@@ -258,44 +266,41 @@ public class PolicyImportExportTest
   @Test
   public void testImport_ToRootOrganizationDeletesAllLtgsWaiversPolicies() throws Exception {
     final Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    final Policy rootOrganizationPolicy = tempEntity
-        .newPolicy(rootOrganization.getId(), "rootOrganizationPolicyId", "rootOrganizationPolicyName");
-    final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), rootOrganization.getId());
+    final Policy rootOrganizationPolicy = tempEntity.newPolicy(rootOrganization);
+    final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        rootOrganization.getId());
     final LicenseThreatGroup rootOrganizationLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(rootOrganization.getId());
 
     final Organization organizationOne = tempEntity.newOrganization("organizationOne");
-    final Policy organizationOnePolicy = tempEntity
-        .newPolicy(organizationOne.getId(), "organizationOnePolicyId", "organizationOnePolicyName");
-    final PolicyWaiver organizationOnePolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), organizationOne.getId());
+    final Policy organizationOnePolicy = tempEntity.newPolicy(organizationOne);
+    final PolicyWaiver organizationOnePolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        organizationOne.getId());
     final LicenseThreatGroup organizationOneLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(organizationOne.getId());
     final Application applicationOne = tempEntity.newApplication(organizationOne.getId());
-    tempEntity.newPolicy(applicationOne.getId(), "applicationOnePolicyId", "applicationOnePolicyName");
-    final PolicyWaiver applicationOnePolicyWaiver = tempEntity
-        .newWaiver(organizationOnePolicy.getId(), applicationOne.getId());
+    tempEntity.newPolicy(applicationOne);
+    final PolicyWaiver applicationOnePolicyWaiver = tempEntity.newWaiver(organizationOnePolicy.getId(),
+        applicationOne.getId());
     final LicenseThreatGroup applicationOneLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(applicationOne.getId());
 
     final Organization organizationTwo = tempEntity.newOrganization("organizationTwo");
-    final Policy organizationTwoPolicy = tempEntity
-        .newPolicy(organizationTwo.getId(), "organizationTwoPolicyId", "organizationTwoPolicyName");
-    final PolicyWaiver organizationTwoPolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), organizationTwo.getId());
+    final Policy organizationTwoPolicy = tempEntity.newPolicy(organizationTwo);
+    final PolicyWaiver organizationTwoPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        organizationTwo.getId());
     final LicenseThreatGroup organizationTwoLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(organizationTwo.getId());
     final Application applicationTwo = tempEntity.newApplication(organizationTwo.getId());
-    tempEntity.newPolicy(applicationTwo.getId(), "applicationTwoPolicyId", "applicationTwoPolicyName");
-    final PolicyWaiver applicationTwoPolicyWaiver = tempEntity
-        .newWaiver(organizationTwoPolicy.getId(), applicationTwo.getId());
+    tempEntity.newPolicy(applicationTwo);
+    final PolicyWaiver applicationTwoPolicyWaiver = tempEntity.newWaiver(organizationTwoPolicy.getId(),
+        applicationTwo.getId());
     final LicenseThreatGroup applicationTwoLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(applicationTwo.getId());
 
     final Repository repository = tempEntity.newRepository();
-    final PolicyWaiver repositoryPolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), repository.getId());
+    final PolicyWaiver repositoryPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        repository.getId());
 
     policyImportExport.importOrganization(rootOrganization, new PolicyExportResult());
 
@@ -316,46 +321,41 @@ public class PolicyImportExportTest
   @Test
   public void testImport_ToChildOrganizationDoesNotDeleteAllLtgsWaiversPolicies() throws Exception {
     final Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    final Policy rootOrganizationPolicy = tempEntity
-        .newPolicy(rootOrganization.getId(), "rootOrganizationPolicyId", "rootOrganizationPolicyName");
-    final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), rootOrganization.getId());
+    final Policy rootOrganizationPolicy = tempEntity.newPolicy(rootOrganization);
+    final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        rootOrganization.getId());
     final LicenseThreatGroup rootOrganizationLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(rootOrganization.getId());
 
     final Organization organizationOne = tempEntity.newOrganization("organizationOne");
-    final Policy organizationOnePolicy = tempEntity
-        .newPolicy(organizationOne.getId(), "organizationOnePolicyId", "organizationOnePolicyName");
-    final PolicyWaiver organizationOnePolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), organizationOne.getId());
+    final Policy organizationOnePolicy = tempEntity.newPolicy(organizationOne);
+    final PolicyWaiver organizationOnePolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        organizationOne.getId());
     final LicenseThreatGroup organizationOneLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(organizationOne.getId());
     final Application applicationOne = tempEntity.newApplication(organizationOne.getId());
-    final Policy applicationOnePolicy = tempEntity
-        .newPolicy(applicationOne.getId(), "applicationOnePolicyId", "applicationOnePolicyName");
-    final PolicyWaiver applicationOnePolicyWaiver = tempEntity
-        .newWaiver(organizationOnePolicy.getId(), applicationOne.getId());
+    final Policy applicationOnePolicy = tempEntity.newPolicy(applicationOne);
+    final PolicyWaiver applicationOnePolicyWaiver = tempEntity.newWaiver(organizationOnePolicy.getId(),
+        applicationOne.getId());
     final LicenseThreatGroup applicationOneLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(applicationOne.getId());
 
     final Organization organizationTwo = tempEntity.newOrganization("organizationTwo");
-    final Policy organizationTwoPolicy = tempEntity
-        .newPolicy(organizationTwo.getId(), "organizationTwoPolicyId", "organizationTwoPolicyName");
-    final PolicyWaiver organizationTwoPolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), organizationTwo.getId());
+    final Policy organizationTwoPolicy = tempEntity.newPolicy(organizationTwo);
+    final PolicyWaiver organizationTwoPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        organizationTwo.getId());
     final LicenseThreatGroup organizationTwoLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(organizationTwo.getId());
     final Application applicationTwo = tempEntity.newApplication(organizationTwo.getId());
-    final Policy applicationTwoPolicy = tempEntity
-        .newPolicy(applicationTwo.getId(), "applicationTwoPolicyId", "applicationTwoPolicyName");
-    final PolicyWaiver applicationTwoPolicyWaiver = tempEntity
-        .newWaiver(organizationTwoPolicy.getId(), applicationTwo.getId());
+    final Policy applicationTwoPolicy = tempEntity.newPolicy(applicationTwo);
+    final PolicyWaiver applicationTwoPolicyWaiver = tempEntity.newWaiver(organizationTwoPolicy.getId(),
+        applicationTwo.getId());
     final LicenseThreatGroup applicationTwoLicenseThreatGroup = tempEntity
         .newLicenseThreatGroup(applicationTwo.getId());
 
     final Repository repository = tempEntity.newRepository();
-    final PolicyWaiver repositoryPolicyWaiver = tempEntity
-        .newWaiver(rootOrganizationPolicy.getId(), repository.getId());
+    final PolicyWaiver repositoryPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
+        repository.getId());
 
     policyImportExport.importOrganization(organizationOne, new PolicyExportResult());
 
@@ -485,8 +485,8 @@ public class PolicyImportExportTest
 
   @Test
   public void testExportOfTags() throws Exception {
-    Policy policy1 = tempEntity.newPolicy(fromOrg.getId(), "policy1");
-    Policy policy2 = tempEntity.newPolicy(fromOrg.getId(), "policy2");
+    Policy policy1 = tempEntity.newPolicy(fromOrg);
+    Policy policy2 = tempEntity.newPolicy(fromOrg);
 
     Tag tag1 = tempEntity.newTag(fromOrg.getId(), "tag1");
     tempEntity.newPolicyTag(policy1.getId(), tag1.getId());
@@ -509,11 +509,11 @@ public class PolicyImportExportTest
 
   @Test
   public void testImportDeletionOfExistingOrgPolicy() throws Exception {
-    tempEntity.newPolicy(fromOrg.getId(), "Org Policy");
+    tempEntity.newPolicy(fromOrg);
     Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromOrg.getId(), orgLabel.getId());
 
-    tempEntity.newPolicy(fromApp.getId(), "App Policy");
+    tempEntity.newPolicy(fromApp);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(fromApp.getId());
     tempEntity.newLicenseThreatGroupLicense(fromApp.getId(), licenseThreatGroup.getId());
     Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.light_green);
@@ -546,7 +546,7 @@ public class PolicyImportExportTest
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroupDAO.getByOwnerId(fromOrg.getId())) {
       licenseThreatGroupDAO.delete(licenseThreatGroup);
     }
-    Policy fromOrgPolicy = tempEntity.newPolicy(fromOrg.getId(), "Org Policy");
+    Policy fromOrgPolicy = tempEntity.newPolicy(fromOrg);
     LicenseThreatGroup fromOrgLtg = tempEntity.newLicenseThreatGroup(fromOrg.getId());
     tempEntity.newLicenseThreatGroupLicense(fromOrg.getId(), fromOrgLtg.getId());
     Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
@@ -565,14 +565,14 @@ public class PolicyImportExportTest
     deleteFromOrg();
 
     Organization toOrg = tempEntity.newOrganization("To Org");
-    Policy toOrgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy");
+    Policy toOrgPolicy = tempEntity.newPolicy(toOrg);
     LicenseThreatGroup toOrgLtg = tempEntity.newLicenseThreatGroup(toOrg.getId());
     LicenseThreatGroupLicense toOrgLtgl = tempEntity.newLicenseThreatGroupLicense(toOrg.getId(), toOrgLtg.getId());
     Label toOrgLabel = tempEntity.newLabel(toOrg.getId(), toOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(toOrg.getId(), toOrgLabel.getId());
 
     Application toApp = tempEntity.newApplication(toOrg.getId());
-    tempEntity.newPolicy(toApp.getId(), "App Policy");
+    tempEntity.newPolicy(toApp);
     LicenseThreatGroup toAppLtg = tempEntity.newLicenseThreatGroup(toApp.getId());
     tempEntity.newLicenseThreatGroupLicense(toApp.getId(), toAppLtg.getId());
     Label toAppLabel = tempEntity.newLabel(toApp.getId(), Color.light_green);

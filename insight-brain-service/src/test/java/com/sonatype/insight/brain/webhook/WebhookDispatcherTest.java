@@ -261,7 +261,7 @@ public class WebhookDispatcherTest
   public void testOn_HandlesPolicyEvent() {
     tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.POLICY_MANAGEMENT));
     Organization organization = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(organization.getId(), "policy");
+    Policy policy = tempEntity.newPolicy(organization);
 
     PolicyEvent event = new PolicyEvent();
     event.initiator = "initiator";

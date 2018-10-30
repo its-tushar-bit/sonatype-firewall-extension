@@ -171,7 +171,7 @@ public class PolicyWaiverResourceTest
     Owner parent = ownerDAO.getById(owner.getParentOwnerId());
     Owner grandparent = ownerDAO.getById(parent.getParentOwnerId());
 
-    Policy policy = tempEntity.newPolicy(grandparent.getId(), "My policy");
+    Policy policy = tempEntity.newPolicy(grandparent);
     String hash = "12345678901234567890";
 
     String restId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
@@ -306,7 +306,7 @@ public class PolicyWaiverResourceTest
     Application app = tempEntity.newApplication(appPublicId, org.getId());
 
     // Verify application level
-    Policy policy = tempEntity.newPolicy(app.getId(), "App Policy");
+    Policy policy = tempEntity.newPolicy(app);
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId())
         .get();
     assertResponseStatus(200, response);
@@ -315,7 +315,7 @@ public class PolicyWaiverResourceTest
     assertThat(result.getChildren(), is(nullValue()));
 
     // Verify organization level
-    policy = tempEntity.newPolicy(org.getId(), "Org Policy");
+    policy = tempEntity.newPolicy(org);
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     result = response.getBody(ApplicableContext.class);
@@ -326,7 +326,7 @@ public class PolicyWaiverResourceTest
     assertThat(childContext.getChildren(), is(nullValue()));
 
     // Verify parent organization level
-    policy = tempEntity.newPolicy(parentOrg.getId(), "Parent Org Policy");
+    policy = tempEntity.newPolicy(parentOrg);
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     result = response.getBody(ApplicableContext.class);
@@ -344,7 +344,7 @@ public class PolicyWaiverResourceTest
   public void testGetApplicableContexts_Repository() throws Exception {
     Repository repository = tempEntity.newRepository();
 
-    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Root Policy");
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("applicable/context",
         policy.getId()).get();
     assertResponseStatus(200, response);
@@ -375,7 +375,7 @@ public class PolicyWaiverResourceTest
     tempEntity.newApplicationWithParent(appPublicId);
     Application otherApp = tempEntity.newApplicationWithParent("otherApp");
 
-    Policy policy = tempEntity.newPolicy(otherApp.getId(), "Policy");
+    Policy policy = tempEntity.newPolicy(otherApp);
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId())
         .get();
     assertResponseStatus(404, response);
@@ -388,7 +388,7 @@ public class PolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
     Application otherApp = tempEntity.newApplicationWithParent("anApp");
 
-    Policy policy = tempEntity.newPolicy(otherApp.getId(), "Policy");
+    Policy policy = tempEntity.newPolicy(otherApp);
     HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("applicable/context",
         policy.getId()).get();
     assertResponseStatus(404, response);
@@ -407,7 +407,7 @@ public class PolicyWaiverResourceTest
   private Policy createPolicy(String ownerId) {
     for (Owner owner : new OwnerDAO().walkHierarchy(ownerId)) {
       if (isPolicyApplicable(owner.getType())) {
-        return tempEntity.newPolicy(owner.getId(), "PolicyWaiverResourceTest");
+        return tempEntity.newPolicy(owner);
       }
     }
     throw new IllegalStateException("No valid policy targets found");

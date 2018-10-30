@@ -133,7 +133,7 @@ public class PolicyEvaluateServiceTest
     JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
     when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(createResponse);
 
-    final Policy policy1 = tempEntity.newPolicy(app.getId(), 8, LogicalOperator.AND,
+    final Policy policy1 = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     addNotificationsToPolicy(policy1, Stage.ID_BUILD, //
         new UserNotification("manager@example.com", Stage.ID_BUILD),
@@ -141,7 +141,7 @@ public class PolicyEvaluateServiceTest
         new JiraNotification("projectKey1", 1, Stage.ID_BUILD));
 
     // same conditions, but lower threat-level => analysis should show highest threat-level
-    final Policy policy2 = tempEntity.newPolicy(app.getId(), 3, LogicalOperator.AND,
+    final Policy policy2 = tempEntity.newPolicy(app, 3, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     addNotificationsToPolicy(policy2, Stage.ID_RELEASE, //
         new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE),
@@ -240,7 +240,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate_PolicyThreatLevelCounts() throws Exception {
-    Policy policy = tempEntity.newPolicy(app.getId(), 1, LogicalOperator.AND,
+    Policy policy = tempEntity.newPolicy(app, 1, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
 
     final Stage stage = new Stage(Stage.ID_BUILD);
@@ -324,13 +324,13 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate_NotificationEmailModel() throws Exception {
-    tempEntity.newPolicy(app.getId(), 8, LogicalOperator.AND,
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
-    tempEntity.newPolicy(app.getId(), 4, LogicalOperator.AND,
+    tempEntity.newPolicy(app, 4, LogicalOperator.AND,
         new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat"));
-    tempEntity.newPolicy(app.getId(), 3, LogicalOperator.AND,
+    tempEntity.newPolicy(app, 3, LogicalOperator.AND,
         new Condition(CoordinatesConditionType.ID, "match", "maven:org.*"));
-    tempEntity.newPolicy(app.getId(), 0, LogicalOperator.AND,
+    tempEntity.newPolicy(app, 0, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<", "5"));
 
     final Stage stage = new Stage(Stage.ID_BUILD);
@@ -371,7 +371,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate_ReEvaluateNotifications() throws Exception {
-    Policy policy = tempEntity.newPolicy(app.getId(), 8, LogicalOperator.AND,
+    Policy policy = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     addNotificationsToPolicy(policy, Stage.ID_BUILD, new UserNotification("manager@test.corp", Stage.ID_BUILD));
 

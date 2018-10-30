@@ -38,7 +38,7 @@ public class PolicyViolationAdapterTest
   @Test
   public void testCreatePolicyViolationDTO() {
     Application app = tempEntity.newApplicationWithParent("test-application");
-    Policy policy = tempEntity.newPolicy(app.getId(), "build-policy");
+    Policy policy = tempEntity.newPolicy(app);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -52,7 +52,7 @@ public class PolicyViolationAdapterTest
   @Test
   public void testCreatePolicyViolationDTO_WithDeletedPolicy() {
     Application app = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(app.getOrganizationId(), "build-policy");
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId());
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);

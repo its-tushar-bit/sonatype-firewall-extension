@@ -5,21 +5,22 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import java.util.Date;
+
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import java.util.Date;
-
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 public class SuccessMetricsTestUtils
 {
@@ -61,14 +62,14 @@ public class SuccessMetricsTestUtils
    * Create a PolicyViolation that is resolved one hour after its creation.  It is created on the second day of
    * the previous month
    */
-  public static void createPolicyViolation(String applicationId, LocalDate today, TemporaryEntity tempEntity) {
+  public static void createPolicyViolation(Application application, LocalDate today, TemporaryEntity tempEntity) {
     Date eval1Date = today.withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date eval2Date = new Date(eval1Date.getTime() + ONE_HOUR);
 
-    Policy policy = tempEntity.newPolicy(applicationId, "test policy name", 5);
+    Policy policy = tempEntity.newPolicy(application);
 
-    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "eval1", eval1Date);
-    tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "eval2", eval2Date);
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "eval1", eval1Date);
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "eval2", eval2Date);
 
     // violation appears in eval1 but is resolved in eval2
     PolicyViolation violation = tempEntity.newPolicyViolation(eval1, policy);

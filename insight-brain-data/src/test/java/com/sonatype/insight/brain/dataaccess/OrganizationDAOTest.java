@@ -529,7 +529,7 @@ public class OrganizationDAOTest
   public void testCascadeDeleteToPolicies() {
     Organization organization = tempEntity.newOrganization("organization");
 
-    tempEntity.newPolicy(organization.getId(), "testCascadeDeleteToPolicies");
+    tempEntity.newPolicy(organization);
     PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
     assertThat(policies, hasSize(1));
@@ -571,7 +571,7 @@ public class OrganizationDAOTest
   public void testCascadeDeleteToPolicyWaivers() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToPolicyWaivers");
 
-    Policy policy = tempEntity.newPolicy(organization.getId(), "testCascadeDeleteToPolicyWaivers");
+    Policy policy = tempEntity.newPolicy(organization);
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(),
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();

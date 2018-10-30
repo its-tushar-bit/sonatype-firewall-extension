@@ -97,7 +97,7 @@ public class JiraPolicyAlertNotifierTest
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "testPolicy");
+    Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
     new PolicyDAO().update(policy);
 
@@ -132,7 +132,7 @@ public class JiraPolicyAlertNotifierTest
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "testPolicy");
+    Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
     new PolicyDAO().update(policy);
 
@@ -165,7 +165,7 @@ public class JiraPolicyAlertNotifierTest
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "testPolicy");
+    Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
     new PolicyDAO().update(policy);
 
@@ -193,7 +193,7 @@ public class JiraPolicyAlertNotifierTest
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "testPolicy");
+    Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new RoleNotification(role.getId(), stage.getStageTypeId()));
     policy.getNotifications().add(new UserNotification("email@sonatype.com", stage.getStageTypeId()));
     new PolicyDAO().update(policy);

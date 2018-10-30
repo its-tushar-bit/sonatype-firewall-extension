@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -834,10 +835,10 @@ public class TemporaryEntity
     return policyTag;
   }
 
-  public Policy newPolicy(String ownerId, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
+  public Policy newPolicy(Owner owner, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
     Policy policy = new Policy(null, uuid());
     policy.setThreatLevel(threatLevel);
-    policy.setOwnerId(ownerId);
+    policy.setOwnerId(owner.getId());
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     Constraint constraint = new Constraint(null, uuid(), conditionOperator);
     Arrays.stream(conditions).forEach(constraint::addCondition);
@@ -875,17 +876,18 @@ public class TemporaryEntity
     return newPolicy(policy);
   }
 
+  public Policy newPolicy(String ownerId) {
+    return newPolicy(ownerId, "Policy " + uuid());
+  }
+
+  public Policy newPolicy(Owner owner) {
+    return newPolicy(owner.getId());
+  }
+
   public Policy newPolicy(String ownerId, String name) {
-    return newPolicy(ownerId, null /* id */, name);
-  }
-
-  public Policy newPolicy(String ownerId, String id, String name) {
-    return newPolicy(ownerId, id, name, 5);
-  }
-
-  private Policy newPolicy(String ownerId, String id, String name, int threatLevel) {
-    Policy policy = new Policy(id, name);
-    policy.setThreatLevel(threatLevel);
+    Policy policy = new Policy();
+    policy.setName(name);
+    policy.setThreatLevel(5);
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -893,8 +895,9 @@ public class TemporaryEntity
     return newPolicy(policy);
   }
 
-  public Policy newPolicy(String name) {
-    Policy policy = new Policy(null, name);
+  public Policy newPolicy() {
+    Policy policy = new Policy();
+    policy.setName("Policy " + uuid());
     policy.setThreatLevel(5);
     policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
     Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.AND);

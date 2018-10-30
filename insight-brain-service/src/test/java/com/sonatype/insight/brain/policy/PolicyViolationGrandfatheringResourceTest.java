@@ -39,7 +39,7 @@ public class PolicyViolationGrandfatheringResourceTest
   public void testRevokeGrandfathering() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
-    Policy policy = tempEntity.newPolicy("test");
+    Policy policy = tempEntity.newPolicy();
     PolicyViolation policyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = restRequest().path(PolicyViolationGrandfatheringResource.REVOKE_PATH)
@@ -55,7 +55,7 @@ public class PolicyViolationGrandfatheringResourceTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
-    Policy policy = tempEntity.newPolicy("test");
+    Policy policy = tempEntity.newPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policy);
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);

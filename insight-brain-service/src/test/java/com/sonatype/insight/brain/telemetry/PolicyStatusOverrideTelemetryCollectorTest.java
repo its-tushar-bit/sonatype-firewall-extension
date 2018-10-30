@@ -61,9 +61,9 @@ public class PolicyStatusOverrideTelemetryCollectorTest
     Organization organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     Application application = tempEntity
         .newApplication("PolicyWaiverCount-AppName", "PolicyWaiverCount-AppPublicId", organization.getId());
-    Policy policy1 = tempEntity.newPolicy(application.getId(), "policy-1");
-    Policy policy2 = tempEntity.newPolicy(organization.getId(), "policy-2");
-    Policy policy3 = tempEntity.newPolicy(organization.getId(), "policy-3");
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    Policy policy3 = tempEntity.newPolicy(organization);
     tempEntity.newWaiver(policy1.getId(), application.getId());
     tempEntity.newWaiver(policy2.getId(), application.getId());
     tempEntity.newWaiver(policy3.getId(), application.getId());

@@ -36,11 +36,11 @@ public class ApiPolicyResourceV2Test
   public void setUp() throws Exception {
     for (int i = 0; i < 2; i++) {
       Organization organization = tempEntity.newOrganization();
-      Policy policy = tempEntity.newPolicy(organization.getId(), organization.getName() + "-policy");
+      Policy policy = tempEntity.newPolicy(organization);
       organizationPolicyMap.put(policy.getId(), policy);
 
       Application application = tempEntity.newApplication(organization.getId());
-      policy = tempEntity.newPolicy(application.getId(), application.getName() + "-policy");
+      policy = tempEntity.newPolicy(application);
       applicationPolicyMap.put(policy.getId(), policy);
     }
   }

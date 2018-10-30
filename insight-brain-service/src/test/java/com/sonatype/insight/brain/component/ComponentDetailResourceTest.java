@@ -15,7 +15,6 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil;
 
 import org.junit.Test;
@@ -84,7 +84,7 @@ public class ComponentDetailResourceTest
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "scan2",
         ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"));
-    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 5);
+    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date());
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2", new Date());
     tempEntity.newPolicyViolation(eval1, policy1, "groupId", "artifactId", "version", "scan1", "reason1");

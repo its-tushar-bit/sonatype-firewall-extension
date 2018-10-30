@@ -69,7 +69,7 @@ public class PolicyDroolsCodeMigratorTest
   public void testMigrate_DeprecatedConditionForSecurityVulnerabilities() throws Exception {
     // Verifies that the deprecated condition for security vulnerabilities can be migrated.
     // The migrator should not fail when it encounters this policy condition type.
-    String policyId = tempEntity.newPolicy("Test").getId();
+    String policyId = tempEntity.newPolicy().getId();
     PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
@@ -87,7 +87,7 @@ public class PolicyDroolsCodeMigratorTest
 
   @Test
   public void testMigrate_FromVersion3() throws Exception {
-    String policyId = tempEntity.newPolicy("Test").getId();
+    String policyId = tempEntity.newPolicy().getId();
     PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setDroolsCode("");

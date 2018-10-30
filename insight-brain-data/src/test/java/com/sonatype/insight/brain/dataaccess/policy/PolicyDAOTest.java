@@ -159,8 +159,8 @@ public class PolicyDAOTest
     }
   }
 
-  private void assertUpdatePolicyWithDuplicateName(String ownerId, String policyName, Owner expectedOwner) {
-    Policy policy = tempEntity.newPolicy(ownerId, tempEntity.uuid());
+  private void assertUpdatePolicyWithDuplicateName(Owner owner, String policyName, Owner expectedOwner) {
+    Policy policy = tempEntity.newPolicy(owner);
     // Update the policy with a case-/whitespace-equivalent name
     policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
@@ -220,10 +220,10 @@ public class PolicyDAOTest
     Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
 
     // Update another policy with a case-/whitespace-equivalent name at app level
-    assertUpdatePolicyWithDuplicateName(application.getId(), policyName, expectedOwner);
+    assertUpdatePolicyWithDuplicateName(application, policyName, expectedOwner);
 
     // Update another policy with a case-/whitespace-equivalent name at child org level
-    assertUpdatePolicyWithDuplicateName(organization.getId(), policyName, expectedOwner);
+    assertUpdatePolicyWithDuplicateName(organization, policyName, expectedOwner);
   }
 
   @Test
@@ -235,14 +235,14 @@ public class PolicyDAOTest
     Owner parentOwner = new OwnerDAO().getParentOwner(organization);
 
     // Add another policy with a case-/whitespace-equivalent name at parent owner level
-    assertUpdatePolicyWithDuplicateName(parentOwner.getId(), policyName, application);
+    assertUpdatePolicyWithDuplicateName(parentOwner, policyName, application);
 
     // Add a policy at org level
     policyName = "PolicyDAOTest new policy org";
     tempEntity.newPolicy(organization.getId(), policyName);
 
     // Add another policy with a case-/whitespace-equivalent name at parent owner level
-    assertUpdatePolicyWithDuplicateName(parentOwner.getId(), policyName, organization);
+    assertUpdatePolicyWithDuplicateName(parentOwner, policyName, organization);
   }
 
   @Test
@@ -583,7 +583,7 @@ public class PolicyDAOTest
 
   @Test
   public void testCascadeDoesNotDeletePolicyViolations() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDoesNotDeleteToPolicyViolations");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyEvaluationDAOTest");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -596,8 +596,8 @@ public class PolicyDAOTest
 
   @Test
   public void testGetByOwnerIds() {
-    Policy appPolicy = tempEntity.newPolicy(application.getId(), "app-policy");
-    tempEntity.newPolicy(organization.getId(), "org-policy");
+    Policy appPolicy = tempEntity.newPolicy(application);
+    tempEntity.newPolicy(organization);
     List<Policy> policies;
 
     policies = policyDAO.getByOwnerIds(null);
@@ -613,7 +613,7 @@ public class PolicyDAOTest
 
   @Test
   public void testUpdateMovePolicyUpInHierarchy() throws Exception {
-    Policy policy = tempEntity.newPolicy(application.getId(), "My policy");
+    Policy policy = tempEntity.newPolicy(application);
 
     // Should not complain about name clashes
     policy.setOwnerId(application.getOrganizationId());

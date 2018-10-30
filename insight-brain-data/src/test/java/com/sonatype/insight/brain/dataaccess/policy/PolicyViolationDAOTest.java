@@ -15,6 +15,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -40,7 +41,7 @@ public class PolicyViolationDAOTest
 {
   @Test
   public void testCRUD() throws Exception {
-    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToPolicyViolations");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyViolationDAOTestScanId");
 
@@ -108,7 +109,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetByApplicationId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1",
         new Date(System.currentTimeMillis() - 2000));
@@ -142,7 +143,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetUnfixedByApplicationIdAndStageId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -171,7 +172,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetActiveByApplicationIdAndStageId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -199,7 +200,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetActiveByApplicationIdAndStageIdAndHash() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -230,7 +231,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetUnfixedByApplicationIds() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation1 = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -260,7 +261,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetActiveByApplicationIds() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation1 = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -288,7 +289,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetUnfixedByApplicationIdsAndStageIds() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -318,7 +319,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetActiveByApplicationIdsAndStageIds() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
@@ -351,7 +352,7 @@ public class PolicyViolationDAOTest
                               Date waiveTime,
                               Date fixTime)
   {
-    Policy policy = tempEntity.newPolicy(applicationId, "name" + tempEntity.uuid());
+    Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, stageTypeId,
         "scan-" + tempEntity.uuid(), openTime);
@@ -524,7 +525,7 @@ public class PolicyViolationDAOTest
   @Test
   public void testGetActiveByApplicationIdAndStageIdsAndTimeRange() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver waiver = tempEntity.newWaiver(policy.getId(), applicationId);
     Date to = new Date(System.currentTimeMillis() - 10 * 1000);
     Date from = new Date(to.getTime() - 60 * 1000);
@@ -624,7 +625,7 @@ public class PolicyViolationDAOTest
   public void testGetUnfixedGrandfatheredByApplicationId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
 
-    Policy policy1 = tempEntity.newPolicy(applicationId, "policy-1");
+    Policy policy1 = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation unfixedGrandfatheredViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
@@ -635,9 +636,10 @@ public class PolicyViolationDAOTest
     fixedGrandfatheredViolation1.setGrandfatherTime(new Date());
     dao.update(fixedGrandfatheredViolation1);
 
-    String applicationId2 = tempEntity.newApplicationWithParent().getId();
-    Policy policy2 = tempEntity.newPolicy(applicationId2, "policy-2");
-    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(applicationId2, BuildStageType.ID, "scan-2");
+    Application application2 = tempEntity.newApplicationWithParent();
+    Policy policy2 = tempEntity.newPolicy(application2);
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan-2");
     tempEntity.newPolicyViolation(policyEvaluation2, policy2);
     PolicyViolation unfixedGrandfatheredViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
     unfixedGrandfatheredViolation2.setGrandfatherTime(new Date());
@@ -652,7 +654,7 @@ public class PolicyViolationDAOTest
       assertThat(violations1, hasSize(1));
       assertThat(violations1.get(0).getId(), is(unfixedGrandfatheredViolation1.getId()));
 
-      List<PolicyViolation> violations2 = dao.getUnfixedGrandfatheredByApplicationId(tx, applicationId2);
+      List<PolicyViolation> violations2 = dao.getUnfixedGrandfatheredByApplicationId(tx, application2.getId());
       assertThat(violations2, hasSize(1));
       assertThat(violations2.get(0).getId(), is(unfixedGrandfatheredViolation2.getId()));
     }
@@ -662,16 +664,17 @@ public class PolicyViolationDAOTest
   public void testGetUnfixedByApplicationId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
 
-    Policy policy1 = tempEntity.newPolicy(applicationId, "policy-1");
+    Policy policy1 = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation unfixedViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation fixedViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     fixedViolation1.setFixTime(new Date());
     dao.update(fixedViolation1);
 
-    String applicationId2 = tempEntity.newApplicationWithParent().getId();
-    Policy policy2 = tempEntity.newPolicy(applicationId2, "policy-2");
-    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(applicationId2, BuildStageType.ID, "scan-2");
+    Application application2 = tempEntity.newApplicationWithParent();
+    Policy policy2 = tempEntity.newPolicy(application2);
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan-2");
     PolicyViolation unfixedViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
     PolicyViolation fixedViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
     fixedViolation2.setFixTime(new Date());
@@ -682,7 +685,7 @@ public class PolicyViolationDAOTest
       assertThat(violations1, hasSize(1));
       assertThat(violations1.get(0).getId(), is(unfixedViolation1.getId()));
 
-      List<PolicyViolation> violations2 = dao.getUnfixedByApplicationId(tx, applicationId2);
+      List<PolicyViolation> violations2 = dao.getUnfixedByApplicationId(tx, application2.getId());
       assertThat(violations2, hasSize(1));
       assertThat(violations2.get(0).getId(), is(unfixedViolation2.getId()));
     }
@@ -690,9 +693,9 @@ public class PolicyViolationDAOTest
 
   @Test
   public void testReplacePolicyId() {
-    Policy fromPolicy = tempEntity.newPolicy(applicationId, "From Policy");
-    Policy toPolicy = tempEntity.newPolicy(applicationId, "To Policy");
-    Policy otherPolicy = tempEntity.newPolicy(applicationId, "Other Policy");
+    Policy fromPolicy = tempEntity.newPolicy(application);
+    Policy toPolicy = tempEntity.newPolicy(application);
+    Policy otherPolicy = tempEntity.newPolicy(application);
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scanId");
     PolicyViolation fromPolicyViolation = tempEntity.newPolicyViolation(evaluation, fromPolicy);
     PolicyViolation toPolicyViolation = tempEntity.newPolicyViolation(evaluation, toPolicy);
@@ -711,9 +714,9 @@ public class PolicyViolationDAOTest
 
   @Test
   public void testReplacePolicyIdForApplication() {
-    Policy fromPolicy = tempEntity.newPolicy(organization.getId(), "From Policy");
-    Policy toPolicy = tempEntity.newPolicy(applicationId, "To Policy");
-    Policy otherPolicy = tempEntity.newPolicy(applicationId, "Other Policy");
+    Policy fromPolicy = tempEntity.newPolicy(organization);
+    Policy toPolicy = tempEntity.newPolicy(application);
+    Policy otherPolicy = tempEntity.newPolicy(application);
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scanId");
     PolicyViolation fromPolicyViolation = tempEntity.newPolicyViolation(evaluation, fromPolicy);
     PolicyViolation otherPolicyViolation = tempEntity.newPolicyViolation(evaluation, otherPolicy);

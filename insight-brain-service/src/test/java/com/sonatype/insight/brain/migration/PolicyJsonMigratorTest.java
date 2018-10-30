@@ -68,7 +68,7 @@ public class PolicyJsonMigratorTest
 
   @Test
   public void testMigrate() throws Exception {
-    String policyId = tempEntity.newPolicy("Test").getId();
+    String policyId = tempEntity.newPolicy().getId();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setContent(getPolicyContent("policy1.json"));
     policyInternalDAO.update(policyInternal);
@@ -98,7 +98,7 @@ public class PolicyJsonMigratorTest
   public void testMigrate_DeprecatedConditionForSecurityVulnerabilities() throws Exception {
     // Verifies that the deprecated condition for security vulnerabilities can be migrated.
     // The migrator should not fail when it encounters this policy condition type.
-    String policyId = tempEntity.newPolicy("Test").getId();
+    String policyId = tempEntity.newPolicy().getId();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
     policyInternalDAO.update(policyInternal);

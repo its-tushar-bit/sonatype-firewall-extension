@@ -93,8 +93,8 @@ public class RoleDAOTest
   @Test
   public void testDeleteCascadesToPolicyNotifyActions() throws Exception {
     Role role = newRole("cascade");
-    tempEntity.newPolicy(organization.getId(), "Test Policy without Actions");
-    Policy policyWithNotifyActions = tempEntity.newPolicy(organization.getId(), "Test Policy with Notify Actions");
+    tempEntity.newPolicy(organization);
+    Policy policyWithNotifyActions = tempEntity.newPolicy(organization);
     policyWithNotifyActions.getNotifications().add(
         new RoleNotification(role.getId(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
     PolicyDAO policyDAO = new PolicyDAO();

@@ -47,7 +47,7 @@ public class ApiMetricsReportingResourceV2Test
     Organization org = tempEntity.newOrganizationWithSpecificId("orgId", "orgName");
     app = tempEntity.newApplicationWithSpecificId("appId", "appName", "appPublicId", org.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
   }
 
   @Test

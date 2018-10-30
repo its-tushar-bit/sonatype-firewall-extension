@@ -75,7 +75,7 @@ public class DashboardApplicationsTest
   public void init() {
     componentCounter = 0;
     org = tempEntity.newOrganization("DashboardApplicationsTest");
-    policy = tempEntity.newPolicy(org.getId(), "DashboardApplicationsTestPolicy");
+    policy = tempEntity.newPolicy(org);
     refreshOrOpen(DashboardPage.APPLICATIONS_URL);
   }
 

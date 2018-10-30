@@ -784,7 +784,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicyWaivers() {
-    Policy policy = tempEntity.newPolicy(application.getId(), "testCascadeDeleteToPolicyWaivers");
+    Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(),
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -811,7 +811,7 @@ public class ApplicationDAOTest
   public void testCascadeDeleteToPolicyViolations() {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
         "testCascadeDeleteToPolicyEvaluations");
-    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application.getId(), "Test Policy"));
+    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application));
 
     applicationDAO.delete(application);
 
@@ -820,7 +820,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicies() {
-    tempEntity.newPolicy(application.getId(), "testCascadeDeleteToPolicies");
+    tempEntity.newPolicy(application);
     PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies, hasSize(1));

@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.google.common.collect.Sets;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingFlattenedDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
@@ -23,15 +22,16 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.FakeDateRule;
 
+import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class ApiMetricsReportingServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -51,7 +51,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
   @Test
   public void testGetMetrics_ExplicitApplicationFilter_Unauthorized() {
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
     login();
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, Collections.singleton(app.getId()));
@@ -61,7 +61,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
   @Test
   public void testGetMetrics_ExplicitOrganizationFilter_Unauthorized() {
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
     login();
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(Collections.singleton(org.getId()), null);
@@ -74,8 +74,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
     Application app2 = tempEntity.newApplication(org.getId());
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, appIds);
@@ -87,8 +87,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
   public void testGetMetrics_ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(Collections.singleton(org.getId()), null);
@@ -102,8 +102,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
     Application app2 = tempEntity.newApplication(org2.getId());
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(org.getId());
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(orgIds, null);
@@ -113,7 +113,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
   @Test
   public void testGetMetrics_ImplicitFilter_Unauthorized() {
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
     login();
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, null);
@@ -125,8 +125,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
   public void testGetMetrics_ImplicitFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, null);
@@ -139,8 +139,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(org.getId());
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, null);
@@ -150,7 +150,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
   @Test
   public void testGetFlattenedMetrics_ExplicitApplicationFilter_Unauthorized() {
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
     login();
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, Collections.singleton(app.getId()));
@@ -160,7 +160,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
   @Test
   public void testGetFlattenedMetrics_ExplicitOrganizationFilter_Unauthorized() {
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
     login();
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(Collections.singleton(org.getId()), null);
@@ -173,8 +173,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
     Application app2 = tempEntity.newApplication(org.getId());
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, appIds);
@@ -186,8 +186,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
   public void testGetFlattenedMetrics_ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(Collections.singleton(org.getId()), null);
@@ -201,8 +201,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
     Application app2 = tempEntity.newApplication(org2.getId());
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(orgIds, null);
@@ -212,7 +212,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
   @Test
   public void testGetFlattenedMetrics_ImplicitFilter_Unauthorized() {
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
     login();
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, null);
@@ -224,8 +224,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
   public void testGetFlattenedMetrics_ImplicitFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, null);
@@ -238,8 +238,8 @@ public class ApiMetricsReportingServiceV2AuthzTest
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app.getId(), today, tempEntity);
-    SuccessMetricsTestUtils.createPolicyViolation(app2.getId(), today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     grantReadPermission(app.getId());
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, null);

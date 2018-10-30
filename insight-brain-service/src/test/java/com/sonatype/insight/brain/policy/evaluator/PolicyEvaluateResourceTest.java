@@ -37,7 +37,7 @@ public class PolicyEvaluateResourceTest
     Application app = tempEntity.newApplicationWithParent();
     setLicenseFingerprint(licenseFingerprint);
 
-    tempEntity.newPolicy(app.getId(), "policy");
+    tempEntity.newPolicy(app);
 
     // Simulate that the report is available
     String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");

@@ -120,6 +120,6 @@ public class NewestRiskServiceAuthzTest
 
   private void createFirstOccurrencePolicyViolation(String appId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
-    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
+    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app));
   }
 }

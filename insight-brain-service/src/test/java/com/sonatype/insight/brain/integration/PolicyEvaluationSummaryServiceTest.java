@@ -53,7 +53,7 @@ public class PolicyEvaluationSummaryServiceTest
     Application application = tempEntity.newApplicationWithParent("test-app");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
         scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
+    Policy policy = tempEntity.newPolicy(application);
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     PolicyEvaluationSummary policyEvaluationSummary = policyEvaluationSummaryService

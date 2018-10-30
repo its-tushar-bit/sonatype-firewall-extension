@@ -848,6 +848,17 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_GrandfatheringDisabledForApp_AppCanOverrideGrandfathering() throws Exception {
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+
+    testEvaluate_GrandfatheredViolations(false, false);
+  }
+
+  @Test
   public void testEvaluate_GrandfatheringEnabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
       throws Exception
   {
@@ -861,6 +872,19 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_GrandfatheringDisabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    organization.setPolicyViolationGrandfatheringEnabled(false);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+
+    testEvaluate_GrandfatheredViolations(false, false);
+  }
+
+  @Test
   public void testEvaluate_GrandfatheringEnabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
       throws Exception
   {
@@ -868,6 +892,19 @@ public class ScanPolicyEvaluatorTest
     organization.setAllowPolicyViolationGrandfatheringOverride(false);
     new OrganizationDAO().update(organization);
     application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    testEvaluate_GrandfatheredViolations(true, true);
+  }
+
+  @Test
+  public void testEvaluate_GrandfatheringDisabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
 
     testEvaluate_GrandfatheredViolations(true, true);

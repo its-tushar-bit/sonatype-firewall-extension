@@ -105,6 +105,7 @@ public class TagResource
   @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_APPLICATION_CATEGORY)
   public Tag updateTag(@PathParam("organizationId") String organizationId, Tag tag) {
     return service.updateTag(organizationId, tag);
   }

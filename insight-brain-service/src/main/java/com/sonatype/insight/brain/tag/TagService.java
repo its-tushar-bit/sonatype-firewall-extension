@@ -143,6 +143,7 @@ class TagService
     tagDAO.update(tag);
 
     managementEventService.postEvent(UPDATED, tag);
+    auditApplicationCategory(tag);
 
     return tag;
   }

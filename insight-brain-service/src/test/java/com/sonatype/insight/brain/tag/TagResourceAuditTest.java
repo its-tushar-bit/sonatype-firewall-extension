@@ -43,8 +43,35 @@ public class TagResourceAuditTest
     assertOrganizationData(auditDTO, organization);
   }
 
+  @Test
+  public void testUpdateTag() throws Exception {
+    Tag tag = restRequest().body(tag(saveTag().getId())).put().getBody(Tag.class);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION_CATEGORY, null);
+    assertOrganizationData(auditDTO, organization);
+    assertTagData(auditDTO, tag);
+  }
+
+  @Test
+  public void testUpdateTag_Unauthorized() throws Exception {
+    restRequest().with(unauthorizedUser()).body(tag(saveTag().getId())).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION_CATEGORY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
   private Tag tag() {
-    return new Tag(null, "name", "description", Color.yellow);
+    return tag(null);
+  }
+
+  private Tag tag(String id) {
+    Tag tag = new Tag(organization.getId(), "name1", "description1", Color.yellow);
+    tag.setId(id);
+    return tag;
+  }
+
+  private Tag saveTag() {
+    return tempEntity.newTag(organization.getId(), "name2", "description2", Color.dark_blue);
   }
 
   @Override

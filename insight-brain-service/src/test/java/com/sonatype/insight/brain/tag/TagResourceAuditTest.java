@@ -60,6 +60,25 @@ public class TagResourceAuditTest
     assertOrganizationData(auditDTO, organization);
   }
 
+  @Test
+  public void testDeleteTag() throws Exception {
+    Tag tag = saveTag();
+
+    restRequest().path(tag.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_APPLICATION_CATEGORY, null);
+    assertOrganizationData(auditDTO, organization);
+    assertTagData(auditDTO, tag);
+  }
+
+  @Test
+  public void testDeleteTag_Unauthorized() throws Exception {
+    restRequest().with(unauthorizedUser()).path(saveTag().getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_APPLICATION_CATEGORY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
   private Tag tag() {
     return tag(null);
   }

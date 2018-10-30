@@ -158,6 +158,7 @@ class TagService
     tagDAO.delete(tag);
 
     managementEventService.postEvent(DELETED, tag);
+    auditApplicationCategory(tag);
   }
 
   @Authorize(permission = Permission.READ)

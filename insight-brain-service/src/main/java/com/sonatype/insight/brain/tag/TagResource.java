@@ -112,6 +112,7 @@ public class TagResource
 
   @DELETE
   @Path(ORGANIZATION_PATH + "/{tagId}")
+  @Audited(AuditEvent.DELETE_APPLICATION_CATEGORY)
   public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("tagId") String tagId) {
     service.deleteTag(organizationId, tagId);
   }

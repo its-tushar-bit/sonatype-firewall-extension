@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -90,7 +92,7 @@ public class PolicyResourceAuditTest
 
     restRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
 
-    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_WAIVER, null);
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_WAIVER, 3, null);
     assertApplicationData(auditDTOs.get(0), application);
     assertDeletePolicyWaiverData(auditDTOs.get(0), policy, applicationPolicyWaiver);
     assertOrganizationData(auditDTOs.get(1), organization);
@@ -164,6 +166,36 @@ public class PolicyResourceAuditTest
     return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());
   }
 
+  @Test
+  public void testImportPolicies_ImportsApplicationCategories() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.tags = Arrays.asList(tag(), tag());
+    tempEntity.newTag(organization.getId(), policyExportResult.tags.get(0).getName(), "oldDescription", Color.yellow);
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.IMPORT_APPLICATION_CATEGORY, 2, null);
+    auditDTOs.forEach(auditDTO -> assertOrganizationData(auditDTO, organization));
+    assertTagData(auditDTOs.get(0), policyExportResult.tags.get(0));
+    assertTagData(auditDTOs.get(1), policyExportResult.tags.get(1));
+  }
+
+  @Test
+  public void testImportPolicies_DoesNotImportApplicationCategories_BadRequest() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.tags = Arrays.asList(tag(), tag());
+    policyExportResult.tags.get(1).setName("thisNameIsTooLong__________________________________________61");
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
+    assertOrganizationData(auditDTO, organization);
+    assertThat(new TagDAO().getByOrganizationId(organization.getId()), empty());
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_APPLICATION_CATEGORY, 0), empty());
+  }
+
   private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
     AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
     assertStandardData(auditDTO, auditEvent, error);
@@ -189,8 +221,8 @@ public class PolicyResourceAuditTest
     return new ConditionFact("conditionTypeId", 0, summary, reason);
   }
 
-  private List<AuditDTO> assertAuditLogs(AuditEvent auditEvent, String error) {
-    List<AuditDTO> auditDTOs = awaitLogEntries(auditEvent, 3);
+  private List<AuditDTO> assertAuditLogs(AuditEvent auditEvent, int number, String error) {
+    List<AuditDTO> auditDTOs = awaitLogEntries(auditEvent, number);
     auditDTOs.forEach(auditDTO -> assertStandardData(auditDTO, auditEvent, error));
     return auditDTOs;
   }
@@ -217,5 +249,16 @@ public class PolicyResourceAuditTest
     assertCustomData(auditDTO, "labelName", label.getLabel());
     assertCustomData(auditDTO, "labelDescription", label.getDescription());
     assertCustomData(auditDTO, "labelColor", label.getColor().toValue());
+  }
+
+  private void assertTagData(AuditDTO auditDTO, Tag tag) {
+    Tag savedTag = new TagDAO().getById((String) auditDTO.data.get("applicationCategoryId"));
+    assertThat(savedTag, notNullValue());
+    assertThat(savedTag.getName(), is(tag.getName()));
+    assertThat(savedTag.getDescription(), is(tag.getDescription()));
+    assertThat(savedTag.getColor(), is(tag.getColor()));
+    assertCustomData(auditDTO, "applicationCategoryName", savedTag.getName());
+    assertCustomData(auditDTO, "applicationCategoryDescription", savedTag.getDescription());
+    assertCustomData(auditDTO, "applicationCategoryColor", savedTag.getColor().toValue());
   }
 }

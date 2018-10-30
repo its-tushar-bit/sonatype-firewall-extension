@@ -64,7 +64,7 @@ public abstract class AbstractPolicyImportAuditTest
 
   protected Tag tag() {
     Tag tag = new Tag();
-    tag.setName("tagName");
+    tag.setName(tempEntity.uuid());
     tag.setDescription("tagDescription");
     return tag;
   }

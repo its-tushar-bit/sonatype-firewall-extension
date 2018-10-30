@@ -127,7 +127,7 @@ public class PolicyImportExport
       deleteFromOwnerAndDescendants(tx, organization);
       importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), organization);
       importLicenseThreatGroups(tx, exportDTO, orgId);
-      importAndMergeTags(tx, exportDTO, orgId);
+      importAndMergeTags(tx, exportDTO, organization);
 
       Map<String, List<PolicyTag>> policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
       // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
@@ -302,29 +302,33 @@ public class PolicyImportExport
    * 
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
-   * @param orgId the organization owning the tags
+   * @param organization the organization owning the tags
    */
-  void importAndMergeTags(final TransactionContext tx, final PolicyExportResult exportDTO, final String orgId) {
+  void importAndMergeTags(final TransactionContext tx,
+                          final PolicyExportResult exportDTO,
+                          final Organization organization)
+  {
     if (!exportDTO.tags.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       for (Tag tag : exportDTO.tags) {
         String oldId = tag.getId();
-        Tag existingTag = tagDAO.getByOrganizationIdAndName(tx, orgId, tag.getName());
+        Tag existingTag = tagDAO.getByOrganizationIdAndName(tx, organization.getId(), tag.getName());
         if (existingTag != null) {
           // Existing tag, update it
           tag.setId(existingTag.getId());
-          tag.setOrganizationId(orgId);
+          tag.setOrganizationId(organization.getId());
           tag.setColor(tag.getColor().getUpdatedColor());
           tagDAO.update(tx, tag);
         }
         else {
           // New tag, create it
           tag.setId(null);
-          tag.setOrganizationId(orgId);
+          tag.setOrganizationId(organization.getId());
           tag.setColor(tag.getColor().getUpdatedColor());
           tagDAO.insert(tx, tag);
         }
         idMap.put(oldId, tag.getId());
+        auditImportApplicationCategory(organization, tag);
       }
 
       for (PolicyTag policyTag : exportDTO.policyTags) {
@@ -456,6 +460,15 @@ public class PolicyImportExport
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_LABEL, false)) {
       AuditData.get().setOrganization(organization).setLabel(label).setData("labelDescription", label.getDescription())
           .setEnum("labelColor", label.getColor());
+    }
+  }
+
+  private void auditImportApplicationCategory(Organization organization, Tag tag) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_APPLICATION_CATEGORY, false)) {
+      AuditData.get().setOrganization(organization).setData("applicationCategoryId", tag.getId())
+          .setData("applicationCategoryName", tag.getName())
+          .setData("applicationCategoryDescription", tag.getDescription())
+          .setEnum("applicationCategoryColor", tag.getColor());
     }
   }
 }

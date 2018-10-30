@@ -190,7 +190,7 @@ public class PolicyImportExportTest
 
     try (TransactionContext tx = tagDAO.createTransactionContext()) {
       tx.begin();
-      policyImportExport.importAndMergeTags(tx, exportDTO, toOrg.getId());
+      policyImportExport.importAndMergeTags(tx, exportDTO, toOrg);
       tx.commit();
     }
 
@@ -212,7 +212,7 @@ public class PolicyImportExportTest
 
     try (TransactionContext tx = tagDAO.createTransactionContext()) {
       tx.begin();
-      policyImportExport.importAndMergeTags(tx, exportDTO, toOrg.getId());
+      policyImportExport.importAndMergeTags(tx, exportDTO, toOrg);
       tx.commit();
     }
 

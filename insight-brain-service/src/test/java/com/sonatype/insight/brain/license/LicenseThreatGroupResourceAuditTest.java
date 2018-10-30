@@ -90,4 +90,35 @@ public class LicenseThreatGroupResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LICENSE_THREAT_GROUP, "unauthorized");
     assertOrganizationData(auditDTO, organization);
   }
+
+  @Test
+  public void testDeleteLicenseThreatGroup_Application() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(application.getId(), "The Name", 3);
+    restRequest(application).path(ltg.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LICENSE_THREAT_GROUP, null);
+    assertApplicationData(auditDTO, application);
+    assertLicenseThreatGroupData(auditDTO, ltg);
+  }
+
+  @Test
+  public void testDeleteLicenseThreatGroup_Organization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId(), "The Name", 3);
+    restRequest(organization).path(ltg.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LICENSE_THREAT_GROUP, null);
+    assertOrganizationData(auditDTO, organization);
+    assertLicenseThreatGroupData(auditDTO, ltg);
+  }
+
+  @Test
+  public void testDeleteLicenseThreatGroup_Unauthorized() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    restRequest(organization).with(unauthorizedUser()).path("ltg-id").delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LICENSE_THREAT_GROUP, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
 }

@@ -89,6 +89,7 @@ public class LicenseThreatGroupResource
 
   @DELETE
   @Path("{licenseThreatGroupId}")
+  @Audited(AuditEvent.DELETE_LICENSE_THREAT_GROUP)
   public void deleteLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
                                        @PathParam("ownerId") String ownerId,
                                        @PathParam("licenseThreatGroupId") String licenseThreatGroupId)

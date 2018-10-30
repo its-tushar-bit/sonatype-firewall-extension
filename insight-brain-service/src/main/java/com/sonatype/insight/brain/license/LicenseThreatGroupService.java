@@ -151,6 +151,7 @@ public class LicenseThreatGroupService
 
     licenseThreatGroupDAO.delete(licenseThreatGroup);
 
+    auditLicenseThreatGroup(licenseThreatGroup);
     managementEventService.postEvent(EventAction.DELETED, licenseThreatGroup);
   }
 

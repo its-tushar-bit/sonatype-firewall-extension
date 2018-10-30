@@ -140,7 +140,7 @@ public class PolicyViolationGrandfatheringServiceTest
   @Test
   public void testGrandfather_GrandfatheringEnabledForApp_AppCanOverrideGrandfathering() throws Exception {
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(null);
+    organization.setPolicyViolationGrandfatheringEnabled(false);
     organization.setAllowPolicyViolationGrandfatheringOverride(true);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
@@ -198,7 +198,7 @@ public class PolicyViolationGrandfatheringServiceTest
     organization.setAllowPolicyViolationGrandfatheringOverride(false);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(false);
+    application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
     testGrandfather(application, true);
   }
@@ -208,13 +208,13 @@ public class PolicyViolationGrandfatheringServiceTest
       throws Exception
   {
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setPolicyViolationGrandfatheringEnabled(false);
     organization.setAllowPolicyViolationGrandfatheringOverride(false);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(true);
+    application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
-    testGrandfather(application, true);
+    testGrandfather(application, false);
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {

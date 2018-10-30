@@ -201,5 +201,13 @@ public class ApplicationReportPage
     public IqSortingHeader componentNameHeader() {
       return new IqSortingHeader(childSelector(".iq-cell--application-report-component-display a"));
     }
+
+    public SelenideElement policyNameFilterInput() {
+      return child(".iq-cell--application-report-policy-name-filter input");
+    }
+
+    public SelenideElement componentNameFilterInput() {
+      return child(".iq-cell--application-report-component-name-filter input");
+    }
   }
 }

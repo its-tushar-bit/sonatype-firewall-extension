@@ -13,19 +13,22 @@ import {
   filter,
   flatten,
   flip,
+  identity,
   groupBy,
   into,
-  isEmpty,
   isNil,
   map,
   pick,
   pipe,
   prop,
   reduceBy,
+  toLower,
   sortWith,
   toPairs,
   values
 } from 'ramda';
+
+import { isNilOrEmpty } from '../util/jsUtil';
 
 const flatMap = pipe(map, flatten),
     toKey = component => component.hash || (component.pathnames || []).join('\t'),
@@ -165,31 +168,55 @@ export function aggregateReportEntries(entries) {
 
 /**
  * Take a list of all report entries and return a new list of only entries that have allowed values for all properties
- * in the filterConfig
- * @param filters an object mapping from property name to list of allowed values
+ * in the exactValueFilters and substringFilters
+ * @param exactValueFilters an object mapping from property name to list of allowed values
+ * @param substringFilters an object mapping from property name to substring to match.
  */
-export const filterReportEntries = curry(function filterReportEntries(filterConfig, entries) {
-  const filterPairs = toPairs(filterConfig);
+export const filterReportEntries = curry(function filterReportEntries(exactValueFilters, substringFilters, entries) {
+  const overallFilter = compose(filterByExactValues(exactValueFilters), filterBySubstring(substringFilters));
 
-  if (isEmpty(filterPairs)) {
-    return entries;
+  return into([], overallFilter, entries);
+});
+
+/**
+ * A helper function that is the basis of filterByExactValues and filterBySubstring.
+ * @param checkBuilder A function that takes a property value from the filterConfig object and
+ * returns a function which takes the value of the corresponding property from a violation entry and determines whether
+ * that violation entry passes or should be filtered
+ * @param filterConfig The object mapping property names to values that specify how they should be
+ * filtered (the objects that get passed into filterBuilder)
+ */
+const makeFilterTransducer = curry(function makeFilterTransducer(checkBuilder, filterConfig) {
+  if (isNilOrEmpty(filterConfig)) {
+    return identity;
   }
   else {
-    const hasAllowedPropValue = (propName, allowedValues) => entry => contains(entry[propName], allowedValues),
+    // make a function which takes a violation and sees if the value of the specified property passes a
+    // check built from the specified filterValues
+    const makePropValueCheck = (propName, filterValue) => pipe(prop(propName), checkBuilder(filterValue)),
 
-        // make a partially applied filter function for each property
-        filters = map(([propName, allowedValues]) => filter(hasAllowedPropValue(propName, allowedValues)), filterPairs),
-        overallFilter = apply(compose)(filters);
+        // make a list-filtering function using a [propName, filterValue] tuple
+        makeFilterFromPair = pipe(apply(makePropValueCheck), filter),
+        filters = map(makeFilterFromPair, toPairs(filterConfig));
 
-    return into([], overallFilter, entries);
+    return apply(compose)(filters);
   }
+});
+
+// `contains` can do both substring matching and exact-value-in-array matching, which are the two kinds we need. The
+// first arg of contains is the thing to search for and the second is the thing within which to search for it.
+const filterByExactValues = makeFilterTransducer(flip(contains));
+const filterBySubstring = makeFilterTransducer(filterString => {
+  const lowerCasedFilterString = toLower(filterString);
+
+  return pipe(toLower, contains(lowerCasedFilterString));
 });
 
 /**
  * Return a list of the specified entries sorted by the specified property, optionally in reverse
  */
 export const sortReportEntries = curry(function sortReportEntries(sortFields, entries) {
-  if (!either(isNil, isEmpty)(sortFields)) {
+  if (!isNilOrEmpty(sortFields)) {
     const sorters = sortFields.map(f => {
       const reverse = f.indexOf('-') === 0,
           sortProperty = f.match(/\w+/)[0],

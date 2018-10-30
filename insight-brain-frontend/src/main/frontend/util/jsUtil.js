@@ -3,7 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {curry, set, lensProp, lensPath, prop, flip, toPairs, filter, nth, compose, isNil, not, join, map} from 'ramda';
+import {
+  compose,
+  curry,
+  either,
+  filter,
+  flip,
+  isEmpty,
+  isNil,
+  join,
+  lensPath,
+  lensProp,
+  map,
+  not,
+  nth,
+  prop,
+  set,
+  toPairs
+} from 'ramda';
 
 /**
  * Convert Set to Array (in IE9 compatible way)
@@ -50,3 +67,5 @@ const pairToURIParam = compose(join('='), map(encodeURIComponent));
  * Converts object to URI params string omitting empty values
  */
 export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);
+
+export const isNilOrEmpty = either(isNil, isEmpty);

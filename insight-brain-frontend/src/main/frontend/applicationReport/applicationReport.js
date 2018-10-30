@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { isEmpty, keys, pick } from 'ramda';
+import { pick } from 'ramda';
 
 import template from './applicationReport.html';
 
@@ -16,13 +16,9 @@ export default {
 function ApplicationReportController($scope, $ngRedux, applicationReportActions) {
   const vm = this;
 
-  $scope.$watch('vm.filters', function(filters) {
-    vm.hasFilter = !isEmpty(keys(filters));
-  });
-
   Object.assign(vm, {
     $onInit() {
-      const actions = pick(['setAggregateReportEntries', 'setFiltering'], applicationReportActions);
+      const actions = pick(['setAggregateReportEntries'], applicationReportActions);
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
     },
@@ -34,7 +30,7 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions)
 }
 
 function mapStateToThis(state) {
-  return pick(['aggregate', 'filters'], state.applicationReport || {});
+  return pick(['aggregate'], state.applicationReport || {});
 }
 
 ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];

@@ -126,4 +126,18 @@ describe('applicationReportActions', function() {
       expect(action.payload).toBe(payload);
     });
   });
+
+  describe('setStringFieldFilter', function() {
+    it('returns a SET_SUBSTRING_FIELD_FILTER action with payload having the specified fieldName and filterString',
+        function() {
+          const action = applicationReportActions.setStringFieldFilter('fooField', 'bar');
+
+          expect(action.type).toBe('SET_SUBSTRING_FIELD_FILTER');
+          expect(action.payload).toEqual({
+            fieldName: 'fooField',
+            filterString: 'bar'
+          });
+        }
+    );
+  });
 });

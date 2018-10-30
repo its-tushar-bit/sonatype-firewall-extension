@@ -11,8 +11,8 @@ export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
 export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 
-// TODO for CLM-10988 I just add a simple boolean action to enable/disable a hardcoded filter
-export const SET_FILTERING = 'SET_FILTERING';
+// To be used for filters that are done by substring matching, as opposed to matchings a discreet set of values
+export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
 export const SET_SORTING = 'SET_SORTING';
 
 export default function applicationReportActions($http, $q, CLMLocations, Messages) {
@@ -75,19 +75,17 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function setFiltering(isFiltering) {
-    return {
-      type: SET_FILTERING,
-
-      // hardcoded filter for demonstration purposes in CLM-10988
-      payload: isFiltering ? { matchState: ['unknown'] } : {}
-    };
-  }
-
   function setSorting(sortFields) {
     return {
       type: SET_SORTING,
       payload: sortFields
+    };
+  }
+
+  function setStringFieldFilter(fieldName, filterString) {
+    return {
+      type: SET_SUBSTRING_FIELD_FILTER,
+      payload: { fieldName, filterString }
     };
   }
 
@@ -101,7 +99,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
   return {
     loadReport,
     setAggregateReportEntries,
-    setFiltering,
+    setStringFieldFilter,
     setSorting,
     selectComponent
   };

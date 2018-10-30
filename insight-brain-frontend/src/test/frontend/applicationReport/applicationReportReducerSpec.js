@@ -34,6 +34,8 @@ describe('applicationReportReducer', function() {
       expect(newState.selectedReport).toBe(null);
       expect(newState.aggregate).toBe(true);
       expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
+      expect(newState.exactValueFilters).toEqual({});
+      expect(newState.substringFilters).toEqual({});
     });
   });
 
@@ -92,7 +94,7 @@ describe('applicationReportReducer', function() {
       const state = Object.freeze({
             selectedReport: null,
             aggregate: true,
-            filters: {
+            exactValueFilters: {
               policyThreatLevel: [1, 4, 5, 6]
             },
             sortFields: ['-policyThreatLevel']
@@ -215,7 +217,6 @@ describe('applicationReportReducer', function() {
               displayedEntries: entries
             },
             aggregate: false,
-            filters: {},
             sortFields: ['-policyThreatLevel']
           }),
           newState = reduce(state, {
@@ -277,7 +278,6 @@ describe('applicationReportReducer', function() {
               displayedEntries: entries
             },
             aggregate: false,
-            filters: {},
             sortFields: ['-policyThreatLevel']
           }),
           newState = reduce(state, {
@@ -292,6 +292,82 @@ describe('applicationReportReducer', function() {
       }, {
         policyThreatLevel: 10
       }]);
+    });
+  });
+
+  describe('SET_SUBSTRING_FIELD_FILTER', function() {
+    it('sets the specified property on the substringFilters to the specified value', function() {
+      const state = Object.freeze({
+            substringFilters: Object.freeze({
+              otherField: 'asdf'
+            }),
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_SUBSTRING_FIELD_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterString: 'bar'
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        substringFilters: {
+          fooField: 'bar',
+          otherField: 'asdf'
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('filters the displayedEntries based on the resulting substringFilters', function() {
+      const state = Object.freeze({
+            substringFilters: Object.freeze({
+              otherField: 'asdf'
+            }),
+            selectedReport: Object.freeze({
+              allEntries: Object.freeze([{
+                otherField: 'asdfasdf',
+                fooField: 'qwerty'
+              }, {
+                otherField: 'asdfasdf',
+                fooField: 'bar'
+              }, {
+                otherField: '',
+                fooField: 'bar'
+              }, {
+                otherField: 'asdfasdf',
+                fooField: ''
+              }, {
+                otherField: 'dfasdfas',
+                fooField: 'foobarbaz'
+              }, {
+                otherField: 'bar',
+                fooField: 'asdf'
+              }])
+            })
+          }),
+          action = {
+            type: 'SET_SUBSTRING_FIELD_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterString: 'bar'
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState.selectedReport.displayedEntries).toEqual([{
+        otherField: 'asdfasdf',
+        fooField: 'bar'
+      }, {
+        otherField: 'dfasdfas',
+        fooField: 'foobarbaz'
+      }]);
+
+      expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
     });
   });
 });

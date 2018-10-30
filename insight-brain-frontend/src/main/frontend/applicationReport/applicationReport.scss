@@ -1,5 +1,10 @@
 @import "results/cipModal/cipModal";
 
+$iq-application-report-policy-threat-level-width: 65px;
+$iq-application-report-policy-name-width: 200px;
+$iq-application-report-policy-name-filter-width: $iq-application-report-policy-threat-level-width +
+    $iq-application-report-policy-name-width + (4 * $iq-cell-side-padding) + 1px; // 1px for the border between cells
+
 .iq-table--application-report {
   display: block;
   width: 100%;
@@ -20,25 +25,69 @@
 }
 
 .iq-cell--application-report-policy-threat-level {
-  $cell-width: 65px;
   &.iq-cell--label {
     padding-left: 0;
-    width: $cell-width + 12px; // add the left padding we just removed
+
+    // add the left padding we just removed
+    width: $iq-application-report-policy-threat-level-width + $iq-cell-side-padding;
   }
 
-  width: $cell-width;
+  width: $iq-application-report-policy-threat-level-width;
 }
 
 .iq-cell--application-report-policy-name {
-  width: 200px;
+  width: $iq-application-report-policy-name-width;
 }
 
 .iq-cell--application-report-component-display {
+  $other-cells-width: $iq-application-report-policy-threat-level-width + (2 * $iq-cell-side-padding) +
+      $iq-application-report-policy-name-width + (2 * $iq-cell-side-padding);
+  $borders-width: 2px; // 2 1px borders between cells
+
   // first 2 cells (incl. padding/border ) + padding/border for this cell
-  width: calc(100% - (89px + 225px + 25px));
+  width: calc(100% - #{$other-cells-width + $borders-width + (2 * $iq-cell-side-padding)});
   min-width: 0;
 
   .iq-text-indicator {
     margin-left: 12px;
   }
+}
+
+.iq-cell--filter {
+  $height: 30px;
+
+  border-color: transparent;
+  height: $height;
+  line-height: $height;
+  padding: 3px 0;
+
+  .input-prepend {
+    line-height: $height;
+    margin: 0;
+    vertical-align: top;
+    width: 100%;
+  }
+
+  input {
+    width: calc(100% - 48px);
+  }
+}
+
+thead .iq-table-row--filters {
+  border-color: transparent;
+
+  &:last-child .iq-cell.iq-cell--filter {
+    // override high-specificity style
+    border-color: transparent;
+  }
+}
+
+.iq-cell--application-report-policy-name-filter {
+  width: $iq-application-report-policy-name-filter-width;
+}
+
+.iq-cell--application-report-component-name-filter {
+  border-left-width: 1px;
+  text-align: right;
+  width: calc(100% - #{$iq-application-report-policy-name-filter-width + 1px});
 }

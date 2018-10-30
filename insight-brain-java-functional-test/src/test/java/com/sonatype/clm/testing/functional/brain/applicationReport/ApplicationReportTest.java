@@ -467,6 +467,30 @@ public class ApplicationReportTest
     violations.shouldHave(texts("org.mortbay.jetty", "org.apache.geronimo.framework", "javancss", "ch.qos.logback"));
   }
 
+  @Test
+  public void testFiltering() {
+    AppReportHeaders headers = reportPage.headers();
+    ElementsCollection violations = reportPage.resultRows();
+
+    headers.policyNameFilterInput().setValue("App");
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("ApplicationReportTest Policy"));
+    violations.shouldHave(texts("javancss"));
+
+    headers.componentNameFilterInput().setValue("org");
+    violations.shouldHaveSize(0);
+
+    headers.policyNameFilterInput().clear();
+    violations.shouldHaveSize(2);
+    violations.shouldHave(texts("None", "None"));
+    violations.shouldHave(texts("org.apache.geronimo.framework", "org.mortbay.jetty"));
+
+    headers.componentNameFilterInput().clear();
+    violations.shouldHaveSize(4);
+    violations.shouldHave(texts("ApplicationReportTest Policy", "None", "None", "None"));
+    violations.shouldHave(texts("javancss", "ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+  }
+
   private void setupHdsResponse() {
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails.json"), 200);

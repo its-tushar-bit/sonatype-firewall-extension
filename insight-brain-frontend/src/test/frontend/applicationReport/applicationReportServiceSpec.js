@@ -767,5 +767,65 @@ describe('applicationReportService', function() {
         expect(result).toBe(input);
       });
     });
+
+    describe('filterReportEntries', function() {
+      it('filters based on exact values and substring matching and can be partially applied', function() {
+        const exactValueFilters = {
+              policyThreatLevel: [2, 4, 5, 6],
+              waived: [false]
+            },
+            substringFilters = {
+              derivedComponentName: 'j'
+            },
+            result = applicationReportService.filterReportEntries(exactValueFilters, substringFilters)(input);
+
+        expect(result).toEqual([{
+          hash: '2',
+          policyThreatLevel: 4,
+          policyName: 'Policy 2',
+          waived: false,
+          grandfathered: false,
+          componentIdentifier: 'baz',
+          derivedComponentName: 'junit.junit.4.8'
+        }, {
+          hash: '1',
+          policyThreatLevel: 4,
+          policyName: 'Policy 1',
+          waived: false,
+          grandfathered: false,
+          componentIdentifier: 'bar',
+          derivedComponentName: 'junit.junit.4.12'
+        }, {
+          hash: '5',
+          policyThreatLevel: 2,
+          policyName: 'Policy 10',
+          waived: false,
+          grandfathered: false,
+          componentIdentifier: 'foo',
+          derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'
+        }]);
+      });
+
+      it('handles empty filterConfig objects', function() {
+        const result = applicationReportService.filterReportEntries({}, {})(input);
+
+        expect(result).toEqual(input);
+      });
+
+      it('handles undefined filterConfig objects', function() {
+        const result = applicationReportService.filterReportEntries(undefined, undefined)(input);
+
+        expect(result).toEqual(input);
+      });
+
+      it('treats empty substring filters as no filter', function() {
+        const substringFilters = {
+              derivedComponentName: ''
+            },
+            result = applicationReportService.filterReportEntries(undefined, substringFilters)(input);
+
+        expect(result).toEqual(input);
+      });
+    });
   });
 });

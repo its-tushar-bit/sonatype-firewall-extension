@@ -47,6 +47,14 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
         windowClass: 'iq-modal iq-modal__cip',
         backdropClass: 'iq-modal-backdrop'
       });
+    },
+
+    onDerivedComponentNameFilterChange() {
+      vm.setStringFieldFilter('derivedComponentName', vm.substringFilters.derivedComponentName);
+    },
+
+    onPolicyNameFilterChange() {
+      vm.setStringFieldFilter('policyName', vm.substringFilters.policyName);
     }
   });
 }

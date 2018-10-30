@@ -83,16 +83,6 @@ public class PolicyWaiverResourceAuditTest
   }
 
   @Test
-  public void testAddPolicyWaiver_NullHashAndNullConstraintFacts() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-
-    restRequest(application).body(policyWaiver(null, null)).post();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "bad-request");
-    assertApplicationData(auditDTO, application);
-  }
-
-  @Test
   public void testAddPolicyWaiver_Unauthorized() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
@@ -147,6 +137,18 @@ public class PolicyWaiverResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
     assertRepositoryContainerData(auditDTO);
+    assertPolicyWaiverData(auditDTO, policyWaiver, true);
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_NullHashAndNullConstraintFacts() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(null, policy.getId(), application.getId(), null, "comment");
+
+    restRequest(application).path(policyWaiver.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
+    assertApplicationData(auditDTO, application);
     assertPolicyWaiverData(auditDTO, policyWaiver, true);
   }
 

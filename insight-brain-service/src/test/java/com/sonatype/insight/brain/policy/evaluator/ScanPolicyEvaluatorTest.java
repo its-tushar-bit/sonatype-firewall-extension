@@ -66,7 +66,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -102,6 +101,8 @@ import static org.mockito.Mockito.verify;
 public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
 {
+  private Organization organization;
+
   private Application application;
 
   @Inject
@@ -138,8 +139,8 @@ public class ScanPolicyEvaluatorTest
 
   @Before
   public void setup() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    application = tempEntity.newApplication("name", "publicId", organization.getId(), "admin");
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
   }
 
   @Test
@@ -825,44 +826,51 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_PolicyViolationGrandfatheringEnabledAtDifferentLevels() throws Exception {
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Organization organization = tempEntity.newOrganization();
+  public void testEvaluate_GrandfatheringNotConfiguredForAppOrOrg() throws Exception {
+    organization.setPolicyViolationGrandfatheringEnabled(null);
+    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(null);
+    new ApplicationDAO().update(application);
 
-    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
-      // Grandfathering is not configured for app or org.
-      organization.setPolicyViolationGrandfatheringEnabled(null);
-      organization.setAllowPolicyViolationGrandfatheringOverride(true);
-      organizationDAO.update(organization);
-      application = tempEntity.newApplication(organization.getId());
-      application.setPolicyViolationGrandfatheringEnabled(null);
-      applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(false, false);
+    testEvaluate_GrandfatheredViolations(false, false);
+  }
 
-      // The app can override grandfathering and grandfathering is enabled for app.
-      application = tempEntity.newApplication(organization.getId());
-      application.setPolicyViolationGrandfatheringEnabled(true);
-      applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(true, true);
+  @Test
+  public void testEvaluate_GrandfatheringEnabledForApp_AppCanOverrideGrandfathering() throws Exception {
+    organization.setPolicyViolationGrandfatheringEnabled(false);
+    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
 
-      // The app cannot override grandfathering and grandfathering is disabled for org.
-      organization.setAllowPolicyViolationGrandfatheringOverride(false);
-      organizationDAO.update(organization);
-      application = tempEntity.newApplication(organization.getId());
-      application.setPolicyViolationGrandfatheringEnabled(true);
-      applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(false, false);
+    testEvaluate_GrandfatheredViolations(true, true);
+  }
 
-      // The app cannot override grandfathering and grandfathering is enabled for org.
-      organization.setPolicyViolationGrandfatheringEnabled(true);
-      organization.setAllowPolicyViolationGrandfatheringOverride(false);
-      organizationDAO.update(organization);
-      application = tempEntity.newApplication(organization.getId());
-      application.setPolicyViolationGrandfatheringEnabled(false);
-      applicationDAO.update(application);
-      testEvaluate_GrandfatheredViolations(true, true);
-    }
+  @Test
+  public void testEvaluate_GrandfatheringEnabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    organization.setPolicyViolationGrandfatheringEnabled(false);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    testEvaluate_GrandfatheredViolations(false, false);
+  }
+
+  @Test
+  public void testEvaluate_GrandfatheringEnabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
+      throws Exception
+  {
+    organization.setPolicyViolationGrandfatheringEnabled(true);
+    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    new OrganizationDAO().update(organization);
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    testEvaluate_GrandfatheredViolations(true, true);
   }
 
   @Test

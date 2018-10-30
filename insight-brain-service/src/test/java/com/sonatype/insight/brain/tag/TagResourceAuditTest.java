@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.tag;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.audit.AuditDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class TagResourceAuditTest
+    extends AbstractAuditTest
+{
+  private Organization organization;
+
+  @Before
+  public void before() {
+    organization = tempEntity.newOrganization();
+  }
+
+  @Test
+  public void testAddTag() throws Exception {
+    Tag tag = restRequest().body(tag()).post().getBody(Tag.class);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION_CATEGORY, null);
+    assertOrganizationData(auditDTO, organization);
+    assertTagData(auditDTO, tag);
+  }
+
+  @Test
+  public void testAddTag_Unauthorized() throws Exception {
+    restRequest().with(unauthorizedUser()).body(tag()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION_CATEGORY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  private Tag tag() {
+    return new Tag(null, "name", "description", Color.yellow);
+  }
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(TagResource.RESOURCE_PATH, TagResource.ORGANIZATION_PATH)
+        .parameter(organization.getId());
+  }
+
+  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
+    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
+    assertStandardData(auditDTO, auditEvent, error);
+    return auditDTO;
+  }
+
+  private void assertTagData(AuditDTO auditDTO, Tag tag) {
+    assertCustomData(auditDTO, "applicationCategoryId", tag.getId());
+    assertCustomData(auditDTO, "applicationCategoryName", tag.getName());
+    assertCustomData(auditDTO, "applicationCategoryDescription", tag.getDescription());
+    assertCustomData(auditDTO, "applicationCategoryColor", tag.getColor().toValue());
+  }
+}

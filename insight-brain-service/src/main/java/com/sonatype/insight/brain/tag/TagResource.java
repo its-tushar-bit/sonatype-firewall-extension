@@ -19,6 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
@@ -94,6 +96,7 @@ public class TagResource
   @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_APPLICATION_CATEGORY)
   public Tag addTag(@PathParam("organizationId") String organizationId, Tag tag) {
     return service.addTag(organizationId, tag);
   }

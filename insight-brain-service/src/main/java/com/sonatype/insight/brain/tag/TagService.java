@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -126,6 +127,7 @@ class TagService
     tagDAO.insert(tag);
 
     managementEventService.postEvent(CREATED, tag);
+    auditApplicationCategory(tag);
 
     return tag;
   }
@@ -306,5 +308,11 @@ class TagService
       }
     }
     throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
+  }
+
+  private void auditApplicationCategory(Tag tag) {
+    AuditData.get().setData("applicationCategoryId", tag.getId()).setData("applicationCategoryName", tag.getName())
+        .setData("applicationCategoryDescription", tag.getDescription())
+        .setEnum("applicationCategoryColor", tag.getColor());
   }
 }

@@ -131,7 +131,7 @@ public class PolicyImportExportTest
 
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
       tx.begin();
-      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, toOrg.getId());
+      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, toOrg);
       tx.commit();
     }
 

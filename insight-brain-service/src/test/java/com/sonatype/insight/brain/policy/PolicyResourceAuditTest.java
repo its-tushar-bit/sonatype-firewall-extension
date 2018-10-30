@@ -15,11 +15,13 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -37,9 +39,14 @@ public class PolicyResourceAuditTest
 {
   private Organization organization;
 
+  private Organization rootOrganization;
+
+  private static final String LONG_LABEL_NAME = "thisNameIsTooLong________________________________51";
+
   @Before
   public void before() {
     organization = tempEntity.newOrganization();
+    rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -50,7 +57,7 @@ public class PolicyResourceAuditTest
     policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
     policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
 
-    restRequest(OwnerType.ORGANIZATION, organization.getId()).path("import").part("file", "file", policyExportResult)
+    restRequest(organization).path("import").part("file", "file", policyExportResult)
         .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null);
@@ -63,7 +70,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
 
-    restRequest(OwnerType.ORGANIZATION, organization.getId()).with(unauthorizedUser()).path("import")
+    restRequest(organization).with(unauthorizedUser()).path("import")
         .part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "unauthorized");
@@ -81,8 +88,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
 
-    restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).path("import")
-        .part("file", "file", policyExportResult).post();
+    restRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_WAIVER, null);
     assertApplicationData(auditDTOs.get(0), application);
@@ -99,13 +105,11 @@ public class PolicyResourceAuditTest
     PolicyWaiver policyWaiver = savePolicyWaiver(policy.getId(), organization.getId());
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
-    policyExportResult.labels = Collections.singletonList(
-        new Label(organization.getId(), "thisNameIsTooLong________________________________51", "description",
-            Color.yellow));
+    policyExportResult.labels = Collections
+        .singletonList(new Label(organization.getId(), LONG_LABEL_NAME, "description", Color.yellow));
 
-    restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).path("import")
-        .part("file", "file", policyExportResult).post();
-    
+    restRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
+
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, 1, 1, 0, 0);
@@ -113,8 +117,51 @@ public class PolicyResourceAuditTest
     assertThat(awaitLogEntries(AuditEvent.DELETE_WAIVER, 0), empty());
   }
 
-  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(ownerType, ownerId);
+  @Test
+  public void testImportPolicies_ImportNewLabel() throws Exception {
+    Label label = new Label(organization.getId(), "labelName", "labelDescription", Color.dark_blue);
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.labels = Arrays.asList(label);
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LABEL, null);
+    assertOrganizationData(auditDTO, organization);
+    assertLabelData(auditDTO, label);
+  }
+
+  @Test
+  public void testImportPolicies_ImportExistingLabel() throws Exception {
+    Label existingLabel = tempEntity.newLabel(organization.getId(), "labelName", "labelDescription", Color.dark_blue);
+    Label importedLabel = new Label(organization.getId(), existingLabel.getLabel(), "newLabelDescription",
+        Color.dark_red);
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.labels = Arrays.asList(importedLabel);
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LABEL, null);
+    assertOrganizationData(auditDTO, organization);
+    assertLabelData(auditDTO, importedLabel);
+    assertCustomData(auditDTO, "labelId", existingLabel.getId());
+  }
+
+  @Test
+  public void testImportPolicies_ImportLongLabel_BadRequest() throws Exception {
+    Label label = new Label(organization.getId(), LONG_LABEL_NAME, "labelDescription", Color.dark_blue);
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.labels = Arrays.asList(label);
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
+    assertOrganizationData(auditDTO, organization);
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_LABEL, 0), empty());
+  }
+
+  private HttpRequest restRequest(Owner owner) {
+    return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());
   }
 
   private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
@@ -161,5 +208,14 @@ public class PolicyResourceAuditTest
       assertCustomObject(auditDTO, "policyConstraints",
           policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
     }
+  }
+
+  private void assertLabelData(final AuditDTO auditDTO, final Label label) {
+    LabelDAO labelDAO = new LabelDAO();
+    String labelId = (String) auditDTO.data.get("labelId");
+    assertThat(labelDAO.getById(labelId), is(notNullValue()));
+    assertCustomData(auditDTO, "labelName", label.getLabel());
+    assertCustomData(auditDTO, "labelDescription", label.getDescription());
+    assertCustomData(auditDTO, "labelColor", label.getColor().toValue());
   }
 }

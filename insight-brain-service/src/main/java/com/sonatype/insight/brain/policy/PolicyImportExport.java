@@ -125,7 +125,7 @@ public class PolicyImportExport
       tx.begin();
 
       deleteFromOwnerAndDescendants(tx, organization);
-      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), orgId);
+      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), organization);
       importLicenseThreatGroups(tx, exportDTO, orgId);
       importAndMergeTags(tx, exportDTO, orgId);
 
@@ -246,20 +246,19 @@ public class PolicyImportExport
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param oldLabels already persisted labels
-   * @param organizationId the organizationId owning the labels
+   * @param organization the organization owning the labels
    */
   void importAndMergeLabels(final TransactionContext tx,
                             final PolicyExportResult exportDTO,
                             final List<Label> oldLabels,
-                            final String organizationId)
+                            final Organization organization)
   {
     if (!exportDTO.labels.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
-      if (organizationId != null) {
-        for (Label label : labelDAO.getByOwnerId(tx, organizationId)) {
-          idMap.put(label.getId(), label.getId());
-        }
+      for (Label label : labelDAO.getByOwnerId(tx, organization.getId())) {
+        idMap.put(label.getId(), label.getId());
       }
+
       for (Label label : exportDTO.labels) {
         String labelId = label.getId();
         Label existingLabel = getLabelByName(oldLabels, label);
@@ -270,15 +269,18 @@ public class PolicyImportExport
           existingLabel.setDescription(label.getDescription());
           labelDAO.update(tx, existingLabel);
           idMap.put(labelId, existingLabel.getId());
+          auditImportLabel(organization, existingLabel);
         }
         else {
           // New label, create it.
           label.setId(null);
-          label.setOwnerId(organizationId);
+          label.setOwnerId(organization.getId());
           label.setColor(label.getColor().getUpdatedColor());
           labelDAO.insert(tx, label);
           idMap.put(labelId, label.getId());
+          auditImportLabel(organization, label);
         }
+
       }
       for (Policy policy : exportDTO.policies) {
         for (Constraint constraint : policy.getConstraints()) {
@@ -447,6 +449,13 @@ public class PolicyImportExport
     if (policyWaiver.getConstraintFacts() != null) {
       AuditData.get().setData("policyConstraints",
           policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    }
+  }
+
+  private void auditImportLabel(Organization organization, Label label) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_LABEL, false)) {
+      AuditData.get().setOrganization(organization).setLabel(label).setData("labelDescription", label.getDescription())
+          .setEnum("labelColor", label.getColor());
     }
   }
 }

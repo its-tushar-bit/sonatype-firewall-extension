@@ -73,6 +73,10 @@ $iq-modal-bottom-spacing: 8px;
       color: $iq-grey-4;
     }
   }
+  
+  > p {
+    margin-top: 0;
+  }
 }
 
 .iq-modal-footer {

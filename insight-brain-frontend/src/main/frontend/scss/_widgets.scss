@@ -772,25 +772,8 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 /*
   #Root Organization Migrate Banner
 */
-root-organization-migrate {
-  display: block;
-  margin: 0px 8px 0px 8px;
-
-  #root-org-migrate-banner a {
-    color: $iq-link-color;
-  }
-  
-  .alert {
-    margin-top: 8px;
-  }
-}
-
 .dashboard-body-container root-organization-migrate {
   margin: 0;
-}
-
-#root-organization-migrate-modal .control-group {
-  margin-top: 20px;
 }
 
 #root-organization-migrate-modal iq-radio {

@@ -7,49 +7,64 @@
       <i class='icon-time'></i> Loading
     </div>
     <div ng-if="vm.waitingForReload" class="iq-modal-content">
-      <p>Root organization has been enabled.  The page will reload in a moment, or <a id="reload-app-link" href='#' ng-click='vm.reloadApp()'>refresh</a> now</p>
+      <p>
+        Root organization has been enabled. The page will reload in a moment, or
+        <a id="reload-app-link" href='#' ng-click='vm.reloadApp()'>refresh</a> now.
+      </p>
     </div>
     <div ng-if="vm.organizations && !vm.waitingForReload">
       <form name="rootOrganizationMigrateForm" ng-submit="vm.selectTemplate()">
         <div class="iq-modal-content">
-          <div>
-            Make sure you have <a target="_blank" href="http://links.sonatype.com/products/clm/doc/backup/{{vm.majorMinorVersion}}">backed
-            up the IQ Server</a> and read the <a target="_blank" href="http://links.sonatype.com/products/clm/doc/upgrade/{{vm.majorMinorVersion}}">
-            upgrade instructions</a> before proceeding. You are about to permanently change your configuration by adding the
-            Root Organization to the top of the system hierarchy; there is no undo for this change.
-          </div>
-          <div class="control-group">
-            <label class="control-label">Configure the Root Organization by:</label>
-            <div class="controls">
-              <iq-radio id="select-organization-radio-button" 
-                        model="vm.migrateSelection" 
-                        value="'selectOrganization'"><!--
-                -->Copying the configuration of an existing organization to the Root Organization. This includes 
-                policies, labels, license threat groups, tags, and policy monitoring but not security settings.
-              </iq-radio>
-              <div id="migrate-organization-wrapper">
-                <select id="migrate-organization" ng-required="vm.migrateSelection == 'selectOrganization'" ng-model="vm.organization" ng-disabled="vm.migrateSelection !== 'selectOrganization'" ng-options="organization.name for organization in vm.organizations">
-                  <option value="" selected>-- Select Organization --</option>
-                </select>
-              </div>
-              <iq-radio id="empty-root-radio-button" model="vm.migrateSelection" value="'none'"><!--
-                -->Creating an empty Root Organization. This choice is discouraged because once the Root Organization is
-                created, moving policy from existing organizations or applications becomes a manual task.
-              </iq-radio>
+          <p>
+            Make sure you have 
+            <a target="_blank" href="http://links.sonatype.com/products/clm/doc/backup/{{vm.majorMinorVersion}}">
+            backed up the IQ Server</a> and read the 
+            <a target="_blank" href="http://links.sonatype.com/products/clm/doc/upgrade/{{vm.majorMinorVersion}}">
+            upgrade instructions</a> before proceeding. You are about to permanently change your configuration by adding
+            the Root Organization to the top of the system hierarchy; there is no undo for this change.
+          </p>
+          <fieldset class="iq-form-group">
+            <label class="iq-label">Configure the Root Organization by:</label>
+            <iq-radio id="select-organization-radio-button" 
+                      model="vm.migrateSelection" 
+                      value="'selectOrganization'"><!--
+              -->Copying the configuration of an existing organization to the Root Organization. This includes 
+              policies, labels, license threat groups, tags, and policy monitoring but not security settings.
+            </iq-radio>
+            <div id="migrate-organization-wrapper" class="iq-form-group">
+              <select id="migrate-organization"
+                      ng-required="vm.migrateSelection == 'selectOrganization'"
+                      ng-model="vm.organization"
+                      ng-disabled="vm.migrateSelection !== 'selectOrganization'"
+                      ng-options="organization.name for organization in vm.organizations">
+                <option value="" selected>-- Select Organization --</option>
+              </select>
             </div>
-          </div>
+            <iq-radio id="empty-root-radio-button" model="vm.migrateSelection" value="'none'"><!--
+              -->Creating an empty Root Organization. This choice is discouraged because once the Root Organization is
+              created, moving policy from existing organizations or applications becomes a manual task.
+            </iq-radio>
+          </fieldset>
         </div>
         <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-          <div ng-if="vm.error" class="section with-icon">
+          <div ng-if="vm.error">
             {{ vm.error }}
           </div>
-          <button id="root-org-migrate-continue" ng-if="!vm.error" class="btn btn-primary" type="submit" ng-disabled="vm.migrateSelection === 'selectOrganization' && !vm.organization">
+          <button id="root-org-migrate-continue"
+                  ng-if="!vm.error"
+                  class="iq-btn iq-btn--primary"
+                  type="submit"
+                  ng-disabled="vm.migrateSelection === 'selectOrganization' && !vm.organization">
             Continue
           </button>
-          <button id="root-org-migrate-retry" ng-if="vm.error" class="btn btn-error" type="submit" ng-disabled="vm.migrateSelection === 'selectOrganization' && !vm.organization">
+          <button id="root-org-migrate-retry"
+                  ng-if="vm.error"
+                  class="iq-btn iq-btn--error"
+                  type="submit"
+                  ng-disabled="vm.migrateSelection === 'selectOrganization' && !vm.organization">
             Retry
           </button>
-          <button id="root-org-migrate-cancel" class="btn" type="button" ng-click="$dismiss()">Cancel</button>
+          <button id="root-org-migrate-cancel" class="iq-btn" type="button" ng-click="$dismiss()">Cancel</button>
         </div>
       </form>
     </div>

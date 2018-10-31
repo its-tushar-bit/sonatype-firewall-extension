@@ -110,6 +110,10 @@ public class ApplicationReportPage
       return child(".iq-cell--application-report-component-display");
     }
 
+    public SelenideElement grandfatheredIndicator() {
+      return child(".iq-text-indicator--grandfathered");
+    }
+
     public SelenideElement waivedIndicator() {
       return child(".iq-text-indicator--waived");
     }

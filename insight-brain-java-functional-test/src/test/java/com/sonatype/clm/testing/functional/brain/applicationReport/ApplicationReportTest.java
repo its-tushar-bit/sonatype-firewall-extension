@@ -16,10 +16,17 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverag
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
+import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -51,6 +58,14 @@ public class ApplicationReportTest
   private Application app;
 
   private TestReportEvaluator evaluator;
+
+  private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private PolicyDAO policyDAO = new PolicyDAO();
+
+  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService = new PolicyViolationGrandfatheringService(
+      applicationDAO, new OrganizationDAO(), policyDAO, new PolicyViolationDAO(),
+      new PolicyViolationPersistenceLocks());
 
   @BeforeClass
   public static void startup() {
@@ -104,14 +119,14 @@ public class ApplicationReportTest
   }
 
   @Test
-  public void testWaivedIndicator() throws Exception {
+  public void testIndicators() throws Exception {
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(hidden);
     reportPage.resultRow(2).waivedIndicator().shouldBe(hidden);
 
-    tempEntity.newWaiver(licenseBanned.getId(), app.getId());
+    PolicyWaiver waiver = tempEntity.newWaiver(licenseBanned.getId(), app.getId());
     evaluator.reevaluatePolicy();
     refresh();
 
@@ -122,8 +137,35 @@ public class ApplicationReportTest
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(2).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
+    reportPage.resultRow(2).grandfatheredIndicator().shouldNotBe(visible);
+
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    licenseBanned.setPolicyViolationGrandfatheringAllowed(true);
+    applicationDAO.update(app);
+    policyDAO.update(licenseBanned);
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    evaluator.reevaluatePolicy();
+    refresh();
+    reportPage.showAllViolationsRadio().click();
+    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
+
+    // now the grandfathered indicator should appear
+    reportPage.resultRows().shouldHaveSize(2);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
 
     eyesWatcher.eyesCheck();
+
+    new PolicyWaiverDAO().delete(waiver);
+    evaluator.reevaluatePolicy();
+    refresh();
+    reportPage.showAllViolationsRadio().click();
+    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
+
+    reportPage.resultRows().shouldHaveSize(2);
+    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
   }
 
   @Test

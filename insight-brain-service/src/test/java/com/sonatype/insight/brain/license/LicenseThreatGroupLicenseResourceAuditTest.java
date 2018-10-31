@@ -26,12 +26,6 @@ public class LicenseThreatGroupLicenseResourceAuditTest
         owner.getPublicId(), ltgId);
   }
 
-  private AuditDTO assertAuditLog(AuditEvent event, String error) {
-    AuditDTO auditDTO = awaitLogEntries(event, 1).get(0);
-    assertStandardData(auditDTO, event, error);
-    return auditDTO;
-  }
-
   private void assertLicenseData(AuditDTO auditDTO, LicenseThreatGroup ltg, String... licenseNames) {
     assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
     assertCustomData(auditDTO, "licenseThreatGroupName", ltg.getName());

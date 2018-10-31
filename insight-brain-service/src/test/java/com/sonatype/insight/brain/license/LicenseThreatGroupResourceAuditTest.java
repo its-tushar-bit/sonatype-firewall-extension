@@ -23,12 +23,6 @@ public class LicenseThreatGroupResourceAuditTest
     return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());
   }
 
-  private AuditDTO assertAuditLog(AuditEvent event, String error) {
-    AuditDTO auditDTO = awaitLogEntries(event, 1).get(0);
-    assertStandardData(auditDTO, event, error);
-    return auditDTO;
-  }
-
   private void assertLicenseThreatGroupData(AuditDTO auditDTO, LicenseThreatGroup ltg) {
     assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
     assertCustomData(auditDTO, "licenseThreatGroupName", ltg.getName());

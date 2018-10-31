@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -78,6 +80,37 @@ public class PolicyResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "unauthorized");
     assertOrganizationData(auditDTO, organization);
     assertPolicyImportData(auditDTO, null, null, null, null);
+  }
+
+  @Test
+  public void testImportPolicies_LogDeletedLicenseThreatGroups() throws Exception {
+    Application application = tempEntity.newApplication(organization.getId());
+    LicenseThreatGroup organizationLTG = tempEntity.newLicenseThreatGroup(organization.getId());
+    LicenseThreatGroup applicationLTG = tempEntity.newLicenseThreatGroup(application.getId());
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 2, null);
+    assertApplicationData(auditDTOs.get(0), application);
+    assertLicenseThreatGroupData(auditDTOs.get(0), applicationLTG);
+    assertOrganizationData(auditDTOs.get(1), organization);
+    assertLicenseThreatGroupData(auditDTOs.get(1), organizationLTG);
+  }
+
+  @Test
+  public void testImportPolicies_DontLogDeletedLicenseThreatGroupsIfTransactionFails() throws Exception {
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId());
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.labels = Arrays.asList(new Label(organization.getId(), LONG_LABEL_NAME));
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    assertAuditLog(AuditEvent.IMPORT, "bad-request");
+    assertThat(awaitLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 0), empty());
+    assertThat(new LicenseThreatGroupDAO().getById(ltg.getId()), is(notNullValue()));
   }
 
   @Test
@@ -213,6 +246,12 @@ public class PolicyResourceAuditTest
 
   private ConditionFact conditionFact(String summary, String reason) {
     return new ConditionFact("conditionTypeId", 0, summary, reason);
+  }
+
+  private void assertLicenseThreatGroupData(AuditDTO auditDTO, LicenseThreatGroup ltg) {
+    assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
+    assertCustomData(auditDTO, "licenseThreatGroupName", ltg.getName());
+    assertCustomData(auditDTO, "licenseThreatGroupThreatLevel", ltg.getThreatLevel());
   }
 
   private void assertDeletePolicyWaiverData(AuditDTO auditDTO, Policy policy, PolicyWaiver policyWaiver) {

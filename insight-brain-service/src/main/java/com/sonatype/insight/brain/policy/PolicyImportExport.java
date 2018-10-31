@@ -163,19 +163,23 @@ public class PolicyImportExport
       deleteFromOwnerAndDescendants(tx, childOwner);
     }
     deletePolicyWaivers(tx, owner);
-    deleteLicenseThreatGroups(tx, owner.getId());
+    deleteLicenseThreatGroups(tx, owner);
     policyDAO.deleteByOwnerId(tx, owner.getId());
   }
 
   /**
    * Delete all LTGs from the specified owner.
    */
-  private void deleteLicenseThreatGroups(TransactionContext tx, String ownerId) {
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, ownerId);
+  private void deleteLicenseThreatGroups(TransactionContext tx, Owner owner) {
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, owner.getId());
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       log.debug("Deleting licenseThreatGroup: {} during import from ownerId: {}", licenseThreatGroup.getName(),
-          ownerId);
+          owner.getId());
       licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
+      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_LICENSE_THREAT_GROUP, false)) {
+        AuditData.get().setOwner(owner).setLicenseThreatGroup(licenseThreatGroup)
+            .setData("licenseThreatGroupThreatLevel", licenseThreatGroup.getThreatLevel());
+      }
     }
   }
 

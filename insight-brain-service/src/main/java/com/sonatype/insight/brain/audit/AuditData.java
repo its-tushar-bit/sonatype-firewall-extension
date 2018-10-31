@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -16,8 +18,13 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.policy.ActionDTO;
+import com.sonatype.insight.brain.policy.ConstraintDTO;
+import com.sonatype.insight.brain.policy.NotificationDTO;
 
 /**
  * The data for one audit record. Code populates audit data for the current operation/event using
@@ -219,6 +226,43 @@ public abstract class AuditData
 
   AuditData setLabelName(String labelName) {
     setData("labelName", labelName);
+    return this;
+  }
+
+  public AuditData setPolicyWithDetails(Policy policy) {
+    if (policy != null) {
+      setPolicy(policy);
+      setPolicyThreatLevel(policy.getThreatLevel());
+      setPolicyGrandfatheringMode(policy.isPolicyViolationGrandfatheringAllowed());
+      setPolicyConstraints(policy.getConstraints());
+      setPolicyActions(policy.getActions());
+      setPolicyNotifications(policy.getNotifications());
+    }
+    return this;
+  }
+
+  AuditData setPolicyNotifications(final Notifications notifications) {
+    setData("notifications", NotificationDTO.transcribe(notifications));
+    return this;
+  }
+
+  AuditData setPolicyActions(final Map<String, String> actions) {
+    setData("actions", ActionDTO.transcribe(actions));
+    return this;
+  }
+
+  AuditData setPolicyConstraints(final List<Constraint> policyConstraints) {
+    setData("policyConstraints", ConstraintDTO.transcribe(policyConstraints));
+    return this;
+  }
+
+  AuditData setPolicyGrandfatheringMode(final boolean policyViolationGrandfatheringAllowed) {
+    setData("policyGrandfatheringMode", policyViolationGrandfatheringAllowed ? "allow" : "disallow");
+    return this;
+  }
+
+  AuditData setPolicyThreatLevel(final int threatLevel) {
+    setData("policyThreatLevel", threatLevel);
     return this;
   }
 

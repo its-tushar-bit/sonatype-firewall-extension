@@ -8,10 +8,12 @@ package com.sonatype.insight.brain.policy;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -27,8 +29,21 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
@@ -280,6 +295,68 @@ public class PolicyResourceAuditTest
     assertThat(awaitLogEntries(AuditEvent.IMPORT_APPLICATION_CATEGORY, 0), empty());
   }
 
+  @Test
+  public void testAddPolicy_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = aComplexPolicy();
+    addPolicy(app, policy);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyData(auditDTO, policy);
+  }
+
+  @Test
+  public void testAddPolicy_Organization() throws Exception {
+    Policy policy = aComplexPolicy();
+    addPolicy(organization, policy);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyData(auditDTO, policy);
+  }
+
+  @Test
+  public void testAddPolicy_Unauthorized() throws Exception {
+    Policy policy = policy();
+    restRequest(organization).with(unauthorizedUser()).body(policy).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  private void addPolicy(final Owner owner, final Policy policy) throws Exception {
+    restRequest(owner).body(policy).post();
+  }
+
+  private Policy aComplexPolicy() {
+    Policy policy = policy();
+    policy.setConstraints(Arrays.asList(
+        constraint("c1", LogicalOperator.AND,
+            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"),
+            condition(ConditionTypes.MatchStateConditionType.getId(), "is", "exact")),
+        constraint("c2", LogicalOperator.OR,
+            condition(AgeInDaysConditionType.ID, "older than", "1"),
+            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"))));
+    policy.setAction(Stage.ID_BUILD, WarnActionType.ID);
+    policy.setAction(Stage.ID_RELEASE, FailActionType.ID);
+    policy.setNotifications(new Notifications(
+        new UserNotification("name@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE),
+        new RoleNotification(Role.DEVELOPER_ROLE_ID, Stage.ID_BUILD),
+        new JiraNotification("p1", 123L, Stage.ID_DEVELOP)
+    ));
+    return policy;
+  }
+
+  private void assertPolicyData(final AuditDTO auditDTO, final Policy policy) {
+    assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
+    assertCustomData(auditDTO, "policyGrandfatheringMode",
+        policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
+    assertCustomObject(auditDTO, "policyConstraints", ConstraintDTO.transcribe(policy.getConstraints()));
+    assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
+    assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
+  }
+
   private PolicyWaiver savePolicyWaiver(String policyId, String ownerId) {
     return tempEntity.newWaiver("hash", policyId, ownerId, constraintFacts(), "comment");
   }
@@ -349,5 +426,15 @@ public class PolicyResourceAuditTest
     assertCustomData(auditDTO, "applicationCategoryName", savedTag.getName());
     assertCustomData(auditDTO, "applicationCategoryDescription", savedTag.getDescription());
     assertCustomData(auditDTO, "applicationCategoryColor", savedTag.getColor().toValue());
+  }
+
+  private Condition condition(final String conditionTypeId, final String operator, final String value) {
+    return new Condition(conditionTypeId, operator, value);
+  }
+
+  private Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
+    Constraint constraint = new Constraint(UUID.randomUUID().toString(), name, logicalOperator);
+    constraint.setConditions(Arrays.asList(conditions));
+    return constraint;
   }
 }

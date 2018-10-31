@@ -29,6 +29,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -152,6 +153,7 @@ public class PolicyResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CREATE_POLICY)
   public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
                           @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
                           final Policy policy)
@@ -161,7 +163,7 @@ public class PolicyResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     policy.setOwnerId(internalOwnerId);
     new PolicyDAO().insert(policy);
-
+    AuditData.get().setPolicyWithDetails(policy);
     managementEventService.postEvent(CREATED, policy);
 
     return policy;

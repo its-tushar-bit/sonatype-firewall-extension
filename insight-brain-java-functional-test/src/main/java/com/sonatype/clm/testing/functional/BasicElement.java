@@ -11,7 +11,6 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public abstract class BasicElement<T extends BasicElement<T>>

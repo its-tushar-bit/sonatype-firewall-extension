@@ -6,9 +6,9 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
+import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -24,6 +24,8 @@ public class ApplicationReportPage
     extends BasicElement<ApplicationReportPage>
 {
   public static final String ROOT = "#application-report";
+
+  private final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
 
   public static String url(Application app, String scanId) {
     return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}", app.getPublicId(), scanId);
@@ -54,11 +56,19 @@ public class ApplicationReportPage
   }
 
   public ElementsCollection resultRows() {
-    return children(".iq-table--application-report tbody .iq-table-row");
+    return children(ROW_SELECTOR);
   }
 
   public ResultRow resultRow(int i) {
-    return new ResultRow(childSelector(".iq-table--application-report tbody .iq-table-row", nthChild(i)));
+    return new ResultRow(childSelector(ROW_SELECTOR, nthChild(i)));
+  }
+
+  public ResultRow lastResultRow() {
+    return new ResultRow(childSelector(ROW_SELECTOR + ":last-child"));
+  }
+
+  public ElementsCollection getThreatBars(String threatLevel) {
+    return children(ROW_SELECTOR, ".iq-threat-indication." + threatLevel);
   }
 
   public CipModal cipModal() {
@@ -80,8 +90,8 @@ public class ApplicationReportPage
   public static class ResultRow
       extends BasicElement<ResultRow>
   {
-    public ResultRow(String childSelector) {
-      super(childSelector);
+    public ResultRow(String selector) {
+      super(selector);
     }
 
     public SelenideElement threatBar() {

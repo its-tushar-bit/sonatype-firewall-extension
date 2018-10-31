@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +101,9 @@ public class PolicyImportExport
    * @return result embedding the url of the organization
    */
   @Authorize(permission = Permission.WRITE)
-  PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
-                                        PolicyExportResult exportDTO)
+  @VisibleForTesting
+  public PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
+                                               PolicyExportResult exportDTO)
   {
     return importOrganizationWithoutAuthorizationCheck(organization, exportDTO);
   }

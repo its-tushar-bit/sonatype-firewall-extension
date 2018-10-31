@@ -7,77 +7,50 @@ package com.sonatype.clm.testing.functional.brain.applicationReport;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
-import com.sonatype.clm.testing.functional.elements.LabelsCIP;
-import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
-import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
-import com.sonatype.clm.testing.functional.elements.VersionsCIP;
-import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
-import com.sonatype.clm.testing.functional.pages.WaiverCip;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
-import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.policy.PolicyExportResult;
+import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
-import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNull;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchesText;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class ApplicationReportTest
     extends AbstractFunctionalTest
 {
-  public static final String SCAN_ID = "306e0a923df34c64b836358182b1b902";
-
-  private static final ComponentIdentifier JAVANCSS_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("javancss",
-      "javancss", "29.50");
-  private static final String JAVANCSS_HASH = "9aba4af169a1a3baa67f";
+  public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
   private Application app;
 
   private TestReportEvaluator evaluator;
-
-  private Policy policy;
 
   @BeforeClass
   public static void startup() {
@@ -87,13 +60,16 @@ public class ApplicationReportTest
 
   @Before
   public void start() throws IOException {
-    app = tempEntity.newApplicationWithParent("ApplicationReportTest", "ApplicationReportTest");
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
+    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
+    PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
+    PolicyImportExport policyImportExport = new PolicyImportExport();
+
+    Organization org = tempEntity.newOrganization();
+    policyImportExport.importOrganization(org, referencePolicies);
+    app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
-    Constraint constraint = new Constraint("C1", "All coordinates", LogicalOperator.AND);
-    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:javancss*"));
-    policy = tempEntity.newPolicy("ApplicationReportTest Policy", constraint);
     evaluator.evaluatePolicy();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
@@ -104,15 +80,15 @@ public class ApplicationReportTest
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
-    reportPage.threatIndicators().critical().shouldHave(text("0"));
-    reportPage.threatIndicators().severe().shouldHave(text("1"));
-    reportPage.threatIndicators().moderate().shouldHave(text("0"));
-    reportPage.threatIndicators().caption().shouldHave(exactText("1 Violation"));
-    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 1 component"));
+    reportPage.threatIndicators().critical().shouldHave(text("22"));
+    reportPage.threatIndicators().severe().shouldHave(text("38"));
+    reportPage.threatIndicators().moderate().shouldHave(text("4"));
+    reportPage.threatIndicators().caption().shouldHave(exactText("64 Violations"));
+    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 26 components"));
 
     IQCoverageIndicator coverageIndicator = reportPage.coverageIndicator();
-    coverageIndicator.caption().shouldHave(exactText("4 COMPONENTS"));
-    coverageIndicator.subCaption().shouldHave(exactText("100% of all components identified"));
+    coverageIndicator.caption().shouldHave(exactText("63 COMPONENTS"));
+    coverageIndicator.subCaption().shouldHave(exactText("97% of all components identified"));
     coverageIndicator.donutChart().shouldBe(visible);
   }
 
@@ -123,290 +99,29 @@ public class ApplicationReportTest
     optionsDropdown.button().shouldHave(text("Options")).click();
     optionsDropdown.menu().shouldBe(visible).entries()
         .shouldHave(texts("Re-Evaluate Report", "Generate PDF", "View raw data"));
+
     eyesWatcher.eyesCheck();
   }
 
   @Test
-  public void testResults() {
-    reportPage.resultRows().shouldHaveSize(4);
-    reportPage.resultRow(1).threatBar().shouldHave(cssClass("severe"));
-    reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
-    reportPage.resultRow(1).policyName().shouldHave(text(policy.getName()));
-    for (int i = 2; i <= 4; i++) {
-      reportPage.resultRow(i).threatBar().shouldHave(cssClass("ignore"));
-      reportPage.resultRow(i).threatNumber().shouldHave(text("0"));
-      reportPage.resultRow(i).policyName().shouldHave(text("None"));
-    }
-    reportPage.resultRow(1).componentName().shouldHave(text("javancss : javancss : 29.50"));
-    reportPage.resultRow(2).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    reportPage.resultRow(3).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
-    reportPage.resultRow(4).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-  }
-
-  @Test
-  public void testCIP() throws Exception {
-    setupHdsResponse();
-    CipModal cipModal = reportPage.cipModal();
-
-    // Close, Prev and Next buttons
-    reportPage.resultRow(1).click();
-    cipModal.getElement().shouldBe(visible);
-
-    cipModal.header().shouldHave(exactText("javancss : javancss : 29.50"));
-    cipModal.previousButton().shouldBe(disabled);
-    cipModal.nextButton().shouldBe(enabled).click();
-
-    cipModal.header().shouldHave(exactText("ch.qos.logback : logback-access : 0.6"));
-    cipModal.previousButton().shouldBe(enabled);
-    cipModal.nextButton().shouldBe(enabled).click();
-    cipModal.closeButton().click();
-    cipModal.getElement().shouldBe(hidden);
-
-    reportPage.resultRow(4).click();
-    cipModal.getElement().shouldBe(visible);
-
-    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
-    cipModal.nextButton().shouldBe(disabled);
-    cipModal.previousButton().shouldBe(enabled).click();
-
-    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
-    cipModal.nextButton().shouldBe(enabled);
-    cipModal.previousButton().shouldBe(enabled);
-    cipModal.closeButton().click();
-    cipModal.getElement().shouldBe(hidden);
-
-    testComponentInfoTab();
-    testPolicyTab();
-    testLicensesTab();
-    testLabelsTab();
-  }
-
-  private void testComponentInfoTab() {
-    CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(1).click();
-    cipModal.getElement().shouldBe(visible);
-    cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
-    VersionsCIP.groupId().shouldHave(text("javancss"));
-    VersionsCIP.artifactId().shouldHave(text("javancss"));
-    VersionsCIP.version().shouldHave(text("29.50"));
-    VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
-    VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
-    VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"), cssClass("unspecified"));
-    VersionsCIP.matchState().shouldHave(text("exact"));
-    VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
-    VersionsCIP.showDetailsLink().shouldBe(visible).click();
-    VersionsCIP.hideDetailsLink().shouldBe(visible);
-    cipModal.closeButton().click();
-  }
-
-  private void testPolicyTab() throws Exception {
-    CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(1).click();
-    cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
-    cipModal.tabLink(2).shouldHave(ACTIVE_CLASS);
-    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
-    WaiverCip.rows().shouldHaveSize(1);
-    WaiverCip.row(0).shouldBe(
-        "cip-policy-orange",
-        "ApplicationReportTest Policy",
-        new String[] { "All coordinates" },
-        new String[] { "Coordinates were javancss : javancss : 29.50" });
-
-    // check that there are no existing waivers
-    WaiverCip.viewWaivers().shouldBe(visible).click();
-    ViewWaiversDialog.rows().shouldHaveSize(0);
-    ViewWaiversDialog.closeButton().click();
-
-    // Waive violation
-    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
-    AddWaiverDialog.scope(app.getPublicId()).shouldBe(visible, selected);
-    AddWaiverDialog.scope(app.getOrganizationId()).shouldBe(visible).shouldNotBe(selected);
-    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible).shouldNotBe(selected);
-
-    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected);
-    AddWaiverDialog.selectedComponent().shouldBe(visible, selected);
-    AddWaiverDialog.selectedComponent().parent()
-        .shouldHave(exactText("Selected component (javancss : javancss : 29.50)"));
-
-    AddWaiverDialog.comment().setValue("TEST COMMENT");
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
-
-    // check that there is new waiver
-    WaiverCip.viewWaivers().shouldBe(visible).click();
-    ViewWaiversDialog.rows().shouldHaveSize(1);
-    ExistingWaiver waiver = ViewWaiversDialog.row(0);
-    waiver.policy().shouldHave(text("ApplicationReportTest Policy"));
-    waiver.owner().shouldHave(text("ApplicationReportTest"));
-    waiver.comment().shouldHave(text("TEST COMMENT"));
-    waiver.removeButton().shouldBe(visible, enabled);
-
-    ViewWaiversDialog.closeButton().click();
-    cipModal.closeButton().click();
-
-    // check that policy has been waived
-    evaluator.reevaluatePolicy();
-    reportPage.resultRow(1).click();
-    cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(1);
-    WaiverCip.rows().get(0).shouldHave(text("No Policy Violations"));
-
-    // Remove waiver
-    WaiverCip.viewWaivers().shouldBe(visible).click();
-    ViewWaiversDialog.rows().shouldHaveSize(1);
-    ViewWaiversDialog.row(0).removeButton().shouldBe(visible, enabled).click();
-    ConfirmRemoveWaiverDialog.removeButton().shouldBe(visible, enabled).click();
-    ViewWaiversDialog.closeButton().click();
-    cipModal.closeButton().click();
-
-    // check that violation has been un-waived
-    evaluator.reevaluatePolicy();
-    reportPage.resultRow(1).click();
-    cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(1);
-    WaiverCip.row(0).policyName().shouldHave(text("ApplicationReportTest Policy"));
-    cipModal.closeButton().click();
-  }
-
-  private void testLicensesTab() {
-    reportPage.resultRow(1).click();
-    CipModal cipModal = reportPage.cipModal();
-    cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
-    cipModal.tabLink(5).shouldHave(ACTIVE_CLASS);
-    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
-
-    // License sidebar
-    LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(0), texts("Apache-2.0"));
-    LicenseCIP.observedLicenses().shouldHave(LicenseCIP.licenseThreats(9), texts("GPL-2.0"));
-    LicenseCIP.effectiveLicenses().shouldHave(LicenseCIP.licenseThreats(0, 9), texts("Apache-2.0", "GPL-2.0"));
-
-    // Editor default state
-    LicenseCIP.scopes().shouldHave(texts("ApplicationReportTest", "ApplicationReportTest", "Root Organization"));
-    LicenseCIP.scope().shouldHave(value("string:ApplicationReportTest"));
-    LicenseCIP.statuses().shouldHave(
-        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
-    LicenseCIP.status().shouldHave(value("Open"));
-    LicenseCIP.licenseSelector().shouldNot(exist);
-    LicenseCIP.updateButton().shouldNotBe(enabled);
-
-    // Update to Selected state
-    LicenseCIP.status().selectOption("Selected");
-    LicenseCIP.licenseSelector().button().shouldBe(visible).click();
-    LicenseCIP.licenseSelector().entries().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    LicenseCIP.licenseSelector().entry(0).click();
-    LicenseCIP.licenseSelector().button().click();
-    LicenseCIP.comment().setValue("not bad");
-    LicenseCIP.updateButton().shouldBe(enabled).click();
-
-    // Check for our override
-    LicenseCIP.effectiveLicenses().shouldHave(texts("Apache-2.0"));
-    LicenseCIP.scope().shouldHave(value("string:ApplicationReportTest"));
-    LicenseCIP.status().shouldHave(value("SELECTED"));
-    LicenseCIP.licenseSelector().should(exist);
-    LicenseCIP.updateButton().shouldNotBe(enabled);
-
-    // Verify override on backend
-    final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
-    assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
-    assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
-
-    // remove
-    LicenseCIP.status().selectOption("Inherit Status (Open)");
-    LicenseCIP.updateButton().shouldBe(enabled).click();
-
-    RepositoryReportPage.waitForComponentUpdater();
-
-    LicenseCIP.updateButton().shouldBe(disabled);
-    override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
-    assertNull(override);
-
-    cipModal.closeButton().click();
-  }
-
-  private void testLabelsTab() throws Exception {
-    Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.dark_blue);
-    Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.dark_red);
-    tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elMagnifico.getId(), JAVANCSS_HASH);
-
-    createPolicy(1, "Bad Label", LabelConditionType.ID, "is", elJunko.getId());
-
-    CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(1).click();
-    cipModal.tabLink(7).shouldNotHave(ACTIVE_CLASS).click();
-    cipModal.tabLink(7).shouldHave(ACTIVE_CLASS);
-    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
-
-    LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.appliedLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.dark_blue)).action()
-        .should(exist);
-
-    LabelsCIP.availableLabels().shouldHaveSize(1);
-    LabelsCIP.availableLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.dark_red)).action()
-        .click();
-
-    // Modal
-    AddLabelModal.root().shouldBe(visible);
-    AddLabelModal.scopes().shouldHaveSize(3);
-    AddLabelModal.saveButton().click();
-    AddLabelModal.root().shouldBe(hidden);
-
-    // label persisted
-    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH).size(), is(2));
-
-    // Check new policy violation was added
-    evaluator.reevaluatePolicy();
-    cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(2);
-    WaiverCip.row(1).shouldBe(
-        "cip-policy-darkblue",
-        "Bad Label",
-        new String[] { "Bad Label constraint" },
-        new String[] { "Found label 'El Junko'" });
-
-    // Remove the label we added
-    cipModal.tabLink(7).click();
-    LabelsCIP.appliedLabels().shouldHaveSize(2);
-    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko")).action().click();
-
-    // Confirmation modal
-    RemoveLabelModal.root().should(appear);
-    RemoveLabelModal.confirmButton().click();
-    RemoveLabelModal.root().should(disappear);
-
-    // backend check that it was removed
-    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH);
-    assertThat(appliedLabels.size(), is(1));
-    assertThat(appliedLabels.get(0).getLabelId(), is(elMagnifico.getId()));
-
-    // Check new policy violation is gone
-    evaluator.reevaluatePolicy();
-    cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(1);
-
-    cipModal.closeButton().click();
-  }
-
-  @Test
   public void testWaivedIndicator() throws Exception {
-    reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
-    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+    Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
+    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
+    reportPage.resultRows().shouldHaveSize(2);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(hidden);
+    reportPage.resultRow(2).waivedIndicator().shouldBe(hidden);
 
-    tempEntity.newWaiver(policy.getId(), app.getId());
+    tempEntity.newWaiver(licenseBanned.getId(), app.getId());
     evaluator.reevaluatePolicy();
     refresh();
 
-    // TODO check waived row (or lack thereof) when aggregating
+    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
+    reportPage.resultRows().shouldHaveSize(0);
+
     reportPage.showAllViolationsRadio().click();
-    reportPage.showAllViolationsRadio().shouldBe(selected);
-
-    reportPage.resultRows().shouldHaveSize(4);
+    reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
-
-    reportPage.threatIndicators().severe().shouldHave(text("0"));
-    reportPage.threatIndicators().caption().shouldHave(exactText("0 Violations"));
-    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 0 components"));
+    reportPage.resultRow(2).waivedIndicator().shouldBe(visible);
 
     eyesWatcher.eyesCheck();
   }
@@ -415,56 +130,85 @@ public class ApplicationReportTest
   public void testAggregation() {
     reportPage.showAggregatedViolationsRadio().shouldBe(selected);
     reportPage.showAllViolationsRadio().shouldNotBe(selected);
+    reportPage.resultRows().shouldHaveSize(63);
+    reportPage.getThreatBars("critical").shouldHaveSize(17);
+    reportPage.getThreatBars("severe").shouldHaveSize(8);
+    reportPage.getThreatBars("moderate").shouldHaveSize(1);
+    reportPage.getThreatBars("low").shouldHaveSize(0);
+    reportPage.getThreatBars("ignore").shouldHaveSize(36);
+    reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.getThreatBars("critical").shouldHaveSize(1);
 
     reportPage.showAllViolationsRadio().click();
-
     reportPage.showAggregatedViolationsRadio().shouldNotBe(selected);
     reportPage.showAllViolationsRadio().shouldBe(selected);
 
-    reportPage.resultRows().shouldHaveSize(4);
-    reportPage.resultRow(1).threatBar().shouldHave(cssClass("severe"));
-    reportPage.resultRow(1).threatNumber().shouldHave(text("5"));
-    reportPage.resultRow(1).policyName().shouldHave(text(policy.getName()));
-    for (int i = 2; i <= 4; i++) {
-      reportPage.resultRow(i).threatBar().shouldHave(cssClass("ignore"));
-      reportPage.resultRow(i).threatNumber().shouldHave(text("0"));
-      reportPage.resultRow(i).policyName().shouldHave(text("None"));
-    }
-    reportPage.resultRow(1).componentName().shouldHave(text("javancss : javancss : 29.50"));
-    reportPage.resultRow(2).componentName().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    reportPage.resultRow(3).componentName().shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
-    reportPage.resultRow(4).componentName().shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    reportPage.resultRows().shouldHaveSize(6);
+    reportPage.getThreatBars("critical").shouldHaveSize(4);
+    reportPage.getThreatBars("severe").shouldHaveSize(1);
+    reportPage.getThreatBars("moderate").shouldHaveSize(1);
+
+    reportPage.headers().componentNameFilterInput().clear();
+    reportPage.resultRows().shouldHaveSize(101);
+    reportPage.getThreatBars("critical").shouldHaveSize(22);
+    reportPage.getThreatBars("severe").shouldHaveSize(38);
+    reportPage.getThreatBars("moderate").shouldHaveSize(4);
+    reportPage.getThreatBars("low").shouldHaveSize(0);
+    reportPage.getThreatBars("ignore").shouldHaveSize(36);
   }
 
   @Test
   public void testSorting() {
     AppReportHeaders headers = reportPage.headers();
     ElementsCollection violations = reportPage.resultRows();
+    // reduce the result set so we don't need to scroll around
+    headers.componentNameFilterInput().setValue("com.");
+    violations.shouldHaveSize(8);
+
     // by threat level
     headers.threatHeader().sortArrowDown().shouldBeSelected();
-    violations.shouldHave(texts("5", "0", "0", "0"));
-    // check that '0' entries have also been sorted by component name
-    violations.shouldHave(texts("javancss", "ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+    violations.shouldHave(texts("10", "10", "9", "9", "0", "0", "0", "0"));
+    // check that entries have also been sorted by component name
+    checkSecondarySortByNameDescending(violations);
+    // reverse threat level
     headers.threatHeader().click();
     headers.threatHeader().sortArrowUp().shouldBeSelected();
-    violations.shouldHave(texts("0", "0", "0", "5"));
-    violations.shouldHave(texts("ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty", "javancss"));
+    violations.shouldHave(texts("0", "0", "0", "0", "9", "9", "10", "10"));
+    // the secondary sort should remain unchanged
+    checkSecondarySortByNameDescending(violations);
+
     // by policy name
     headers.policyNameHeader().click();
     headers.policyNameHeader().sortArrowUp().shouldBeSelected();
-    violations.shouldHave(texts("ApplicationReportTest Policy", "None", "None", "None"));
-    violations.shouldHave(texts("javancss", "ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+    violations.shouldHave(
+        texts("License-Banned", "License-Banned", "None", "None", "None", "None", "Security-High", "Security-High"));
+    checkSecondarySortByNameDescending(violations);
     headers.policyNameHeader().click();
     headers.policyNameHeader().sortArrowDown().shouldBeSelected();
-    violations.shouldHave(texts("None", "None", "None", "ApplicationReportTest Policy"));
-    violations.shouldHave(texts("ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty", "javancss"));
+    violations.shouldHave(
+        texts("Security-High", "Security-High", "None", "None", "None", "None", "License-Banned", "License-Banned"));
+    checkSecondarySortByNameDescending(violations);
+
     // by component name
+    reportPage.showAllViolationsRadio().click(); // un-aggregate in order to check secondary sort
     headers.componentNameHeader().click();
     headers.componentNameHeader().sortArrowUp().shouldBeSelected();
-    violations.shouldHave(texts("ch.qos.logback", "javancss", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+    String[] componentNamesAlpha = {
+        "com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml.jackson.core : jackson-annotations",
+        "com.fasterxml.jackson.core : jackson-core", "com.fasterxml.jackson.core : jackson-core",
+        "com.fasterxml.jackson.core : jackson-databind", "com.mycila", "com.palominolabs.metrics",
+        "com.vaadin.addon"
+    };
+    violations.shouldHave(texts(componentNamesAlpha));
+    // secondary sort by threat level descending
+    violations.filterBy(matchesText("jackson-core")).shouldHave(texts("9", "7"));
     headers.componentNameHeader().click();
     headers.componentNameHeader().sortArrowDown().shouldBeSelected();
-    violations.shouldHave(texts("org.mortbay.jetty", "org.apache.geronimo.framework", "javancss", "ch.qos.logback"));
+    ArrayUtils.reverse(componentNamesAlpha);
+    violations.shouldHave(texts(componentNamesAlpha));
+    // secondary sort should remain unchanged
+    violations.filterBy(matchesText("jackson-core")).shouldHave(texts("9", "7"));
   }
 
   @Test
@@ -472,41 +216,32 @@ public class ApplicationReportTest
     AppReportHeaders headers = reportPage.headers();
     ElementsCollection violations = reportPage.resultRows();
 
-    headers.policyNameFilterInput().setValue("App");
-    violations.shouldHaveSize(1);
-    violations.shouldHave(texts("ApplicationReportTest Policy"));
-    violations.shouldHave(texts("javancss"));
+    headers.policyNameFilterInput().setValue("unk");
 
-    headers.componentNameFilterInput().setValue("org");
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("Component-Unknown"));
+    violations.shouldHave(texts("RegexMatch.dll"));
+
+    headers.componentNameFilterInput().setValue("org.slf4j");
+
     violations.shouldHaveSize(0);
 
     headers.policyNameFilterInput().clear();
-    violations.shouldHaveSize(2);
-    violations.shouldHave(texts("None", "None"));
-    violations.shouldHave(texts("org.apache.geronimo.framework", "org.mortbay.jetty"));
+    violations.shouldHaveSize(3);
+    violations.shouldHave(texts("None", "None", "None"));
+    violations.shouldHave(texts("org.slf4j : jcl-over-slf4j", "org.slf4j : slf4j-api", "org.slf4j : slf4j-log4j12"));
 
     headers.componentNameFilterInput().clear();
-    violations.shouldHaveSize(4);
-    violations.shouldHave(texts("ApplicationReportTest Policy", "None", "None", "None"));
-    violations.shouldHave(texts("javancss", "ch.qos.logback", "org.apache.geronimo.framework", "org.mortbay.jetty"));
+
+    violations.shouldHaveSize(63);
   }
 
-  private void setupHdsResponse() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
-  }
-
-  private Policy createPolicy(int threatLevel, String name, String conditionType, String operator, String value) {
-    Policy p = new Policy(null, name);
-    p.setThreatLevel(threatLevel);
-    p.setOwnerId(app.getId());
-    Constraint constraint = new Constraint(null, name + " constraint", LogicalOperator.AND);
-    com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
-        conditionType, operator, value);
-    constraint.setConditions(Collections.singletonList(condition));
-    p.setConstraints(Collections.singletonList(constraint));
-    return tempEntity.newPolicy(p);
+  private void checkSecondarySortByNameDescending(final ElementsCollection violations) {
+    violations.filterBy(matchesText("License-Banned")).shouldHave(texts("com.mycila", "com.vaadin"));
+    violations.filterBy(matchesText("Security-High")).shouldHave(
+        texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
+            "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
+    violations.filterBy(matchesText("None"))
+        .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
   }
 }

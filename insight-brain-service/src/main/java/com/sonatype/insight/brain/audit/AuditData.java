@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 
@@ -236,6 +237,24 @@ public abstract class AuditData
 
   AuditData setPolicyName(String policyName) {
     setData("policyName", policyName);
+    return this;
+  }
+
+  public AuditData setLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {
+    if (licenseThreatGroup != null) {
+      setLicenseThreatGroupId(licenseThreatGroup.getId());
+      setLicenseThreatGroupName(licenseThreatGroup.getName());
+    }
+    return this;
+  }
+
+  AuditData setLicenseThreatGroupId(String ltgId) {
+    setData("licenseThreatGroupId", ltgId);
+    return this;
+  }
+
+  AuditData setLicenseThreatGroupName(String ltgName) {
+    setData("licenseThreatGroupName", ltgName);
     return this;
   }
 

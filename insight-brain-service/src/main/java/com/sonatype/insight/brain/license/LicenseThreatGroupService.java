@@ -157,8 +157,7 @@ public class LicenseThreatGroupService
 
   private void auditLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {
     AuditData.get() //
-        .setData("licenseThreatGroupId", licenseThreatGroup.getId())
-        .setData("licenseThreatGroupName", licenseThreatGroup.getName())
+        .setLicenseThreatGroup(licenseThreatGroup)
         .setData("licenseThreatGroupThreatLevel", licenseThreatGroup.getThreatLevel());
   }
 

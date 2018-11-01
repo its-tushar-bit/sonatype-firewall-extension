@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -690,5 +691,16 @@ public class PolicyImportExportTest
       }
     }
     return null;
+  }
+
+  @Test
+  public void testImport_EmptyLicenseThreatGroup() {
+    Organization toOrg = tempEntity.newOrganization("To Org");
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    LicenseThreatGroup emptyLTG = new LicenseThreatGroup(null, "Test LTG", 3);
+    policyExportResult.licenseThreatGroups = Arrays.asList(emptyLTG);
+
+    policyImportExport.importOrganization(toOrg, policyExportResult);
+    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), emptyLTG.getName()), is(notNullValue()));
   }
 }

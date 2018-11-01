@@ -6,11 +6,10 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -52,6 +51,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * @since 1.7
@@ -203,7 +204,8 @@ public class PolicyImportExport
   private void importLicenseThreatGroups(TransactionContext tx, PolicyExportResult exportDTO, String ownerId) {
     if (!exportDTO.licenseThreatGroups.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
-      Set<String> idInheritedSet = new HashSet<>();
+      Map<String, List<LicenseThreatGroupLicense>> licensesByGroupId = exportDTO.licenseThreatGroupLicenses.stream()
+          .collect(groupingBy(LicenseThreatGroupLicense::getLicenseThreatGroupId));
       for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
         licenseThreatGroup.setOwnerId(ownerId);
         String oldId = licenseThreatGroup.getId();
@@ -212,21 +214,17 @@ public class PolicyImportExport
           licenseThreatGroup.setId(null);
           licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
           idMap.put(oldId, licenseThreatGroup.getId());
+          for (LicenseThreatGroupLicense licenseThreatGroupLicense : licensesByGroupId.getOrDefault(oldId,
+              Collections.emptyList())) {
+            licenseThreatGroupLicense.setId(null);
+            licenseThreatGroupLicense.setOwnerId(ownerId);
+            licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
+            licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
+          }
         }
         else {
           idMap.put(oldId, inheritedLtg.getId());
-          idInheritedSet.add(oldId);
         }
-      }
-      for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
-        if (idInheritedSet.contains(licenseThreatGroupLicense.getLicenseThreatGroupId())) {
-          continue; // Skip as these are already defined in the inherited one
-        }
-        licenseThreatGroupLicense.setId(null);
-        licenseThreatGroupLicense.setOwnerId(ownerId);
-        licenseThreatGroupLicense
-            .setLicenseThreatGroupId(idMap.get(licenseThreatGroupLicense.getLicenseThreatGroupId()));
-        licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
       }
       for (Policy policy : exportDTO.policies) {
         for (Constraint constraint : policy.getConstraints()) {

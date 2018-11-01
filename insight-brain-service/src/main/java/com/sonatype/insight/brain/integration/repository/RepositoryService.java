@@ -684,7 +684,8 @@ public class RepositoryService
           + repository.getPublicId() + ".");
     }
 
-    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(
+        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     for (RepositoryComponent component : components) {
       request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component
           .getPathname(), component.getHash()));

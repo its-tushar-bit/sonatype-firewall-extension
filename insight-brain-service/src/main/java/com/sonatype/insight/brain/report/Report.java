@@ -67,7 +67,7 @@ public final class Report
 
   private static enum ReportType
   {
-    FULL, SAMPLE, ERROR
+    FULL, ERROR
   }
 
   public static ReportEntry getEntry(final File reportFile, final String name) throws IOException {
@@ -155,10 +155,6 @@ public final class Report
     final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);
     final ContainerNode<?> licenses = JsonUtils.parse(getEntry(reportFile, "licenses.json").buf);
     final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(reportFile, "partialmatched.json").buf);
-
-    if (ReportType.SAMPLE.equals(reportType)) {
-      return;
-    }
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
         reportFile, "dependencies.json").buf));
@@ -666,8 +662,7 @@ public final class Report
                               final ContactDTO contact,
                               final ResponseBuilder response) throws IOException
   {
-    Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)), projectName,
-        stageName, contact, response);
+    Pdf.generate(reportFile, getCacheDir(reportFile), projectName, stageName, contact, response);
   }
 
   public static File printPdf(final File reportFile,
@@ -675,8 +670,7 @@ public final class Report
                               final String stageName,
                               final ContactDTO contact) throws IOException
   {
-    return Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)),
-        projectName, stageName, contact);
+    return Pdf.generate(reportFile, getCacheDir(reportFile), projectName, stageName, contact);
   }
 
   public static void deletePdf(final File reportFile) {
@@ -697,9 +691,6 @@ public final class Report
 
   private static ReportType getType(final File reportFile) throws IOException {
     try (final ZipFile archive = new ZipFile(reportFile)) {
-      if (archive.getEntry("sample.txt") != null) {
-        return ReportType.SAMPLE;
-      }
       if (archive.getEntry("security.json") == null && archive.getEntry("licenses.json") == null) {
         return ReportType.ERROR;
       }

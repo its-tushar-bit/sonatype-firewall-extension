@@ -72,7 +72,6 @@ final class Pdf
 
   public static File generate(final File reportFile,
                               final File cacheDir,
-                              final boolean sample,
                               final String applicationName,
                               final String stageName,
                               final ContactDTO contact) throws IOException
@@ -82,7 +81,7 @@ final class Pdf
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
       final File templateDir = setupTemplateDir(reportFile, cacheDir, applicationName, stageName, contact);
       try {
-        generate(pdfFile, templateDir, sample);
+        generate(pdfFile, templateDir);
       }
       catch (Exception e) {
         if (!pdfFile.delete() && pdfFile.exists()) {
@@ -99,13 +98,12 @@ final class Pdf
 
   public static void generate(final File reportFile,
                               final File cacheDir,
-                              final boolean sample,
                               final String applicationName,
                               final String stageName,
                               final ContactDTO contact,
                               final ResponseBuilder response) throws IOException
   {
-    final File pdfFile = generate(reportFile, cacheDir, sample, applicationName, stageName, contact);
+    final File pdfFile = generate(reportFile, cacheDir, applicationName, stageName, contact);
     final Date now = new Date();
 
     response.lastModified(now);
@@ -203,7 +201,7 @@ final class Pdf
     }
   }
 
-  private static File generate(final File pdfFile, final File templateDir, final boolean sample) throws IOException {
+  private static File generate(final File pdfFile, final File templateDir) throws IOException {
     init();
 
     log.debug("Generating report PDF {}", pdfFile);
@@ -224,8 +222,6 @@ final class Pdf
         task.setRenderOption(options);
         task.setLocale(Locale.ENGLISH);
         task.setParameterValue("reportDir", templateDir.getAbsolutePath());
-        task.setParameterValue("paid", false);
-        task.setParameterValue("freemium", sample);
 
         task.run();
 

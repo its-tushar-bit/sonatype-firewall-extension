@@ -101,24 +101,40 @@ describe('applicationReportReducer', function() {
           }),
           entries = [{
             hash: '1',
-            policyThreatLevel: 1
+            policyThreatLevel: 1,
+            policyName: 'P1',
+            waived: false,
+            grandfathered: false
           }, {
             hash: '2',
-            policyThreatLevel: 3
+            policyThreatLevel: 3,
+            policyName: 'P2',
+            waived: false,
+            grandfathered: false
           }, {
             hash: '4',
             policyThreatLevel: 4,
+            policyName: 'P3',
             waived: true,
+            grandfathered: false,
             displayName: {parts: []}
           }, {
             hash: '1',
-            policyThreatLevel: 6
+            policyThreatLevel: 6,
+            policyName: 'P4',
+            waived: false,
+            grandfathered: false
           }, {
             hash: '5',
-            policyThreatLevel: 4
+            policyThreatLevel: 4,
+            policyName: 'P5',
+            waived: false,
+            grandfathered: false
           }, {
             hash: '6',
             policyThreatLevel: 10,
+            policyName: 'P6',
+            waived: false,
             grandfathered: true,
             displayName: {parts: []}
           }],
@@ -129,10 +145,16 @@ describe('applicationReportReducer', function() {
 
       expect(newState.selectedReport.displayedEntries).toEqual([{
         hash: '1',
-        policyThreatLevel: 6
+        policyThreatLevel: 6,
+        policyName: 'P4',
+        waived: false,
+        grandfathered: false
       }, {
         hash: '5',
-        policyThreatLevel: 4
+        policyThreatLevel: 4,
+        policyName: 'P5',
+        waived: false,
+        grandfathered: false
       }]);
     });
   });
@@ -190,26 +212,42 @@ describe('applicationReportReducer', function() {
     it('updates the displayedEntries in the selectedReport', function() {
       const entries = [{
             hash: '6',
-            policyThreatLevel: 10
+            policyThreatLevel: 10,
+            policyName: 'P1',
+            grandfathered: false,
+            waived: false
           }, {
             hash: '4',
             policyThreatLevel: 8,
+            policyName: 'P2',
+            grandfathered: false,
             waived: true,
             displayName: {parts: []}
           }, {
             hash: '1',
             policyThreatLevel: 6,
+            policyName: 'P3',
+            grandfathered: false,
             waived: true,
             displayName: {parts: []}
           }, {
             hash: '5',
-            policyThreatLevel: 4
+            policyThreatLevel: 4,
+            policyName: 'P4',
+            grandfathered: false,
+            waived: false
           }, {
             hash: '2',
-            policyThreatLevel: 3
+            policyThreatLevel: 3,
+            policyName: 'P5',
+            grandfathered: false,
+            waived: false
           }, {
             hash: '1',
-            policyThreatLevel: 1
+            policyThreatLevel: 1,
+            policyName: 'P6',
+            grandfathered: false,
+            waived: false
           }],
           state = Object.freeze({
             selectedReport: {
@@ -226,24 +264,35 @@ describe('applicationReportReducer', function() {
 
       expect(newState.selectedReport.displayedEntries).toEqual([{
         hash: '6',
-        policyThreatLevel: 10
+        policyThreatLevel: 10,
+        policyName: 'P1',
+        grandfathered: false,
+        waived: false
       }, {
         hash: '5',
-        policyThreatLevel: 4
+        policyThreatLevel: 4,
+        policyName: 'P4',
+        grandfathered: false,
+        waived: false
       }, {
         hash: '2',
-        policyThreatLevel: 3
+        policyThreatLevel: 3,
+        policyName: 'P5',
+        grandfathered: false,
+        waived: false
       }, {
         hash: '1',
-        policyThreatLevel: 1
+        policyThreatLevel: 1,
+        policyName: 'P6',
+        grandfathered: false,
+        waived: false
       }, {
         hash: '4',
         policyThreatLevel: 0,
         policyName: 'None',
-        waived: false,
+        waived: true,
         grandfathered: false,
-        displayName: {parts: []},
-        derivedComponentName: ''
+        displayName: {parts: []}
       }]);
     });
   });

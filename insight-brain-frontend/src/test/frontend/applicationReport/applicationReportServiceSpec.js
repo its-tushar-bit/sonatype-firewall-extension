@@ -665,6 +665,34 @@ describe('applicationReportService', function() {
           ]
         },
         derivedComponentName: 'org.postgresql.postgresql.42.2.2'
+      }, {
+        hash: '7',
+        policyThreatLevel: 5,
+        policyName: 'Policy 13',
+        waived: false,
+        grandfathered: true,
+        componentIdentifier: 'foo3',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'org.postgresql'}, {value: ' : '}, {field: 'Artifact', value: 'postgresql'},
+            {value: ' : '}, {field: 'Version', value: '42.2.3'}
+          ]
+        },
+        derivedComponentName: 'org.postgresql.postgresql.42.2.3'
+      }, {
+        hash: '7',
+        policyThreatLevel: 6,
+        policyName: 'Policy 14',
+        waived: true,
+        grandfathered: false,
+        componentIdentifier: 'foo3',
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'org.postgresql'}, {value: ' : '}, {field: 'Artifact', value: 'postgresql'},
+            {value: ' : '}, {field: 'Version', value: '42.2.3'}
+          ]
+        },
+        derivedComponentName: 'org.postgresql.postgresql.42.2.3'
       }
     ];
 
@@ -708,7 +736,7 @@ describe('applicationReportService', function() {
 
         expect(hash3Result[0].policyThreatLevel).toBe(0);
         expect(hash3Result[0].policyName).toBe('None');
-        expect(hash3Result[0].waived).toBe(false);
+        expect(hash3Result[0].waived).toBe(true);
         expect(hash3Result[0].grandfathered).toBe(false);
         expect(hash3Result[0].componentIdentifier).toBe('qux');
       });
@@ -722,8 +750,21 @@ describe('applicationReportService', function() {
         expect(hash6Result[0].policyThreatLevel).toBe(0);
         expect(hash6Result[0].policyName).toBe('None');
         expect(hash6Result[0].waived).toBe(false);
-        expect(hash6Result[0].grandfathered).toBe(false);
+        expect(hash6Result[0].grandfathered).toBe(true);
         expect(hash6Result[0].componentIdentifier).toBe('foo2');
+      });
+
+      it('sets grandfathered and waived in the zero-threat record if there are some violations with each', function() {
+        const result = applicationReportService.aggregateReportEntries(input),
+            hash7Result = result.filter(r => r.hash === '7');
+
+        expect(hash7Result.length).toBe(1);
+
+        expect(hash7Result[0].policyThreatLevel).toBe(0);
+        expect(hash7Result[0].policyName).toBe('None');
+        expect(hash7Result[0].waived).toBe(true);
+        expect(hash7Result[0].grandfathered).toBe(true);
+        expect(hash7Result[0].componentIdentifier).toBe('foo3');
       });
 
       it('passes through zero-threat records from the input', function() {
@@ -748,8 +789,10 @@ describe('applicationReportService', function() {
           [9, 'Policy 4', 'junit.junit.4.12'],
           [9, 'Policy 9', 'junit.junit.4.12'],
           [8, 'Policy 6', 'junit.junit.4.12'],
+          [6, 'Policy 14', 'org.postgresql.postgresql.42.2.3'],
           [5, 'Policy 12', 'ognl.ognl.3.0.8'],
           [5, 'Policy 12', 'org.postgresql.postgresql.42.2.2'],
+          [5, 'Policy 13', 'org.postgresql.postgresql.42.2.3'],
           [5, 'Policy 7', 'xpp.xpp3_min.1.1.4c'],
           [4, 'Policy 1', 'junit.junit.4.12'],
           [4, 'Policy 2', 'junit.junit.4.8'],

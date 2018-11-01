@@ -5,6 +5,7 @@
  */
 import {
   apply,
+  complement,
   compose,
   concat,
   contains,
@@ -18,6 +19,7 @@ import {
   into,
   isNil,
   map,
+  maxBy,
   pick,
   pipe,
   prop,
@@ -147,24 +149,37 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
   return concat(violationEntries, nonViolatingComponentEntries);
 }
 
+function highestViolationReducer(highestViolationSoFar, violation) {
+  const isActive = complement(either(isNil, either(prop('waived'), prop('grandfathered')))),
+      activeViolations = filter(isActive, [highestViolationSoFar, violation]),
+      highestActiveViolation = activeViolations.length < 2 ?
+        activeViolations[0] : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
+
+  // return the highest active violation, or if there isn't one, merge the inactive violations
+  return highestActiveViolation || {
+    ...violation,
+    policyThreatLevel: 0,
+    policyName: 'None',
+    waived: (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
+    grandfathered: (highestViolationSoFar && highestViolationSoFar.grandfathered) || violation.grandfathered
+  };
+}
+
+const unsetWaivedAndGrandfatheredOnViolatingEntry = entry =>
+  entry.policyThreatLevel === 0 ? entry : { ...entry, waived: false, grandfathered: false };
+
 /**
  * Take a list of all report entries and return a list of just the "aggregated" entries (ie one entry per component).
  * The violation selected for each component is the one with the highest threat level, that is unwaived and
  * ungrandfathered. If none are unwaived/ungrandfathered, a non-violating component entry is added for that component
  */
-export function aggregateReportEntries(entries) {
-  const waivedOrGrandfathered = either(prop('waived'), prop('grandfathered')),
+export const aggregateReportEntries = pipe(
+    reduceBy(highestViolationReducer, null, toKey),
+    values,
 
-      highestViolationReducer = (acc, entry) =>
-        !acc || waivedOrGrandfathered(acc) || !waivedOrGrandfathered(entry) &&
-          entry.policyThreatLevel > acc.policyThreatLevel ? entry : acc,
-
-      highestViolationsByKey = reduceBy(highestViolationReducer, null, toKey, entries),
-      waivedViolationTransformer = entry =>
-        waivedOrGrandfathered(entry) ? makeNonViolatingComponentEntry(entry) : entry;
-
-  return map(waivedViolationTransformer, values(highestViolationsByKey));
-}
+    // waived and grandfathered indicators should only be shown on non-violating components
+    map(unsetWaivedAndGrandfatheredOnViolatingEntry)
+);
 
 /**
  * Take a list of all report entries and return a new list of only entries that have allowed values for all properties

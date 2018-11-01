@@ -130,9 +130,20 @@ public class ApplicationReportTest
     evaluator.reevaluatePolicy();
     refresh();
 
-    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
-    reportPage.resultRows().shouldHaveSize(0);
+    // test that indicators are shown when aggregating
+    reportPage.headers().policyNameFilterInput().clear();
+    reportPage.headers().componentNameFilterInput().setValue("mycila");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
+    reportPage.headers().componentNameFilterInput().setValue("vaadin");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
 
+    // test that indicators are shown when not aggregating
+    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
+    reportPage.headers().componentNameFilterInput().clear();
     reportPage.showAllViolationsRadio().click();
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
@@ -147,10 +158,21 @@ public class ApplicationReportTest
     policyViolationGrandfatheringService.grandfather(app.getPublicId());
     evaluator.reevaluatePolicy();
     refresh();
-    reportPage.showAllViolationsRadio().click();
-    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
 
     // now the grandfathered indicator should appear
+    reportPage.headers().componentNameFilterInput().setValue("mycila");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+
+    reportPage.headers().componentNameFilterInput().setValue("vaadin");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+
+    reportPage.showAllViolationsRadio().click();
+    reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
+    reportPage.headers().componentNameFilterInput().clear();
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
@@ -160,9 +182,20 @@ public class ApplicationReportTest
     new PolicyWaiverDAO().delete(waiver);
     evaluator.reevaluatePolicy();
     refresh();
+
+    reportPage.headers().componentNameFilterInput().setValue("mycila");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+
+    reportPage.headers().componentNameFilterInput().setValue("vaadin");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+
     reportPage.showAllViolationsRadio().click();
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
-
+    reportPage.headers().componentNameFilterInput().clear();
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);

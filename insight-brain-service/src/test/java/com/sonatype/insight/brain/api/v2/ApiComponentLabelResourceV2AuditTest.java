@@ -72,12 +72,6 @@ public class ApiComponentLabelResourceV2AuditTest
     assertApplicationData(auditDTO, application);
   }
 
-  private AuditDTO assertAuditLog(final AuditEvent auditEvent, final String error) {
-    final AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertComponentLabelData(final AuditDTO auditDTO, final Label label) {
     assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
     assertCustomData(auditDTO, "labelId", label.getId());

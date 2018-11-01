@@ -42,12 +42,6 @@ public class LicenseOverrideResourceAuditTest
     return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
-  private AuditDTO assertAuditLog(String error) {
-    AuditDTO auditDTO = awaitLogEntries(AuditEvent.UPDATE_COMPONENT_LICENSE, 1).get(0);
-    assertStandardData(auditDTO, AuditEvent.UPDATE_COMPONENT_LICENSE, error);
-    return auditDTO;
-  }
-
   @Before
   public void setup() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
@@ -85,7 +79,7 @@ public class LicenseOverrideResourceAuditTest
     LicenseOverride response = restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride).post()
         .getBody(LicenseOverride.class);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response, "Apache-2.0", "GPL-2.0");
     assertApplicationData(auditDTO, app);
   }
@@ -99,7 +93,7 @@ public class LicenseOverrideResourceAuditTest
     LicenseOverride response = restRequest(OwnerType.ORGANIZATION, org.getPublicId()).body(licenseOverride).post()
         .getBody(LicenseOverride.class);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response);
     assertOrganizationData(auditDTO, org);
   }
@@ -111,7 +105,7 @@ public class LicenseOverrideResourceAuditTest
     LicenseOverride response = restRequest(OwnerType.REPOSITORY, repo.getId()).body(licenseOverride).post()
         .getBody(LicenseOverride.class);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response, "Apache-2.0", "GPL-2.0");
     assertRepositoryData(auditDTO, repo);
   }
@@ -123,7 +117,7 @@ public class LicenseOverrideResourceAuditTest
 
     tempEntity.register(response);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response, "Apache-2.0", "GPL-2.0");
     assertRepositoryContainerData(auditDTO);
   }
@@ -134,7 +128,7 @@ public class LicenseOverrideResourceAuditTest
 
     restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride).with(unauthorizedUser()).post();
 
-    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, "unauthorized");
     assertApplicationData(auditDTO, app);
   }
 
@@ -146,7 +140,7 @@ public class LicenseOverrideResourceAuditTest
 
     restRequest(OwnerType.APPLICATION, app.getPublicId()).path(toBeDeleted.getId()).delete();
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, toBeDeleted, true);
     assertApplicationData(auditDTO, app);
   }
@@ -159,7 +153,7 @@ public class LicenseOverrideResourceAuditTest
 
     restRequest(OwnerType.APPLICATION, app.getPublicId()).path(toBeDeleted.getId()).with(unauthorizedUser()).delete();
 
-    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, "unauthorized");
     assertApplicationData(auditDTO, app);
   }
 }

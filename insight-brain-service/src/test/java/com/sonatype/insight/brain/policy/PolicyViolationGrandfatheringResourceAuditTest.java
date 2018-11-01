@@ -140,12 +140,6 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     assertGrandfatheringConfigurationData(auditDTO, "disallow", "disable");
   }
 
-  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
-    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertGrandfatheringData(AuditDTO auditDTO, Integer changedPolicyViolationCount) {
     assertCustomData(auditDTO, "changedPolicyViolationCount", changedPolicyViolationCount);
   }

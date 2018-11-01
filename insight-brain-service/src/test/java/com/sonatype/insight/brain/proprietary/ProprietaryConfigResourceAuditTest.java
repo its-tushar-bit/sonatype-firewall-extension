@@ -45,7 +45,7 @@ public class ProprietaryConfigResourceAuditTest
     List<String> regexMatchers = asList("regex11", "regex22");
     upsert(null, app, new ProprietaryConfig(app.getId(), packageMatchers, regexMatchers));
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertApplicationData(auditDTO, app);
     assertProprietaryConfigCustomData(auditDTO, packageMatchers, regexMatchers);
   }
@@ -56,7 +56,7 @@ public class ProprietaryConfigResourceAuditTest
     List<String> regexMatchers = asList("regex11", "regex22");
     upsert(null, org, new ProprietaryConfig(org.getId(), packageMatchers, regexMatchers));
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertOrganizationData(auditDTO, org);
     assertProprietaryConfigCustomData(auditDTO, packageMatchers, regexMatchers);
   }
@@ -67,7 +67,7 @@ public class ProprietaryConfigResourceAuditTest
     List<String> emptyRegexMatchers = new ArrayList<>();
     upsert(null, org, new ProprietaryConfig(org.getId(), emptyPackageMatchers, emptyRegexMatchers));
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertOrganizationData(auditDTO, org);
     assertProprietaryConfigCustomData(auditDTO, emptyPackageMatchers, emptyRegexMatchers);
   }
@@ -76,7 +76,7 @@ public class ProprietaryConfigResourceAuditTest
   public void testUpsert_Unauthorized() throws Exception {
     upsert(unauthorizedUser(), org, new ProprietaryConfig(org.getId(), new ArrayList<>(), new ArrayList<>()));
 
-    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, "unauthorized");
     assertOrganizationData(auditDTO, org);
   }
 
@@ -87,7 +87,7 @@ public class ProprietaryConfigResourceAuditTest
     filePathRegex.regex = "regexp1";
     addFilePathRegex(null, app, filePathRegex);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertApplicationData(auditDTO, app);
     assertProprietaryConfigCustomData(auditDTO, new ArrayList<>(),
         asList(Pattern.quote("path1"), Pattern.quote("path2"), "regexp1"));
@@ -101,7 +101,7 @@ public class ProprietaryConfigResourceAuditTest
     filePathRegex.regex = "regexp1";
     addFilePathRegex(null, app, filePathRegex);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertApplicationData(auditDTO, app);
     assertProprietaryConfigCustomData(auditDTO, singletonList("existingPackage"),
         asList("existingRegex", Pattern.quote("path1"), Pattern.quote("path2"), "regexp1"));
@@ -114,7 +114,7 @@ public class ProprietaryConfigResourceAuditTest
     filePathRegex.regex = "regexp1";
     addFilePathRegex(null, org, filePathRegex);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertOrganizationData(auditDTO, org);
     assertProprietaryConfigCustomData(auditDTO, new ArrayList<>(),
         asList(Pattern.quote("path1"), Pattern.quote("path2"), "regexp1"));
@@ -125,7 +125,7 @@ public class ProprietaryConfigResourceAuditTest
     FilePathRegex filePathRegex = new FilePathRegex();
     addFilePathRegex(null, org, filePathRegex);
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, null);
     assertOrganizationData(auditDTO, org);
     assertProprietaryConfigCustomData(auditDTO, new ArrayList<>(), new ArrayList<>());
   }
@@ -135,7 +135,7 @@ public class ProprietaryConfigResourceAuditTest
     FilePathRegex filePathRegex = new FilePathRegex();
     addFilePathRegex(unauthorizedUser(), org, filePathRegex);
 
-    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, "unauthorized");
     assertOrganizationData(auditDTO, org);
   }
 
@@ -154,12 +154,6 @@ public class ProprietaryConfigResourceAuditTest
   private HttpRequest restRequest(Consumer<HttpRequest> user, Owner owner) {
     return restRequest().with(user).path(ProprietaryConfigResource.RESOURCE_PATH).parameter(owner.getType(),
         owner.getPublicId());
-  }
-
-  private AuditDTO assertAuditLog(String error) {
-    AuditDTO auditDTO = awaitLogEntries(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, 1).get(0);
-    assertStandardData(auditDTO, AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS, error);
-    return auditDTO;
   }
 
   private void assertProprietaryConfigCustomData(final AuditDTO auditDTO,

@@ -196,12 +196,6 @@ public class PolicyResourceAuditTest
     assertThat(awaitLogEntries(AuditEvent.IMPORT_APPLICATION_CATEGORY, 0), empty());
   }
 
-  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
-    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private PolicyWaiver savePolicyWaiver(String policyId, String ownerId) {
     return tempEntity.newWaiver("hash", policyId, ownerId, constraintFacts(), "comment");
   }
@@ -219,12 +213,6 @@ public class PolicyResourceAuditTest
 
   private ConditionFact conditionFact(String summary, String reason) {
     return new ConditionFact("conditionTypeId", 0, summary, reason);
-  }
-
-  private List<AuditDTO> assertAuditLogs(AuditEvent auditEvent, int number, String error) {
-    List<AuditDTO> auditDTOs = awaitLogEntries(auditEvent, number);
-    auditDTOs.forEach(auditDTO -> assertStandardData(auditDTO, auditEvent, error));
-    return auditDTOs;
   }
 
   private void assertDeletePolicyWaiverData(AuditDTO auditDTO, Policy policy, PolicyWaiver policyWaiver) {

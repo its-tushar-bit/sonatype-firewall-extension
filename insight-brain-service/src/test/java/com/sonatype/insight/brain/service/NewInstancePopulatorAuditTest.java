@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.AbstractPolicyImportAuditTest;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
@@ -38,7 +37,7 @@ public class NewInstancePopulatorAuditTest
 
     getCLMServer().getInjector().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null, SYSTEM_USER);
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, 2, 3, 1, 4);
   }
@@ -51,7 +50,7 @@ public class NewInstancePopulatorAuditTest
 
     getCLMServer().getInjector().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-gateway");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-gateway", SYSTEM_USER);
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, null, null, null, null);
   }
@@ -62,11 +61,5 @@ public class NewInstancePopulatorAuditTest
     initServer(configurator, hdsConfigurator);
     logOutput.before();
     getCLMServer().getConfiguration().setImportRefrencePoliciesFromHDS(true);
-  }
-
-  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
-    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error, MDCUsernameScope.SYSTEM);
-    return auditDTO;
   }
 }

@@ -36,12 +36,6 @@ public class ComponentLabelResourceAuditTest
     return restRequest().path(ComponentLabelResource.RESOURCE_PATH, labelId).parameter(ownerType, ownerId, hash);
   }
 
-  private AuditDTO assertAuditLog(final AuditEvent auditEvent, final String error) {
-    final AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertComponentLabelData(final AuditDTO auditDTO) {
     assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
     assertCustomData(auditDTO, "labelId", label.getId());

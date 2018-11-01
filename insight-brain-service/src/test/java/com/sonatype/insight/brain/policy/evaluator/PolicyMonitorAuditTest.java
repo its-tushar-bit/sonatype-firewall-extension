@@ -10,7 +10,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
@@ -45,7 +44,7 @@ public class PolicyMonitorAuditTest
     policyMonitor.run();
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
-        app.getPublicId(), app.getName(), ReleaseStageType.ID, scanId2, false, MDCUsernameScope.SYSTEM);
+        app.getPublicId(), app.getName(), ReleaseStageType.ID, scanId2, false, SYSTEM_USER);
   }
 
   @Test
@@ -62,7 +61,7 @@ public class PolicyMonitorAuditTest
     policyMonitor.run();
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "server-error", app.getId(),
-        app.getPublicId(), app.getName(), null, null, null, MDCUsernameScope.SYSTEM);
+        app.getPublicId(), app.getName(), null, null, null, SYSTEM_USER);
   }
 
   private void mockScanReceiptAndReport(String scanId) {

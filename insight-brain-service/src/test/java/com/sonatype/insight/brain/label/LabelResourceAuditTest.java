@@ -48,12 +48,6 @@ public class LabelResourceAuditTest
     return restRequest().path(LabelResource.RESOURCE_PATH).parameter(ownerType, ownerId).body(label);
   }
 
-  private AuditDTO assertAuditLog(final AuditEvent auditEvent, final String error) {
-    final AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertLabelData(final AuditDTO auditDTO, final Label label) {
     assertCustomData(auditDTO, "labelId", label.getId());
     assertCustomData(auditDTO, "labelName", label.getLabel());

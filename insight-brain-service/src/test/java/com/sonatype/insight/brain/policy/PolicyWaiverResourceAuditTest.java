@@ -193,12 +193,6 @@ public class PolicyWaiverResourceAuditTest
         owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId());
   }
 
-  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
-    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertPolicyWaiverData(AuditDTO auditDTO) {
     assertPolicyWaiverData(auditDTO, policyWaiverDAO.getById((String) auditDTO.data.get("policyWaiverId")), false);
   }

@@ -45,7 +45,7 @@ public class PolicyMonitoringResourceAuditTest
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(app.getId(), Stage.ID_RELEASE);
     restRequest(app).body(policyMonitoring).put();
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertApplicationData(auditDTO, app);
     assertCustomData(auditDTO, "stageId", Stage.ID_RELEASE);
   }
@@ -55,7 +55,7 @@ public class PolicyMonitoringResourceAuditTest
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(org.getId(), Stage.ID_RELEASE);
     restRequest(org).body(policyMonitoring).put();
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertOrganizationData(auditDTO, org);
     assertCustomData(auditDTO, "stageId", Stage.ID_RELEASE);
   }
@@ -65,7 +65,7 @@ public class PolicyMonitoringResourceAuditTest
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(org.getId(), Stage.ID_RELEASE);
     restRequest(org).with(unauthorizedUser()).body(policyMonitoring).put();
 
-    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, "unauthorized");
     assertOrganizationData(auditDTO, org);
   }
 
@@ -74,7 +74,7 @@ public class PolicyMonitoringResourceAuditTest
     tempEntity.newPolicyMonitoring(app.getId(), Stage.ID_RELEASE);
     restRequest(app).delete();
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertApplicationData(auditDTO, app);
     assertCustomData(auditDTO, "stageId", "inherited");
   }
@@ -84,7 +84,7 @@ public class PolicyMonitoringResourceAuditTest
     tempEntity.newPolicyMonitoring(org.getId(), Stage.ID_RELEASE);
     restRequest(org).delete();
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertOrganizationData(auditDTO, org);
     assertCustomData(auditDTO, "stageId", "inherited");
   }
@@ -94,7 +94,7 @@ public class PolicyMonitoringResourceAuditTest
     tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, Stage.ID_RELEASE);
     restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).delete();
 
-    AuditDTO auditDTO = assertAuditLog(null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertOrganizationData(auditDTO, org.getParentOrganizationId(), "Root Organization");
     assertCustomData(auditDTO, "stageId", "none");
   }
@@ -103,13 +103,7 @@ public class PolicyMonitoringResourceAuditTest
   public void testDelete_Unauthorized() throws Exception {
     restRequest(org).with(unauthorizedUser()).delete();
 
-    AuditDTO auditDTO = assertAuditLog("unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, "unauthorized");
     assertOrganizationData(auditDTO, org);
-  }
-
-  private AuditDTO assertAuditLog(String error) {
-    AuditDTO auditDTO = awaitLogEntries(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, 1).get(0);
-    assertStandardData(auditDTO, AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, error);
-    return auditDTO;
   }
 }

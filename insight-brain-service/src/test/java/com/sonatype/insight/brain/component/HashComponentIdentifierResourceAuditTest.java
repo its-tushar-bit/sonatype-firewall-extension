@@ -108,12 +108,6 @@ public class HashComponentIdentifierResourceAuditTest
     return hashComponentIdentifier;
   }
 
-  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
-    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertHashComponentIdentifierData(AuditDTO auditDTO, HashComponentIdentifier hashComponentIdentifier) {
     assertCustomData(auditDTO, "componentHash", hashComponentIdentifier.getHash());
     assertCustomObject(auditDTO, "componentIdentifier", hashComponentIdentifier.getComponentIdentifier());

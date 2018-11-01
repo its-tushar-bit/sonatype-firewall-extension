@@ -48,6 +48,8 @@ public abstract class AbstractAuditTest
   @Rule
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
+  public static final String SYSTEM_USER = MDCUsernameScope.SYSTEM;
+
   private User unauthorizedUser;
 
   private ObjectMapper objectMapper;
@@ -79,12 +81,30 @@ public abstract class AbstractAuditTest
     }
   }
 
+  protected AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
+    return assertAuditLogs(auditEvent, 1, error).get(0);
+  }
+
+  protected AuditDTO assertAuditLog(AuditEvent auditEvent, String error, String username) {
+    return assertAuditLogs(auditEvent, 1, error, username).get(0);
+  }
+
+  protected List<AuditDTO> assertAuditLogs(AuditEvent auditEvent, int number, String error) {
+    return assertAuditLogs(auditEvent, number, error, null);
+  }
+
+  protected List<AuditDTO> assertAuditLogs(AuditEvent auditEvent, int number, String error, String username) {
+    List<AuditDTO> auditDTOs = awaitLogEntries(auditEvent, number);
+    auditDTOs.forEach(auditDTO -> assertStandardData(auditDTO, auditEvent, error, username));
+    return auditDTOs;
+  }
+
   protected void assertStandardData(AuditDTO auditDTO, AuditEvent auditEvent, String error) {
     assertStandardData(auditDTO, auditEvent, error, null);
   }
 
   protected void assertStandardData(AuditDTO auditDTO, AuditEvent auditEvent, String error, String username) {
-    boolean systemEvent = MDCUsernameScope.SYSTEM.equals(username);
+    boolean systemEvent = SYSTEM_USER.equals(username);
     if (username == null) {
       username = "unauthorized".equals(error) ? unauthorizedUser.getUsername() : User.ADMIN_USERNAME;
     }

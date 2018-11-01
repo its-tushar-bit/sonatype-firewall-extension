@@ -99,12 +99,6 @@ public class TagResourceAuditTest
         .parameter(organization.getId());
   }
 
-  private AuditDTO assertAuditLog(AuditEvent auditEvent, String error) {
-    AuditDTO auditDTO = awaitLogEntries(auditEvent, 1).get(0);
-    assertStandardData(auditDTO, auditEvent, error);
-    return auditDTO;
-  }
-
   private void assertTagData(AuditDTO auditDTO, Tag tag) {
     assertCustomData(auditDTO, "applicationCategoryId", tag.getId());
     assertCustomData(auditDTO, "applicationCategoryName", tag.getName());

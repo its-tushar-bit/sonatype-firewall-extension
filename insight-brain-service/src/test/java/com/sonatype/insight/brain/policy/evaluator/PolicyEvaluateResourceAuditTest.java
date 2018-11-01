@@ -67,7 +67,7 @@ public class PolicyEvaluateResourceAuditTest
   public void testEvaluate_Unauthorized() throws Exception {
     assertResponseStatus(403, evaluate(unauthorizedUser(), app.getPublicId(), SCAN_ID, Stage.ID_BUILD));
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
-        app.getPublicId(), app.getName(), null, SCAN_ID, null, unauthorizedUser.getUsername());
+        app.getPublicId(), app.getName(), null, SCAN_ID, null);
   }
 
   private HttpResponse evaluate(Consumer<HttpRequest> user, String applicationPublicId, String scanId, String stageId) throws Exception {

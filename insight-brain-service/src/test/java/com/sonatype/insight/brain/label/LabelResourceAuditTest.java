@@ -96,8 +96,7 @@ public class LabelResourceAuditTest
   @Test
   public void testCreateLabel_Unauthorized() throws Exception {
     final Label label = new Label(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), label)
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).post();
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), label).with(unauthorizedUser()).post();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -156,7 +155,7 @@ public class LabelResourceAuditTest
   @Test
   public void testDeleteLabel_Unauthorized() throws Exception {
     restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
-        .subpath("labelId").auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).delete();
+        .path("labelId").with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -165,8 +164,7 @@ public class LabelResourceAuditTest
   @Test
   public void testUpdateLabel_Unauthorized() throws Exception {
     final Label label = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), label)
-        .auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword()).put();
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), label).with(unauthorizedUser()).put();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);

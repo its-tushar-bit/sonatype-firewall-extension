@@ -65,7 +65,7 @@ public class ScanResourceAuditTest
     assertResponseStatus(403, response);
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
-        app.getPublicId(), app.getName(), null, null, null, unauthorizedUser.getUsername());
+        app.getPublicId(), app.getName(), null, null, null);
   }
 
   @Test

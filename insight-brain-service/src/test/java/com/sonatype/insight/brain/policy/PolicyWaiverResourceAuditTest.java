@@ -86,8 +86,7 @@ public class PolicyWaiverResourceAuditTest
   public void testAddPolicyWaiver_Unauthorized() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
-    restRequest(application).auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword())
-        .body(new PolicyWaiver()).post();
+    restRequest(application).with(unauthorizedUser()).body(new PolicyWaiver()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -156,8 +155,7 @@ public class PolicyWaiverResourceAuditTest
   public void testDeletePolicyWaiver_Unauthorized() throws Exception {
     PolicyWaiver policyWaiver = savePolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    restRequest(RepositoryContainer.SINGLETON).auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword())
-        .path(policyWaiver.getId()).delete();
+    restRequest(RepositoryContainer.SINGLETON).with(unauthorizedUser()).path(policyWaiver.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, "unauthorized");
     assertRepositoryContainerData(auditDTO);

@@ -48,7 +48,7 @@ public abstract class AbstractAuditTest
   @Rule
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
-  protected User unauthorizedUser;
+  private User unauthorizedUser;
 
   private ObjectMapper objectMapper;
 
@@ -172,7 +172,7 @@ public abstract class AbstractAuditTest
                                           Boolean isReevaluation)
   {
     assertEvaluationAuditLog(auditDTO, error, applicationId, applicationPublicId, applicationName, stageId, scanId,
-        isReevaluation, User.ADMIN_USERNAME);
+        isReevaluation, null);
   }
 
   protected void assertEvaluationAuditLog(AuditDTO auditDTO,

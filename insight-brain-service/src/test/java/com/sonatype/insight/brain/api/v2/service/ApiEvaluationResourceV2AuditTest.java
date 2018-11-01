@@ -71,7 +71,7 @@ public class ApiEvaluationResourceV2AuditTest
   public void testPromoteScan_Unauthorized() throws Exception {
     assertResponseStatus(403, promoteScan(false, false, unauthorizedUser(), app.getId(), SCAN_ID, Stage.ID_OPERATE));
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), "unauthorized", app.getId(),
-        app.getPublicId(), app.getName(), null, null, null, unauthorizedUser.getUsername());
+        app.getPublicId(), app.getName(), null, null, null);
   }
 
   private HttpResponse promoteScan(boolean createScanFile,

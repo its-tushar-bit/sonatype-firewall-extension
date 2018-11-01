@@ -77,7 +77,7 @@ public class PolicyResourceAuditTest
     policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
     policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult)
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult)
         .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null);
@@ -90,7 +90,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
 
-    restRequest(organization).with(unauthorizedUser()).path("import")
+    policyResourceRequest(organization).with(unauthorizedUser()).path("import")
         .part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "unauthorized");
@@ -189,7 +189,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
 
-    restRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_WAIVER, 3, null);
     assertApplicationData(auditDTOs.get(0), application);
@@ -209,7 +209,7 @@ public class PolicyResourceAuditTest
     policyExportResult.labels = Collections
         .singletonList(new Label(organization.getId(), LONG_LABEL_NAME, "description", Color.yellow));
 
-    restRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(rootOrganization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
@@ -224,7 +224,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Arrays.asList(policy());
     policyExportResult.labels = Arrays.asList(label);
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LABEL, null);
     assertOrganizationData(auditDTO, organization);
@@ -240,7 +240,7 @@ public class PolicyResourceAuditTest
     policyExportResult.policies = Arrays.asList(policy());
     policyExportResult.labels = Arrays.asList(importedLabel);
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LABEL, null);
     assertOrganizationData(auditDTO, organization);
@@ -254,14 +254,14 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Arrays.asList(policy());
     policyExportResult.labels = Arrays.asList(label);
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, organization);
     assertThat(awaitLogEntries(AuditEvent.IMPORT_LABEL, 0), empty());
   }
 
-  private HttpRequest restRequest(Owner owner) {
+  private HttpRequest policyResourceRequest(Owner owner) {
     return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());
   }
 
@@ -272,7 +272,7 @@ public class PolicyResourceAuditTest
     policyExportResult.tags = Arrays.asList(tag(), tag());
     tempEntity.newTag(organization.getId(), policyExportResult.tags.get(0).getName(), "oldDescription", Color.yellow);
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.IMPORT_APPLICATION_CATEGORY, 2, null);
     auditDTOs.forEach(auditDTO -> assertOrganizationData(auditDTO, organization));
@@ -287,7 +287,7 @@ public class PolicyResourceAuditTest
     policyExportResult.tags = Arrays.asList(tag(), tag());
     policyExportResult.tags.get(1).setName("thisNameIsTooLong__________________________________________61");
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, organization);
@@ -299,7 +299,7 @@ public class PolicyResourceAuditTest
   public void testAddPolicy_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = aComplexPolicy();
-    addPolicy(app, policy);
+    policyResourceRequest(app).body(policy).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertApplicationData(auditDTO, app);
@@ -309,7 +309,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testAddPolicy_Organization() throws Exception {
     Policy policy = aComplexPolicy();
-    addPolicy(organization, policy);
+    policyResourceRequest(organization).body(policy).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
@@ -319,14 +319,49 @@ public class PolicyResourceAuditTest
   @Test
   public void testAddPolicy_Unauthorized() throws Exception {
     Policy policy = policy();
-    restRequest(organization).with(unauthorizedUser()).body(policy).post();
+    policyResourceRequest(organization).with(unauthorizedUser()).body(policy).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, "unauthorized");
     assertOrganizationData(auditDTO, organization);
   }
 
-  private void addPolicy(final Owner owner, final Policy policy) throws Exception {
-    restRequest(owner).body(policy).post();
+  @Test
+  public void testUpdatePolicy_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String existingPolicyId = tempEntity.newPolicy(app.getId(), tempEntity.uuid()).getId();
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicyId);
+
+    policyResourceRequest(app).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyData(auditDTO, policy);
+  }
+
+  @Test
+  public void testUpdatePolicy_Organization() throws Exception {
+    String existingPolicyId = tempEntity.newPolicy(organization.getId(), tempEntity.uuid()).getId();
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicyId);
+
+    policyResourceRequest(organization).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyData(auditDTO, policy);
+  }
+
+  @Test
+  public void testUpdatePolicy_Unauthorized() throws Exception {
+    String existingPolicyId = tempEntity.newPolicy(organization.getId(), UUID.randomUUID().toString()).getId();
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicyId);
+
+    policyResourceRequest(organization).with(unauthorizedUser()).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
   }
 
   private Policy aComplexPolicy() {

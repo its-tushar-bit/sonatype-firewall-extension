@@ -173,6 +173,7 @@ public class PolicyResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.UPDATE_POLICY)
   public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
                              final Policy policy)
@@ -188,6 +189,7 @@ public class PolicyResource
 
     policy.setOwnerId(internalOwnerId);
     policyDAO.update(policy);
+    AuditData.get().setPolicyWithDetails(policy);
 
     managementEventService.postEvent(UPDATED, policy);
 

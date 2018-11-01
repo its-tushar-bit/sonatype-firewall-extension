@@ -26,38 +26,46 @@ public class EyesWatcher
 
   private static BatchInfo batch;
 
+  private static String batchId;
+
+  private static String localBranchName;
+
   private static final String APPLITOOLS_KEY = System.getProperty("applitoolsKey");
 
   static {
-    String localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
+    localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
     eyes.setIsDisabled(APPLITOOLS_KEY == null);
 
-    if (!eyes.getIsDisabled() && localBranchName != null) {
-      String batchName = System.getenv("APPLITOOLS_BATCH_NAME"); // batch name set by Applitools jenkins plugin
-      String batchId = System.getenv("APPLITOOLS_BATCH_ID"); // batch id set by Applitools jenkins plugin
+    if (!eyes.getIsDisabled()) {
+      batchId = System.getenv("APPLITOOLS_BATCH_ID"); // batch id set by Applitools jenkins plugin
 
-      // Set only once per Jenkins job
-      batch = new BatchInfo(batchName != null ? batchName : localBranchName);
+      // Set only once per Jenkins job. Note, we set the batch name to null if we are building for a pr - the github
+      // integration takes care of this. We are making some assumptions here since there is no easy way atm to know if
+      // there is a pr associated with the branch that is under test (parameterized builds aren't available for the 
+      // brain just yet). For local testing (no batchId) we use the branch name.
+      batch = new BatchInfo(batchId == null ? localBranchName : null);
       if (batchId != null) { // no need to set the id for local testing
         batch.setId(batchId);
       }
 
+      // For local testing or ci runs with master set the branchName and parentBranchName
+      if ((batchId != null && "master".equalsIgnoreCase(localBranchName)) || batchId == null) {
+        eyes.setBranchName(
+            localBranchName.equalsIgnoreCase("master") ? "sonatype/insight-brain/master" : localBranchName);
+        eyes.setParentBranchName(System.getProperty("parentBranchName", "sonatype/insight-brain/master"));
+      }
+
       eyes.setApiKey(APPLITOOLS_KEY);
       eyes.setBatch(batch);
-
-      eyes.setBranchName(localBranchName);
-
-      // set the default parent branch to master if the parent branch is not specified
-      eyes.setParentBranchName(System.getProperty("parentBranchName", "master"));
       eyes.setHideCaret(false);
     }
   }
 
   @Override
   protected void starting(Description description) {
-    if (!eyes.getIsDisabled() && eyes.getBatch() == null) {
+    if (!eyes.getIsDisabled() && batchId == null && localBranchName == null) {
       throw new IllegalArgumentException(
-          "The branchName parameter or the Bamboo environment variables are required if visual testing is enabled " + 
+          "The branchName parameter or the Jenkins environment variables are required if visual testing is enabled " +
               "(the applitoolsKey property is provided).");
     }
     testName = description.getTestClass().getSimpleName() + "." + description.getMethodName();
@@ -108,7 +116,7 @@ public class EyesWatcher
     for (WebElement element : WebDriverRunner.getWebDriver().findElements(ignoreRegion)) {
       settings = settings.ignore(element);
     }
-    
+
     eyes.check(tag, settings);
   }
 }

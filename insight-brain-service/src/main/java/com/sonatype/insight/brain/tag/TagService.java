@@ -245,7 +245,8 @@ class TagService
                              final List<Tag> newTags)
   {
     String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    if (!internalId.equals(policyDAO.getByIdNotNull(policyId).getOwnerId())) {
+    Policy policy = policyDAO.getByIdNotNull(policyId);
+    if (!internalId.equals(policy.getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policyId + " for owner id " + ownerId);
     }
     if (!OwnerType.ORGANIZATION.equals(ownerType)) {
@@ -254,6 +255,7 @@ class TagService
 
     try (TransactionContext tx = policyTagDAO.createTransactionContext()) {
       tx.begin();
+      auditUpdatePolicyTags(policy, newTags);
 
       final List<PolicyTag> existingPolicyTags = policyTagDAO.getByPolicyId(tx, policyId);
       for (PolicyTag existingPolicyTag : existingPolicyTags) {
@@ -279,6 +281,18 @@ class TagService
     }
 
     return tagDAO.getByPolicyId(policyId);
+  }
+
+  private void auditUpdatePolicyTags(final Policy policy, final List<Tag> newTags) {
+    AuditData.get().setPolicy(policy);
+    if (newTags.isEmpty()) {
+      AuditData.get().setData("inheritanceScope", "all-children");
+    }
+    else {
+      AuditData.get()
+          .setData("inheritanceScope", "matching-application-category")
+          .setData("applicationCategories", TagDTO.transcribe(newTags));
+    }
   }
 
   @Authorize(permission = Permission.READ)

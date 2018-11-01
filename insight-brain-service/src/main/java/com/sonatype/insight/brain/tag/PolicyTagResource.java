@@ -17,6 +17,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -59,6 +61,7 @@ public class PolicyTagResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_POLICY_INHERITANCE)
   public List<Tag> updatePolicyTags(@PathParam("ownerType") OwnerType ownerType,
                                     @PathParam("ownerId") String ownerId,
                                     @PathParam("policyId") String policyId,

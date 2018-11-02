@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -221,6 +222,8 @@ public class RepositoryService
   }
 
   public void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
+    AuditData.get().setData("repositoryManagerInstanceId", repositoryManagerInstanceId)
+        .setRepositoryPublicId(repositoryPublicId);
     checkLicenseFeature();
 
     log.debug("{} audit for repository {}:{}", enable ? "Enabling" : "Disabling", repositoryManagerInstanceId,
@@ -251,6 +254,7 @@ public class RepositoryService
     else {
       repositoryDAO.update(repository);
     }
+    AuditData.get().setRepository(repository);
   }
 
   // synchronized to avoid race between enable requests from different repos of the same instance

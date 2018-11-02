@@ -24,6 +24,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.codahale.metrics.annotation.Timed;
@@ -75,6 +77,7 @@ public class RepositoryResource
                          @PathParam("repositoryPublicId") String repositoryPublicId,
                          @PathParam("enabled") boolean enabled)
   {
+    AuditData.get().setEvent(enabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
     repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
 

@@ -50,7 +50,10 @@ public enum AuditEvent
   REVOKE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.REVOKE),
   CONFIGURE_GRANDFATHERING(Domain.GOVERNANCE_GRANDFATHERING, Type.CONFIGURE),
 
-  CONFIGURE_CONTINUOUS_MONITORING(Domain.GOVERNANCE_CONTINUOUS_MONITORING, Type.CONFIGURE);
+  CONFIGURE_CONTINUOUS_MONITORING(Domain.GOVERNANCE_CONTINUOUS_MONITORING, Type.CONFIGURE),
+
+  CONNECT_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.CONNECT),
+  DISCONNECT_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.DISCONNECT);
 
   private final String domain;
 
@@ -107,6 +110,8 @@ public enum AuditEvent
 
     String GOVERNANCE_LICENSE_THREAT_GROUP_LICENSES = join(GOVERNANCE_LICENSE_THREAT_GROUP, "licenses");
 
+    String GOVERNANCE_REPOSITORY = join(GOVERNANCE, "repository");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -143,5 +148,9 @@ public enum AuditEvent
     String DELETE = "delete";
 
     String IMPORT = "import";
+
+    String CONNECT = "connect";
+
+    String DISCONNECT = "disconnect";
   }
 }

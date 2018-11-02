@@ -164,7 +164,7 @@ public abstract class AuditData
     return this;
   }
 
-  AuditData setRepositoryPublicId(String repositoryPublicId) {
+  public AuditData setRepositoryPublicId(String repositoryPublicId) {
     setData("repositoryPublicId", repositoryPublicId);
     return this;
   }

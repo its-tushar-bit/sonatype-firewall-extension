@@ -382,20 +382,25 @@ public class AuditContainerRequestFilterTest
   private static class AuditedAnnotationTest
   {
     @Audited(value = AuditEvent.AUTHENTICATION_FAILURE)
-    public void audited() { }
+    public void audited() {
+    }
 
-    public void notAudited() { }
+    public void notAudited() {
+    }
   }
 
   private static class AuditedAnnotationTestGuice$$
       extends AuditedAnnotationTest
   {
     @Override
-    public void audited() { }
+    public void audited() {
+    }
 
-    public void onlyInAuditedAnnotationTestGuice$$() { }
+    public void onlyInAuditedAnnotationTestGuice$$() {
+    }
 
     @Override
-    public void notAudited() { }
+    public void notAudited() {
+    }
   }
 }

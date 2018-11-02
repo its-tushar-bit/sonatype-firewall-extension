@@ -385,6 +385,7 @@ public class AuditContainerRequestFilterTest
     public void audited() {
     }
 
+    @SuppressWarnings("unused")
     public void notAudited() {
     }
   }
@@ -396,6 +397,7 @@ public class AuditContainerRequestFilterTest
     public void audited() {
     }
 
+    @SuppressWarnings("unused")
     public void onlyInAuditedAnnotationTestGuice$$() {
     }
 

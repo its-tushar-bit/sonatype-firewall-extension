@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -53,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @since 1.7
@@ -65,6 +68,8 @@ public class PolicyImportExport
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+
+  private final LicenseDAO licenseDAO = new LicenseDAO();
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
@@ -129,7 +134,7 @@ public class PolicyImportExport
 
       deleteFromOwnerAndDescendants(tx, organization);
       importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), organization);
-      importLicenseThreatGroups(tx, exportDTO, orgId);
+      importLicenseThreatGroups(tx, exportDTO, organization);
       importAndMergeTags(tx, exportDTO, organization);
 
       Map<String, List<PolicyTag>> policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
@@ -177,10 +182,14 @@ public class PolicyImportExport
           owner.getId());
       licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_LICENSE_THREAT_GROUP, false)) {
-        AuditData.get().setOwner(owner).setLicenseThreatGroup(licenseThreatGroup)
-            .setData("licenseThreatGroupThreatLevel", licenseThreatGroup.getThreatLevel());
+        auditLicenseThreatGroup(owner, licenseThreatGroup);
       }
     }
+  }
+
+  private void auditLicenseThreatGroup(Owner owner, LicenseThreatGroup licenseThreatGroup) {
+    AuditData.get().setOwner(owner).setLicenseThreatGroup(licenseThreatGroup).setData("licenseThreatGroupThreatLevel",
+        licenseThreatGroup.getThreatLevel());
   }
 
   /**
@@ -203,27 +212,38 @@ public class PolicyImportExport
    * 
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
-   * @param ownerId the org/app id to import to
+   * @param owner the organization to import to
    */
-  private void importLicenseThreatGroups(TransactionContext tx, PolicyExportResult exportDTO, String ownerId) {
+  private void importLicenseThreatGroups(TransactionContext tx, PolicyExportResult exportDTO, Organization owner) {
     if (!exportDTO.licenseThreatGroups.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       Map<String, List<LicenseThreatGroupLicense>> licensesByGroupId = exportDTO.licenseThreatGroupLicenses.stream()
           .collect(groupingBy(LicenseThreatGroupLicense::getLicenseThreatGroupId));
       for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
-        licenseThreatGroup.setOwnerId(ownerId);
+        licenseThreatGroup.setOwnerId(owner.getId());
         String oldId = licenseThreatGroup.getId();
         LicenseThreatGroup inheritedLtg = licenseThreatGroupDAO.getInheritedByName(tx, licenseThreatGroup);
         if (inheritedLtg == null) {
           licenseThreatGroup.setId(null);
           licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
           idMap.put(oldId, licenseThreatGroup.getId());
-          for (LicenseThreatGroupLicense licenseThreatGroupLicense : licensesByGroupId.getOrDefault(oldId,
-              Collections.emptyList())) {
+          List<LicenseThreatGroupLicense> licenses = licensesByGroupId.getOrDefault(oldId,
+              Collections.emptyList());
+          for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenses) {
             licenseThreatGroupLicense.setId(null);
-            licenseThreatGroupLicense.setOwnerId(ownerId);
+            licenseThreatGroupLicense.setOwnerId(owner.getId());
             licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
             licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
+          }
+          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_LICENSE_THREAT_GROUP,
+              false)) {
+            auditLicenseThreatGroup(owner, licenseThreatGroup);
+          }
+          try (AuditSession auditSession = AuditData.get()
+              .recordSubEvent(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, false)) {
+            AuditData.get().setOrganization(owner).setLicenseThreatGroup(licenseThreatGroup).setData("licenseNames",
+                licenses.stream().map(LicenseThreatGroupLicense::getLicenseId).map(licenseDAO::getByIdNotNull)
+                    .map(License::getShortDisplayName).sorted().collect(toList()));
           }
         }
         else {

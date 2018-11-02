@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -94,9 +95,9 @@ public class PolicyResourceAuditTest
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 2, null);
     assertApplicationData(auditDTOs.get(0), application);
-    assertLicenseThreatGroupData(auditDTOs.get(0), applicationLTG);
+    assertLicenseThreatGroupData(auditDTOs.get(0), applicationLTG, (String[]) null);
     assertOrganizationData(auditDTOs.get(1), organization);
-    assertLicenseThreatGroupData(auditDTOs.get(1), organizationLTG);
+    assertLicenseThreatGroupData(auditDTOs.get(1), organizationLTG, (String[]) null);
   }
 
   @Test
@@ -111,6 +112,56 @@ public class PolicyResourceAuditTest
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertThat(awaitLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 0), empty());
     assertThat(new LicenseThreatGroupDAO().getById(ltg.getId()), is(notNullValue()));
+  }
+
+  @Test
+  public void testImportPolicies_LogImportedLicenseThreatGroups() throws Exception {
+    LicenseThreatGroup ltg = new LicenseThreatGroup(organization.getId(), "Test LTG", 6);
+    ltg.setId(tempEntity.uuid());
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.licenseThreatGroups = Arrays.asList(ltg);
+    policyExportResult.licenseThreatGroupLicenses = Arrays.asList(
+        new LicenseThreatGroupLicense(null, ltg.getId(), "Apache-UNSPECIFIED"),
+        new LicenseThreatGroupLicense(null, ltg.getId(), "PUBLIC-DOMAIN"));
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    assertAuditLog(AuditEvent.IMPORT, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, null);
+    assertOrganizationData(auditDTO, organization);
+    ltg.setId(null);
+    assertLicenseThreatGroupData(auditDTO, ltg, (String[]) null);
+    auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, null);
+    assertLicenseThreatGroupData(auditDTO, ltg, "Apache", "Public Domain");
+  }
+
+  @Test
+  public void testImportPolicies_DontLogInheritedLicenseThreatGroups() throws Exception {
+    LicenseThreatGroup inheritedLTG = tempEntity.newLicenseThreatGroup(rootOrganization.getId());
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.licenseThreatGroups = Arrays.asList(new LicenseThreatGroup(null, inheritedLTG.getName(), 6));
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    assertAuditLog(AuditEvent.IMPORT, null);
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, 0), empty());
+  }
+
+  @Test
+  public void testImportPolicies_DontLogImportedLicenseThreatGroupsIfTransactionFails() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.licenseThreatGroups = Arrays.asList(new LicenseThreatGroup(null, "Test LTG", 6),
+        new LicenseThreatGroup(null, "Test LTG", 6));
+
+    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    assertAuditLog(AuditEvent.IMPORT, "bad-request");
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, 0), empty());
   }
 
   @Test
@@ -248,10 +299,21 @@ public class PolicyResourceAuditTest
     return new ConditionFact("conditionTypeId", 0, summary, reason);
   }
 
-  private void assertLicenseThreatGroupData(AuditDTO auditDTO, LicenseThreatGroup ltg) {
-    assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
+  private void assertLicenseThreatGroupData(AuditDTO auditDTO, LicenseThreatGroup ltg, String... licenseNames) {
+    if (ltg.getId() != null) {
+      assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
+    }
+    else {
+      assertThat(new LicenseThreatGroupDAO().getById((String) auditDTO.data.get("licenseThreatGroupId")),
+          is(notNullValue()));
+    }
     assertCustomData(auditDTO, "licenseThreatGroupName", ltg.getName());
-    assertCustomData(auditDTO, "licenseThreatGroupThreatLevel", ltg.getThreatLevel());
+    if (licenseNames == null) {
+      assertCustomData(auditDTO, "licenseThreatGroupThreatLevel", ltg.getThreatLevel());
+    }
+    else {
+      assertCustomData(auditDTO, "licenseNames", Arrays.asList(licenseNames));
+    }
   }
 
   private void assertDeletePolicyWaiverData(AuditDTO auditDTO, Policy policy, PolicyWaiver policyWaiver) {

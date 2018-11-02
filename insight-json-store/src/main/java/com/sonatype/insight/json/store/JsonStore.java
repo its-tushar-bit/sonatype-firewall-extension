@@ -6,7 +6,6 @@
 package com.sonatype.insight.json.store;
 
 import java.io.IOException;
-import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
 
@@ -19,8 +18,4 @@ public interface JsonStore
   int modificationCount();
 
   ContainerNode<?> history(ContainerNode<?> key, String... paths) throws IOException;
-
-  <T extends ContainerNode<?>> T augment(T key, String... paths) throws IOException;
-
-  Lock readLock();
 }

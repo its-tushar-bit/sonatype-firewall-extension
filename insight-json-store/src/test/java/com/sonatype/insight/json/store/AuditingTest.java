@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.junit.Assert.assertNull;
 
@@ -29,86 +28,6 @@ public class AuditingTest
   @Before
   public void setUp() throws Exception {
     store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"));
-  }
-
-  @Test
-  public void testNoAugmentedData() throws IOException {
-    final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
-
-    final byte[] buf = JsonUtils.generate(store.augment(JsonUtils.parse(table.getBytes("UTF-8")), "sample.json"));
-
-    assertThat(new String(buf, "UTF-8"), equalToIgnoringWhiteSpace(table));
-
-    assertThat(store.modificationCount(), equalTo(0));
-  }
-
-  @Test
-  public void testSingleAugmentedData() throws IOException {
-    assertThat(store.modificationCount(), equalTo(0));
-
-    final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
-
-    final String addition = "[ { \"id\" : \"B\", \"override\" : \"EPL\", \"comment\" : \"Testing...\" } ]";
-
-    final String result = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\", \"override\" : \"EPL\", \"comment\" : \"Testing...\" }, { \"id\" : \"C\" } ] }";
-
-    store.commit("sample.json", JsonUtils.parse(addition.getBytes("UTF-8")));
-
-    final byte[] buf = JsonUtils.generate(store.augment(JsonUtils.parse(table.getBytes("UTF-8")), "sample.json"));
-
-    assertThat(new String(buf, "UTF-8"), equalToIgnoringWhiteSpace(result));
-
-    assertThat(store.modificationCount(), equalTo(1));
-  }
-
-  @Test
-  public void testMultipleAugmentedData() throws IOException {
-    assertThat(store.modificationCount(), equalTo(0));
-
-    final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
-
-    final String addition1 = "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
-
-    final String addition2 = "[ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" } ]";
-
-    final String result = "{ \"aaData\" : [ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" }, { \"id\" : \"C\" } ] }";
-
-    store.commit("sample.json", JsonUtils.parse(addition1.getBytes("UTF-8")));
-
-    assertThat(store.modificationCount(), equalTo(1));
-
-    store.commit("sample.json", JsonUtils.parse(addition2.getBytes("UTF-8")));
-
-    assertThat(store.modificationCount(), equalTo(2));
-
-    final byte[] buf = JsonUtils.generate(store.augment(JsonUtils.parse(table.getBytes("UTF-8")), "sample.json"));
-
-    assertThat(new String(buf, "UTF-8"), equalToIgnoringWhiteSpace(result));
-  }
-
-  @Test
-  public void testCanAugmentSimpleObject() throws IOException {
-    assertThat(store.modificationCount(), equalTo(0));
-
-    final String object = "{ \"id\" : \"B\" }";
-
-    final String addition1 = "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
-
-    final String addition2 = "[ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" } ]";
-
-    final String result = "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" }";
-
-    store.commit("sample.json", JsonUtils.parse(addition1.getBytes("UTF-8")));
-
-    assertThat(store.modificationCount(), equalTo(1));
-
-    store.commit("sample.json", JsonUtils.parse(addition2.getBytes("UTF-8")));
-
-    assertThat(store.modificationCount(), equalTo(2));
-
-    final byte[] buf = JsonUtils.generate(store.augment(JsonUtils.parse(object.getBytes("UTF-8")), "sample.json"));
-
-    assertThat(new String(buf, "UTF-8"), equalToIgnoringWhiteSpace(result));
   }
 
   @Test

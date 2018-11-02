@@ -15,21 +15,16 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class JsonFileStore
     implements JsonStore
 {
-  private static final Logger log = LoggerFactory.getLogger(JsonFileStore.class);
-
   private static final ConcurrentMap<String, CountingLock> LOCK_TABLE = new ConcurrentHashMap<>();
 
   private final File folder;
@@ -133,35 +128,6 @@ final class JsonFileStore
     }
   }
 
-  @Override
-  public <T extends ContainerNode<?>> T augment(final T key, final String... paths) throws IOException {
-    final CountingLock lock = lockFor(folder);
-
-    lock.sharedLock();
-    try {
-      T table = key;
-      for (final String path : paths) {
-        long start = System.currentTimeMillis();
-
-        final File file = new File(folder, path);
-        if (file.canRead()) {
-          table = augmentTable(table, (ArrayNode) JsonUtils.read(file));
-        }
-
-        log.debug("Augmented {} in {} ms.", path, System.currentTimeMillis() - start);
-      }
-      return table;
-    }
-    finally {
-      lock.sharedUnlock();
-    }
-  }
-
-  @Override
-  public Lock readLock() {
-    return lockFor(folder).readLock();
-  }
-
   private static ArrayNode filterLog(final File file, final ObjectNode key) throws IOException {
     final ArrayNode log = JsonUtils.read(file);
     final ArrayNode filteredLog = JsonUtils.arrayNode(log);
@@ -198,59 +164,6 @@ final class JsonFileStore
     }
 
     return filteredLog;
-  }
-
-  private static <T extends ContainerNode<?>> T augmentTable(final T table, final ArrayNode log) {
-    // first aggregate all the changes found in the data log
-    final List<JsonNode> changes = new ArrayList<>();
-    for (int x = 0; x < log.size(); x++) {
-      ContainerNode<?> data = (ContainerNode<?>) log.get(x);
-      if (data != null && data.has("data")) // stamped data?
-      {
-        data = (ContainerNode<?>) data.get("data");
-      }
-      if (data instanceof ArrayNode) {
-        for (int y = 0; y < data.size(); y++) {
-          changes.add(data.get(y));
-        }
-      }
-      else {
-        changes.add(data);
-      }
-    }
-
-    // check each row in turn against the candidate changes
-    final ArrayNode rows = (ArrayNode) (table instanceof ArrayNode ? table : table.get("aaData"));
-    if (rows != null) {
-      for (int x = 0; x < rows.size(); x++) {
-        for (int y = 0; y < changes.size(); y++) {
-          try {
-            // once change has been applied, remove it since it shouldn't match any other rows
-            rows.set(x, augment((ObjectNode) rows.get(x), (ObjectNode) changes.get(y)));
-            changes.remove(y--);
-            break;
-          }
-          catch (final JsonMappingException e) {
-            // incompatible data, try next row from secondary table
-          }
-        }
-      }
-    }
-    else {
-      // treat solitary object as a single row
-      final ObjectNode row = (ObjectNode) table;
-      for (int y = 0; y < changes.size(); y++) {
-        try {
-          row.setAll(augment(row, (ObjectNode) changes.get(y)));
-          break;
-        }
-        catch (final JsonMappingException e) {
-          // incompatible data, try next row from secondary table
-        }
-      }
-    }
-
-    return table;
   }
 
   private static ObjectNode augment(final ObjectNode primary, final ObjectNode secondary) throws JsonMappingException {

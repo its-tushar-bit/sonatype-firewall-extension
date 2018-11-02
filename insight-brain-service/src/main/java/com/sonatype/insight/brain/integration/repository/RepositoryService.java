@@ -646,7 +646,10 @@ public class RepositoryService
   @Authorize(permission = Permission.WRITE)
   public void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     checkLicenseFeature();
-    repositoryDAO.delete(repositoryDAO.getByIdNotNull(repositoryId));
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    repositoryDAO.delete(repository);
+    AuditData.get().setData("repositoryManagerInstanceId",
+        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
   }
 
   public RepositoriesDTO getRepositories() {

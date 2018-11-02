@@ -17,6 +17,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
@@ -82,6 +84,7 @@ public class RepositoryResource
    */
   @DELETE
   @Path(REPOSITORY_PATH)
+  @Audited(AuditEvent.REMOVE_REPOSITORY)
   public void deleteRepository(@PathParam("repositoryId") String repositoryId) {
     repositoryService.deleteRepository(repositoryId);
   }

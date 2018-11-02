@@ -25,9 +25,9 @@ public class NewInstancePopulatorAuditTest
   @Test
   @ManualServerInit
   public void testPopulateIfNewInstance() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
     initServer((HdsConfigurator) hdsServer -> {
-      PolicyExportResult policyExportResult = new PolicyExportResult();
-      policyExportResult.policies = Arrays.asList(policy(), policy());
+      policyExportResult.policies = Arrays.asList(aComplexPolicy(), policy());
       policyExportResult.labels = Arrays.asList(label(), label(), label());
       policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
       policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
@@ -40,6 +40,8 @@ public class NewInstancePopulatorAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null, SYSTEM_USER);
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, 2, 3, 1, 4);
+    assertImportedPolicies(policyExportResult.policies, Organization.ROOT_ORGANIZATION_ID, "Root Organization",
+        SYSTEM_USER);
   }
 
   @Test

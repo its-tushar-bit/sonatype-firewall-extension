@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -29,21 +28,8 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
-import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
-import com.sonatype.insight.brain.model.policy.notifications.Notifications;
-import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
-import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
@@ -106,7 +92,7 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Arrays.asList(policy());
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 2, null);
     assertApplicationData(auditDTOs.get(0), application);
@@ -122,7 +108,7 @@ public class PolicyResourceAuditTest
     policyExportResult.policies = Arrays.asList(policy());
     policyExportResult.labels = Arrays.asList(new Label(organization.getId(), LONG_LABEL_NAME));
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertThat(awaitLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 0), empty());
@@ -140,7 +126,7 @@ public class PolicyResourceAuditTest
         new LicenseThreatGroupLicense(null, ltg.getId(), "Apache-UNSPECIFIED"),
         new LicenseThreatGroupLicense(null, ltg.getId(), "PUBLIC-DOMAIN"));
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, null);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, null);
@@ -158,7 +144,7 @@ public class PolicyResourceAuditTest
     policyExportResult.policies = Arrays.asList(policy());
     policyExportResult.licenseThreatGroups = Arrays.asList(new LicenseThreatGroup(null, inheritedLTG.getName(), 6));
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, null);
     assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0), empty());
@@ -172,7 +158,7 @@ public class PolicyResourceAuditTest
     policyExportResult.licenseThreatGroups = Arrays.asList(new LicenseThreatGroup(null, "Test LTG", 6),
         new LicenseThreatGroup(null, "Test LTG", 6));
 
-    restRequest(organization).path("import").part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0), empty());
@@ -303,7 +289,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertApplicationData(auditDTO, app);
-    assertPolicyData(auditDTO, policy);
+    assertPolicyData(auditDTO, policy, false);
   }
 
   @Test
@@ -313,7 +299,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
-    assertPolicyData(auditDTO, policy);
+    assertPolicyData(auditDTO, policy, false);
   }
 
   @Test
@@ -336,7 +322,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
     assertApplicationData(auditDTO, app);
-    assertPolicyData(auditDTO, policy);
+    assertPolicyData(auditDTO, policy, false);
   }
 
   @Test
@@ -349,7 +335,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
-    assertPolicyData(auditDTO, policy);
+    assertPolicyData(auditDTO, policy, false);
   }
 
   @Test
@@ -375,7 +361,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
     assertApplicationData(auditDTO, app);
-    assertPolicyData(auditDTO, policy);
+    assertPolicyData(auditDTO, policy, true);
   }
 
   @Test
@@ -388,7 +374,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
-    assertPolicyData(auditDTO, policy);
+    assertPolicyData(auditDTO, policy, true);
   }
 
   @Test
@@ -401,32 +387,13 @@ public class PolicyResourceAuditTest
     assertOrganizationData(auditDTO, organization);
   }
 
-  private Policy aComplexPolicy() {
-    Policy policy = policy();
-    policy.setConstraints(Arrays.asList(
-        constraint("c1", LogicalOperator.AND,
-            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"),
-            condition(ConditionTypes.MatchStateConditionType.getId(), "is", "exact")),
-        constraint("c2", LogicalOperator.OR,
-            condition(AgeInDaysConditionType.ID, "older than", "1"),
-            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"))));
-    policy.setAction(Stage.ID_BUILD, WarnActionType.ID);
-    policy.setAction(Stage.ID_RELEASE, FailActionType.ID);
-    policy.setNotifications(new Notifications(
-        new UserNotification("name@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE),
-        new RoleNotification(Role.DEVELOPER_ROLE_ID, Stage.ID_BUILD),
-        new JiraNotification("p1", 123L, Stage.ID_DEVELOP)
-    ));
-    return policy;
-  }
+  @Test
+  public void testImportPolicies_ImportNewPolicies() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(aComplexPolicy(), policy());
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
-  private void assertPolicyData(final AuditDTO auditDTO, final Policy policy) {
-    assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
-    assertCustomData(auditDTO, "policyGrandfatheringMode",
-        policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
-    assertCustomObject(auditDTO, "policyConstraints", ConstraintDTO.transcribe(policy.getConstraints()));
-    assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
-    assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
+    assertImportedPolicies(policyExportResult.policies, organization.getId(), organization.getName(), null);
   }
 
   private PolicyWaiver savePolicyWaiver(String policyId, String ownerId) {
@@ -498,15 +465,5 @@ public class PolicyResourceAuditTest
     assertCustomData(auditDTO, "applicationCategoryName", savedTag.getName());
     assertCustomData(auditDTO, "applicationCategoryDescription", savedTag.getDescription());
     assertCustomData(auditDTO, "applicationCategoryColor", savedTag.getColor().toValue());
-  }
-
-  private Condition condition(final String conditionTypeId, final String operator, final String value) {
-    return new Condition(conditionTypeId, operator, value);
-  }
-
-  private Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
-    Constraint constraint = new Constraint(UUID.randomUUID().toString(), name, logicalOperator);
-    constraint.setConditions(Arrays.asList(conditions));
-    return constraint;
   }
 }

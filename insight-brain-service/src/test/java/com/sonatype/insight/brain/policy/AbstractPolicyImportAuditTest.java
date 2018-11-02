@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -17,12 +21,26 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.After;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public abstract class AbstractPolicyImportAuditTest
     extends AbstractAuditTest
@@ -49,6 +67,26 @@ public abstract class AbstractPolicyImportAuditTest
     policy.setConstraints(Collections.singletonList(constraint));
     return policy;
   }
+
+  protected Policy aComplexPolicy() {
+    Policy policy = policy();
+    policy.setConstraints(Arrays.asList(
+        constraint("c1", LogicalOperator.AND,
+            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"),
+            condition(ConditionTypes.MatchStateConditionType.getId(), "is", "exact")),
+        constraint("c2", LogicalOperator.OR,
+            condition(AgeInDaysConditionType.ID, "older than", "1"),
+            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"))));
+    policy.setAction(Stage.ID_BUILD, WarnActionType.ID);
+    policy.setAction(Stage.ID_RELEASE, FailActionType.ID);
+    policy.setNotifications(new Notifications(
+        new UserNotification("name@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE),
+        new RoleNotification(Role.DEVELOPER_ROLE_ID, Stage.ID_BUILD),
+        new JiraNotification("p1", 123L, Stage.ID_DEVELOP)
+    ));
+    return policy;
+  }
+
 
   protected Label label() {
     Label label = new Label();
@@ -79,5 +117,45 @@ public abstract class AbstractPolicyImportAuditTest
     assertCustomData(auditDTO, "componentLabelCount", componentLabelCount);
     assertCustomData(auditDTO, "licenseThreatGroupCount", licenseThreatGroupCount);
     assertCustomData(auditDTO, "applicationCategoryCount", applicationCategoryCount);
+  }
+
+  protected void assertPolicyData(final AuditDTO auditDTO, final Policy policy, boolean policyDeleted) {
+    String auditedPolicyId = (String) auditDTO.data.get("policyId");
+    assertThat(auditedPolicyId, is(notNullValue()));
+    if (!policyDeleted) {
+      assertThat(new PolicyDAO().getById(auditedPolicyId), is(notNullValue()));
+    }
+    else {
+      assertThat(auditedPolicyId, is(policy.getId()));
+    }
+    assertCustomData(auditDTO, "policyName", policy.getName());
+    assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
+    assertCustomData(auditDTO, "policyGrandfatheringMode",
+        policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
+    assertCustomObject(auditDTO, "policyConstraints", ConstraintDTO.transcribe(policy.getConstraints()));
+    assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
+    assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
+  }
+
+  protected void assertImportedPolicies(final List<Policy> policies,
+                                        String organizationId,
+                                        String organizationName,
+                                        String username)
+  {
+    List<AuditDTO> auditLogs = assertAuditLogs(AuditEvent.IMPORT_POLICY, policies.size(), null, username);
+    for (int i = 0; i < policies.size(); i++) {
+      assertOrganizationData(auditLogs.get(i), organizationId, organizationName);
+      assertPolicyData(auditLogs.get(i), policies.get(i), false);
+    }
+  }
+
+  private Condition condition(final String conditionTypeId, final String operator, final String value) {
+    return new Condition(conditionTypeId, operator, value);
+  }
+
+  private Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
+    Constraint constraint = new Constraint(UUID.randomUUID().toString(), name, logicalOperator);
+    constraint.setConditions(Arrays.asList(conditions));
+    return constraint;
   }
 }

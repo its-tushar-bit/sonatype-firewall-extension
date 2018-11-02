@@ -153,11 +153,18 @@ public class PolicyImportExport
         policy.setOwnerId(orgId);
         policyDAO.insert(policy);
         importPolicyTags(tx, policy.getId(), policyTags);
+        auditPolicyImport(organization, policy);
       }
       tx.commit();
     }
 
     return createResult(organization.getName());
+  }
+
+  private void auditPolicyImport(final Organization organization, final Policy policy) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_POLICY, false)) {
+      AuditData.get().setOrganization(organization).setPolicyWithDetails(policy);
+    }
   }
 
   /**

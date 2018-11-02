@@ -199,6 +199,7 @@ public class PolicyResource
   @DELETE
   @Path("{policyId}")
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.DELETE_POLICY)
   public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
                            @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
                            @PathParam("policyId") final String policyId)
@@ -214,7 +215,7 @@ public class PolicyResource
     }
 
     policyDAO.delete(policy);
-
+    AuditData.get().setPolicyWithDetails(policy);
     managementEventService.postEvent(DELETED, policy);
   }
 

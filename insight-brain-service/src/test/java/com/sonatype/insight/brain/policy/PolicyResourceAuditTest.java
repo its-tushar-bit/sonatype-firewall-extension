@@ -364,6 +364,43 @@ public class PolicyResourceAuditTest
     assertOrganizationData(auditDTO, organization);
   }
 
+  @Test
+  public void testDeletePolicy_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = aComplexPolicy();
+    policy.setOwnerId(app.getId());
+    tempEntity.newPolicy(policy);
+
+    policyResourceRequest(app).path(policy.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyData(auditDTO, policy);
+  }
+
+  @Test
+  public void testDeletePolicy_Organization() throws Exception {
+    Policy policy = aComplexPolicy();
+    policy.setOwnerId(organization.getId());
+    tempEntity.newPolicy(policy);
+
+    policyResourceRequest(organization).path(policy.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyData(auditDTO, policy);
+  }
+
+  @Test
+  public void testDeletePolicy_Unauthorized() throws Exception {
+    String policyId = tempEntity.newPolicy(organization.getId(), "aPolicy").getId();
+
+    policyResourceRequest(organization).path(policyId).with(unauthorizedUser()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
   private Policy aComplexPolicy() {
     Policy policy = policy();
     policy.setConstraints(Arrays.asList(

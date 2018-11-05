@@ -72,6 +72,7 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
       matchedOnly: true
     }, {
       title: 'Vulnerabilities',
+      directive: 'cip-vulnerability-editor',
       matchedOnly: true
     }, {
       title: 'Labels',

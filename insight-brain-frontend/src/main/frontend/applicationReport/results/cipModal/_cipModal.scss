@@ -5,6 +5,11 @@
 @import '../../../cip/cip.license.editor/cip-license-editor';
 @import '../../../cip/cip.label.editor/cip-label-editor';
 
+// Vulnerabilities tab
+@import '../../../cip/cip.vulnerability.editor/cip.vulnerability.editor';
+@import '../../../audit-report/lib/slickgrid/slick.grid';
+@import '../../../audit-report/slickgrid/slick.grid.custom';
+
 .iq-modal__cip {
   left: calc(50% - 450px);
   width: 901px;
@@ -21,7 +26,7 @@
         padding-top: 5px;
         width: 100%;
 
-        .cip-policy-wrapper {
+        #cip-policy-violations {
           .table {
             // avoid scroll bar when possible
             margin-bottom: 0;
@@ -65,6 +70,20 @@
           }
           select {
             height: 28px;
+          }
+        }
+
+        #vulnerability-editor-table-wrapper {
+
+          .topBorder {
+            border: 10px solid $iq-grey-1;
+            margin-left: 5px;
+          }
+
+          .selected {
+            background-color: $iq-grey-2;
+            border-bottom: 1px solid $iq-grey-4;
+            border-top: 1px solid $iq-grey-4;
           }
         }
       }

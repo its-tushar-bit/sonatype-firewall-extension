@@ -70,6 +70,7 @@
 .tooltip {
   // prevent tooltips from picking up nowrap styles from parent elements, which they are incompatible with
   white-space: normal;
+  z-index: 1080;
 }
 
 .tooltip.top-left { // missing in our version of bootstrap

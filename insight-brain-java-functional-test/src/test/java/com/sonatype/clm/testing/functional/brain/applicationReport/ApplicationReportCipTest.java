@@ -5,8 +5,10 @@
  */
 package com.sonatype.clm.testing.functional.brain.applicationReport;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +18,9 @@ import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
+import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP;
+import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVDetailModal;
+import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -28,8 +33,10 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -43,18 +50,23 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 public class ApplicationReportCipTest
@@ -72,6 +84,8 @@ public class ApplicationReportCipTest
 
   private TestReportEvaluator evaluator;
 
+  private InsightWork insightWork;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(DashboardPage.URL);
@@ -88,6 +102,7 @@ public class ApplicationReportCipTest
     constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:javancss*"));
     tempEntity.newPolicy("ApplicationReportTest Policy", constraint);
     evaluator.evaluatePolicy();
+    insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 
@@ -127,6 +142,7 @@ public class ApplicationReportCipTest
     testPolicyTab();
     testLicensesTab();
     testLabelsTab();
+    testVulnerabilitiesTab();
   }
 
   private void testComponentInfoTab() {
@@ -140,7 +156,7 @@ public class ApplicationReportCipTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"), cssClass("unspecified"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
@@ -336,6 +352,61 @@ public class ApplicationReportCipTest
     cipModal.closeButton().click();
   }
 
+  private void testVulnerabilitiesTab() throws Exception {
+    tempEntity.newSecurityVulnerabilityOverride(app.getId(), JAVANCSS_HASH, "cve", "CVE-1234-56789",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+
+    reportPage.resultRow(1).click();
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.tabLink(6).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(6).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    VulnerabilityCIP.root().shouldBe(visible);
+
+    VulnerabilityCIP.rows().shouldHaveSize(3);
+
+    assertRow(VulnerabilityCIP.row(0), 9, "CVE-1234-56789");
+    assertRow(VulnerabilityCIP.row(1), 4, "OSVDB-1234");
+    assertRow(VulnerabilityCIP.row(2), null, "OSVDB-4321");
+
+    String componentIdentifier = URLEncoder.encode(ComponentIdentifierAdapter.toJson(JAVANCSS_IDENTIFIER), "UTF-8");
+
+    testCLMServer.getHdsServer().setResponseForURI(
+        "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
+            + JAVANCSS_HASH,
+        getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"), 200);
+
+    SVTableRow row = VulnerabilityCIP.row(0);
+    row.info().click();
+
+    SVDetailModal.root().shouldBe(visible);
+
+    // html from the json response we send above
+    $("#somedivfortest").shouldBe(visible);
+
+    SVDetailModal.closeButton().shouldBe(enabled).click();
+
+    row.identifier().click();
+    row.shouldBe(SVTableRow.ROW_SELECTED);
+
+    VulnerabilityCIP.Editor.status().shouldBe(visible).shouldHave(text("Acknowledged"))
+        .selectOption(SecurityVulnerabilityOverrideStatus.OPEN.getName());
+    VulnerabilityCIP.Editor.comment().val("woot");
+    VulnerabilityCIP.Editor.saveButton().click();
+
+    row.status().shouldHave(text("Open"));
+    assertNull(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(app.getId(),
+        JAVANCSS_HASH, "cve", "CVE-1234-56789"));
+
+    ArrayNode allLogJsonData = JsonUtils.read(new File(insightWork.getAuditDir(app.getId()), "security.json"));
+    assertNotNull(allLogJsonData);
+    assertThat(allLogJsonData.size(), is(1));
+    assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
+
+    cipModal.closeButton().click();
+  }
+
   private Policy createPolicy(int threatLevel, String name, String conditionType, String operator, String value) {
     Policy p = new Policy(null, name);
     p.setThreatLevel(threatLevel);
@@ -354,5 +425,12 @@ public class ApplicationReportCipTest
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails.json"), 200);
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
+  }
+
+  private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {
+    actualRow.identifier().shouldHave(text(identifier));
+    actualRow.info().shouldBe(visible);
+    actualRow.threatLevel().shouldHave(text(threatLevel == null ? "Unscored" : threatLevel.toString().substring(0, 1)),
+        SVTableRow.color(threatLevel));
   }
 }

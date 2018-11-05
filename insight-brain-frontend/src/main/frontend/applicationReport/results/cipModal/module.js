@@ -14,13 +14,32 @@ import proprietaryMatchersModule from '../../../cip/proprietary.matchers.modal/p
 import cipPolicyViolationsModule from '../../../cip/cip.policy.violations/cip.policy.violations.module';
 import cipLicenseEditorModule from '../../../cip/cip.license.editor/cip.license.editor.module';
 import cipLabelEditorModule from '../../../cip/cip.label.editor/cip.label.editor.module';
+import cipVulnerabilityEditorModule from
+  '../../../audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module';
+
+// needed for Vulnerabilities tab
+import '../../../audit-report/lib/jquery/jquery.browser';
+import '../../../audit-report/lib/slickgrid/jquery.event.drag-2.3.0';
+import '../../../audit-report/insight';
+import '../../../audit-report/table';
+import '../../../audit-report/lib/slickgrid/slick.core';
+import '../../../audit-report/lib/slickgrid/slick.grid';
+import '../../../audit-report/lib/slickgrid/slick.dataview';
+import '../../../audit-report/lib/slickgrid/slick.groupitemmetadataprovider';
+import '../../../audit-report/lib/slickgrid/slick.pager';
+import '../../../audit-report/lib/slickgrid/slick.rowselectionmodel';
+import '../../../audit-report/lib/slickgrid/slick.checkboxselectcolumn';
+import '../../../audit-report/slickgrid/column-grouping';
+import '../../../audit-report/slickgrid/filter';
+import '../../../audit-report/slickgrid/sort';
 
 import cipModal from './cipModal';
 
 export default angular.module('cipModal',
     [
       cipTabsWidgetModule.name, versionGraphModule.name, cipComponentUtilModule.name, proprietaryMatchersModule.name,
-      cipPolicyViolationsModule.name, cipLicenseEditorModule.name, cipLabelEditorModule.name
+      cipPolicyViolationsModule.name, cipLicenseEditorModule.name, cipLabelEditorModule.name,
+      cipVulnerabilityEditorModule.name
     ])
     .component('cipModal', cipModal)
     .service('OwnerContext', OwnerContext);

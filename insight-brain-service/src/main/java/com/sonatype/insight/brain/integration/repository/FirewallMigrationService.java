@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -91,6 +92,11 @@ public class FirewallMigrationService
                                 String targetRepositoryManagerInstanceId,
                                 String targetRepositoryPublicId)
   {
+    AuditData.get().setData("sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId)
+        .setData("sourceRepositoryPublicId", sourceRepositoryPublicId)
+        .setData("repositoryManagerInstanceId", targetRepositoryManagerInstanceId)
+        .setRepositoryPublicId(targetRepositoryPublicId);
+
     checkLicenseFeature();
 
     Repository sourceRepository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
@@ -98,6 +104,10 @@ public class FirewallMigrationService
 
     Repository targetRepository = createOrUpdateTargetRepository(sourceRepository, targetRepositoryManagerInstanceId,
         targetRepositoryPublicId);
+
+    AuditData.get().setData("sourceRepositoryId", sourceRepository.getId())
+        .setRepository(targetRepository)
+        .setData("quarantine", sourceRepository.isQuarantineEnabled() ? "enabled" : "disabled");
 
     log.debug("Migrating history of repository {}:{} ({}) to repository {}:{} ({}).", sourceRepositoryManagerInstanceId,
         sourceRepositoryPublicId, sourceRepository.getId(), targetRepositoryManagerInstanceId, targetRepositoryPublicId,

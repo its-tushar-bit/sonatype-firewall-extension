@@ -16,6 +16,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -49,6 +51,7 @@ public class FirewallMigrationResource
 
   @POST
   @Path(HISTORY_PATH)
+  @Audited(AuditEvent.MIGRATE_REPOSITORY)
   public void migrateRepositoryHistory(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
                                        @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId,
                                        @QueryParam("sourceRepositoryManagerInstanceId")

@@ -54,7 +54,8 @@ public enum AuditEvent
 
   CONNECT_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.CONNECT),
   DISCONNECT_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.DISCONNECT),
-  REMOVE_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.REMOVE);
+  REMOVE_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.REMOVE),
+  MIGRATE_REPOSITORY(Domain.GOVERNANCE_REPOSITORY, Type.MIGRATE);
 
   private final String domain;
 
@@ -153,5 +154,7 @@ public enum AuditEvent
     String CONNECT = "connect";
 
     String DISCONNECT = "disconnect";
+
+    String MIGRATE = "migrate";
   }
 }

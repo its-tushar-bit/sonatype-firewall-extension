@@ -19,12 +19,14 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -394,6 +396,51 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertImportedPolicies(policyExportResult.policies, organization.getId(), organization.getName(), null);
+  }
+
+  @Test
+  public void testImportPolicies_DeleteExistingPolicies() throws Exception {
+    Application application = tempEntity.newApplication(organization.getId());
+    Policy appPolicy = aComplexPolicy();
+    appPolicy.setOwnerId(application.getId());
+    tempEntity.newPolicy(appPolicy);
+    Policy orgPolicy = tempEntity.newPolicy(organization);
+
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.DELETE_POLICY, 2);
+    assertDeletedPolicyOnImport(appPolicy, auditDTOs, application);
+    assertDeletedPolicyOnImport(orgPolicy, auditDTOs, organization);
+  }
+
+  @Test
+  public void testImportPolicies_DontLogDeletedPoliciesIfTransactionFails() throws Exception {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.labels = Arrays.asList(new Label(organization.getId(), LONG_LABEL_NAME));
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    assertAuditLog(AuditEvent.IMPORT, "bad-request");
+    assertThat(awaitLogEntries(AuditEvent.DELETE_POLICY, 0), empty());
+    assertThat(new PolicyDAO().getById(policy.getId()), is(notNullValue()));
+  }
+
+  private void assertDeletedPolicyOnImport(final Policy policy, List<AuditDTO> auditLogs, Owner owner)
+  {
+    AuditDTO foundDTO = auditLogs.stream().filter(auditDTO -> auditDTO.data.get("policyId").equals(policy.getId()))
+        .findFirst().get();
+    assertStandardData(foundDTO, AuditEvent.DELETE_POLICY, null);
+    if (owner.getType().equals(OwnerType.APPLICATION)) {
+      assertApplicationData(foundDTO, (Application) owner);
+    }
+    else {
+      assertOrganizationData(foundDTO, (Organization) owner);
+    }
+    assertPolicyData(foundDTO, policy, true);
   }
 
   private PolicyWaiver savePolicyWaiver(String policyId, String ownerId) {

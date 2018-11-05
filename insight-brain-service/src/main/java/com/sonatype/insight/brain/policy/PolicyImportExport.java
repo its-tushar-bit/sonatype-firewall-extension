@@ -153,17 +153,18 @@ public class PolicyImportExport
         policy.setOwnerId(orgId);
         policyDAO.insert(policy);
         importPolicyTags(tx, policy.getId(), policyTags);
-        auditPolicyImport(organization, policy);
+        auditPolicy(organization, policy, AuditEvent.IMPORT_POLICY);
       }
       tx.commit();
+      AuditData.get().commitSubEvents();
     }
 
     return createResult(organization.getName());
   }
 
-  private void auditPolicyImport(final Organization organization, final Policy policy) {
-    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_POLICY, false)) {
-      AuditData.get().setOrganization(organization).setPolicyWithDetails(policy);
+  private void auditPolicy(final Owner owner, final Policy policy, AuditEvent auditEvent) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(auditEvent, false)) {
+      AuditData.get().setOwner(owner).setPolicyWithDetails(policy);
     }
   }
 
@@ -176,7 +177,10 @@ public class PolicyImportExport
     }
     deletePolicyWaivers(tx, owner);
     deleteLicenseThreatGroups(tx, owner);
-    policyDAO.deleteByOwnerId(tx, owner.getId());
+    for (Policy policy : policyDAO.getByOwnerId(tx, owner.getId())) {
+      policyDAO.delete(tx, policy);
+      auditPolicy(owner, policy, AuditEvent.DELETE_POLICY);
+    }
   }
 
   /**

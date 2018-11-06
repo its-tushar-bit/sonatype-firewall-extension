@@ -3,43 +3,56 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+ 
+ // Globals
 @import "~bootstrap-sass/lib/variables";
 @import "~bootstrap-sass/lib/mixins";
 @import "variables";
 @import "typography";
 @import "mixins";
 @import "global";
+@import "bootstrap-overrides";
 @import "buttons";
 @import "widgets";
-@import "bootstrap-overrides";
 @import "chiclet";
 @import "tiles";
 @import "content";
-@import "dashboard-old";
-@import "dashboard-filter";
-@import "dashboard";
 @import "form";
 @import "mask";
 @import "icons";
-@import "../mainHeader/mainHeader";
-@import "pages";
-@import "policy-editor";
-@import "ldap";
 @import "roles";
 @import "threatBars";
-@import "reports";
-@import "responsive";
+@import "iq-theme-dark";
+  
+// Components
 @import "../components/components";
+@import "ldap";
+@import "reports";
+@import "../mainHeader/mainHeader";
+
+// Directives
 @import "../directives/directives";
-@import "ie9";
+@import "../owner.manager/access/access.tile.directive.scss";
+@import "../owner.manager/policy/policy.editor.constraints.directive.scss";
+@import "../utility/widgets/age.in.days.input.directive.scss";
+@import "../owner.manager/navigation/_ownerTreeView.scss";
+
+// Pages
+@import "dashboard-old";
+@import "dashboard-filter";
+@import "dashboard";
 @import "../labs/labs";
 @import "../configuration/configuration";
-@import "iq-theme-dark";
+@import "policy-editor";
 @import "../owner.manager/summary/owner.summary.view.scss";
 @import "../owner.manager/summary/ownerPolicyList/ownerPolicyList.scss";
 @import "../owner.manager/repositories/repositories.summary.view.scss";
-@import "../owner.manager/access/access.tile.directive.scss";
 @import "../applicationReport/applicationReport.scss";
-@import "../owner.manager/policy/policy.editor.constraints.directive.scss";
-@import "../utility/widgets/age.in.days.input.directive.scss";
-@import "../owner.manager/navigation/_ownerTreeView.scss"
+@import "../role.membership/role.membership.view.scss";
+@import "../configuration/webhook/_webhook.list.view.scss";
+@import "../policy/components/app-security/_app-security.scss";
+@import "../security/_user-list.scss";
+
+// Overrides
+@import "responsive";
+@import "ie9";

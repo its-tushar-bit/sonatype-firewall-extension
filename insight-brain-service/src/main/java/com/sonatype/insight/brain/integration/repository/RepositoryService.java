@@ -304,6 +304,7 @@ public class RepositoryService
                                                                   boolean withQuarantine,
                                                                   final String clientUserAgent)
   {
+    auditRepoComponentEvalList(componentEvaluationDataRequestList);
     checkLicenseFeature();
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
@@ -314,6 +315,16 @@ public class RepositoryService
 
     return evaluateComponents(repository, repositoryManagerInstanceId, componentEvaluationDataRequestList,
         withQuarantine, clientUserAgent);
+  }
+
+  private void auditRepoComponentEvalList(RepositoryComponentEvaluationDataRequestList repoComponentEvalList) {
+    if (repoComponentEvalList != null) {
+      AuditData.get().setData("componentCount",
+          repoComponentEvalList.components == null ? 0 : repoComponentEvalList.components.size());
+      if (repoComponentEvalList.cause != null) {
+        AuditData.get().setData("evaluationCause", repoComponentEvalList.cause.replace('_', '-'));
+      }
+    }
   }
 
   private void normalizeComponents(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {

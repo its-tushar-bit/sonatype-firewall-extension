@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.codahale.metrics.annotation.Timed;
@@ -93,6 +94,7 @@ public class RepositoryResource
   @POST
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_REPOSITORY)
   public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                  @PathParam("repositoryPublicId") String repositoryPublicId,
                                  RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -106,6 +108,7 @@ public class RepositoryResource
   @Path(EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_REPOSITORY)
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
                                                                                @PathParam("repositoryPublicId") final String repositoryPublicId,
                                                                                final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,

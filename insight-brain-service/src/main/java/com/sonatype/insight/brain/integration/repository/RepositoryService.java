@@ -156,7 +156,8 @@ public class RepositoryService
                                            final String clientUserAgent)
   {
     Repository repository = repositoryDAO.getById(repositoryComponent.getRepositoryId());
-    RepositoryComponentEvaluationDataRequestList componentRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentRequestList = new RepositoryComponentEvaluationDataRequestList(
+        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     RepositoryComponentEvaluationDataRequest componentRequest = new RepositoryComponentEvaluationDataRequest();
     componentRequest.format = repository.getFormat();
     componentRequest.pathname = repositoryComponent.getPathname();

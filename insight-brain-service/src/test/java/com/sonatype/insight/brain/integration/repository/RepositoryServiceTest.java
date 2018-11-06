@@ -236,7 +236,8 @@ public class RepositoryServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest(
         "maven2", repositoryComponent.getPathname(), repositoryComponent.getHash());
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
+        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
     List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();

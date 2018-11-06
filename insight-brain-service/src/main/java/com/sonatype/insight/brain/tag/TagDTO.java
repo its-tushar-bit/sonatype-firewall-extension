@@ -17,6 +17,10 @@ public class TagDTO
 
   public String applicationCategoryName;
 
+  public TagDTO() {
+    //for jackson
+  }
+
   public TagDTO(Tag tag) {
     this.applicationCategoryId = tag.getId();
     this.applicationCategoryName = tag.getName();

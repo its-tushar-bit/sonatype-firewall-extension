@@ -52,7 +52,7 @@ public abstract class AbstractAuditTest
 
   private User unauthorizedUser;
 
-  private ObjectMapper objectMapper;
+  protected ObjectMapper objectMapper;
 
   @Before
   public void setupLogger() {

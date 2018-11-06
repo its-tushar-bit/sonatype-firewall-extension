@@ -284,15 +284,7 @@ class TagService
   }
 
   private void auditUpdatePolicyTags(final Policy policy, final List<Tag> newTags) {
-    AuditData.get().setPolicy(policy);
-    if (newTags.isEmpty()) {
-      AuditData.get().setData("inheritanceScope", "all-children");
-    }
-    else {
-      AuditData.get()
-          .setData("inheritanceScope", "matching-application-category")
-          .setData("applicationCategories", TagDTO.transcribe(newTags));
-    }
+    AuditData.get().setPolicy(policy).setInheritanceScope(TagDTO.transcribe(newTags));
   }
 
   @Authorize(permission = Permission.READ)

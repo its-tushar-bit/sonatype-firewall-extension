@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
+import com.sonatype.insight.brain.tag.TagDTO;
 
 /**
  * The data for one audit record. Code populates audit data for the current operation/event using
@@ -299,6 +300,17 @@ public abstract class AuditData
 
   AuditData setLicenseThreatGroupName(String ltgName) {
     setData("licenseThreatGroupName", ltgName);
+    return this;
+  }
+
+  public AuditData setInheritanceScope(final List<TagDTO> tags) {
+    if (tags.isEmpty()) {
+      setData("inheritanceScope", "all-children");
+    }
+    else {
+      setData("inheritanceScope", "matching-application-category");
+      setData("applicationCategories", tags);
+    }
     return this;
   }
 

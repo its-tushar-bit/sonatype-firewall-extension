@@ -445,6 +445,9 @@ public class PolicyImportExportTest
 
     // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
     labelDAO.delete(label1);
+    policy.getConstraints().remove(constraint1); // the label was assosiated with this constraint
+    policyDAO.update(policy);
+
     label1 = tempEntity.newLabel(orgId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.dark_purple);
     // Delete one label - it should be re-created by the import.
     labelDAO.delete(label2);

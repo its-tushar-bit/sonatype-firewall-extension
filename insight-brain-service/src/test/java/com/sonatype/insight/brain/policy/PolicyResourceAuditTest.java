@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -32,13 +33,16 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.tag.TagDTO;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -427,6 +431,75 @@ public class PolicyResourceAuditTest
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertThat(awaitLogEntries(AuditEvent.DELETE_POLICY, 0), empty());
     assertThat(new PolicyDAO().getById(policy.getId()), is(notNullValue()));
+  }
+
+  @Test
+  public void testImportPolicies_PolicyTags_InheritMatchingCategory() throws Exception {
+    Tag existingTag = tempEntity.newTag(organization.getId(), tempEntity.uuid());
+    Tag newTag = new Tag(organization.getId(), tempEntity.uuid(), "desc2");
+
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    Policy policy = policy();
+    policyExportResult.policies = Arrays.asList(policy);
+    policyExportResult.tags = Arrays.asList(existingTag, newTag);
+    policyExportResult.policyTags = Arrays
+        .asList(new PolicyTag(policy.getId(), existingTag.getId()), new PolicyTag(policy.getId(), newTag.getId()));
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_POLICY_INHERITANCE, null);
+    assertPolicyTagAuditData(auditDTO, policy, "matching-application-category");
+    assertAuditedTags(auditDTO, policyExportResult.tags);
+  }
+
+  @Test
+  public void testImportPolicies_PolicyTags_InheritAll() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    Policy policy = policy();
+    policyExportResult.policies = Arrays.asList(policy);
+
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_POLICY_INHERITANCE, null);
+    assertPolicyTagAuditData(auditDTO, policy, "all-children");
+  }
+
+  @Test
+  public void testImportPolicies_DontLogPolicyTagsIfTransactionFails() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    Policy policy1 = policy();
+    Policy invalidPolicy = policy();
+    invalidPolicy.setName(policy1.getName());
+    policyExportResult.policies = Arrays.asList(policy1, invalidPolicy);
+    Tag existingTag = tempEntity.newTag(organization.getId(), tempEntity.uuid());
+    policyExportResult.policyTags = Arrays.asList(new PolicyTag(policy1.getId(), existingTag.getId()));
+
+    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
+
+    assertAuditLog(AuditEvent.IMPORT, "bad-request");
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_POLICY_INHERITANCE, 0), empty());
+  }
+
+  private void assertAuditedTags(final AuditDTO auditDTO, final List<Tag> tags) {
+    List<TagDTO> auditedTags = ((Collection<?>) auditDTO.data.get("applicationCategories")).stream()
+        .map(p -> objectMapper.convertValue(p,
+            TagDTO.class)).collect(Collectors.toList());
+    TagDAO tagDAO = new TagDAO();
+
+    assertThat(auditedTags, hasSize(tags.size()));
+    for (int i = 0; i < tags.size(); i++) {
+      assertThat(tagDAO.getById(auditedTags.get(i).applicationCategoryId), notNullValue());
+      assertThat(auditedTags.get(i).applicationCategoryName, is(tags.get(i).getName()));
+    }
+  }
+
+  private void assertPolicyTagAuditData(final AuditDTO auditDTO,
+                                        final Policy policy,
+                                        final String inheritanceScope)
+  {
+    PolicyDAO policyDAO = new PolicyDAO();
+    assertThat(policyDAO.getById((String) auditDTO.data.get("policyId")), notNullValue());
+    assertCustomData(auditDTO, "policyName", policy.getName());
+    assertCustomData(auditDTO, "inheritanceScope", inheritanceScope);
   }
 
   private void assertDeletedPolicyOnImport(final Policy policy, List<AuditDTO> auditLogs, Owner owner)

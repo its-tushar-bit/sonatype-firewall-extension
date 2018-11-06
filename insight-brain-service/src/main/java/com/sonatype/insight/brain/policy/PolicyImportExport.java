@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -152,7 +153,7 @@ public class PolicyImportExport
         policy.setId(null);
         policy.setOwnerId(orgId);
         policyDAO.insert(policy);
-        importPolicyTags(tx, policy.getId(), policyTags);
+        importPolicyTags(tx, policy, policyTags);
         auditPolicy(organization, policy, AuditEvent.IMPORT_POLICY);
       }
       tx.commit();
@@ -378,13 +379,22 @@ public class PolicyImportExport
    * The id on the passed in PolicyTags is no longer valid, since the policies
    * get new ids when imported
    */
-  private void importPolicyTags(TransactionContext tx, String policyId, List<PolicyTag> policyTags) {
+  private void importPolicyTags(TransactionContext tx, Policy policy, List<PolicyTag> policyTags) {
+    List<Tag> tags = new ArrayList<>();
     if (policyTags != null) {
       for (PolicyTag policyTag : policyTags) {
         policyTag.setId(null);
-        policyTag.setPolicyId(policyId);
+        policyTag.setPolicyId(policy.getId());
         policyTagDAO.insert(tx, policyTag);
+        tags.add(tagDAO.getByIdNotNull(policyTag.getTagId()));
       }
+    }
+    auditPolicyTags(policy, tags);
+  }
+
+  private void auditPolicyTags(final Policy policy, final List<Tag> tags) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_POLICY_INHERITANCE, false)) {
+      AuditData.get().setPolicy(policy).setInheritanceScope(TagDTO.transcribe(tags));
     }
   }
 

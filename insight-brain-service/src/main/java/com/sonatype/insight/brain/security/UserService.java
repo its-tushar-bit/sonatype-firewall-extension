@@ -54,6 +54,8 @@ public class UserService
 
   private final InsightConfig insightConfig;
 
+  private final UserDAO userDAO = new UserDAO();
+
   @Inject
   public UserService(InternalRealm clmRealm,
                      SessionDAO sessionDAO,
@@ -117,7 +119,7 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   List<User> getAll() {
-    List<User> users = new UserDAO().getAll();
+    List<User> users = userDAO.getAll();
     for (User user : users) {
       clearUserPassword(user);
     }
@@ -128,7 +130,7 @@ public class UserService
   User addUser(User user) {
     user.setId(null);
     user.setPassword(clmRealm.encryptPassword(user.getPassword()));
-    new UserDAO().insert(user);
+    userDAO.insert(user);
 
     clearUserPassword(user);
 
@@ -137,19 +139,17 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   User updateUser(User user) {
-    UserDAO dao = new UserDAO();
-
     if (FAKE_PASSWORD.equals(user.getPassword())) {
       // We don't have a new password, so we need to retrieve the existing one and fill it in the user object to be
       // updated.
-      User existingUser = dao.getByIdNotNull(user.getId());
+      User existingUser = userDAO.getByIdNotNull(user.getId());
       user.setPassword(existingUser.getPassword());
     }
     else {
       // We have a new password, encrypt it.
       user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     }
-    dao.update(user);
+    userDAO.update(user);
 
     clearUserPassword(user);
 
@@ -158,15 +158,13 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void deleteUser(String userId) {
-    UserDAO dao = new UserDAO();
-
-    User user = dao.getByIdNotNull(userId);
+    User user = userDAO.getByIdNotNull(userId);
     String username = SecurityUtils.getSubject().getPrincipal().toString();
     if (user.getUsername().equalsIgnoreCase(username)) {
       throw new BadRequestException("Cannot delete the currently logged in user.");
     }
 
-    dao.delete(user);
+    userDAO.delete(user);
     try {
       if (!userDirectory.isLdapUser(user)) {
         removeApplicationContact(user);
@@ -188,11 +186,9 @@ public class UserService
   }
 
   void changeMyPassword(ChangePasswordDTO password) {
-    UserDAO dao = new UserDAO();
-
     UserPrincipal principal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
 
-    User user = dao.getByUsername(principal.getUsername().trim());
+    User user = userDAO.getByUsername(principal.getUsername().trim());
     if (user == null) {
       throw new NotFoundException("Could not find user with username " + principal.getUsername());
     }
@@ -208,19 +204,18 @@ public class UserService
 
     user.setPassword(clmRealm.encryptPassword(password.newPassword));
 
-    dao.update(user);
+    userDAO.update(user);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   ChangePasswordDTO resetPassword(String userId) {
-    UserDAO dao = new UserDAO();
-    User user = dao.getByIdNotNull(userId);
+    User user = userDAO.getByIdNotNull(userId);
 
     String password = RandomStringUtils.randomAlphanumeric(12);
 
     user.setPassword(clmRealm.encryptPassword(password));
 
-    dao.update(user);
+    userDAO.update(user);
 
     ChangePasswordDTO dto = new ChangePasswordDTO();
     dto.newPassword = password;

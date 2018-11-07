@@ -441,6 +441,15 @@ dropdown-selector {
   }
 }
 
+// hack so that name/password fields don't autocomplete
+.hidden-input-hack {
+  position: absolute;
+  left: -1000px;
+  height: 0;
+  width: 0;
+}
+
+
 /*
   OLD STYLES
 
@@ -449,13 +458,6 @@ dropdown-selector {
   See clmControlGroup and clmInput directives.
 */
 .clm-form {
-  .hidden-input-hack {
-    position: absolute;
-    left: -1000px;
-    height: 0;
-    width: 0;
-  }
-
   .section {
     .field {
       &:nth-child(n + 2) {

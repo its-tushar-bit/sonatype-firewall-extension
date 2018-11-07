@@ -59,7 +59,7 @@ abstract class AbstractResourceWithIcon
         return;
       }
     }
-    byte[] imageByteArray = null;
+    byte[] imageByteArray = {};
     if (uploadedInputStream != null) {
       // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
       try (ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream()) {
@@ -74,15 +74,14 @@ abstract class AbstractResourceWithIcon
       finally {
         uploadedInputStream.close();
       }
-
-      if (imageByteArray != null && imageByteArray.length > 0) {
-        try (InputStream sizeCheckedInputStream = new ByteArrayInputStream(imageByteArray)) {
-          new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
-        }
-        catch (IllegalArgumentException | IOException | BadRequestException e) {
-          throw new BadRequestException(fileDetail.getFileName()
-              + " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
-        }
+    }
+    if (imageByteArray.length > 0) {
+      try (InputStream sizeCheckedInputStream = new ByteArrayInputStream(imageByteArray)) {
+        new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
+      }
+      catch (IllegalArgumentException | IOException | BadRequestException e) {
+        throw new BadRequestException(fileDetail.getFileName()
+            + " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
       }
     }
   }

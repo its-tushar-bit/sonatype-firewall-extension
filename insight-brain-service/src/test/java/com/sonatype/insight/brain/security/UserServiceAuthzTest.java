@@ -164,6 +164,7 @@ public class UserServiceAuthzTest
   public void testUpdateUser_Authorized() throws Exception {
     grantConfigureSystemPermission();
     User user = tempEntity.newUser("testUpdateUser");
+    user.setPassword(UserService.FAKE_PASSWORD);
     userService.updateUser(user);
   }
 

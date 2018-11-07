@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -137,18 +138,25 @@ public class UserService
     return user;
   }
 
+  /**
+   * Updates the data for an internal user.
+   * This method cannot be used to update:
+   * - the password - the password is changed via the {@link UserService#resetPassword(String)} method;
+   * - the username - the username is used as an ID in {@link MembershipMapping}s.
+   */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   User updateUser(User user) {
-    if (FAKE_PASSWORD.equals(user.getPassword())) {
-      // We don't have a new password, so we need to retrieve the existing one and fill it in the user object to be
-      // updated.
-      User existingUser = userDAO.getByIdNotNull(user.getId());
-      user.setPassword(existingUser.getPassword());
+    if (!FAKE_PASSWORD.equals(user.getPassword())) {
+      throw new BadRequestException("Cannot change user password.");
     }
-    else {
-      // We have a new password, encrypt it.
-      user.setPassword(clmRealm.encryptPassword(user.getPassword()));
+    // We don't have the password, so we need to retrieve the existing one and fill it in the user object to be updated.
+    User existingUser = userDAO.getByIdNotNull(user.getId());
+    user.setPassword(existingUser.getPassword());
+
+    if (!existingUser.getUsername().equals(user.getUsername())) {
+      throw new BadRequestException("Cannot change username.");
     }
+
     userDAO.update(user);
 
     clearUserPassword(user);

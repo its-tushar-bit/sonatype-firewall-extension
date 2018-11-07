@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class UserServiceTest
     extends AbstractComponentTest
@@ -166,6 +167,82 @@ public class UserServiceTest
     ChangePasswordDTO dto = userService.resetPassword(user.getId());
     assertThat(dto.newPassword.length(), is(12));
     assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
+  }
+
+  @Test
+  public void testUpdateUser_InternalUser() throws Exception {
+    User user = tempEntity.newUser("TestUsername", "TestFirstName", "TestLastName", "TestEmail@example.com");
+    user = userDAO.getByIdNotNull(user.getId());
+
+    User updatedUser = userDAO.getByIdNotNull(user.getId());
+    updatedUser.setPassword(UserService.FAKE_PASSWORD);
+    updatedUser.setFirstName("TestFirstNameUpdated");
+    updatedUser.setLastName("TestLastNameUpdated");
+    updatedUser.setEmail("TestEmailUpdated@example.com");
+
+    updatedUser = userService.updateUser(updatedUser);
+
+    assertInternalUser(updatedUser, user.getId(), "TestUsername", UserService.FAKE_PASSWORD, "TestFirstNameUpdated",
+        "TestLastNameUpdated", "TestEmailUpdated@example.com");
+    assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
+        "TestFirstNameUpdated", "TestLastNameUpdated", "TestEmailUpdated@example.com");
+  }
+
+  @Test
+  public void testUpdateUser_InternalUser_CannotChangePassword() throws Exception {
+    User user = tempEntity.newUser("TestUsername", "TestFirstName", "TestLastName", "TestEmail@example.com");
+    user = userDAO.getByIdNotNull(user.getId());
+
+    User updatedUser = userDAO.getByIdNotNull(user.getId());
+    updatedUser.setPassword("PasswordUpdated");
+
+    try {
+      updatedUser = userService.updateUser(updatedUser);
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("Cannot change user password."));
+    }
+
+    assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
+        "TestFirstName", "TestLastName", "TestEmail@example.com");
+  }
+
+  @Test
+  public void testUpdateUser_InternalUser_CannotChangeUsername() throws Exception {
+    User user = tempEntity.newUser("TestUsername", "TestFirstName", "TestLastName", "TestEmail@example.com");
+    user = userDAO.getByIdNotNull(user.getId());
+
+    User updatedUser = userDAO.getByIdNotNull(user.getId());
+    updatedUser.setPassword(UserService.FAKE_PASSWORD);
+    updatedUser.setUsername("TestUsernameUpdated");
+
+    try {
+      updatedUser = userService.updateUser(updatedUser);
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("Cannot change username."));
+    }
+
+    assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
+        "TestFirstName", "TestLastName", "TestEmail@example.com");
+  }
+
+  private void assertInternalUser(User actualUser,
+                                  String id,
+                                  String username,
+                                  String password,
+                                  String firstName,
+                                  String lastName,
+                                  String email)
+  {
+    assertThat(actualUser.getId(), is(id));
+    assertThat(actualUser.getUsername(), is(username));
+    assertThat(actualUser.getPassword(), is(password));
+    assertThat(actualUser.getFirstName(), is(firstName));
+    assertThat(actualUser.getLastName(), is(lastName));
+    assertThat(actualUser.getEmail(), is(email));
   }
 
   @Test

@@ -82,11 +82,11 @@ public class UserResourceTest
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
     UserDAO dao = new UserDAO();
-    user = dao.getByIdNotNull(user.getId());
+    User expectedUser = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserService.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
+    assertThat(String.valueOf(expectedUser.getPassword()), notNullValue());
+    assertThat(String.valueOf(expectedUser.getPassword()), is(not(UserService.FAKE_PASSWORD)));
+    assertThat(String.valueOf(expectedUser.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
     response = restRequest().get();
@@ -106,35 +106,11 @@ public class UserResourceTest
     user = response.getBody(User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
-    user = dao.getByIdNotNull(user.getId());
+    expectedUser = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserService.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
-
-    // Get all
-    response = restRequest().get();
-    assertResponseStatus(200, response);
-    users = fromResponse(response);
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(2));
-    assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
-
-    // Update, password change
-    user.setPassword("testCRUDPasswordUpdated");
-    response = restRequest().body(user).put();
-    assertResponseStatus(200, response);
-    user = response.getBody(User.class);
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
-    user = dao.getByIdNotNull(user.getId());
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserService.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPasswordUpdated")));
+    assertThat(String.valueOf(expectedUser.getPassword()), notNullValue());
+    assertThat(String.valueOf(expectedUser.getPassword()), is(not(UserService.FAKE_PASSWORD)));
+    assertThat(String.valueOf(expectedUser.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
     response = restRequest().get();

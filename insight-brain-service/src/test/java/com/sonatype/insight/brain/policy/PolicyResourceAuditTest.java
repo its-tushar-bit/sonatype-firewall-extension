@@ -31,8 +31,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.tag.TagDTO;
@@ -405,18 +407,29 @@ public class PolicyResourceAuditTest
   @Test
   public void testImportPolicies_DeleteExistingPolicies() throws Exception {
     Application application = tempEntity.newApplication(organization.getId());
+    // NOTE: The deleted policies specifically refer to LTGs which are also deleted during import
+    LicenseThreatGroup orgLTG = tempEntity.newLicenseThreatGroup(organization.getId());
+    LicenseThreatGroup appLTG = tempEntity.newLicenseThreatGroup(application.getId());
     Policy appPolicy = aComplexPolicy();
     appPolicy.setOwnerId(application.getId());
+    appPolicy.addConstraint(constraint("Licensed", LogicalOperator.OR,
+        condition(LicenseThreatGroupConditionType.ID, "is", appLTG.getId())));
     tempEntity.newPolicy(appPolicy);
-    Policy orgPolicy = tempEntity.newPolicy(organization);
+    List<ConstraintDTO> appPolicyConstraints = ConstraintDTO.transcribe(appPolicy.getConstraints());
+    Policy orgPolicy = aComplexPolicy();
+    orgPolicy.setOwnerId(organization.getId());
+    orgPolicy.addConstraint(constraint("Licensed", LogicalOperator.OR,
+        condition(LicenseThreatGroupConditionType.ID, "is not", orgLTG.getId())));
+    tempEntity.newPolicy(orgPolicy);
+    List<ConstraintDTO> orgPolicyConstraints = ConstraintDTO.transcribe(orgPolicy.getConstraints());
 
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Arrays.asList(policy());
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.DELETE_POLICY, 2);
-    assertDeletedPolicyOnImport(appPolicy, auditDTOs, application);
-    assertDeletedPolicyOnImport(orgPolicy, auditDTOs, organization);
+    assertDeletedPolicyOnImport(appPolicy, appPolicyConstraints, auditDTOs, application);
+    assertDeletedPolicyOnImport(orgPolicy, orgPolicyConstraints, auditDTOs, organization);
   }
 
   @Test
@@ -502,7 +515,10 @@ public class PolicyResourceAuditTest
     assertCustomData(auditDTO, "inheritanceScope", inheritanceScope);
   }
 
-  private void assertDeletedPolicyOnImport(final Policy policy, List<AuditDTO> auditLogs, Owner owner)
+  private void assertDeletedPolicyOnImport(final Policy policy,
+                                           List<ConstraintDTO> constraints,
+                                           List<AuditDTO> auditLogs,
+                                           Owner owner)
   {
     AuditDTO foundDTO = auditLogs.stream().filter(auditDTO -> auditDTO.data.get("policyId").equals(policy.getId()))
         .findFirst().get();
@@ -513,7 +529,7 @@ public class PolicyResourceAuditTest
     else {
       assertOrganizationData(foundDTO, (Organization) owner);
     }
-    assertPolicyData(foundDTO, policy, true);
+    assertPolicyData(foundDTO, policy, true, constraints);
   }
 
   private PolicyWaiver savePolicyWaiver(String policyId, String ownerId) {

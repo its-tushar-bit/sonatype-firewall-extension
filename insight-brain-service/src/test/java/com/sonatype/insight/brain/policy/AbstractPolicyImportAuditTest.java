@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -70,13 +71,13 @@ public abstract class AbstractPolicyImportAuditTest
 
   protected Policy aComplexPolicy() {
     Policy policy = policy();
-    policy.setConstraints(Arrays.asList(
+    policy.setConstraints(new ArrayList<>(Arrays.asList(
         constraint("c1", LogicalOperator.AND,
             condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"),
             condition(ConditionTypes.MatchStateConditionType.getId(), "is", "exact")),
         constraint("c2", LogicalOperator.OR,
             condition(AgeInDaysConditionType.ID, "older than", "1"),
-            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"))));
+            condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7")))));
     policy.setAction(Stage.ID_BUILD, WarnActionType.ID);
     policy.setAction(Stage.ID_RELEASE, FailActionType.ID);
     policy.setNotifications(new Notifications(
@@ -120,6 +121,14 @@ public abstract class AbstractPolicyImportAuditTest
   }
 
   protected void assertPolicyData(final AuditDTO auditDTO, final Policy policy, boolean policyDeleted) {
+    assertPolicyData(auditDTO, policy, policyDeleted, ConstraintDTO.transcribe(policy.getConstraints()));
+  }
+
+  protected void assertPolicyData(AuditDTO auditDTO,
+                                  Policy policy,
+                                  boolean policyDeleted,
+                                  List<ConstraintDTO> constraints)
+  {
     String auditedPolicyId = (String) auditDTO.data.get("policyId");
     assertThat(auditedPolicyId, is(notNullValue()));
     if (!policyDeleted) {
@@ -132,7 +141,7 @@ public abstract class AbstractPolicyImportAuditTest
     assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
     assertCustomData(auditDTO, "policyGrandfatheringMode",
         policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
-    assertCustomObject(auditDTO, "policyConstraints", ConstraintDTO.transcribe(policy.getConstraints()));
+    assertCustomObject(auditDTO, "policyConstraints", constraints);
     assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
     assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
   }
@@ -149,11 +158,11 @@ public abstract class AbstractPolicyImportAuditTest
     }
   }
 
-  private Condition condition(final String conditionTypeId, final String operator, final String value) {
+  protected Condition condition(final String conditionTypeId, final String operator, final String value) {
     return new Condition(conditionTypeId, operator, value);
   }
 
-  private Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
+  protected Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
     Constraint constraint = new Constraint(UUID.randomUUID().toString(), name, logicalOperator);
     constraint.setConditions(Arrays.asList(conditions));
     return constraint;

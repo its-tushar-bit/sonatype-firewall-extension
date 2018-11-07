@@ -134,6 +134,9 @@ public class PolicyImportExport
       tx.begin();
 
       deleteFromOwnerAndDescendants(tx, organization);
+      // NOTE: LTGs are deleted after policies so that policy conditions which are referencing them and not
+      // participating in the transaction can be audited without hitting table locks
+      deleteLicenseThreatGroupsFromOwnerAndDescendants(tx, organization);
       importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), organization);
       importLicenseThreatGroups(tx, exportDTO, organization);
       importAndMergeTags(tx, exportDTO, organization);
@@ -170,18 +173,24 @@ public class PolicyImportExport
   }
 
   /**
-   * Delete all policy waivers, LTGs, and policies from an owner's descendant owners and itself.
+   * Delete all policy waivers, and policies from an owner's descendant owners and itself.
    */
   private void deleteFromOwnerAndDescendants(TransactionContext tx, Owner owner) {
     for (Owner childOwner : ownerDAO.getChildOwners(tx, owner)) {
       deleteFromOwnerAndDescendants(tx, childOwner);
     }
     deletePolicyWaivers(tx, owner);
-    deleteLicenseThreatGroups(tx, owner);
     for (Policy policy : policyDAO.getByOwnerId(tx, owner.getId())) {
       policyDAO.delete(tx, policy);
       auditPolicy(owner, policy, AuditEvent.DELETE_POLICY);
     }
+  }
+
+  private void deleteLicenseThreatGroupsFromOwnerAndDescendants(TransactionContext tx, Owner owner) {
+    for (Owner childOwner : ownerDAO.getChildOwners(tx, owner)) {
+      deleteLicenseThreatGroupsFromOwnerAndDescendants(tx, childOwner);
+    }
+    deleteLicenseThreatGroups(tx, owner);
   }
 
   /**

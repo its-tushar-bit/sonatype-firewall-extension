@@ -6,12 +6,16 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -51,8 +55,11 @@ public class RepositoryReevaluationTask
   @Override
   public void run() {
     try {
-      Iterator<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId())
-          .iterator();
+      List<RepositoryComponent> repositoryComponentsList = repositoryComponentDAO.getByRepositoryId(repository.getId());
+      Iterator<RepositoryComponent> repositoryComponents = repositoryComponentsList.iterator();
+
+      AuditData.get().setData("componentCount", repositoryComponentsList.size())
+          .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
       int componentCount = 0;
       final AtomicInteger activeTasks = reevaluations.get(repository.getId());
@@ -62,12 +69,17 @@ public class RepositoryReevaluationTask
 
         activeTasks.incrementAndGet();
 
-        executor.execute(new PolicyEvaluationTask(request, activeTasks));
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.EVALUATE_REPOSITORY, true)) {
+          AuditData.get().setRepository(repository).setData("componentCount", request.components.size())
+              .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION)
+              .continueAsync(executor, new PolicyEvaluationTask(request, activeTasks));
+        }
       }
       log.debug("Enqueued {} components of repository {}:{} ({}) for re-evaluation", componentCount,
           repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
     }
     catch (Exception e) {
+      AuditData.get().setException(e);
       reevaluations.remove(repository.getId());
       log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repository.getId(), e);
@@ -109,6 +121,7 @@ public class RepositoryReevaluationTask
             null);
       }
       catch (Exception e) {
+        AuditData.get().setException(e);
         log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId(), e);
       }

@@ -91,6 +91,7 @@ public class RepositoryResource
 
   @POST
   @Path(EVALUATE_PATH)
+  @Audited(AuditEvent.INITIATE_EVALUATE_REPOSITORY)
   public void reevaluateRepository(@PathParam("repositoryId") String repositoryId) {
     repositoryService.reevaluateRepository(repositoryId);
   }

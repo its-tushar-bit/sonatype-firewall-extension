@@ -644,8 +644,8 @@ public class RepositoryService
     if (reevaluations.putIfAbsent(repositoryId, new AtomicInteger()) == null) {
       log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repositoryId);
-      reevalExecutor.execute(new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor,
-          reevaluations));
+      AuditData.get().continueAsync(reevalExecutor,
+          new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor, reevaluations));
     }
     else {
       log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",

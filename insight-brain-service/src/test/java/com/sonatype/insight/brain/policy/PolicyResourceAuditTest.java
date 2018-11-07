@@ -460,6 +460,7 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_POLICY_INHERITANCE, null);
+    assertOrganizationData(auditDTO, organization);
     assertPolicyTagAuditData(auditDTO, policy, "matching-application-category");
     assertAuditedTags(auditDTO, policyExportResult.tags);
   }
@@ -473,6 +474,7 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_POLICY_INHERITANCE, null);
+    assertOrganizationData(auditDTO, organization);
     assertPolicyTagAuditData(auditDTO, policy, "all-children");
   }
 

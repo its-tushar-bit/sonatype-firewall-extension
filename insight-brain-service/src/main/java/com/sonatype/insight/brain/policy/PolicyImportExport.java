@@ -156,8 +156,8 @@ public class PolicyImportExport
         policy.setId(null);
         policy.setOwnerId(orgId);
         policyDAO.insert(policy);
-        importPolicyTags(tx, policy, policyTags);
         auditPolicy(organization, policy, AuditEvent.IMPORT_POLICY);
+        importPolicyTags(tx, organization, policy, policyTags);
       }
       tx.commit();
       AuditData.get().commitSubEvents();
@@ -388,7 +388,11 @@ public class PolicyImportExport
    * The id on the passed in PolicyTags is no longer valid, since the policies
    * get new ids when imported
    */
-  private void importPolicyTags(TransactionContext tx, Policy policy, List<PolicyTag> policyTags) {
+  private void importPolicyTags(TransactionContext tx,
+                                Organization organization,
+                                Policy policy,
+                                List<PolicyTag> policyTags)
+  {
     List<Tag> tags = new ArrayList<>();
     if (policyTags != null) {
       for (PolicyTag policyTag : policyTags) {
@@ -398,12 +402,12 @@ public class PolicyImportExport
         tags.add(tagDAO.getByIdNotNull(policyTag.getTagId()));
       }
     }
-    auditPolicyTags(policy, tags);
+    auditPolicyTags(organization, policy, tags);
   }
 
-  private void auditPolicyTags(final Policy policy, final List<Tag> tags) {
+  private void auditPolicyTags(Organization organization, final Policy policy, final List<Tag> tags) {
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_POLICY_INHERITANCE, false)) {
-      AuditData.get().setPolicy(policy).setInheritanceScope(TagDTO.transcribe(tags));
+      AuditData.get().setOrganization(organization).setPolicy(policy).setInheritanceScope(TagDTO.transcribe(tags));
     }
   }
 

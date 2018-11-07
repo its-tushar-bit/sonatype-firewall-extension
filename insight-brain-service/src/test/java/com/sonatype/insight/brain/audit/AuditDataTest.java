@@ -73,6 +73,23 @@ public class AuditDataTest
   }
 
   @Test
+  public void testContinueAsync_Executor_Runnable() {
+    String[] result = new String[1];
+    Runnable runnable = () -> result[0] = "result";
+
+    auditData.continueAsync(task -> task.run(), runnable);
+
+    verify(auditData).continueAsync(functionArgumentCaptor.capture());
+    Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
+    assertThat(wrappedTaskSubmitter, is(notNullValue()));
+    wrappedTaskSubmitter.apply(auditData);
+    assertThat(result[0], is("result"));
+    verify(auditData, never()).setException(any());
+    verify(auditData).commit();
+    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+  }
+
+  @Test
   public void testContinueAsync_Runnable() {
     String[] result = new String[1];
     Runnable runnable = () -> result[0] = "result";

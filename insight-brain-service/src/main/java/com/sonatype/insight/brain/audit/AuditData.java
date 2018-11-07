@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -43,6 +44,21 @@ public abstract class AuditData
 
   protected abstract AuditData forSubEvent(AuditEvent event, boolean independent);
 
+  /**
+   * Continue audit logging of asynchronous task scheduled using
+   * {@link Executor#execute(Runnable)}.
+   */
+  public final void continueAsync(Executor executor, Runnable task) {
+    continueAsync(task, runnable -> {
+      executor.execute(runnable);
+      return null;
+    });
+  }
+
+  /**
+   * Continue audit logging of asynchronous task scheduled using
+   * {@link java.util.concurrent.ExecutorService#submit(Runnable)} or similar.
+   */
   public final <F> F continueAsync(Runnable task, Function<Runnable, F> taskSubmitter) {
     return continueAsync(auditData -> {
       Runnable auditedTask = () -> {
@@ -60,6 +76,10 @@ public abstract class AuditData
     });
   }
 
+  /**
+   * Continue audit logging of asynchronous task scheduled using
+   * {@link java.util.concurrent.ExecutorService#submit(Callable)} or similar.
+   */
   public final <F, V> F continueAsync(Callable<V> task, Function<Callable<V>, F> taskSubmitter) {
     return continueAsync(auditData -> {
       Callable<V> auditedTask = () -> {

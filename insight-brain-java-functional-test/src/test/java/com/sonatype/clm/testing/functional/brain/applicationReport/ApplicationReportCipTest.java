@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurrencesTab;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
@@ -60,6 +61,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
@@ -143,6 +145,7 @@ public class ApplicationReportCipTest
     testLicensesTab();
     testLabelsTab();
     testVulnerabilitiesTab();
+    testOccurrencesTab();
   }
 
   private void testComponentInfoTab() {
@@ -403,6 +406,34 @@ public class ApplicationReportCipTest
     assertNotNull(allLogJsonData);
     assertThat(allLogJsonData.size(), is(1));
     assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
+
+    cipModal.closeButton().click();
+  }
+
+  private void testOccurrencesTab() {
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(1).click();
+
+    cipModal.tabLink(4).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(4).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    CipOccurrencesTab occurrencesTab = cipModal.getOccurrencesTab();
+    occurrencesTab.occurrences().shouldHaveSize(1);
+    occurrencesTab.occurrences().shouldHave(exactTexts("Dependency javancss:javancss:jar:29.50 located at Module " +
+        "com.sonatype.insight.example:sample-small-application:jar:1.0.0"));
+
+    cipModal.nextButton().click();
+
+    occurrencesTab.occurrences().shouldHaveSize(3);
+    occurrencesTab.occurrences().shouldHave(exactTexts(
+        "Dependency ch.qos.logback:logback-access:jar:0.6 located at Module " +
+        "com.sonatype.insight.example:sample-small-application:jar:1.0.0",
+        "logback-access-0.6.jar located at deps",
+        "logback-access-0.6.jar"
+    ));
+
+    eyesWatcher.eyesCheck("Occurrences Tab");
 
     cipModal.closeButton().click();
   }

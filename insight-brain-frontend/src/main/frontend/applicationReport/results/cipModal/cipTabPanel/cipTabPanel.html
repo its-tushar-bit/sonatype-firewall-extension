@@ -32,7 +32,7 @@
     <div ng-switch-when="componentInfo" information-panel></div>
     <div ng-switch-when="policy" cip-policy-violations></div>
     <div ng-switch-when="similar"><!-- TODO --></div>
-    <div ng-switch-when="occurrences"><!-- TODO --></div>
+    <cip-occurrences ng-switch-when="occurrences" pathnames="vm.selectedComponent.pathnames"></cip-occurrences>
     <div ng-switch-when="licenses" cip-license-editor></div>
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>
     <div ng-switch-when="labels" cip-label-editor></div>

@@ -34,6 +34,7 @@ import '../../../audit-report/slickgrid/filter';
 import '../../../audit-report/slickgrid/sort';
 
 import cipModal from './cipModal';
+import cipOccurrences from './cipOccurrences/cipOccurrences';
 import cipTabPanel from './cipTabPanel/cipTabPanel';
 
 export default angular.module('cipModal',
@@ -43,6 +44,7 @@ export default angular.module('cipModal',
       cipVulnerabilityEditorModule.name
     ])
     .component('cipModal', cipModal)
+    .component('cipOccurrences', cipOccurrences)
     .component('cipTabPanel', cipTabPanel)
     .service('OwnerContext', OwnerContext);
 

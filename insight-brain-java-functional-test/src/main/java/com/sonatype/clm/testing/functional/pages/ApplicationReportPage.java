@@ -195,6 +195,22 @@ public class ApplicationReportPage
     public SelenideElement closeButton() {
       return child("#cip-modal-close-button");
     }
+
+    public CipOccurrencesTab getOccurrencesTab() {
+      return new CipOccurrencesTab(".tab-content > cip-occurrences");
+    }
+  }
+
+  public static class CipOccurrencesTab
+      extends BasicElement<CipOccurrencesTab>
+  {
+    CipOccurrencesTab(String selector) {
+      super(selector);
+    }
+
+    public ElementsCollection occurrences() {
+      return children("li");
+    }
   }
 
   public static class AppReportHeaders

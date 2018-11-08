@@ -1,7 +1,11 @@
 {
   "aaData" : [ {
     "filenames" : [ "logback-access-0.6.jar" ],
-    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/ch.qos.logback:logback-access:jar:0.6" ],
+    "pathnames" : [
+      "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/ch.qos.logback:logback-access:jar:0.6",
+      "deps/logback-access-0.6.jar",
+      "logback-access-0.6.jar"
+    ],
     "componentIdentifier" : {
        "format" : "maven",
        "coordinates" : {

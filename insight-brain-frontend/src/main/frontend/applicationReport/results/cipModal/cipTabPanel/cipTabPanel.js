@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import template from './cipTabPanel.html';
+
+/**
+ * This component is analogous to the older componentInformationPanelDirective, but for the policy-centric app report.
+ * The main difference is that rather than take the tab configurations as data, the template is hard-coded
+ * with the needed tabs.  This enables data to be passed to the tabs as bindings rather than having to get
+ * the data via stateful services or globals like the old implementation
+ */
+export default {
+  template,
+  controller: CipTabPanelController,
+  controllerAs: 'vm',
+  bindings: {
+    selectedComponent: '<'
+  }
+};
+
+function CipTabPanelController() {
+  const vm = this;
+
+  Object.assign(vm, {
+    selectedTab: 'componentInfo',
+
+    isComponentUnknown() {
+      return vm.selectedComponent.matchState === 'unknown';
+    }
+  });
+}

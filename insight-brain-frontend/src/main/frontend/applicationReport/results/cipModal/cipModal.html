@@ -4,7 +4,7 @@
       <component-display component="vm.selectedComponent" truncate="true"></component-display>
     </h2>
   </header>
-  <component-information-panel class="iq-modal-content" tabs="vm.tabs" hide-close-button></component-information-panel>
+  <cip-tab-panel class="iq-modal-content" selected-component="vm.selectedComponent"></cip-tab-panel>
   <footer class="iq-modal-footer">
     <button id="cip-modal-close-button" type="button" class="iq-btn" ng-click="vm.dismiss()">
       Close

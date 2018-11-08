@@ -54,36 +54,7 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
 
     isNextDisabled() {
       return vm.selectedComponentIndex >= getLastIndex();
-    },
-
-    tabs: [{
-      title: 'Component Info',
-      directive: 'information-panel'
-    }, {
-      title: 'Policy',
-      directive: 'cip-policy-violations'
-    }, {
-      title: 'Similar'
-    }, {
-      title: 'Occurrences'
-    }, {
-      title: 'Licenses',
-      directive: 'cip-license-editor',
-      matchedOnly: true
-    }, {
-      title: 'Vulnerabilities',
-      directive: 'cip-vulnerability-editor',
-      matchedOnly: true
-    }, {
-      title: 'Labels',
-      directive: 'cip-label-editor',
-      matchedOnly: true
-    }, {
-      title: 'Claim Component'
-    }, {
-      title: 'Audit Log',
-      matchedOnly: true
-    }]
+    }
   });
 
   function getLastIndex() {

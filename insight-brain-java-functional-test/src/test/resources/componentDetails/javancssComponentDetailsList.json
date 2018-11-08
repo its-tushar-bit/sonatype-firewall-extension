@@ -53,8 +53,8 @@
       "matchState": null,
       "declaredLicenses": [
         {
-          "licenseId": "GPL-3.0",
-          "licenseName": "GPL-3.0"
+          "licenseId": "Not-Declared",
+          "licenseName": "Not Declared"
         }
       ],
       "observedLicenses": [
@@ -90,7 +90,7 @@
       "groupId": "javancss",
       "version": "25.45",
       "declaredLicenseIds": [
-        "GPL-3.0"
+        "Not-Declared"
       ],
       "observedLicenseIds": [
         "No-Sources"
@@ -212,7 +212,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1211399575000,
       "relativePopularity": 2,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "CVE-1234-56789",
+          "severity": 9.1,
+          "source": "cve",
+          "summary": "Cross-site scripting (XSS) vulnerability in Apache Tomcat 4.1.0 through 4.1.37, 5.5.0 through 5.5.26, and 6.0.0 through 6.0.16 allows remote attackers to inject arbitrary web script or HTML via a crafted string that is used in the message argument to the HttpServletResponse.sendError method.",
+          "status": "Open",
+          "url": null
+        },
+        {
+          "refId": "OSVDB-1234",
+          "severity": 4.3,
+          "source": "osvdb",
+          "summary": "Directory traversal vulnerability in Apache Tomcat 4.1.0 through 4.1.37, 5.5.0 through 5.5.26, and 6.0.0 through 6.0.16, when allowLinking and UTF-8 are enabled, allows remote attackers to read arbitrary files via encoded directory traversal sequences in the URI, a different vulnerability than CVE-2008-2370.  NOTE: versions earlier than 6.0.18 were reported affected, but the vendor advisory lists 6.0.16 as the last affected version.",
+          "status": "Open",
+          "url": null
+        }],
       "website": "http://www.kclee.de/clemens/java/javancss/",
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -260,7 +276,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1241881384000,
       "relativePopularity": 2,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "CVE-1234-56789",
+          "severity": 9.1,
+          "source": "cve",
+          "summary": "Cross-site scripting (XSS) vulnerability in Apache Tomcat 4.1.0 through 4.1.37, 5.5.0 through 5.5.26, and 6.0.0 through 6.0.16 allows remote attackers to inject arbitrary web script or HTML via a crafted string that is used in the message argument to the HttpServletResponse.sendError method.",
+          "status": "Open",
+          "url": null
+        },
+        {
+          "refId": "OSVDB-1234",
+          "severity": 4.3,
+          "source": "osvdb",
+          "summary": "Directory traversal vulnerability in Apache Tomcat 4.1.0 through 4.1.37, 5.5.0 through 5.5.26, and 6.0.0 through 6.0.16, when allowLinking and UTF-8 are enabled, allows remote attackers to read arbitrary files via encoded directory traversal sequences in the URI, a different vulnerability than CVE-2008-2370.  NOTE: versions earlier than 6.0.18 were reported affected, but the vendor advisory lists 6.0.16 as the last affected version.",
+          "status": "Open",
+          "url": null
+        }],
       "website": "http://www.kclee.de/clemens/java/javancss/",
       "policyAlerts": null,
       "licenseThreatLevel": null,

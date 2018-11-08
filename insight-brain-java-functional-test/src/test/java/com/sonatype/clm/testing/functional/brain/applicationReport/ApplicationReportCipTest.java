@@ -45,12 +45,14 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -100,9 +102,16 @@ public class ApplicationReportCipTest
     URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
-    Constraint constraint = new Constraint("C1", "All coordinates", LogicalOperator.AND);
-    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:javancss*"));
-    tempEntity.newPolicy("ApplicationReportTest Policy", constraint);
+    // add Security policy
+    createPolicy(app.getId(), 10, "SecurityPolicy", SecurityVulnerabilitySeverityConditionType.ID, "=", "9.1");
+    // add License policy
+    createPolicy(app.getId(), 5, "LicensePolicy", LicenseThreatGroupLevelConditionType.ID, ">=", "9");
+    // add Quality policy
+    createPolicy(app.getId(), 2, "QualityPolicy", RelativePopularityConditionType.ID, "<=", "1");
+    // add Other policy
+    createPolicy(Organization.ROOT_ORGANIZATION_ID, 1, "CoordinatesPolicy", CoordinatesConditionType.ID, "match",
+        "maven:javancss*");
+
     evaluator.evaluatePolicy();
     insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
@@ -130,11 +139,11 @@ public class ApplicationReportCipTest
     reportPage.resultRow(4).click();
     cipModal.getElement().shouldBe(visible);
 
-    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
+    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
     cipModal.nextButton().shouldBe(disabled);
     cipModal.previousButton().shouldBe(enabled).click();
 
-    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
     cipModal.nextButton().shouldBe(enabled);
     cipModal.previousButton().shouldBe(enabled);
     cipModal.closeButton().click();
@@ -159,18 +168,56 @@ public class ApplicationReportCipTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("10"), cssClass("critical"));
+    VersionsCIP.policyCount().shouldHave(exactText("within 3 policies"));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
+    VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
+
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
+    eyesWatcher.eyesCheck("Component Info Tab");
+
+    // test hovering over version bar shows version number
+    VersionsCIP.versionBar(1).shouldBe(visible).hover();
+    VersionsCIP.versionBarHoverText(1).shouldHave(text("21.41"));
+    VersionsCIP.versionBar(2).shouldBe(visible).hover();
+    VersionsCIP.versionBarHoverText(2).shouldHave(text("25.45"));
+    VersionsCIP.versionBar(3).shouldBe(visible).hover();
+    VersionsCIP.versionBarHoverText(3).shouldHave(text("26.46"));
+    VersionsCIP.versionBar(4).shouldBe(visible).hover();
+    VersionsCIP.versionBarHoverText(4).shouldHave(text("28.49"));
+    VersionsCIP.versionBar(5).shouldBe(visible).hover();
+    VersionsCIP.versionBarHoverText(5).shouldHave(text("29.50"));
+    VersionsCIP.versionBar(6).shouldBe(visible).hover();
+    VersionsCIP.versionBarHoverText(6).shouldHave(text("30.51"));
+
+    // mock request for version 21.41
+    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
+        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-21.41.json"), 200);
+
+    VersionsCIP.versionBar(1).shouldBe(visible).click();
+    VersionsCIP.version().shouldHave(text("21.41"));
+    VersionsCIP.declaredLicenses().shouldHave(texts("Not Declared"));
+    VersionsCIP.observedLicenses().shouldHave(texts("No Sources"));
+    VersionsCIP.effectiveLicenses().shouldHave(texts("Not Declared", "No Sources"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("1"), cssClass("none"));
+    VersionsCIP.policyCount().shouldNotBe(visible);
+    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"), cssClass("unspecified"));
+    VersionsCIP.securityCount().shouldNotBe(visible);
+
+    // back to current version - 29.50
+    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
+        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
+
     VersionsCIP.hideDetailsLink().shouldBe(visible);
     cipModal.closeButton().click();
   }
 
   private void testPolicyTab() throws Exception {
-    String policyCssClass = "cip-policy-orange";
-    String policyName = "ApplicationReportTest Policy";
-    String constraintName = "All coordinates";
+    String policyCssClass = "cip-policy-darkblue";
+    String policyName = "CoordinatesPolicy";
+    String constraintName = "CoordinatesPolicy constraint";
     String conditions = "Coordinates were javancss : javancss : 29.50";
 
     CipModal cipModal = reportPage.cipModal();
@@ -178,8 +225,8 @@ public class ApplicationReportCipTest
     cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
     cipModal.tabLink(2).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
-    WaiverCip.rows().shouldHaveSize(1);
-    WaiverCip.row(0).shouldBe(
+    WaiverCip.rows().shouldHaveSize(2);
+    WaiverCip.row(1).shouldBe(
         policyCssClass,
         policyName,
         new String[]{constraintName},
@@ -191,7 +238,7 @@ public class ApplicationReportCipTest
     ViewWaiversDialog.closeButton().click();
 
     // Waive violation
-    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
+    WaiverCip.row(1).waiveButton().shouldBe(visible).click();
     AddWaiverDialog.policyName().shouldHave(exactText(policyName));
     AddWaiverDialog.constraintName().shouldHave(exactText(constraintName));
     AddWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
@@ -216,7 +263,7 @@ public class ApplicationReportCipTest
     WaiverCip.viewWaivers().shouldBe(visible).click();
     ViewWaiversDialog.rows().shouldHaveSize(1);
     ExistingWaiver waiver = ViewWaiversDialog.row(0);
-    waiver.policy().shouldHave(text("ApplicationReportTest Policy"));
+    waiver.policy().shouldHave(text("CoordinatesPolicy"));
     waiver.owner().shouldHave(text("ApplicationReportTest"));
     waiver.comment().shouldHave(text("TEST COMMENT"));
     waiver.removeButton().shouldBe(visible, enabled);
@@ -229,7 +276,7 @@ public class ApplicationReportCipTest
     reportPage.resultRow(1).click();
     cipModal.tabLink(2).click();
     WaiverCip.rows().shouldHaveSize(1);
-    WaiverCip.rows().get(0).shouldHave(text("No Policy Violations"));
+    WaiverCip.rows().get(0).shouldHave(text("LicensePolicy"));
 
     // Remove waiver
     WaiverCip.viewWaivers().shouldBe(visible).click();
@@ -243,8 +290,8 @@ public class ApplicationReportCipTest
     evaluator.reevaluatePolicy();
     reportPage.resultRow(1).click();
     cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(1);
-    WaiverCip.row(0).policyName().shouldHave(text("ApplicationReportTest Policy"));
+    WaiverCip.rows().shouldHaveSize(2);
+    WaiverCip.row(1).policyName().shouldHave(text("CoordinatesPolicy"));
     cipModal.closeButton().click();
   }
 
@@ -309,7 +356,7 @@ public class ApplicationReportCipTest
     Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.dark_red);
     tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elMagnifico.getId(), JAVANCSS_HASH);
 
-    createPolicy(1, "Bad Label", LabelConditionType.ID, "is", elJunko.getId());
+    createPolicy(app.getId(), 2, "Bad Label", LabelConditionType.ID, "is", elJunko.getId());
 
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();
@@ -337,9 +384,9 @@ public class ApplicationReportCipTest
     // Check new policy violation was added
     evaluator.reevaluatePolicy();
     cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(2);
+    WaiverCip.rows().shouldHaveSize(3);
     WaiverCip.row(1).shouldBe(
-        "cip-policy-darkblue",
+        "cip-policy-yellow",
         "Bad Label",
         new String[] { "Bad Label constraint" },
         new String[] { "Found label 'El Junko'" });
@@ -362,7 +409,7 @@ public class ApplicationReportCipTest
     // Check new policy violation is gone
     evaluator.reevaluatePolicy();
     cipModal.tabLink(2).click();
-    WaiverCip.rows().shouldHaveSize(1);
+    WaiverCip.rows().shouldHaveSize(2);
 
     cipModal.closeButton().click();
   }
@@ -450,10 +497,15 @@ public class ApplicationReportCipTest
     cipModal.closeButton().click();
   }
 
-  private Policy createPolicy(int threatLevel, String name, String conditionType, String operator, String value) {
+  private Policy createPolicy(String ownerId,
+                              int threatLevel,
+                              String name,
+                              String conditionType,
+                              String operator,
+                              String value) {
     Policy p = new Policy(null, name);
     p.setThreatLevel(threatLevel);
-    p.setOwnerId(app.getId());
+    p.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, name + " constraint", LogicalOperator.AND);
     com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
         conditionType, operator, value);
@@ -462,10 +514,9 @@ public class ApplicationReportCipTest
     return tempEntity.newPolicy(p);
   }
 
-
   private void setupHdsResponse() {
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails.json"), 200);
+        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
   }

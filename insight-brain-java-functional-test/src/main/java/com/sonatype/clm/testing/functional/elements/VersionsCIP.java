@@ -11,6 +11,8 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class VersionsCIP
 {
@@ -101,5 +103,13 @@ public class VersionsCIP
 
   public static SelenideElement hideDetailsLink() {
     return $$("#aiVersionChartLabels").find(text("Hide Details"));
+  }
+
+  public static SelenideElement versionBar(int i) {
+    return $(createSelector("#aiVersionChartViz", "g", "rect[pointer-events=\"all\"]", nthChild(i)));
+  }
+
+  public static SelenideElement versionBarHoverText(int i) {
+    return versionBar(i).parent().parent().find("text");
   }
 }

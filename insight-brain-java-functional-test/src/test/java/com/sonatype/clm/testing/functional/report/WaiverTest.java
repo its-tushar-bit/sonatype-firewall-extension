@@ -38,13 +38,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -163,57 +163,33 @@ public class WaiverTest
   }
 
   @Test
-  public void testWaiverDialogCanBeInteractedWith() throws Exception {
-    createGavViolatingPolicy(app.getOrganizationId());
-
-    evaluator.evaluatePolicy();
-
-    waiveComponent();
-
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
-    AddWaiverDialog.scope().shouldHaveSize(2);
-
-    AddWaiverDialog.selectedScope().shouldHave(value(app.getPublicId()));
-
-    AddWaiverDialog.scope(app.getOrganizationId()).click();
-
-    AddWaiverDialog.selectedScope().shouldHave(value(app.getOrganizationId()));
-
-    AddWaiverDialog.scope(app.getPublicId()).click();
-
-    AddWaiverDialog.selectedScope().shouldHave(value(app.getPublicId()));
-
-    AddWaiverDialog.apply().shouldHaveSize(2);
-
-    AddWaiverDialog.allComponents().shouldBe(visible);
-    AddWaiverDialog.selectedComponent().shouldBe(visible);
-
-    AddWaiverDialog.allComponents().shouldNotBe(selected);
-    AddWaiverDialog.selectedComponent().shouldBe(selected);
-
-    AddWaiverDialog.allComponents().setSelected(true);
-  }
-
-  @Test
-  public void testApplicationPolicyDoesNotPromptForScopeOfWaiver() throws Exception {
+  public void testApplicationPolicyCanOnlyBeScopedToApplication() throws Exception {
     createGavViolatingPolicy(app.getId());
 
     evaluator.evaluatePolicy();
 
     waiveComponent();
+    AddWaiverDialog.scopedWaiver().click();
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
 
-    AddWaiverDialog.scopeContainer().shouldBe(hidden);
+    AddWaiverDialog.waiverOwner().shouldHave(text("Application - " + app.getName()));
+    AddWaiverDialog.waiverOwnerOptions().shouldHaveSize(1);
+
   }
 
   @Test
-  public void testOrganizationPolicyPromptsForScopeOfWaiver() throws Exception {
+  public void testOrganizationPolicyCanBeScopedToOrganization() throws Exception {
     createGavViolatingPolicy(app.getOrganizationId());
 
     evaluator.evaluatePolicy();
 
     waiveComponent();
-
+    AddWaiverDialog.scopedWaiver().click();
     AddWaiverDialog.scopeContainer().shouldBe(visible);
+
+    AddWaiverDialog.waiverOwnerOptions().shouldHaveSize(2);
+    AddWaiverDialog.waiverOwnerOptions()
+        .shouldHave(texts(new String[]{"Application - " + app.getName(), "Organization - Waiver Test Org"}));
   }
 
   @Test
@@ -223,8 +199,10 @@ public class WaiverTest
     evaluator.evaluatePolicy();
 
     waiveComponent();
+    AddWaiverDialog.scopedWaiver().click();
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
 
-    AddWaiverDialog.scope(app.getOrganizationId()).setSelected(true);
+    AddWaiverDialog.waiverOwner().selectOptionContainingText("Organization - Waiver Test Org");
 
     AddWaiverDialog.selectedComponent().shouldBe(selected);
 
@@ -248,7 +226,8 @@ public class WaiverTest
 
     waiveComponent();
 
-    AddWaiverDialog.allComponents().setSelected(true);
+    AddWaiverDialog.scopedWaiver().click();
+    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected).click();
 
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
     AddWaiverDialog.root().should(disappear);
@@ -279,8 +258,8 @@ public class WaiverTest
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
     AddWaiverDialog.root().should(appear);
     AddWaiverDialog.comment().shouldBe(visible);
-    AddWaiverDialog.selectedComponent().parent()
-        .shouldHave(text("Selected component (ch.qos.logback : logback-access : 0.6)"));
+    AddWaiverDialog.waiveViolationOnly().shouldBe(visible);
+    AddWaiverDialog.waiveViolationOnly().shouldBe(selected);
   }
 
   private void createGavViolatingPolicy(String ownerId) {

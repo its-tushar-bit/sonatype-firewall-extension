@@ -168,6 +168,11 @@ public class ApplicationReportCipTest
   }
 
   private void testPolicyTab() throws Exception {
+    String policyCssClass = "cip-policy-orange";
+    String policyName = "ApplicationReportTest Policy";
+    String constraintName = "All coordinates";
+    String conditions = "Coordinates were javancss : javancss : 29.50";
+
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();
     cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
@@ -175,10 +180,10 @@ public class ApplicationReportCipTest
     cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
     WaiverCip.rows().shouldHaveSize(1);
     WaiverCip.row(0).shouldBe(
-        "cip-policy-orange",
-        "ApplicationReportTest Policy",
-        new String[] { "All coordinates" },
-        new String[] { "Coordinates were javancss : javancss : 29.50" });
+        policyCssClass,
+        policyName,
+        new String[]{constraintName},
+        new String[]{conditions});
 
     // check that there are no existing waivers
     WaiverCip.viewWaivers().shouldBe(visible).click();
@@ -187,15 +192,22 @@ public class ApplicationReportCipTest
 
     // Waive violation
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
-    AddWaiverDialog.scope(app.getPublicId()).shouldBe(visible, selected);
-    AddWaiverDialog.scope(app.getOrganizationId()).shouldBe(visible).shouldNotBe(selected);
-    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible).shouldNotBe(selected);
+    AddWaiverDialog.policyName().shouldHave(exactText(policyName));
+    AddWaiverDialog.constraintName().shouldHave(exactText(constraintName));
+    AddWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
+    AddWaiverDialog.waiveViolationOnly().shouldBe(selected);
+    AddWaiverDialog.scopeContainer().shouldBe(hidden);
 
-    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected);
-    AddWaiverDialog.selectedComponent().shouldBe(visible, selected);
-    AddWaiverDialog.selectedComponent().parent()
-        .shouldHave(exactText("Selected component (javancss : javancss : 29.50)"));
+    AddWaiverDialog.scopedWaiver().click();
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
+
+    AddWaiverDialog.waiverOwnerOptions().shouldHaveSize(3);
+    AddWaiverDialog.waiverOwnerOptions()
+        .shouldHave(texts(new String[]{
+            "Application - " + app.getName(), "Organization - " + app.getName(), "Organization - Root Organization"
+        }));
+    AddWaiverDialog.waiveViolationOnly().click();
+    AddWaiverDialog.scopeContainer().shouldBe(hidden);
 
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();

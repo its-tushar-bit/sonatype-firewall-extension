@@ -32,17 +32,33 @@ public class WaiverCip
       return $("#add-waiver-modal");
     }
 
+    public static SelenideElement waiveViolationOnly() {
+      return $("#waiver-scope-violation-only");
+    }
+
+    public static SelenideElement scopedWaiver() {
+     return $("#waiver-scope-scoped");
+    }
+
+    public static SelenideElement policyName() {
+      return $("#waiver-policy-name");
+    }
+
+    public static SelenideElement constraintName() {
+      return $("#waiver-constraint-name");
+    }
+
+    public static SelenideElement waiverConditions() {
+      return $("#waiver-conditions");
+    }
+
     public static SelenideElement allComponents() {
-      return applyContainer().findAll("label.radio").find(text("all components")).find("input");
+      return scopeContainer().findAll("label.radio").find(text("all components")).find("input");
     }
 
     // input for the application of the waiver (selectedComponent or allComponents)
     public static ElementsCollection apply() {
-      return applyContainer().findAll("input[name='waiver-hash']");
-    }
-
-    private static SelenideElement applyContainer() {
-      return $("#add-waiver-apply");
+      return scopeContainer().findAll("input[name='waiver-hash']");
     }
 
     public static SelenideElement cancelButton() {
@@ -55,6 +71,14 @@ public class WaiverCip
 
     public static SelenideElement saveButton() {
       return root().find("button.btn-primary");
+    }
+
+    public static SelenideElement waiverOwner() {
+      return $("#waiver-owner");
+    }
+
+    public static ElementsCollection waiverOwnerOptions() {
+      return waiverOwner().findAll("option");
     }
 
     public static ElementsCollection scope() {
@@ -70,7 +94,7 @@ public class WaiverCip
     }
 
     public static SelenideElement selectedComponent() {
-      return applyContainer().findAll("label.radio").find(text("selected component")).find("input");
+      return scopeContainer().find("label.radio", 0).find("input");
     }
 
     public static SelenideElement selectedScope() {

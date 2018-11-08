@@ -2,39 +2,81 @@
   <script type="text/ng-template" id="add-waiver-modal-tmpl">
   <div id="add-waiver-modal">
     <div class="iq-modal-header">
-      <h2>Add Violation Waiver</h2>
+      <h2>Add Waiver</h2>
     </div>
     <div class="iq-modal-content">
       <div ng-show="waiverLoading">
         <i class="icon icon-time"></i> Loading...
       </div>
       <div ng-show="!waiverLoading">
-      	<div id="add-waiver-legacy-message" class="iq-alert iq-alert--error" ng-show="legacyReport">
-			This report has not been upgraded for the new waiver functionality introduced in release 53.
-			Re-evaluate to update and then create the waiver.
-		</div>
-        <div id="add-waiver-scope" ng-show="waiverSelectOwner" class="radio-container">
-          <div>The waiver should be limited to:</div>
-          <label class="radio" ng-repeat="waiverTarget in waiverTargets">
-            <input type="radio" ng-model="waiver.ownerId" name="waiverSelectedTarget" ng-value="waiverTarget.id" ng-change="owner.type = waiverTarget.type">
-            {{waiverTarget.label}} <em>{{waiverTarget.name}}</em>
-          </label>
+        <div id="add-waiver-legacy-message" class="iq-alert iq-alert--error" ng-show="legacyReport">
+            This report has not been upgraded for the new waiver functionality introduced in release 53.
+            Re-evaluate to update and then create the waiver.
         </div>
-        <div id="add-waiver-apply" class="radio-container">
-          <div>
-            <span ng-show="waiverSelectOwner">And apply to:</span>
-            <span ng-hide="waiverSelectOwner">The waiver should apply to:</span>
+        <label class="iq-label">Policy</label>
+        <div id="waiver-policy-name"
+             class="cip-policy cip-policy-{{::getThreatColor(policy.threatLevel)}} cip-policy-name">
+          {{policy.name}}
+        </div>
+
+        <label class="iq-label iq-label--spaced">Constraint Name</label>
+        <div id="waiver-constraint-name">
+          <div ng-repeat="constraint in policy.constraints">{{constraint.constraintName}}</div>
+        </div>
+
+        <label class="iq-label iq-label--spaced">Conditions</label>
+        <div id="waiver-conditions">
+          <div ng-repeat="constraint in policy.constraints">
+            <div ng-repeat="condition in constraint.conditions">{{condition.conditionReason}}</div>
           </div>
+        </div>
+
+        <label class="iq-label iq-label--spaced">Scope</label>
+        <div class="radio-container">
           <label class="radio">
-            <input type="radio" name="waiver-hash" ng-model="waiver.hash" value="{{component.hash}}">
-            Selected component (<em><span>{{component.componentDisplayText}}</span></em>)
+            <input type="radio"
+                   id="waiver-scope-violation-only"
+                   name="waiver-scope"
+                   ng-model="waiveViolationOnly"
+                   ng-value="true"
+                   ng-change="reset()"/>
+            This violation only
           </label>
           <label class="radio">
-            <input type="radio" name="waiver-hash" ng-model="waiver.hash" ng-value="null">
-            All components
+            <input type="radio"
+                   id="waiver-scope-scoped"
+                   name="waiver-scope"
+                   ng-model="waiveViolationOnly"
+                   ng-value="false"/>
+            Scoped Waiver
           </label>
         </div>
-        <label for="waiver-comment">Comments:</label>
+
+        <div id="add-waiver-scope" class="scoped-waiver-block" ng-show="!waiveViolationOnly">
+          <label class="iq-label" for="waiver-owner">Scope</label>
+          <select id="waiver-owner"
+                  name="owner"
+                  ng-model="owner"
+                  ng-change="waiver.ownerId = owner.id">
+            <option ng-repeat="waiverTarget in waiverTargets" ng-value="waiverTarget">
+              {{waiverTarget.label}} - {{waiverTarget.name}}
+            </option>
+          </select>
+
+          <div class="radio-container">
+            <label class="iq-label">Component</label>
+            <label class="radio">
+              <input type="radio" name="waiver-hash" ng-model="waiver.hash" value="{{component.hash}}">
+              {{component.componentDisplayText}}
+            </label>
+            <label class="radio">
+              <input type="radio" name="waiver-hash" ng-model="waiver.hash" ng-value="null">
+              All components
+            </label>
+          </div>
+        </div>
+
+        <label class="iq-label" for="waiver-comment">Comments</label>
         <textarea id="waiver-comment" ng-model="waiver.comment" maxlength="1000" style="width: 520px;"></textarea>
       </div>
     </div>
@@ -135,8 +177,8 @@
       <thead>
         <tr>
           <th class="cip-policy-table-header">Policy/<em>Action</em></th>
-          <th class="cip-policy-table-header">Constraint</th>
-          <th class="cip-policy-table-header">Condition Value</th>
+          <th class="cip-policy-table-header">Constraint Name</th>
+          <th class="cip-policy-table-header">Conditions</th>
           <th class="cip-policy-table-header">Waivers</th>
         </tr>
       </thead>

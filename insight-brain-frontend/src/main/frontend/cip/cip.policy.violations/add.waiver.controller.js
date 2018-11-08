@@ -5,10 +5,27 @@
  */
 /*global angular, CLM */
 export default function AddWaiverController($http, $scope, OwnerContext, SelectedComponent, messages, policy) {
+
+  $scope.getThreatColor = function (threatLevel) {
+    return threatLevel > 7 ? 'red' :
+        threatLevel > 3 ? 'orange' :
+        threatLevel > 1 ? 'yellow' :
+        threatLevel > 0 ? 'darkblue' :
+        'blue';
+  };
+
+  $scope.reset = function() {
+    $scope.owner = $scope.waiverTargets[0];
+    $scope.waiver.ownerId = $scope.owner.id;
+    $scope.waiver.hash = $scope.component.hash;
+  };
+
   function doLoad() {
     $scope.policy = policy;
     $scope.component = SelectedComponent.get();
     $scope.waiverLoading = true;
+    $scope.waiveViolationOnly = true;
+    $scope.owner = null;
 
     // Prior to IQ Brain 1.53 policy violations stored in the report did not include constraint facts
     $scope.legacyReport = !policy.constraintFactsJson;
@@ -49,15 +66,13 @@ export default function AddWaiverController($http, $scope, OwnerContext, Selecte
       $scope.waiverLoading = false;
       processContext(data);
 
+      $scope.owner = $scope.waiverTargets[0];
       $scope.waiver = {
         hash: SelectedComponent.get().hash,
         policyId: $scope.policy.id,
-        ownerId: $scope.waiverTargets[0].id,
+        ownerId: $scope.owner.id,
         constraintFactsJson: $scope.policy.constraintFactsJson || null,
         comment: ''
-      };
-      $scope.owner = {
-        type: $scope.waiverTargets[0].type
       };
     }, function(error) {
       $scope.waiverLoading = false;

@@ -504,14 +504,12 @@ public class RepositoryReportTest
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
 
     // Waive a policy violation
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
-    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible);
-    AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
-    AddWaiverDialog.scope(repo.getId()).shouldBe(visible).shouldBe(selected);
-
-    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected);
-    AddWaiverDialog.selectedComponent().shouldBe(visible).shouldBe(selected);
-    AddWaiverDialog.selectedComponent().parent().shouldHave(text("Selected component (critical : threat : 1.0)"));
+    AddWaiverDialog.waiveViolationOnly().shouldBe(visible, selected);
+    AddWaiverDialog.scopeContainer().shouldBe(hidden);
+    AddWaiverDialog.policyName().shouldHave(text(CRITICAL_ROW.policyName));
+    AddWaiverDialog.policyName().shouldHave(cssClass("cip-policy-red"));
+    AddWaiverDialog.constraintName().shouldHave(text(CRITICAL_ROW.policyName + " constraint"));
+    AddWaiverDialog.waiverConditions().shouldHave(text("Match State was exact"));
 
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
@@ -564,10 +562,18 @@ public class RepositoryReportTest
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
 
     // Waive a policy violation for all components
+    AddWaiverDialog.waiveViolationOnly().shouldBe(visible, selected);
+    AddWaiverDialog.scopeContainer().shouldBe(hidden);
+    AddWaiverDialog.policyName().shouldHave(text(CRITICAL_ROW.policyName));
+    AddWaiverDialog.policyName().shouldHave(cssClass("cip-policy-red"));
+    AddWaiverDialog.constraintName().shouldHave(text(CRITICAL_ROW.policyName + " constraint"));
+    AddWaiverDialog.waiverConditions().shouldHave(text("Match State was exact"));
+
+    AddWaiverDialog.scopedWaiver().click();
+
     AddWaiverDialog.scopeContainer().shouldBe(visible);
-    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible);
-    AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
-    AddWaiverDialog.scope(repo.getId()).shouldBe(visible).shouldBe(selected);
+    AddWaiverDialog.waiverOwner().shouldBe(visible);
+    AddWaiverDialog.waiverOwner().shouldHave(text(repo.getPublicId()));
 
     AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected).click();
     AddWaiverDialog.allComponents().shouldBe(selected);

@@ -107,36 +107,6 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddApplicationTag_Unauthorized() throws Exception {
-    grantReadPermission(app.getId());
-    Tag tag = tempEntity.newTag(org.getId(), "name");
-    tagService.addApplicationTag(app.getPublicId(), tag);
-  }
-
-  @Test
-  public void testAddApplicationTag_Authorized() throws Exception {
-    grantWritePermission(app.getId());
-    Tag tag = tempEntity.newTag(org.getId(), "name");
-    tagService.addApplicationTag(app.getPublicId(), tag);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testDeleteApplicationTag_Unauthorized() throws Exception {
-    grantReadPermission(app.getId());
-    Tag tag = tempEntity.newTag(org.getId(), "name");
-    tempEntity.newApplicationTag(app.getId(), tag.getId());
-    tagService.deleteApplicationTag(app.getPublicId(), tag.getId());
-  }
-
-  @Test
-  public void testDeleteApplicationTag_Authorized() throws Exception {
-    grantWritePermission(app.getId());
-    Tag tag = tempEntity.newTag(org.getId(), "name");
-    tempEntity.newApplicationTag(app.getId(), tag.getId());
-    tagService.deleteApplicationTag(app.getPublicId(), tag.getId());
-  }
-
-  @Test(expected = UnauthorizedException.class)
   public void testGetPolicyTags_Unauthorized() throws Exception {
     login();
     tagService.getPolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId);

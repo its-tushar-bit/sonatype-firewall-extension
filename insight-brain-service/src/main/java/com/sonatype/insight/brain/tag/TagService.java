@@ -203,30 +203,6 @@ class TagService
     return applicationTags;
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public ApplicationTag addApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                          Tag tag)
-  {
-    ApplicationTag appTag = new ApplicationTag(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId),
-        tag.getId());
-    applicationTagDAO.insert(appTag);
-    return appTag;
-  }
-
-  @Authorize(permission = Permission.WRITE)
-  public void deleteApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                   String tagId)
-  {
-    ApplicationTag appTag = applicationTagDAO.getByApplicationIdAndTagId(
-        IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId), tagId);
-    if (appTag == null) {
-      throw new NotFoundException("An application category with id " + tagId + " is not applied to application with id "
-          + applicationPublicId);
-    }
-
-    applicationTagDAO.delete(appTag);
-  }
-
   @Authorize(permission = Permission.READ)
   public List<Tag> getPolicyTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
                                  @AuthzContext(AuthzContext.Key.ID) String ownerId,

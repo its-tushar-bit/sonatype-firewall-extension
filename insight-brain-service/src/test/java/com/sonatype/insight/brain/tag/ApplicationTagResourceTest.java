@@ -39,19 +39,6 @@ public class ApplicationTagResourceTest
     assertThat(retrievedTags, is(notNullValue()));
     assertThat(retrievedTags.length, is(0));
 
-    // Add
-    Tag tag = tempEntity.newTag(app.getOrganizationId(), "tag name");
-    response = request.body(tag).post();
-    assertResponseStatus(204, response);
-
-    // Get
-    response = request.get();
-    assertResponseStatus(200, response);
-    retrievedTags = response.getBody(Tag[].class);
-    assertThat(retrievedTags, is(notNullValue()));
-    assertThat(retrievedTags.length, is(1));
-    assertTag(tag, retrievedTags[0]);
-
     // Update
     List<Tag> tags = new ArrayList<>();
     tags.add(tempEntity.newTag(app.getOrganizationId(), "tag name 1"));
@@ -75,10 +62,8 @@ public class ApplicationTagResourceTest
     assertTag(tags.get(1), retrievedTags[1]);
 
     // Delete
-    for (Tag currentTag : tags) {
-      response = request.subpath("{tagId}").parameter(currentTag.getId()).delete();
-      assertResponseStatus(204, response);
-    }
+    response = request.body(Arrays.asList()).put();
+    assertResponseStatus(204, response);
 
     // Get
     response = request.get();

@@ -159,9 +159,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getApplicableOrganizationTags: function(applicationPublicId) {
         return baseUrl.get() + '/rest/tag/application/' + encodeURIComponent(applicationPublicId) + '/applicable';
       },
-      getDeleteApplicationTagUrl: function(applicationPublicId, tagId) {
-        return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;
-      },
+
       getProductFeaturesUrl: function() {
         return baseUrl.get() + '/rest/product/features';
       },

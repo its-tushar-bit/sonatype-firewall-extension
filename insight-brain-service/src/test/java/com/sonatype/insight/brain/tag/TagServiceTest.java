@@ -184,25 +184,6 @@ public class TagServiceTest
   }
 
   @Test
-  public void testDeleteApplicationTag_NotFound() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    Application application1 = tempEntity.newApplication(organization.getId());
-    Application application2 = tempEntity.newApplication(organization.getId());
-    Tag tag = tempEntity.newTag(organization.getId(), "Tag");
-    tempEntity.newApplicationTag(application1.getId(), tag.getId());
-
-    try {
-      tagService.deleteApplicationTag(application2.getPublicId(), tag.getId());
-      fail("Should have thrown NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(),
-          is("An application category with id " + tag.getId() + " is not applied to application with id "
-              + application2.getPublicId()));
-    }
-  }
-
-  @Test
   public void testGetTagsUsedByApplications() {
     Organization organization1 = tempEntity.newOrganization("testGetTagsUsedByApplicationsOrg1");
     Application application1 = tempEntity.newApplication(organization1.getId());

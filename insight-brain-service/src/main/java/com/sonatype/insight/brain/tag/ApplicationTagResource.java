@@ -10,9 +10,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -48,12 +46,6 @@ public class ApplicationTagResource
     return tagService.getAppliedApplicationTags(applicationPublicId);
   }
 
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  public void addApplicationTag(@PathParam("applicationPublicId") String applicationPublicId, Tag tag) {
-    tagService.addApplicationTag(applicationPublicId, tag);
-  }
-
   /**
    * Replace all existing tags with the list of tags passed in
    *
@@ -65,13 +57,5 @@ public class ApplicationTagResource
                                     final List<Tag> tags)
   {
     tagService.updateApplicationTags(applicationPublicId, tags);
-  }
-
-  @DELETE
-  @Path("{tagId}")
-  public void deleteApplicationTag(@PathParam("applicationPublicId") String applicationPublicId,
-                                   @PathParam("tagId") String tagId)
-  {
-    tagService.deleteApplicationTag(applicationPublicId, tagId);
   }
 }

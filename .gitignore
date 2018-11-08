@@ -13,3 +13,5 @@ dependency-reduced-pom.xml
 .tags
 .vscode/
 .factorypath
+perfTemp_*/
+perf_results-*.out

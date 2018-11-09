@@ -58,6 +58,7 @@ public class RepositoryResource
    */
   @POST
   @Path(UNQUARANTINE_PATH)
+  @Audited(AuditEvent.RELEASE_QUARANTINE)
   public void unquarantineComponent(@PathParam("repositoryId") final String repositoryId,
                                     @PathParam("pathname") final String pathname,
                                     @Context final HttpServletRequest request)

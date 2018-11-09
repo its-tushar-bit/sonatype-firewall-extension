@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
@@ -27,6 +29,8 @@ public class RepositoryResourceAuditTest
     extends AbstractAuditTest
 {
   private static final String COMPONENT_HASH = "hash";
+
+  private static final String PATHNAME = "pathname";
 
   @Test
   public void testDeleteRepository() throws Exception {
@@ -96,6 +100,30 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testUnquarantineComponent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), PATHNAME, new Date(), null);
+    mockHdsResponse(1);
+
+    unquarantineRequest(repository.getId(), repositoryComponent.getPathname()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, null);
+    assertRepositoryData(auditDTO, repository);
+    assertUnquarantineData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+  }
+
+  @Test
+  public void testUnquarantineComponent_Unauthorized() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    unquarantineRequest(repository.getId(), PATHNAME).with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
   private HttpRequest repositoryRequest(String repositoryId) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
         .parameter(repositoryId);
@@ -109,6 +137,11 @@ public class RepositoryResourceAuditTest
   private HttpRequest reevaluateRequest(String repositoryId, String hash) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_COMPONENT_PATH)
         .parameter(repositoryId, hash);
+  }
+
+  private HttpRequest unquarantineRequest(String repositoryId, String pathname) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
+        .parameter(repositoryId, pathname);
   }
 
   private Repository repositoryWithComponents(int componentCount) {
@@ -138,5 +171,10 @@ public class RepositoryResourceAuditTest
   private void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {
     assertCustomData(auditDTO, "componentCount", componentCount);
     assertCustomData(auditDTO, "evaluationCause", evaluationCause);
+  }
+
+  private void assertUnquarantineData(AuditDTO auditDTO, String componentHash, String componentPathname) {
+    assertCustomData(auditDTO, "componentHash", componentHash);
+    assertCustomData(auditDTO, "componentPathname", componentPathname);
   }
 }

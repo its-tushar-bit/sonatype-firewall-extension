@@ -120,13 +120,14 @@ public class RepositoryService
   public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname,
                                     final String clientUserAgent) {
     checkLicenseFeature();
-
+    AuditData.get().setData("componentPathname", pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
         pathname);
     if (repositoryComponent == null) {
       throw new NotFoundException("Cannot find a component with path " + pathname + " in repository with ID "
           + repositoryId + ".");
     }
+    AuditData.get().setComponentHash(repositoryComponent.getHash());
 
     if (!repositoryComponent.isQuarantined()) {
       throw new BadRequestException("Component " + pathname + " in repository " + repositoryId + " is not quarantined.");

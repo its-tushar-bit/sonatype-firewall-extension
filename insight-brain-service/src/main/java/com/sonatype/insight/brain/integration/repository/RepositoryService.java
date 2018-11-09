@@ -31,6 +31,8 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -310,7 +312,8 @@ public class RepositoryService
     log.debug("Evaluating components for repository {}:{} ({}) with quarantine {}", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId(), withQuarantine);
 
-    return evaluateComponents(repository, componentEvaluationDataRequestList, withQuarantine, clientUserAgent);
+    return evaluateComponents(repository, repositoryManagerInstanceId, componentEvaluationDataRequestList,
+        withQuarantine, clientUserAgent);
   }
 
   private void normalizeComponents(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
@@ -348,6 +351,7 @@ public class RepositoryService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   RepositoryComponentEvaluationDataList evaluateComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
+                                                           String repositoryManagerInstanceId,
                                                            RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
                                                            final boolean withQuarantine,
                                                            final String clientUserAgent)
@@ -360,6 +364,9 @@ public class RepositoryService
         log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
         repository.setEnabled(true);
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONNECT_REPOSITORY, false)) {
+          AuditData.get().setRepository(repository).setData("repositoryManagerInstanceId", repositoryManagerInstanceId);
+        }
       }
       if (withQuarantine) {
         if (!repository.isQuarantineEnabled()) {
@@ -373,6 +380,7 @@ public class RepositoryService
         repository.setFormat(componentEvaluationDataRequestList.components.get(0).format);
       }
       repositoryDAO.update(repository);
+      AuditData.get().commitSubEvents();
     }
 
     if (componentEvaluationDataRequestList == null || componentEvaluationDataRequestList.isEmpty()) {

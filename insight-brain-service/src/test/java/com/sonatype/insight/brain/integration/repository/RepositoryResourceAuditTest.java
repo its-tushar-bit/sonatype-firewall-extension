@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -58,5 +59,41 @@ public class RepositoryResourceAuditTest
   private HttpRequest restRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.ENABLE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
+  }
+
+  @Test
+  public void testEvaluateComponents_ImplicitlyEnableAudit() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
+
+    evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(),
+        new RepositoryComponentEvaluationDataRequestList()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+  }
+
+  @Test
+  public void testEvaluateComponentsWithQuarantine_ImplicitlyEnableAudit() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
+
+    evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(),
+        new RepositoryComponentEvaluationDataRequestList()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+  }
+
+  private HttpRequest evaluateRequest(boolean withQuarantine,
+                                      String repositoryManagerInstanceId,
+                                      String repositoryPublicId,
+                                      RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
+  {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, withQuarantine ?
+        RepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH : RepositoryResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repositoryManagerInstanceId, repositoryPublicId).body(repoComponentEvalList);
   }
 }

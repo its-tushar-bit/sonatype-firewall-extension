@@ -162,6 +162,42 @@ public class RepositoryResourceAuditTest
     assertRepositoryEvaluationData(auditDTO, count, cause.replace('_', '-'));
   }
 
+  @Test
+  public void testSetQuarantine_Enabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+
+    quarantineRequest(repositoryManager.getInstanceId(), repository.getPublicId(), true).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_QUARANTINE, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "quarantine", "enabled");
+  }
+
+  @Test
+  public void testSetQuarantine_Disabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+
+    quarantineRequest(repositoryManager.getInstanceId(), repository.getPublicId(), false).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_QUARANTINE, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "quarantine", "disabled");
+  }
+
+  @Test
+  public void testSetQuarantine_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+
+    quarantineRequest(repositoryManager.getInstanceId(), repository.getPublicId(), true).with(unauthorizedUser())
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_QUARANTINE, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
   private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.ENABLE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
@@ -175,6 +211,14 @@ public class RepositoryResourceAuditTest
     return restRequest().path(RepositoryResource.RESOURCE_PATH, withQuarantine ?
         RepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH : RepositoryResource.EVALUATE_COMPONENTS_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId).body(repoComponentEvalList);
+  }
+
+  private HttpRequest quarantineRequest(String repositoryManagerInstanceId,
+                                        String repositoryPublicId,
+                                        boolean enabled)
+  {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.QUARANTINE_PATH)
+        .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
 
   private void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {

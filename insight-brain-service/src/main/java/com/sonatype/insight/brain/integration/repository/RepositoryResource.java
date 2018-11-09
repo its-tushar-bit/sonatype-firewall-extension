@@ -121,6 +121,7 @@ public class RepositoryResource
   @Path(QUARANTINE_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_QUARANTINE)
   public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                             @PathParam("repositoryPublicId") String repositoryPublicId,
                             @PathParam("enabled") boolean enabled)

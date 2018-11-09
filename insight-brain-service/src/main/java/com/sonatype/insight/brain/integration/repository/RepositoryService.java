@@ -274,6 +274,7 @@ public class RepositoryService
                             final String repositoryPublicId,
                             final boolean enabled)
   {
+    AuditData.get().setData("quarantine", enabled ? "enabled" : "disabled");
     checkLicenseFeature();
 
     log.debug("{} quarantine for repository {}:{}", enabled ? "Enabling" : "Disabling", repositoryManagerInstanceId,

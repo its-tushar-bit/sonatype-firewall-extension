@@ -706,6 +706,8 @@ public class RepositoryService
 
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
+    AuditData.get().setData("componentCount", components.size())
+        .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     if (components.isEmpty()) {
       throw new NotFoundException("Cannot find a repository component for hash " + hash + " in "
           + repository.getPublicId() + ".");

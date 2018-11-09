@@ -26,6 +26,8 @@ import org.junit.Test;
 public class RepositoryResourceAuditTest
     extends AbstractAuditTest
 {
+  private static final String COMPONENT_HASH = "hash";
+
   @Test
   public void testDeleteRepository() throws Exception {
     Repository repository = tempEntity.newRepository();
@@ -80,6 +82,25 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testReevaluateComponent() throws Exception {
+    Repository repository = repositoryWithComponents(1);
+    reevaluateRequest(repository.getId(), COMPONENT_HASH).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, null);
+    assertRepositoryData(auditDTO, repository);
+    assertRepositoryEvaluationData(auditDTO, 1, "reevaluation");
+  }
+
+  @Test
+  public void testReevaluateComponent_Unauthorized() throws Exception {
+    Repository repository = repositoryWithComponents(1);
+    reevaluateRequest(repository.getId(), COMPONENT_HASH).with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
   private AuditDTO findEvaluateRepositoryByComponentCount(Collection<AuditDTO> auditDTOs, int componentCount) {
     return auditDTOs.stream().filter(auditDTO -> auditDTO.type.equals(AuditEvent.EVALUATE_REPOSITORY.getType()) &&
         auditDTO.data.get("componentCount").equals(componentCount)).findFirst().get();
@@ -95,10 +116,15 @@ public class RepositoryResourceAuditTest
         .parameter(repositoryId);
   }
 
+  private HttpRequest reevaluateRequest(String repositoryId, String hash) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_COMPONENT_PATH)
+        .parameter(repositoryId, hash);
+  }
+
   private Repository repositoryWithComponents(int componentCount) {
     Repository repository = tempEntity.newRepository();
     for (int i = 0; i < componentCount; i++) {
-      tempEntity.newRepositoryComponent(repository, "hash");
+      tempEntity.newRepositoryComponent(repository, COMPONENT_HASH);
     }
     mockHdsResponse(componentCount);
     return repository;
@@ -110,7 +136,7 @@ public class RepositoryResourceAuditTest
     for (int i = 0; i < componentCount; i++) {
       ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
       componentEvaluationData.requestIndex = i;
-      componentEvaluationData.hash = "hash";
+      componentEvaluationData.hash = COMPONENT_HASH;
       componentEvaluationData.matchState = MatchState.EXACT.getId();
       componentEvaluationData.declaredLicenses = Collections.emptySet();
       componentEvaluationData.observedLicenses = Collections.emptySet();

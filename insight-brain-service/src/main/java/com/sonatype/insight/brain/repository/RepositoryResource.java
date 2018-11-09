@@ -98,6 +98,7 @@ public class RepositoryResource
 
   @POST
   @Path(EVALUATE_COMPONENT_PATH)
+  @Audited(AuditEvent.EVALUATE_REPOSITORY)
   public void reevaluateComponent(@PathParam("repositoryId") String repositoryId,
                                   @PathParam("hash") String componentHash,
                                   @Context final HttpServletRequest request)

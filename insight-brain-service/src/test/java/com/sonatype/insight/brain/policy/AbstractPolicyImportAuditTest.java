@@ -60,6 +60,7 @@ public abstract class AbstractPolicyImportAuditTest
 
   protected Policy policy() {
     Policy policy = new Policy();
+    policy.setId(tempEntity.uuid());
     policy.setName(UUID.randomUUID().toString());
     Constraint constraint = new Constraint();
     constraint.setName("constraintName");
@@ -91,18 +92,21 @@ public abstract class AbstractPolicyImportAuditTest
 
   protected Label label() {
     Label label = new Label();
+    label.setId(tempEntity.uuid());
     label.setLabel(UUID.randomUUID().toString());
     return label;
   }
 
   protected LicenseThreatGroup licenseThreatGroup() {
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
+    licenseThreatGroup.setId(tempEntity.uuid());
     licenseThreatGroup.setName(UUID.randomUUID().toString());
     return licenseThreatGroup;
   }
 
   protected Tag tag() {
     Tag tag = new Tag();
+    tag.setId(tempEntity.uuid());
     tag.setName(tempEntity.uuid());
     tag.setDescription("tagDescription");
     return tag;

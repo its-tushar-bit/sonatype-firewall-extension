@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.audit;
 
 import java.net.HttpCookie;
-import java.util.List;
 
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.User;
@@ -37,8 +36,7 @@ public class AuthenticationAuditTest
   public void testLoginLogout() throws Exception {
     HttpCookie sessionCookie = restRequest().path(UserSessionResource.RESOURCE_PATH).post().getSessionCookie();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.LOGIN, 1);
-    AuditDTO log = auditAuthenticationMessages.get(0);
+    AuditDTO log = awaitLogEntries(AuditEvent.LOGIN, 1).get(0);
     assertThat(log.domain, is("authentication"));
     assertThat(log.type, is("login"));
     assertThat(log.timestamp, not(isEmptyOrNullString()));
@@ -50,8 +48,7 @@ public class AuthenticationAuditTest
     restRequest().path(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).anon().cookie(sessionCookie)
         .delete();
 
-    auditAuthenticationMessages = awaitLogEntries(AuditEvent.LOGOUT, 2);
-    log = auditAuthenticationMessages.get(1);
+    log = awaitLogEntries(AuditEvent.LOGOUT, 1).get(0);
     assertThat(log.domain, is("authentication"));
     assertThat(log.type, is("logout"));
     assertThat(log.timestamp, not(isEmptyOrNullString()));
@@ -71,8 +68,7 @@ public class AuthenticationAuditTest
 
     restRequest().path(RESTRICTED_PATH).anon().header(rutConfig.getUsernameHeader(), username).get();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.LOGIN, 1);
-    AuditDTO log = auditAuthenticationMessages.get(0);
+    AuditDTO log = awaitLogEntries(AuditEvent.LOGIN, 1).get(0);
     assertThat(log.domain, is("authentication"));
     assertThat(log.type, is("login"));
     assertThat(log.timestamp, not(isEmptyOrNullString()));
@@ -86,32 +82,32 @@ public class AuthenticationAuditTest
   public void testNoAuthenticationHeadersOrCookies() throws Exception {
     restRequest().anon().path(RESTRICTED_PATH).get();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1);
-    assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "unauthenticated");
+    AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
+    assertAuditLog(log, "GET", RESTRICTED_PATH, "unauthenticated");
   }
 
   @Test
   public void testInvalidUserNamePassword() throws Exception {
     restRequest().auth("invalidUser", "invalidPassword").path(AUTH_RESOURCE_PATH).post();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1);
-    assertAuditLog(auditAuthenticationMessages.get(0), "POST", AUTH_RESOURCE_PATH, "bad-authentication");
+    AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
+    assertAuditLog(log, "POST", AUTH_RESOURCE_PATH, "bad-authentication");
   }
 
   @Test
   public void testInvalidCsrfToken() throws Exception {
     restRequest().path(RESTRICTED_UNSAFE_PATH).noCsrfToken().delete();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1);
-    assertAuditLog(auditAuthenticationMessages.get(0), "DELETE", RESTRICTED_UNSAFE_PATH, "bad-csrf-token");
+    AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
+    assertAuditLog(log, "DELETE", RESTRICTED_UNSAFE_PATH, "bad-csrf-token");
   }
 
   @Test
   public void testBadSessionCookie() throws Exception {
     restRequest().path(RESTRICTED_PATH).anon().cookie(SecurityModule.SESSION_COOKIE_NAME, "bad").get();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1);
-    assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, "bad-session");
+    AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
+    assertAuditLog(log, "GET", RESTRICTED_PATH, "bad-session");
   }
 
   @Test
@@ -122,8 +118,8 @@ public class AuthenticationAuditTest
 
     restRequest().auth("user", "pass").path(RESTRICTED_PATH).get();
 
-    List<AuditDTO> auditAuthenticationMessages = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1);
-    assertAuditLog(auditAuthenticationMessages.get(0), "GET", RESTRICTED_PATH, AuditRecorder.SERVER_ERROR);
+    AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
+    assertAuditLog(log, "GET", RESTRICTED_PATH, AuditRecorder.SERVER_ERROR);
   }
 
   private void assertAuditLog(final AuditDTO auditDTO,

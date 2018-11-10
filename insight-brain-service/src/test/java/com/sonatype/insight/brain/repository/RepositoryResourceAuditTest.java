@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -56,20 +56,15 @@ public class RepositoryResourceAuditTest
 
     evaluateRequest(repository.getId()).post();
 
-    List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.INITIATE_EVALUATE_REPOSITORY, 3);
-    AuditDTO initiateEvaluateRepository = auditDTOs.stream()
-        .filter(auditDTO -> auditDTO.type.equals(AuditEvent.INITIATE_EVALUATE_REPOSITORY.getType())).findFirst().get();
-    AuditDTO evaluateRepository100 = findEvaluateRepositoryByComponentCount(auditDTOs, 100);
-    AuditDTO evaluateRepository1 = findEvaluateRepositoryByComponentCount(auditDTOs, 1);
-    assertStandardData(initiateEvaluateRepository, AuditEvent.INITIATE_EVALUATE_REPOSITORY, null);
-    assertStandardData(evaluateRepository100, AuditEvent.EVALUATE_REPOSITORY, null);
-    assertStandardData(evaluateRepository1, AuditEvent.EVALUATE_REPOSITORY, null);
-    auditDTOs.forEach(auditDTO -> assertRepositoryData(auditDTO, repository));
+    AuditDTO initiateEvaluateRepository = assertAuditLog(AuditEvent.INITIATE_EVALUATE_REPOSITORY, null);
     assertRepositoryEvaluationData(initiateEvaluateRepository, 101,
         RepositoryComponentEvaluationDataRequestList.REEVALUATION);
-    assertRepositoryEvaluationData(evaluateRepository100, 100,
-        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
-    assertRepositoryEvaluationData(evaluateRepository1, 1, RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.EVALUATE_REPOSITORY, 2, null);
+    auditDTOs.forEach(auditDTO -> assertRepositoryData(auditDTO, repository));
+    auditDTOs.sort(Comparator.comparing(dto -> (Integer) dto.data.get("componentCount")));
+    assertRepositoryEvaluationData(auditDTOs.get(0), 1, RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+    assertRepositoryEvaluationData(auditDTOs.get(1), 100, RepositoryComponentEvaluationDataRequestList.REEVALUATION);
   }
 
   @Test
@@ -99,11 +94,6 @@ public class RepositoryResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, "unauthorized");
     assertRepositoryData(auditDTO, repository);
-  }
-
-  private AuditDTO findEvaluateRepositoryByComponentCount(Collection<AuditDTO> auditDTOs, int componentCount) {
-    return auditDTOs.stream().filter(auditDTO -> auditDTO.type.equals(AuditEvent.EVALUATE_REPOSITORY.getType()) &&
-        auditDTO.data.get("componentCount").equals(componentCount)).findFirst().get();
   }
 
   private HttpRequest repositoryRequest(String repositoryId) {

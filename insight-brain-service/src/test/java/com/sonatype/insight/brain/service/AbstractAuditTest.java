@@ -68,7 +68,8 @@ public abstract class AbstractAuditTest
   protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {
     String loggerName = AuditRecorder.toLoggerName(auditEvent.getDomain());
     return await().atMost(5, SECONDS).until(
-        () -> logOutput.getInfoMessages(loggerName).stream().map(AbstractAuditTest::parseAuditLog).collect(toList()),
+        () -> logOutput.getInfoMessages(loggerName).stream().map(AbstractAuditTest::parseAuditLog)
+            .filter(dto -> auditEvent.getType().equals(dto.type)).collect(toList()),
         hasSize(greaterThanOrEqualTo(count)));
   }
 

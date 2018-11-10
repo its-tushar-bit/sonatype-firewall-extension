@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -265,9 +266,7 @@ class ContextResolver
   private <T> T get(Map<AuthzContext.Key, Object> parameters, AuthzContext.Key key, Class<T> type) {
     Object value = parameters.get(key);
     try {
-      if (value == null) {
-        throw new NullPointerException("Expected parameter " + key);
-      }
+      Objects.requireNonNull(value, "Expected parameter " + key);
       return type.cast(value);
     }
     catch (RuntimeException e) {

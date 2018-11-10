@@ -53,7 +53,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.MockitoAnnotations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -102,7 +101,6 @@ public class PolicyImportExportTest
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
     policyImportExport = new PolicyImportExport();
     fromOrg = tempEntity.newOrganization();
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(fromOrg.getId(), tempEntity);

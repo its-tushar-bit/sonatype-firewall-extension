@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -61,7 +60,7 @@ public abstract class AbstractPolicyImportAuditTest
   protected Policy policy() {
     Policy policy = new Policy();
     policy.setId(tempEntity.uuid());
-    policy.setName(UUID.randomUUID().toString());
+    policy.setName(tempEntity.uuid());
     Constraint constraint = new Constraint();
     constraint.setName("constraintName");
     Condition condition = new Condition(ConditionTypes.MatchStateConditionType.getId(), "is", "exact");
@@ -93,14 +92,14 @@ public abstract class AbstractPolicyImportAuditTest
   protected Label label() {
     Label label = new Label();
     label.setId(tempEntity.uuid());
-    label.setLabel(UUID.randomUUID().toString());
+    label.setLabel(tempEntity.uuid());
     return label;
   }
 
   protected LicenseThreatGroup licenseThreatGroup() {
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
     licenseThreatGroup.setId(tempEntity.uuid());
-    licenseThreatGroup.setName(UUID.randomUUID().toString());
+    licenseThreatGroup.setName(tempEntity.uuid());
     return licenseThreatGroup;
   }
 
@@ -167,7 +166,7 @@ public abstract class AbstractPolicyImportAuditTest
   }
 
   protected Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
-    Constraint constraint = new Constraint(UUID.randomUUID().toString(), name, logicalOperator);
+    Constraint constraint = new Constraint(tempEntity.uuid(), name, logicalOperator);
     constraint.setConditions(Arrays.asList(conditions));
     return constraint;
   }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -69,11 +71,8 @@ public class AuditRecorder
   }
 
   public AuditSession recordSystemEvent(AuditEvent event) {
-    if (event == null) {
-      throw new NullPointerException();
-    }
     AuditData auditData = new RecordingAuditData(this::commitAuditData, null);
-    auditData.setEvent(event);
+    auditData.setEvent(Objects.requireNonNull(event));
     auditData.setUsername(MDCUsernameScope.SYSTEM);
     return new AuditSession(new ProxyAuditData(auditData));
   }

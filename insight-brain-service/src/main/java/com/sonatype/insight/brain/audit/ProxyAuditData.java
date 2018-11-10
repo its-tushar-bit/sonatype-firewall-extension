@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -32,9 +33,7 @@ class ProxyAuditData
 
   @Override
   protected AuditData forSubEvent(AuditEvent event, boolean independent) {
-    if (event == null) {
-      throw new NullPointerException();
-    }
+    Objects.requireNonNull(event);
     return new ProxyAuditData(auditData.forSubEvent(event, independent));
   }
 

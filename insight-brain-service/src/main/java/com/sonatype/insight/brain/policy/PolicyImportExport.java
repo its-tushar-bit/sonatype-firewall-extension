@@ -141,7 +141,8 @@ public class PolicyImportExport
       importLicenseThreatGroups(tx, exportDTO, organization);
       importAndMergeTags(tx, exportDTO, organization);
 
-      Map<String, List<PolicyTag>> policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
+      Map<String, List<PolicyTag>> policyTagsByPolicyId = exportDTO.policyTags.stream()
+          .collect(groupingBy(PolicyTag::getPolicyId));
       // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
       // db tables for policy condition validations.
       // If everything was done in one transaction here, then all policy related validation methods need to participate
@@ -152,7 +153,7 @@ public class PolicyImportExport
 
       tx.begin();
       for (Policy policy : exportDTO.policies) {
-        List<PolicyTag> policyTags = policyTagsByPolicyId.get(policy.getId());
+        List<PolicyTag> policyTags = policyTagsByPolicyId.getOrDefault(policy.getId(), Collections.emptyList());
         policy.setId(null);
         policy.setOwnerId(orgId);
         policyDAO.insert(policy);
@@ -394,13 +395,11 @@ public class PolicyImportExport
                                 List<PolicyTag> policyTags)
   {
     List<Tag> tags = new ArrayList<>();
-    if (policyTags != null) {
-      for (PolicyTag policyTag : policyTags) {
-        policyTag.setId(null);
-        policyTag.setPolicyId(policy.getId());
-        policyTagDAO.insert(tx, policyTag);
-        tags.add(tagDAO.getByIdNotNull(policyTag.getTagId()));
-      }
+    for (PolicyTag policyTag : policyTags) {
+      policyTag.setId(null);
+      policyTag.setPolicyId(policy.getId());
+      policyTagDAO.insert(tx, policyTag);
+      tags.add(tagDAO.getByIdNotNull(policyTag.getTagId()));
     }
     auditPolicyTags(organization, policy, tags);
   }
@@ -409,24 +408,6 @@ public class PolicyImportExport
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_POLICY_INHERITANCE, false)) {
       AuditData.get().setOrganization(organization).setPolicy(policy).setInheritanceScope(TagDTO.transcribe(tags));
     }
-  }
-
-  /**
-   * Convert the given list of PolicyTags into a map of PolicyTag lists, keyed by policy id
-   */
-  private Map<String, List<PolicyTag>> getPolicyTagsByPolicyId(List<PolicyTag> policyTags) {
-    Map<String, List<PolicyTag>> policyTagMap = new HashMap<>();
-    for (PolicyTag policyTag : policyTags) {
-      if (policyTagMap.containsKey(policyTag.getPolicyId())) {
-        policyTagMap.get(policyTag.getPolicyId()).add(policyTag);
-      }
-      else {
-        List<PolicyTag> policyTagList = new ArrayList<>();
-        policyTagList.add(policyTag);
-        policyTagMap.put(policyTag.getPolicyId(), policyTagList);
-      }
-    }
-    return policyTagMap;
   }
 
   /**

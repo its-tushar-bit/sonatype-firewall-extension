@@ -14,6 +14,10 @@ public enum AuditEvent
   LOGIN(Domain.AUTHENTICATION, Type.LOGIN),
   LOGOUT(Domain.AUTHENTICATION, Type.LOGOUT),
 
+  CREATE_USER(Domain.SECURITY_USER, Type.CREATE),
+  UPDATE_USER(Domain.SECURITY_USER, Type.UPDATE),
+  DELETE_USER(Domain.SECURITY_USER, Type.DELETE),
+
   UPDATE_COMPONENT_VULNERABILITY(Domain.GOVERNANCE_COMPONENT_VULNERABILITY, Type.UPDATE),
   UPDATE_COMPONENT_LICENSE(Domain.GOVERNANCE_COMPONENT_LICENSE, Type.UPDATE),
   SET_COMPONENT_IDENTITY(Domain.GOVERNANCE_COMPONENT_IDENTITY, Type.SET),
@@ -128,6 +132,10 @@ public enum AuditEvent
     String GOVERNANCE_POLICY_INHERITANCE = join(GOVERNANCE_POLICY, "inheritance");
 
     String GOVERNANCE_REPOSITORY = join(GOVERNANCE, "repository");
+
+    String SECURITY = "security";
+
+    String SECURITY_USER = join(SECURITY, "user");
 
     static String join(String parent, String child) {
       return parent + "." + child;

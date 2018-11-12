@@ -21,6 +21,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
@@ -98,6 +100,7 @@ public class UserResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_USER)
   public User addUser(User user) {
     return userService.addUser(user);
   }
@@ -105,12 +108,14 @@ public class UserResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_USER)
   public User updateUser(User user) {
     return userService.updateUser(user);
   }
 
   @DELETE
   @Path("{userId}")
+  @Audited(AuditEvent.DELETE_USER)
   public void deleteUser(@PathParam("userId") String userId) {
     userService.deleteUser(userId);
   }

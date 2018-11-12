@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -132,6 +133,7 @@ public class UserService
     user.setId(null);
     user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     userDAO.insert(user);
+    auditUser(user);
 
     clearUserPassword(user);
 
@@ -158,6 +160,7 @@ public class UserService
     }
 
     userDAO.update(user);
+    auditUser(user);
 
     clearUserPassword(user);
 
@@ -173,6 +176,7 @@ public class UserService
     }
 
     userDAO.delete(user);
+    auditUser(user);
     try {
       if (!userDirectory.isLdapUser(user)) {
         removeApplicationContact(user);
@@ -191,6 +195,13 @@ public class UserService
         subject.logout();
       }
     }
+  }
+
+  private void auditUser(User user) {
+    AuditData.get() //
+        .setData("username", user.getUsername()) //
+        .setData("firstName", user.getFirstName()).setData("lastName", user.getLastName()) //
+        .setData("emailAddress", user.getEmail());
   }
 
   void changeMyPassword(ChangePasswordDTO password) {

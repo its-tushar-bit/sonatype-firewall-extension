@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.security;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
@@ -78,5 +80,34 @@ public class UserResourceAuditTest
     restRequest().path(user.getId()).with(unauthorizedUser()).delete();
 
     assertAuditLog(AuditEvent.DELETE_USER, "unauthorized");
+  }
+
+  @Test
+  public void testChangeMyPassword() throws Exception {
+    User user = tempEntity.newUser("john.smith", "John", "Smith", "john.smith@sonatype.com");
+    ChangePasswordDTO passwordDTO = new ChangePasswordDTO();
+    passwordDTO.oldPassword = TemporaryEntity.USER_PASSWORD_CLEAR;
+    passwordDTO.newPassword = "still-secret";
+    restRequest().auth(user.getUsername(), user.getPassword()).path(UserResource.MY_PASSWORD_PATH).body(passwordDTO)
+        .put();
+
+    assertAuditLog(AuditEvent.UPDATE_USER_PASSWORD, null, user.getUsername());
+  }
+
+  @Test
+  public void testResetPassword() throws Exception {
+    User user = tempEntity.newUser("john.smith", "John", "Smith", "john.smith@sonatype.com");
+    restRequest().path(UserResource.RESET_PASSWORD_PATH).parameter(user.getId()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_USER_PASSWORD, null);
+    assertCustomData(auditDTO, "username", user.getUsername());
+  }
+
+  @Test
+  public void testResetPassword_Unauthorized() throws Exception {
+    User user = tempEntity.newUser("john.smith", "John", "Smith", "john.smith@sonatype.com");
+    restRequest().with(unauthorizedUser()).path(UserResource.RESET_PASSWORD_PATH).parameter(user.getId()).put();
+
+    assertAuditLog(AuditEvent.RESET_USER_PASSWORD, "unauthorized");
   }
 }

@@ -123,6 +123,7 @@ public class UserResource
   @PUT
   @Path(MY_PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_USER_PASSWORD)
   public void changeMyPassword(ChangePasswordDTO password) {
     userService.changeMyPassword(password);
   }
@@ -130,6 +131,7 @@ public class UserResource
   @PUT
   @Path(RESET_PASSWORD_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.RESET_USER_PASSWORD)
   public ChangePasswordDTO resetPassword(@PathParam("userId") String userId) {
     return userService.resetPassword(userId);
   }

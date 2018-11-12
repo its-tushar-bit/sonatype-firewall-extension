@@ -17,6 +17,8 @@ public enum AuditEvent
   CREATE_USER(Domain.SECURITY_USER, Type.CREATE),
   UPDATE_USER(Domain.SECURITY_USER, Type.UPDATE),
   DELETE_USER(Domain.SECURITY_USER, Type.DELETE),
+  UPDATE_USER_PASSWORD(Domain.SECURITY_USER_PASSWORD, Type.UPDATE),
+  RESET_USER_PASSWORD(Domain.SECURITY_USER_PASSWORD, Type.RESET),
 
   UPDATE_COMPONENT_VULNERABILITY(Domain.GOVERNANCE_COMPONENT_VULNERABILITY, Type.UPDATE),
   UPDATE_COMPONENT_LICENSE(Domain.GOVERNANCE_COMPONENT_LICENSE, Type.UPDATE),
@@ -137,6 +139,8 @@ public enum AuditEvent
 
     String SECURITY_USER = join(SECURITY, "user");
 
+    String SECURITY_USER_PASSWORD = join(SECURITY_USER, "password");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -153,6 +157,8 @@ public enum AuditEvent
     String EVALUATE = "evaluate";
 
     String SET = "set";
+
+    String RESET = "reset";
 
     String UNSET = "unset";
 

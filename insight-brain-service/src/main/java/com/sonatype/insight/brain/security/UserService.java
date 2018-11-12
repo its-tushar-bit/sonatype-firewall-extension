@@ -229,6 +229,7 @@ public class UserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   ChangePasswordDTO resetPassword(String userId) {
     User user = userDAO.getByIdNotNull(userId);
+    AuditData.get().setData("username", user.getUsername());
 
     String password = RandomStringUtils.randomAlphanumeric(12);
 

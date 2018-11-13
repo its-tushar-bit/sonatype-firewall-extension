@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.audit;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,6 +19,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 
 public class RecordingAuditDataTest
@@ -41,7 +44,7 @@ public class RecordingAuditDataTest
     recordingAuditData.setUsername("username");
     awaitNextTimestamp();
 
-    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false);
+    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false, false);
 
     assertThat(auditData, is(instanceOf(RecordingAuditData.class)));
     assertThat(auditData, is(not(recordingAuditData)));
@@ -60,7 +63,7 @@ public class RecordingAuditDataTest
     recordingAuditData.setUsername("username");
     awaitNextTimestamp();
 
-    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true);
+    AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true, false);
 
     assertThat(auditData, is(instanceOf(RecordingAuditData.class)));
     assertThat(auditData, is(not(recordingAuditData)));
@@ -85,7 +88,7 @@ public class RecordingAuditDataTest
   public void testCommit_DependentSubEvent() {
     List<RecordingAuditData> committed = new ArrayList<>();
     RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
-    AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false);
+    AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false, false);
 
     childAuditData.commit();
 
@@ -96,7 +99,7 @@ public class RecordingAuditDataTest
   public void testCommit_IndependentSubEvent() {
     List<RecordingAuditData> committed = new ArrayList<>();
     RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
-    AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true);
+    AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true, false);
 
     childAuditData.commit();
 
@@ -107,9 +110,9 @@ public class RecordingAuditDataTest
   public void testCommitSubEvents() {
     List<RecordingAuditData> committedChildren = new ArrayList<>();
     RecordingAuditData auditData = new RecordingAuditData(committedChildren::add, null);
-    AuditData child1 = auditData.forSubEvent(AuditEvent.LOGIN, false);
-    AuditData child2 = auditData.forSubEvent(AuditEvent.LOGIN, false);
-    AuditData child3 = auditData.forSubEvent(AuditEvent.LOGIN, false);
+    AuditData child1 = auditData.forSubEvent(AuditEvent.LOGIN, false, false);
+    AuditData child2 = auditData.forSubEvent(AuditEvent.LOGIN, false, false);
+    AuditData child3 = auditData.forSubEvent(AuditEvent.LOGIN, false, false);
     assertThat(auditData.getChildren(), contains(child1, child2, child3));
     auditData.commitSubEvents();
     assertThat(auditData.getChildren(), is(empty()));
@@ -122,5 +125,28 @@ public class RecordingAuditDataTest
     auditData.setData("some-key", "some-value");
     auditData.setData("some-key", null);
     assertThat(auditData.getData().keySet(), is(empty()));
+  }
+
+  @Test
+  public void testForSubEvent_SystemUser() {
+    RequestData mockRequestData = mock(RequestData.class);
+    RecordingAuditData parent = new RecordingAuditData(null, mockRequestData);
+
+    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, true, true);
+
+    assertThat(child.getUsername(), is(MDCUsernameScope.SYSTEM));
+    assertThat(child.getRequestData(), is(nullValue()));
+  }
+
+  @Test
+  public void testForSubEvent_NonSystemUser() {
+    RequestData mockRequestData = mock(RequestData.class);
+    RecordingAuditData parent = new RecordingAuditData(null, mockRequestData);
+    parent.setUsername("user");
+
+    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, true, false);
+
+    assertThat(child.getUsername(), is(parent.getUsername()));
+    assertThat(child.getRequestData(), is(mockRequestData));
   }
 }

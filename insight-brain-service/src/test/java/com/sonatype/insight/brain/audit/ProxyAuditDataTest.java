@@ -40,10 +40,10 @@ public class ProxyAuditDataTest
   public void testForSubEvent() {
     AuditData mockParentAuditData = mock(AuditData.class);
     AuditData mockChildAuditData = mock(AuditData.class);
-    when(mockParentAuditData.forSubEvent(AuditEvent.LOGIN, true)).thenReturn(mockChildAuditData);
+    when(mockParentAuditData.forSubEvent(AuditEvent.LOGIN, true, false)).thenReturn(mockChildAuditData);
     ProxyAuditData proxyAuditData = new ProxyAuditData(mockParentAuditData);
 
-    AuditData childProxyAuditData = proxyAuditData.forSubEvent(AuditEvent.LOGIN, true);
+    AuditData childProxyAuditData = proxyAuditData.forSubEvent(AuditEvent.LOGIN, true, false);
     assertThat(childProxyAuditData, is(instanceOf(ProxyAuditData.class)));
     assertThat(childProxyAuditData, is(not(proxyAuditData)));
 
@@ -53,7 +53,7 @@ public class ProxyAuditDataTest
 
   @Test(expected = NullPointerException.class)
   public void testForSubEvent_Null() {
-    new ProxyAuditData(mock(AuditData.class)).forSubEvent(null, false);
+    new ProxyAuditData(mock(AuditData.class)).forSubEvent(null, false, false);
   }
 
   @Test

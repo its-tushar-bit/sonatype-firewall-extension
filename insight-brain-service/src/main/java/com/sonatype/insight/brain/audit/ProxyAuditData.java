@@ -32,9 +32,9 @@ class ProxyAuditData
   }
 
   @Override
-  protected AuditData forSubEvent(AuditEvent event, boolean independent) {
+  protected AuditData forSubEvent(AuditEvent event, boolean independent, boolean system) {
     Objects.requireNonNull(event);
-    return new ProxyAuditData(auditData.forSubEvent(event, independent));
+    return new ProxyAuditData(auditData.forSubEvent(event, independent, system));
   }
 
   @Override

@@ -22,7 +22,7 @@ class NoopAuditData
   }
 
   @Override
-  protected AuditData forSubEvent(AuditEvent event, boolean independent) {
+  protected AuditData forSubEvent(AuditEvent event, boolean independent, boolean system) {
     return this;
   }
 

@@ -62,11 +62,11 @@ public class AuditDataTest
   @Test
   public void testRecordSubEvent() {
     AuditData subAuditData = mock(AuditData.class);
-    when(auditData.forSubEvent(null, false)).thenReturn(subAuditData);
+    when(auditData.forSubEvent(null, false, false)).thenReturn(subAuditData);
 
     try (AuditSession auditSession = auditData.recordSubEvent(null, false)) {
       assertThat(auditSession, is(notNullValue()));
-      verify(auditData).forSubEvent(null, false);
+      verify(auditData).forSubEvent(null, false, false);
     }
 
     verify(subAuditData).commit();

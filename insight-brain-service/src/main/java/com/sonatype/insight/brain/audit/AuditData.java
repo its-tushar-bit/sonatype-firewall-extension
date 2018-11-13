@@ -39,10 +39,14 @@ public abstract class AuditData
   }
 
   public final AuditSession recordSubEvent(AuditEvent event, boolean independent) {
-    return new AuditSession(forSubEvent(event, independent));
+    return new AuditSession(forSubEvent(event, independent, false));
   }
 
-  protected abstract AuditData forSubEvent(AuditEvent event, boolean independent);
+  public final AuditSession recordSystemEvent(AuditEvent event, boolean independent) {
+    return new AuditSession(forSubEvent(event, independent, true));
+  }
+
+  protected abstract AuditData forSubEvent(AuditEvent event, boolean independent, boolean system);
 
   /**
    * Continue audit logging of asynchronous task scheduled using

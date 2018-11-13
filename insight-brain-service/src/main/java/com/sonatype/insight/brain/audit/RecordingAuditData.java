@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+
 class RecordingAuditData
     extends AuditData
 {
@@ -45,12 +47,12 @@ class RecordingAuditData
     this.requestData = requestData;
   }
 
-  private RecordingAuditData(RecordingAuditData parent, boolean independent) {
+  private RecordingAuditData(RecordingAuditData parent, boolean independent, boolean system) {
     this.independent = independent;
     timestamp = independent ? System.currentTimeMillis() : parent.timestamp;
     recorder = parent.recorder;
-    requestData = parent.requestData;
-    username = parent.username;
+    requestData = system ? null : parent.requestData;
+    username = system ? MDCUsernameScope.SYSTEM : parent.username;
   }
 
   @Override
@@ -60,8 +62,8 @@ class RecordingAuditData
   }
 
   @Override
-  protected AuditData forSubEvent(AuditEvent event, boolean independent) {
-    RecordingAuditData child = new RecordingAuditData(this, independent);
+  protected AuditData forSubEvent(AuditEvent event, boolean independent, boolean system) {
+    RecordingAuditData child = new RecordingAuditData(this, independent, system);
     child.setEvent(event);
     if (!independent) {
       children.add(child);

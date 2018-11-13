@@ -19,6 +19,6 @@ public class NoopAuditDataTest
 
   @Test
   public void testForSubEvent() {
-    assertThat(NoopAuditData.INSTANCE.forSubEvent(null, false), is(NoopAuditData.INSTANCE));
+    assertThat(NoopAuditData.INSTANCE.forSubEvent(null, false, false), is(NoopAuditData.INSTANCE));
   }
 }

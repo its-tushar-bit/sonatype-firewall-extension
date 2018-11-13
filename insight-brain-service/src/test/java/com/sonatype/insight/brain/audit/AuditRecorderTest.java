@@ -318,7 +318,7 @@ public class AuditRecorderTest
     RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {
     }, mock(RequestData.class)));
     parent.setEvent(AuditEvent.LOGIN);
-    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false);
+    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false, false);
 
     auditRecorder.recordAuditData(parent, null);
 
@@ -334,7 +334,7 @@ public class AuditRecorderTest
     RecordingAuditData parent = spy(new RecordingAuditData(auditData -> {
     }, mock(RequestData.class)));
     parent.setEvent(AuditEvent.LOGIN);
-    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false);
+    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, false, false);
 
     auditRecorder.recordAuditData(parent, error);
 

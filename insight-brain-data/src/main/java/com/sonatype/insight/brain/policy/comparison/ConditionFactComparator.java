@@ -9,12 +9,22 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Comparator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.json.store.JsonUtils;
 
 class ConditionFactComparator implements Comparator<ConditionFact>
 {
+  // uses its own object mapper since it needs specific configuration options that can impact performance
+  private final ObjectMapper objectMapper;
+
+  public ConditionFactComparator() {
+    objectMapper = new ObjectMapper();
+    objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+  }
+
   @Override
   public int compare(ConditionFact conditionFact1, ConditionFact conditionFact2) {
     // Condition type
@@ -38,21 +48,19 @@ class ConditionFactComparator implements Comparator<ConditionFact>
       // Not all condition types store trigger data.
       if (conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
         try {
-          // This deserializes json into ConditionTrigger instances where ConditionTrigger.trigger is a map of the
-          // property names/values of the original object that triggered the policy condition.
-          // So we compare two maps for equality below...
+          // De-serialize and then re-serialize the triggers in order to ensure consistent formatting and key ordering
+          // for the string-based comparison below
           ConditionTrigger conditionTrigger1 = JsonUtils.parse(conditionFact1.getTriggerJson(), ConditionTrigger.class);
           ConditionTrigger conditionTrigger2 = JsonUtils.parse(conditionFact2.getTriggerJson(), ConditionTrigger.class);
-          if (conditionTrigger1.getTrigger().equals(conditionTrigger2.getTrigger())) {
-            return 0;
-          }
+
+          String triggerString1 = objectMapper.writeValueAsString(conditionTrigger1);
+          String triggerString2 = objectMapper.writeValueAsString(conditionTrigger2);
+
+          return triggerString1.compareTo(triggerString2);
         }
         catch (IOException e) {
           throw new UncheckedIOException(e);
         }
-        // If the triggers are not equal, then the order is not important as long as it is consistent.
-        // The comparison of the triggers as json should be good enough.
-        result = conditionFact1.getTriggerJson().compareTo(conditionFact2.getTriggerJson());
       }
 
       return result;

@@ -350,13 +350,28 @@ public class PolicyViolationComparatorTest
     compareAndAssert(v1, v2, 0);
 
     // Legacy policy violation with unix line separators.
-    conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0 /* conditionIndex */,
+    ConditionFact conditionFact3 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0 /* conditionIndex */,
         "test summary", "test reason");
-    conditionFact2.setTriggerJson(
+    conditionFact3.setTriggerJson(
         "{\n  \"conditionIndex\" : 0,\n  \"trigger\" : {\n    \"refId\" : \"CVE-2013-0329\",\n    \"statusId\" : \"OPEN\"\n  }\n}");
-    constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
-    v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA, Lists.newArrayList(constraintFact2));
-    compareAndAssert(v1, v2, 0);
+    ConstraintFact constraintFact3 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact3);
+    PolicyViolation v3 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact3));
+    compareAndAssert(v1, v3, 0);
+
+    // Violation formatted like v1, but with slightly different data.  Since the other three violations are all equal,
+    // they should all compare to this one the same way. If a naive lexical comparison were done, v4 would come out
+    // above v2 and v3 because '"' is higher than newline characters
+    ConditionFact conditionFact4 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact4
+        .setTriggerJson("{\"conditionIndex\":0,\"trigger\":{\"refId\":\"CVE-2013-0328\",\"statusId\":\"OPEN\"}}");
+    ConstraintFact constraintFact4 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact4);
+    PolicyViolation v4 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact4));
+    compareAndAssert(v1, v4, 1);
+    compareAndAssert(v2, v4, 1);
+    compareAndAssert(v3, v4, 1);
   }
 
   @Test
@@ -377,7 +392,19 @@ public class PolicyViolationComparatorTest
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact2));
 
+    // this ConditionFact is not equal to the other two, and needs to compare similarly to each of them.  If a naive
+    // lexical comparison were done it will compare as greater than v1 and less than v2
+    ConditionFact conditionFact3 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact3
+        .setTriggerJson("{\"conditionIndex\":0,\"trigger\":{\"refId\":\"CVE-2013-0330\",\"statusId\":\"OPEN\"}}");
+    ConstraintFact constraintFact3 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact3);
+    PolicyViolation v3 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact3));
+
     compareAndAssert(v1, v2, 0);
+    compareAndAssert(v1, v3, -1);
+    compareAndAssert(v2, v3, -1);
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,

@@ -241,7 +241,7 @@ public class InsightConfig
    * @since 1.55
    */
   @JsonProperty
-  private boolean enableExternalHyperlinks = true;
+  private boolean externalHyperlinksAllowed = true;
 
   @NotNull
   public ProxyConfig getProxyConfig() {
@@ -636,11 +636,11 @@ public class InsightConfig
     this.licenseFile = licenseFile;
   }
 
-  public boolean isEnableExternalHyperlinks() {
-    return enableExternalHyperlinks;
+  public boolean isExternalHyperlinksAllowed() {
+    return externalHyperlinksAllowed;
   }
 
-  public void setEnableExternalHyperlinks(final boolean enableExternalHyperlinks) {
-    this.enableExternalHyperlinks = enableExternalHyperlinks;
+  public void setExternalHyperlinksAllowed(final boolean externalHyperlinksAllowed) {
+    this.externalHyperlinksAllowed = externalHyperlinksAllowed;
   }
 }

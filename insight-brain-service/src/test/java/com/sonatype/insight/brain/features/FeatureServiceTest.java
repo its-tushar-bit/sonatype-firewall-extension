@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -31,6 +32,9 @@ public class FeatureServiceTest
 {
   @Inject
   private FeaturesService featuresService;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   private CLMLicenseManager licenseManager;
 
@@ -60,7 +64,7 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS));
   }
 
   @Test
@@ -84,7 +88,7 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS));
   }
 
   @Test
@@ -125,5 +129,31 @@ public class FeatureServiceTest
     Set<Feature> features = featuresService.getFeatures();
     assertFalse(features.contains(Feature.ROOT_ORG_MIGRATE));
     assertFalse(features.contains(Feature.ROOT_ORG));
+  }
+
+  @Test
+  public void testGetFeatures_WithoutAllowExternalLinks() {
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(licenseManager.isValid()).thenReturn(true);
+    insightConfig.setExternalHyperlinksAllowed(false);
+
+    Set<Feature> features = featuresService.getFeatures();
+    assertThat(
+        features,
+        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
+  }
+
+  @Test
+  public void testGetFeatures_WithAllowExternalLinks() {
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(licenseManager.isValid()).thenReturn(true);
+
+    Set<Feature> features = featuresService.getFeatures();
+    EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
+    expectedFeatures.remove(Feature.POLICY_MONITORING);
+    expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
+    expectedFeatures.remove(Feature.DASHBOARD);
+    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 }

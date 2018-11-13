@@ -13,6 +13,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +31,16 @@ public class FeaturesService
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
+  private final InsightConfig insightConfig;
+
   @Inject
   public FeaturesService(CLMLicenseManager licenseManager,
-                         RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
+                         RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
+                         InsightConfig insightConfig)
   {
     this.licenseManager = licenseManager;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
+    this.insightConfig = insightConfig;
   }
 
   /**
@@ -53,6 +58,10 @@ public class FeaturesService
       }
       else if (!rootOrganizationConfigMigrationUtils.isMigrationScheduled()) {
         features.add(Feature.ROOT_ORG_MIGRATE);
+      }
+
+      if (insightConfig.isExternalHyperlinksAllowed()) {
+        features.add(Feature.ALLOW_EXTERNAL_HYPERLINKS);
       }
     }
     log.debug("Found features: {}", features);

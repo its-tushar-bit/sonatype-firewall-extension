@@ -1,33 +1,55 @@
-<div id="informationPanel">
-  <ul class="nav nav-tabs">
-    <li ng-class="{ active: vm.selectedTab === 'componentInfo' }">
-      <a ng-click="vm.selectedTab = 'componentInfo'">Component Info</a>
-    </li>
-    <li ng-class="{ active: vm.selectedTab === 'policy' }">
-      <a ng-click="vm.selectedTab = 'policy'">Policy</a>
-    </li>
-    <li ng-class="{ active: vm.selectedTab === 'similar'}">
-      <a ng-click="vm.selectedTab = 'similar'">Similar</a>
-    </li>
-    <li ng-class="{ active: vm.selectedTab === 'occurrences' }">
-      <a ng-click="vm.selectedTab = 'occurrences'">Occurrences</a>
-    </li>
-    <li ng-if="!vm.isComponentUnknown()" ng-class="{ active: vm.selectedTab === 'licenses' }">
-      <a ng-click="vm.selectedTab = 'licenses'">Licenses</a>
-    </li>
-    <li ng-if="!vm.isComponentUnknown()" ng-class="{ active: vm.selectedTab === 'vulnerabilities' }">
-      <a ng-click="vm.selectedTab = 'vulnerabilities'">Vulnerabilities</a>
-    </li>
-    <li ng-if="!vm.isComponentUnknown()" ng-class="{ active: vm.selectedTab === 'labels' }">
-      <a ng-click="vm.selectedTab = 'labels'">Labels</a>
-    </li>
-    <li ng-class="{ active: vm.selectedTab === 'claimComponent' }">
-      <a ng-click="vm.selectedTab = 'claimComponent'">Claim Component</a>
-    </li>
-    <li ng-if="!vm.isComponentUnknown()" ng-class="{ active: vm.selectedTab === 'auditLog' }">
-      <a ng-click="vm.selectedTab = 'auditLog'">Audit Log</a>
-    </li>
-  </ul>
+<div id="informationPanel" class="iq-cip-tab-panel">
+  <div class="iq-tab-bar">
+    <a ng-click="vm.selectedTab = 'componentInfo'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'componentInfo' }">
+      Comp. Info
+    </a>
+    <a ng-click="vm.selectedTab = 'policy'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'policy' }">
+      Policy
+    </a>
+    <a ng-click="vm.selectedTab = 'similar'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'similar'}">
+      Similar
+    </a>
+    <a ng-click="vm.selectedTab = 'occurrences'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'occurrences' }">
+      Occurrences
+    </a>
+    <a ng-if="!vm.isComponentUnknown()"
+       ng-click="vm.selectedTab = 'licenses'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'licenses' }">
+      Licenses
+    </a>
+    <a ng-if="!vm.isComponentUnknown()"
+       ng-click="vm.selectedTab = 'vulnerabilities'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'vulnerabilities' }">
+      Vulnerabilities
+    </a>
+    <a ng-if="!vm.isComponentUnknown()"
+       ng-click="vm.selectedTab = 'labels'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'labels' }">
+      Labels
+    </a>
+    <a ng-click="vm.selectedTab = 'claimComponent'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'claimComponent' }">
+      Claim Comp.
+    </a>
+    <a ng-if="!vm.isComponentUnknown()"
+       ng-click="vm.selectedTab = 'auditLog'"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === 'auditLog' }">
+      Audit Log
+    </a>
+  </div>
   <div ng-switch="vm.selectedTab" class="tab-content">
     <div ng-switch-when="componentInfo" information-panel></div>
     <div ng-switch-when="policy" cip-policy-violations></div>

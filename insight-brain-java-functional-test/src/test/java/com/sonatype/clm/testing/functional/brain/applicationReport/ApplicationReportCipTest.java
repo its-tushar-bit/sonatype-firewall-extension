@@ -253,6 +253,9 @@ public class ApplicationReportCipTest
         .shouldHave(texts(new String[]{
             "Application - " + app.getName(), "Organization - " + app.getName(), "Organization - Root Organization"
         }));
+
+    eyesWatcher.eyesCheck("Policy Tab");
+
     AddWaiverDialog.waiveViolationOnly().click();
     AddWaiverDialog.scopeContainer().shouldBe(hidden);
 
@@ -338,6 +341,8 @@ public class ApplicationReportCipTest
     assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
     assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
 
+    eyesWatcher.eyesCheck("Licenses Tab");
+
     // remove
     LicenseCIP.status().selectOption("Inherit Status (Open)");
     LicenseCIP.updateButton().shouldBe(enabled).click();
@@ -375,6 +380,9 @@ public class ApplicationReportCipTest
     // Modal
     AddLabelModal.root().shouldBe(visible);
     AddLabelModal.scopes().shouldHaveSize(3);
+
+    eyesWatcher.eyesCheck("Labels Tab");
+
     AddLabelModal.saveButton().click();
     AddLabelModal.root().shouldBe(hidden);
 
@@ -454,6 +462,9 @@ public class ApplicationReportCipTest
 
     VulnerabilityCIP.Editor.status().shouldBe(visible).shouldHave(text("Acknowledged"))
         .selectOption(SecurityVulnerabilityOverrideStatus.OPEN.getName());
+
+    eyesWatcher.eyesCheck("Vulnerabilities Tab");
+
     VulnerabilityCIP.Editor.comment().val("woot");
     VulnerabilityCIP.Editor.saveButton().click();
 

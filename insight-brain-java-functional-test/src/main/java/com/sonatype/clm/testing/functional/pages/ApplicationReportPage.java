@@ -181,7 +181,7 @@ public class ApplicationReportPage
     }
 
     public SelenideElement tabLink(int i) {
-      return child(".nav-tabs li", nthChild(i));
+      return child(".iq-tab-bar a", nthChild(i));
     }
 
     public SelenideElement previousButton() {

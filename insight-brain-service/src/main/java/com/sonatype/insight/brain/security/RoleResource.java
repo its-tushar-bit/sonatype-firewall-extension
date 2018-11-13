@@ -19,6 +19,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+
 import com.codahale.metrics.annotation.Timed;
 
 /**
@@ -65,6 +68,7 @@ public class RoleResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_ROLE)
   public RoleDTO addRole(RoleDTO role) {
     return roleService.addRole(role);
   }
@@ -72,12 +76,14 @@ public class RoleResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_ROLE)
   public RoleDTO updateRole(RoleDTO role) {
     return roleService.updateRole(role);
   }
 
   @DELETE
   @Path(ROLE_ID_PATH)
+  @Audited(AuditEvent.DELETE_ROLE)
   public void deleteRole(@PathParam("roleId") String roleId) {
     roleService.deleteRole(roleId);
   }

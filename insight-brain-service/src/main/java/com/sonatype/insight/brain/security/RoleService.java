@@ -15,6 +15,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -24,6 +25,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @since 1.15.0
@@ -75,6 +78,7 @@ public class RoleService
       rolePermissionDAO.setPermissionsForRole(tx, role.getId(), rolePermissions);
       tx.commit();
     }
+    auditRole(role, rolePermissions);
     roleDTO.id = role.getId();
     return roleDTO;
   }
@@ -89,13 +93,27 @@ public class RoleService
       rolePermissionDAO.setPermissionsForRole(tx, roleDTO.id, rolePermissions);
       tx.commit();
     }
+    auditRole(role, rolePermissions);
     return roleDTO;
   }
 
   @Authorize(permission = Permission.EDIT_ROLES)
   public void deleteRole(String roleId) {
     Role role = roleDAO.getByIdNotNull(roleId);
+    auditRole(role, rolePermissionDAO.getPermissionsForRole(roleId));
     roleDAO.delete(role);
+  }
+
+  private void auditRole(Role role, Set<Permission> permissions) {
+    AuditData.get() //
+        .setData("roleId", role.getId()) //
+        .setData("roleName", role.getName()) //
+        .setData("roleDescription", role.getDescription())
+        .setData("grantedPermissions", permissions.stream().map(this::toAuditLogString).sorted().collect(toList()));
+  }
+
+  private String toAuditLogString(Permission permission) {
+    return permission.getDisplayName() + ' ' + permission.getDescription();
   }
 
   private List<RoleDTO> convertRolesToDTO(final List<Role> roles) {

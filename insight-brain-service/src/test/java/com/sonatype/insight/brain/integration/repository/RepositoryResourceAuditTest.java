@@ -12,11 +12,18 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -148,6 +155,32 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testEvaluateComponentsWithQuarantine_RetainSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    tempEntity.newPolicy(failProxyOnExactMatch());
+    RepositoryComponentEvaluationDataRequestList repoComponentEvalList = repoComponentEvalList(1);
+
+    evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.RETAIN_QUARANTINE, null, SYSTEM_USER);
+    assertRepositoryData(auditDTO, repository);
+    assertQuarantineData(auditDTO, repoComponentEvalList.components.get(0).hash,
+        repoComponentEvalList.components.get(0).pathname);
+  }
+
+  private Policy failProxyOnExactMatch() {
+    Policy policy = new Policy();
+    policy.setName("policy");
+    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    Constraint constraint = new Constraint(null, "constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(MatchStateConditionType.ID, "is", MatchState.EXACT.getId()));
+    policy.addConstraint(constraint);
+    policy.getActions().put(Stage.ID_PROXY, "fail");
+    return policy;
+  }
+
   private void testEvaluateComponents(boolean withQuarantine, int count, String cause) throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
@@ -252,5 +285,10 @@ public class RepositoryResourceAuditTest
       componentEvaluationDataList.components.add(componentEvaluationData);
     }
     setHdsResponseForURI(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH, componentEvaluationDataList, 200);
+  }
+
+  private void assertQuarantineData(AuditDTO auditDTO, String componentHash, String componentPathname) {
+    assertCustomData(auditDTO, "componentHash", componentHash);
+    assertCustomData(auditDTO, "componentPathname", componentPathname);
   }
 }

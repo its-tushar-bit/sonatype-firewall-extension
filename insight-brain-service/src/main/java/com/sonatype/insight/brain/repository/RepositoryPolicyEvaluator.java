@@ -25,6 +25,9 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -167,6 +170,7 @@ public class RepositoryPolicyEvaluator
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults);
 
       tx.commit();
+      AuditData.get().commitSubEvents();
     }
     return repositoryComponent;
   }
@@ -190,6 +194,10 @@ public class RepositoryPolicyEvaluator
       if (quarantine) {
         log.debug("Component {} in repository {}:{} ({}) was quarantined", pathname,
             repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
+        try (AuditSession auditSession = AuditData.get().recordSystemEvent(AuditEvent.RETAIN_QUARANTINE, false)) {
+          AuditData.get().setRepository(repository).setComponentHash(component.getHash())
+              .setData("componentPathname", pathname);
+        }
       }
       Date quarantineTime = quarantine ? evaluationTime : null;
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),

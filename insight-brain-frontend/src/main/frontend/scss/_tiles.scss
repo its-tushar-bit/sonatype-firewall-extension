@@ -169,6 +169,11 @@ $iq-tile-actions-margin-top: 8px;
     margin-top: 3px;
     padding-left: 2px;
   }
+  
+  // Application reports title icon
+  &.fa-file-text-o {
+    font-size: 26px;
+  }
 }
 
 .iq-tile-header__title--no-actions {

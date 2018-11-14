@@ -5,6 +5,12 @@ $iq-application-report-policy-name-width: 200px;
 $iq-application-report-policy-name-filter-width: $iq-application-report-policy-threat-level-width +
     $iq-application-report-policy-name-width + (4 * $iq-cell-side-padding) + 1px; // 1px for the border between cells
 
+#application-report-sidebar {
+  &.iq-sidebar {
+    padding-top: 12px;
+  }
+}
+
 .iq-table--application-report {
   display: block;
   width: 100%;

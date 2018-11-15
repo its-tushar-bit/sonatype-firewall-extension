@@ -10,17 +10,12 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Predicate;
 
-import javax.annotation.Nullable;
-
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import org.codehaus.plexus.util.StringUtils;
 
 public class PolicyThreatCategoryFilter
@@ -64,7 +59,7 @@ public class PolicyThreatCategoryFilter
   }
 
   @Override
-  public boolean apply(PolicyThreatCategory policyThreatCategory) {
+  public boolean test(PolicyThreatCategory policyThreatCategory) {
     return policyThreatCategories.contains(policyThreatCategory);
   }
 
@@ -72,27 +67,12 @@ public class PolicyThreatCategoryFilter
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */
   public Predicate<PolicyViolation> asPolicyViolationPredicate() {
-    return Predicates.compose(this, new Function<PolicyViolation, PolicyThreatCategory>()
+    return new Predicate<PolicyViolation>()
     {
       @Override
-      @Nullable
-      public PolicyThreatCategory apply(@Nullable PolicyViolation input) {
-        return (input != null) ? input.getThreatCategory() : null;
+      public boolean test(PolicyViolation policyViolation) {
+        return PolicyThreatCategoryFilter.this.test(policyViolation.getThreatCategory());
       }
-    });
-  }
-
-  /**
-   * Transforms this predicate into one that applies the same filtering to policies.
-   */
-  public Predicate<Policy> asPolicyPredicate() {
-    return Predicates.compose(this, new Function<Policy, PolicyThreatCategory>()
-    {
-      @Override
-      @Nullable
-      public PolicyThreatCategory apply(@Nullable Policy input) {
-        return (input != null) ? input.getThreatCategory() : null;
-      }
-    });
+    };
   }
 }

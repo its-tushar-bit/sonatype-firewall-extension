@@ -5,15 +5,11 @@
  */
 package com.sonatype.insight.brain.dashboard.filters;
 
-import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import org.codehaus.plexus.util.StringUtils;
 
 public class PolicyThreatLevelFilter
@@ -79,7 +75,7 @@ public class PolicyThreatLevelFilter
   }
 
   @Override
-  public boolean apply(Integer threatLevel) {
+  public boolean test(Integer threatLevel) {
     return threatLevel != null && minPolicyThreatLevel <= threatLevel && threatLevel <= maxPolicyThreatLevel;
   }
 
@@ -87,27 +83,12 @@ public class PolicyThreatLevelFilter
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */
   public Predicate<PolicyViolation> asPolicyViolationPredicate() {
-    return Predicates.compose(this, new Function<PolicyViolation, Integer>()
+    return new Predicate<PolicyViolation>()
     {
       @Override
-      @Nullable
-      public Integer apply(@Nullable PolicyViolation input) {
-        return (input != null) ? input.getThreatLevel() : null;
+      public boolean test(PolicyViolation policyViolation) {
+        return PolicyThreatLevelFilter.this.test(policyViolation.getThreatLevel());
       }
-    });
-  }
-
-  /**
-   * Transforms this predicate into one that applies the same filtering to policies.
-   */
-  public Predicate<Policy> asPolicyPredicate() {
-    return Predicates.compose(this, new Function<Policy, Integer>()
-    {
-      @Override
-      @Nullable
-      public Integer apply(@Nullable Policy input) {
-        return (input != null) ? input.getThreatLevel() : null;
-      }
-    });
+    };
   }
 }

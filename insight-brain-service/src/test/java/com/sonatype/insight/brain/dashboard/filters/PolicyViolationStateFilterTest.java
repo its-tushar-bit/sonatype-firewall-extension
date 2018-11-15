@@ -28,8 +28,8 @@ public class PolicyViolationStateFilterTest
     PolicyViolation falseViolation = new PolicyViolation();
     falseViolation.setWaiveTime(new Date());
 
-    assertThat(filter.asPolicyViolationPredicate().apply(trueViolation), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(falseViolation), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(trueViolation), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(falseViolation), is(false));
   }
 
   @Test
@@ -49,9 +49,9 @@ public class PolicyViolationStateFilterTest
     v3.setWaiveTime(null);
     v3.setGrandfatherTime(new Date());
 
-    assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v3), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v3), is(true));
   }
 
   @Test
@@ -65,9 +65,9 @@ public class PolicyViolationStateFilterTest
     v1.setWaiveTime(new Date());
     v1.setGrandfatherTime(new Date());
 
-    assertThat(grandfatherFilter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(waivedFilter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(bothFilter.asPolicyViolationPredicate().apply(v1), is(true));
+    assertThat(grandfatherFilter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(waivedFilter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(bothFilter.asPolicyViolationPredicate().test(v1), is(true));
   }
 
   @Test
@@ -90,10 +90,10 @@ public class PolicyViolationStateFilterTest
     v4.setWaiveTime(new Date());
     v4.setGrandfatherTime(new Date());
 
-    assertThat(filter.asPolicyViolationPredicate().apply(v1), is(false));
-    assertThat(filter.asPolicyViolationPredicate().apply(v2), is(false));
-    assertThat(filter.asPolicyViolationPredicate().apply(v3), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v4), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v1), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v2), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v3), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v4), is(true));
   }
 
   @Test
@@ -112,9 +112,9 @@ public class PolicyViolationStateFilterTest
     v3.setWaiveTime(null);
     v3.setGrandfatherTime(new Date());
 
-    assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v3), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v3), is(true));
   }
 
   @Test
@@ -126,7 +126,7 @@ public class PolicyViolationStateFilterTest
     v1.setWaiveTime(null);
     v2.setWaiveTime(new Date());
 
-    assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
   }
 }

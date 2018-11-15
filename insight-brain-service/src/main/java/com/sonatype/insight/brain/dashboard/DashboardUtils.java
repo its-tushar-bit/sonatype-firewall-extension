@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,9 +27,6 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 
 @Named
 public class DashboardUtils
@@ -104,6 +102,6 @@ public class DashboardUtils
     if (violationStatusFilter != null) {
       predicates.add(violationStatusFilter.asPolicyViolationPredicate());
     }
-    return Predicates.and(predicates);
+    return predicates.stream().reduce(Predicate::and).get();
   }
 }

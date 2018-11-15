@@ -28,8 +28,8 @@ public class PolicyThreatLevelFilterTest
     PolicyViolation falseViolation = new PolicyViolation();
     falseViolation.setThreatLevel(0);
 
-    assertThat(filter.asPolicyViolationPredicate().apply(trueViolation), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(falseViolation), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(trueViolation), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(falseViolation), is(false));
   }
 
   @Test
@@ -41,8 +41,8 @@ public class PolicyThreatLevelFilterTest
     PolicyViolation falseViolation = new PolicyViolation();
     falseViolation.setThreatLevel(5);
 
-    assertThat(filter.asPolicyViolationPredicate().apply(trueViolation), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(falseViolation), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(trueViolation), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(falseViolation), is(false));
   }
 
   @Test
@@ -55,9 +55,9 @@ public class PolicyThreatLevelFilterTest
     v2.setThreatLevel(2);
     v3.setThreatLevel(0);
 
-    assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v3), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v3), is(false));
   }
 
   @Test
@@ -70,9 +70,9 @@ public class PolicyThreatLevelFilterTest
     v2.setThreatLevel(2);
     v3.setThreatLevel(0);
 
-    assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().apply(v3), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v3), is(false));
   }
 
   @Test
@@ -84,12 +84,6 @@ public class PolicyThreatLevelFilterTest
     catch (BadRequestException e) {
       assertEquals("Minimum policy threat level should not exceed maximum policy threat level.", e.getMessage());
     }
-  }
-
-  @Test
-  public void testNullViolation() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(null, Integer.valueOf(4));
-    assertThat(filter.asPolicyViolationPredicate().apply(null), is(false));
   }
 
   @Test
@@ -175,24 +169,24 @@ public class PolicyThreatLevelFilterTest
     v2.setThreatLevel(2);
     v3.setThreatLevel(6);
 
-    assertTrue(noMinFilter.asPolicyViolationPredicate().apply(v1));
-    assertTrue(noMinFilter.asPolicyViolationPredicate().apply(v2));
-    assertFalse(noMinFilter.asPolicyViolationPredicate().apply(v3));
+    assertTrue(noMinFilter.asPolicyViolationPredicate().test(v1));
+    assertTrue(noMinFilter.asPolicyViolationPredicate().test(v2));
+    assertFalse(noMinFilter.asPolicyViolationPredicate().test(v3));
 
-    assertFalse(noMaxFilter.asPolicyViolationPredicate().apply(v1));
-    assertFalse(noMaxFilter.asPolicyViolationPredicate().apply(v2));
-    assertTrue(noMaxFilter.asPolicyViolationPredicate().apply(v3));
+    assertFalse(noMaxFilter.asPolicyViolationPredicate().test(v1));
+    assertFalse(noMaxFilter.asPolicyViolationPredicate().test(v2));
+    assertTrue(noMaxFilter.asPolicyViolationPredicate().test(v3));
 
-    assertFalse(minAndMaxFilter.asPolicyViolationPredicate().apply(v1));
-    assertFalse(minAndMaxFilter.asPolicyViolationPredicate().apply(v2));
-    assertTrue(minAndMaxFilter.asPolicyViolationPredicate().apply(v3));
+    assertFalse(minAndMaxFilter.asPolicyViolationPredicate().test(v1));
+    assertFalse(minAndMaxFilter.asPolicyViolationPredicate().test(v2));
+    assertTrue(minAndMaxFilter.asPolicyViolationPredicate().test(v3));
 
-    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().apply(v1));
-    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().apply(v2));
-    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().apply(v3));
+    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v1));
+    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v2));
+    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v3));
 
-    assertFalse(spacesInMinAndMaxFilter.asPolicyViolationPredicate().apply(v1));
-    assertFalse(spacesInMinAndMaxFilter.asPolicyViolationPredicate().apply(v2));
-    assertTrue(spacesInMinAndMaxFilter.asPolicyViolationPredicate().apply(v3));
+    assertFalse(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v1));
+    assertFalse(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v2));
+    assertTrue(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v3));
   }
 }

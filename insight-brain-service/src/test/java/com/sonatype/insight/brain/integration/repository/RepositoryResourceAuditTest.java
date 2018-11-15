@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
@@ -25,11 +26,15 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 
 public class RepositoryResourceAuditTest
     extends AbstractAuditTest
@@ -166,7 +171,7 @@ public class RepositoryResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RETAIN_QUARANTINE, null, SYSTEM_USER);
     assertRepositoryData(auditDTO, repository);
-    assertQuarantineData(auditDTO, repoComponentEvalList.components.get(0).hash,
+    assertComponentData(auditDTO, repoComponentEvalList.components.get(0).hash,
         repoComponentEvalList.components.get(0).pathname);
   }
 
@@ -231,6 +236,47 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testRemoveComponent_QuarantinedComponent_ResetQuarantineSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", new Date(), null);
+
+    componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(), repositoryComponent.getPathname())
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_QUARANTINE, null);
+    assertRepositoryData(auditDTO, repository);
+    assertComponentData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+  }
+
+  @Test
+  public void testRemoveComponent_NeverQuarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", null, null);
+
+    assertResponseStatus(204, componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
+        repositoryComponent.getPathname()).delete());
+
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+  }
+
+  @Test
+  public void testRemoveComponent_UnquarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", new Date(), new Date());
+
+    assertResponseStatus(204, componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
+        repositoryComponent.getPathname()).delete());
+
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+  }
+
   private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.ENABLE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
@@ -252,6 +298,11 @@ public class RepositoryResourceAuditTest
   {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.QUARANTINE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
+  }
+
+  private HttpRequest componentRequest(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.COMPONENTS_PATH)
+        .parameter(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 
   private void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {
@@ -287,7 +338,7 @@ public class RepositoryResourceAuditTest
     setHdsResponseForURI(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH, componentEvaluationDataList, 200);
   }
 
-  private void assertQuarantineData(AuditDTO auditDTO, String componentHash, String componentPathname) {
+  private void assertComponentData(AuditDTO auditDTO, String componentHash, String componentPathname) {
     assertCustomData(auditDTO, "componentHash", componentHash);
     assertCustomData(auditDTO, "componentPathname", componentPathname);
   }

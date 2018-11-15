@@ -584,6 +584,12 @@ public class RepositoryService
         pathname);
     if (repositoryComponent != null) {
       repositoryComponentDAO.delete(repositoryComponent);
+      if (repositoryComponent.isQuarantined()) {
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, true)) {
+          AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash())
+              .setData("componentPathname", repositoryComponent.getPathname());
+        }
+      }
     }
   }
 

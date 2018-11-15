@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -184,6 +185,55 @@ public class RepositoryResourceAuditTest
     policy.addConstraint(constraint);
     policy.getActions().put(Stage.ID_PROXY, "fail");
     return policy;
+  }
+
+  @Test
+  public void testEvaluateComponents_QuarantinedComponent_ResetQuarantineSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", new Date(), null);
+    repositoryComponent.setHash("differentHash");
+    new RepositoryComponentDAO().update(repositoryComponent);
+
+    evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_QUARANTINE, null);
+    assertRepositoryData(auditDTO, repository);
+    assertComponentData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+  }
+
+  @Test
+  public void testEvaluateComponents_NeverQuarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", null, null);
+    repositoryComponent.setHash("differentHash");
+    new RepositoryComponentDAO().update(repositoryComponent);
+
+    evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
+        .post();
+
+    assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, null);
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+  }
+
+  @Test
+  public void testEvaluateComponents_UnquarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", new Date(), new Date());
+    repositoryComponent.setHash("differentHash");
+    new RepositoryComponentDAO().update(repositoryComponent);
+
+    evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
+        .post();
+
+    assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, null);
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
   }
 
   private void testEvaluateComponents(boolean withQuarantine, int count, String cause) throws Exception {

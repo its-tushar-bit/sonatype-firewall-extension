@@ -186,6 +186,12 @@ public class RepositoryPolicyEvaluator
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
     if (repositoryComponent != null && !repositoryComponent.getHash().equals(component.getHash())) {
+      if (repositoryComponent.isQuarantined()) {
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, false)) {
+          AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash())
+              .setData("componentPathname", repositoryComponent.getPathname());
+        }
+      }
       repositoryComponentDAO.delete(tx, repositoryComponent, false);
       repositoryComponent = null;
     }

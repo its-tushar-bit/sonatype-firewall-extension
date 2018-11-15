@@ -22,9 +22,11 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class DatabaseAccessTest
 {
@@ -39,11 +41,11 @@ public class DatabaseAccessTest
   }
 
   private void assertDataSource(DataSource dataSource, DatabaseConfig databaseConfig) throws SQLException {
-    Assert.assertNotNull(dataSource);
+    assertNotNull(dataSource);
     try (Connection conn = dataSource.getConnection()) {
       String databaseURL = conn.getMetaData().getURL();
-      Assert.assertNotNull(databaseURL);
-      Assert.assertTrue("databaseConfig.url=" + databaseConfig.getUrl().toString() + " expected to start with "
+      assertNotNull(databaseURL);
+      assertTrue("databaseConfig.url=" + databaseConfig.getUrl().toString() + " expected to start with "
           + databaseURL, databaseConfig.getUrl().startsWith(databaseURL + ";"));
     }
   }
@@ -63,8 +65,8 @@ public class DatabaseAccessTest
     odsDatabaseConfig.setMaxConnections(50);
     OperationalDataStoreProvider.init(odsDatabaseConfig, true);
     assertDataSource(OperationalDataStoreProvider.getDataSource(), odsDatabaseConfig);
-    Assert.assertTrue(databaseDir.exists());
-    Assert.assertTrue(new File(databaseDir, "ods.h2.db").exists());
+    assertTrue(databaseDir.exists());
+    assertTrue(new File(databaseDir, "ods.h2.db").exists());
 
     DatabaseConfig dmDatabaseConfig = new DatabaseConfig();
     dmDatabaseConfig.setDriverClassName("org.h2.Driver");
@@ -75,8 +77,8 @@ public class DatabaseAccessTest
     dmDatabaseConfig.setMaxConnections(50);
     DatamartProvider.init(dmDatabaseConfig);
     assertDataSource(DatamartProvider.getDataSource(), dmDatabaseConfig);
-    Assert.assertTrue(databaseDir.exists());
-    Assert.assertTrue(new File(databaseDir, "dm.h2.db").exists());
+    assertTrue(databaseDir.exists());
+    assertTrue(new File(databaseDir, "dm.h2.db").exists());
 
     Organization org = new Organization("testConcurrentDatabaseAccess");
     new OrganizationDAO().insert(org);

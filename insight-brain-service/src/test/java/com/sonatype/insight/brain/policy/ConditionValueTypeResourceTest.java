@@ -10,8 +10,10 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
@@ -28,8 +30,8 @@ public class ConditionValueTypeResourceTest
     final HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = response.getBody(Object[].class);
-    Assert.assertNotNull(conditionValueTypes);
-    Assert.assertTrue(conditionValueTypes.length > 0);
+    assertNotNull(conditionValueTypes);
+    assertTrue(conditionValueTypes.length > 0);
   }
 
   @Test
@@ -39,7 +41,7 @@ public class ConditionValueTypeResourceTest
     final HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = response.getBody(Object[].class);
-    Assert.assertNotNull(conditionValueTypes);
-    Assert.assertTrue(conditionValueTypes.length > 0);
+    assertNotNull(conditionValueTypes);
+    assertTrue(conditionValueTypes.length > 0);
   }
 }

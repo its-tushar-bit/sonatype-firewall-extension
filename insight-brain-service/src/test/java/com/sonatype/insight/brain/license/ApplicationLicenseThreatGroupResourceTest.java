@@ -104,7 +104,7 @@ public class ApplicationLicenseThreatGroupResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
+    assertNotNull(groups);
     int initialLicenseThreatGroupCount = groups.length;
 
     // Try to add a group
@@ -114,7 +114,7 @@ public class ApplicationLicenseThreatGroupResourceTest
     group.setThreatLevel(10);
     response = request.body(group).post();
     assertResponseStatus(400, response); // apps not allowed to add ltgs
-    Assert.assertEquals(response.getBodyText(), "Applications are not allowed to add license threat groups.");
+    assertEquals(response.getBodyText(), "Applications are not allowed to add license threat groups.");
 
     group = tempEntity.newLicenseThreatGroup(ownerId, "AAA My group", 10);
 
@@ -122,8 +122,8 @@ public class ApplicationLicenseThreatGroupResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
+    assertNotNull(groups);
+    assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, groups[0]);
 
     // Update a group
@@ -137,8 +137,8 @@ public class ApplicationLicenseThreatGroupResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
+    assertNotNull(groups);
+    assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
 
     // Delete a group
@@ -149,8 +149,8 @@ public class ApplicationLicenseThreatGroupResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(initialLicenseThreatGroupCount, groups.length);
+    assertNotNull(groups);
+    assertEquals(initialLicenseThreatGroupCount, groups.length);
   }
 
   @Override

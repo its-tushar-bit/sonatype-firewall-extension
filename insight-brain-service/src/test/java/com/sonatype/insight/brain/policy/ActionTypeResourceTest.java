@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.policy;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ActionTypeResourceTest
     extends AbstractResourceTest
@@ -19,7 +21,7 @@ public class ActionTypeResourceTest
     final HttpResponse response = restRequest().path(ActionTypeResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] actionTypes = response.getBody(Object[].class);
-    Assert.assertNotNull(actionTypes);
-    Assert.assertTrue(actionTypes.length > 0);
+    assertNotNull(actionTypes);
+    assertTrue(actionTypes.length > 0);
   }
 }

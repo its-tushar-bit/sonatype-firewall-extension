@@ -34,9 +34,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.Assert;
 import org.junit.Rule;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public abstract class AbstractPolicyEvaluationTest
@@ -75,7 +75,7 @@ public abstract class AbstractPolicyEvaluationTest
                                       PolicyAlert actualPolicyAlert)
   {
     List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
-    Assert.assertEquals("Incorrect number of component facts:" + componentFacts, expectedComponentFactCount,
+    assertEquals("Incorrect number of component facts:" + componentFacts, expectedComponentFactCount,
         componentFacts.size());
 
     int actualConstraintFactCount = 0;
@@ -87,7 +87,7 @@ public abstract class AbstractPolicyEvaluationTest
         }
       }
     }
-    Assert.assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
+    assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
   }
 
   private static List<ConditionFact> findConditionFactsInPolicyAlerts(Component expectedComponent,

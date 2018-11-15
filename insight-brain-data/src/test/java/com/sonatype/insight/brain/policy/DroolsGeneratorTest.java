@@ -24,11 +24,11 @@ import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 
 public class DroolsGeneratorTest
 {
@@ -61,7 +61,7 @@ public class DroolsGeneratorTest
     final KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
     // this will parse and compile in one step
     kbuilder.add(ResourceFactory.newReaderResource(new StringReader(policy.getDroolsCode())), ResourceType.DRL);
-    Assert.assertFalse(kbuilder.getErrors().toString(), kbuilder.hasErrors());
+    assertFalse(kbuilder.getErrors().toString(), kbuilder.hasErrors());
   }
 
   @Test

@@ -10,10 +10,11 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class LicenseResourceTest
@@ -30,8 +31,8 @@ public class LicenseResourceTest
     assertResponseStatus(200, response);
 
     License[] licenses = response.getBody(License[].class);
-    Assert.assertNotNull(licenses);
-    Assert.assertNotEquals(licenses.length, 0);
+    assertNotNull(licenses);
+    assertNotEquals(licenses.length, 0);
     assertTrue(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
     assertTrue(isPresent(License.NOT_DECLARED_ID, licenses));
     assertTrue(isPresent(License.NO_SOURCES_ID, licenses));
@@ -44,12 +45,12 @@ public class LicenseResourceTest
     assertResponseStatus(200, response);
 
     License[] licenses = response.getBody(License[].class);
-    Assert.assertNotNull(licenses);
+    assertNotNull(licenses);
     assertFalse(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
     assertFalse(isPresent(License.NOT_DECLARED_ID, licenses));
     assertFalse(isPresent(License.NO_SOURCES_ID, licenses));
     assertFalse(isPresent(License.NOT_SUPPORTED_ID, licenses));
-    Assert.assertNotEquals(licenses.length, 0);
+    assertNotEquals(licenses.length, 0);
   }
 
   private static boolean isPresent(String licenseId, License[] licenses) {

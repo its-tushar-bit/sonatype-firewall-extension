@@ -159,8 +159,8 @@ public class ComponentLabelResourceTest
     setComponentLabelAndVerify(OwnerType.APPLICATION, app.getPublicId(), appLabel, app.getId());
     List<ComponentLabel> componentLabels = componentLabelDAO
         .getByOwnerIdAndHash(app.getOrganizationId(), componentHash);
-    Assert.assertThat(componentLabels, is(notNullValue()));
-    Assert.assertThat(componentLabels.size(), is(0));
+    assertThat(componentLabels, is(notNullValue()));
+    assertThat(componentLabels.size(), is(0));
   }
 
   @Test
@@ -225,9 +225,9 @@ public class ComponentLabelResourceTest
     assertResponseStatus(204, response);
 
     List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(ownerIdToVerify, componentHash);
-    Assert.assertThat(componentLabels, is(notNullValue()));
-    Assert.assertThat(componentLabels.size(), is(1));
-    Assert.assertThat(componentLabels.get(0).getLabelId(), is(labelToAdd.getId()));
+    assertThat(componentLabels, is(notNullValue()));
+    assertThat(componentLabels.size(), is(1));
+    assertThat(componentLabels.get(0).getLabelId(), is(labelToAdd.getId()));
   }
 
   private void deleteComponentLabelAndVerify(OwnerType ownerType, String requestOwnerId, ComponentLabel componentLabel)
@@ -239,11 +239,11 @@ public class ComponentLabelResourceTest
     HttpResponse response = restRequest(ownerType, requestOwnerId, componentHash).path(labelId).delete();
     assertResponseStatus(204, response);
 
-    Assert.assertThat(componentLabelDAO.getById(componentLabel.getId()), is(nullValue()));
+    assertThat(componentLabelDAO.getById(componentLabel.getId()), is(nullValue()));
 
     response = restRequest(ownerType, requestOwnerId, componentHash).path(labelId).delete();
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getBodyText(),
+    assertThat(response.getBodyText(),
         is("Cannot find the label with ID " + labelId + " for " + ownerType.toString() + " ID " + requestOwnerId
             + " on the component " + componentHash + "."));
   }

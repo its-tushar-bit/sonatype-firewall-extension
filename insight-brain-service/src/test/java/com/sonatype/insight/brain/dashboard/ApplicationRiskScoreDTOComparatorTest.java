@@ -123,7 +123,7 @@ public class ApplicationRiskScoreDTOComparatorTest
       fail("Expected BadRequestException when invalid orderBy is used");
     }
     catch (BadRequestException e) {
-      Assert.assertThat(e.getMessage(),
+      assertThat(e.getMessage(),
           is("Invalid orderBy property."));
     }
   }
@@ -142,7 +142,7 @@ public class ApplicationRiskScoreDTOComparatorTest
       fail("Expected BadRequestException when invalid orderBy is used");
     }
     catch (BadRequestException e) {
-      Assert.assertThat(e.getMessage(),
+      assertThat(e.getMessage(),
           is("Invalid orderBy property."));
     }
   }

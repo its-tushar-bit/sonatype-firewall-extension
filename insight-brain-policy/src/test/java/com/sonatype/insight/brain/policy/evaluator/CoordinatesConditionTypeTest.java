@@ -22,13 +22,14 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -71,8 +72,8 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -257,8 +258,8 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -295,8 +296,8 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -333,8 +334,8 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -371,8 +372,8 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -390,8 +391,8 @@ public class CoordinatesConditionTypeTest
     components.add(component1);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }

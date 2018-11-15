@@ -13,13 +13,16 @@ import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class MultiLicenseDAOTest
@@ -32,32 +35,32 @@ public class MultiLicenseDAOTest
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
     String shortName = "SDN";
-    Assert.assertNull(dao.getByName(shortName));
+    assertNull(dao.getByName(shortName));
     MultiLicense multiLicense = new MultiLicense();
     multiLicense.setShortDisplayName(shortName);
     multiLicense.setLongDisplayName("Long Display Name");
     dao.insert(multiLicense);
-    Assert.assertNotNull(multiLicense.getId());
+    assertNotNull(multiLicense.getId());
     dao.load();
 
     multiLicense = dao.getById(multiLicense.getId());
-    Assert.assertNotNull(multiLicense);
-    Assert.assertEquals("SDN", multiLicense.getShortDisplayName());
-    Assert.assertEquals("Long Display Name", multiLicense.getLongDisplayName());
+    assertNotNull(multiLicense);
+    assertEquals("SDN", multiLicense.getShortDisplayName());
+    assertEquals("Long Display Name", multiLicense.getLongDisplayName());
 
     multiLicense.setLongDisplayName("New Long Display Name");
     dao.update(multiLicense);
     dao.load();
 
     dao.getById(multiLicense.getId());
-    Assert.assertNotNull(multiLicense);
-    Assert.assertEquals("New Long Display Name", multiLicense.getLongDisplayName());
+    assertNotNull(multiLicense);
+    assertEquals("New Long Display Name", multiLicense.getLongDisplayName());
 
     dao.delete(multiLicense);
     dao.load();
 
     multiLicense = dao.getById(multiLicense.getId());
-    Assert.assertNull(multiLicense);
+    assertNull(multiLicense);
   }
 
   @Test
@@ -65,8 +68,8 @@ public class MultiLicenseDAOTest
     MultiLicenseDAO dao = new MultiLicenseDAO();
     Collection<MultiLicense> multiLicenses = dao.getAll();
 
-    Assert.assertNotNull(multiLicenses);
-    Assert.assertFalse(multiLicenses.isEmpty());
+    assertNotNull(multiLicenses);
+    assertFalse(multiLicenses.isEmpty());
   }
 
   @Test
@@ -80,8 +83,7 @@ public class MultiLicenseDAOTest
 
     for (MultiLicense multiLicense : multiLicenses) {
       Integer threat = dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, multiLicense.getId());
-      Assert.assertTrue("Multilicense Threat Level between null and 10", threat == null
-          || (threat >= 0 && threat <= 10));
+      assertTrue("Multilicense Threat Level between null and 10", threat == null || (threat >= 0 && threat <= 10));
     }
 
     assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0"));
@@ -119,7 +121,7 @@ public class MultiLicenseDAOTest
   public void testLicenseDataRefresh() {
     String newId = "new multi license id";
     MultiLicenseDAO dao = new MultiLicenseDAO();
-    Assert.assertNull(dao.getById(newId));
+    assertNull(dao.getById(newId));
     int count = dao.getAll().size();
 
     MultiLicense newMultiLicense = new MultiLicense();
@@ -132,12 +134,12 @@ public class MultiLicenseDAOTest
     multiLicenseLicense.setLicenseId("GPL-2.0");
     MultiLicenseLicenseInternalDAO multiLicenseLicenseDAO = new MultiLicenseLicenseInternalDAO();
     multiLicenseLicenseDAO.insert(multiLicenseLicense);
-    Assert.assertNull(dao.getById(newId));
+    assertNull(dao.getById(newId));
 
     LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
 
-    Assert.assertNotNull(dao.getById(newId));
-    Assert.assertEquals(count + 1, dao.getAll().size());
+    assertNotNull(dao.getById(newId));
+    assertEquals(count + 1, dao.getAll().size());
 
     multiLicenseLicenseDAO.delete(multiLicenseLicense);
     dao.delete(newMultiLicense);

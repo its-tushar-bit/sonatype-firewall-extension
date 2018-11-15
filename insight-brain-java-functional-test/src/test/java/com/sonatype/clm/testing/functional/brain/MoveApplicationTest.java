@@ -102,7 +102,7 @@ public class MoveApplicationTest
 
     // test new parent
     Application updatedApp = appDAO.getById(application.getId());
-    Assert.assertEquals(updatedApp.getParentOwnerId(), otherOrg.getId());
+    assertEquals(updatedApp.getParentOwnerId(), otherOrg.getId());
   }
 
   @Test
@@ -131,7 +131,7 @@ public class MoveApplicationTest
 
     // test new parent
     Application updatedApp = appDAO.getById(application.getId());
-    Assert.assertEquals(updatedApp.getParentOwnerId(), otherOrg.getId());
+    assertEquals(updatedApp.getParentOwnerId(), otherOrg.getId());
   }
 
   @Test

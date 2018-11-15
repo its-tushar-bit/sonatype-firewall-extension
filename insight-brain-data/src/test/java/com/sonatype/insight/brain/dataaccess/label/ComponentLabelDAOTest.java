@@ -17,13 +17,14 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.IsNull;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class ComponentLabelDAOTest
     extends AbstractDbDAOTest
@@ -48,17 +49,17 @@ public class ComponentLabelDAOTest
     dao.insert(compLabel);
 
     compLabel = dao.getById(compLabel.getId());
-    Assert.assertThat(compLabel, IsNull.notNullValue());
+    assertThat(compLabel, IsNull.notNullValue());
 
     dao.update(compLabel);
     compLabel.setOwnerId(application.getOrganizationId());
     dao.update(compLabel);
     compLabel = dao.getById(compLabel.getId());
-    Assert.assertThat(compLabel.getOwnerId(), IsEqual.equalTo(application.getOrganizationId()));
+    assertThat(compLabel.getOwnerId(), IsEqual.equalTo(application.getOrganizationId()));
 
     dao.delete(compLabel);
     compLabel = dao.getById(compLabel.getId());
-    Assert.assertThat(compLabel, IsNull.nullValue());
+    assertThat(compLabel, IsNull.nullValue());
   }
 
   @Test
@@ -69,8 +70,8 @@ public class ComponentLabelDAOTest
     ComponentLabel compLabel = new ComponentLabel(applicationId, label.getId(), hash);
     dao.insert(compLabel);
     ComponentLabel entity = dao.getByOwnerIdAndHashAndLabelId(applicationId, hash, label.getId());
-    Assert.assertThat(entity, IsNull.notNullValue());
-    Assert.assertThat(entity.getId(), IsEqual.equalTo(compLabel.getId()));
+    assertThat(entity, IsNull.notNullValue());
+    assertThat(entity.getId(), IsEqual.equalTo(compLabel.getId()));
   }
 
   @Test
@@ -83,10 +84,10 @@ public class ComponentLabelDAOTest
     compLabel = new ComponentLabel(applicationId, label.getId(), hash);
     try {
       dao.insert(compLabel);
-      Assert.fail("Expected BadRequestException");
+      fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      Assert.assertThat(expected.getMessage(),
+      assertThat(expected.getMessage(),
           IsEqual.equalTo("The label 'label' is already applied to the component ababababab."));
     }
   }
@@ -99,10 +100,10 @@ public class ComponentLabelDAOTest
     ComponentLabel compLabel = new ComponentLabel(application.getOrganizationId(), label.getId(), hash);
     try {
       dao.insert(compLabel);
-      Assert.fail("Expected BadRequestException");
+      fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      Assert.assertThat(
+      assertThat(
           expected.getMessage(),
           IsEqual.equalTo("The label 'label' is not applicable for the selected context "
               + application.getOrganizationId() + "."));
@@ -120,10 +121,10 @@ public class ComponentLabelDAOTest
     compLabel.setHash(hash);
     try {
       dao.update(compLabel);
-      Assert.fail("Expected BadRequestException");
+      fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      Assert.assertThat(expected.getMessage(),
+      assertThat(expected.getMessage(),
           IsEqual.equalTo("The label 'label' is already applied to the component ababababab."));
     }
   }
@@ -138,10 +139,10 @@ public class ComponentLabelDAOTest
     compLabel.setOwnerId(application.getOrganizationId());
     try {
       dao.update(compLabel);
-      Assert.fail("Expected BadRequestException");
+      fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      Assert.assertThat(
+      assertThat(
           expected.getMessage(),
           IsEqual.equalTo("The label 'label' is not applicable for the selected context "
               + application.getOrganizationId() + "."));
@@ -166,15 +167,15 @@ public class ComponentLabelDAOTest
 
     // sanity check
     List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
-    Assert.assertNotNull(componentLabels);
-    Assert.assertEquals(0, componentLabels.size());
+    assertNotNull(componentLabels);
+    assertEquals(0, componentLabels.size());
 
     dao.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), hash));
     dao.insert(new ComponentLabel(applicationId, appLabel.getId(), hash));
 
     componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
-    Assert.assertNotNull(componentLabels);
-    Assert.assertEquals(2, componentLabels.size());
+    assertNotNull(componentLabels);
+    assertEquals(2, componentLabels.size());
 
     assertComponentLabel(appLabel, componentLabels.get(0));
     assertComponentLabel(orgLabel, componentLabels.get(1));

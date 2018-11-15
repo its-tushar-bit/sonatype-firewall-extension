@@ -800,7 +800,7 @@ public class UserDAOTest
     dashboardFilterDAO.insert(dashboardFilter);
 
     new UserDAO().delete(user);
-    Assert.assertThat(dashboardFilterDAO.getByUsername(user.getUsername()), empty());
+    assertThat(dashboardFilterDAO.getByUsername(user.getUsername()), empty());
   }
 
   @Test

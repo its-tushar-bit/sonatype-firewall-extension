@@ -50,7 +50,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -64,8 +63,10 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class OrganizationDAOTest
@@ -82,7 +83,7 @@ public class OrganizationDAOTest
     organization = tempEntity.newOrganization("OrganizationDAOTest");
     String organizationId = organization.getId();
     organization = dao.getById(organizationId);
-    Assert.assertEquals("OrganizationDAOTest", organization.getName());
+    assertEquals("OrganizationDAOTest", organization.getName());
     assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
 
     // Set an icon for the organization
@@ -92,25 +93,25 @@ public class OrganizationDAOTest
     ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     File iconDir = tmpDir.newFolder();
     File orgIconDir = new File(iconDir, organizationId);
-    Assert.assertFalse(orgIconDir.exists());
+    assertFalse(orgIconDir.exists());
     new IconDAO().setIcon(organizationId, iconDir, byteArrayInputStream);
-    Assert.assertTrue(orgIconDir.isDirectory());
+    assertTrue(orgIconDir.isDirectory());
 
     // Get the icon
     byte[] iconBytes = new IconDAO().getIcon(organizationId, iconDir);
-    Assert.assertNotNull(iconBytes);
-    Assert.assertTrue(iconBytes.length > 0);
+    assertNotNull(iconBytes);
+    assertTrue(iconBytes.length > 0);
 
     // Update
     organization.setName("OrganizationDAOTest New name");
     dao.update(organization);
     organization = dao.getById(organizationId);
-    Assert.assertEquals("OrganizationDAOTest New name", organization.getName());
+    assertEquals("OrganizationDAOTest New name", organization.getName());
 
     // Delete
     dao.delete(organization);
     organization = dao.getById(organizationId);
-    Assert.assertNull(organization);
+    assertNull(organization);
   }
 
   @Test
@@ -490,11 +491,11 @@ public class OrganizationDAOTest
     labelDAO.insert(label);
 
     // sanity check
-    Assert.assertFalse(labelDAO.getByOwnerId(organizationId).isEmpty());
+    assertFalse(labelDAO.getByOwnerId(organizationId).isEmpty());
 
     dao.delete(organization);
 
-    Assert.assertTrue(labelDAO.getByOwnerId(organizationId).isEmpty());
+    assertTrue(labelDAO.getByOwnerId(organizationId).isEmpty());
   }
 
   @Test

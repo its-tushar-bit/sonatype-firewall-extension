@@ -9,13 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.Assert;
+
+import static org.junit.Assert.assertNotNull;
 
 class IconUtils
 {
   private static byte[] loadImage(String resource) throws IOException {
     InputStream iconStream = IconUtils.class.getResourceAsStream(resource);
-    Assert.assertNotNull("Missing resource: " + resource, iconStream);
+    assertNotNull("Missing resource: " + resource, iconStream);
     try {
       return IOUtil.toByteArray(iconStream);
     }

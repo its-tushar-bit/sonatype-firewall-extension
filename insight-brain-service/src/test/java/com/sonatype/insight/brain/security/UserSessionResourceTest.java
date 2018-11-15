@@ -14,13 +14,14 @@ import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationSta
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class UserSessionResourceTest
     extends AbstractResourceTest
@@ -82,7 +83,7 @@ public class UserSessionResourceTest
     // validate cookie is present
     HttpCookie loggedInSessionCookie = response.getSessionCookie();
     assertThat(loggedInSessionCookie, is(notNullValue()));
-    Assert.assertFalse(loggedInSessionCookie.getValue().equals("deleteMe"));
+    assertFalse(loggedInSessionCookie.getValue().equals("deleteMe"));
 
     // logout is successful
     response = logout(loggedInSessionCookie);
@@ -91,7 +92,7 @@ public class UserSessionResourceTest
     // logout removes session id
     HttpCookie logoutSessionCookie = response.getSessionCookie();
     assertThat(logoutSessionCookie, is(notNullValue()));
-    Assert.assertTrue(logoutSessionCookie.getValue().equals("deleteMe"));
+    assertTrue(logoutSessionCookie.getValue().equals("deleteMe"));
   }
 
   @Test
@@ -113,8 +114,8 @@ public class UserSessionResourceTest
     response = status(sessionCookie);
     assertResponseStatus(200, response);
     AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
-    Assert.assertTrue(status.isAuthenticated());
-    Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
+    assertTrue(status.isAuthenticated());
+    assertEquals(User.ADMIN_USERNAME, status.getUsername());
 
     response = logout(sessionCookie);
     assertResponseStatus(204, response);

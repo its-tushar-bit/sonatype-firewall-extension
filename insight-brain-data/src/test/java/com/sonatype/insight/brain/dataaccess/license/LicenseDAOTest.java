@@ -11,10 +11,12 @@ import java.util.Locale;
 
 import com.sonatype.insight.brain.model.license.License;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class LicenseDAOTest
     extends AbstractLicenseDAOTest
@@ -23,12 +25,12 @@ public class LicenseDAOTest
   public void testGetAll() {
     LicenseDAO dao = new LicenseDAO();
     List<License> licenses = dao.getAll();
-    Assert.assertNotNull(licenses);
-    Assert.assertTrue(licenses.size() > 0);
+    assertNotNull(licenses);
+    assertTrue(licenses.size() > 0);
     for (int i = 0; i < licenses.size() - 1; i++) {
       License license1 = licenses.get(i);
       License license2 = licenses.get(i + 1);
-      Assert.assertTrue(
+      assertTrue(
           license1.getShortDisplayName() + " >= " + license2.getShortDisplayName(),
           license1.getShortDisplayName().toLowerCase(Locale.ENGLISH)
               .compareTo(license2.getShortDisplayName().toLowerCase(Locale.ENGLISH)) < 0);
@@ -39,7 +41,7 @@ public class LicenseDAOTest
   public void testLicenseDataRefresh() {
     String newId = "new license id";
     LicenseDAO dao = new LicenseDAO();
-    Assert.assertNull(dao.getById(newId));
+    assertNull(dao.getById(newId));
     int count = dao.getAll().size();
 
     License newLicense = new License();
@@ -47,12 +49,12 @@ public class LicenseDAOTest
     newLicense.setShortDisplayName("New short name");
     newLicense.setLongDisplayName("New long name");
     dao.insert(newLicense);
-    Assert.assertNull(dao.getById(newId));
+    assertNull(dao.getById(newId));
 
     LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
 
-    Assert.assertNotNull(dao.getById(newId));
-    Assert.assertEquals(count + 1, dao.getAll().size());
+    assertNotNull(dao.getById(newId));
+    assertEquals(count + 1, dao.getAll().size());
 
     dao.delete(newLicense);
     dao.load();
@@ -69,7 +71,7 @@ public class LicenseDAOTest
 
     for (License license : licenses) {
       Integer threat = dao.getLicenseThreatLevelByOwnerAndLicenseId(application, license.getId());
-      Assert.assertTrue("License Threat Level between null and 10", threat == null || (threat >= 0 && threat <= 10));
+      assertTrue("License Threat Level between null and 10", threat == null || (threat >= 0 && threat <= 10));
     }
 
     assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "Apache-2.0"));

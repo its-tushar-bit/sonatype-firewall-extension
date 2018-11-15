@@ -22,8 +22,11 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class LicenseStatusConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -55,8 +58,8 @@ public class LicenseStatusConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -88,8 +91,8 @@ public class LicenseStatusConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
         new TriggerLicenseStatus(LicenseOverrideStatus.OPEN.getId()));
@@ -102,7 +105,7 @@ public class LicenseStatusConditionTypeTest
     Condition condition = new Condition(LicenseStatusConditionType.ID, "is", "abc");
     try {
       new LicenseStatusConditionType().validateCondition(null, condition, null /* applicationId */);
-      Assert.fail("Expected InvalidConditionException");
+      fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
       if (!expected.getMessage().endsWith("Value not supported: abc")) {

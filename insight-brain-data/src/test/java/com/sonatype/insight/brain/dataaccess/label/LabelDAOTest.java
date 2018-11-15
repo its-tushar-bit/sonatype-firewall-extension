@@ -22,13 +22,14 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class LabelDAOTest
@@ -95,7 +96,7 @@ public class LabelDAOTest
     oldLabel.setLabel("*/a_new_invalid_name");
     try {
       dao.update(oldLabel);
-      Assert.fail("Updates to older labels should be validated.");
+      fail("Updates to older labels should be validated.");
     }
     catch (InvalidNameException e) {
       assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '*'), e.getMessage());
@@ -121,14 +122,14 @@ public class LabelDAOTest
     dao.insert(label);
 
     label = dao.getById(label.getId());
-    Assert.assertNotNull(label);
+    assertNotNull(label);
     assertLabel(applicationId, "My Label", Color.dark_blue, "My label description.", label);
 
     // Update
     label.setLabel("My Updated Label");
     dao.update(label);
     label = dao.getById(label.getId());
-    Assert.assertNotNull(label);
+    assertNotNull(label);
     assertLabel(applicationId, "My Updated Label", Color.dark_blue, "My label description.", label);
   }
 
@@ -334,10 +335,10 @@ public class LabelDAOTest
     label.setColor(Color.dark_blue);
     label.setDescription("My label   description.");
     dao.insert(label);
-    Assert.assertNotNull(label.getId());
+    assertNotNull(label.getId());
 
     label = dao.getById(label.getId());
-    Assert.assertNotNull(label);
+    assertNotNull(label);
     assertLabel(applicationId, "MyLabel", Color.dark_blue, "My label   description.", label);
 
     // Update
@@ -345,14 +346,14 @@ public class LabelDAOTest
     dao.update(label);
 
     label = dao.getById(label.getId());
-    Assert.assertNotNull(label);
+    assertNotNull(label);
     assertLabel(applicationId, "MyUpdatedLabel", Color.dark_blue, "My label   description.", label);
 
     // Delete
     dao.delete(label);
 
     label = dao.getById(label.getId());
-    Assert.assertNull(label);
+    assertNull(label);
   }
 
   @Test
@@ -366,7 +367,7 @@ public class LabelDAOTest
     label.setLabel("MyLabel");
     label.setColor(Color.dark_blue);
     labelDAO.insert(label);
-    Assert.assertNotNull(label.getId());
+    assertNotNull(label.getId());
 
     ComponentLabel componentLabel = new ComponentLabel();
     componentLabel.setOwnerId(applicationId);
@@ -378,7 +379,7 @@ public class LabelDAOTest
     labelDAO.delete(label);
 
     label = labelDAO.getById(label.getId());
-    Assert.assertNull(label);
+    assertNull(label);
   }
 
   @Test

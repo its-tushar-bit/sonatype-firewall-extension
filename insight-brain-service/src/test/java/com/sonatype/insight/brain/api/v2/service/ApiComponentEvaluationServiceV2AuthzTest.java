@@ -15,8 +15,9 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.fail;
 
 public class ApiComponentEvaluationServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -37,7 +38,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
     try {
       apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
-      Assert.fail("Expected UnauthenticatedException");
+      fail("Expected UnauthenticatedException");
     }
     catch (UnauthenticatedException ignore) {
 
@@ -51,7 +52,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
     try {
       apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
-      Assert.fail("Expected UnauthorizedException");
+      fail("Expected UnauthorizedException");
     }
     catch (UnauthorizedException ignore) {
 

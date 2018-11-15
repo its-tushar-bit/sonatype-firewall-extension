@@ -214,7 +214,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad app id");
     }
     catch (IOException e) {
-      Assert.assertEquals("Invalid application ID unknown-id.", e.getMessage());
+      assertEquals("Invalid application ID unknown-id.", e.getMessage());
     }
   }
 

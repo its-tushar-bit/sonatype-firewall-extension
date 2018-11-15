@@ -48,7 +48,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -57,6 +56,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -310,7 +311,7 @@ public abstract class AbstractBrainServiceTest
     HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(200, response);
 
-    Assert.assertTrue(licenseManager.isValid());
+    assertTrue(licenseManager.isValid());
   }
 
   protected HttpRequest licenseRequest() {
@@ -330,7 +331,7 @@ public abstract class AbstractBrainServiceTest
     HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH).delete();
     productlicenseWasUninstalled = true;
 
-    Assert.assertFalse(licenseManager.isValid());
+    assertFalse(licenseManager.isValid());
   }
 
   protected void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) throws Exception {

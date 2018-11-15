@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.model.configuration.ldap;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LdapConnectionTest
 {
@@ -39,16 +40,16 @@ public class LdapConnectionTest
 
     LdapConnection copy = new LdapConnection(orig);
 
-    Assert.assertEquals(id, copy.getId());
-    Assert.assertEquals(protocol, copy.getProtocol());
-    Assert.assertEquals(hostname, copy.getHostname());
-    Assert.assertEquals(port, copy.getPort());
-    Assert.assertEquals(searchBase, copy.getSearchBase());
-    Assert.assertEquals(authenticationMethod, copy.getAuthenticationMethod());
-    Assert.assertEquals(saslRealm, copy.getSaslRealm());
-    Assert.assertEquals(systemUsername, copy.getSystemUsername());
-    Assert.assertEquals(systemPassword, copy.getSystemPassword());
-    Assert.assertEquals(connectionTimeout, copy.getConnectionTimeout());
-    Assert.assertEquals(retryDelay, copy.getRetryDelay());
+    assertEquals(id, copy.getId());
+    assertEquals(protocol, copy.getProtocol());
+    assertEquals(hostname, copy.getHostname());
+    assertEquals(port, copy.getPort());
+    assertEquals(searchBase, copy.getSearchBase());
+    assertEquals(authenticationMethod, copy.getAuthenticationMethod());
+    assertEquals(saslRealm, copy.getSaslRealm());
+    assertEquals(systemUsername, copy.getSystemUsername());
+    assertEquals(systemPassword, copy.getSystemPassword());
+    assertEquals(connectionTimeout, copy.getConnectionTimeout());
+    assertEquals(retryDelay, copy.getRetryDelay());
   }
 }

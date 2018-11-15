@@ -7,13 +7,12 @@ package com.sonatype.clm.testing.functional.utils;
 
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 
-import org.junit.Assert;
-
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.visible;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.junit.Assert.assertThat;
 
 public class DoubleColumnPickerTestHelper
 {
@@ -26,7 +25,7 @@ public class DoubleColumnPickerTestHelper
 
     if (filterOn) {
       picker.filter().shouldBe(visible);
-      Assert.assertThat(picker.filter().val(), isEmptyOrNullString());
+      assertThat(picker.filter().val(), isEmptyOrNullString());
     }
     else {
       picker.filter().shouldNot(exist);

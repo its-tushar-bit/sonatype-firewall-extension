@@ -11,13 +11,14 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.policy.conditions.DeprecatedSecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ConditionTypeResourceTest
     extends AbstractResourceTest
@@ -28,8 +29,8 @@ public class ConditionTypeResourceTest
     final HttpResponse response = restRequest().path(ConditionTypeResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] conditionTypes = response.getBody(Object[].class);
-    Assert.assertNotNull(conditionTypes);
-    Assert.assertTrue(conditionTypes.length > 0);
+    assertNotNull(conditionTypes);
+    assertTrue(conditionTypes.length > 0);
 
     for (Object conditionTypeObject : conditionTypes) {
       @SuppressWarnings("unchecked")

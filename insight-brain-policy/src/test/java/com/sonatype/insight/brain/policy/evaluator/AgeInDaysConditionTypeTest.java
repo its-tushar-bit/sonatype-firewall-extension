@@ -19,8 +19,11 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class AgeInDaysConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -55,8 +58,8 @@ public class AgeInDaysConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID, policyAlerts);
   }
@@ -87,8 +90,8 @@ public class AgeInDaysConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID, policyAlerts);
   }
@@ -98,7 +101,7 @@ public class AgeInDaysConditionTypeTest
     Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "abc");
     try {
       new AgeInDaysConditionType().validateCondition(null, condition, null /* applicationId */);
-      Assert.fail("Expected InvalidConditionException");
+      fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
       if (!expected.getMessage().endsWith("Invalid age (in days): abc")) {

@@ -172,7 +172,7 @@ public class UserDirectoryTest
     assertThat(result.get(), hasSize(0));
 
     result = userDirectory.getMembersByName(Collections.singleton(createGroup("testUsers")));
-    Assert.assertEquals(1, result.get().size());
+    assertEquals(1, result.get().size());
     Member member = result.get().get(0);
     assertEquals(MemberType.GROUP, member.getType());
     assertEquals("testUsers", member.getInternalName());

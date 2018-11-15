@@ -14,39 +14,43 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class JsonUtilsTest
 {
   @Test
   public void testIsNull() throws IOException {
-    Assert.assertTrue(JsonUtils.isNull(null));
-    Assert.assertTrue(JsonUtils.isNull(NullNode.getInstance()));
+    assertTrue(JsonUtils.isNull(null));
+    assertTrue(JsonUtils.isNull(NullNode.getInstance()));
 
     JsonNode jsonNode = JsonUtils.parse("{\"a\":\"text value\",\"b\":null}");
-    Assert.assertNotNull(jsonNode);
-    Assert.assertFalse(JsonUtils.isNull(jsonNode));
-    Assert.assertFalse(JsonUtils.isNull(jsonNode.get("a")));
-    Assert.assertTrue(JsonUtils.isNull(jsonNode.get("b")));
-    Assert.assertTrue(JsonUtils.isNull(jsonNode.get("c")));
+    assertNotNull(jsonNode);
+    assertFalse(JsonUtils.isNull(jsonNode));
+    assertFalse(JsonUtils.isNull(jsonNode.get("a")));
+    assertTrue(JsonUtils.isNull(jsonNode.get("b")));
+    assertTrue(JsonUtils.isNull(jsonNode.get("c")));
   }
 
   @Test
   public void testAAData() throws IOException {
     final int[] pi = { 3, 1, 4, 5, 9 };
 
-    Assert.assertArrayEquals(pi, JsonUtils.parse(Arrays.toString(pi), int[].class));
-    Assert.assertArrayEquals(pi, JsonUtils.parse("{\"aaData\":" + Arrays.toString(pi) + "}", int[].class));
+    assertArrayEquals(pi, JsonUtils.parse(Arrays.toString(pi), int[].class));
+    assertArrayEquals(pi, JsonUtils.parse("{\"aaData\":" + Arrays.toString(pi) + "}", int[].class));
 
     final List<String> words = Arrays.asList("This", "is", "a", "test");
     final ArrayNode tree = JsonUtils.asTree(words);
 
-    Assert.assertEquals(tree, JsonUtils.asTree(JsonUtils.aaData(words)).get("aaData"));
-    Assert.assertEquals(tree, JsonUtils.aaDataNode(tree).get("aaData"));
+    assertEquals(tree, JsonUtils.asTree(JsonUtils.aaData(words)).get("aaData"));
+    assertEquals(tree, JsonUtils.aaDataNode(tree).get("aaData"));
   }
 
   @Test

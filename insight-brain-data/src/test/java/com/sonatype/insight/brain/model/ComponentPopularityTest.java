@@ -8,8 +8,9 @@ package com.sonatype.insight.brain.model;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ComponentPopularityTest
 {
@@ -19,7 +20,7 @@ public class ComponentPopularityTest
 
     ComponentPopularity componentPopularity = new ObjectMapper().readValue(json, ComponentPopularity.class);
 
-    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"),
+    assertEquals(ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"),
         componentPopularity.getComponentIdentifier());
   }
 }

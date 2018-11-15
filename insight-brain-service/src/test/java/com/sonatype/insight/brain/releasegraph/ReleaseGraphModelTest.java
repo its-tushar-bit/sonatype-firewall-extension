@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.releasegraph;
 
 import com.sonatype.insight.brain.model.ComponentPopularity;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.releasegraph.ReleaseGraphModel.SLOTS;
+import static org.junit.Assert.assertEquals;
 
 public class ReleaseGraphModelTest
 {
@@ -21,11 +21,11 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
-    Assert.assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
-    Assert.assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
+    assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
+    assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
   }
 
   @Test
@@ -34,11 +34,11 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(0, model.getSlotIndices()[0]);
-    Assert.assertEquals(1, model.getSlotIndices()[1]);
-    Assert.assertEquals(2, model.getSlotIndices()[2]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(0, model.getSlotIndices()[0]);
+    assertEquals(1, model.getSlotIndices()[1]);
+    assertEquals(2, model.getSlotIndices()[2]);
   }
 
   @Test
@@ -47,11 +47,11 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(0, model.getSlotIndices()[1]);
-    Assert.assertEquals(1, model.getSlotIndices()[2]);
-    Assert.assertEquals(2, model.getSlotIndices()[3]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(0, model.getSlotIndices()[1]);
+    assertEquals(1, model.getSlotIndices()[2]);
+    assertEquals(2, model.getSlotIndices()[3]);
   }
 
   @Test
@@ -61,11 +61,11 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(0, model.getSlotIndices()[0]);
-    Assert.assertEquals(1, model.getSlotIndices()[1]);
-    Assert.assertEquals(2, model.getSlotIndices()[2]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(0, model.getSlotIndices()[0]);
+    assertEquals(1, model.getSlotIndices()[1]);
+    assertEquals(2, model.getSlotIndices()[2]);
   }
 
   @Test
@@ -75,33 +75,33 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
-    Assert.assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
-    Assert.assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
+    assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
+    assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
 
     // Push down into occupied interesting
     catalogDates = new long[] { 97, 100, 100 };
     popularity = new int[] { 98, 100, 99 };
 
     model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
-    Assert.assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
-    Assert.assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
+    assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
+    assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
 
     // Push down into occupied uninteresting
     catalogDates = new long[] { 0, 97, 100, 100 };
     popularity = new int[] { 50, 9, 100, 99 };
 
     model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 2);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 3);
-    Assert.assertEquals(3, model.getSlotIndices()[SLOTS - 1]);
-    Assert.assertEquals(2, model.getSlotIndices()[SLOTS - 2]);
-    Assert.assertEquals(-1, model.getSlotIndices()[SLOTS - 3]);
+    assertEquals(model.getMostPopularVersionIndex(), 2);
+    assertEquals(model.getMostRecentVersionIndex(), 3);
+    assertEquals(3, model.getSlotIndices()[SLOTS - 1]);
+    assertEquals(2, model.getSlotIndices()[SLOTS - 2]);
+    assertEquals(-1, model.getSlotIndices()[SLOTS - 3]);
   }
 
   @Test
@@ -112,11 +112,11 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(2, model.getSlotIndices()[SLOTS - 2]);
-    Assert.assertEquals(1, model.getSlotIndices()[SLOTS - 3]);
-    Assert.assertEquals(0, model.getSlotIndices()[SLOTS - 4]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(2, model.getSlotIndices()[SLOTS - 2]);
+    assertEquals(1, model.getSlotIndices()[SLOTS - 3]);
+    assertEquals(0, model.getSlotIndices()[SLOTS - 4]);
   }
 
   @Test
@@ -126,11 +126,11 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(model.getMostPopularVersionIndex(), 1);
-    Assert.assertEquals(model.getMostRecentVersionIndex(), 2);
-    Assert.assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
-    Assert.assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
-    Assert.assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
+    assertEquals(model.getMostPopularVersionIndex(), 1);
+    assertEquals(model.getMostRecentVersionIndex(), 2);
+    assertEquals(2, model.getSlotIndices()[SLOTS - 1]);
+    assertEquals(1, model.getSlotIndices()[SLOTS - 2]);
+    assertEquals(0, model.getSlotIndices()[SLOTS - 3]);
   }
 
   @Test
@@ -139,9 +139,9 @@ public class ReleaseGraphModelTest
     int[] popularity = new int[] { 98, 100, 50, 25, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
-    Assert.assertEquals(1, model.getMostPopularVersionIndex());
-    Assert.assertEquals(4, model.getMostRecentVersionIndex());
-    Assert.assertEquals(2, model.getSlotIndices()[24]);
+    assertEquals(1, model.getMostPopularVersionIndex());
+    assertEquals(4, model.getMostRecentVersionIndex());
+    assertEquals(2, model.getSlotIndices()[24]);
   }
 
   private static ComponentPopularity buildGavPopularity(long[] catalogDates, int[] popularity, int currentVersionIndex)

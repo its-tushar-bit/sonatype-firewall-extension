@@ -13,12 +13,14 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public abstract class AbstractDatabaseProviderTest
     extends AbstractDatabaseTest
@@ -34,19 +36,19 @@ public abstract class AbstractDatabaseProviderTest
 
     initDatabase(databaseConfig);
     DataSource dataSource = getDataSource();
-    Assert.assertNotNull(dataSource);
+    assertNotNull(dataSource);
     try (Connection conn = dataSource.getConnection()) {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute("SELECT * FROM test_table");
       }
 
       String databaseURL = conn.getMetaData().getURL();
-      Assert.assertNotNull(databaseURL);
+      assertNotNull(databaseURL);
       if (databaseConfig != null) {
-        Assert.assertTrue(databaseConfig.getUrl().startsWith(databaseURL + ";"));
+        assertTrue(databaseConfig.getUrl().startsWith(databaseURL + ";"));
       }
       else {
-        Assert.assertEquals("jdbc:h2:mem:inMemoryDatabase", databaseURL);
+        assertEquals("jdbc:h2:mem:inMemoryDatabase", databaseURL);
       }
     }
 
@@ -60,15 +62,15 @@ public abstract class AbstractDatabaseProviderTest
 
     // New database
     verifyDatabaseCreation(databaseConfig);
-    Assert.assertTrue(databaseDir.exists());
-    Assert.assertTrue(new File(databaseDir, "test.h2.db").exists());
+    assertTrue(databaseDir.exists());
+    assertTrue(new File(databaseDir, "test.h2.db").exists());
     DataSourceFactory.clear_ForTestsOnly();
 
     // Existing database
     DataSourceFactory.clear_ForTestsOnly();
     verifyDatabaseCreation(databaseConfig);
-    Assert.assertTrue(databaseDir.exists());
-    Assert.assertTrue(new File(databaseDir, "test.h2.db").exists());
+    assertTrue(databaseDir.exists());
+    assertTrue(new File(databaseDir, "test.h2.db").exists());
   }
 
   @Test

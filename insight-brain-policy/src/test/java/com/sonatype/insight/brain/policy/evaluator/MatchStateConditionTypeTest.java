@@ -19,8 +19,11 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class MatchStateConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -52,8 +55,8 @@ public class MatchStateConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
   }
@@ -81,8 +84,8 @@ public class MatchStateConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(2, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
@@ -94,7 +97,7 @@ public class MatchStateConditionTypeTest
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "abc");
     try {
       new MatchStateConditionType().validateCondition(null, condition, null /* applicationId */);
-      Assert.fail("Expected InvalidConditionException");
+      fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
       if (!expected.getMessage().endsWith("Value not supported: abc")) {

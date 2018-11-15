@@ -18,8 +18,10 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
@@ -42,8 +44,8 @@ public class LicenseThreatGroupLicenseResourceTest
     HttpResponse response = restRequest(ownerType, ownerPublicId, group.getId()).get();
     assertResponseStatus(200, response);
     LicenseThreatGroupLicense[] licenseThreatGroupLicenses = response.getBody(LicenseThreatGroupLicense[].class);
-    Assert.assertNotNull(licenseThreatGroupLicenses);
-    Assert.assertEquals(0, licenseThreatGroupLicenses.length);
+    assertNotNull(licenseThreatGroupLicenses);
+    assertEquals(0, licenseThreatGroupLicenses.length);
 
     // Set
     Set<String> licenseIds = new LinkedHashSet<>();
@@ -54,8 +56,8 @@ public class LicenseThreatGroupLicenseResourceTest
 
     // Get
     licenseThreatGroupLicenses = response.getBody(LicenseThreatGroupLicense[].class);
-    Assert.assertNotNull(licenseThreatGroupLicenses);
-    Assert.assertEquals(2, licenseThreatGroupLicenses.length);
+    assertNotNull(licenseThreatGroupLicenses);
+    assertEquals(2, licenseThreatGroupLicenses.length);
     assertLicenseThreatGroupLicense(ownerId, group.getId(), "Apache-2.0", licenseThreatGroupLicenses[0]);
     assertLicenseThreatGroupLicense(ownerId, group.getId(), "GPL-2.0", licenseThreatGroupLicenses[1]);
   }
@@ -78,8 +80,8 @@ public class LicenseThreatGroupLicenseResourceTest
                                                String licenseId,
                                                LicenseThreatGroupLicense actual)
   {
-    Assert.assertEquals(ownerId, actual.getOwnerId());
-    Assert.assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());
-    Assert.assertEquals(licenseId, actual.getLicenseId());
+    assertEquals(ownerId, actual.getOwnerId());
+    assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());
+    assertEquals(licenseId, actual.getLicenseId());
   }
 }

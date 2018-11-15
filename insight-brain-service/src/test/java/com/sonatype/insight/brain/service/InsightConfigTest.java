@@ -10,53 +10,53 @@ import java.util.List;
 
 import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.validation.ConstraintViolations;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 
 public class InsightConfigTest
 {
   @Test
   public void testBaseUrl() {
     InsightConfig config = new InsightConfig();
-    Assert.assertEquals(null, config.getBaseUrl());
-    Assert.assertEquals(true, config.isValidBaseUrl());
+    assertEquals(null, config.getBaseUrl());
+    assertEquals(true, config.isValidBaseUrl());
 
     config.setBaseUrl("https://clm.sonatype.com/");
-    Assert.assertEquals("https://clm.sonatype.com/", config.getBaseUrl());
-    Assert.assertEquals(true, config.isValidBaseUrl());
+    assertEquals("https://clm.sonatype.com/", config.getBaseUrl());
+    assertEquals(true, config.isValidBaseUrl());
 
     config.setBaseUrl("https://clm.sonatype.com");
-    Assert.assertEquals("https://clm.sonatype.com/", config.getBaseUrl());
-    Assert.assertEquals(true, config.isValidBaseUrl());
+    assertEquals("https://clm.sonatype.com/", config.getBaseUrl());
+    assertEquals(true, config.isValidBaseUrl());
 
     config.setBaseUrl("invalid");
-    Assert.assertEquals(false, config.isValidBaseUrl());
+    assertEquals(false, config.isValidBaseUrl());
   }
 
   @Test
   public void testCdnUrl() {
     InsightConfig config = new InsightConfig();
-    Assert.assertEquals("http://cdn.sonatype.com/", config.getCdnUrl());
-    Assert.assertEquals(true, config.isValidCdnUrl());
+    assertEquals("http://cdn.sonatype.com/", config.getCdnUrl());
+    assertEquals(true, config.isValidCdnUrl());
 
     config.setCdnUrl("https://clm.sonatype.com/");
-    Assert.assertEquals("https://clm.sonatype.com/", config.getCdnUrl());
-    Assert.assertEquals(true, config.isValidCdnUrl());
+    assertEquals("https://clm.sonatype.com/", config.getCdnUrl());
+    assertEquals(true, config.isValidCdnUrl());
 
     config.setCdnUrl("https://clm.sonatype.com");
-    Assert.assertEquals("https://clm.sonatype.com/", config.getCdnUrl());
-    Assert.assertEquals(true, config.isValidCdnUrl());
+    assertEquals("https://clm.sonatype.com/", config.getCdnUrl());
+    assertEquals(true, config.isValidCdnUrl());
 
     config.setCdnUrl("invalid");
-    Assert.assertEquals(false, config.isValidCdnUrl());
+    assertEquals(false, config.isValidCdnUrl());
 
     config.setCdnUrl(null);
-    Assert.assertEquals(false, config.isValidCdnUrl());
+    assertEquals(false, config.isValidCdnUrl());
   }
 
   @Test

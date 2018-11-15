@@ -17,11 +17,11 @@ import com.sonatype.insight.test.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.fail;
 
 /**
  * This may sound silly, but this test actually tests test LDAP server.
@@ -87,7 +87,7 @@ public class EmbeddedLdapServerTest
     env.put("java.naming.security.sasl.realm", "wrongrealm");
     try {
       new InitialDirContext(env).close();
-      Assert.fail();
+      fail();
     }
     catch (NamingException expected) {
       assertThat(expected.toString(), containsString("Nonexistent realm: wrongrealm"));
@@ -125,7 +125,7 @@ public class EmbeddedLdapServerTest
     for (String mechanism : mechanisms) {
       try {
         login(mechanism);
-        Assert.fail();
+        fail();
       }
       catch (AuthenticationException expected) {
         // oddly, apacheds throws auth exception for unsupported simple auth

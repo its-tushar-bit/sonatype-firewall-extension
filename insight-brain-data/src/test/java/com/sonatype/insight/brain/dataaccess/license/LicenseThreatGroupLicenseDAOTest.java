@@ -14,8 +14,13 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class LicenseThreatGroupLicenseDAOTest
     extends AbstractDbDAOTest
@@ -36,10 +41,10 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseThreatGroupLicense.setLicenseThreatGroupId(group.getId());
     licenseThreatGroupLicense.setLicenseId("UNSPECIFIED");
     dao.insert(licenseThreatGroupLicense);
-    Assert.assertNotNull(licenseThreatGroupLicense.getId());
+    assertNotNull(licenseThreatGroupLicense.getId());
 
     licenseThreatGroupLicense = dao.getById(licenseThreatGroupLicense.getId());
-    Assert.assertNotNull(licenseThreatGroupLicense);
+    assertNotNull(licenseThreatGroupLicense);
     assertLicenseThreatGroupLicense(ownerId, group.getId(), "UNSPECIFIED", licenseThreatGroupLicense);
 
     // Update
@@ -49,7 +54,7 @@ public class LicenseThreatGroupLicenseDAOTest
     dao.delete(licenseThreatGroupLicense);
 
     licenseThreatGroupLicense = dao.getById(licenseThreatGroupLicense.getId());
-    Assert.assertNull(licenseThreatGroupLicense);
+    assertNull(licenseThreatGroupLicense);
   }
 
   @Test
@@ -83,7 +88,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseThreatGroupLicense.setLicenseId("UNSPECIFIED");
     try {
       dao.insert(licenseThreatGroupLicense);
-      Assert.fail("Expected InvalidLicenseThreatGroupLicenseException");
+      fail("Expected InvalidLicenseThreatGroupLicenseException");
     }
     catch (InvalidLicenseThreatGroupLicenseException expected) {
       if (!"The license is already in the license threat group".equals(expected.getMessage())) {
@@ -110,7 +115,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseThreatGroupLicense.setLicenseId("BAZINGAAA");
     try {
       dao.insert(licenseThreatGroupLicense);
-      Assert.fail("Expected NotFoundException");
+      fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
       if (!"A license with ID 'BAZINGAAA' does not exist.".equals(expected.getMessage())) {
@@ -144,7 +149,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseIds.add("Apache-2.0");
     dao.setLicenses(groupId, licenseIds);
     List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId(groupId);
-    Assert.assertEquals(1, licenseThreatGroupLicenses.size());
+    assertEquals(1, licenseThreatGroupLicenses.size());
     assertLicenseThreatGroupLicense(applicationId, groupId, "Apache-2.0", licenseThreatGroupLicenses.get(0));
 
     // Set a different license
@@ -152,7 +157,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseIds.add("GPL-2.0");
     dao.setLicenses(groupId, licenseIds);
     licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId(groupId);
-    Assert.assertEquals(1, licenseThreatGroupLicenses.size());
+    assertEquals(1, licenseThreatGroupLicenses.size());
     assertLicenseThreatGroupLicense(applicationId, groupId, "GPL-2.0", licenseThreatGroupLicenses.get(0));
 
     // Set two licenses
@@ -161,7 +166,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseIds.add("Apache-2.0");
     dao.setLicenses(groupId, licenseIds);
     licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId(groupId);
-    Assert.assertEquals(2, licenseThreatGroupLicenses.size());
+    assertEquals(2, licenseThreatGroupLicenses.size());
     assertLicenseThreatGroupLicense(applicationId, groupId, "Apache-2.0", licenseThreatGroupLicenses.get(0));
     assertLicenseThreatGroupLicense(applicationId, groupId, "GPL-2.0", licenseThreatGroupLicenses.get(1));
 
@@ -169,7 +174,7 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseIds.clear();
     dao.setLicenses(groupId, licenseIds);
     licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId(groupId);
-    Assert.assertEquals(0, licenseThreatGroupLicenses.size());
+    assertEquals(0, licenseThreatGroupLicenses.size());
   }
 
   @Test
@@ -194,14 +199,14 @@ public class LicenseThreatGroupLicenseDAOTest
     LicenseThreatGroupLicense licenseThreatGroupLicense1 = new LicenseThreatGroupLicense(ownerId, group1.getId(),
         "UNSPECIFIED");
     dao.insert(licenseThreatGroupLicense1);
-    Assert.assertNotNull(licenseThreatGroupLicense1.getId());
+    assertNotNull(licenseThreatGroupLicense1.getId());
 
     LicenseThreatGroupLicense licenseThreatGroupLicense2 = new LicenseThreatGroupLicense(ownerId, group2.getId(),
         "UNSPECIFIED");
     dao.insert(licenseThreatGroupLicense2);
-    Assert.assertNotNull(licenseThreatGroupLicense2.getId());
+    assertNotNull(licenseThreatGroupLicense2.getId());
 
-    Assert.assertFalse(licenseThreatGroupLicense1.getId().equals(licenseThreatGroupLicense2.getId()));
+    assertFalse(licenseThreatGroupLicense1.getId().equals(licenseThreatGroupLicense2.getId()));
   }
 
   private void assertLicenseThreatGroupLicense(String ownerId,
@@ -209,8 +214,8 @@ public class LicenseThreatGroupLicenseDAOTest
                                                String licenseId,
                                                LicenseThreatGroupLicense actual)
   {
-    Assert.assertEquals(ownerId, actual.getOwnerId());
-    Assert.assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());
-    Assert.assertEquals(licenseId, actual.getLicenseId());
+    assertEquals(ownerId, actual.getOwnerId());
+    assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());
+    assertEquals(licenseId, actual.getLicenseId());
   }
 }

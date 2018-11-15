@@ -23,10 +23,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
-
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 abstract class AbstractLicenseThreatGroupResourceTest
@@ -43,7 +43,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
     HttpResponse response = restRequest(owner2.getPublicId()).path(group.getId()).delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a license threat group with ID " + group.getId() + " for " + getOwnerType()
+    assertEquals("Cannot find a license threat group with ID " + group.getId() + " for " + getOwnerType()
         + " ID " + owner2.getPublicId(), response.getBodyText());
 
     // Verify that the group was not deleted
@@ -76,14 +76,14 @@ abstract class AbstractLicenseThreatGroupResourceTest
       error = error + " " + policyLocation;
     }
 
-    Assert.assertEquals(error, response.getBodyText());
-    Assert.assertNotNull(new LicenseThreatGroupDAO().getById(ltg.getId()));
+    assertEquals(error, response.getBodyText());
+    assertNotNull(new LicenseThreatGroupDAO().getById(ltg.getId()));
   }
 
   protected void assertLicenseThreatGroup(String ownerId, String name, int threatLevel, LicenseThreatGroup actual) {
-    Assert.assertEquals(ownerId, actual.getOwnerId());
-    Assert.assertEquals(name, actual.getName());
-    Assert.assertEquals(threatLevel, actual.getThreatLevel());
+    assertEquals(ownerId, actual.getOwnerId());
+    assertEquals(name, actual.getName());
+    assertEquals(threatLevel, actual.getThreatLevel());
   }
 
   protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(String ownerId) throws Exception {
@@ -98,13 +98,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
                                                   int licenseThreatGroupCount,
                                                   LicenseThreatGroupsByOwner actual)
   {
-    Assert.assertEquals(ownerId, actual.ownerId);
-    Assert.assertEquals(ownerName, actual.ownerName);
-    Assert.assertEquals(ownerType, actual.ownerType);
-    Assert.assertNotNull(actual.licenseThreatGroups);
-    Assert.assertEquals(licenseThreatGroupCount, actual.licenseThreatGroups.size());
+    assertEquals(ownerId, actual.ownerId);
+    assertEquals(ownerName, actual.ownerName);
+    assertEquals(ownerType, actual.ownerType);
+    assertNotNull(actual.licenseThreatGroups);
+    assertEquals(licenseThreatGroupCount, actual.licenseThreatGroups.size());
     for (LicenseThreatGroupWithLicenses ltgwl : actual.licenseThreatGroups) {
-      Assert.assertNotNull(ltgwl.licenses);
+      assertNotNull(ltgwl.licenses);
     }
   }
 

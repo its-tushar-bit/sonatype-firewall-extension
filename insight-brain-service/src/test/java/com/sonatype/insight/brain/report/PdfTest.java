@@ -10,9 +10,11 @@ import com.sonatype.insight.brain.organization.ContactDTO;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class PdfTest
 {
@@ -43,10 +45,10 @@ public class PdfTest
     String email = summary.get("applicationContactEmail").asText();
     String displayName = summary.get("applicationContactName").asText();
 
-    Assert.assertEquals(projectName, summaryApplicationName);
-    Assert.assertEquals(stageName, summaryStageName);
-    Assert.assertEquals("email", email);
-    Assert.assertEquals("displayName", displayName);
+    assertEquals(projectName, summaryApplicationName);
+    assertEquals(stageName, summaryStageName);
+    assertEquals("email", email);
+    assertEquals("displayName", displayName);
   }
 
   /*
@@ -59,8 +61,8 @@ public class PdfTest
     String summaryProjectName = summary.get("projectName").asText();
     String summaryBuildName = summary.get("buildNumber").asText();
 
-    Assert.assertEquals(projectName, summaryProjectName);
-    Assert.assertEquals(stageName, summaryBuildName);
+    assertEquals(projectName, summaryProjectName);
+    assertEquals(stageName, summaryBuildName);
   }
 
   @Test
@@ -71,11 +73,11 @@ public class PdfTest
     String summaryBuildName = summary.get("buildNumber").asText();
     String summaryStageName = summary.get("stageName").asText();
 
-    Assert.assertEquals(projectName, summaryApplicationName);
-    Assert.assertEquals(stageName, summaryBuildName);
-    Assert.assertEquals(stageName, summaryStageName);
-    Assert.assertNull(summary.get("applicationContactEmail"));
-    Assert.assertNull(summary.get("applicationContactName"));
+    assertEquals(projectName, summaryApplicationName);
+    assertEquals(stageName, summaryBuildName);
+    assertEquals(stageName, summaryStageName);
+    assertNull(summary.get("applicationContactEmail"));
+    assertNull(summary.get("applicationContactName"));
   }
 
   @Test
@@ -87,10 +89,10 @@ public class PdfTest
     String summaryBuildName = summary.get("buildNumber").asText();
     String displayName = summary.get("applicationContactName").asText();
 
-    Assert.assertEquals(projectName, summaryApplicationName);
-    Assert.assertEquals(stageName, summaryBuildName);
-    Assert.assertNull(summary.get("applicationContactEmail"));
-    Assert.assertEquals("displayName", displayName);
+    assertEquals(projectName, summaryApplicationName);
+    assertEquals(stageName, summaryBuildName);
+    assertNull(summary.get("applicationContactEmail"));
+    assertEquals("displayName", displayName);
   }
 
   @Test
@@ -102,10 +104,10 @@ public class PdfTest
     String summaryBuildName = summary.get("buildNumber").asText();
     String email = summary.get("applicationContactEmail").asText();
 
-    Assert.assertEquals(projectName, summaryApplicationName);
-    Assert.assertEquals(stageName, summaryBuildName);
-    Assert.assertEquals("email", email);
-    Assert.assertNull(summary.get("applicationContactName"));
+    assertEquals(projectName, summaryApplicationName);
+    assertEquals(stageName, summaryBuildName);
+    assertEquals("email", email);
+    assertNull(summary.get("applicationContactName"));
   }
 
 }

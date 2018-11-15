@@ -247,7 +247,7 @@ public class PolicyWaiverResourceTest
 
     response = restRequest(ownerType, ownerPublicId2).path(policyWaiver.getId()).delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID "
+    assertEquals("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID "
         + ownerPublicId2, response.getBodyText());
     // Verify that the policy waiver was not deleted
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -263,7 +263,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
 
   @Test
@@ -272,7 +272,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
 
   @Test
@@ -281,7 +281,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
 
   @Test
@@ -289,7 +289,7 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.SINGLETON.getId()).path(
         "YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
 
   private void assertPolicyWaiver(String policyId, String ownerId, String comment, PolicyWaiver actual) {

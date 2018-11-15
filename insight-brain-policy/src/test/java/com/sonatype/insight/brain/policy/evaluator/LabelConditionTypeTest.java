@@ -26,12 +26,14 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class LabelConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -86,8 +88,8 @@ public class LabelConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLabel(labelId1));
@@ -98,7 +100,7 @@ public class LabelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    Assert.assertEquals("Found label 'Good'.", actualReason);
+    assertEquals("Found label 'Good'.", actualReason);
   }
 
   @Test
@@ -132,8 +134,8 @@ public class LabelConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(2, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
 
@@ -146,11 +148,11 @@ public class LabelConditionTypeTest
 
     String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    Assert.assertEquals("Did not find label 'Good'.", actualReason1);
+    assertEquals("Did not find label 'Good'.", actualReason1);
 
     String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    Assert.assertEquals("Did not find label 'Good'.", actualReason2);
+    assertEquals("Did not find label 'Good'.", actualReason2);
   }
 
   @Test
@@ -184,8 +186,8 @@ public class LabelConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLabel(labelId1));
@@ -196,7 +198,7 @@ public class LabelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    Assert.assertEquals("Found label 'Good'.", actualReason);
+    assertEquals("Found label 'Good'.", actualReason);
   }
 
   @Test
@@ -204,7 +206,7 @@ public class LabelConditionTypeTest
     Condition condition = new Condition(LabelConditionType.ID, "is", "abc");
     try {
       new LabelConditionType().validateCondition(null, condition, applicationId);
-      Assert.fail("Expected InvalidConditionException");
+      fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
       if (!expected.getMessage().endsWith("Invalid label id: abc")) {
@@ -231,8 +233,8 @@ public class LabelConditionTypeTest
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(0, policyAlerts.size());
+    assertNotNull(policyAlerts);
+    assertEquals(0, policyAlerts.size());
   }
 
   @Test
@@ -266,7 +268,7 @@ public class LabelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    Assert.assertEquals("Found label 'Good'.", actualReason);
+    assertEquals("Found label 'Good'.", actualReason);
   }
 
   @Test

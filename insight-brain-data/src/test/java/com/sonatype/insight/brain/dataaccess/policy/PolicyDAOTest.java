@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +37,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -61,7 +63,7 @@ public class PolicyDAOTest
     // Update the policy
     try {
       policyDAO.update(policy);
-      Assert.fail("Expected NotFoundException");
+      fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
       if (!"Cannot find a policy with ID yeti.".equals(expected.getMessage())) {
@@ -91,7 +93,7 @@ public class PolicyDAOTest
     policy.addConstraint(constraint);
     try {
       policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
       if (!"A policy with name 'PolicyDAOTest new policy' already exists".equals(expected.getMessage())) {
@@ -103,10 +105,10 @@ public class PolicyDAOTest
     policy.setName(policyName.replace("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
       policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with name 'PolicyDAOTest new policy' already exists", expected.getMessage());
+      assertEquals("A policy with name 'PolicyDAOTest new policy' already exists", expected.getMessage());
     }
   }
 
@@ -191,7 +193,7 @@ public class PolicyDAOTest
     policy1.setName(policyName2);
     try {
       policyDAO.update(policy1);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
       if (!"A policy with name 'PolicyDAOTest new policy 2' already exists".equals(expected.getMessage())) {
@@ -203,10 +205,10 @@ public class PolicyDAOTest
     policy1.setName(policyName2.replace("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
       policyDAO.update(policy1);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with name 'PolicyDAOTest new policy 2' already exists", expected.getMessage());
+      assertEquals("A policy with name 'PolicyDAOTest new policy 2' already exists", expected.getMessage());
     }
   }
 
@@ -254,48 +256,48 @@ public class PolicyDAOTest
     final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint1);
-    Assert.assertNull(policy.getId());
-    Assert.assertNull(constraint1.getId());
+    assertNull(policy.getId());
+    assertNull(constraint1.getId());
 
     policyDAO.insert(policy);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
     String constraintId1 = constraint1.getId();
 
     List<Policy> policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(1, policies.size());
+    assertNotNull(policies);
+    assertEquals(1, policies.size());
     assertPolicy(policy, policies.get(0));
     policy = policies.get(0);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
 
     // Update the policy - new constraint without id
     policy.setName("PolicyDAOTest updated policy");
     Constraint constraint2 = new Constraint(null, "PolicyDAOTest new constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint2);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
-    Assert.assertNull(constraint2.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
+    assertNull(constraint2.getId());
 
     policyDAO.update(policy);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
-    Assert.assertEquals(constraintId1, constraint1.getId());
-    Assert.assertNotNull(constraint2.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
+    assertEquals(constraintId1, constraint1.getId());
+    assertNotNull(constraint2.getId());
     String constraintId2 = constraint2.getId();
 
     policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(1, policies.size());
+    assertNotNull(policies);
+    assertEquals(1, policies.size());
     assertPolicy(policy, policies.get(0));
     policy = policies.get(0);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
-    Assert.assertEquals(constraintId1, constraint1.getId());
-    Assert.assertNotNull(constraint2.getId());
-    Assert.assertEquals(constraintId2, constraint2.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
+    assertEquals(constraintId1, constraint1.getId());
+    assertNotNull(constraint2.getId());
+    assertEquals(constraintId2, constraint2.getId());
 
     // Update the policy - new constraint with id - the id should be reallocated during the update
     policy.setName("PolicyDAOTest updated again policy");
@@ -303,33 +305,33 @@ public class PolicyDAOTest
     Constraint constraint3 = new Constraint(constraintId3, "PolicyDAOTest new constraint 3", LogicalOperator.AND);
     constraint3.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint3);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
-    Assert.assertNotNull(constraint2.getId());
-    Assert.assertNotNull(constraint3.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
+    assertNotNull(constraint2.getId());
+    assertNotNull(constraint3.getId());
 
     policyDAO.update(policy);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
-    Assert.assertEquals(constraintId1, constraint1.getId());
-    Assert.assertNotNull(constraint2.getId());
-    Assert.assertEquals(constraintId2, constraint2.getId());
-    Assert.assertNotNull(constraint3.getId());
-    Assert.assertNotEquals(constraintId3, constraint3.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
+    assertEquals(constraintId1, constraint1.getId());
+    assertNotNull(constraint2.getId());
+    assertEquals(constraintId2, constraint2.getId());
+    assertNotNull(constraint3.getId());
+    assertNotEquals(constraintId3, constraint3.getId());
     constraintId3 = constraint3.getId();
 
     policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(1, policies.size());
+    assertNotNull(policies);
+    assertEquals(1, policies.size());
     assertPolicy(policy, policies.get(0));
     policy = policies.get(0);
-    Assert.assertNotNull(policy.getId());
-    Assert.assertNotNull(constraint1.getId());
-    Assert.assertEquals(constraintId1, constraint1.getId());
-    Assert.assertNotNull(constraint2.getId());
-    Assert.assertEquals(constraintId2, constraint2.getId());
-    Assert.assertNotNull(constraint3.getId());
-    Assert.assertEquals(constraintId3, constraint3.getId());
+    assertNotNull(policy.getId());
+    assertNotNull(constraint1.getId());
+    assertEquals(constraintId1, constraint1.getId());
+    assertNotNull(constraint2.getId());
+    assertEquals(constraintId2, constraint2.getId());
+    assertNotNull(constraint3.getId());
+    assertEquals(constraintId3, constraint3.getId());
   }
 
   @Test
@@ -345,8 +347,8 @@ public class PolicyDAOTest
 
     // Get
     List<Policy> policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(1, policies.size());
+    assertNotNull(policies);
+    assertEquals(1, policies.size());
     policy.setOwnerId(applicationId);
     assertPolicy(policy, policies.get(0));
 
@@ -355,14 +357,14 @@ public class PolicyDAOTest
     policyDAO.update(policy);
 
     policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(1, policies.size());
+    assertNotNull(policies);
+    assertEquals(1, policies.size());
     assertPolicy(policy, policies.get(0));
 
     // Get
     policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(1, policies.size());
+    assertNotNull(policies);
+    assertEquals(1, policies.size());
     assertPolicy(policy, policies.get(0));
 
     // Delete
@@ -370,8 +372,8 @@ public class PolicyDAOTest
 
     // Get
     policies = policyDAO.getByOwnerId(applicationId);
-    Assert.assertNotNull(policies);
-    Assert.assertEquals(0, policies.size());
+    assertNotNull(policies);
+    assertEquals(0, policies.size());
   }
 
   @Test
@@ -384,7 +386,7 @@ public class PolicyDAOTest
     policy.addConstraint(constraint1);
     try {
       policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
       if (!"The policy name is required.".equals(expected.getMessage())) {
@@ -403,7 +405,7 @@ public class PolicyDAOTest
     policy.setName(null);
     try {
       policyDAO.update(policy);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
     }
@@ -418,27 +420,27 @@ public class PolicyDAOTest
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy1.addConstraint(constraint1);
     policyDAO.insert(policy1);
-    Assert.assertEquals(1, policyDAO.getByOwnerId(applicationId).size());
+    assertEquals(1, policyDAO.getByOwnerId(applicationId).size());
 
     try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
       tx.begin();
       policyDAO.deleteByOwnerId(tx, applicationId);
       tx.commit();
     }
-    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationId).size());
+    assertEquals(0, policyDAO.getByOwnerId(applicationId).size());
   }
 
   private static void assertPolicy(final Policy expected, final Policy actual) {
-    Assert.assertEquals(expected.getId(), actual.getId());
-    Assert.assertEquals(expected.getName(), actual.getName());
-    Assert.assertEquals(expected.getOwnerId(), actual.getOwnerId());
-    Assert.assertEquals(expected.getThreatLevel(), actual.getThreatLevel());
+    assertEquals(expected.getId(), actual.getId());
+    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getOwnerId(), actual.getOwnerId());
+    assertEquals(expected.getThreatLevel(), actual.getThreatLevel());
     assertThat(actual.getDroolsCode(), is(notNullValue()));
     assertThat(actual.getDroolsCode(), containsString("// Begin policy: " + expected.getName()));
 
     List<Constraint> expectedConstraints = expected.getConstraints();
     List<Constraint> actualConstraints = actual.getConstraints();
-    Assert.assertEquals(expectedConstraints.size(), actualConstraints.size());
+    assertEquals(expectedConstraints.size(), actualConstraints.size());
 
     for (int i = 0; i < expectedConstraints.size(); i++) {
       assertConstraint(expectedConstraints.get(i), actualConstraints.get(i));
@@ -446,13 +448,13 @@ public class PolicyDAOTest
   }
 
   private static void assertConstraint(Constraint expected, Constraint actual) {
-    Assert.assertEquals(expected.getId(), actual.getId());
-    Assert.assertEquals(expected.getName(), actual.getName());
-    Assert.assertEquals(expected.getOperator(), actual.getOperator());
+    assertEquals(expected.getId(), actual.getId());
+    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getOperator(), actual.getOperator());
 
     List<Condition> expectedConditions = expected.getConditions();
     List<Condition> actualConditions = actual.getConditions();
-    Assert.assertEquals(expectedConditions.size(), actualConditions.size());
+    assertEquals(expectedConditions.size(), actualConditions.size());
 
     for (int i = 0; i < expectedConditions.size(); i++) {
       assertCondition(expectedConditions.get(i), actualConditions.get(i));
@@ -460,9 +462,9 @@ public class PolicyDAOTest
   }
 
   private static void assertCondition(Condition expected, Condition actual) {
-    Assert.assertEquals(expected.getConditionTypeId(), actual.getConditionTypeId());
-    Assert.assertEquals(expected.getOperator(), actual.getOperator());
-    Assert.assertEquals(expected.getValue(), actual.getValue());
+    assertEquals(expected.getConditionTypeId(), actual.getConditionTypeId());
+    assertEquals(expected.getOperator(), actual.getOperator());
+    assertEquals(expected.getValue(), actual.getValue());
   }
 
   private Policy newPolicy(String ownerId, String name) {

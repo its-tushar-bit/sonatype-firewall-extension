@@ -18,13 +18,13 @@ import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 
 public class PolicyClientTest
     extends AbstractBrainServiceTest
@@ -35,7 +35,7 @@ public class PolicyClientTest
     PolicyClient policyClient = new PolicyClient(getCLMServer().getClientConfiguration(), appId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.MANAGEMENT_PATH);
-    Assert.assertEquals(policyClient.linkToManagement(), uriBuilder.build(OwnerType.APPLICATION, appId).toString());
+    assertEquals(policyClient.linkToManagement(), uriBuilder.build(OwnerType.APPLICATION, appId).toString());
   }
 
   @Test

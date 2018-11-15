@@ -78,7 +78,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_PolicyIdLessThanGreaterThan() {
+  public void testCompare_PolicyId_LessThanGreaterThan() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("2", "Policy", 1, "hash", componentA);
 
@@ -86,7 +86,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_PolicyNameIgnored() {
+  public void testCompare_PolicyNameIsIgnored() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy1", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy2", 1, "hash", componentA);
 
@@ -94,7 +94,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_ThreatLevelLessThanGreaterThan() {
+  public void testCompare_ThreatLevel_LessThanGreaterThan() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 2, "hash", componentA);
 
@@ -102,7 +102,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_HashLessThanGreaterThan() {
+  public void testCompare_Hash_LessThanGreaterThan() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash1", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash2", componentA);
 
@@ -110,7 +110,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_HashNullLessThanGreaterThan() {
+  public void testCompare_HashNull_LessThanGreaterThan() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, null, componentA);
 
@@ -118,7 +118,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_ComponentIdentifierLessThanGreaterThan() {
+  public void testCompare_ComponentIdentifier_LessThanGreaterThan() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentB);
 
@@ -126,7 +126,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_ComponentIdentifier1NullLessThanGreaterThan() {
+  public void testCompare_ComponentIdentifier1Null_LessThanGreaterThan() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", null);
 
@@ -134,7 +134,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_PolicyViolationEquals() {
+  public void testCompare_PolicyViolation_Equal() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
 
@@ -193,7 +193,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_ConstraintFactsNameIgnored() {
+  public void testCompare_ConstraintFactsNameAreIgnored() {
     ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
         new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -328,8 +328,8 @@ public class PolicyViolationComparatorTest
 
   @Test
   // Before Brain 1.53, constraint facts were serialized as formatted json and condition fact triggers were formatted
-  // twice, which caused line separators to be encoded in json.
-  public void testCompare_ConditionFactsTriggers_LegacyTriggerContainsEncodedLineSeparators() {
+  // twice, which caused line separators to be encoded in json. Also, the condition trigger json contained white spaces.
+  public void testCompare_ConditionFactsTriggers_LegacyTriggerContainsEncodedLineSeparatorsAndWhitespace() {
     // New policy violation with condition trigger serialized as unformatted json.
     ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
@@ -361,7 +361,7 @@ public class PolicyViolationComparatorTest
 
     // Violation formatted like v1, but with slightly different data.  Since the other three violations are all equal,
     // they should all compare to this one the same way. If a naive lexical comparison were done, v4 would come out
-    // above v2 and v3 because '"' is higher than newline characters
+    // above v2 and v3 because '"' is higher than newline characters.
     ConditionFact conditionFact4 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
     conditionFact4
@@ -458,5 +458,4 @@ public class PolicyViolationComparatorTest
     result = (int) Math.signum(result);
     assertThat(result, is(-expectedResult));
   }
-
 }

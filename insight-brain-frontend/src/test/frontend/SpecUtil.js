@@ -38,7 +38,8 @@ window.SpecUtil = {
       }
     }
 
-    return new RegExp(url.replace('?', '\\?') + (!addedTimestamp ? ((url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+') : ''));
+    return new RegExp(url.replace('?', '\\?').replace('+', '\\+') +
+        (!addedTimestamp ? ((url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+') : ''));
   },
 
   setInput: function(inputElement, val) {

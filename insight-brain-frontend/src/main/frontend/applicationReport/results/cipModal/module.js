@@ -16,6 +16,7 @@ import cipLicenseEditorModule from '../../../cip/cip.license.editor/cip.license.
 import cipLabelEditorModule from '../../../cip/cip.label.editor/cip.label.editor.module';
 import cipVulnerabilityEditorModule from
   '../../../audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module';
+import CLMLocationModule from '../../../util/CLMLocation';
 
 // needed for Vulnerabilities tab
 import '../../../audit-report/lib/jquery/jquery.browser';
@@ -35,16 +36,18 @@ import '../../../audit-report/slickgrid/sort';
 
 import cipModal from './cipModal';
 import cipOccurrences from './cipOccurrences/cipOccurrences';
+import cipAudit from './cipAudit/cipAudit';
 import cipTabPanel from './cipTabPanel/cipTabPanel';
 
 export default angular.module('cipModal',
     [
       cipTabsWidgetModule.name, versionGraphModule.name, cipComponentUtilModule.name, proprietaryMatchersModule.name,
       cipPolicyViolationsModule.name, cipLicenseEditorModule.name, cipLabelEditorModule.name,
-      cipVulnerabilityEditorModule.name
+      cipVulnerabilityEditorModule.name, CLMLocationModule.name
     ])
     .component('cipModal', cipModal)
     .component('cipOccurrences', cipOccurrences)
+    .component('cipAudit', cipAudit)
     .component('cipTabPanel', cipTabPanel)
     .service('OwnerContext', OwnerContext);
 

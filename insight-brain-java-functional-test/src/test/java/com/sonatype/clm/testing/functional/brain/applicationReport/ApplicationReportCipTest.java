@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipAuditTab;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurrencesTab;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
@@ -155,6 +156,7 @@ public class ApplicationReportCipTest
     testLabelsTab();
     testVulnerabilitiesTab();
     testOccurrencesTab();
+    testAuditTab();
   }
 
   private void testComponentInfoTab() {
@@ -354,6 +356,81 @@ public class ApplicationReportCipTest
     assertNull(override);
 
     cipModal.closeButton().click();
+  }
+
+  private void testAuditTab() {
+    String dateRegex = "\\w{3} \\d{1,2} \\d{4}, \\d{1,2}:\\d{2}:\\d{2} (AM|PM)";
+
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(1).click();
+
+    cipModal.tabLink(9).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(9).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    CipAuditTab auditTab = cipModal.getAuditTab();
+
+    auditTab.emptyMessage().shouldNot(exist);
+
+    // check that the audit table contains the expected results from the testing done on the other tabs
+    auditTab.rowWithoutDate(0).shouldHave(texts("admin", "Deleted", "Vulnerability CVE-1234-56789", "woot"));
+    auditTab.dateFromRow(0).should(matchText(dateRegex));
+    auditTab.rowWithoutDate(1).shouldHave(texts("admin", "Deleted", "License as Apache-2.0", ""));
+    auditTab.dateFromRow(1).should(matchText(dateRegex));
+    auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
+    auditTab.dateFromRow(2).should(matchText(dateRegex));
+
+    eyesWatcher.eyesCheck("Audit Tab");
+
+    // sorting
+    auditTab.dateHeader().sortArrowDown().shouldBeSelected().click();
+
+    auditTab.rowWithoutDate(0).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
+    auditTab.rowWithoutDate(1).shouldHave(texts("admin", "Deleted", "License as Apache-2.0", ""));
+    auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Deleted", "Vulnerability CVE-1234-56789", "woot"));
+
+    auditTab.actionHeader().click();
+    auditTab.actionHeader().sortArrowUp().shouldBeSelected();
+
+    // first two rows sort the same on this column and could come out either way
+    auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
+
+    auditTab.actionHeader().click();
+    auditTab.actionHeader().sortArrowDown().shouldBeSelected();
+
+    auditTab.rowWithoutDate(0).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
+    // second and third rows sort the same on this column and could come out either way
+
+    auditTab.detailHeader().click();
+    auditTab.detailHeader().sortArrowUp().shouldBeSelected();
+
+    // first two rows sort the same on this column and could come out either way
+    auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Deleted", "Vulnerability CVE-1234-56789", "woot"));
+
+    auditTab.detailHeader().click();
+    auditTab.detailHeader().sortArrowDown().shouldBeSelected();
+
+    auditTab.rowWithoutDate(0).shouldHave(texts("admin", "Deleted", "Vulnerability CVE-1234-56789", "woot"));
+    // second and third rows sort the same on this column and could come out either way
+
+    auditTab.commentHeader().click();
+    auditTab.commentHeader().sortArrowUp().shouldBeSelected();
+
+    auditTab.rowWithoutDate(0).shouldHave(texts("admin", "Deleted", "License as Apache-2.0", ""));
+    auditTab.rowWithoutDate(1).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
+    auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Deleted", "Vulnerability CVE-1234-56789", "woot"));
+
+    auditTab.commentHeader().click();
+    auditTab.commentHeader().sortArrowDown().shouldBeSelected();
+
+    auditTab.rowWithoutDate(0).shouldHave(texts("admin", "Deleted", "Vulnerability CVE-1234-56789", "woot"));
+    auditTab.rowWithoutDate(1).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
+    auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Deleted", "License as Apache-2.0", ""));
+
+    cipModal.nextButton().click();
+
+    auditTab.emptyMessage().shouldBe(visible);
+    auditTab.table().shouldNot(exist);
   }
 
   private void testLabelsTab() throws Exception {

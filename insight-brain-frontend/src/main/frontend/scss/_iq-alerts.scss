@@ -5,7 +5,7 @@
   background-color: $iq-warn-color-bg;
   border: 1px solid $iq-warn-color;
   color: $iq-warn-color;
-  margin: 8px;
+  margin: $iq-alert-margin;
   padding: 9px 8px 8px 8px;
 
   .fa {

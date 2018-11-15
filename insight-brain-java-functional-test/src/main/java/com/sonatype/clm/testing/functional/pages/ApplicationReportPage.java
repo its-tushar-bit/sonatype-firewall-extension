@@ -215,6 +215,10 @@ public class ApplicationReportPage
     public CipOccurrencesTab getOccurrencesTab() {
       return new CipOccurrencesTab(".tab-content > cip-occurrences");
     }
+
+    public CipAuditTab getAuditTab() {
+      return new CipAuditTab(".tab-content > cip-audit");
+    }
   }
 
   public static class CipOccurrencesTab
@@ -226,6 +230,54 @@ public class ApplicationReportPage
 
     public ElementsCollection occurrences() {
       return children("li");
+    }
+  }
+
+  public static class CipAuditTab
+      extends BasicElement<CipAuditTab>
+  {
+    CipAuditTab(String selector) {
+      super(selector);
+    }
+
+    public ElementsCollection rowWithoutDate(int index) {
+      return children(getRowSelector(index) + ":not(:first-child)");
+    }
+
+    public SelenideElement dateFromRow(int rowIndex) {
+      return child(getRowSelector(rowIndex) + ":first-child");
+    }
+
+    public SelenideElement emptyMessage() {
+      return child("p");
+    }
+
+    public SelenideElement table() {
+      return child("table");
+    }
+
+    private String getRowSelector(int index) {
+      return "tbody > tr:nth-child(" + (index + 1) + ") td";
+    }
+
+    public IqSortingHeader dateHeader() {
+      return new IqSortingHeader(selector + " thead > tr > th:nth-child(1)");
+    }
+
+    public IqSortingHeader userHeader() {
+      return new IqSortingHeader(selector + " thead > tr > th:nth-child(2)");
+    }
+
+    public IqSortingHeader actionHeader() {
+      return new IqSortingHeader(selector + " thead > tr > th:nth-child(3)");
+    }
+
+    public IqSortingHeader detailHeader() {
+      return new IqSortingHeader(selector + " thead > tr > th:nth-child(4)");
+    }
+
+    public IqSortingHeader commentHeader() {
+      return new IqSortingHeader(selector + " thead > tr > th:nth-child(5)");
     }
   }
 

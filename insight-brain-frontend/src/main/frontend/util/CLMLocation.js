@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import { pick } from 'ramda';
+
 import commonServicesModule from '../util/CommonServices';
 
 export default
@@ -356,7 +358,17 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
           '/browseReport/data.json',
 
       getReportUnknownJsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/browseReport/unknownjs.json'
+          '/browseReport/unknownjs.json',
+
+      getReportAuditLogUrl: function(appPublicId, reportId, component) {
+        const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),
+            encodedAppId = encodeURIComponent(appPublicId),
+            encodedReportId = encodeURIComponent(reportId),
+            encodedKeyJson = encodeURIComponent(keyJson);
+
+        return `${baseUrl.get()}/rest/report/${encodedAppId}/${encodedReportId}/auditLog/licenses.json+security.json` +
+            `?key=${encodedKeyJson}`;
+      }
     };
   }
 ]);

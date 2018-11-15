@@ -17,7 +17,8 @@ export default {
   controller: CipTabPanelController,
   controllerAs: 'vm',
   bindings: {
-    selectedComponent: '<'
+    selectedComponent: '<',
+    selectedReport: '<'
   }
 };
 

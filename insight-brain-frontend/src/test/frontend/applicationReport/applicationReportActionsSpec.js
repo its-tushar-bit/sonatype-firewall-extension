@@ -71,7 +71,8 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           reportTitle: 'test',
-          allEntries: []
+          allEntries: [],
+          scanId: 'scanId'
         }
       });
     });
@@ -101,7 +102,8 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           reportTitle: 'test',
-          allEntries: []
+          allEntries: [],
+          scanId: 'scanId'
         }
       });
     });

@@ -59,6 +59,10 @@
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>
     <div ng-switch-when="labels" cip-label-editor></div>
     <div ng-switch-when="claimComponent"><!-- TODO --></div>
-    <div ng-switch-when="auditLog"><!-- TODO --></div>
+    <cip-audit ng-switch-when="auditLog"
+               scan-id="vm.selectedReport.scanId"
+               application-public-id="vm.selectedReport.application.publicId"
+               component="vm.selectedComponent">
+    </cip-audit>
   </div>
 </div>

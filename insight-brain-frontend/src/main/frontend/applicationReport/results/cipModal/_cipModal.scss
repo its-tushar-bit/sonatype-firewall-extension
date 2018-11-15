@@ -11,6 +11,8 @@
 @import '../../../audit-report/lib/slickgrid/slick.grid';
 @import '../../../audit-report/slickgrid/slick.grid.custom';
 
+$iq-cip-tab-content-padding-top: 5px;
+
 .iq-modal__cip {
   left: calc(50% - 450px);
   width: 901px;
@@ -24,7 +26,7 @@
 
       .tab-content {
         overflow: hidden;
-        padding-top: 5px;
+        padding-top: $iq-cip-tab-content-padding-top;
         width: 100%;
 
         #cip-policy-violations {
@@ -89,10 +91,36 @@
         }
       }
     }
+
+    .iq-alert {
+      // there is a style that changes the margins for `iq-modal-content .iq-alert`, which we do not want to
+      // apply here, so set it back to what it usually is
+      margin: $iq-alert-margin;
+    }
   }
 }
 
 #cip-occurrences {
   list-style: none;
   margin: 0;
+}
+
+cip-audit {
+  display: block;
+
+  .iq-scrollable {
+    // the table looks better if it goes right up to the bottom of the tab row instead of having the padding
+    margin-top: -($iq-cip-tab-content-padding-top);
+
+    max-height: 292px;
+
+    .iq-table {
+      margin-top: 0;
+    }
+
+  }
+
+  thead .iq-table-row:first-child {
+    border-top-style: none;
+  }
 }

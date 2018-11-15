@@ -35,7 +35,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import org.apache.http.client.HttpResponseException;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.notNullValue;

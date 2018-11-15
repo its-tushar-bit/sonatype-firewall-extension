@@ -9,7 +9,6 @@ import java.util.Comparator;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

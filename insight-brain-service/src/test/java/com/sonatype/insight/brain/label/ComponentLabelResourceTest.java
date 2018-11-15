@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

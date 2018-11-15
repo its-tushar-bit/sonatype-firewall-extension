@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

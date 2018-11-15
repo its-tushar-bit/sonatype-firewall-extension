@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -90,7 +91,7 @@ public class ApplicationReportTest
   }
 
   @Test
-  public void testSummary() {
+  public void testSummary() throws Exception {
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
@@ -105,6 +106,14 @@ public class ApplicationReportTest
     coverageIndicator.caption().shouldHave(exactText("63 COMPONENTS"));
     coverageIndicator.subCaption().shouldHave(exactText("97% of all components identified"));
     coverageIndicator.donutChart().shouldBe(visible);
+
+    IQGrandfatheringIndicator grandfatheringIndicator = reportPage.grandfatheringIndicator();
+    grandfatheringIndicator.caption().shouldHave(exactText("0 Grandfathered"));
+
+    activateGrandfathering();
+
+    grandfatheringIndicator = reportPage.grandfatheringIndicator();
+    grandfatheringIndicator.caption().shouldHave(exactText("45 Grandfathered"));
   }
 
   @Test
@@ -119,7 +128,7 @@ public class ApplicationReportTest
   }
 
   @Test
-  public void testIndicators() throws Exception {
+  public void testTextIndicators() throws Exception {
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     reportPage.resultRows().shouldHaveSize(2);
@@ -151,13 +160,7 @@ public class ApplicationReportTest
     reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
     reportPage.resultRow(2).grandfatheredIndicator().shouldNotBe(visible);
 
-    app.setPolicyViolationGrandfatheringEnabled(true);
-    licenseBanned.setPolicyViolationGrandfatheringAllowed(true);
-    applicationDAO.update(app);
-    policyDAO.update(licenseBanned);
-    policyViolationGrandfatheringService.grandfather(app.getPublicId());
-    evaluator.reevaluatePolicy();
-    refresh();
+    activateGrandfathering();
 
     // now the grandfathered indicator should appear
     reportPage.headers().componentNameFilterInput().setValue("mycila");
@@ -318,5 +321,17 @@ public class ApplicationReportTest
             "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
     violations.filterBy(matchesText("None"))
         .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
+  }
+
+  private void activateGrandfathering() throws Exception {
+    Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
+
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    licenseBanned.setPolicyViolationGrandfatheringAllowed(true);
+    applicationDAO.update(app);
+    policyDAO.update(licenseBanned);
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    evaluator.reevaluatePolicy();
+    refresh();
   }
 }

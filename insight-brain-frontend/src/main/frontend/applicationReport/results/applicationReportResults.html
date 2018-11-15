@@ -59,6 +59,13 @@
           <h3 class="iq-caption__text">{{vm.selectedReport.totalArtifactCount}} COMPONENTS</h3>
           <p class="iq-caption__sub-text">{{vm.coveragePercent() | number: 0}}% of all components identified</p>
         </div>
+      </div><!--
+   --><div class="iq-grandfathering-indicator">
+        <i class="fa fa-history"></i><!--
+     --><div class="iq-caption">
+          <h2 class="iq-caption__text">{{vm.selectedReport.grandfatheredPolicyViolationCount}} Grandfathered</h2>
+          <p class="iq-caption__sub-text">violations</p>
+        </div>
       </div>
     </div>
     <table class="iq-table iq-table--application-report">

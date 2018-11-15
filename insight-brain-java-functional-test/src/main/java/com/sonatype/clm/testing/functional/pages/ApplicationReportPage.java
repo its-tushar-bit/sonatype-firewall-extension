@@ -55,6 +55,10 @@ public class ApplicationReportPage
     return new IQCoverageIndicator(childSelector(".iq-coverage-indicator"));
   }
 
+  public IQGrandfatheringIndicator grandfatheringIndicator() {
+    return new IQGrandfatheringIndicator(childSelector(".iq-grandfathering-indicator"));
+  }
+
   public ElementsCollection resultRows() {
     return children(ROW_SELECTOR);
   }
@@ -164,6 +168,18 @@ public class ApplicationReportPage
 
     public SelenideElement donutChart() {
       return child("span[coverage-donut] svg");
+    }
+  }
+
+  public static class IQGrandfatheringIndicator
+      extends BasicElement<IQGrandfatheringIndicator>
+  {
+    public IQGrandfatheringIndicator(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement caption() {
+      return child(".iq-caption__text");
     }
   }
 

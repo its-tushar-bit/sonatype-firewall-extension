@@ -327,6 +327,19 @@ public class RepositoryResourceAuditTest
     assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
   }
 
+  @Test
+  public void testEvaluateComponentWithQuarantine_ImplicitlyEnableQuarantine() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true, false);
+
+    evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(),
+        new RepositoryComponentEvaluationDataRequestList()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_QUARANTINE, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "quarantine", "enabled");
+  }
+  
   private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.ENABLE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);

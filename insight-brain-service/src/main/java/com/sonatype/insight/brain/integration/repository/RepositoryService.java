@@ -386,6 +386,9 @@ public class RepositoryService
           log.info("Enabled quarantine for repository {}:{} ({})", repository.getRepositoryManagerId(),
               repository.getPublicId(), repository.getId());
           repository.setQuarantineEnabled(true);
+          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_QUARANTINE, false)) {
+            AuditData.get().setRepository(repository).setData("quarantine", "enabled");
+          }
         }
       }
       if (componentEvaluationDataRequestList != null && componentEvaluationDataRequestList.components != null

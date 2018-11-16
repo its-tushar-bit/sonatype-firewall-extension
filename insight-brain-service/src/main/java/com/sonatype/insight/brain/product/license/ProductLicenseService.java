@@ -35,26 +35,26 @@ public class ProductLicenseService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void installLicense(InputStream is) {
+  public void installLicense(InputStream is, String filename) {
     try {
       licenseManager.installLicense(is);
-      log.info("Nexus IQ License successfully installed");
+      log.info("Nexus IQ License {} successfully installed", filename);
     }
     catch (LicensingException e) {
       // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
-      String msg = "The provided license file is invalid. Please verify you selected the correct file."
+      String msg = "The provided license file " + filename + " is invalid. Please verify you selected the correct file."
           + " If the problem persists, please contact our support team.";
 
       // log the actual exception (especially its message which isn't otherwise revealed) to help support
-      log.debug("Unable to install license", e);
+      log.debug("Unable to install license {}", filename, e);
 
       throw new BadRequestException(msg, e);
     }
     catch (IOException e) {
-      String msg = "The license file was unable to install. Please ensure server has access to "
+      String msg = "The license file " + filename + " was unable to install. Please ensure server has access to "
           + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.";
 
-      log.error("Unable to install license", e);
+      log.error("Unable to install license {}", filename, e);
 
       throw new BadRequestException(msg, e);
     }

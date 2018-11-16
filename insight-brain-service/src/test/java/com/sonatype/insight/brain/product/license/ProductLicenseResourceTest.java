@@ -34,7 +34,7 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(400, response);
 
-    assertEquals("The provided license file is invalid. Please verify you selected the correct file."
+    assertEquals("The provided license file sonatype.lic is invalid. Please verify you selected the correct file."
         + " If the problem persists, please contact our support team.", response.getBodyText());
   }
 
@@ -46,7 +46,7 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest().query("noFormData", true));
     assertResponseStatus(200, response);
 
-    assertEquals("\"The provided license file is invalid. Please verify you selected the correct file."
+    assertEquals("\"The provided license file sonatype.lic is invalid. Please verify you selected the correct file."
         + " If the problem persists, please contact our support team.\"", response.getBodyText());
   }
 
@@ -58,7 +58,7 @@ public class ProductLicenseResourceTest
     assertResponseStatus(400, response);
 
     assertEquals(
-        "The license file was unable to install. Please ensure server has access to "
+        "The license file sonatype.lic was unable to install. Please ensure server has access to "
             + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.",
         response.getBodyText());
   }

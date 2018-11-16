@@ -35,18 +35,18 @@ public class ProductLicenseServiceAuthzTest
   @Test
   public void testInstallLicense_Authorized() {
     grantConfigureSystemPermission();
-    productLicenseService.installLicense(getLicense());
+    productLicenseService.installLicense(getLicense(), "test.lic");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testInstallLicense_Unauthorized() {
     login();
-    productLicenseService.installLicense(getLicense());
+    productLicenseService.installLicense(getLicense(), "test.lic");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testInstallLicense_Unauthenticated() {
-    productLicenseService.installLicense(getLicense());
+    productLicenseService.installLicense(getLicense(), "test.lic");
   }
 
   @Test

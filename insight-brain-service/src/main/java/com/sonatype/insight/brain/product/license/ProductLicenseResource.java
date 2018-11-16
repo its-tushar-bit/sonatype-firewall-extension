@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
 import com.codahale.metrics.annotation.Timed;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Path(ProductLicenseResource.RESOURCE_PATH)
@@ -56,6 +57,7 @@ public class ProductLicenseResource
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
   public Response installLicense(@FormDataParam("file") final InputStream is,
+                                 @FormDataParam("file") FormDataContentDisposition fileDetail,
                                  @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                                  @Context HttpHeaders headers,
                                  @QueryParam("noFormData") boolean noFormData) throws Exception
@@ -64,7 +66,7 @@ public class ProductLicenseResource
     {
       @Override
       public Void call() throws Exception {
-        productLicenseService.installLicense(is);
+        productLicenseService.installLicense(is, fileDetail.getFileName());
         return null;
       }
     });

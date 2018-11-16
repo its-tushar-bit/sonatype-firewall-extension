@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -53,18 +54,22 @@ public class ApplicationSummaryService
 
   private final TelemetrySender telemetrySender;
 
+  private final ApplicationHelper applicationHelper;
+
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
                                    final ApplicationDAO applicationDAO,
                                    PolicyEvaluationDAO policyEvaluationDAO,
                                    final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
-                                   TelemetrySender telemetrySender)
+                                   TelemetrySender telemetrySender,
+                                   final ApplicationHelper applicationHelper)
   {
     this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
     this.telemetrySender = telemetrySender;
+    this.applicationHelper = applicationHelper;
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
@@ -138,6 +143,7 @@ public class ApplicationSummaryService
             applicationPublicId);
         application = new Application(applicationPublicId, applicationPublicId,
             automaticApplicationsConfigurationDAO.getOrganizationId());
+        applicationHelper.validateNewApplication(application);
         applicationDAO.insert(application);
 
         sendApplicationCreatedTelemetryData(true, clientUserAgent);

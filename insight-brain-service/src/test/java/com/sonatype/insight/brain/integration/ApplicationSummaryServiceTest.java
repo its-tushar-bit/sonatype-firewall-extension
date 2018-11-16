@@ -15,14 +15,17 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
@@ -39,6 +42,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
@@ -53,6 +58,12 @@ public class ApplicationSummaryServiceTest
   private ApplicationSummaryService service;
 
   private HdsClient mockHdsClient = mock(HdsClient.class);
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
 
   @Override
   public void configure(Binder binder) {
@@ -180,6 +191,39 @@ public class ApplicationSummaryServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
     service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     verifyZeroInteractions(mockHdsClient);
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_License() throws Exception
+  {
+    String appPublicId = "NoSuchAppPublicID";
+    tempEntity.registerAppPublicId(appPublicId);
+
+    Organization org = tempEntity.newOrganization();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    productLicenseManager.setApplicationLimit(0);
+    clmLicenseManager.installLicense(null);
+
+    try {
+      service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+      fail("Expected Licensing Exception");
+    }
+    catch (PaymentRequiredException e) {
+      Application app = new ApplicationDAO().getByPublicId(appPublicId);
+      assertThat(app, is(nullValue()));
+    }
+
+    productLicenseManager.setApplicationLimit(1);
+    clmLicenseManager.installLicense(null);
+
+    boolean result = service
+        .verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    assertThat(result, is(true));
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    assertThat(app.getOrganizationId(), is(automaticApplicationsConfigurationDAO.getOrganizationId()));
   }
 
   private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected)

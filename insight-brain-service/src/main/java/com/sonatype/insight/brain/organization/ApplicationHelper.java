@@ -70,7 +70,7 @@ public class ApplicationHelper
   }
 
   public Application addApplication(final TransactionContext tx, final Application application) {
-    validate(application);
+    validateNewApplication(application);
     applicationDAO.insert(tx, application);
     addUserToApplicationOwnerRole(tx, application);
     return application;
@@ -94,7 +94,7 @@ public class ApplicationHelper
     }
   }
 
-  private void validate(final Application application) {
+  public void validateNewApplication(final Application application) {
     Integer appLimit = licenseManager.getApplicationCountLimit();
     if (appLimit != null && applicationDAO.getAll().size() >= appLimit) {
       throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");

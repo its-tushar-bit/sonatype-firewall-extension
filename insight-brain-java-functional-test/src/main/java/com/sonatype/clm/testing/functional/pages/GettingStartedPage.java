@@ -11,6 +11,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
 public class GettingStartedPage
     extends BasicElement<GettingStartedPage>
 {
@@ -36,6 +38,10 @@ public class GettingStartedPage
 
   public SelenideElement learningTopics() {
     return child("learning-topics");
+  }
+
+  public SelenideElement docLink(int index) {
+    return child(nthChild(index + 1), "getting-started-doc-link");
   }
 
   public static class ProductLicenseSummaryTile

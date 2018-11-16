@@ -19,6 +19,7 @@ import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from './report/ReportController';
 import pendoModule from './pendo/module';
+import externalLinkModule from './externalLink/module';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -36,7 +37,7 @@ export const InitModule = angular.module('InitModule', [
   'ui.router', 'ui.bootstrap', CLMLocationModule.name, commonServicesModule.name, 'ngAria',
   ReportModule.name, Report.name, mainHeaderModule.name, 'ngRoute', unauthenticatedResponseHttpInterceptor.name,
   'xeditable', productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, dashboardModule.name,
-  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name
+  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name, externalLinkModule.name
 ], [
   '$stateProvider', '$routeProvider', '$urlRouterProvider',
   function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -83,10 +84,10 @@ export const InitModule = angular.module('InitModule', [
 ]).service('initService', [
   'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
   '$q', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
-  'gettingStartedUsageTelemetryService', 'pendoService',
+  'gettingStartedUsageTelemetryService', 'pendoService', 'externalLinkModalService',
   function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
            $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService,
-           gettingStartedUsageTelemetryService, pendoService) {
+           gettingStartedUsageTelemetryService, pendoService, externalLinkModalService) {
     var savedState = null,
         stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
           //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
@@ -108,6 +109,8 @@ export const InitModule = angular.module('InitModule', [
       $rootScope.initialized = true;
       $rootScope.productEdition = data[0].productEdition;
       $rootScope.$state = $state;
+
+      initExternalLinkClickHandler();
 
       stateChangePrevention(); // Remove block
       if (savedState) {
@@ -160,6 +163,21 @@ export const InitModule = angular.module('InitModule', [
         $window.location.reload();
       });
     });
+
+    function initExternalLinkClickHandler() {
+      if (!ProductFeatures.isAvailable('allow-external-hyperlinks')) {
+        const externalLinkClickHandler = (e) => {
+          const isExternalLink = (target) => target.hostname && target.hostname !== location.hostname;
+          if (isExternalLink(e.target)) {
+            externalLinkModalService.open(e.target.href);
+            e.stopImmediatePropagation();
+            return false;
+          }
+        };
+        $(document).on('click', 'a', externalLinkClickHandler);
+        $window.externalLinkClickHandler = externalLinkClickHandler;
+      }
+    }
 
     function doStart() {
       currentUser.then(function(authenticationStatus) {

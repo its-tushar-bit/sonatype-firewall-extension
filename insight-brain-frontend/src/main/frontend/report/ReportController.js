@@ -90,6 +90,14 @@ reportModule.directive('expandableIframe', function() {
 
       setTimeout(setDimensions, 100);
       window.onresize = dedupe;
+
+      if (window.top.externalLinkClickHandler) {
+        const iframe = angular.element('iframe');
+        iframe.on('load', () => {
+          iframe.contents().find('body').click(window.top.externalLinkClickHandler);
+        });
+      }
+
       scope.$on('$destroy', function() {
         clearTimeout(resizeTimeoutId);
       });

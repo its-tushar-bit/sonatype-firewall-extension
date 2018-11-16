@@ -50,21 +50,25 @@ describe('mainModuleSpec', function() {
   });
 
   describe('Validate requests made on initService start', function() {
-    it('validate state after all requests succeed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
+    it('validate state after all requests succeed',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(
+              ['dashboard', 'allow-external-hyperlinks']);
+          $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
 
-      initService.start();
-      $httpBackend.flush();
-      expect($rootScope.licensed).toEqual(true);
-      expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
-      expect($rootScope.initialized).toEqual(true);
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toEqual(true);
+          expect($rootScope.username).toEqual('myname');
+          expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
+          expect(ProductFeatures.isAvailable('allow-external-hyperlinks')).toEqual(true);
+          expect($window.externalLinkClickHandler).not.toBeDefined();
+          expect($rootScope.initialized).toEqual(true);
 
-      expect(pendoServiceMock.start).toHaveBeenCalled();
-    }));
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        }));
 
     it('validate state after license check fails because unlicensed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
@@ -117,6 +121,25 @@ describe('mainModuleSpec', function() {
 
       expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
+
+    it('validate state after external hyperlinks are disabled',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+          $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
+
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toEqual(true);
+          expect($rootScope.username).toEqual('myname');
+          expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
+          expect(ProductFeatures.isAvailable('allow-external-hyperlinks')).toEqual(false);
+          expect($window.externalLinkClickHandler).toBeDefined();
+          expect($rootScope.initialized).toEqual(true);
+
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        }));
   });
 
   describe('on licenseInstalled event', function() {

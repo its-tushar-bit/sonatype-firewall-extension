@@ -47,8 +47,10 @@
         <div class="control-group">
           <label class="control-label">Status</label>
           <div class="controls" style="text-align:left;">
-            <select ng-model='override.status' name="status"
-                required>
+            <select ng-model='override.status'
+                    name="status"
+                    ng-change="onOverrideStatusChange()"
+                    required>
               <option value="OPEN">Open</option>
               <option value="ACKNOWLEDGED">Acknowledged</option>
               <option value="OVERRIDDEN">Overridden</option>

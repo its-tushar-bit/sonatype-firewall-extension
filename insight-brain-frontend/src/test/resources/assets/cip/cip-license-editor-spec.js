@@ -1,3 +1,4 @@
+/*global CLM, LicenseGroupMockData, InsightDatatable, Insight*/
 (function() {
   SpecUtil.setupProviders('bom1-12345678', 'org1');
   function getAppliedLicenseOverrides(appStatus, appLicense, orgStatus, orgLicense) {
@@ -296,69 +297,11 @@
       }));
     });
 
-    describe("Status Selection", function () {
-      beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-                encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier)))).respond(getLicenseWithThreats());
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier)))).
-            respond(getAppliedLicenseOverrides(null, null, null, null));
-
-        $controller('LicenseEditorController', {
-          $scope: scope
-        });
-        $httpBackend.flush();
-
-        scope.$apply(function() {
-          scope.override.status = 'OVERRIDDEN';
-        });
-        scope.$apply(function() {
-          scope.override.licenseIds = ['AFL-1.2'];
-        });
-      }));
-      it('License IDs Cleared on OPEN', inject(function() {
-        scope.$apply(function() {
-          scope.override.status = 'OPEN';
-        });
-        expect(scope.override.status).toBe('OPEN');
-        expect(scope.override.licenseIds.length).toBe(0);
-      }));
-      it('License IDs Cleared on ACKNOWLEDGED', inject(function() {
-        scope.$apply(function() {
-          scope.override.status = 'ACKNOWLEDGED';
-        });
-        expect(scope.override.status).toBe('ACKNOWLEDGED');
-        expect(scope.override.licenseIds.length).toBe(0);
-      }));
-      it('License IDs Cleared on CONFIRMED', inject(function() {
-        scope.$apply(function() {
-          scope.override.status = 'CONFIRMED';
-        });
-        expect(scope.override.status).toBe('CONFIRMED');
-        expect(scope.override.licenseIds.length).toBe(0);
-      }));
-      it('License IDs Cleared on OVERRIDDEN', inject(function() {
-        // To trigger watched event we have to use a different default selection.
-        scope.$apply(function() {
-          scope.override.status = 'SELECTED';
-        });
-        scope.$apply(function() {
-          scope.override.licenseIds = ['AFL-1.2'];
-        });
-        scope.$apply(function() {
-          scope.override.status = 'OVERRIDDEN';
-        });
-        expect(scope.override.status).toBe('OVERRIDDEN');
-        expect(scope.override.licenseIds.length).toBe(0);
-      }));
-      it('License IDs Cleared on SELECTED', inject(function() {
-        scope.$apply(function() {
-          scope.override.status = 'SELECTED';
-        });
-        expect(scope.override.status).toBe('SELECTED');
+    describe('onOverrideStatusChange', function() {
+      it('clears License IDs', inject(function($controller) {
+        $controller('LicenseEditorController', { $scope: scope });
+        scope.override = { licenseIds: ['AFL-1.2'] };
+        scope.onOverrideStatusChange();
         expect(scope.override.licenseIds.length).toBe(0);
       }));
     });
@@ -663,10 +606,8 @@
       it('Add Application', inject(function($httpBackend, SelectedComponent) {
         expect(scope.canInherit()).toBeTruthy();
 
-        scope.$apply(function() {
-          scope.override.status = 'ACKNOWLEDGED';
-        });
-        expect(scope.override.licenseIds).toEqual([]);
+        scope.override.status = 'ACKNOWLEDGED';
+        scope.override.licenseIds = [];
 
         $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678')).respond(function(method, url, data,
                                                                                                      headers)
@@ -727,6 +668,60 @@
           expect(scope.selectableLicenses).toEqual([license]);
         }));
       });
+    });
+
+    describe('SelectedComponent watcher', function() {
+      var SelectedComponent;
+
+      beforeEach(inject(function($controller, _SelectedComponent_, $httpBackend) {
+        SelectedComponent = _SelectedComponent_;
+        $controller('LicenseEditorController', { $scope: scope });
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(
+            LicenseGroupMockData.getLicensesData());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(
+            CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
+            encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier)))).respond(
+            getLicenseWithThreats());
+
+        $httpBackend.expectGET(
+            SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
+            encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier)))).respond(
+            getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', 'AFL-1.2'));
+
+        $httpBackend.flush();
+        spyOn(scope, 'doLoad');
+      }));
+
+      it('calls doLoad() when new component selected', function() {
+        expect(scope.licenses).toBeTruthy();
+        SelectedComponent.set({});
+        scope.$digest();
+        expect(scope.doLoad).toHaveBeenCalled();
+      });
+
+      it('does not call doLoad() when selected component changes to null', function() {
+        expect(SelectedComponent.get()).not.toBeNull();
+        SelectedComponent.set(null);
+        scope.$digest();
+        expect(scope.doLoad).not.toHaveBeenCalled();
+      });
+
+      it('does not call doLoad() when selected component changes to same component', function() {
+        SelectedComponent.set(SelectedComponent.get());
+        scope.$digest();
+        expect(scope.doLoad).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('doLoad()', function() {
+      it('resets licenses', inject(function($controller) {
+        $controller('LicenseEditorController', { $scope: scope });
+        scope.licenses = ['AFL-1.2'];
+        scope.doLoad();
+        expect(scope.licenses).toBeNull();
+      }));
     });
   });
 }());

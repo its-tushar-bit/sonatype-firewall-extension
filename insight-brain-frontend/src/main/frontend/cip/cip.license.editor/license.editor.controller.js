@@ -131,6 +131,7 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
 
   $scope.doLoad = function() {
     $scope.error = null;
+    $scope.licenses = null; // trigger loading indicator
 
     var promises = [];
     // List of licenses
@@ -286,16 +287,23 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
   };
 
   // Remove licenses when changing status
-  $scope.$watch('override.status', function() {
+  $scope.onOverrideStatusChange = function() {
     if ($scope.override) {
       $scope.override.licenseIds = [];
     }
-  });
+  };
 
   // Create synthetic Inherit
   $scope.$watch('override.ownerId', function(newValue) {
     if (newValue) {
       setOverrideScope(getHierarchyById(newValue));
+    }
+  });
+
+  $scope.$watch(() => SelectedComponent.get(), (newVal, oldVal) => {
+    // compare to old value to avoid watcher initialization
+    if (newVal && newVal !== oldVal) {
+      $scope.doLoad();
     }
   });
 

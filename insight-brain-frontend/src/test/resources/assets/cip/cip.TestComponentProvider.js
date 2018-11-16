@@ -12,6 +12,9 @@ angular.module('TestComponentProvider', []).service('SelectedComponent', functio
   return {
     get: function () {
       return component;
+    },
+    set: function(newComponent) {
+      component = newComponent;
     }
   };
 }).service('OwnerContext', function () {

@@ -120,7 +120,7 @@ public class ApplicationReportCipTest
 
   @Test
   public void testCIP() throws Exception {
-    setupHdsResponse();
+    setupHdsResponses();
     CipModal cipModal = reportPage.cipModal();
 
     // Close, Prev and Next buttons
@@ -160,6 +160,8 @@ public class ApplicationReportCipTest
   }
 
   private void testComponentInfoTab() {
+    mockHdsResponseForFirstComponent();
+
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();
     cipModal.getElement().shouldBe(visible);
@@ -178,6 +180,7 @@ public class ApplicationReportCipTest
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
+    VersionsCIP.hideDetailsLink().shouldBe(visible);
     eyesWatcher.eyesCheck("Component Info Tab");
 
     // test hovering over version bar shows version number
@@ -208,15 +211,17 @@ public class ApplicationReportCipTest
     VersionsCIP.highestSecurityThreat().shouldHave(text("NA"), cssClass("unspecified"));
     VersionsCIP.securityCount().shouldNotBe(visible);
 
-    // back to current version - 29.50
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
+    // check that tab loads next component when using Next button
+    mockHdsResponseForSecondComponent();
+    cipModal.nextButton().shouldBe(enabled).click();
+    VersionsCIP.artifactId().shouldHave(text("logback-access"));
 
-    VersionsCIP.hideDetailsLink().shouldBe(visible);
     cipModal.closeButton().click();
   }
 
   private void testPolicyTab() throws Exception {
+    mockHdsResponseForFirstComponent();
+
     String policyCssClass = "cip-policy-darkblue";
     String policyName = "CoordinatesPolicy";
     String constraintName = "CoordinatesPolicy constraint";
@@ -297,10 +302,18 @@ public class ApplicationReportCipTest
     cipModal.tabLink(2).click();
     WaiverCip.rows().shouldHaveSize(2);
     WaiverCip.row(1).policyName().shouldHave(text("CoordinatesPolicy"));
+
+    // check that tab loads next component when using Next button
+    mockHdsResponseForSecondComponent();
+    cipModal.nextButton().shouldBe(enabled).click();
+    WaiverCip.rows().shouldHaveSize(1);
+
     cipModal.closeButton().click();
   }
 
   private void testLicensesTab() {
+    mockHdsResponseForFirstComponent();
+
     reportPage.resultRow(1).click();
     CipModal cipModal = reportPage.cipModal();
     cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
@@ -354,6 +367,11 @@ public class ApplicationReportCipTest
     LicenseCIP.updateButton().shouldBe(disabled);
     override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
     assertNull(override);
+
+    // check that tab loads next component when using Next button
+    mockHdsResponseForSecondComponent();
+    cipModal.nextButton().shouldBe(enabled).click();
+    LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(5), texts("Not Declared"));
 
     cipModal.closeButton().click();
   }
@@ -434,6 +452,8 @@ public class ApplicationReportCipTest
   }
 
   private void testLabelsTab() throws Exception {
+    mockHdsResponseForFirstComponent();
+
     Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.dark_blue);
     Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.dark_red);
     tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elMagnifico.getId(), JAVANCSS_HASH);
@@ -496,10 +516,19 @@ public class ApplicationReportCipTest
     cipModal.tabLink(2).click();
     WaiverCip.rows().shouldHaveSize(2);
 
+    // check that tab loads next component when using Next button
+    cipModal.tabLink(7).click();
+    LabelsCIP.appliedLabels().shouldHaveSize(1);
+    mockHdsResponseForSecondComponent();
+    cipModal.nextButton().shouldBe(enabled).click();
+    LabelsCIP.appliedLabels().shouldHaveSize(0);
+
     cipModal.closeButton().click();
   }
 
   private void testVulnerabilitiesTab() throws Exception {
+    mockHdsResponseForFirstComponent();
+
     tempEntity.newSecurityVulnerabilityOverride(app.getId(), JAVANCSS_HASH, "cve", "CVE-1234-56789",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
@@ -554,6 +583,11 @@ public class ApplicationReportCipTest
     assertThat(allLogJsonData.size(), is(1));
     assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
 
+    // check that tab loads next component when using Next button
+    mockHdsResponseForSecondComponent();
+    cipModal.nextButton().shouldBe(enabled).click();
+    VulnerabilityCIP.rows().shouldHaveSize(0);
+
     cipModal.closeButton().click();
   }
 
@@ -602,9 +636,18 @@ public class ApplicationReportCipTest
     return tempEntity.newPolicy(p);
   }
 
-  private void setupHdsResponse() {
+  private void mockHdsResponseForFirstComponent() {
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
+  }
+
+  private void mockHdsResponseForSecondComponent() {
+    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
+        getClass().getClassLoader().getResource("componentDetails/logback-accessComponentDetails-0.6.json"), 200);
+  }
+
+  private void setupHdsResponses() {
+    mockHdsResponseForFirstComponent();
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
   }

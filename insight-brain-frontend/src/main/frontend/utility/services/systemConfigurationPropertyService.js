@@ -15,8 +15,8 @@ function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations)
   };
 
   function isSuccessMetricsEnabled() {
-    return getSystemConfigurationProperty('SUCCESS_METRICS_ENABLED').then(function(value) {
-      return value === 'true';
+    return getSuccessMetricsConfiguration().then(function(configuration) {
+      return configuration.enabled;
     });
   }
 
@@ -32,21 +32,21 @@ function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations)
   }
 
   function saveSuccessMetricsEnabled(successMetricsEnabled) {
-    var successMetricsProperty = {name: 'SUCCESS_METRICS_ENABLED', value: successMetricsEnabled.toString()};
-    return saveSystemConfigurationProperty(successMetricsProperty).then(function(response) {
-      $rootScope.$broadcast('successMetricsConfigurationUpdated', response.value === 'true');
-      return response;
+    var successMetricsConfig = {enabled: successMetricsEnabled};
+    return saveSuccessMetricsConfiguration(successMetricsConfig).then(function(configuration) {
+      $rootScope.$broadcast('successMetricsConfigurationUpdated', configuration.enabled);
+      return configuration;
     });
   }
 
-  function getSystemConfigurationProperty(name) {
-    return $http.get(CLMLocations.getSystemConfigurationPropertyUrl(name)).then(function(response) {
-      return response.data.value;
+  function getSuccessMetricsConfiguration() {
+    return $http.get(CLMLocations.getSuccessMetricsConfigUrl()).then(function(response) {
+      return response.data;
     });
   }
 
-  function saveSystemConfigurationProperty(systemConfigurationProperty) {
-    return $http.put(CLMLocations.getSystemConfigurationPropertiesUrl(), systemConfigurationProperty).then(function(response) {
+  function saveSuccessMetricsConfiguration(successMetricsConfiguration) {
+    return $http.put(CLMLocations.getSuccessMetricsConfigUrl(), successMetricsConfiguration).then(function(response) {
       return response.data;
     });
   }

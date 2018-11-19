@@ -312,14 +312,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return this.getSystemNoticeUrl() + '/fetch';
       },
 
-      getSystemConfigurationPropertyUrl: function(propertyName) {
-        return baseUrl.get() + '/rest/config/systemConfigurationProperty/' + encodeURIComponent(propertyName);
-      },
-
-      getSystemConfigurationPropertiesUrl: function() {
-        return baseUrl.get() + '/rest/config/systemConfigurationProperty';
-      },
-
       getRevokeGrandfatheringUrl: function(applicationPublicId) {
         return `${baseUrl.get()}/rest/policyViolationGrandfathering/revoke/${encodeURIComponent(applicationPublicId)}`;
       },
@@ -327,6 +319,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getGrandfatherUrl: function(applicationPublicId) {
         return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${encodeURIComponent(applicationPublicId)}`;
       },
+
+      getSuccessMetricsConfigUrl: () => `${baseUrl.get()}/rest/successMetrics`,
 
       getSuccessMetricsChartDataUrl: successMetricsReportId =>
         `${baseUrl.get()}/rest/aggregation/policyViolation/${encodeURIComponent(successMetricsReportId)}`,

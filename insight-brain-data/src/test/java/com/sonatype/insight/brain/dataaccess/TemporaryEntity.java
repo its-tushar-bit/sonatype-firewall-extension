@@ -307,6 +307,7 @@ public class TemporaryEntity
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     delete(systemConfigurationProperties, entity -> systemConfigurationPropertyDAO.getByName(entity.getName()),
         systemConfigurationPropertyDAO::delete);
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);

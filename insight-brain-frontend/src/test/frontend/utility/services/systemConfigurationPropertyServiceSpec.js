@@ -27,8 +27,7 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
   describe('getting success metrics flag', function() {
     it('returns enabled when the request succeeds', function() {
       systemConfigurationPropertyService.isSuccessMetricsEnabled().then(successSpy).catch(failSpy);
-      $httpBackend.expectGET(CLMLocations.getSystemConfigurationPropertyUrl('SUCCESS_METRICS_ENABLED')).respond(
-          {name: 'SUCCESS_METRICS_ENABLED', value: 'true'});
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond({enabled: true});
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -37,8 +36,7 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
 
     it('throws a failed request', function() {
       systemConfigurationPropertyService.isSuccessMetricsEnabled().then(successSpy).catch(failSpy);
-      $httpBackend.expectGET(CLMLocations.getSystemConfigurationPropertyUrl('SUCCESS_METRICS_ENABLED')).respond(404,
-          'not found');
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -51,8 +49,7 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
   describe('checking success metrics flag has not been disabled by sys admin', function() {
     it('returns a resolved promise when it is enabled', function() {
       systemConfigurationPropertyService.checkSuccessMetricsEnabled().then(successSpy).catch(failSpy);
-      $httpBackend.expectGET(CLMLocations.getSystemConfigurationPropertyUrl('SUCCESS_METRICS_ENABLED')).respond(
-          {name: 'SUCCESS_METRICS_ENABLED', value: 'true'});
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond({enabled: true});
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -61,8 +58,7 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
 
     it('returns a rejected promise with error message when it is disabled', function() {
       systemConfigurationPropertyService.checkSuccessMetricsEnabled().then(successSpy).catch(failSpy);
-      $httpBackend.expectGET(CLMLocations.getSystemConfigurationPropertyUrl('SUCCESS_METRICS_ENABLED')).respond(
-          {name: 'SUCCESS_METRICS_ENABLED', value: 'false'});
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond({enabled: false});
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -76,12 +72,11 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
     it('returns property when the request succeeds and broadcasts event', function() {
       spyOn($rootScope, '$broadcast').and.callThrough();
       systemConfigurationPropertyService.saveSuccessMetricsEnabled(true).then(successSpy).catch(failSpy);
-      var configProperty = {name: 'SUCCESS_METRICS_ENABLED', value: 'true'};
-      $httpBackend.expectPUT(CLMLocations.getSystemConfigurationPropertiesUrl(), configProperty).respond(
-          configProperty);
+      var config = {enabled: true};
+      $httpBackend.expectPUT(CLMLocations.getSuccessMetricsConfigUrl(), config).respond(config);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(configProperty);
+      expect(successSpy).toHaveBeenCalledWith(config);
       expect(failSpy).not.toHaveBeenCalled();
       expect($rootScope.$broadcast).toHaveBeenCalledWith('successMetricsConfigurationUpdated', true);
     });
@@ -89,9 +84,8 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
     it('throws a failed request', function() {
       spyOn($rootScope, '$broadcast').and.callThrough();
       systemConfigurationPropertyService.saveSuccessMetricsEnabled(false).then(successSpy).catch(failSpy);
-      var configProperty = {name: 'SUCCESS_METRICS_ENABLED', value: 'false'};
-      $httpBackend.expectPUT(CLMLocations.getSystemConfigurationPropertiesUrl(), configProperty).respond(401,
-          'unauthorized');
+      var config = {enabled: false};
+      $httpBackend.expectPUT(CLMLocations.getSuccessMetricsConfigUrl(), config).respond(401, 'unauthorized');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();

@@ -21,6 +21,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -89,8 +92,10 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Audited(AuditEvent.CREATE_LDAP_SERVER)
   public LdapServer addLdapServer(LdapServer server) {
     serverDao.insert(server);
+    auditLdapServer(server);
     return server;
   }
 
@@ -101,8 +106,10 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Audited(AuditEvent.UPDATE_LDAP_SERVER)
   public LdapServer updateLdapServer(LdapServer server) {
     serverDao.update(server);
+    auditLdapServer(server);
     return server;
   }
 
@@ -112,8 +119,15 @@ public class LdapResource
   @DELETE
   @Path("{ldapServerId}")
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Audited(AuditEvent.DELETE_LDAP_SERVER)
   public void deleteLdapServer(@PathParam("ldapServerId") final String serverId) {
-    serverDao.delete(serverDao.getByIdNotNull(serverId));
+    LdapServer server = serverDao.getByIdNotNull(serverId);
+    serverDao.delete(server);
+    auditLdapServer(server);
+  }
+
+  private void auditLdapServer(final LdapServer server) {
+    AuditData.get().setData("ldapServerId", server.getId()).setData("ldapServerName", server.getName());
   }
 
   // connection

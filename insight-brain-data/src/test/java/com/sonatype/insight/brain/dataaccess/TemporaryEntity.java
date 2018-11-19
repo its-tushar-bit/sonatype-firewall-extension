@@ -271,8 +271,6 @@ public class TemporaryEntity
 
   private Collection<SuccessMetricsReportData> successMetricsReportDatas;
 
-  private Collection<SystemConfigurationProperty> systemConfigurationProperties;
-
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -298,15 +296,12 @@ public class TemporaryEntity
     policyViolationAggregations = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
-    systemConfigurationProperties = new ArrayList<>();
   }
 
   @Override
   protected void after() {
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
-    delete(systemConfigurationProperties, entity -> systemConfigurationPropertyDAO.getByName(entity.getName()),
-        systemConfigurationPropertyDAO::delete);
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
@@ -1665,12 +1660,5 @@ public class TemporaryEntity
     this.successMetricsReportDatas.add(successMetricsReportData);
     this.successMetricsReportDataDAO.insert(successMetricsReportData);
     return successMetricsReportData;
-  }
-
-  public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
-    SystemConfigurationProperty property = new SystemConfigurationProperty(name, value);
-    systemConfigurationProperties.add(property);
-    systemConfigurationPropertyDAO.insert(property);
-    return property;
   }
 }

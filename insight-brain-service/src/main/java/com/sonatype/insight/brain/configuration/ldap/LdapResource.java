@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.configuration.ldap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -151,9 +152,27 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Audited(AuditEvent.CONFIGURE_LDAP_CONNECTION)
   public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     validateServerId(serverId, conn);
-    return ldapService.saveConnection(conn);
+    LdapConnection ldapConnection = ldapService.saveConnection(conn);
+    auditLdapConnection(ldapConnection);
+    return ldapConnection;
+  }
+
+  private void auditLdapConnection(final LdapConnection ldapConnection) {
+    auditLdapServer(serverDao.getByIdNotNull(ldapConnection.getServerId()));
+    AuditData.get()
+        .setData("ldapProtocol", ldapConnection.getProtocol().getProtocol())
+        .setData("ldapHostname", ldapConnection.getHostname())
+        .setData("ldapPort", ldapConnection.getPort())
+        .setData("ldapSearchBaseDn", ldapConnection.getSearchBase())
+        .setData("ldapAuthenticationMethod",
+            ldapConnection.getAuthenticationMethod().getMethod().toLowerCase(Locale.ROOT))
+        .setData("ldapSaslRealm", ldapConnection.getSaslRealm())
+        .setData("ldapUsername", ldapConnection.getSystemUsername())
+        .setData("ldapConnectionTimeoutInSeconds", ldapConnection.getConnectionTimeout())
+        .setData("ldapRetryDelayInSeconds", ldapConnection.getRetryDelay());
   }
 
   // user mapping

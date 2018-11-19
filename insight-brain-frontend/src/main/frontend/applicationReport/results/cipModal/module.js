@@ -36,6 +36,7 @@ import '../../../audit-report/slickgrid/sort';
 
 import cipModal from './cipModal';
 import cipOccurrences from './cipOccurrences/cipOccurrences';
+import cipSimilar from './cipSimilar/cipSimilar';
 import cipAudit from './cipAudit/cipAudit';
 import cipTabPanel from './cipTabPanel/cipTabPanel';
 
@@ -47,6 +48,7 @@ export default angular.module('cipModal',
     ])
     .component('cipModal', cipModal)
     .component('cipOccurrences', cipOccurrences)
+    .component('cipSimilar', cipSimilar)
     .component('cipAudit', cipAudit)
     .component('cipTabPanel', cipTabPanel)
     .service('OwnerContext', OwnerContext);

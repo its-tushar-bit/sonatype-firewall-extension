@@ -26,6 +26,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipAuditTab;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurrencesTab;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimilarTab;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
@@ -156,6 +157,7 @@ public class ApplicationReportCipTest
     testLabelsTab();
     testVulnerabilitiesTab();
     testOccurrencesTab();
+    testSimilarTab();
     testAuditTab();
   }
 
@@ -615,6 +617,30 @@ public class ApplicationReportCipTest
     ));
 
     eyesWatcher.eyesCheck("Occurrences Tab");
+
+    cipModal.closeButton().click();
+  }
+
+  private void testSimilarTab() {
+    reportPage.resultRow(2).shouldHave(text("logback")).click();
+
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.tabLink(3).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(3).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    CipSimilarTab similarTab = cipModal.getSimilarTab();
+    similarTab.emptyMessage().shouldNot(exist);
+    similarTab.mostSimilarComponent().shouldHave(text("ch.qos.logback : logback-access : 0.6-a"));
+    similarTab.otherSimilarComponents().shouldHave(texts("ch.qos.logback : logback-access : 0.6-b"));
+
+    eyesWatcher.eyesCheck("Similar Tab");
+
+    cipModal.nextButton().click();
+
+    similarTab.mostSimilarComponent().shouldNot(exist);
+    similarTab.otherSimilarComponents().shouldHaveSize(0);
+    similarTab.emptyMessage().shouldBe(visible);
 
     cipModal.closeButton().click();
   }

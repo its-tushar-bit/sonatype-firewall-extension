@@ -216,6 +216,10 @@ public class ApplicationReportPage
       return new CipOccurrencesTab(".tab-content > cip-occurrences");
     }
 
+    public CipSimilarTab getSimilarTab() {
+      return new CipSimilarTab(".tab-content > cip-similar");
+    }
+
     public CipAuditTab getAuditTab() {
       return new CipAuditTab(".tab-content > cip-audit");
     }
@@ -230,6 +234,26 @@ public class ApplicationReportPage
 
     public ElementsCollection occurrences() {
       return children("li");
+    }
+  }
+
+  public static class CipSimilarTab
+      extends BasicElement<CipSimilarTab>
+  {
+    CipSimilarTab(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement emptyMessage() {
+      return child("#cip-similar-empty-message");
+    }
+
+    public SelenideElement mostSimilarComponent() {
+      return child("#cip-most-similar-component");
+    }
+
+    public ElementsCollection otherSimilarComponents() {
+      return children("#cip-other-similar-components > li");
     }
   }
 

@@ -53,7 +53,7 @@
   <div ng-switch="vm.selectedTab" class="tab-content">
     <div ng-switch-when="componentInfo" information-panel></div>
     <div ng-switch-when="policy" cip-policy-violations></div>
-    <div ng-switch-when="similar"><!-- TODO --></div>
+    <cip-similar ng-switch-when="similar" similar-components="vm.selectedComponent.matchDetails"></cip-similar>
     <cip-occurrences ng-switch-when="occurrences" pathnames="vm.selectedComponent.pathnames"></cip-occurrences>
     <div ng-switch-when="licenses" cip-license-editor></div>
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>

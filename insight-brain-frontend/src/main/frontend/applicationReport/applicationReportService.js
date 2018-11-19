@@ -35,7 +35,7 @@ import { isNilOrEmpty } from '../util/jsUtil';
 const flatMap = pipe(map, flatten),
     toKey = component => component.hash || (component.pathnames || []).join('\t'),
     nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
-    indexComponentsByKey = reduceBy((acc, c) => c, null, toKey),
+    indexByKey = reduceBy((acc, c) => c, null, toKey),
     makeNonViolatingComponentEntry = component => ({
       ...component,
       policyThreatLevel: 0,
@@ -122,20 +122,28 @@ const makeViolationEntriesMap = new window.Map([
   [null, makeViolationEntriesNoVersion]
 ]);
 
+const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
+  const partialMatches = partialMatchesByKey[toKey(entry)];
+
+  return partialMatches ? { ...entry, matchDetails: partialMatches.matchDetails } : entry;
+});
+
 const defaultParamValue = { aaData: [] };
 
 export function createReportEntries(policyResult = defaultParamValue, bomResult = defaultParamValue,
-                                    unknownJsResult = defaultParamValue) {
+                                    unknownJsResult = defaultParamValue, partialMatches = defaultParamValue) {
 
   // BOM (and unknownJS) records indexed by their key
-  const bomDataByKey = indexComponentsByKey(concat(bomResult.aaData, unknownJsResult.aaData)),
+  const bomDataByKey = indexByKey(concat(bomResult.aaData, unknownJsResult.aaData)),
+      partialMatchesByKey = indexByKey(partialMatches.aaData),
 
       // select the right processing function for this version of the data
       makeViolationEntries = makeViolationEntriesMap.get(policyResult.version || null),
 
       // make entries for all violations
       violationEntries = makeViolationEntries(policyResult, bomDataByKey),
-      violatingEntriesByKey = groupBy(toKey, violationEntries);
+      violationEntriesWithPartialMatches = map(addPartialMatchData(partialMatchesByKey), violationEntries),
+      violatingEntriesByKey = groupBy(toKey, violationEntriesWithPartialMatches);
 
   function isKeyInactive([key]) {
     const violations = violatingEntriesByKey[key];
@@ -146,7 +154,7 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
   const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),
       nonViolatingComponentEntries = map(makeNonViolatingComponentEntry, nonViolatingBomData);
 
-  return concat(violationEntries, nonViolatingComponentEntries);
+  return concat(violationEntriesWithPartialMatches, nonViolatingComponentEntries);
 }
 
 function highestViolationReducer(highestViolationSoFar, violation) {

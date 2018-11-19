@@ -124,3 +124,13 @@ cip-audit {
     border-top-style: none;
   }
 }
+
+cip-similar {
+  display: block;
+
+  margin-top: 1px;
+
+  .iq-scrollable {
+    max-height: 281px;
+  }
+}

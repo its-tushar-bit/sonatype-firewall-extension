@@ -27,7 +27,8 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
         $http.get(CLMLocations.getReportMetadataUrl(applicationPublicId, scanId)),
         $http.get(CLMLocations.getReportPolicyThreatsUrl(applicationPublicId, scanId)),
         $http.get(CLMLocations.getReportBomUrl(applicationPublicId, scanId)),
-        $http.get(CLMLocations.getReportDataUrl(applicationPublicId, scanId))
+        $http.get(CLMLocations.getReportDataUrl(applicationPublicId, scanId)),
+        $http.get(CLMLocations.getReportPartialMatchedUrl(applicationPublicId, scanId))
       ];
 
       if (isUnknownJs) {
@@ -40,8 +41,9 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
             const policyResult = results[1].data || undefined;
             const bomResult = results[2].data || undefined;
             const dataResult = results[3].data;
+            const partialMatches = results[4].data || undefined;
             const unknownJsResult = isUnknownJs ? results[4].unknownJsResult : undefined;
-            const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult);
+            const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult, partialMatches);
             dispatch(loadReportFulfilled({ ...metadata, allEntries, ...dataResult, scanId }));
           })
           .catch(error => {

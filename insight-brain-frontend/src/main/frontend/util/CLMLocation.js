@@ -354,6 +354,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getReportUnknownJsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
           '/browseReport/unknownjs.json',
 
+      getReportPartialMatchedUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/browseReport/partialmatched.json',
+
       getReportAuditLogUrl: function(appPublicId, reportId, component) {
         const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),
             encodedAppId = encodeURIComponent(appPublicId),

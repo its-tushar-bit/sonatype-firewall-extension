@@ -45,6 +45,12 @@ describe('applicationReportService', function() {
             },
             otherProp: 'baz'
           }]
+        },
+        partialMatchData = {
+          aaData: [{
+            hash: 'barHash',
+            matchDetails: [{ artifactId: 'fooBar' }]
+          }]
         };
 
     it('creates entries from report V3 data', function() {
@@ -119,7 +125,8 @@ describe('applicationReportService', function() {
               }]
             }]
           },
-          result = applicationReportService.createReportEntries(policyThreatData, bomData, unknownJSData);
+          result = applicationReportService.createReportEntries(
+              policyThreatData, bomData, unknownJSData, partialMatchData);
 
       expect(result.length).toEqual(4);
 
@@ -169,7 +176,8 @@ describe('applicationReportService', function() {
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
-        grandfathered: true
+        grandfathered: true,
+        matchDetails: partialMatchData.aaData[0].matchDetails
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -181,6 +189,8 @@ describe('applicationReportService', function() {
         waived: false,
         grandfathered: false
       }));
+
+      expectNoExtraMatchData(result);
     });
 
     it('creates entries from report V1/V2 data', function() {
@@ -230,8 +240,10 @@ describe('applicationReportService', function() {
             }]
           },
           policyThreatData2 = { ...policyThreatData, version: 2 },
-          result = applicationReportService.createReportEntries(policyThreatData, bomData, unknownJSData),
-          result2 = applicationReportService.createReportEntries(policyThreatData2, bomData, unknownJSData);
+          result = applicationReportService.createReportEntries(
+              policyThreatData, bomData, unknownJSData, partialMatchData),
+          result2 = applicationReportService.createReportEntries(
+              policyThreatData2, bomData, unknownJSData, partialMatchData);
 
       expect(result.length).toEqual(4);
 
@@ -281,7 +293,8 @@ describe('applicationReportService', function() {
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
-        grandfathered: false
+        grandfathered: false,
+        matchDetails: partialMatchData.aaData[0].matchDetails
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -295,6 +308,8 @@ describe('applicationReportService', function() {
       }));
 
       expect(result2).toEqual(result);
+
+      expectNoExtraMatchData(result);
     });
 
     it('creates entries from report pre-V1 data', function() {
@@ -338,7 +353,8 @@ describe('applicationReportService', function() {
               policyThreatLevel: 9
             }]
           },
-          result = applicationReportService.createReportEntries(policyThreatData, bomData, unknownJSData);
+          result = applicationReportService.createReportEntries(
+              policyThreatData, bomData, unknownJSData, partialMatchData);
 
       expect(result.length).toEqual(4);
 
@@ -388,7 +404,8 @@ describe('applicationReportService', function() {
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
-        grandfathered: false
+        grandfathered: false,
+        matchDetails: partialMatchData.aaData[0].matchDetails
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -400,6 +417,8 @@ describe('applicationReportService', function() {
         waived: false,
         grandfathered: false
       }));
+
+      expectNoExtraMatchData(result);
     });
 
     it('treats the unknownJSResult parameter as optional', function() {
@@ -871,4 +890,15 @@ describe('applicationReportService', function() {
       });
     });
   });
+
+  function expectNoExtraMatchData(result) {
+    const hashesWithMatchDetails = new Set(
+        result
+            .filter(({ matchDetails }) => matchDetails !== undefined)
+            .map(({ hash }) => hash)
+    );
+
+    expect(hashesWithMatchDetails.size).toBe(1);
+    expect(hashesWithMatchDetails.has('barHash')).toBe(true);
+  }
 });

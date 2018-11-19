@@ -120,7 +120,7 @@ public class LdapConnection
    * @since 1.7
    */
   @Column(name = "retry_delay")
-  private long retryDelay = 30;
+  private int retryDelay = 30;
 
   public LdapConnection() {
   }
@@ -233,11 +233,11 @@ public class LdapConnection
     this.connectionTimeout = connectionTimeout;
   }
 
-  public long getRetryDelay() {
+  public int getRetryDelay() {
     return retryDelay;
   }
 
-  public void setRetryDelay(long retryDelay) {
+  public void setRetryDelay(int retryDelay) {
     this.retryDelay = retryDelay;
   }
 

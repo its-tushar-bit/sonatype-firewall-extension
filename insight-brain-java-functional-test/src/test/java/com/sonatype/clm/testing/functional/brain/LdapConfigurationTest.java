@@ -295,7 +295,7 @@ public class LdapConfigurationTest
     assertThat(persistedConnection.getSystemUsername(), is("just checking if persisted"));
     assertThat(persistedConnection.getSystemPassword(), is(not("just checking if persisted")));
     assertThat(persistedConnection.getConnectionTimeout(), is(31));
-    assertThat(persistedConnection.getRetryDelay(), is(31L));
+    assertThat(persistedConnection.getRetryDelay(), is(31));
 
     // Revert back to no authentication
     connectionForm.authenticationMethod().shouldHave(value("SIMPLE")).selectOption("NONE");

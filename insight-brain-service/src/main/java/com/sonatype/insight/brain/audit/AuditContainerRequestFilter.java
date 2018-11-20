@@ -102,10 +102,9 @@ class AuditContainerRequestFilter
             return;
           }
         }
-        String ownerId = pathParameters.getFirst("ownerId");
         String ownerType = pathParameters.getFirst("ownerType");
-        if (ownerId != null && ownerType != null) {
-          setByOwnerIdAndType(ownerId, ownerType);
+        if (ownerType != null) {
+          setByOwnerIdAndType(pathParameters.getFirst("ownerId"), ownerType);
         }
       }
     }
@@ -114,19 +113,29 @@ class AuditContainerRequestFilter
   private void setByOwnerIdAndType(String ownerId, String ownerType) {
     switch (ownerType) {
       case "application": {
-        setByApplicationPublicId(ownerId);
+        if (ownerId != null) {
+          setByApplicationPublicId(ownerId);
+        }
         break;
       }
       case "organization": {
-        setByOrganizationId(ownerId);
+        if (ownerId != null) {
+          setByOrganizationId(ownerId);
+        }
         break;
       }
       case "repository": {
-        setByRepositoryId(ownerId);
+        if (ownerId != null) {
+          setByRepositoryId(ownerId);
+        }
         break;
       }
       case "repository_container": {
         AuditData.get().setRepositoryContainer();
+        break;
+      }
+      case "global": {
+        AuditData.get().setGlobal();
         break;
       }
     }

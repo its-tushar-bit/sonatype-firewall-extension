@@ -342,6 +342,37 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test
+  public void testFilter_JustRepositoryContainerOwnerType_SetsRepositoryContainer() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerType", OwnerType.REPOSITORY_CONTAINER.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setRepositoryContainer();
+  }
+
+  @Test
+  public void testFilter_AnyIdAndGlobalOwnerType_SetsGlobal() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", "anyId");
+    pathParameters.add("ownerType", OwnerType.GLOBAL.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setGlobal();
+  }
+
+  @Test
+  public void testFilter_JustGlobalOwnerType_SetsGlobal() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerType", OwnerType.GLOBAL.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setGlobal();
+  }
+
+  @Test
   public void testFilter_JustOwnerId_DoesNothing() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
     pathParameters.add("ownerId", "ownerId");
@@ -352,9 +383,23 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_JustOwnerType_DoesNothing() throws Exception {
+  public void testFilter_JustApplicationOwnerType_DoesNothing() throws Exception {
+    testFilter_JustOwnerType_DoesNothing(OwnerType.APPLICATION.toString());
+  }
+
+  @Test
+  public void testFilter_JustOrganizationOwnerType_DoesNothing() throws Exception {
+    testFilter_JustOwnerType_DoesNothing(OwnerType.ORGANIZATION.toString());
+  }
+
+  @Test
+  public void testFilter_JustRepositoryOwnerType_DoesNothing() throws Exception {
+    testFilter_JustOwnerType_DoesNothing(OwnerType.REPOSITORY.toString());
+  }
+
+  private void testFilter_JustOwnerType_DoesNothing(String ownerType) throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
-    pathParameters.add("ownerType", OwnerType.APPLICATION.toString());
+    pathParameters.add("ownerType", ownerType);
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);
 

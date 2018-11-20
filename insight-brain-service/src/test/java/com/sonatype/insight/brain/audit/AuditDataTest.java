@@ -293,6 +293,13 @@ public class AuditDataTest
     verify(auditData).setData("scope", "all-repositories");
   }
 
+  @Test
+  public void testSetGlobal() {
+    auditData.setGlobal();
+
+    verify(auditData).setData("scope", "global");
+  }
+
   private Function<Runnable, Void> runnableSubmitter() {
     return wrappedRunnable -> {
       wrappedRunnable.run();

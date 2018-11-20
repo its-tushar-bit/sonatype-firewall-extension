@@ -206,6 +206,11 @@ public abstract class AuditData
     return this;
   }
 
+  AuditData setGlobal() {
+    setData("scope", "global");
+    return this;
+  }
+
   public AuditData setStageId(String stageId) {
     setData("stageId", stageId);
     return this;

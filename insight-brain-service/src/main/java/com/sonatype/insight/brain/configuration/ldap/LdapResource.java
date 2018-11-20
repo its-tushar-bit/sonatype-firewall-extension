@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.HasLdapServerId;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -201,6 +202,7 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Audited(AuditEvent.CONFIGURE_LDAP_USER_MAPPING)
   public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
     validateServerId(serverId, umap);
 
@@ -210,7 +212,36 @@ public class LdapResource
     else {
       umapDao.insert(umap);
     }
+    auditLdapUserMapping(umap);
     return umap;
+  }
+
+  private void auditLdapUserMapping(final LdapUserMapping umap) {
+    auditLdapServer(serverDao.getByIdNotNull(umap.getServerId()));
+    AuditData.get()
+        .setData("ldapUserBaseDn", umap.getUserBaseDN())
+        .setData("ldapUserSubtree", umap.isUserSubtree() ? "enabled" : "disabled")
+        .setData("ldapUserObjectClass", umap.getUserObjectClass())
+        .setData("ldapUserFilter", umap.getUserFilter())
+        .setData("ldapUserIdAttribute", umap.getUserIDAttribute())
+        .setData("ldapUserRealNameAttribute", umap.getUserRealNameAttribute())
+        .setData("ldapUserEmailAttribute", umap.getUserEmailAttribute())
+        .setData("ldapUserPasswordAttribute", umap.getUserPasswordAttribute())
+        .setEnum("ldapGroupType", umap.getGroupMappingType());
+    if (umap.getGroupMappingType().equals(LdapGroupMappingType.STATIC)) {
+      AuditData.get()
+          .setData("ldapStaticGroupBaseDn", umap.getGroupBaseDN())
+          .setData("ldapStaticGroupSubtree", umap.isGroupSubtree() ? "enabled" : "disabled")
+          .setData("ldapStaticGroupObjectClass", umap.getGroupObjectClass())
+          .setData("ldapStaticGroupIdAttribute", umap.getGroupIDAttribute())
+          .setData("ldapStaticGroupMemberAttribute", umap.getGroupMemberAttribute())
+          .setData("ldapStaticGroupMemberFormat", umap.getGroupMemberFormat());
+    }
+    else if (umap.getGroupMappingType().equals(LdapGroupMappingType.DYNAMIC)) {
+      AuditData.get()
+          .setData("ldapDynamicGroupMemberOfAttribute", umap.getUserMemberOfGroupAttribute())
+          .setData("ldapDynamicGroupSearch", umap.isDynamicGroupSearchEnabled() ? "enabled" : "disabled");
+    }
   }
 
   /**

@@ -11,8 +11,10 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -104,6 +106,79 @@ public class LdapResourceAuditTest
     assertAuditLog(AuditEvent.CONFIGURE_LDAP_CONNECTION, "unauthorized");
   }
 
+  @Test
+  public void testUpdateUserMapping_GroupMappingTypeNONE_Enabled() throws Exception {
+    testUpdateUserMapping(LdapGroupMappingType.NONE, "none", true);
+  }
+
+  @Test
+  public void testUpdateUserMapping_GroupMappingTypeNONE_Disabled() throws Exception {
+    testUpdateUserMapping(LdapGroupMappingType.NONE, "none", false);
+  }
+
+  @Test
+  public void testUpdateUserMapping_GroupMappingTypeSTATIC_Enabled() throws Exception {
+    testUpdateUserMapping(LdapGroupMappingType.STATIC, "static", true);
+  }
+
+  @Test
+  public void testUpdateUserMapping_GroupMappingTypeSTATIC_Disabled() throws Exception {
+    testUpdateUserMapping(LdapGroupMappingType.STATIC, "static", false);
+  }
+
+  @Test
+  public void testUpdateUserMapping_GroupMappingTypeDYNAMIC_Enabled() throws Exception {
+    testUpdateUserMapping(LdapGroupMappingType.DYNAMIC, "dynamic", true);
+  }
+
+  @Test
+  public void testUpdateUserMapping_GroupMappingTypeDYNAMIC_Disabled() throws Exception {
+    testUpdateUserMapping(LdapGroupMappingType.DYNAMIC, "dynamic", false);
+  }
+
+  @Test
+  public void testUpdateUserMapping_Unauthorized() throws Exception {
+    LdapUserMapping userMapping = newUserMapping(LdapGroupMappingType.NONE, false);
+    ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).with(unauthorizedUser())
+        .body(userMapping).put();
+
+    assertAuditLog(AuditEvent.CONFIGURE_LDAP_USER_MAPPING, "unauthorized");
+  }
+
+  private void testUpdateUserMapping(final LdapGroupMappingType groupMappingType,
+                                     final String expectedGroupMappingType,
+                                     boolean enabledDisabled)
+      throws Exception
+  {
+    LdapUserMapping userMapping = newUserMapping(groupMappingType, enabledDisabled);
+    ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).body(userMapping).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LDAP_USER_MAPPING, null);
+    assertLdapServerData(auditDTO, ldapServer);
+    assertCustomData(auditDTO, "ldapUserBaseDn", userMapping.getUserBaseDN());
+    assertCustomData(auditDTO, "ldapUserSubtree", enabledDisabled ? "enabled" : "disabled");
+    assertCustomData(auditDTO, "ldapUserObjectClass", userMapping.getUserObjectClass());
+    assertCustomData(auditDTO, "ldapUserFilter", userMapping.getUserFilter());
+    assertCustomData(auditDTO, "ldapUserIdAttribute", userMapping.getUserIDAttribute());
+    assertCustomData(auditDTO, "ldapUserRealNameAttribute", userMapping.getUserRealNameAttribute());
+    assertCustomData(auditDTO, "ldapUserEmailAttribute", userMapping.getUserEmailAttribute());
+    assertCustomData(auditDTO, "ldapUserPasswordAttribute", userMapping.getUserPasswordAttribute());
+    assertCustomData(auditDTO, "ldapGroupType", expectedGroupMappingType);
+    if (groupMappingType.equals(LdapGroupMappingType.STATIC)) {
+      assertCustomData(auditDTO, "ldapStaticGroupBaseDn", userMapping.getGroupBaseDN());
+      assertCustomData(auditDTO, "ldapStaticGroupSubtree", enabledDisabled ? "enabled" : "disabled");
+      assertCustomData(auditDTO, "ldapStaticGroupObjectClass", userMapping.getGroupObjectClass());
+      assertCustomData(auditDTO, "ldapStaticGroupIdAttribute", userMapping.getGroupIDAttribute());
+      assertCustomData(auditDTO, "ldapStaticGroupMemberAttribute", userMapping.getGroupMemberAttribute());
+      assertCustomData(auditDTO, "ldapStaticGroupMemberFormat", userMapping.getGroupMemberFormat());
+    }
+    if (groupMappingType.equals(LdapGroupMappingType.DYNAMIC)) {
+      assertCustomData(auditDTO, "ldapDynamicGroupMemberOfAttribute", userMapping.getUserMemberOfGroupAttribute());
+      assertCustomData(auditDTO, "ldapDynamicGroupSearch",
+          enabledDisabled ? "enabled" : "disabled");
+    }
+  }
+
   private void testUpdateLdapConnection(final LdapAuthenticationMethod ldapAuthenticationMethod,
                                         final String expectedAuthMethodOutput) throws Exception
   {
@@ -159,5 +234,32 @@ public class LdapResourceAuditTest
     conn.setConnectionTimeout(10);
     conn.setRetryDelay(20);
     return conn;
+  }
+
+  private LdapUserMapping newUserMapping(LdapGroupMappingType groupMappingType, boolean enabledDisabled) {
+    LdapUserMapping umap = new LdapUserMapping();
+    umap.setServerId(ldapServer.getId());
+    umap.setUserBaseDN("userBaseDN");
+    umap.setUserSubtree(enabledDisabled);
+    umap.setUserObjectClass("userObjectClass");
+    umap.setUserFilter("userFilter");
+    umap.setUserIDAttribute("userIDAttribute");
+    umap.setUserRealNameAttribute("realNameAttribute");
+    umap.setUserEmailAttribute("emailAttribute");
+    umap.setUserPasswordAttribute("passwordAttribute");
+    umap.setGroupMappingType(groupMappingType);
+    if (groupMappingType.equals(LdapGroupMappingType.STATIC)) {
+      umap.setGroupBaseDN("groupBaseDN");
+      umap.setGroupSubtree(enabledDisabled);
+      umap.setGroupObjectClass("groupObjectClass");
+      umap.setGroupIDAttribute("groupIDAttribute");
+      umap.setGroupMemberAttribute("groupMemberAttribute");
+      umap.setGroupMemberFormat("groupMemberFormat");
+    }
+    if (groupMappingType.equals(LdapGroupMappingType.DYNAMIC)) {
+      umap.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
+      umap.setDynamicGroupSearchEnabled(enabledDisabled);
+    }
+    return umap;
   }
 }

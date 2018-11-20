@@ -65,6 +65,9 @@ class RecordingAuditData
   protected AuditData forSubEvent(AuditEvent event, boolean independent, boolean system) {
     RecordingAuditData child = new RecordingAuditData(this, independent, system);
     child.setEvent(event);
+    if (this.event == child.event) {
+      child.data.putAll(data);
+    }
     if (!independent) {
       children.add(child);
     }

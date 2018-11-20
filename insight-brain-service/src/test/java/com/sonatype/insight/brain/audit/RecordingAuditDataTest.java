@@ -149,4 +149,26 @@ public class RecordingAuditDataTest
     assertThat(child.getUsername(), is(parent.getUsername()));
     assertThat(child.getRequestData(), is(mockRequestData));
   }
+
+  @Test
+  public void testForSubEvent_SameEvent_CopiesData() {
+    RecordingAuditData parent = new RecordingAuditData(null, mock(RequestData.class));
+    parent.setEvent(AuditEvent.LOGIN);
+    parent.setData("key", "value");
+
+    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, true, false);
+
+    assertThat(child.getData(), is(parent.getData()));
+  }
+
+  @Test
+  public void testForSubEvent_DifferentEvent_DoesNotCopyData() {
+    RecordingAuditData parent = new RecordingAuditData(null, mock(RequestData.class));
+    parent.setEvent(AuditEvent.LOGIN);
+    parent.setData("key", "value");
+
+    RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.IMPORT, true, false);
+
+    assertThat(child.getData().keySet(), is(empty()));
+  }
 }

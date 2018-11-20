@@ -1,4 +1,7 @@
-<div class="iq-tile" load-wrapper="vm.loadError" reload="vm.doLoad()" loading="vm.loading">
+<div class="iq-tile iq-tile--top-tile iq-tile--application-report"
+     load-wrapper="vm.loadError"
+     reload="vm.doLoad()"
+     loading="vm.loading">
   <div class="iq-tile__actions">
     <div class="iq-dropdown dropdown" id="options-dropdown">
       <button class="btn dropdown-toggle btn-tertiary" type="button" id="options-menu" data-toggle="dropdown">
@@ -68,8 +71,12 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+<div class="iq-tile iq-tile--application-report-table-container" maximize-container-height>
+  <div class="iq-scrollable">
     <table class="iq-table iq-table--application-report">
-      <thead>
+      <thead class="iq-application-report-headers">
         <tr class="iq-table-row"
             sort="vm.sortFields"
             on-sort-change="vm.setSorting(sortFields)">
@@ -107,7 +114,7 @@
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="iq-application-report-results">
         <tr class="iq-table-row iq-clickable"
             ng-repeat="component in vm.selectedReport.displayedEntries"
             ng-click="vm.openCipModal($index)">

@@ -44,6 +44,10 @@ public class GettingStartedPage
     return child(nthChild(index + 1), "getting-started-doc-link");
   }
 
+  public SelenideElement docLinkIcon(int index) {
+    return child(nthChild(index + 1), "getting-started-doc-link i");
+  }
+
   public static class ProductLicenseSummaryTile
       extends BasicElement<ProductLicenseSummaryTile>
   {

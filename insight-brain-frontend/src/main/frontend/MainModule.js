@@ -167,15 +167,25 @@ export const InitModule = angular.module('InitModule', [
     function initExternalLinkClickHandler() {
       if (!ProductFeatures.isAvailable('allow-external-hyperlinks')) {
         const externalLinkClickHandler = (e) => {
-          const isExternalLink = (target) => target.hostname && target.hostname !== location.hostname;
-          if (isExternalLink(e.target)) {
-            externalLinkModalService.open(e.target.href);
+          const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
+          const anchor = getAnchor(e.target);
+          if (isExternalLink(anchor)) {
+            externalLinkModalService.open(anchor.href);
             e.stopImmediatePropagation();
             return false;
           }
         };
         $(document).on('click', 'a', externalLinkClickHandler);
         $window.externalLinkClickHandler = externalLinkClickHandler;
+      }
+    }
+
+    function getAnchor(target) {
+      if (target.nodeName === 'A') {
+        return target;
+      }
+      else {
+        return getAnchor(target.parentNode);
       }
     }
 

@@ -67,4 +67,19 @@ public class ExternalLinkTest
     MainHeader.dashboardNavigationButton().click();
     DashboardPage.dashboardContainer().shouldBe(visible);
   }
+
+  @Test
+  public void testExternalLinks_Disabled_Icon() {
+    testCLMServer.getCLMServer().getConfiguration().setExternalHyperlinksAllowed(false);
+    refreshOrOpen(GettingStartedPage.URL);
+    loginAsAdmin();
+    GettingStartedPage gettingStartedPage = new GettingStartedPage();
+    gettingStartedPage.systemSetup().shouldBe(visible);
+    gettingStartedPage.docLinkIcon(0).shouldBe(visible).click();
+    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles().size(), is(1));
+    ExternalLinkModal modal = new ExternalLinkModal();
+    modal.shouldBe(visible).body().shouldHave(text("http://links.sonatype.com/products/nxiq/doc/requirements"));
+    modal.closeButton().click();
+    modal.shouldBe(hidden);
+  }
 }

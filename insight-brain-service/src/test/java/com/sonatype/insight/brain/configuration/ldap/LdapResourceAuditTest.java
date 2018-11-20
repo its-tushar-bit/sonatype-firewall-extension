@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -20,6 +23,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -143,6 +147,26 @@ public class LdapResourceAuditTest
         .body(userMapping).put();
 
     assertAuditLog(AuditEvent.CONFIGURE_LDAP_USER_MAPPING, "unauthorized");
+  }
+
+  @Test
+  public void testUpdatePriority() throws Exception {
+    LdapServer ldapServer2 = tempEntity.newLdapServer("server 2");
+    LdapServer ldapServer3 = tempEntity.newLdapServer("server 3");
+    List<LdapServer> servers = asList(ldapServer3, ldapServer2, ldapServer);
+    ldapRequest().path(LdapResource.PRIORITY_PATH)
+        .body(servers.stream().map(LdapServer::getId).collect(Collectors.toList())).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.PRIORITIZE_LDAP, null);
+    assertCustomObject(auditDTO, "ldapServerOrder",
+        servers.stream().map(LdapServerDTO::new).collect(Collectors.toList()));
+  }
+
+  @Test
+  public void testUpdatePriority_Unauthorized() throws Exception {
+    ldapRequest().path(LdapResource.PRIORITY_PATH).with(unauthorizedUser()).body(asList(ldapServer.getId())).put();
+
+    assertAuditLog(AuditEvent.PRIORITIZE_LDAP, "unauthorized");
   }
 
   private void testUpdateUserMapping(final LdapGroupMappingType groupMappingType,

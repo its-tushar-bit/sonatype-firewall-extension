@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -327,7 +328,11 @@ public class LdapResource
   @Path(PRIORITY_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Audited(AuditEvent.PRIORITIZE_LDAP)
   public void updatePriority(List<String> serverIds) {
+    List<LdapServerDTO> serverList = serverIds.stream()
+        .map(serverId -> new LdapServerDTO(serverDao.getByIdNotNull(serverId))).collect(Collectors.toList());
     serverDao.updatePriority(serverIds);
+    AuditData.get().setData("ldapServerOrder", serverList);
   }
 }

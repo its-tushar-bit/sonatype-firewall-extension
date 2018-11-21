@@ -21,17 +21,13 @@ import javax.validation.Validator;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
-import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
-import com.sonatype.insight.brain.migration.DataMigrator;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -177,30 +173,7 @@ public class InsightBrainService
 
     super.run(configuration, environment);
 
-    // If a license is not installed and the config has a license file path, then try to install it from there.
-    getInstance(CLMLicenseManager.class).installLicenseIfUnlicensed(configuration.getLicenseFile());
-
-    LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
-
-    getInstance(DataMigrator.class).migrate();
-
-    // This call must come after the DataMigrator. Specifically, the RootOrganizationConfigMigrator as the sample data
-    // will interfere with its decision to determine a fresh install and mistakenly trigger the root org migration.
-    getInstance(NewInstancePopulator.class).populateIfNewInstance();
-
-    new Thread("Startup license data updater")
-    {
-      @Override
-      public void run() {
-        try {
-          LicenseDataUpdater.update();
-        }
-        catch (Exception e) {
-          log.info("Failed to retrieve license data from Sonatype HDS");
-          log.debug("Failed to retrieve license data from Sonatype HDS", e);
-        }
-      }
-    }.start();
+    getInstance(ApplicationLifecycle.class).boot();
   }
 
   void printVersion() {

@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiApplicationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
@@ -137,6 +139,7 @@ public class ApiApplicationResourceV2
   @PUT
   @Path(ROLE_MEMBERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP)
   public void setMembershipMappingForRole(@PathParam("applicationId") final String applicationId,
                                           final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {

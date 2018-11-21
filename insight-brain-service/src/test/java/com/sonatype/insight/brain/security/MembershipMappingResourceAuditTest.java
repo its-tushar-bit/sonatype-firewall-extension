@@ -8,22 +8,17 @@ package com.sonatype.insight.brain.security;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,25 +26,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
 public class MembershipMappingResourceAuditTest
-    extends AbstractAuditTest
+    extends AbstractMembershipMappingAuditTest
 {
-  private List<MembershipMapping> originalMembershipMapppings;
-
   private List<Member> members;
 
   @Before
   public void before() {
-    originalMembershipMapppings = new MembershipMappingDAO().getAll().stream()
-        .map(mm -> new MembershipMapping(mm.getContextId(), mm.getRoleId(), mm.getMemberName(), mm.getMemberType()))
-        .collect(Collectors.toList());
     members = Arrays.asList(member(MemberType.USER), member(MemberType.GROUP));
-  }
-
-  @After
-  public void after() {
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    membershipMappingDAO.getAll().forEach(membershipMappingDAO::delete);
-    originalMembershipMapppings.forEach(membershipMappingDAO::insert);
   }
 
   @Test
@@ -159,12 +142,5 @@ public class MembershipMappingResourceAuditTest
     return ownerType == OwnerType.REPOSITORY_CONTAINER ?
         request.path(MembershipMappingResource.SINGLETON_ROLE_PATH).parameter(ownerType, roleId).body(members) :
         request.path(MembershipMappingResource.ROLE_PATH).parameter(ownerType, ownerId, roleId).body(members);
-  }
-
-  private void assertRoleMembershipData(AuditDTO auditDTO, String roleId, List<Member> members) {
-    Role role = new RoleDAO().getByIdNotNull(roleId);
-    assertCustomData(auditDTO, "roleId", role.getId());
-    assertCustomData(auditDTO, "roleName", role.getName());
-    assertCustomObject(auditDTO, "roleMembers", MemberDTO.transcribe(members));
   }
 }

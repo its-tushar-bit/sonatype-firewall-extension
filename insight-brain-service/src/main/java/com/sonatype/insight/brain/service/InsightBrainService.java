@@ -132,6 +132,9 @@ public class InsightBrainService
       protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig configuration)
           throws Exception
       {
+        MDCUsernameScope.forSystem();
+        printVersion();
+
         String configArg = namespace.getString("file");
         InsightBrainService.configFile = configArg != null ? new File(configArg).getAbsoluteFile() : null;
         log.info("Configuration file: {}",
@@ -164,10 +167,7 @@ public class InsightBrainService
 
   @Override
   public void run(InsightConfig configuration, Environment environment) throws Exception {
-    MDCUsernameScope.forSystem();
-
     printInstanceId("Started");
-    printVersion();
 
     initializeDatabases(configuration);
 

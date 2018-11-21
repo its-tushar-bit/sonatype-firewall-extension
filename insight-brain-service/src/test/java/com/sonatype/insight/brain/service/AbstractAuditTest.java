@@ -171,6 +171,10 @@ public abstract class AbstractAuditTest
     assertThat(auditDTO.data, hasEntry("scope", "all-repositories"));
   }
 
+  protected void assertGlobalData(AuditDTO auditDTO) {
+    assertThat(auditDTO.data, hasEntry("scope", "global"));
+  }
+
   protected void assertEvaluationAuditLog(String error,
                                           String applicationId,
                                           String applicationPublicId,

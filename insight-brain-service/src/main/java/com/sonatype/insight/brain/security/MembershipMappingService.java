@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,9 @@ import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -186,6 +190,9 @@ public class MembershipMappingService
       }
 
       tx.commit();
+      AuditData.get().commitSubEvents();
+      // After successfully committing the subevents, the parent event is not needed so cancel it
+      AuditData.get().setEvent(null);
     }
 
     managementEventService.postEvent(EventAction.UPDATED, roleToMembers, internalOwnerId);
@@ -214,7 +221,16 @@ public class MembershipMappingService
       memberMaps.add(memberMap);
     }
 
+    auditConfigureRoleMembership(role, members);
+
     memberMapDAO.setMembershipMappingsForContextAndRole(tx, internalOwnerId, roleId, memberMaps);
+  }
+
+  private void auditConfigureRoleMembership(Role role, Collection<Member> members) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, false)) {
+      AuditData.get().setData("roleId", role.getId()).setData("roleName", role.getName())
+          .setData("roleMembers", MemberDTO.transcribe(members));
+    }
   }
 
   private Role validateRole(final OwnerType ownerType, final String roleId) {

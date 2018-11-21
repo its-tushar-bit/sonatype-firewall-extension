@@ -19,6 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -71,6 +73,7 @@ public class MembershipMappingResource
   @PUT
   @Path(ROLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP)
   public void setMembershipMappingForRole(@PathParam("ownerType") final OwnerType ownerType,
                                           @PathParam("ownerId") final String ownerId,
                                           @PathParam("roleId") final String roleId,
@@ -99,6 +102,7 @@ public class MembershipMappingResource
   @PUT
   @Path(SINGLETON_ROLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP)
   public void setMembershipMappingForRole(@PathParam("ownerType") final OwnerType ownerType,
                                           @PathParam("roleId") final String roleId,
                                           final List<Member> members)

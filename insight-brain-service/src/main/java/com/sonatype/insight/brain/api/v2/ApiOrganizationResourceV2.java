@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiOrganizationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
@@ -78,6 +80,7 @@ public class ApiOrganizationResourceV2
   @PUT
   @Path(ROLE_MEMBERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP)
   public void setMembershipMappingForRole(@PathParam("organizationId") final String organizationId,
                                           final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {

@@ -12,41 +12,41 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.AbstractMembershipMappingAuditTest;
 
 import org.junit.Test;
 
-public class ApiApplicationResourceV2AuditTest
+public class ApiOrganizationResourceV2AuditTest
     extends AbstractMembershipMappingAuditTest
 {
   @Test
   public void testSetMembershipMappingForRole() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
+    Organization organization = tempEntity.newOrganization();
     ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiRoleMemberMappingListDTO();
 
-    setMembershipMappingRequest(application.getId(), apiRoleMemberMappingListDTO).put();
+    setMembershipMappingRequest(organization.getId(), apiRoleMemberMappingListDTO).put();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP,
         apiRoleMemberMappingListDTO.memberMappings.size(), null);
-    auditDTOs.forEach(auditDTO -> assertApplicationData(auditDTO, application));
+    auditDTOs.forEach(auditDTO -> assertOrganizationData(auditDTO, organization));
     assertRoleMembershipData(auditDTOs, apiRoleMemberMappingListDTO);
   }
 
   @Test
   public void testSetMembershipMappingForRole_Unauthorized() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
+    Organization organization = tempEntity.newOrganization();
 
-    setMembershipMappingRequest(application.getId(), apiRoleMemberMappingListDTO()).with(unauthorizedUser()).put();
+    setMembershipMappingRequest(organization.getId(), apiRoleMemberMappingListDTO()).with(unauthorizedUser()).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, "unauthorized");
-    assertApplicationData(auditDTO, application);
+    assertOrganizationData(auditDTO, organization);
   }
 
-  private HttpRequest setMembershipMappingRequest(String applicationId,
+  private HttpRequest setMembershipMappingRequest(String organizationId,
                                                   ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
   {
-    return restRequest().path(PublicApiPaths.APP_RESOURCE_PATH, ApiApplicationResourceV2.ROLE_MEMBERS_PATH)
-        .parameter(applicationId).body(apiRoleMemberMappingListDTO);
+    return restRequest().path(PublicApiPaths.ORG_RESOURCE_PATH, ApiOrganizationResourceV2.ROLE_MEMBERS_PATH)
+        .parameter(organizationId).body(apiRoleMemberMappingListDTO);
   }
 }

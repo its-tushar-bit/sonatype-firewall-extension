@@ -133,12 +133,14 @@ public class InsightBrainService
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
       @Override
-      protected void run(Environment environment, Namespace namespace, InsightConfig configuration) throws Exception {
+      protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig configuration)
+          throws Exception
+      {
         String configArg = namespace.getString("file");
-        InsightBrainService.configFile = configArg != null ? new File(configArg) : null;
+        InsightBrainService.configFile = configArg != null ? new File(configArg).getAbsoluteFile() : null;
         log.info("Configuration file: {}",
-            InsightBrainService.configFile != null ? InsightBrainService.configFile.getAbsolutePath() : "(none)");
-        super.run(environment, namespace, configuration);
+            InsightBrainService.configFile != null ? InsightBrainService.configFile : "(none)");
+        super.run(bootstrap, namespace, configuration);
       }
 
       @Override

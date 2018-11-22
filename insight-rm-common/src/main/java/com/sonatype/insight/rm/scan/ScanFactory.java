@@ -256,7 +256,7 @@ public class ScanFactory
       properties.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), ":::"));
     }
     properties.putAll(config.getScanOptions());
-    final ScanPropertiesLoader loader = new ScanPropertiesLoader(LoggerFactory.getLogger(ScanPropertiesLoader.class));
+    final ScanPropertiesLoader loader = new ScanPropertiesLoader();
     loader.resolveAliases(properties);
     loader.loadDefaults(properties, CONFIGURATION_RESOURCE);
     return new ScanConfiguration(properties);

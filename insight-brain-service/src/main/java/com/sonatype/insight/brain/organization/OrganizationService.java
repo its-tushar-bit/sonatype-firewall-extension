@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.PathParam;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -79,6 +80,8 @@ public class OrganizationService
   @Authorize(permission = Permission.WRITE)
   public Organization addOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_OWNER) Organization organization) {
     organizationDAO.insert(organization);
+
+    AuditData.get().setOrganization(organization);
 
     managementEventService.postEvent(CREATED, organization);
 

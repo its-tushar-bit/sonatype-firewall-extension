@@ -44,7 +44,7 @@ public class SampleDataCreatorTest
 
   @Test
   public void testCreateSampleData() throws Exception {
-    SampleDataCreator.createSampleData();
+    new SampleDataCreator().createSampleData();
 
     List<Organization> organizations = organizationDAO.getAll();
     assertThat(organizations, hasSize(2));

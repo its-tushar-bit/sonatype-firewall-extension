@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import javax.inject.Named;
+
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -14,6 +16,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.43
  */
+@Named
 public class SampleDataCreator
 {
   public static final String SAMPLE_ORGANIZATION_NAME = "Sandbox Organization";
@@ -22,7 +25,7 @@ public class SampleDataCreator
 
   public static final String SAMPLE_APPLICATION_PUBLIC_ID = "sandbox-application";
 
-  public static void createSampleData() {
+  public void createSampleData() {
     ApplicationDAO applicationDAO = new ApplicationDAO();
     OrganizationDAO organizationDAO = new OrganizationDAO();
 

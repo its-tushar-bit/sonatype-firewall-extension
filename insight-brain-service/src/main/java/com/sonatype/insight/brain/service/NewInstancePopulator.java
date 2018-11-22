@@ -36,6 +36,8 @@ class NewInstancePopulator
 
   private final ReferencePolicyFetcher referencePolicyFetcher;
 
+  private final SampleDataCreator sampleDataCreator;
+
   private final PolicyImportExport policyImportExport;
 
   private final InsightConfig insightConfig;
@@ -44,11 +46,13 @@ class NewInstancePopulator
 
   @Inject
   public NewInstancePopulator(final ReferencePolicyFetcher referencePolicyFetcher,
+                              final SampleDataCreator sampleDataCreator,
                               final PolicyImportExport policyImportExport,
                               final InsightConfig insightConfig,
                               final AuditRecorder auditRecorder)
   {
     this.referencePolicyFetcher = referencePolicyFetcher;
+    this.sampleDataCreator = sampleDataCreator;
     this.policyImportExport = policyImportExport;
     this.insightConfig = insightConfig;
     this.auditRecorder = auditRecorder;
@@ -74,7 +78,7 @@ class NewInstancePopulator
   private void populate(Organization rootOrganization) {
     if (insightConfig.isCreateSampleData()) {
       log.info("Creating Sample Data");
-      SampleDataCreator.createSampleData();
+      sampleDataCreator.createSampleData();
     }
 
     if (insightConfig.isImportReferencePoliciesFromHDS()) {

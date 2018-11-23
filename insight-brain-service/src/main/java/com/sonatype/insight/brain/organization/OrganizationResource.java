@@ -95,6 +95,7 @@ public class OrganizationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_ORGANIZATION)
   public Organization updateOrganization(Organization organization) {
     return organizationService.updateOrganization(organization);
   }

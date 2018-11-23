@@ -92,6 +92,8 @@ public class OrganizationService
   public Organization updateOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
     organizationDAO.update(organization);
 
+    AuditData.get().setOrganization(organization);
+
     managementEventService.postEvent(UPDATED, organization);
     return organization;
   }

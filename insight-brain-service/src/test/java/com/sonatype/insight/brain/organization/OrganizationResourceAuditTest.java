@@ -34,6 +34,24 @@ public class OrganizationResourceAuditTest
     assertAuditLog(AuditEvent.CREATE_ORGANIZATION, "unauthorized");
   }
 
+  @Test
+  public void testUpdateOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setName("updatedName");
+
+    organizationRequest().body(organization).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_ORGANIZATION, null);
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testUpdateOrganization_Unauthorized() throws Exception {
+    organizationRequest().body(tempEntity.newOrganization()).with(unauthorizedUser()).put();
+
+    assertAuditLog(AuditEvent.UPDATE_ORGANIZATION, "unauthorized");
+  }
+
   private HttpRequest organizationRequest() {
     return restRequest().path(OrganizationResource.RESOURCE_PATH);
   }

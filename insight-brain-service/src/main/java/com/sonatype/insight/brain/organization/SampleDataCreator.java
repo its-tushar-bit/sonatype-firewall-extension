@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -25,6 +30,13 @@ public class SampleDataCreator
 
   public static final String SAMPLE_APPLICATION_PUBLIC_ID = "sandbox-application";
 
+  private final AuditRecorder auditRecorder;
+
+  @Inject
+  public SampleDataCreator(final AuditRecorder auditRecorder) {
+    this.auditRecorder = auditRecorder;
+  }
+
   public void createSampleData() {
     ApplicationDAO applicationDAO = new ApplicationDAO();
     OrganizationDAO organizationDAO = new OrganizationDAO();
@@ -37,6 +49,13 @@ public class SampleDataCreator
           sampleOrganization.getId());
       applicationDAO.insert(tx, sampleApplication);
       tx.commit();
+      auditSampleOrganization(sampleOrganization);
+    }
+  }
+
+  private void auditSampleOrganization(final Organization organization) {
+    try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_ORGANIZATION)) {
+      AuditData.get().setOrganization(organization);
     }
   }
 }

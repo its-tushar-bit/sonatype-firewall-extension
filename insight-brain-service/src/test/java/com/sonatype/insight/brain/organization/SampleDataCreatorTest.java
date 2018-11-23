@@ -7,14 +7,15 @@ package com.sonatype.insight.brain.organization;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,13 +23,16 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 public class SampleDataCreatorTest
+    extends AbstractComponentTest
 {
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  @Inject
+  private SampleDataCreator sampleDataCreator;
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  @Inject
+  private ApplicationDAO applicationDAO;
 
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @After
   public void cleanup() {
@@ -44,7 +48,7 @@ public class SampleDataCreatorTest
 
   @Test
   public void testCreateSampleData() throws Exception {
-    new SampleDataCreator().createSampleData();
+    sampleDataCreator.createSampleData();
 
     List<Organization> organizations = organizationDAO.getAll();
     assertThat(organizations, hasSize(2));

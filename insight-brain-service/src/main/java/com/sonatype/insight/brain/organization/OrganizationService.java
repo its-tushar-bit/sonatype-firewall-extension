@@ -112,6 +112,7 @@ public class OrganizationService
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
       organization = organizationDAO.getByIdNotNull(tx, organizationId);
+      AuditData.get().setOrganization(organization);
       deleteOrganization(tx, organization);
       tx.commit();
     }

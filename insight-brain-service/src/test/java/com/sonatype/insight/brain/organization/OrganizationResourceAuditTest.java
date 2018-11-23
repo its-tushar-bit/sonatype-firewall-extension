@@ -52,6 +52,24 @@ public class OrganizationResourceAuditTest
     assertAuditLog(AuditEvent.UPDATE_ORGANIZATION, "unauthorized");
   }
 
+  @Test
+  public void testDeleteOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH).parameter(organization.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_ORGANIZATION, null);
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testDeleteOrganization_Unauthorized() throws Exception {
+    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH)
+        .parameter(tempEntity.newOrganization().getId()).with(unauthorizedUser()).delete();
+
+    assertAuditLog(AuditEvent.DELETE_ORGANIZATION, "unauthorized");
+  }
+
   private HttpRequest organizationRequest() {
     return restRequest().path(OrganizationResource.RESOURCE_PATH);
   }

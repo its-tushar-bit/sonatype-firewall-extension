@@ -160,6 +160,7 @@ public class OrganizationResource
    */
   @DELETE
   @Path(DELETE_ORGANIZATION_PATH)
+  @Audited(AuditEvent.DELETE_ORGANIZATION)
   public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
     organizationService.deleteOrganization(organizationId);
   }

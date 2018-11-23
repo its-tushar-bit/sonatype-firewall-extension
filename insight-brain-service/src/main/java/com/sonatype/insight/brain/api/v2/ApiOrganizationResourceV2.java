@@ -94,6 +94,7 @@ public class ApiOrganizationResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_ORGANIZATION)
   public ApiOrganizationDTO addOrganization(final ApiOrganizationDTO organizationDTO) {
     return apiOrganizationService.addOrganization(organizationDTO);
   }

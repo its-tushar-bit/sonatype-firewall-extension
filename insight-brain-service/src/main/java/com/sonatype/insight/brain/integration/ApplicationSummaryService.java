@@ -20,12 +20,15 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +128,7 @@ public class ApplicationSummaryService
    * current user and the specified goal to that application.
    * If such an application does not exist and automatic application creation is enabled, then the method creates the
    * new application and returns true to indicate the application will now be available.
-   * 
+   *
    * @since 1.45
    */
   boolean verifyOrCreateApplication(String applicationPublicId, Goal goal, String clientUserAgent) {
@@ -139,6 +142,13 @@ public class ApplicationSummaryService
     // application with the given public ID.
     if (automaticApplicationsConfigurationDAO.isEnabled()) {
       if (application == null) {
+        try {
+          checkEvaluateApplicationPermissionForOrganization(automaticApplicationsConfigurationDAO.getOrganizationId());
+        }
+        catch (UnauthorizedException e) {
+          log.debug("Insufficient permissions to automatically create an application.");
+          return false;
+        }
         log.info("Automatic application creation is enabled. Creating an application with name and public id: {}.",
             applicationPublicId);
         application = new Application(applicationPublicId, applicationPublicId,
@@ -166,6 +176,12 @@ public class ApplicationSummaryService
     }
 
     return false;
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  void checkEvaluateApplicationPermissionForOrganization(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  {
   }
 
   private void sendApplicationCreatedTelemetryData(boolean appCreatedAutomatically, String clientUserAgent) {

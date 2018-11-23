@@ -141,8 +141,8 @@ public class ApplicationSummaryServiceAuthzTest
     String appPublicId = "NoSuchAppPublicId";
     tempEntity.registerAppPublicId(appPublicId);
 
-    // If the application does not exist, it will be created if automatic app creation is enabled. However,
-    // we will still not have access because we do not have a sufficient permission assigned to us.
+    // If the application does not exist, it will be created if automatic app creation is enabled and we have permission
+    // to evaluate applications for its configured organization.
     automaticApplicationsConfigurationDAO.setEnabled(false);
     assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
         is(false));
@@ -152,7 +152,7 @@ public class ApplicationSummaryServiceAuthzTest
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
     assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
         is(false));
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(notNullValue()));
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
   }
 
   @Test

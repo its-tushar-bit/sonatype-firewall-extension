@@ -141,6 +141,14 @@ public abstract class AuditData
     return this;
   }
 
+  public AuditData setApplicationWithDetails(Application application) {
+    if (application != null) {
+      setApplication(application);
+      setData("contactUsername", application.getContactInternalName());
+    }
+    return this;
+  }
+
   public AuditData setApplication(Application application) {
     if (application != null) {
       setApplicationId(application.getId());
@@ -355,6 +363,14 @@ public abstract class AuditData
         case REPOSITORY_CONTAINER:
           return setRepositoryContainer();
       }
+    }
+    return this;
+  }
+
+  public AuditData setParentOrganization(final Organization parentOrganization) {
+    if (parentOrganization != null) {
+      setData("parentOrganizationId", parentOrganization.getId());
+      setData("parentOrganizationName", parentOrganization.getName());
     }
     return this;
   }

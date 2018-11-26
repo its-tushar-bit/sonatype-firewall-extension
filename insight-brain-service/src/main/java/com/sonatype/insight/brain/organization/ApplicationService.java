@@ -16,7 +16,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -47,16 +49,20 @@ public class ApplicationService
 
   private final ManagementEventService managementEventService;
 
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public ApplicationService(ApplicationDAO applicationDAO,
                             final ApplicationCleaner applicationCleaner,
                             final ApplicationHelper applicationHelper,
-                            final ManagementEventService managementEventService)
+                            final ManagementEventService managementEventService,
+                            final OrganizationDAO organizationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
     this.managementEventService = managementEventService;
+    this.organizationDAO = organizationDAO;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -155,6 +161,7 @@ public class ApplicationService
   @Authorize(permission = Permission.ADD_APPLICATION)
   public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application) {
     applicationHelper.addApplication(application);
+    AuditData.get().setApplicationWithDetails(application);
 
     managementEventService.postEvent(CREATED, application);
 
@@ -164,6 +171,7 @@ public class ApplicationService
   @Authorize(permission = Permission.WRITE)
   public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     applicationDAO.update(application);
+    AuditData.get().setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
 
     managementEventService.postEvent(UPDATED, application);
 
@@ -178,6 +186,9 @@ public class ApplicationService
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
+      AuditData.get()
+          .setApplicationWithDetails(application)
+          .setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
       applicationCleaner.delete(tx, application);
       tx.commit();
     }

@@ -31,6 +31,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -81,6 +85,8 @@ public class ApplicationResource
 
   private ApplicationService applicationService;
 
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public ApplicationResource(final InsightWork work,
                              final BaseUrl baseUrl,
@@ -88,13 +94,15 @@ public class ApplicationResource
                              final ScanPolicyEvaluator scanPolicyEvaluator,
                              final ApplicationAdapter applicationAdapter,
                              final ApplicationService applicationService,
-                             final NgUploadResponseGenerator ngUploadResponseGenerator)
+                             final NgUploadResponseGenerator ngUploadResponseGenerator,
+                             final OrganizationDAO organizationDAO)
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;
     this.applicationService = applicationService;
+    this.organizationDAO = organizationDAO;
   }
 
   @GET
@@ -209,7 +217,9 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_APPLICATION)
   public ApplicationDTO addApplication(Application application) {
+    AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
     application = applicationService.addApplication(application);
     return applicationAdapter.convert(application);
   }
@@ -217,13 +227,16 @@ public class ApplicationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_APPLICATION)
   public ApplicationDTO updateApplication(Application application) {
+    AuditData.get().setApplicationWithDetails(application);
     application = applicationService.updateApplication(application);
     return applicationAdapter.convert(application);
   }
 
   @DELETE
   @Path(GET_APPLICATION_PATH)
+  @Audited(AuditEvent.DELETE_APPLICATION)
   public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
     applicationService.deleteApplicationByPublicId(applicationPublicId);
   }

@@ -275,7 +275,8 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
   };
 
   $scope.isClaimedComponent = function() {
-    return SelectedComponent.get().identificationSource === 'Manual';
+    const selectedComponent = SelectedComponent.get();
+    return selectedComponent != null && selectedComponent.identificationSource === 'Manual';
   };
 
   $scope.isSubmitEnabled = function() {

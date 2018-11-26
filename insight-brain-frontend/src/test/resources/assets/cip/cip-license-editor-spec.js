@@ -723,5 +723,33 @@
         expect(scope.licenses).toBeNull();
       }));
     });
+
+    describe('isClaimedComponent()', function() {
+      var SelectedComponent;
+
+      beforeEach(inject(function($controller, _SelectedComponent_) {
+        SelectedComponent = _SelectedComponent_;
+        $controller('LicenseEditorController', { $scope: scope });
+      }));
+
+      it('returns false if no component selected', function() {
+        SelectedComponent.set(null);
+        expect(scope.isClaimedComponent()).toBe(false);
+      });
+
+      it('returns false if the component\'s identificationSource is not "Manual"', function() {
+        SelectedComponent.set({
+          identificationSource: 'foo'
+        });
+        expect(scope.isClaimedComponent()).toBe(false);
+      });
+
+      it('returns true if the component\'s identificationSource is "Manual"', function() {
+        SelectedComponent.set({
+          identificationSource: 'Manual'
+        });
+        expect(scope.isClaimedComponent()).toBe(true);
+      });
+    });
   });
 }());

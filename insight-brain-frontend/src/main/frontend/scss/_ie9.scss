@@ -67,4 +67,16 @@
   .iq-tile-header__icon.fa.outline {
     color: $iq-slate;
   }
+  
+  .iq-tile--application-report {
+    .iq-indicator-row {
+      padding-bottom: 8px;
+    }
+  }
+  
+  .iq-tile--application-report-table-container {
+    .iq-scrollable {
+      padding-left: 3px;
+    }
+  }
 }

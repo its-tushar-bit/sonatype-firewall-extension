@@ -47,7 +47,7 @@ public class OrganizationResource
 {
   public static final String RESOURCE_PATH = "rest/organization";
 
-  public static final String GET_ICON_PATH = ICON_PATH + "/{organizationId}";
+  public static final String ORGANIZATION_ICON_PATH = ICON_PATH + "/{organizationId}";
 
   public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
 
@@ -116,7 +116,7 @@ public class OrganizationResource
    * @since 1.6
    */
   @GET
-  @Path(GET_ICON_PATH)
+  @Path(ORGANIZATION_ICON_PATH)
   @Produces("image/png")
   @Authorize(permission = Permission.READ)
   public Response getIcon(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId)
@@ -133,11 +133,11 @@ public class OrganizationResource
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Path(ICON_PATH)
+  @Path(ORGANIZATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
   public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                           @Context HttpHeaders headers,
-                          @AuthzContext(Key.ORGANIZATION_ID) @FormDataParam("organizationId") String organizationId,
+                          @AuthzContext(Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
                           @FormDataParam("hashcode") String hashcode,
                           @FormDataParam("file") InputStream uploadedInputStream,

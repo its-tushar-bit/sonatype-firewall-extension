@@ -113,9 +113,10 @@ locationModule.factory('CLMContextLocations', [
         return baseUrl.get() + '/rest/' + getServicePathWithId();
       },
 
-      getAddIconUrl: function(ownerType) {
-        var servicePath = (ownerType) ? window.encodeURIComponent(ownerType) : getServicePath();
-        return baseUrl.get() + '/rest/' + servicePath + '/icon' + (!$window.FormData ? '?noFormData=true' : '');
+      getAddIconUrl: function(ownerType, ownerId) {
+        var servicePath = (ownerType) ? encodeURIComponent(ownerType) : getServicePath();
+        return baseUrl.get() + '/rest/' + servicePath + '/icon/' + encodeURIComponent(ownerId) +
+            (!$window.FormData ? '?noFormData=true' : '');
       },
 
       getEntityId: function() {

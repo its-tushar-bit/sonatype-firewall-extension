@@ -22,7 +22,6 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
   vm.fileUploadComplete = fileUploadComplete;
   vm.getTypeName = getTypeName;
   vm.icon = {};
-  vm.iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType);
   vm.ownerEditor = undefined;
   vm.ownerEditorMask = undefined;
   vm.ownerType = ownerType;
@@ -96,10 +95,9 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
 
     vm.ownerEditorMask.wrap(vm.dirtyOwner.$save().then(function(result) {
       var form = $('#custom-icon-form'),
-          nameChanged = !vm.ownerEditor.name.$pristine;
+          nameChanged = !vm.ownerEditor.name.$pristine,
+          iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType, result.id);
       vm.ownerEditor.name.$setPristine();
-
-      form.find('input[name=' + ownerType + 'Id]').val(result.id);
 
       if (vm.icon.type === '') {
         // default icon
@@ -109,7 +107,7 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
         var formData = new FormData(form[0]);
         deferred = $q.defer();
 
-        $http.post(CLMContextLocations.getAddIconUrl(ownerType), formData).then(function() {
+        $http.post(iconUploadUrl, formData).then(function() {
           deferred.resolve(result);
         }, function(error) {
           if (isNew || nameChanged === true) { // only show warning for new and mixed state
@@ -122,6 +120,7 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
       }
       else {
         deferred = $q.defer();
+        form[0].action = iconUploadUrl;
         form.submit();
       }
       return deferred.promise;

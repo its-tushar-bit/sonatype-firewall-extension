@@ -133,9 +133,9 @@ public class SecurityModule
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED
         + "], reverseProxy, authcBasic, sessionExpirationCookie";
-    manager.createChain("/rest/application/icon", filters);
+    manager.createChain("/rest/application/icon/*", filters);
     manager.createChain("/rest/application/icon/sync", filters);
-    manager.createChain("/rest/organization/icon", filters);
+    manager.createChain("/rest/organization/icon/*", filters);
     manager.createChain("/rest/organization/icon/sync", filters);
     manager.createChain("/rest/policy/*/*/import", filters);
     manager.createChain("/rest/policy/*/*/import/ie", filters);

@@ -4,7 +4,8 @@ import OwnerUtils from '../owner.utils';
 describe('owner.editor.controller.spec.js', function() {
   var controllerScope,
       vm,
-      originalFormData;
+      originalFormData,
+      form;
 
   beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
@@ -15,11 +16,14 @@ describe('owner.editor.controller.spec.js', function() {
   beforeEach(inject(function($window) {
     originalFormData = $window.FormData;
     $window.FormData = angular.noop;
+    form = angular.element('<form id="custom-icon-form"></form>');
+    angular.element('body').append(form);
   }));
 
   afterEach(inject(function($window) {
     controllerScope.$destroy();
     $window.FormData = originalFormData;
+    form.remove();
   }));
 
   function createTests(type) {
@@ -75,7 +79,10 @@ describe('owner.editor.controller.spec.js', function() {
       });
 
       describe('Save', function() {
-        var saveDeferred, $timeout;
+        var saveDeferred,
+            $timeout,
+            publicId = 'publicId',
+            id = 'id';
 
         beforeEach(inject(function($q, _$timeout_) {
           $timeout = _$timeout_;
@@ -86,7 +93,7 @@ describe('owner.editor.controller.spec.js', function() {
           controllerScope.$apply(function() {
             vm.dirtyOwner.name = 'My new ' + type;
             if (type === 'application') {
-              vm.dirtyOwner.publicId = 'my-new';
+              vm.dirtyOwner.publicId = publicId;
             }
           });
           expect(ownerResource.name).toEqual('My new ' + type); // new objects work with the original
@@ -106,10 +113,10 @@ describe('owner.editor.controller.spec.js', function() {
 
         it('Error on Icon', inject(function($state, $httpBackend) {
           spyOn($state, 'go');
-          vm.dirtyOwner.publicId = 'abcd';
-          vm.dirtyOwner.id = 'abcd';
-          $httpBackend.expectPOST('/rest/' + type + '/icon').respond(500, 'Server Error');
-          saveDeferred.resolve(angular.extend({id: 'abcd'}, angular.copy(vm.dirtyOwner)));
+          vm.dirtyOwner.publicId = publicId;
+          vm.dirtyOwner.id = id;
+          $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond(500, 'Server Error');
+          saveDeferred.resolve(angular.extend({id}, angular.copy(vm.dirtyOwner)));
           $httpBackend.flush();
           $timeout.flush();
 
@@ -117,9 +124,9 @@ describe('owner.editor.controller.spec.js', function() {
           expect(vm.iconWarning).toEqual('Server Error');
 
           expect($state.go).toHaveBeenCalledWith('management.view.' + type, type === 'application' ? {
-            applicationPublicId: vm.dirtyOwner.publicId
+            applicationPublicId: publicId
           } : {
-            organizationId: 'abcd'
+            organizationId: id
           });
 
           // retry clears the error
@@ -130,16 +137,16 @@ describe('owner.editor.controller.spec.js', function() {
         it('Success', inject(function($state, $httpBackend) {
           spyOn($state, 'go');
 
-          $httpBackend.expectPOST('/rest/' + type + '/icon').respond('');
-          saveDeferred.resolve(angular.extend({id: 'abcd'}, angular.copy(vm.dirtyOwner)));
+          $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond('');
+          saveDeferred.resolve(angular.extend({id}, angular.copy(vm.dirtyOwner)));
           $httpBackend.flush();
           $timeout.flush();
 
           expect(vm.ownerEditor.name.$setPristine).toHaveBeenCalled();
           expect($state.go).toHaveBeenCalledWith('management.view.' + type, type === 'application' ? {
-            applicationPublicId: vm.dirtyOwner.publicId
+            applicationPublicId: publicId
           } : {
-            organizationId: 'abcd'
+            organizationId: id
           });
           expect(controllerScope.$close).toHaveBeenCalled();
         }));

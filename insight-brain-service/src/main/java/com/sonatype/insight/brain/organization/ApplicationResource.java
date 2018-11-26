@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
@@ -67,6 +68,8 @@ public class ApplicationResource
   public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
   public static final String GET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationPublicId}";
+
+  public static final String SET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationId}";
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
@@ -188,11 +191,11 @@ public class ApplicationResource
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Path(ICON_PATH)
+  @Path(SET_APPLICATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
   public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                           @Context HttpHeaders headers,
-                          @AuthzContext(AuthzContext.Key.APPLICATION_ID) @FormDataParam("applicationId") String applicationId,
+                          @AuthzContext(Key.APPLICATION_ID) @PathParam("applicationId") String applicationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
                           @FormDataParam("hashcode") String hashcode,
                           @FormDataParam("file") InputStream uploadedInputStream,

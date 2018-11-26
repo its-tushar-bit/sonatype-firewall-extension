@@ -28,7 +28,7 @@ public class OrganizationResourceAuthzTest
   public void testGetIcon() throws Exception {
     grantReadPermission(org.getId());
 
-    HttpRequest request = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(org.getId());
+    HttpRequest request = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(org.getId());
     testAuthzGet(request);
   }
 
@@ -36,7 +36,7 @@ public class OrganizationResourceAuthzTest
   public void testSetIcon() throws Exception {
     grantWritePermission(org.getId());
 
-    HttpRequest request = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", org.getId())
+    HttpRequest request = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(org.getId())
         .part("hasRobotSource", "false");
     testAuthzPost(request);
   }

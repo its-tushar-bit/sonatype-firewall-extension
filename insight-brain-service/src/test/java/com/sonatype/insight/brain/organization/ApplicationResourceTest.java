@@ -129,7 +129,7 @@ public class ApplicationResourceTest
 
     // Test Add Invalid Icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
-    response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
+    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
     assertEquals(
@@ -144,7 +144,7 @@ public class ApplicationResourceTest
 
     // Test Add Application Icon
     defaultIconByteArray = loadDefaultIcon();
-    response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
+    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(200, response);
 
@@ -163,7 +163,7 @@ public class ApplicationResourceTest
     assertEquals(applicationName + "updated", applicationResult.getName());
 
     // Test icon update
-    response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
+    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
         .part("hasRobotSource", "false").post();
     assertResponseStatus(200, response);
 

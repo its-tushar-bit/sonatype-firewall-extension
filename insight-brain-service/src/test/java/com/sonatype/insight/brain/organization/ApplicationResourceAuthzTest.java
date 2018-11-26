@@ -68,7 +68,7 @@ public class ApplicationResourceAuthzTest
   public void testSetIcon() throws Exception {
     grantWritePermission(app.getId());
 
-    HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", app.getId())
+    HttpRequest request = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(app.getId())
         .part("hasRobotSource", "false");
     testAuthzPost(request);
   }

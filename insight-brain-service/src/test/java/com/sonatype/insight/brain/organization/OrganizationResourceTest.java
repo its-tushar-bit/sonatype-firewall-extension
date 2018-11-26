@@ -65,7 +65,7 @@ public class OrganizationResourceTest
 
     // Add invalid icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
-    response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
+    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
         .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
     Assert
@@ -74,23 +74,25 @@ public class OrganizationResourceTest
             response.getBodyText());
 
     // Get icon (default icon)
-    HttpResponse iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
+    HttpResponse iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organizationId).get();
     assertResponseStatus(307, iconResponse);
     assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png", iconResponse.getHeader("Location"));
 
     // Get icon (default Root Org icon)
-    iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(Organization.ROOT_ORGANIZATION_ID).get();
+    iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(Organization.ROOT_ORGANIZATION_ID).get();
     assertResponseStatus(307, iconResponse);
     assertEquals(getRestBaseUrl() + "assets/img/defaulticon_root_org.png", iconResponse.getHeader("Location"));
 
     // Add icon
     defaultIconByteArray = loadDefaultIcon();
-    response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
+    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
         .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(200, response);
 
     // Get icon
-    iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
+    iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(200, iconResponse);
     BufferedImage icon = null;
     try (InputStream iconStream = iconResponse.getBodyStream()) {
@@ -110,7 +112,7 @@ public class OrganizationResourceTest
     assertEquals("OrganizationResourceTest updated", organization.getName());
 
     // Update icon
-    response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
+    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
         .part("hasRobotSource", "false").post();
     assertResponseStatus(200, response);
 
@@ -125,7 +127,7 @@ public class OrganizationResourceTest
     response = restRequest().path(organizationId).delete();
     assertResponseStatus(204, response);
     assertNull(new OrganizationDAO().getById(organizationId));
-    iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
+    iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
     assertNull(applicationDAO.getById(application.getId()));

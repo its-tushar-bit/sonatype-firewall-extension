@@ -97,6 +97,7 @@ public class ApiApplicationResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_APPLICATION)
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {
     return apiApplicationService.addApplication(applicationDTO);
   }

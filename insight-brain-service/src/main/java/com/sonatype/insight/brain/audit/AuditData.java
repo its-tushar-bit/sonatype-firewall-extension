@@ -346,8 +346,13 @@ public abstract class AuditData
     }
     else {
       setData("inheritanceScope", "matching-application-category");
-      setData("applicationCategories", tags);
+      setApplicationCategories(tags);
     }
+    return this;
+  }
+
+  public AuditData setApplicationCategories(final List<TagDTO> tags) {
+    setData("applicationCategories", tags);
     return this;
   }
 

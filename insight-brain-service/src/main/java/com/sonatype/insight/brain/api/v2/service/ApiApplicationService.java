@@ -17,18 +17,25 @@ import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -51,6 +58,10 @@ public class ApiApplicationService
 
   private final ApplicationDAO applicationDAO;
 
+  private final TagDAO tagDAO;
+
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
                                final ApiApplicationTagAdapter apiApplicationTagAdapter,
@@ -58,7 +69,9 @@ public class ApiApplicationService
                                final RoleDAO roleDAO,
                                final ApplicationDAO applicationDAO,
                                final ApiRoleAdapter roleAdapter,
-                               final ApplicationHelper applicationHelper)
+                               final ApplicationHelper applicationHelper,
+                               final TagDAO tagDAO,
+                               final OrganizationDAO organizationDAO)
   {
     this.apiApplicationAdapter = apiApplicationAdapter;
     this.apiApplicationTagAdapter = apiApplicationTagAdapter;
@@ -67,6 +80,8 @@ public class ApiApplicationService
     this.roleDAO = roleDAO;
     this.roleAdapter = roleAdapter;
     this.applicationHelper = applicationHelper;
+    this.tagDAO = tagDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -101,13 +116,15 @@ public class ApiApplicationService
 
     try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
       tx.begin();
-
+      AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
       application = addApplication(tx, application);
       List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(application.getId(),
           applicationDTO.applicationTags);
-      addTags(tx, applicationTags);
+      addTags(tx, applicationTags, application);
 
       tx.commit();
+      AuditData.get().commitSubEvents();
+      AuditData.get().setApplicationWithDetails(application);
     }
 
     ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
@@ -184,12 +201,25 @@ public class ApiApplicationService
     return applications;
   }
 
-  private void addTags(final TransactionContext tx, final List<ApplicationTag> applicationTags) {
+  private void addTags(final TransactionContext tx, final List<ApplicationTag> applicationTags, Application application)
+  {
+    List<Tag> tags = new ArrayList<>();
     for (ApplicationTag applicationTag : applicationTags) {
       if (applicationTag.getTagId() == null) {
         throw new InvalidApplicationException("Application tag must have an ID.");
       }
       applicationTagDAO.insert(tx, applicationTag);
+      tags.add(tagDAO.getByIdNotNull(applicationTag.getTagId()));
+    }
+    auditConfigureApplicationCategory(tags, application);
+  }
+
+  private void auditConfigureApplicationCategory(final List<Tag> tags, final Application application) {
+    if (!tags.isEmpty()) {
+      try (AuditSession auditSession = AuditData.get()
+          .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, false)) {
+        AuditData.get().setApplication(application).setApplicationCategories(TagDTO.transcribe(tags));
+      }
     }
   }
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,7 +77,7 @@ public class ApiApplicationResourceV2AuditTest
     tempEntity.register(application);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
-    assertDetailedApplicationData(application, auditDTO, applicationDTO.contactUserName);
+    assertDetailedApplicationData(auditDTO, application, applicationDTO.contactUserName);
 
     AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, null);
     assertApplicationData(auditDTOCategories, application);
@@ -91,7 +92,7 @@ public class ApiApplicationResourceV2AuditTest
     tempEntity.register(application);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
-    assertDetailedApplicationData(application, auditDTO, application.getContactInternalName());
+    assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());
 
     assertThat(awaitLogEntries(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, 0), empty());
   }
@@ -104,19 +105,83 @@ public class ApiApplicationResourceV2AuditTest
     assertParentOrganizationData(auditDTO);
   }
 
-  private void assertDetailedApplicationData(final Application application,
-                                             final AuditDTO auditDTO,
+  @Test
+  public void testUpdateApplication_WithCategories() throws Exception {
+    Application application = tempEntity.newApplication(organization.getId());
+
+    Tag tag1 = tempEntity.newTag(organization.getId(), "Tag1", Color.dark_red);
+    Tag tag2 = tempEntity.newTag(organization.getId(), "Tag2", Color.dark_blue);
+
+    ApiApplicationDTO applicationDTO = applicationDTO("updated-name", "updated-public-id", tag1, tag2);
+    applicationDTO.id = application.getId();
+    applicationRequest().path(application.getId()).body(applicationDTO).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION, null);
+    assertDetailedApplicationData(auditDTO, applicationDTO);
+
+    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, null);
+    assertApplicationData(auditDTOCategories, applicationDTO.id, applicationDTO.publicId, applicationDTO.name);
+    assertCustomObject(auditDTOCategories, "applicationCategories", TagDTO.transcribe(asList(tag1, tag2)));
+  }
+
+  @Test
+  public void testUpdateApplication_EmptyCategories() throws Exception {
+    Application application = tempEntity.newApplication(organization.getId());
+
+    ApiApplicationDTO applicationDTO = applicationDTO("updated-name", "updated-public-id");
+    applicationDTO.id = application.getId();
+    applicationRequest().path(application.getId()).body(applicationDTO).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION, null);
+    assertDetailedApplicationData(auditDTO, applicationDTO);
+
+    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, null);
+    assertApplicationData(auditDTOCategories, applicationDTO.id, applicationDTO.publicId, applicationDTO.name);
+    assertCustomObject(auditDTOCategories, "applicationCategories", Collections.emptyList());
+  }
+
+  @Test
+  public void testUpdateApplication_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplication(organization.getId());
+    applicationRequest().path(application.getId()).with(unauthorizedUser())
+        .body(applicationDTO()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  private void assertDetailedApplicationData(final AuditDTO auditDTO, ApiApplicationDTO applicationDTO) {
+    assertDetailedApplicationData(auditDTO, applicationDTO.id, applicationDTO.publicId, applicationDTO.name,
+        applicationDTO.contactUserName);
+  }
+
+  private void assertDetailedApplicationData(final AuditDTO auditDTO,
+                                             final Application application,
                                              final String contactInternalName)
   {
-    assertApplicationData(auditDTO, application);
+    assertDetailedApplicationData(auditDTO, application.getId(), application.getPublicId(), application.getName(),
+        contactInternalName);
+  }
+
+  private void assertDetailedApplicationData(final AuditDTO auditDTO,
+                                             final String id,
+                                             final String publicId,
+                                             final String name,
+                                             final String contactInternalName)
+  {
+    assertApplicationData(auditDTO, id, publicId, name);
     assertCustomData(auditDTO, "contactUsername", contactInternalName);
     assertParentOrganizationData(auditDTO);
   }
 
   private ApiApplicationDTO applicationDTO(final Tag... tags) {
+    return applicationDTO("test-application-name", "public-app-id", tags);
+  }
+
+  private ApiApplicationDTO applicationDTO(final String name, final String applicationPublicId, final Tag... tags) {
     ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.publicId = "public-app-id";
-    applicationDTO.name = "test-application-name";
+    applicationDTO.publicId = applicationPublicId;
+    applicationDTO.name = name;
     applicationDTO.organizationId = organization.getId();
     User contactUser = tempEntity.newUser("aContact");
     applicationDTO.contactUserName = contactUser.getUsername();

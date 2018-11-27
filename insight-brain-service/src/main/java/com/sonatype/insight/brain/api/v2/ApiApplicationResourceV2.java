@@ -106,6 +106,7 @@ public class ApiApplicationResourceV2
   @Path(APPLICATION_ID)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_APPLICATION)
   public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO,
                                              @PathParam("applicationId") final String applicationId)
   {

@@ -139,12 +139,15 @@ public class ApiApplicationService
     try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
       tx.begin();
 
+      AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
       application = updateApplication(tx, application);
       List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(application.getId(),
           applicationDTO.applicationTags);
       updateTags(tx, application, applicationTags);
 
       tx.commit();
+      AuditData.get().commitSubEvents();
+      AuditData.get().setApplicationWithDetails(application);
     }
 
     ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
@@ -211,11 +214,14 @@ public class ApiApplicationService
       applicationTagDAO.insert(tx, applicationTag);
       tags.add(tagDAO.getByIdNotNull(applicationTag.getTagId()));
     }
-    auditConfigureApplicationCategory(tags, application);
+    auditConfigureApplicationCategory(tags, application, false);
   }
 
-  private void auditConfigureApplicationCategory(final List<Tag> tags, final Application application) {
-    if (!tags.isEmpty()) {
+  private void auditConfigureApplicationCategory(final List<Tag> tags,
+                                                 final Application application,
+                                                 final boolean auditEmptyCategories)
+  {
+    if (auditEmptyCategories || !tags.isEmpty()) {
       try (AuditSession auditSession = AuditData.get()
           .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, false)) {
         AuditData.get().setApplication(application).setApplicationCategories(TagDTO.transcribe(tags));
@@ -232,12 +238,15 @@ public class ApiApplicationService
       applicationTagDAO.delete(tx, applicationTag);
     }
     // Now add the new tags
+    List<Tag> tags = new ArrayList<>();
     for (ApplicationTag applicationTag : applicationTags) {
       if (applicationTag.getTagId() == null) {
         throw new InvalidApplicationException("Application tag must have an ID.");
       }
       applicationTagDAO.insert(tx, applicationTag);
+      tags.add(tagDAO.getByIdNotNull(applicationTag.getTagId()));
     }
+    auditConfigureApplicationCategory(tags, application, true);
   }
 
   private ApiApplicationDTO convertApplicationToDTO(final Application application) {

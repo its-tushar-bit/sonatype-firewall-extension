@@ -139,6 +139,7 @@ public class OrganizationResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ORGANIZATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CONFIGURE_ORGANIZATION_ICON)
   public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                           @Context HttpHeaders headers,
                           @AuthzContext(Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId,

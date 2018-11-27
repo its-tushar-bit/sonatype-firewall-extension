@@ -16,6 +16,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -53,6 +54,7 @@ abstract class AbstractResourceWithIcon
                        FormDataContentDisposition fileDetail) throws IOException
   {
     if (hasRobotSource) {
+      AuditData.get().setData("iconType", "robot");
       try (InputStream robotStream = new ByteArrayInputStream(robotImageService.getImage(hashcode))) {
         // robot image is expected to be small, so avoid size check
         new IconDAO().setIcon(ownerId, iconDir, robotStream);
@@ -76,6 +78,7 @@ abstract class AbstractResourceWithIcon
       }
     }
     if (imageByteArray.length > 0) {
+      AuditData.get().setData("iconType", "file").setData("iconFilename", fileDetail.getFileName());
       try (InputStream sizeCheckedInputStream = new ByteArrayInputStream(imageByteArray)) {
         new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
       }
@@ -83,6 +86,9 @@ abstract class AbstractResourceWithIcon
         throw new BadRequestException(fileDetail.getFileName()
             + " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
       }
+    }
+    else {
+      AuditData.get().setData("iconType", "default");
     }
   }
 

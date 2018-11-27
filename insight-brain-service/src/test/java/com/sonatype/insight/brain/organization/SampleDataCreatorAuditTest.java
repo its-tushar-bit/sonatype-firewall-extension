@@ -42,5 +42,16 @@ public class SampleDataCreatorAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ORGANIZATION, null, SYSTEM_USER);
     Organization organization = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
     assertOrganizationData(auditDTO, organization);
+
+    auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null, SYSTEM_USER);
+    Application application = applicationDAO.getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
+    assertApplicationData(auditDTO, application);
+    assertParentOrganizationData(auditDTO, organization);
+    assertCustomData(auditDTO, "contactUsername", application.getContactInternalName());
+  }
+
+  private void assertParentOrganizationData(final AuditDTO auditDTO, final Organization parentOrganization) {
+    assertCustomData(auditDTO, "parentOrganizationId", parentOrganization.getId());
+    assertCustomData(auditDTO, "parentOrganizationName", parentOrganization.getName());
   }
 }

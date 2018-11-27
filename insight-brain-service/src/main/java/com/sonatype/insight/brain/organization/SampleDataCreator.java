@@ -50,12 +50,19 @@ public class SampleDataCreator
       applicationDAO.insert(tx, sampleApplication);
       tx.commit();
       auditSampleOrganization(sampleOrganization);
+      auditSampleApplication(sampleOrganization, sampleApplication);
     }
   }
 
   private void auditSampleOrganization(final Organization organization) {
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_ORGANIZATION)) {
       AuditData.get().setOrganization(organization);
+    }
+  }
+
+  private void auditSampleApplication(final Organization organization, final Application application) {
+    try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_APPLICATION)) {
+      AuditData.get().setParentOrganization(organization).setApplicationWithDetails(application);
     }
   }
 }

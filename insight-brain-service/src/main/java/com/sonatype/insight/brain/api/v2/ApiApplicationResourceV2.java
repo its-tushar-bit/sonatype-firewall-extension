@@ -151,6 +151,7 @@ public class ApiApplicationResourceV2
 
   @DELETE
   @Path(APPLICATION_ID)
+  @Audited(AuditEvent.DELETE_APPLICATION)
   public void deleteApplication(@PathParam("applicationId") final String applicationId) throws IOException {
     apiApplicationService.deleteApplication(applicationId);
   }

@@ -38,9 +38,12 @@ public class ApiApplicationResourceV2AuditTest
 {
   private Organization organization;
 
+  private Application application;
+
   @Before
   public void before() {
     organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication("appName", "appPubId", organization.getId(), "appContactName");
   }
 
   @Test
@@ -107,8 +110,6 @@ public class ApiApplicationResourceV2AuditTest
 
   @Test
   public void testUpdateApplication_WithCategories() throws Exception {
-    Application application = tempEntity.newApplication(organization.getId());
-
     Tag tag1 = tempEntity.newTag(organization.getId(), "Tag1", Color.dark_red);
     Tag tag2 = tempEntity.newTag(organization.getId(), "Tag2", Color.dark_blue);
 
@@ -126,8 +127,6 @@ public class ApiApplicationResourceV2AuditTest
 
   @Test
   public void testUpdateApplication_EmptyCategories() throws Exception {
-    Application application = tempEntity.newApplication(organization.getId());
-
     ApiApplicationDTO applicationDTO = applicationDTO("updated-name", "updated-public-id");
     applicationDTO.id = application.getId();
     applicationRequest().path(application.getId()).body(applicationDTO).put();
@@ -142,9 +141,8 @@ public class ApiApplicationResourceV2AuditTest
 
   @Test
   public void testUpdateApplication_Unauthorized() throws Exception {
-    Application application = tempEntity.newApplication(organization.getId());
-    applicationRequest().path(application.getId()).with(unauthorizedUser())
-        .body(applicationDTO()).put();
+    ApiApplicationDTO applicationDTO = applicationDTO();
+    applicationRequest().path(application.getId()).with(unauthorizedUser()).body(applicationDTO).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -153,6 +151,23 @@ public class ApiApplicationResourceV2AuditTest
   private void assertDetailedApplicationData(final AuditDTO auditDTO, ApiApplicationDTO applicationDTO) {
     assertDetailedApplicationData(auditDTO, applicationDTO.id, applicationDTO.publicId, applicationDTO.name,
         applicationDTO.contactUserName);
+  }
+
+  @Test
+  public void testDeleteApplication() throws Exception {
+    applicationRequest().path(application.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_APPLICATION, null);
+    assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());
+    assertParentOrganizationData(auditDTO);
+  }
+
+  @Test
+  public void testDeleteApplication_Unauthorized() throws Exception {
+    applicationRequest().path(application.getId()).with(unauthorizedUser()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_APPLICATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
   }
 
   private void assertDetailedApplicationData(final AuditDTO auditDTO,

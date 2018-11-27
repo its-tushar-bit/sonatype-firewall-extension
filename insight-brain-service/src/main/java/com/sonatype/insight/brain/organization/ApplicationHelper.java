@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -89,6 +90,8 @@ public class ApplicationHelper
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       final Application app = applicationDAO.getByIdNotNull(tx, applicationId);
+      AuditData.get().setApplicationWithDetails(app)
+          .setParentOrganization(organizationDAO.getByIdNotNull(app.getParentOwnerId()));
       applicationCleaner.delete(tx, app);
       tx.commit();
     }

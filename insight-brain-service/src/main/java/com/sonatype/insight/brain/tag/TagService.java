@@ -199,6 +199,7 @@ class TagService
         applicationTags.add(applicationTag);
       }
       tx.commit();
+      auditUpdateApplicationTags(tags);
     }
     return applicationTags;
   }
@@ -261,6 +262,10 @@ class TagService
 
   private void auditUpdatePolicyTags(final Policy policy, final List<Tag> newTags) {
     AuditData.get().setPolicy(policy).setInheritanceScope(TagDTO.transcribe(newTags));
+  }
+
+  private void auditUpdateApplicationTags(final List<Tag> applicationTags) {
+    AuditData.get().setApplicationCategories(TagDTO.transcribe(applicationTags));
   }
 
   @Authorize(permission = Permission.READ)

@@ -17,6 +17,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codahale.metrics.annotation.Timed;
@@ -53,6 +55,7 @@ public class ApplicationTagResource
    */
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_APPLICATION_CATEGORY)
   public void updateApplicationTags(@PathParam("applicationPublicId") final String applicationPublicId,
                                     final List<Tag> tags)
   {

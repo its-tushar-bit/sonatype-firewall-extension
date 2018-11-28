@@ -25,9 +25,6 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.After;
 import org.junit.Before;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-
 public class AbstractMembershipMappingAuditTest
     extends AbstractAuditTest
 {
@@ -77,9 +74,7 @@ public class AbstractMembershipMappingAuditTest
   {
     Map<String, List<Member>> roleToMembers = new ApiMemberMappingAdapter().convert(apiRoleMemberMappingListDTO);
     for (String roleId : roleToMembers.keySet()) {
-      AuditDTO auditDTO = auditDTOs.stream().filter(a -> a.data.get("roleId").equals(roleId)).findFirst().orElse(null);
-      assertThat("Failed to find audit log entry for role id " + roleId, auditDTO, notNullValue());
-      assertRoleMembershipData(auditDTO, roleId, roleToMembers.get(roleId));
+      assertRoleMembershipData(findFirstByDataKeyValue(auditDTOs, "roleId", roleId), roleId, roleToMembers.get(roleId));
     }
   }
 }

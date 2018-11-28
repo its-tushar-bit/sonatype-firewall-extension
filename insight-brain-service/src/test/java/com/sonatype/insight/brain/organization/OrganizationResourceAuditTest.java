@@ -5,14 +5,22 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 
 public class OrganizationResourceAuditTest
     extends AbstractAuditTest
@@ -60,11 +68,35 @@ public class OrganizationResourceAuditTest
   }
 
   @Test
-  public void testDeleteOrganization() throws Exception {
+  public void testDeleteOrganization_WithoutChildApplications() throws Exception {
     organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH).parameter(organization.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_ORGANIZATION, null);
     assertOrganizationData(auditDTO, organization);
+
+    assertThat(assertAuditLogs(AuditEvent.DELETE_APPLICATION, 0, null), empty());
+  }
+
+  @Test
+  public void testDeleteOrganization_WithChildApplications() throws Exception {
+    User contact = tempEntity.newUser();
+    Application app1 = tempEntity
+        .newApplication("appName1", "appPublicId1", organization.getId(), contact.getUsername());
+    Application app2 = tempEntity
+        .newApplication("appName2", "appPublicId2", organization.getId(), contact.getUsername());
+
+    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH).parameter(organization.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_ORGANIZATION, null);
+    assertOrganizationData(auditDTO, organization);
+
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.DELETE_APPLICATION, 2, null);
+    for (Application app : Arrays.asList(app1, app2)) {
+      AuditDTO appAuditDTO = findFirstByDataKeyValue(auditDTOs, "applicationId", app.getId());
+      assertApplicationData(appAuditDTO, app);
+      assertCustomData(appAuditDTO, "contactUsername", contact.getUsername());
+      assertParentOrganizationData(appAuditDTO, organization);
+    }
   }
 
   @Test

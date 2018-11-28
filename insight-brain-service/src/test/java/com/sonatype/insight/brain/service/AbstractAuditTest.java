@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 public abstract class AbstractAuditTest
@@ -220,5 +221,11 @@ public abstract class AbstractAuditTest
   protected void assertParentOrganizationData(final AuditDTO auditDTO, Organization organization) {
     assertCustomData(auditDTO, "parentOrganizationId", organization.getId());
     assertCustomData(auditDTO, "parentOrganizationName", organization.getName());
+  }
+
+  protected AuditDTO findFirstByDataKeyValue(Collection<AuditDTO> auditDTOs, String dataKey, Object dataValue) {
+    AuditDTO auditDTO = auditDTOs.stream().filter(a -> a.data.get(dataKey).equals(dataValue)).findFirst().orElse(null);
+    assertThat("Failed to find an audit dto with " + dataKey + " equal to " + dataValue, auditDTO, notNullValue());
+    return auditDTO;
   }
 }

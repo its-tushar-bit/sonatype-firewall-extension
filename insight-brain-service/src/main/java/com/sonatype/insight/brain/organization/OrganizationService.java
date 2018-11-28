@@ -14,6 +14,8 @@ import javax.inject.Named;
 import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -115,6 +117,7 @@ public class OrganizationService
       AuditData.get().setOrganization(organization);
       deleteOrganization(tx, organization);
       tx.commit();
+      AuditData.get().commitSubEvents();
     }
     managementEventService.postEvent(DELETED, organization);
   }
@@ -127,6 +130,9 @@ public class OrganizationService
     // cascade to applications first
     for (Application application : new ApplicationDAO().getByOrganizationId(tx, organization.getId())) {
       applicationCleaner.delete(tx, application);
+      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_APPLICATION, false)) {
+        AuditData.get().setApplicationWithDetails(application).setParentOrganization(organization);
+      }
     }
 
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organization.getId());

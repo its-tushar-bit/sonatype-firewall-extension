@@ -14,10 +14,15 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
@@ -59,13 +64,16 @@ public class ApplicationSummaryService
 
   private final ApplicationHelper applicationHelper;
 
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
                                    final ApplicationDAO applicationDAO,
                                    PolicyEvaluationDAO policyEvaluationDAO,
                                    final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
                                    TelemetrySender telemetrySender,
-                                   final ApplicationHelper applicationHelper)
+                                   final ApplicationHelper applicationHelper,
+                                   final OrganizationDAO organizationDAO)
   {
     this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;
@@ -73,6 +81,7 @@ public class ApplicationSummaryService
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
     this.telemetrySender = telemetrySender;
     this.applicationHelper = applicationHelper;
+    this.organizationDAO = organizationDAO;
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
@@ -155,7 +164,7 @@ public class ApplicationSummaryService
             automaticApplicationsConfigurationDAO.getOrganizationId());
         applicationHelper.validateNewApplication(application);
         applicationDAO.insert(application);
-
+        auditCreateApplication(application, organizationDAO.getByIdNotNull(application.getOrganizationId()));
         sendApplicationCreatedTelemetryData(true, clientUserAgent);
       }
       else {
@@ -176,6 +185,12 @@ public class ApplicationSummaryService
     }
 
     return false;
+  }
+
+  private void auditCreateApplication(final Application application, final Organization parentOrganization) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.AUTO_CREATE_APPLICATION, true)) {
+      AuditData.get().setApplicationWithDetails(application).setParentOrganization(parentOrganization);
+    }
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)

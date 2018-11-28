@@ -55,7 +55,7 @@ public class ApplicationResourceAuditTest
     applicationRequest().with(unauthorizedUser()).body(application).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, "unauthorized");
-    assertParentOrganizationData(auditDTO);
+    assertParentOrganizationData(auditDTO, organization);
   }
 
   @Test
@@ -147,11 +147,6 @@ public class ApplicationResourceAuditTest
   {
     assertApplicationData(auditDTO, application);
     assertCustomData(auditDTO, "contactUsername", contactInternalName);
-    assertParentOrganizationData(auditDTO);
-  }
-
-  private void assertParentOrganizationData(final AuditDTO auditDTO) {
-    assertCustomData(auditDTO, "parentOrganizationId", organization.getId());
-    assertCustomData(auditDTO, "parentOrganizationName", organization.getName());
+    assertParentOrganizationData(auditDTO, organization);
   }
 }

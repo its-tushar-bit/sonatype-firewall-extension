@@ -49,9 +49,4 @@ public class SampleDataCreatorAuditTest
     assertParentOrganizationData(auditDTO, organization);
     assertCustomData(auditDTO, "contactUsername", application.getContactInternalName());
   }
-
-  private void assertParentOrganizationData(final AuditDTO auditDTO, final Organization parentOrganization) {
-    assertCustomData(auditDTO, "parentOrganizationId", parentOrganization.getId());
-    assertCustomData(auditDTO, "parentOrganizationName", parentOrganization.getName());
-  }
 }

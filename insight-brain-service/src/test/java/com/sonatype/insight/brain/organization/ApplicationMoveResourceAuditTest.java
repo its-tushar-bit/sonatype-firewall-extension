@@ -74,9 +74,4 @@ public class ApplicationMoveResourceAuditTest
     return restRequest().path(ApplicationMoveResource.RESOURCE_PATH, ApplicationMoveResource.DESTINATION_PATH)
         .parameter(applicationId, organizationId);
   }
-
-  private void assertParentOrganizationData(AuditDTO auditDTO, Organization parentOrganization) {
-    assertCustomData(auditDTO, "parentOrganizationId", parentOrganization.getId());
-    assertCustomData(auditDTO, "parentOrganizationName", parentOrganization.getName());
-  }
 }

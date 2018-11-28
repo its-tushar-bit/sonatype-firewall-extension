@@ -105,7 +105,7 @@ public class ApiApplicationResourceV2AuditTest
     applicationRequest().with(unauthorizedUser()).body(applicationDTO()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, "unauthorized");
-    assertParentOrganizationData(auditDTO);
+    assertParentOrganizationData(auditDTO, organization);
   }
 
   @Test
@@ -159,7 +159,7 @@ public class ApiApplicationResourceV2AuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());
-    assertParentOrganizationData(auditDTO);
+    assertParentOrganizationData(auditDTO, organization);
   }
 
   @Test
@@ -186,7 +186,7 @@ public class ApiApplicationResourceV2AuditTest
   {
     assertApplicationData(auditDTO, id, publicId, name);
     assertCustomData(auditDTO, "contactUsername", contactInternalName);
-    assertParentOrganizationData(auditDTO);
+    assertParentOrganizationData(auditDTO, organization);
   }
 
   private ApiApplicationDTO applicationDTO(final Tag... tags) {
@@ -219,10 +219,5 @@ public class ApiApplicationResourceV2AuditTest
   {
     return applicationRequest().path(ApiApplicationResourceV2.ROLE_MEMBERS_PATH)
         .parameter(applicationId).body(apiRoleMemberMappingListDTO);
-  }
-
-  private void assertParentOrganizationData(final AuditDTO auditDTO) {
-    assertCustomData(auditDTO, "parentOrganizationId", organization.getId());
-    assertCustomData(auditDTO, "parentOrganizationName", organization.getName());
   }
 }

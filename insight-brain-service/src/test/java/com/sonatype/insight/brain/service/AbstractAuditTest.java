@@ -216,4 +216,9 @@ public abstract class AbstractAuditTest
     assertCustomData(auditDTO, "scanId", scanId);
     assertCustomData(auditDTO, "isReevaluation", isReevaluation);
   }
+
+  protected void assertParentOrganizationData(final AuditDTO auditDTO, Organization organization) {
+    assertCustomData(auditDTO, "parentOrganizationId", organization.getId());
+    assertCustomData(auditDTO, "parentOrganizationName", organization.getName());
+  }
 }

@@ -1661,4 +1661,11 @@ public class TemporaryEntity
     this.successMetricsReportDataDAO.insert(successMetricsReportData);
     return successMetricsReportData;
   }
+
+  public Organization newOrganizationAutomaticApplicationsConfiguration() {
+    Organization organization = newOrganization();
+    automaticApplicationsConfigurationDAO.setOrganizationId(organization.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    return organization;
+  }
 }

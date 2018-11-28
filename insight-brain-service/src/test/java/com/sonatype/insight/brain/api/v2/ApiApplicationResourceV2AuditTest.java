@@ -82,7 +82,7 @@ public class ApiApplicationResourceV2AuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, applicationDTO.contactUserName);
 
-    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, null);
+    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, null);
     assertApplicationData(auditDTOCategories, application);
     assertCustomObject(auditDTOCategories, "applicationCategories", TagDTO.transcribe(asList(tag1, tag2)));
   }
@@ -97,7 +97,7 @@ public class ApiApplicationResourceV2AuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());
 
-    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, 0), empty());
   }
 
   @Test
@@ -120,7 +120,7 @@ public class ApiApplicationResourceV2AuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, applicationDTO);
 
-    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, null);
+    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, null);
     assertApplicationData(auditDTOCategories, applicationDTO.id, applicationDTO.publicId, applicationDTO.name);
     assertCustomObject(auditDTOCategories, "applicationCategories", TagDTO.transcribe(asList(tag1, tag2)));
   }
@@ -134,7 +134,7 @@ public class ApiApplicationResourceV2AuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, applicationDTO);
 
-    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, null);
+    AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, null);
     assertApplicationData(auditDTOCategories, applicationDTO.id, applicationDTO.publicId, applicationDTO.name);
     assertCustomObject(auditDTOCategories, "applicationCategories", Collections.emptyList());
   }

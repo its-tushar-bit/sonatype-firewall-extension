@@ -201,6 +201,7 @@ public class ApplicationResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(SET_APPLICATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CONFIGURE_APPLICATION_ICON)
   public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                           @Context HttpHeaders headers,
                           @AuthzContext(Key.APPLICATION_ID) @PathParam("applicationId") String applicationId,

@@ -223,7 +223,7 @@ public class ApiApplicationService
   {
     if (auditEmptyCategories || !tags.isEmpty()) {
       try (AuditSession auditSession = AuditData.get()
-          .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CARTEGORY, false)) {
+          .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, false)) {
         AuditData.get().setApplication(application).setApplicationCategories(TagDTO.transcribe(tags));
       }
     }

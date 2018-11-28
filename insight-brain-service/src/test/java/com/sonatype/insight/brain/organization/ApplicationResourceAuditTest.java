@@ -22,6 +22,8 @@ public class ApplicationResourceAuditTest
 {
   private Organization organization;
 
+  private Application application;
+
   private HttpRequest applicationRequest() {
     return restRequest().path(ApplicationResource.RESOURCE_PATH);
   }
@@ -29,6 +31,7 @@ public class ApplicationResourceAuditTest
   @Before
   public void before() {
     organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
   }
 
   @Test
@@ -92,6 +95,49 @@ public class ApplicationResourceAuditTest
     applicationRequest().path(application.getPublicId()).with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_APPLICATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testSetIcon_Robot() throws Exception {
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
+        .part("hasRobotSource", "true").part("hashcode", "").post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "iconType", "robot");
+  }
+
+  @Test
+  public void testSetIcon_File() throws Exception {
+    String iconFilename = "defaulticon_application.png";
+
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
+        .part("hasRobotSource", "false")
+        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_application.png")).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "iconType", "file");
+    assertCustomData(auditDTO, "iconFilename", iconFilename);
+  }
+
+  @Test
+  public void testSetIcon_Default() throws Exception {
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
+        .part("hasRobotSource", "false").post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "iconType", "default");
+  }
+
+  @Test
+  public void testSetIcon_Unauthorized() throws Exception {
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
+        .part("hasRobotSource", "false").with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 

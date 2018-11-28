@@ -50,7 +50,7 @@ public abstract class AbstractAuditTest
 
   public static final String SYSTEM_USER = MDCUsernameScope.SYSTEM;
 
-  private User unauthorizedUser;
+  protected User unauthorizedUser;
 
   protected ObjectMapper objectMapper;
 

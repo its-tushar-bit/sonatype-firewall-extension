@@ -16,6 +16,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.Organization;
 
 import com.codahale.metrics.annotation.Timed;
@@ -53,6 +55,7 @@ public class ApplicationMoveResource
   @POST
   @Path(DESTINATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.MOVE_APPLICATION)
   public List<String> moveApplication(@PathParam("applicationId") String applicationId,
                                       @PathParam("organizationId") String organizationId)
   {

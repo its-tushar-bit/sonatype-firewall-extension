@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -195,7 +196,9 @@ public class ApplicationMoveService
   public List<String> moveApplication(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
                                       String organizationId)
   {
+    AuditData.get().setParentOrganization(organizationDAO.getById(organizationId));
     Application application = applicationDAO.getByIdNotNull(applicationId);
+    AuditData.get().setApplicationWithDetails(application);
     if (application.getOrganizationId().equals(organizationId)) {
       return Collections.emptyList();
     }

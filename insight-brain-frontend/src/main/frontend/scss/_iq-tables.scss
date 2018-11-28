@@ -143,8 +143,14 @@ thead {
 .iq-cell--empty {
   @include regular();
 
+  box-sizing: border-box;
+
   color: $iq-slate;
   text-align: center;
+
+  // for tables that don't use display: table due to sticky headers. Assumes the empty cell is the only
+  // one in its row
+  width: 100%;
 }
 
 .iq-cell--chevron {

@@ -132,6 +132,9 @@
               <component-display component="component" truncate="true"></component-display>
             </td>
           </tr>
+          <tr ng-if="vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">
+            <td class="iq-cell iq-cell--empty" colspan="3">No Results</td>
+          </tr>
         </tbody>
       </table>
     </div>

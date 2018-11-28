@@ -302,7 +302,10 @@ public class ApplicationReportTest
 
     headers.componentNameFilterInput().setValue("org.slf4j");
 
-    violations.shouldHaveSize(0);
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("No Results"));
+
+    eyesWatcher.eyesCheck("Test Filtering No Results");
 
     headers.policyNameFilterInput().clear();
     violations.shouldHaveSize(3);

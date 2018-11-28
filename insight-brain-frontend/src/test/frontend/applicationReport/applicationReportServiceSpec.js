@@ -15,7 +15,7 @@ describe('applicationReportService', function() {
             },
             displayName: {
               parts: [
-                {field: 'a-name', value: 'foo'}, {field: 'version', value: '1'}
+                {field: 'a-name', value: 'foo'}, {value: ' : '}, {field: 'version', value: '1'}
               ]
             }
           }, {
@@ -30,7 +30,11 @@ describe('applicationReportService', function() {
             },
             displayName: {
               parts: [
-                {field: 'Group', value: 'barGroup'}, {field: 'Artifact', value: 'bar'}, {field: 'Version', value: '2'}
+                {field: 'Group', value: 'barGroup'},
+                {value: ' : '},
+                {field: 'Artifact', value: 'bar'},
+                {value: ' : '},
+                {field: 'Version', value: '2'}
               ]
             }
           }]
@@ -139,7 +143,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -155,7 +159,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: true,
@@ -172,7 +176,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
-        derivedComponentName: 'bargroupbar2',
+        derivedComponentName: 'bargroup : bar : 2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -256,7 +260,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -272,7 +276,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: true,
@@ -289,7 +293,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
-        derivedComponentName: 'bargroupbar2',
+        derivedComponentName: 'bargroup : bar : 2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -367,7 +371,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -383,7 +387,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: false,
@@ -400,7 +404,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
-        derivedComponentName: 'bargroupbar2',
+        derivedComponentName: 'bargroup : bar : 2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -475,7 +479,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -491,7 +495,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
-        derivedComponentName: 'foo1',
+        derivedComponentName: 'foo : 1',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: false,
@@ -508,7 +512,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
-        derivedComponentName: 'bargroupbar2',
+        derivedComponentName: 'bargroup : bar : 2',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,

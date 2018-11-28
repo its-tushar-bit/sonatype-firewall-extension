@@ -312,6 +312,13 @@ public class ApplicationReportTest
     violations.shouldHave(texts("None", "None", "None"));
     violations.shouldHave(texts("org.slf4j : jcl-over-slf4j", "org.slf4j : slf4j-api", "org.slf4j : slf4j-log4j12"));
 
+    // test filtering across colon-separate fields in component name
+    headers.componentNameFilterInput().setValue("org.slf4j : slf4j-");
+
+    violations.shouldHaveSize(2);
+    violations.shouldHave(texts("None", "None"));
+    violations.shouldHave(texts("org.slf4j : slf4j-api", "org.slf4j : slf4j-log4j12"));
+
     headers.componentNameFilterInput().clear();
 
     violations.shouldHaveSize(63);

@@ -18,6 +18,7 @@ import {
   groupBy,
   into,
   isNil,
+  join,
   map,
   maxBy,
   pick,
@@ -110,9 +111,7 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
   return map(makeEntryForViolation, filter(nullHashCheck, policyResult.aaData));
 }
 
-function deriveComponentNameFromDisplayName(displayName) {
-  return displayName.parts.map(p => p.field ? p.value.toLowerCase() : '').filter(s => s !== '').join('\u001F');
-}
+const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''), toLower);
 
 // A map of makeViolationEntries functions, indexed by policyResult version
 const makeViolationEntriesMap = new window.Map([

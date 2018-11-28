@@ -102,7 +102,9 @@ public enum AuditEvent
   MOVE_APPLICATION(Domain.GOVERNANCE_APPLICATION, Type.MOVE),
   AUTO_CREATE_APPLICATION(Domain.GOVERNANCE_APPLICATION, Type.AUTO_CREATE),
   CONFIGURE_APPLICATION_CATEGORY(Domain.GOVERNANCE_APPLICATION_CATEGORIES, Type.CONFIGURE),
-  CONFIGURE_APPLICATION_ICON(Domain.GOVERNANCE_APPLICATION_ICON, Type.CONFIGURE);
+  CONFIGURE_APPLICATION_ICON(Domain.GOVERNANCE_APPLICATION_ICON, Type.CONFIGURE),
+
+  CONFIGURE_SYSTEM_NOTICE(Domain.SERVER_SYSTEM_NOTICE, Type.CONFIGURE);
 
   private final String domain;
 
@@ -126,6 +128,8 @@ public enum AuditEvent
     String AUTHENTICATION = "authentication";
 
     String GOVERNANCE = "governance";
+
+    String SERVER = "server";
 
     String GOVERNANCE_COMPONENT = join(GOVERNANCE, "component");
 
@@ -196,6 +200,8 @@ public enum AuditEvent
     String SECURITY_LDAP_SERVER_CONNECTION = join(SECURITY_LDAP_SERVER, "connection");
 
     String SECURITY_LDAP_SERVER_USER_MAPPING = join(SECURITY_LDAP_SERVER, "user-mapping");
+
+    String SERVER_SYSTEM_NOTICE = join(SERVER, "system-notice");
 
     static String join(String parent, String child) {
       return parent + "." + child;

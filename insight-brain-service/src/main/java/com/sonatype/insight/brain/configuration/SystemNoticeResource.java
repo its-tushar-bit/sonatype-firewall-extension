@@ -14,6 +14,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
@@ -49,6 +51,7 @@ public class SystemNoticeResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_SYSTEM_NOTICE)
   public SystemNotice updateSystemNotice(SystemNotice systemNotice) {
     return systemNoticeService.updateSystemNotice(systemNotice);
   }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.configuration;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -33,6 +34,16 @@ public class SystemNoticeService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public SystemNotice updateSystemNotice(SystemNotice systemNotice) {
     systemNoticeDAO.update(systemNotice);
+    auditSystemNoticeUpdate(systemNotice);
     return systemNotice;
+  }
+
+  private void auditSystemNoticeUpdate(final SystemNotice systemNotice) {
+    if (systemNotice.isEnabled()) {
+      AuditData.get().setData("systemNoticeDisplay", "enabled").setData("systemNoticeText", systemNotice.getMessage());
+    }
+    else {
+      AuditData.get().setData("systemNoticeDisplay", "disabled");
+    }
   }
 }

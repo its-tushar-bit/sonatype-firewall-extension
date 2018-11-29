@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
@@ -122,7 +123,7 @@ public class ApplicationReportTest
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
     optionsDropdown.menu().shouldBe(visible).entries()
-        .shouldHave(texts("Re-Evaluate Report", "Generate PDF", "View raw data"));
+        .shouldHave(texts("Generate PDF", "View raw data"));
 
     eyesWatcher.eyesCheck();
   }
@@ -322,6 +323,22 @@ public class ApplicationReportTest
     headers.componentNameFilterInput().clear();
 
     violations.shouldHaveSize(63);
+  }
+
+  @Test
+  public void testReevaluate() {
+    Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
+    tempEntity.newWaiver(licenseBanned.getId(), app.getId());
+
+    reportPage.headers().componentNameFilterInput().setValue("mycila");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+
+    reportPage.reevaluateButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
   }
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {

@@ -31,6 +31,8 @@ describe('applicationReportReducer', function() {
       const newState = reduce(undefined, action);
       expect(newState.loading).toBe(false);
       expect(newState.loadError).toBe(null);
+      expect(newState.reevaluating).toBe(false);
+      expect(newState.reevaluationError).toBe(null);
       expect(newState.selectedReport).toBe(null);
       expect(newState.aggregate).toBe(true);
       expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
@@ -59,7 +61,7 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_FULFILLED action', function() {
-    it('unsets loading flag and sets selectedReport value', function() {
+    it('unsets loading flag and sets selectedReport and isUnknownJs values', function() {
       const state = Object.freeze({
         loading: true,
         loadError: null,
@@ -72,7 +74,10 @@ describe('applicationReportReducer', function() {
       ];
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
-        payload: {allEntries: entries}
+        payload: {
+          report: {allEntries: entries},
+          isUnknownJs: false
+        }
       });
       expect(newState).toEqual({
         loading: false,
@@ -85,6 +90,7 @@ describe('applicationReportReducer', function() {
           criticalViolationCount: 1,
           nonLowViolationCount: 3
         },
+        isUnknownJs: false,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -140,7 +146,9 @@ describe('applicationReportReducer', function() {
           }],
           newState = reduce(state, {
             type: 'LOAD_REPORT_FULFILLED',
-            payload: {allEntries: entries}
+            payload: {
+              report: {allEntries: entries}
+            }
           });
 
       expect(newState.selectedReport.displayedEntries).toEqual([{
@@ -156,6 +164,75 @@ describe('applicationReportReducer', function() {
         waived: false,
         grandfathered: false
       }]);
+    });
+  });
+
+  describe('REEVALUATE_REPORT_REQUESTED action', function() {
+    it('sets reevaluating flag and unsets reevaluationError', function() {
+      const state = Object.freeze({
+        reevaluating: false,
+        reevaluationError: 'Error',
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'REEVALUATE_REPORT_REQUESTED'});
+      expect(newState).toEqual({
+        reevaluating: true,
+        reevaluationError: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('REEVALUATE_REPORT_FULFILLED action', function() {
+    it('unsets reevaluating flag and reevaluationError', function() {
+      const state = Object.freeze({
+        reevaluating: true,
+        reevaluationError: 'asdf',
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'REEVALUATE_REPORT_FULFILLED'});
+      expect(newState).toEqual({
+        reevaluating: false,
+        reevaluationError: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('REEVALUATE_REPORT_CANCELLED action', function() {
+    it('unsets reevaluating flag and reevaluationError', function() {
+      const state = Object.freeze({
+        reevaluating: true,
+        reevaluationError: 'asdf',
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'REEVALUATE_REPORT_CANCELLED'});
+      expect(newState).toEqual({
+        reevaluating: false,
+        reevaluationError: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('REEVALUATE_REPORT_FAILED action', function() {
+    it('unsets reevaluating flag and sets the reevaluationError to the payload', function() {
+      const state = Object.freeze({
+        reevaluating: true,
+        reevaluationError: null,
+        other: otherObject
+      });
+      const payload = 'Error!';
+      const newState = reduce(state, { type: 'REEVALUATE_REPORT_FAILED', payload });
+      expect(newState).toEqual({
+        reevaluating: false,
+        reevaluationError: payload,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 

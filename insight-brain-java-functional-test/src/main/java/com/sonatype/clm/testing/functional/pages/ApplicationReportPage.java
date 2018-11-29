@@ -43,6 +43,10 @@ public class ApplicationReportPage
     return $(".iq-tile-header__subtitle");
   }
 
+  public SelenideElement reevaluateButton() {
+    return child("#reevaluate-button");
+  }
+
   public IQDropdown optionsDropdown() {
     return new IQDropdown("#options-dropdown");
   }

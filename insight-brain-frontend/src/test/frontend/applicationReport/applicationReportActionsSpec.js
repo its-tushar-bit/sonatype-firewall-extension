@@ -51,7 +51,7 @@ describe('applicationReportActions', function() {
     it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
       const store = SpecUtil.mockReduxStore(initialState);
       const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReport('appId', 'scanId')).catch(errorSpy);
+      store.dispatch(applicationReportActions.loadReport('appId', 'scanId', false)).catch(errorSpy);
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({
@@ -74,9 +74,12 @@ describe('applicationReportActions', function() {
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          reportTitle: 'test',
-          allEntries: [],
-          scanId: 'scanId'
+          report: {
+            reportTitle: 'test',
+            allEntries: [],
+            scanId: 'scanId'
+          },
+          isUnknownJs: false
         }
       });
     });
@@ -107,9 +110,12 @@ describe('applicationReportActions', function() {
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          reportTitle: 'test',
-          allEntries: [],
-          scanId: 'scanId'
+          report: {
+            reportTitle: 'test',
+            allEntries: [],
+            scanId: 'scanId'
+          },
+          isUnknownJs: true
         }
       });
     });
@@ -147,5 +153,154 @@ describe('applicationReportActions', function() {
           });
         }
     );
+  });
+
+  describe('reevaluateReport', function() {
+    it('fires REEVALUATE_REPORT_FAILED action if the reevaluation request fails', function() {
+      const initialState = {
+            applicationReport: {
+              selectedReport: {
+                application: { publicId: 'appId' },
+                scanId: 'scanId'
+              }
+            }
+          },
+          store = SpecUtil.mockReduxStore(initialState),
+          errorSpy = jasmine.createSpy('errorSpy');
+
+      store.dispatch(applicationReportActions.reevaluateReport()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'REEVALUATE_REPORT_REQUESTED'
+      });
+
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(500,
+          'test error');
+
+      $httpBackend.flush();
+
+      expect(errorSpy).toHaveBeenCalled();
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[1]).toEqual({
+        type: 'REEVALUATE_REPORT_FAILED',
+        payload: 'test error'
+      });
+    });
+
+    it('loads the report after reevaluation', function() {
+      const initialState = {
+            applicationReport: {
+              selectedReport: {
+                application: { publicId: 'appId' },
+                scanId: 'scanId'
+              },
+              isUnknownJs: {}
+            }
+          },
+          store = SpecUtil.mockReduxStore(initialState),
+          errorSpy = jasmine.createSpy('errorSpy');
+
+      store.dispatch(applicationReportActions.reevaluateReport()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'REEVALUATE_REPORT_REQUESTED'
+      });
+
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
+          {reportTitle: 'test'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
+          null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
+          .respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond(null);
+
+      $httpBackend.flush();
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(store.getActions().length).toBe(4);
+
+      expect(store.getActions()[1]).toEqual({
+        type: 'REEVALUATE_REPORT_FULFILLED'
+      });
+
+      expect(store.getActions()[2]).toEqual({
+        type: 'LOAD_REPORT_REQUESTED'
+      });
+
+      expect(store.getActions()[3]).toEqual({
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {
+            reportTitle: 'test',
+            allEntries: [],
+            scanId: 'scanId'
+          },
+          isUnknownJs: {}
+        }
+      });
+
+      // existing isUnknownJs property in the state should be passed into the loadReport code
+      expect(store.getActions()[3].payload.isUnknownJs).toBe(initialState.applicationReport.isUnknownJs);
+    });
+
+    it('does not fire REEVALUATE_REPORT_FAILED if the load afterwards fails', function() {
+      const initialState = {
+            applicationReport: {
+              selectedReport: {
+                application: { publicId: 'appId' },
+                scanId: 'scanId'
+              }
+            }
+          },
+          store = SpecUtil.mockReduxStore(initialState),
+          errorSpy = jasmine.createSpy('errorSpy');
+
+      store.dispatch(applicationReportActions.reevaluateReport()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'REEVALUATE_REPORT_REQUESTED'
+      });
+
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(500,
+          'test error');
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(200);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
+          .respond(200);
+      $httpBackend.flush();
+
+      expect(errorSpy).toHaveBeenCalled();
+      expect(store.getActions().length).toBe(4);
+
+      expect(store.getActions()[1]).toEqual({
+        type: 'REEVALUATE_REPORT_FULFILLED'
+      });
+
+      expect(store.getActions()[2]).toEqual({
+        type: 'LOAD_REPORT_REQUESTED'
+      });
+
+      expect(store.getActions()[3]).toEqual({
+        type: 'LOAD_REPORT_FAILED',
+        payload: 'test error'
+      });
+    });
+  });
+
+  describe('reevaluateReportCancelled', function() {
+    it('returns a REEVALUATE_REPORT_CANCELLED action with no payload', function() {
+      const action = applicationReportActions.reevaluateReportCancelled();
+
+      expect(action.type).toBe('REEVALUATE_REPORT_CANCELLED');
+      expect(action.payload).not.toBeDefined();
+    });
   });
 });

@@ -21,6 +21,10 @@ import {
   LOAD_REPORT_REQUESTED,
   SET_AGGREGATE_REPORT_ENTRIES,
   SET_SUBSTRING_FIELD_FILTER,
+  REEVALUATE_REPORT_REQUESTED,
+  REEVALUATE_REPORT_FULFILLED,
+  REEVALUATE_REPORT_FAILED,
+  REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
   SELECT_COMPONENT
 } from './applicationReportActions';
@@ -30,7 +34,9 @@ import { pathSet } from '../util/jsUtil';
 
 const initState = {
   loading: false,
+  reevaluating: false,
   loadError: null,
+  reevaluationError: null,
   aggregate: true,
   sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
 
@@ -54,11 +60,22 @@ export default function(state = initState, {type, payload}) {
       return updateDisplayedEntries({
         ...state,
         loading: false,
-        selectedReport: {...payload, ...getViolationCountsPerThreatLevel(payload.allEntries)}
+        isUnknownJs: payload.isUnknownJs,
+        selectedReport: {...(payload.report), ...getViolationCountsPerThreatLevel(payload.report.allEntries)}
       });
+
+    case REEVALUATE_REPORT_REQUESTED:
+      return {...state, reevaluating: true, reevaluationError: null};
+
+    case REEVALUATE_REPORT_FULFILLED:
+    case REEVALUATE_REPORT_CANCELLED:
+      return {...state, reevaluating: false, reevaluationError: null};
 
     case LOAD_REPORT_FAILED:
       return {...state, loading: false, loadError: payload};
+
+    case REEVALUATE_REPORT_FAILED:
+      return {...state, reevaluating: false, reevaluationError: payload};
 
     case SET_AGGREGATE_REPORT_ENTRIES:
       return updateDisplayedEntries({...state, aggregate: payload});

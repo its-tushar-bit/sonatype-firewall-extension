@@ -12,6 +12,7 @@ import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
 import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
+import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorModal';
 
 export default angular.module('applicationReportModule',
     [
@@ -19,6 +20,7 @@ export default angular.module('applicationReportModule',
     ])
     .component('applicationReport', applicationReport)
     .component('applicationReportResults', applicationReportResults)
+    .component('reevaluationErrorModal', reevaluationErrorModal)
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)
     .config(routes);

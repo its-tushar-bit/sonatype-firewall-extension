@@ -365,7 +365,10 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
         return `${baseUrl.get()}/rest/report/${encodedAppId}/${encodedReportId}/auditLog/licenses.json+security.json` +
             `?key=${encodedKeyJson}`;
-      }
+      },
+
+      getReportReevaluateUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/reevaluatePolicy'
     };
   }
 ]);

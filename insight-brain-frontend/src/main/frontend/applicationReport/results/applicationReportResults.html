@@ -1,15 +1,15 @@
 <div class="iq-tile-container" load-wrapper="vm.loadError" reload="vm.doLoad()" loading="vm.loading">
   <div class="iq-tile iq-tile--top-tile iq-tile--application-report">
     <div class="iq-tile__actions">
+      <button id="reevaluate-button" class="iq-btn iq-btn--tertiary" ng-click="vm.reevaluateReport()">
+        <i class="fa fa-refresh fa-fw"/>Re-Evaluate Report
+      </button>
       <div class="iq-dropdown dropdown" id="options-dropdown">
         <button class="btn dropdown-toggle btn-tertiary" type="button" id="options-menu" data-toggle="dropdown">
           Options <span class="caret"></span>
         </button>
         <div class="dropdown-menu iq-dropdown-menu">
           <div class="iq-dropdown-menu__actions">
-            <a id="re-evaluate-link" class="btn iq-btn--dropdown" ng-click="">
-              <i class="fa fa-refresh fa-fw"/>Re-Evaluate Report
-            </a>
             <a id="generate-pdf-link" class="btn iq-btn--dropdown" ng-click="">
               <i class="fa fa-file-pdf-o fa-fw"/>Generate PDF
             </a>

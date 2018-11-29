@@ -10,6 +10,10 @@ export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
 export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
 export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
+export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
+export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
+export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
+export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 
 // To be used for filters that are done by substring matching, as opposed to matchings a discreet set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -44,7 +48,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
             const partialMatches = results[4].data || undefined;
             const unknownJsResult = isUnknownJs ? results[4].unknownJsResult : undefined;
             const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult, partialMatches);
-            dispatch(loadReportFulfilled({ ...metadata, allEntries, ...dataResult, scanId }));
+            dispatch(loadReportFulfilled({ ...metadata, allEntries, ...dataResult, scanId }, isUnknownJs));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
@@ -53,10 +57,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function loadReportFulfilled(report) {
+  function loadReportFulfilled(report, isUnknownJs) {
     return {
       type: LOAD_REPORT_FULFILLED,
-      payload: report
+      payload: { report, isUnknownJs }
     };
   }
 
@@ -98,8 +102,51 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
+  function reevaluateReport() {
+    return (dispatch, getState) => {
+      const { selectedReport, isUnknownJs } = getState().applicationReport,
+          { application, scanId } = selectedReport,
+          applicationPublicId = application.publicId;
+
+      dispatch({
+        type: REEVALUATE_REPORT_REQUESTED
+      });
+
+      return $http.post(CLMLocations.getReportReevaluateUrl(applicationPublicId, scanId))
+          .catch(error => {
+            dispatch(reevaluateReportFailed(error));
+            return $q.reject(error);
+          })
+          .then(() => {
+            dispatch(reevaluateReportFulfilled());
+            return dispatch(loadReport(applicationPublicId, scanId, isUnknownJs));
+          });
+    };
+  }
+
+  function reevaluateReportFulfilled() {
+    return {
+      type: REEVALUATE_REPORT_FULFILLED
+    };
+  }
+
+  function reevaluateReportFailed(error) {
+    return {
+      type: REEVALUATE_REPORT_FAILED,
+      payload: Messages.getHttpErrorMessage(error)
+    };
+  }
+
+  function reevaluateReportCancelled() {
+    return {
+      type: REEVALUATE_REPORT_CANCELLED
+    };
+  }
+
   return {
     loadReport,
+    reevaluateReport,
+    reevaluateReportCancelled,
     setAggregateReportEntries,
     setStringFieldFilter,
     setSorting,

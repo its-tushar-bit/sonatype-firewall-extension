@@ -6,6 +6,7 @@
 import { pick } from 'ramda';
 
 import template from './applicationReport.html';
+import reevaluationErrorModalWrapperTemplate from './reevaluationErrorModal/reevaluationErrorModalWrapper.html';
 
 export default {
   template: template,
@@ -13,24 +14,72 @@ export default {
   controller: ApplicationReportController
 };
 
-function ApplicationReportController($scope, $ngRedux, applicationReportActions) {
+function ApplicationReportController($scope, $ngRedux, applicationReportActions, Modal) {
   const vm = this;
+
+  let reevaluationErrorModal = undefined;
 
   Object.assign(vm, {
     $onInit() {
-      const actions = pick(['setAggregateReportEntries'], applicationReportActions);
+      const actions = pick(['setAggregateReportEntries', 'reevaluateReport', 'reevaluateReportCancelled'],
+          applicationReportActions);
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
+
+      $scope.$watch('vm.reevaluating', function(reevaluating) {
+        if (reevaluating) {
+          vm.formMaskController.activateMask();
+        }
+        else if (!vm.reevaluationError) {
+          vm.formMaskController.showSuccessMaskBriefly();
+        }
+        else {
+          vm.formMaskController.removeMask();
+        }
+      });
+
+      $scope.$watch('vm.reevaluationError', function(reevaluationError) {
+        if (reevaluationError && !reevaluationErrorModal) {
+          vm.openReevaluationErrorModal();
+        }
+        else if (!reevaluationError) {
+          vm.dismissReevaluationErrorModal();
+        }
+      });
     },
 
     $onDestroy() {
+      vm.dismissReevaluationErrorModal();
       vm.unsubscribe();
+    },
+
+    openReevaluationErrorModal() {
+      function modalController($scope) {
+        Object.assign($scope, {
+          retry: vm.reevaluateReport,
+          cancel: vm.reevaluateReportCancelled
+        });
+      }
+
+      modalController.$inject = ['$scope'];
+
+      reevaluationErrorModal = Modal.open({
+        template: reevaluationErrorModalWrapperTemplate,
+        controller: modalController
+      });
+    },
+
+    dismissReevaluationErrorModal() {
+      if (reevaluationErrorModal) {
+        reevaluationErrorModal.dismiss();
+        reevaluationErrorModal = undefined;
+      }
     }
   });
 }
 
 function mapStateToThis(state) {
-  return pick(['aggregate'], state.applicationReport || {});
+  return pick(['aggregate', 'reevaluating', 'reevaluationError'], state.applicationReport || {});
 }
 
-ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];
+ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions', 'Modal'];

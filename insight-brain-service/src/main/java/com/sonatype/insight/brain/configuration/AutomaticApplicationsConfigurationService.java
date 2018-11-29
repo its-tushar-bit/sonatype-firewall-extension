@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.configuration;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -66,6 +67,17 @@ public class AutomaticApplicationsConfigurationService
       automaticApplicationsConfigurationDAO.setEnabled(tx, configuration.isEnabled());
       automaticApplicationsConfigurationDAO.setOrganizationId(tx, configuration.getParentOrganizationId());
       tx.commit();
+      auditAutomaticApplicationConfiguration(configuration);
+    }
+  }
+
+  private void auditAutomaticApplicationConfiguration(AutomaticApplicationsConfiguration configuration) {
+    if (configuration.isEnabled()) {
+      AuditData.get().setData("automaticApplicationCreation", "enabled")
+          .setParentOrganization(organizationDAO.getByIdNotNull(configuration.getParentOrganizationId()));
+    }
+    else {
+      AuditData.get().setData("automaticApplicationCreation", "disabled");
     }
   }
 

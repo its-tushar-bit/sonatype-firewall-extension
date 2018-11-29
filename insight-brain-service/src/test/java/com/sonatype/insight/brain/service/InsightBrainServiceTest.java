@@ -78,7 +78,6 @@ public class InsightBrainServiceTest
     Organization sampleOrg = new OrganizationDAO().getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
     tempEntity.register(sampleOrg);
     Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
-    tempEntity.register(sampleApp);
 
     assertThat(sampleOrg, is(notNullValue()));
     assertThat(sampleApp, is(notNullValue()));

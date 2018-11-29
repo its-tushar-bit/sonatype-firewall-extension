@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -227,8 +226,6 @@ public class TemporaryEntity
 
   private Collection<Application> apps;
 
-  private Collection<String> appPublicIds;
-
   private Collection<Organization> orgs;
 
   private Collection<LicenseOverride> licenseOverrides;
@@ -274,7 +271,6 @@ public class TemporaryEntity
   @Override
   protected void before() {
     apps = new ArrayList<>();
-    appPublicIds = new ArrayList<>();
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
@@ -306,8 +302,7 @@ public class TemporaryEntity
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);
-    appPublicIds.stream().map(appPublicId -> appDAO.getByPublicId(appPublicId)).filter(Objects::nonNull)
-        .forEach(appDAO::delete);
+    orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
     delete(apps, appDAO);
     delete(orgs, orgDAO);
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
@@ -432,10 +427,6 @@ public class TemporaryEntity
     Collections.addAll(apps, applications);
   }
 
-  public void registerAppPublicId(String appPublicId) {
-    appPublicIds.add(appPublicId);
-  }
-
   public void register(Organization... organizations) {
     Collections.addAll(orgs, organizations);
   }
@@ -504,7 +495,6 @@ public class TemporaryEntity
       tx.begin();
       tx.persist(app);
       tx.commit();
-      register(app);
     }
     return app;
   }

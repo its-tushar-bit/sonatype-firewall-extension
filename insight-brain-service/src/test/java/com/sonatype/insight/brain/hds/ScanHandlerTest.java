@@ -246,7 +246,6 @@ public class ScanHandlerTest
   @Test
   public void testHandle_ApplicationDoesNotExist() throws Exception {
     String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 
     try {

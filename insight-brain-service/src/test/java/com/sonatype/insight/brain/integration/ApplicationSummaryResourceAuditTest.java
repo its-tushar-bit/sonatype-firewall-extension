@@ -25,7 +25,6 @@ public class ApplicationSummaryResourceAuditTest
 
     verifyOrCreateApplicationRequest().parameter(nonExistentAppPublicId).post();
     Application persistedApp = new ApplicationDAO().getByPublicIdNotNull(nonExistentAppPublicId);
-    tempEntity.register(persistedApp);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.AUTO_CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, persistedApp, organization);

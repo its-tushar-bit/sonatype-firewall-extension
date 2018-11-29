@@ -439,7 +439,6 @@ public class ConfigurationClientTest
   @Test
   public void testVerifyOrCreateApplication() throws Exception {
     String appPublicId = "non-existent-app-public-id";
-    tempEntity.registerAppPublicId(appPublicId);
 
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);

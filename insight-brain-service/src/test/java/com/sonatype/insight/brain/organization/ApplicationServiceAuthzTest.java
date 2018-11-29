@@ -60,10 +60,7 @@ public class ApplicationServiceAuthzTest
     application.setPublicId("MyApp");
 
     // Test the add application
-    application = applicationService.addApplication(application);
-
-    // Now clean up by deleting the application
-    tempEntity.register(application);
+    applicationService.addApplication(application);
   }
 
   @Test

@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -29,8 +28,6 @@ public class ApiApplicationServiceAuthzTest
 
   @Inject
   private ApiApplicationService apiApplicationService;
-
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
 
@@ -76,10 +73,7 @@ public class ApiApplicationServiceAuthzTest
     grantAddApplicationPermission(org.getId());
 
     ApiApplicationDTO applicationDTO = createApplicationDTO();
-    applicationDTO = apiApplicationService.addApplication(applicationDTO);
-
-    // Now clean up by deleting the application
-    tempEntity.register(applicationDAO.getByIdNotNull(applicationDTO.id));
+    apiApplicationService.addApplication(applicationDTO);
   }
 
   @Test(expected = UnauthenticatedException.class)

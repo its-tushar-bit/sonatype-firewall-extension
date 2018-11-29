@@ -139,7 +139,6 @@ public class ApplicationSummaryServiceAuthzTest
   public void testVerifyOrCreateApplication_ApplicationDoesNotExist_NoAppPermission_EVALUATE_APPLICATION() {
     login();
     String appPublicId = "NoSuchAppPublicId";
-    tempEntity.registerAppPublicId(appPublicId);
 
     // If the application does not exist, it will be created if automatic app creation is enabled and we have permission
     // to evaluate applications for its configured organization.
@@ -159,7 +158,6 @@ public class ApplicationSummaryServiceAuthzTest
   public void testVerifyOrCreateApplication_ApplicationDoesNotExist_HasAppPermission_EVALUATE_APPLICATION() {
     login();
     String appPublicId = "NoSuchAppPublicId";
-    tempEntity.registerAppPublicId(appPublicId);
 
     // We grant the required permission to this organization, which will be inherited by all its applications.
     Organization org = tempEntity.newOrganization();

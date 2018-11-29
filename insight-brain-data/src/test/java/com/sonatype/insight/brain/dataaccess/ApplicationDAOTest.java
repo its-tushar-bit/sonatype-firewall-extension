@@ -65,7 +65,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -90,14 +89,6 @@ public class ApplicationDAOTest
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
-
-  @After
-  public void after() throws Exception {
-    // Since these tests create apps detached from TemporaryEntity, ensure they are deleted
-    for (Application app : applicationDAO.getAll()) {
-      applicationDAO.delete(app);
-    }
-  }
 
   @Test
   public void testCRUD() throws Exception {
@@ -491,7 +482,6 @@ public class ApplicationDAOTest
     String publicId = StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH);
     Application app = new Application(publicId, "name", organization.getId());
     applicationDAO.insert(app);
-    tempEntity.register(app);
     // No need to assert anything as this method throws an exception if not found
     applicationDAO.getByPublicIdNotNull(publicId);
   }
@@ -501,7 +491,6 @@ public class ApplicationDAOTest
     final String publicId = StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH);
     application.setPublicId(publicId);
     applicationDAO.update(application);
-    tempEntity.register(application);
     // No need to assert anything as this method throws an exception if not found
     applicationDAO.getByPublicIdNotNull(publicId);
   }

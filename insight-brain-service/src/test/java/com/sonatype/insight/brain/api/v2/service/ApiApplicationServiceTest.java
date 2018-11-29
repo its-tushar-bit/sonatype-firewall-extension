@@ -10,7 +10,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -54,7 +53,6 @@ public class ApiApplicationServiceTest
     app.name = "appName";
     app.organizationId = org.getId();
     app = applicationService.addApplication(app);
-    tempEntity.register(new ApplicationDAO().getByIdNotNull(app.id));
     List<MembershipMapping> mappings = new MembershipMappingDAO()
         .getByContextIdAndRoleId(app.id, Role.OWNER_ROLE_ID);
     assertThat(mappings.size(), is(1));

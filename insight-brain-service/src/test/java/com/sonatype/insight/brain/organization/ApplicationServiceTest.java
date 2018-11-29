@@ -148,7 +148,6 @@ public class ApplicationServiceTest
     clmLicenseManager.installLicense(null);
     Application app = new Application("appPublicId", "appName", org.getId());
     app = applicationService.addApplication(app);
-    tempEntity.register(app);
   }
 
   @Test
@@ -168,7 +167,6 @@ public class ApplicationServiceTest
     Organization org = tempEntity.newOrganization();
     Application app = new Application("appPublicId", "appName", org.getId());
     app = applicationService.addApplication(app);
-    tempEntity.register(app);
     List<MembershipMapping> mappings = new MembershipMappingDAO().getByContextIdAndRoleId(app.getId(),
         Role.OWNER_ROLE_ID);
     assertThat(mappings.size(), is(1));
@@ -184,7 +182,6 @@ public class ApplicationServiceTest
     Organization org = tempEntity.newOrganization();
     Application app = new Application("appPublicId", "appName", org.getId());
     app = applicationService.addApplication(app);
-    tempEntity.register(app);
     final String applicationId = app.getId();
 
     assertThat(handler.getLatch().await(5, SECONDS), is(true));

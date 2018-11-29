@@ -96,7 +96,6 @@ public class ApplicationSummaryServiceTest
       throws Exception
   {
     String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
 
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(false);
@@ -111,7 +110,6 @@ public class ApplicationSummaryServiceTest
       throws Exception
   {
     String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
 
     Organization org = tempEntity.newOrganization();
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
@@ -146,7 +144,6 @@ public class ApplicationSummaryServiceTest
     automaticApplicationsConfigurationDAO.setEnabled(false);
 
     String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
 
     service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     verifyZeroInteractions(mockHdsClient);
@@ -168,7 +165,6 @@ public class ApplicationSummaryServiceTest
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
     String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
 
     // The app does not exist, so it will be created. We expect telemetry data that says the app was created
     // automatically.
@@ -197,7 +193,6 @@ public class ApplicationSummaryServiceTest
   public void testVerifyOrCreateApplication_License() throws Exception
   {
     String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
 
     Organization org = tempEntity.newOrganization();
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();

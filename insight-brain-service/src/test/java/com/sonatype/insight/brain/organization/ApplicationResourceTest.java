@@ -114,7 +114,6 @@ public class ApplicationResourceTest
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    tempEntity.register(application);
 
     assertNotNull(application);
     assertEquals(application.getId(), applicationResult.getId());

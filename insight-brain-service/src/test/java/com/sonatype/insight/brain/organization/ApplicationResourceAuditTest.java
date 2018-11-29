@@ -42,7 +42,6 @@ public class ApplicationResourceAuditTest
     applicationRequest().body(application).post();
 
     Application persistedApp = new ApplicationDAO().getByName(application.getName());
-    tempEntity.register(persistedApp);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(persistedApp, auditDTO, application.getContactInternalName());

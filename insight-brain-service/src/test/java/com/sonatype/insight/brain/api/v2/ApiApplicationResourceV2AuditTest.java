@@ -77,7 +77,6 @@ public class ApiApplicationResourceV2AuditTest
     ApiApplicationDTO applicationDTO = applicationDTO(tag1, tag2);
     applicationRequest().body(applicationDTO).post();
     Application application = new ApplicationDAO().getByName(applicationDTO.name);
-    tempEntity.register(application);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, applicationDTO.contactUserName);
@@ -92,7 +91,6 @@ public class ApiApplicationResourceV2AuditTest
     ApiApplicationDTO applicationDTO = applicationDTO();
     applicationRequest().body(applicationDTO).post();
     Application application = new ApplicationDAO().getByName(applicationDTO.name);
-    tempEntity.register(application);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());

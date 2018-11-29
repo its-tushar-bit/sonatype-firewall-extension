@@ -24,7 +24,7 @@ public class ProductLicenseResourceAuditTest
     installLicense();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.INSTALL_LICENSE, null);
-    assertLicenseData(auditDTO);
+    assertLicenseData(auditDTO, "sonatype.lic");
   }
 
   @Test
@@ -34,9 +34,24 @@ public class ProductLicenseResourceAuditTest
     assertAuditLog(AuditEvent.INSTALL_LICENSE, "unauthorized");
   }
 
-  private void assertLicenseData(AuditDTO auditDTO) {
+  @Test
+  public void testUninstallLicense() throws Exception {
+    uninstallLicense();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UNINSTALL_LICENSE, null);
+    assertLicenseData(auditDTO, null);
+  }
+
+  @Test
+  public void testUninstallLicense_Unauthorized() throws Exception {
+    restRequest().path(ProductLicenseResource.RESOURCE_PATH).with(unauthorizedUser()).delete();
+
+    assertAuditLog(AuditEvent.UNINSTALL_LICENSE, "unauthorized");
+  }
+
+  private void assertLicenseData(AuditDTO auditDTO, String filename) {
     assertCustomData(auditDTO, "productLicenseFingerprint", "1234");
-    assertCustomData(auditDTO, "productLicenseFilename", "sonatype.lic");
+    assertCustomData(auditDTO, "productLicenseFilename", filename);
     String productLicenseExpiry = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(getTestProductLicenseManager().getExpirationDate().getTime()),
             ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE);

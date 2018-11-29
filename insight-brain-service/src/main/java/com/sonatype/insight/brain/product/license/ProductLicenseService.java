@@ -63,6 +63,7 @@ public class ProductLicenseService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void uninstallLicense() throws LicensingException {
+    licenseManager.auditLicense(null);
     licenseManager.uninstallLicense();
     log.info("Nexus IQ License successfully uninstalled");
   }

@@ -107,7 +107,8 @@ public enum AuditEvent
 
   CONFIGURE_SYSTEM_NOTICE(Domain.SERVER_SYSTEM_NOTICE, Type.CONFIGURE),
 
-  INSTALL_LICENSE(Domain.SERVER_LICENSE, Type.INSTALL);
+  INSTALL_LICENSE(Domain.SERVER_LICENSE, Type.INSTALL),
+  UNINSTALL_LICENSE(Domain.SERVER_LICENSE, Type.UNINSTALL);
 
   private final String domain;
 
@@ -268,5 +269,7 @@ public enum AuditEvent
     String AUTO_CREATE = "auto-create";
 
     String INSTALL = "install";
+
+    String UNINSTALL = "uninstall";
   }
 }

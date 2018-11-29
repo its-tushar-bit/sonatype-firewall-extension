@@ -76,6 +76,7 @@ public class ProductLicenseResource
   }
 
   @DELETE
+  @Audited(AuditEvent.UNINSTALL_LICENSE)
   public void uninstallLicense() throws Exception {
     productLicenseService.uninstallLicense();
   }

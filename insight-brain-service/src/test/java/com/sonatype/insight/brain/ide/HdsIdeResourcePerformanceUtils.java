@@ -71,7 +71,7 @@ public class HdsIdeResourcePerformanceUtils
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
     return new HdsClient(new InsightProxy(config),
-        new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter()), config,
+        new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter(), null), config,
         new VersionService(), Mockito.mock(IdleConnectionReaper.class), new TelemetryId(config));
   }
 

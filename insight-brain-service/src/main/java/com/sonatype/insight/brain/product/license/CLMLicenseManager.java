@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -185,12 +189,17 @@ public class CLMLicenseManager
   private volatile CachedLicenseData licenseCache;
 
   private final List<LicenseListener> listeners = new CopyOnWriteArrayList<>();
+  
+  private final AuditRecorder auditRecorder;
 
   @Inject
-  public CLMLicenseManager(final ProductLicenseManager licenseManager, final LicenseFingerprinter licenseFingerprinter)
+  public CLMLicenseManager(final ProductLicenseManager licenseManager,
+                           final LicenseFingerprinter licenseFingerprinter,
+                           final AuditRecorder auditRecorder)
   {
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
+    this.auditRecorder = auditRecorder;
     try {
       populateLicenseCache();
     }
@@ -209,8 +218,15 @@ public class CLMLicenseManager
       return;
     }
     log.info("Installing license {}.", licenseFilePath);
-    try (FileInputStream fileInputStream = new FileInputStream(licenseFilePath)) {
-      installLicense(fileInputStream);
+    try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.INSTALL_LICENSE)) {
+      try (FileInputStream fileInputStream = new FileInputStream(licenseFilePath)) {
+        installLicense(fileInputStream);
+        auditLicense(new File(licenseFilePath).getName());
+      }
+      catch (Throwable t) {
+        AuditData.get().setException(t);
+        throw t;
+      }
     }
   }
 

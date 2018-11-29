@@ -6,9 +6,8 @@
      ng-if="!vm.availableRoles || vm.availableRoles.length > 0 || !vm.isNew">
   <header class="iq-tile-header">
     <div class="iq-tile-header__title">
-      <h2>
-        <i class="fa fa-puzzle-piece size-20px iq-tile-header__icon"></i>{{vm.isNew ? 'Add a Role' : vm.role.roleName}}
-      </h2>
+      <i class="fa fa-puzzle-piece size-20px iq-tile-header__icon"></i>
+      <h2>{{vm.isNew ? 'Add a Role' : vm.role.roleName}}</h2>
     </div>
   </header>
   <form class="iq-form" novalidate name="vm.rolePicker" ng-if="vm.isNew">

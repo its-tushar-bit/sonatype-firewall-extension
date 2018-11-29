@@ -63,11 +63,24 @@
     border-left: none;
     padding: 0;
   }
-  
+
+  .iq-tile-header__icon {
+    vertical-align: middle;
+  }
+
   .iq-tile-header__icon.fa.outline {
     color: $iq-slate;
   }
-  
+
+  .iq-tile-header__title {
+    // prevents the h1/h2 from wrapping under the icon when there's no flexbox
+    white-space: nowrap;
+
+    h1, h2 {
+      vertical-align: middle;
+    }
+  }
+
   .iq-tile--application-report {
     .iq-indicator-row {
       padding-bottom: 8px;

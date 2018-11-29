@@ -5,10 +5,8 @@
      reload="vm.doLoad()">
   <header class="iq-tile-header">
     <div class="iq-tile-header__title">
-      <h2>
-        <i class="fa size-20px fa-book slate iq-tile-header__icon"></i><!--
-       -->{{::vm.dirtyLTG.id ? 'Edit' : 'New'}} License Threat Group
-      </h2>
+      <i class="fa size-20px fa-book slate iq-tile-header__icon"></i>
+      <h2>{{::vm.dirtyLTG.id ? 'Edit' : 'New'}} License Threat Group</h2>
     </div>
   </header>
   <form name="vm.ltgEditor"

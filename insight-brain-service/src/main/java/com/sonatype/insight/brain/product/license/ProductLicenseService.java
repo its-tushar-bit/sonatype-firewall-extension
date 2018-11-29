@@ -39,6 +39,7 @@ public class ProductLicenseService
     try {
       licenseManager.installLicense(is);
       log.info("Nexus IQ License {} successfully installed", filename);
+      licenseManager.auditLicense(filename);
     }
     catch (LicensingException e) {
       // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg

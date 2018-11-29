@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.product.license;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
@@ -20,6 +24,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -219,6 +224,14 @@ public class CLMLicenseManager
     licenseManager.uninstallLicense();
     clearLicenseCache();
     log.info("License uninstalled successfully");
+  }
+
+  void auditLicense(String filename) {
+    String productLicenseExpiry = ZonedDateTime
+        .ofInstant(Instant.ofEpochMilli(getLicenseInfo().expiryTimestamp), ZoneId.systemDefault())
+        .format(DateTimeFormatter.ISO_LOCAL_DATE);
+    AuditData.get().setData("productLicenseFingerprint", getLicenseFingerprint())
+        .setData("productLicenseFilename", filename).setData("productLicenseExpiry", productLicenseExpiry);
   }
 
   /**

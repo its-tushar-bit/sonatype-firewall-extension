@@ -105,7 +105,9 @@ public enum AuditEvent
   CONFIGURE_APPLICATION_ICON(Domain.GOVERNANCE_APPLICATION_ICON, Type.CONFIGURE),
   CONFIGURE_AUTOMATIC_APPLICATIONS(Domain.GOVERNANCE_AUTOMATIC_APPLICATIONS, Type.CONFIGURE),
 
-  CONFIGURE_SYSTEM_NOTICE(Domain.SERVER_SYSTEM_NOTICE, Type.CONFIGURE);
+  CONFIGURE_SYSTEM_NOTICE(Domain.SERVER_SYSTEM_NOTICE, Type.CONFIGURE),
+
+  INSTALL_LICENSE(Domain.SERVER_LICENSE, Type.INSTALL);
 
   private final String domain;
 
@@ -204,6 +206,8 @@ public enum AuditEvent
 
     String SECURITY_LDAP_SERVER_USER_MAPPING = join(SECURITY_LDAP_SERVER, "user-mapping");
 
+    String SERVER_LICENSE = join(SERVER, "license");
+
     String SERVER_SYSTEM_NOTICE = join(SERVER, "system-notice");
 
     static String join(String parent, String child) {
@@ -262,5 +266,7 @@ public enum AuditEvent
     String MOVE = "move";
 
     String AUTO_CREATE = "auto-create";
+
+    String INSTALL = "install";
   }
 }

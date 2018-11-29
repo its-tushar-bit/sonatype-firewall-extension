@@ -22,6 +22,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
@@ -56,6 +58,7 @@ public class ProductLicenseResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
+  @Audited(AuditEvent.INSTALL_LICENSE)
   public Response installLicense(@FormDataParam("file") final InputStream is,
                                  @FormDataParam("file") FormDataContentDisposition fileDetail,
                                  @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,

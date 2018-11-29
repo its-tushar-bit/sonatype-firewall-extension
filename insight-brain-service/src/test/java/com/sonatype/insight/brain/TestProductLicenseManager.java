@@ -110,6 +110,10 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setEnforcementPoints(enforcementPoints);
   }
 
+  public Date getExpirationDate() {
+    return mockProductLicenseManager.expirationDate;
+  }
+
   public void setExpirationDate(Date date) {
     wasChanged = true;
     mockProductLicenseManager.setExpirationDate(date);

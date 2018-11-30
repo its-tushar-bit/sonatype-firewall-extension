@@ -125,12 +125,14 @@ cip-audit {
   }
 }
 
-cip-similar {
+cip-similar, cip-occurrences {
   display: block;
-
-  margin-top: 1px;
 
   .iq-scrollable {
     max-height: 281px;
   }
+}
+
+cip-similar {
+  margin-top: 1px;
 }

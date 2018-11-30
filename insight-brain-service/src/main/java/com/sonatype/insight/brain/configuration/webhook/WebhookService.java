@@ -7,11 +7,14 @@ package com.sonatype.insight.brain.configuration.webhook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -81,6 +84,7 @@ public class WebhookService
   public Webhook addWebhook(Webhook webhook) {
     encryptWebhookSecretKey(webhook);
     webhookDao.insert(webhook);
+    auditWebhook(webhook);
     webhook.setSecretKey(FAKE_SECRET_KEY);
     return webhook;
   }
@@ -95,6 +99,7 @@ public class WebhookService
       encryptWebhookSecretKey(webhook);
     }
     webhookDao.update(webhook);
+    auditWebhook(webhook);
 
     webhook.setSecretKey(FAKE_SECRET_KEY);
     return webhook;
@@ -104,6 +109,16 @@ public class WebhookService
   public void deleteWebhook(String webhookId) {
     Webhook webhook = webhookDao.getByIdNotNull(webhookId);
     webhookDao.delete(webhook);
+    auditWebhook(webhook);
+  }
+
+  private void auditWebhook(Webhook webhook) {
+    List<String> webhookEventTypes =
+        webhook.getEventTypes() == null ? new ArrayList<>() : webhook.getEventTypes().stream()
+            .map(webhookEventType -> webhookEventType.name().toLowerCase(Locale.ROOT).replace('_', '-')).sorted()
+            .collect(Collectors.toList());
+    AuditData.get().setData("webhookId", webhook.getId()).setData("webhookUrl", webhook.getUrl())
+        .setData("webhookTriggerEvents", webhookEventTypes);
   }
 
   private void encryptWebhookSecretKey(final Webhook webhook) {

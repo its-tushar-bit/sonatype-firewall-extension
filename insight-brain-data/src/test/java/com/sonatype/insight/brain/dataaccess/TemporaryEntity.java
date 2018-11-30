@@ -451,6 +451,10 @@ public class TemporaryEntity
     Collections.addAll(this.membershipMappings, membershipMappings);
   }
 
+  public void register(Webhook... webhooks) {
+    Collections.addAll(this.webhooks, webhooks);
+  }
+
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
   }

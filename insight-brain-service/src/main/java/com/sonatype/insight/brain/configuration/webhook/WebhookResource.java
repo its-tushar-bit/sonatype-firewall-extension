@@ -19,6 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 
@@ -61,6 +63,7 @@ public class WebhookResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_WEBHOOK)
   public Webhook addWebhook(Webhook webhook) {
     return webhookService.addWebhook(webhook);
   }
@@ -68,12 +71,14 @@ public class WebhookResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_WEBHOOK)
   public Webhook updateWebhook(Webhook webhook) {
     return webhookService.updateWebhook(webhook);
   }
 
   @DELETE
   @Path(WEBHOOK_ID)
+  @Audited(AuditEvent.DELETE_WEBHOOK)
   public void deleteWebhook(@PathParam("webhookId") final String webhookId) {
     webhookService.deleteWebhook(webhookId);
   }

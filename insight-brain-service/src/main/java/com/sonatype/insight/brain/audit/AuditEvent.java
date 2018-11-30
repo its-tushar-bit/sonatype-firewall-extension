@@ -110,7 +110,11 @@ public enum AuditEvent
   INSTALL_LICENSE(Domain.SERVER_LICENSE, Type.INSTALL),
   UNINSTALL_LICENSE(Domain.SERVER_LICENSE, Type.UNINSTALL),
   START_SERVER(Domain.SERVER, Type.START),
-  STOP_SERVER(Domain.SERVER, Type.STOP);
+  STOP_SERVER(Domain.SERVER, Type.STOP),
+
+  CREATE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.CREATE),
+  UPDATE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.UPDATE),
+  DELETE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.DELETE);
 
   private final String domain;
 
@@ -212,6 +216,8 @@ public enum AuditEvent
     String SERVER_LICENSE = join(SERVER, "license");
 
     String SERVER_SYSTEM_NOTICE = join(SERVER, "system-notice");
+
+    String SERVER_WEBHOOK = join(SERVER, "webhook");
 
     static String join(String parent, String child) {
       return parent + "." + child;

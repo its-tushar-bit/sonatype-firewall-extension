@@ -9,17 +9,24 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.version.VersionService;
 
+import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class ApplicationLifecycle
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationLifecycle.class);
 
@@ -33,21 +40,30 @@ public class ApplicationLifecycle
 
   private final LicenseDataUpdater licenseDataUpdater;
 
+  private final VersionService versionService;
+
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public ApplicationLifecycle(InsightConfig configuration,
                               CLMLicenseManager licenseManager,
                               DataMigrator dataMigrator,
                               NewInstancePopulator newInstancePopulator,
-                              DefaultLicenseDataUpdater licenseDataUpdater)
+                              DefaultLicenseDataUpdater licenseDataUpdater,
+                              VersionService versionService,
+                              AuditRecorder auditRecorder)
   {
     this.configuration = configuration;
     this.licenseManager = licenseManager;
     this.dataMigrator = dataMigrator;
     this.newInstancePopulator = newInstancePopulator;
     this.licenseDataUpdater = licenseDataUpdater;
+    this.versionService = versionService;
+    this.auditRecorder = auditRecorder;
   }
 
   public void boot() throws Exception {
+    auditServerLifecycle(AuditEvent.START_SERVER);
     // If a license is not installed and the config has a license file path, then try to install it from there.
     licenseManager.installLicenseIfUnlicensed(configuration.getLicenseFile());
 
@@ -71,5 +87,25 @@ public class ApplicationLifecycle
         }
       }
     }.start();
+  }
+
+  private void auditServerLifecycle(final AuditEvent auditEvent) {
+    try (AuditSession auditSession = auditRecorder.recordSystemEvent(auditEvent)) {
+      AuditData.get()
+          .setData("serverInstanceId", InsightBrainService.getInstanceId())
+          .setData("serverConfigurationFile", InsightBrainService.getConfigFile())
+          .setData("serverRelease", versionService.getLogDisplayVersion())
+          .setData("processOwner", System.getProperty("user.name"));
+    }
+  }
+
+  @Override
+  public void start() throws Exception {
+    //noop
+  }
+
+  @Override
+  public void stop() throws Exception {
+    auditServerLifecycle(AuditEvent.STOP_SERVER);
   }
 }

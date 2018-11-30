@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -177,7 +176,7 @@ public class RoleService
       permissionCategoryDTO.permissions = categoryPermissions;
       permissionCategories.add(permissionCategoryDTO);
     }
-    Collections.sort(permissionCategories, PERMISSION_CATEGORY_COMPARATOR);
+    permissionCategories.sort(PERMISSION_CATEGORY_COMPARATOR);
     return permissionCategories;
   }
 

@@ -963,8 +963,8 @@ public class ApplicationDAOTest
   }
 
   private void assertApplications(List<Application> actual, List<Application> expected) {
-    Collections.sort(actual, new ApplicationComparator());
-    Collections.sort(expected, new ApplicationComparator());
+    actual.sort(new ApplicationComparator());
+    expected.sort(new ApplicationComparator());
 
     for (int i = 0; i < actual.size(); i++) {
       Application actualApplication = actual.get(i);

@@ -496,14 +496,14 @@ public class ComponentPolicyEvaluatorTest
     List<PolicyFact> policyFacts = ComponentPolicyEvaluator.toPolicyFacts(policies, matchFacts);
 
     // Sort facts by policy then component then constraint then condition
-    Collections.sort(policyFacts, ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
+    policyFacts.sort(ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
     final List<PolicyFact> expectedPolicyFacts = new ArrayList<>(policyFacts);
 
     // Check sorting is consistent
     for (int i = 0; i < 100; i++) {
       Collections.shuffle(policyFacts);
 
-      Collections.sort(policyFacts, ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
+      policyFacts.sort(ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
 
       assertEquals(expectedPolicyFacts, policyFacts);
     }

@@ -544,7 +544,7 @@ public class RepositoryService
 
     // sort by threatLevel DESC, pathname ASC
     // note the UI is dependant on this sort order
-    Collections.sort(details, THREAT_LEVEL_DESC_PATHNAME_ASC);
+    details.sort(THREAT_LEVEL_DESC_PATHNAME_ASC);
 
     return details;
   }

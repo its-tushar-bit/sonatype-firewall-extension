@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.integration;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -127,7 +126,7 @@ public class ApplicationSummaryService
   private ApplicationSummaryList toApplicationSummaryList(List<Application> apps) {
     // The input list may be immutable
     apps = new ArrayList<>(apps);
-    Collections.sort(apps, APP_COMPARATOR);
+    apps.sort(APP_COMPARATOR);
     return applicationAdapter.convert(apps);
   }
 

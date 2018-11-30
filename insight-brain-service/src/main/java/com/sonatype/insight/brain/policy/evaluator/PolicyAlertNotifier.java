@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -57,19 +55,14 @@ public class PolicyAlertNotifier
               results.evaluation.isForMonitoring());
 
       // sort the alerts by threat-level, which is common means to represent in most notifiers
-      Collections.sort(policyNotifications, new Comparator<PolicyNotification>()
-      {
-        @Override
-        public int compare(PolicyNotification o1, PolicyNotification o2) {
-          int t1 = o1.getPolicyFact().getThreatLevel();
-          int t2 = o2.getPolicyFact().getThreatLevel();
-          int r = t2 - t1;
-          if (r == 0) {
-            r = String.CASE_INSENSITIVE_ORDER
-                .compare(o1.getPolicyFact().getPolicyName(), o2.getPolicyFact().getPolicyName());
-          }
-          return r;
+      policyNotifications.sort((o1, o2) -> {
+        int t1 = o1.getPolicyFact().getThreatLevel();
+        int t2 = o2.getPolicyFact().getThreatLevel();
+        int r = t2 - t1;
+        if (r == 0) {
+          r = o1.getPolicyFact().getPolicyName().compareToIgnoreCase(o2.getPolicyFact().getPolicyName());
         }
+        return r;
       });
 
       final String scanId = results.evaluation.getScanId();

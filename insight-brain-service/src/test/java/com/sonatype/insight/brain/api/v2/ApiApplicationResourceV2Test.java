@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -566,8 +565,8 @@ public class ApiApplicationResourceV2Test
   {
     assertThat(actualApplications.size(), is(expectedApplications.size()));
 
-    Collections.sort(actualApplications, new ApiApplicationDTOComparator());
-    Collections.sort(expectedApplications, new ApiApplicationDTOComparator());
+    actualApplications.sort(new ApiApplicationDTOComparator());
+    expectedApplications.sort(new ApiApplicationDTOComparator());
 
     for (int i = 0; i < actualApplications.size(); i++) {
       ApiApplicationDTO actualApplication = actualApplications.get(i);
@@ -590,8 +589,8 @@ public class ApiApplicationResourceV2Test
 
     assertThat(actualTags.size(), is(expectedTags.size()));
 
-    Collections.sort(actualTags, new ApiApplicationTagDTOComparator());
-    Collections.sort(expectedTags, new ApiApplicationTagDTOComparator());
+    actualTags.sort(new ApiApplicationTagDTOComparator());
+    expectedTags.sort(new ApiApplicationTagDTOComparator());
 
     for (int i = 0; i < actualTags.size(); i++) {
       assertThat(actualTags.get(i).id, is(expectedTags.get(i).id));

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -78,14 +76,10 @@ public class ApiSearchResourceV2Test
   }
 
   private void sortResultsByAppIdAndHash(ApiSearchResultsDTOV2 resultsDTO) {
-    Collections.sort(resultsDTO.results, new Comparator<ApiSearchResultDTOV2>()
-    {
-      @Override
-      public int compare(final ApiSearchResultDTOV2 o1, final ApiSearchResultDTOV2 o2) {
-        String applicationIdHash1 = o1.applicationId + o1.hash;
-        String applicationIdHash2 = o2.applicationId + o2.hash;
-        return applicationIdHash1.compareTo(applicationIdHash2);
-      }
+    resultsDTO.results.sort((o1, o2) -> {
+      String applicationIdHash1 = o1.applicationId + o1.hash;
+      String applicationIdHash2 = o2.applicationId + o2.hash;
+      return applicationIdHash1.compareTo(applicationIdHash2);
     });
   }
 

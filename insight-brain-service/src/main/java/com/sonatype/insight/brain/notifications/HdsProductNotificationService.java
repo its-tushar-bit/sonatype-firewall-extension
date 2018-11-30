@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.notifications;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -80,7 +79,7 @@ public class HdsProductNotificationService
         log.info("Updating notification cache from HDS");
         try {
           ProductNotificationList productNotificationList = hdsClient.get(ProductNotificationList.class,
-              HDS_PRODUCT_NOTIFICATION_PATH, Collections.<String, String> emptyMap());
+              HDS_PRODUCT_NOTIFICATION_PATH, Collections.emptyMap());
           Set<String> notificationIds = new HashSet<>();
           notifications.clear();
           if (productNotificationList != null) {
@@ -88,12 +87,8 @@ public class HdsProductNotificationService
               notifications.add(notification);
               notificationIds.add(notification.getId());
             }
-            Collections.sort(notifications, new Comparator<ProductNotification>()
-            {
-              @Override
-              public int compare(final ProductNotification o1, final ProductNotification o2) {
-                return Long.compare(o2.getDateCreated(), o1.getDateCreated());
-              }
+            notifications.sort((o1, o2) -> {
+              return Long.compare(o2.getDateCreated(), o1.getDateCreated());
             });
           }
           deleteOldUserViewedProductNotification(notificationIds);

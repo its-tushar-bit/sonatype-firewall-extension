@@ -40,7 +40,7 @@ public class PolicyViolationComparatorTest
     PolicyViolation v4 = buildPolicyViolation("1", "Policy1", 1, "hash", componentB);
 
     List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3, v4);
-    Collections.sort(sorted, comparator);
+    sorted.sort(comparator);
 
     // should sort in order of policy id, threat level, hash, component
     List<PolicyViolation> expected = Lists.newArrayList(v4, v3, v2, v1);
@@ -70,7 +70,7 @@ public class PolicyViolationComparatorTest
         Lists.newArrayList(constraintFact3));
 
     List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3);
-    Collections.sort(sorted, comparator);
+    sorted.sort(comparator);
 
     List<PolicyViolation> expected = Lists.newArrayList(v3, v2, v1);
 

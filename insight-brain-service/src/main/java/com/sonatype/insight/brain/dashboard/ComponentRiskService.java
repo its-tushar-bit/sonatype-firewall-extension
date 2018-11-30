@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -98,7 +97,7 @@ public class ComponentRiskService
     for (ComponentViolationRollUp component : componentsByHash.values()) {
       dtos.add(component.toDTO());
     }
-    Collections.sort(dtos, componentRiskComparator);
+    dtos.sort(componentRiskComparator);
     DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = dtos.size();
     result.dashboardResults = dtos.subList(0, Math.min(dtos.size(), maxResults));
@@ -150,7 +149,7 @@ public class ComponentRiskService
    * @return Sort by threat level (descending), policy name, application name, coordinates, and then hashes.
    */
   private List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
-    Collections.sort(dtos, POLICY_VIOLATION_DTO_COMPARATOR);
+    dtos.sort(POLICY_VIOLATION_DTO_COMPARATOR);
     return dtos;
   }
 

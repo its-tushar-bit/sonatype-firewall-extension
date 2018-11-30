@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -165,7 +164,7 @@ public class ComponentDetailsLoader
         }
       }
       componentDetails.setLicenseThreatLevel(licenseThreatLevel);
-      Collections.sort(licenseThreatGroupNames, String.CASE_INSENSITIVE_ORDER);
+      licenseThreatGroupNames.sort(String.CASE_INSENSITIVE_ORDER);
       componentDetails.setLicenseThreatGroupNames(licenseThreatGroupNames);
     }
     if (componentDetails.getSecurityVulnerabilities() != null) {

@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -133,12 +131,8 @@ public class RoleResourceTest
     PermissionCategoryDTO actualPermissionCategoryDTO = actualRole.permissionCategories.get(0);
     assertThat(actualPermissionCategoryDTO.displayName, is(expectedPermissionCategoryName));
     assertThat(actualPermissionCategoryDTO.permissions, hasSize(2));
-    Collections.sort(actualPermissionCategoryDTO.permissions, new Comparator<PermissionDTO>()
-    {
-      @Override
-      public int compare(final PermissionDTO o1, final PermissionDTO o2) {
-        return o1.id.compareTo(o2.id);
-      }
+    actualPermissionCategoryDTO.permissions.sort((o1, o2) -> {
+      return o1.id.compareTo(o2.id);
     });
 
     assertThat(actualPermissionCategoryDTO.permissions.get(0).id, is(Permission.WRITE));

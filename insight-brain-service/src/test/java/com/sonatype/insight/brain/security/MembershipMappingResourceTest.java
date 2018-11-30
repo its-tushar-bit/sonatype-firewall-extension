@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -328,7 +327,7 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(3));
 
-    Collections.sort(membersByOwner.members, new MemberComparator());
+    membersByOwner.members.sort(new MemberComparator());
     assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
         "admin@localhost", "IQ Server");
     assertMember(membersByOwner.members.get(1), MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
@@ -459,8 +458,8 @@ public class MembershipMappingResourceTest
   private void assertMembers(final List<Member> members, final List<Member> expectedMembers) {
     assertThat(members, hasSize(expectedMembers.size()));
 
-    Collections.sort(members, new MemberComparator());
-    Collections.sort(expectedMembers, new MemberComparator());
+    members.sort(new MemberComparator());
+    expectedMembers.sort(new MemberComparator());
 
     for (int i = 0; i < expectedMembers.size(); i++) {
       Member expectedMember = expectedMembers.get(i);

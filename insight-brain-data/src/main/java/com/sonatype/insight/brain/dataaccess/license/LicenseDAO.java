@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -75,13 +73,8 @@ public class LicenseDAO
       String sQuery = "SELECT license FROM License license";
       List<License> _licenses = new ArrayList<>();
       _licenses.addAll(getList(sQuery));
-      Collections.sort(_licenses, new Comparator<License>()
-      {
-        @Override
-        public int compare(License license1, License license2) {
-          return license1.getShortDisplayName().toLowerCase(Locale.ENGLISH)
-              .compareTo(license2.getShortDisplayName().toLowerCase(Locale.ENGLISH));
-        }
+      _licenses.sort((license1, license2) -> {
+        return license1.getShortDisplayName().compareToIgnoreCase(license2.getShortDisplayName());
       });
 
       Map<String, License> _licensesById = new LinkedHashMap<>();

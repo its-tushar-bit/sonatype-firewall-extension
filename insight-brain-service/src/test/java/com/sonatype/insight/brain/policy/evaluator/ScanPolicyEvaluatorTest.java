@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1467,7 +1466,7 @@ public class ScanPolicyEvaluatorTest
 
   private List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
     List<PolicyViolation> result = new ArrayList<>(policyViolations);
-    Collections.sort(result, PolicyViolationComparator.COMPARATOR);
+    result.sort(PolicyViolationComparator.COMPARATOR);
     return result;
   }
 

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,7 +48,7 @@ public class PolicyViolationDTOComparatorTest
     List<PolicyViolationDTO> sorted = Lists.newArrayList(dto7CCCCC_A, dto7AAA_NULL_A, dto7BAACA, dto7CCCCC_BB, dto8BA,
         dto7BAAAB, dto9AA, dto7AAAAB, dto7CCCCC_B, dto7AAA_NULL_B, dto7CCCCC_BA, dto8AA, dto8BB, dto7AAAAA);
 
-    Collections.sort(sorted, new PolicyViolationDTOComparator());
+    sorted.sort(new PolicyViolationDTOComparator());
 
     List<PolicyViolationDTO> expected = Lists.newArrayList(dto9AA, dto8AA, dto8BA, dto8BB, dto7AAAAA, dto7AAAAB,
         dto7AAA_NULL_A, dto7AAA_NULL_B, dto7BAAAB, dto7BAACA, dto7CCCCC_A, dto7CCCCC_B, dto7CCCCC_BA, dto7CCCCC_BB);
@@ -80,7 +79,7 @@ public class PolicyViolationDTOComparatorTest
 
     List<PolicyViolationDTO> sorted = Lists.newArrayList(dto1, dto2);
 
-    Collections.sort(sorted, new PolicyViolationDTOComparator());
+    sorted.sort(new PolicyViolationDTOComparator());
 
     // sanity check, the key point is merely to not blow up with an NPE
     assertThat(sorted, contains(dto1, dto2));

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +88,7 @@ public class ApplicationRiskService
     Collection<ApplicationView> appViews = policyViolationLoader.getViolations(appsToSearch, stageTypes, false, filter);
 
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews);
-    Collections.sort(applicationRiskScoreDTOs, applicationRiskComparator);
+    applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
     result.numResults = applicationRiskScoreDTOs.size();
     result.dashboardResults = 

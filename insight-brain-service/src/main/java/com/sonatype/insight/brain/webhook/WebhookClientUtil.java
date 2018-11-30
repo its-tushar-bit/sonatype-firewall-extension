@@ -80,14 +80,14 @@ public class WebhookClientUtil
       }
     }
     catch (JsonProcessingException ex) {
-      log.error("Unable to marshall Webhook " + webhookId, ex);
+      log.error("Unable to marshall Webhook {}", webhookId, ex);
     }
     catch (SocketTimeoutException ex) {
-      log.error("Timeout waiting for response from peer for webhook with id '" + webhookId + "' with delivery ID " +
-          deliveryId + " Message: " + ex.getMessage());
+      log.error("Timeout waiting for response from peer for Webhook {} with delivery ID {} Message: {}",
+          webhookId, deliveryId, ex.getMessage());
     }
     catch (IOException | RuntimeException ex) {
-      log.error("Unable to perform HTTP request for Webhook " + webhookId + " with delivery ID " + deliveryId, ex);
+      log.error("Unable to perform HTTP request for Webhook {} with delivery ID {}", webhookId, deliveryId, ex);
       if (ex instanceof RuntimeException) {
         throw (RuntimeException)ex;
       }

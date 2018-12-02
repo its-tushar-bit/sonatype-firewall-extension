@@ -29,7 +29,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(SuccessMetricsReportResource.RESOURCE_PATH)
 public class SuccessMetricsReportResource
 {
-  public static final String RESOURCE_PATH = "rest/successMetricsReport";
+  public static final String RESOURCE_PATH = "rest/successMetrics/report";
 
   private final SuccessMetricsReportService successMetricsReportService;
 

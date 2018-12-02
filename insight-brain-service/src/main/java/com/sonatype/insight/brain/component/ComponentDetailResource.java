@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportDataService;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
@@ -38,9 +39,14 @@ public class ComponentDetailResource
 
   private final ComponentDetailService componentDetailService;
 
+  private final SuccessMetricsReportDataService successMetricsReportDataService;
+
   @Inject
-  public ComponentDetailResource(ComponentDetailService componentDetailService) {
+  public ComponentDetailResource(ComponentDetailService componentDetailService,
+                                 SuccessMetricsReportDataService successMetricsReportDataService)
+  {
     this.componentDetailService = componentDetailService;
+    this.successMetricsReportDataService = successMetricsReportDataService;
   }
 
   @GET
@@ -66,6 +72,6 @@ public class ComponentDetailResource
   @Consumes(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getComponentCountsExceptionMeter")
   public ComponentCountsDTO getComponentCounts(SuccessMetricsReportScopeDTO scopeDTO) {
-    return componentDetailService.getComponentCounts(scopeDTO.organizationIds, scopeDTO.applicationIds);
+    return successMetricsReportDataService.getComponentCounts(scopeDTO.organizationIds, scopeDTO.applicationIds);
   }
 }

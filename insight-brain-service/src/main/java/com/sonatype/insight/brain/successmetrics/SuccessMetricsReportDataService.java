@@ -8,11 +8,14 @@ package com.sonatype.insight.brain.successmetrics;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,19 +23,35 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.component.ComponentDisplayFilename;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.MttrMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.HasComponentId;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO.ComponentCountDTO;
 import com.sonatype.insight.brain.utils.DateUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -54,7 +73,13 @@ import static com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyV
 @Singleton
 public class SuccessMetricsReportDataService
 {
+  private static final int COMPONENT_COUNT_LIMIT = 5;
+
   private final ApplicationService applicationService;
+
+  private final ApplicationComponentDAO applicationComponentDAO;
+
+  private final StageTypeService stageTypeService;
 
   private final PolicyViolationAggregationService policyViolationAggregationService;
 
@@ -68,12 +93,16 @@ public class SuccessMetricsReportDataService
 
   @Inject
   public SuccessMetricsReportDataService(ApplicationService applicationService,
+                                         ApplicationComponentDAO applicationComponentDAO,
+                                         StageTypeService stageTypeService,
                                          PolicyViolationAggregationService policyViolationAggregationService,
                                          SuccessMetricsReportService successMetricsReportService,
                                          SuccessMetricsReportDataDAO successMetricsReportDataDAO,
                                          PolicyViolationAggregationDAO violationAggregationDAO)
   {
     this.applicationService = applicationService;
+    this.applicationComponentDAO = applicationComponentDAO;
+    this.stageTypeService = stageTypeService;
     this.policyViolationAggregationService = policyViolationAggregationService;
     this.successMetricsReportService = successMetricsReportService;
     this.successMetricsReportDataDAO = successMetricsReportDataDAO;
@@ -432,5 +461,221 @@ public class SuccessMetricsReportDataService
   private static DateTime latest(DateTime a, DateTime b)
   {
     return Ordering.natural().max(a, b);
+  }
+
+  public ComponentCountsDTO getComponentCounts(Set<String> organizationIds, Set<String> applicationIds) {
+    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
+
+    // beginning of last month a year ago
+    Date sinceDate = new LocalDate().withDayOfMonth(1).minusMonths(13).toDate();
+
+    Set<String> stageTypeIds = new HashSet<>();
+    for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
+      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
+        stageTypeIds.add(stageType.getId());
+      }
+    }
+
+    Map<String, ComponentInfo> componentApplicationCounts = getComponentApplicationCounts(
+        applicationIdsToQuery, stageTypeIds, sinceDate);
+
+    Map<String, ComponentInfo> componentViolationCounts = getComponentViolationCounts(applicationIdsToQuery,
+        stageTypeIds, sinceDate);
+
+    List<ComponentInfo> topComponentApplicationCounts = Ordering.natural()
+        .greatestOf(componentApplicationCounts.values(), COMPONENT_COUNT_LIMIT);
+
+    List<ComponentInfo> topComponentViolationCounts = Ordering.natural()
+        .greatestOf(componentViolationCounts.values(), COMPONENT_COUNT_LIMIT);
+
+    ComponentCountsDTO retval = new ComponentCountsDTO();
+    retval.componentsInTheMostApplications = toComponentCountDTOs(topComponentApplicationCounts);
+    retval.componentsWithTheMostViolations = toComponentCountDTOs(topComponentViolationCounts);
+    retval.componentsPerApplication = getAverageComponentCountPerApplication(applicationIdsToQuery.size(),
+        componentApplicationCounts.values());
+
+    return retval;
+  }
+
+  /**
+   * A container to hold a component's hash, display name, and a count together.
+   * For efficiency, the display name is computed lazily from the HasComponentId.
+   */
+  private static class ComponentInfo
+      implements Comparable<ComponentInfo>
+  {
+    private final HasComponentId hasComponentId;
+    public final String hash;
+
+    private final ComponentDisplayFilename componentDisplayFilename = new ComponentDisplayFilename();
+
+    // the return value of the getDisplayName method, cached here
+    private String displayName;
+
+    private int count = 1;
+
+    public ComponentInfo(HasComponentId hasComponentId, String hash) {
+      this.hasComponentId = hasComponentId;
+      this.hash = hash;
+    }
+
+    public void addPathnames(Collection<String> pathnames) {
+      componentDisplayFilename.addPathnames(pathnames);
+    }
+
+    public void incrementCount() {
+      count++;
+    }
+
+    public int getCount() {
+      return count;
+    }
+
+    /**
+     * @return the displayname from the ComponentIdentifier, or the most common pathname basename, or "Unknown"
+     */
+    public String getDisplayName() {
+      if (displayName == null) {
+        ComponentIdentifier componentIdentifier = hasComponentId.getComponentIdentifier();
+
+        if (componentIdentifier != null) {
+          displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
+        }
+        else {
+          displayName = componentDisplayFilename.getFilename().orElse("Unknown");
+        }
+      }
+
+      return displayName;
+    }
+
+    @Override
+    // sort by count, ascending, and then by displayName string, descending
+    public int compareTo(ComponentInfo other) {
+      int countDiff = this.getCount() - other.getCount();
+
+      if (countDiff != 0) {
+        return countDiff;
+      }
+      else {
+        return other.getDisplayName().compareToIgnoreCase(this.getDisplayName());
+      }
+    }
+  }
+
+  /**
+   * @return a map from hash to ComponentInfo where the ComponentInfo counts are counts of the number of applications
+   * in which the component is present. Only evaluations more recent than the passed-in date are considered.
+   */
+  private Map<String, ComponentInfo> getComponentApplicationCounts(Set<String> applicationIds,
+                                                                   Set<String> stageTypeIds,
+                                                                   Date date)
+  {
+    List<ApplicationComponent> applicationComponents =
+        applicationComponentDAO.getByApplicationIdsAndStageTypeIdsSince(applicationIds, stageTypeIds, date);
+
+    Multimap<String, String> seenAppIdsByComponentHash = HashMultimap.create();
+    Map<String, ComponentInfo> retval = new HashMap<>();
+
+    for (ApplicationComponent applicationComponent : applicationComponents) {
+      String hash = applicationComponent.getHash();
+      String applicationId = applicationComponent.getApplicationId();
+
+      if (seenAppIdsByComponentHash.containsEntry(hash, applicationId)) {
+        // avoid double-counting multiple stages for the same app
+        continue;
+      }
+
+      ComponentInfo componentInfo = retval.get(hash);
+
+      if (componentInfo == null) {
+        componentInfo = new ComponentInfo(applicationComponent, hash);
+        retval.put(hash, componentInfo);
+      }
+      else {
+        componentInfo.incrementCount();
+      }
+
+      componentInfo.addPathnames(applicationComponent.getPathnames());
+
+      seenAppIdsByComponentHash.put(hash, applicationId);
+    }
+
+    return retval;
+  }
+
+  private List<ComponentCountDTO> toComponentCountDTOs(Collection<ComponentInfo> componentInfos) {
+    List<ComponentCountDTO> retval = new ArrayList<>(componentInfos.size());
+
+    for (ComponentInfo componentInfo : componentInfos) {
+      ComponentCountDTO dto = new ComponentCountDTO();
+
+      dto.componentDisplayName = componentInfo.getDisplayName();
+      dto.hash = componentInfo.hash;
+      dto.count = componentInfo.getCount();
+
+      retval.add(dto);
+    }
+
+    return retval;
+  }
+
+  /**
+   * @return a map from Component Id to total violation count in the specified applications.  Only applications
+   * with an evaluation more recent than the specified date are included.
+   */
+  private Map<String, ComponentInfo> getComponentViolationCounts(Set<String> applicationIds,
+                                                                 Set<String> stageTypeIds,
+                                                                 Date date)
+  {
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+
+    Map<String, ComponentInfo> retval = new HashMap<>();
+
+    for (PolicyEvaluation evaluation : policyEvaluationDAO
+        .getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds)) {
+      if (evaluation == null || evaluation.getTime().compareTo(date) < 0) {
+        continue;
+      }
+
+      Collection<PolicyViolation> violations = policyViolationDAO
+          .getActiveByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+
+      for (PolicyViolation violation : violations) {
+        String hash = violation.getHash();
+
+        ComponentInfo componentInfo = retval.get(hash);
+
+        if (componentInfo == null) {
+          componentInfo = new ComponentInfo(violation, hash);
+          retval.put(hash, componentInfo);
+        }
+        else {
+          componentInfo.incrementCount();
+        }
+
+        if (violation.getFilename() != null) {
+          componentInfo.addPathnames(Collections.singleton(violation.getFilename()));
+        }
+      }
+    }
+
+    return retval;
+  }
+
+  private int getAverageComponentCountPerApplication(int applicationCount,
+                                                     Collection<ComponentInfo> applicationCountComponentInfos)
+  {
+    int totalComponentApplicationCounts = 0;
+    for (ComponentInfo componentInfo : applicationCountComponentInfos) {
+      totalComponentApplicationCounts += componentInfo.getCount();
+    }
+
+    if (applicationCount == 0) {
+      return 0;
+    }
+
+    return totalComponentApplicationCounts / applicationCount;
   }
 }

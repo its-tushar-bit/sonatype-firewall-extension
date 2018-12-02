@@ -5,20 +5,25 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -27,13 +32,16 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
+import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.ONE_HOUR;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -45,6 +53,22 @@ public class SuccessMetricsReportDataServiceAuthzTest
   private SuccessMetricsReportDataService successMetricsReportDataService;
 
   private LocalDate today = new LocalDate();
+
+  private Set<String> orgIds;
+
+  private Set<String> appIds;
+
+  @Before
+  public void before() {
+    ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
+        "ababababab", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+    Policy licensePolicy = tempEntity.newPolicy(org);
+    PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "now", new Date());
+    tempEntity.newPolicyViolation(buildEval, licensePolicy, 7, LICENSE, buildComponent.getComponentIdentifier(),
+        buildComponent.getHash(), FailActionType.ID);
+    orgIds = new HashSet<>(Arrays.asList(org.getId()));
+    appIds = new HashSet<>(Arrays.asList(app.getId()));
+  }
 
   private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds, Set<String> applicationIds) {
     SuccessMetricsReportScopeDTO scope = new SuccessMetricsReportScopeDTO();
@@ -392,5 +416,63 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   private void assertEmptyResults(List<?> dtos) {
     assertThat(dtos, is(empty()));
+  }
+
+  @Test
+  public void testGetComponentCounts_Organization_Unauthenticated() throws Exception {
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(orgIds, null);
+    assertThat(result, notNullValue());
+    assertThat(result.componentsPerApplication, is(0));
+    assertThat(result.componentsInTheMostApplications, hasSize(0));
+    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentCounts_Organization_Unauthorized() throws Exception {
+    login();
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(orgIds, null);
+    assertThat(result, notNullValue());
+    assertThat(result.componentsPerApplication, is(0));
+    assertThat(result.componentsInTheMostApplications, hasSize(0));
+    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentCounts_Organization_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(orgIds, null);
+    assertThat(result, notNullValue());
+    assertThat(result.componentsPerApplication, is(1));
+    assertThat(result.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(result.componentsWithTheMostViolations.get(0).count, is(1));
+  }
+
+  @Test
+  public void testGetComponentCounts_Application_Unauthenticated() throws Exception {
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(null, appIds);
+    assertThat(result, notNullValue());
+    assertThat(result.componentsPerApplication, is(0));
+    assertThat(result.componentsInTheMostApplications, hasSize(0));
+    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentCounts_Application_Unauthorized() throws Exception {
+    login();
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(null, appIds);
+    assertThat(result, notNullValue());
+    assertThat(result.componentsPerApplication, is(0));
+    assertThat(result.componentsInTheMostApplications, hasSize(0));
+    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentCount_Application_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(null, appIds);
+    assertThat(result, notNullValue());
+    assertThat(result.componentsPerApplication, is(1));
+    assertThat(result.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(result.componentsWithTheMostViolations.get(0).count, is(1));
   }
 }

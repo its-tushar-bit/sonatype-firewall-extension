@@ -19,7 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
-import com.sonatype.insight.brain.successmetrics.OwnerFilterDTO;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
@@ -65,7 +65,7 @@ public class ComponentDetailResource
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getComponentCountsExceptionMeter")
-  public ComponentCountsDTO getComponentCounts(OwnerFilterDTO ownerFilterDTO) {
-    return componentDetailService.getComponentCounts(ownerFilterDTO.organizationIds, ownerFilterDTO.applicationIds);
+  public ComponentCountsDTO getComponentCounts(SuccessMetricsReportScopeDTO scopeDTO) {
+    return componentDetailService.getComponentCounts(scopeDTO.organizationIds, scopeDTO.applicationIds);
   }
 }

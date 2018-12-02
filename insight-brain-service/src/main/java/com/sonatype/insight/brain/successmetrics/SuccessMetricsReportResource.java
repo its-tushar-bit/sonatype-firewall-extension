@@ -19,6 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 
 /**
@@ -31,11 +32,18 @@ public class SuccessMetricsReportResource
 {
   public static final String RESOURCE_PATH = "rest/successMetrics/report";
 
+  static final String CHART_DATA_PATH = "{successMetricsReportId}/chartData";
+
   private final SuccessMetricsReportService successMetricsReportService;
 
+  private final SuccessMetricsReportDataService successMetricsReportDataService;
+
   @Inject
-  public SuccessMetricsReportResource(SuccessMetricsReportService successMetricsReportService) {
+  public SuccessMetricsReportResource(SuccessMetricsReportService successMetricsReportService,
+                                      SuccessMetricsReportDataService successMetricsReportDataService)
+  {
     this.successMetricsReportService = successMetricsReportService;
+    this.successMetricsReportDataService = successMetricsReportDataService;
   }
 
   @POST
@@ -55,5 +63,16 @@ public class SuccessMetricsReportResource
   @Path("{successMetricsReportId}")
   public void deleteSuccessMetricsReportForCurrentUser(@PathParam("successMetricsReportId") String successMetricsReportId) {
     successMetricsReportService.deleteSuccessMetricsReportForCurrentUser(successMetricsReportId);
+  }
+
+  /**
+   * @since 1.56
+   */
+  @GET
+  @Path(CHART_DATA_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ExceptionMetered(name = "getSuccessMetricsChartDataExceptionMeter")
+  public SuccessMetricsChartDataDTO getChartData(@PathParam("successMetricsReportId") String successMetricsReportId) {
+    return successMetricsReportDataService.getChartData(successMetricsReportId);
   }
 }

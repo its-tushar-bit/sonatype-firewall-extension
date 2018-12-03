@@ -114,7 +114,9 @@ public enum AuditEvent
 
   CREATE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.CREATE),
   UPDATE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.UPDATE),
-  DELETE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.DELETE);
+  DELETE_WEBHOOK(Domain.SERVER_WEBHOOK, Type.DELETE),
+
+  VIEW_APPLICATION_COMPOSITION_REPORT(Domain.REPORTING_APPLICATION_COMPOSITION_REPORT, Type.VIEW);
 
   private final String domain;
 
@@ -140,6 +142,8 @@ public enum AuditEvent
     String GOVERNANCE = "governance";
 
     String SERVER = "server";
+
+    String REPORTING = "reporting";
 
     String GOVERNANCE_COMPONENT = join(GOVERNANCE, "component");
 
@@ -219,6 +223,10 @@ public enum AuditEvent
 
     String SERVER_WEBHOOK = join(SERVER, "webhook");
 
+    String REPORTING_APPLICATION_COMPOSITION = join(REPORTING, "application-composition");
+
+    String REPORTING_APPLICATION_COMPOSITION_REPORT = join(REPORTING_APPLICATION_COMPOSITION, "report");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -283,5 +291,7 @@ public enum AuditEvent
     String START = "start";
 
     String STOP = "stop";
+
+    String VIEW = "view";
   }
 }

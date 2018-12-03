@@ -379,4 +379,9 @@ public abstract class AuditData
     }
     return this;
   }
+
+  public AuditData setReportId(final String reportId) {
+    setData("reportId", reportId);
+    return this;
+  }
 }

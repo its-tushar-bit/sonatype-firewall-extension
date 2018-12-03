@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
@@ -15,6 +16,10 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 
 public class ReportResourceAuditTest
     extends AbstractAuditTest
@@ -79,5 +84,44 @@ public class ReportResourceAuditTest
     assertResponseStatus(404, response);
 
     assertEvaluationAuditLog("not-found", null, appId, null, null, null, null);
+  }
+
+  @Test
+  public void testBrowseReport_Json() throws Exception {
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+
+    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, "data.json").get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, "reportId", SCAN_ID);
+  }
+
+  @Test
+  public void testBrowseReport_Html_NoAudit() throws Exception {
+    assertNoAuditSubpath("index.html");
+  }
+
+  @Test
+  public void testBrowseReport_Js_NoAudit() throws Exception {
+    assertNoAuditSubpath("insight.js");
+  }
+
+  @Test
+  public void testBrowseReport_Unauthorized() throws Exception {
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+
+    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, "data.json").get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
+  private void assertNoAuditSubpath(final String subpath) throws Exception {
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+
+    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, subpath).get();
+
+    assertThat(awaitLogEntries(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, 0), empty());
   }
 }

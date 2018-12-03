@@ -203,6 +203,7 @@ public class ReportResource
   @GET
   @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
+  @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
   public Response browseReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                                @PathParam("scanId") final String scanId,
                                @PathParam("path") final String path,
@@ -212,6 +213,7 @@ public class ReportResource
     String appId = application.getId();
 
     final String name = Report.toEntryName(path);
+    auditBrowseReport(scanId, name);
     final File reportFile = reportService.fetchReport(work, appId, scanId, false);
     ReportEntry reportEntry = null;
     try {
@@ -255,6 +257,15 @@ public class ReportResource
       return response.build();
     }
     return Response.status(Status.NOT_FOUND).build();
+  }
+
+  private void auditBrowseReport(final String scanId, final String name) {
+    if (name.endsWith(".json")) {
+      AuditData.get().setReportId(scanId);
+    }
+    else {
+      AuditData.get().setEvent(null);
+    }
   }
 
   /**

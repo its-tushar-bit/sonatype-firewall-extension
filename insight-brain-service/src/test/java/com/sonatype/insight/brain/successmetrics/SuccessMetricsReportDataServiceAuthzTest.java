@@ -420,17 +420,22 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetComponentCounts_Organization_Unauthenticated() throws Exception {
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(orgIds, null);
-    assertThat(result, notNullValue());
-    assertThat(result.componentsPerApplication, is(0));
-    assertThat(result.componentsInTheMostApplications, hasSize(0));
-    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+    SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
+    try {
+      successMetricsReportDataService.getComponentCounts(report.getId());
+      fail("Expected exception");
+    }
+    catch (NotFoundException e) {
+      // can't look up SuccessMetricsReport if the user isn't logged in
+      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
+    }
   }
 
   @Test
   public void testGetComponentCounts_Organization_Unauthorized() throws Exception {
     login();
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(orgIds, null);
+    SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
     assertThat(result, notNullValue());
     assertThat(result.componentsPerApplication, is(0));
     assertThat(result.componentsInTheMostApplications, hasSize(0));
@@ -440,7 +445,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   @Test
   public void testGetComponentCounts_Organization_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(orgIds, null);
+    SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
     assertThat(result, notNullValue());
     assertThat(result.componentsPerApplication, is(1));
     assertThat(result.componentsInTheMostApplications.get(0).count, is(1));
@@ -449,17 +455,22 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Test
   public void testGetComponentCounts_Application_Unauthenticated() throws Exception {
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(null, appIds);
-    assertThat(result, notNullValue());
-    assertThat(result.componentsPerApplication, is(0));
-    assertThat(result.componentsInTheMostApplications, hasSize(0));
-    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+    SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
+    try {
+      successMetricsReportDataService.getComponentCounts(report.getId());
+      fail("Expected exception");
+    }
+    catch (NotFoundException e) {
+      // can't look up SuccessMetricsReport if the user isn't logged in
+      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
+    }
   }
 
   @Test
   public void testGetComponentCounts_Application_Unauthorized() throws Exception {
     login();
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(null, appIds);
+    SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
     assertThat(result, notNullValue());
     assertThat(result.componentsPerApplication, is(0));
     assertThat(result.componentsInTheMostApplications, hasSize(0));
@@ -469,7 +480,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   @Test
   public void testGetComponentCount_Application_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(null, appIds);
+    SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
+    ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
     assertThat(result, notNullValue());
     assertThat(result.componentsPerApplication, is(1));
     assertThat(result.componentsInTheMostApplications.get(0).count, is(1));

@@ -34,6 +34,8 @@ public class SuccessMetricsReportResource
 
   static final String CHART_DATA_PATH = "{successMetricsReportId}/chartData";
 
+  static final String COMPONENT_COUNTS_PATH = "{successMetricsReportId}/componentCounts";
+
   private final SuccessMetricsReportService successMetricsReportService;
 
   private final SuccessMetricsReportDataService successMetricsReportDataService;
@@ -74,5 +76,16 @@ public class SuccessMetricsReportResource
   @ExceptionMetered(name = "getSuccessMetricsChartDataExceptionMeter")
   public SuccessMetricsChartDataDTO getChartData(@PathParam("successMetricsReportId") String successMetricsReportId) {
     return successMetricsReportDataService.getChartData(successMetricsReportId);
+  }
+
+  /**
+   * @since 1.56
+   */
+  @GET
+  @Path(COMPONENT_COUNTS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ExceptionMetered(name = "getComponentCountsExceptionMeter")
+  public ComponentCountsDTO getComponentCounts(@PathParam("successMetricsReportId") String successMetricsReportId) {
+    return successMetricsReportDataService.getComponentCounts(successMetricsReportId);
   }
 }

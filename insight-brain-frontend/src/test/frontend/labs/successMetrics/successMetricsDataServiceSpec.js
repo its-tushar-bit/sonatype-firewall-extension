@@ -222,12 +222,14 @@ describe('successMetricsDataService', function() {
   describe('getComponentCountsData', function() {
 
     it('fetches component counts data', function() {
-      var output;
+      var output,
+          reportId = '1234',
+          serviceParams = { id: reportId };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond(
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId)).respond(
           PolicyViolationAggregationResourceMockData.getComponentCountsData());
 
-      successMetricsDataService.getComponentCountsData().then(function(o) {
+      successMetricsDataService.getComponentCountsData(serviceParams).then(function(o) {
         output = o;
       });
 
@@ -238,12 +240,14 @@ describe('successMetricsDataService', function() {
     });
 
     it('fetches component counts data and properly pads missing results', function() {
-      var output;
+      var output,
+          reportId = '1234',
+          serviceParams = { id: reportId };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond(
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId)).respond(
           PolicyViolationAggregationResourceMockData.getPartialComponentCountsData());
 
-      successMetricsDataService.getComponentCountsData().then(function(o) {
+      successMetricsDataService.getComponentCountsData(serviceParams).then(function(o) {
         output = o;
       });
 
@@ -269,15 +273,17 @@ describe('successMetricsDataService', function() {
     });
 
     it('fetches empty component counts data and does not pad missing results', function() {
-      var output;
+      var output,
+          reportId = '1234',
+          serviceParams = { id: reportId };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond({
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId)).respond({
         componentsPerApplication: 0,
         componentsInTheMostApplications: [],
         componentsWithTheMostViolations: []
       });
 
-      successMetricsDataService.getComponentCountsData().then(function(o) {
+      successMetricsDataService.getComponentCountsData(serviceParams).then(function(o) {
         output = o;
       });
 
@@ -290,11 +296,13 @@ describe('successMetricsDataService', function() {
     });
 
     it('passes on a rejected promise', function() {
-      var caughtError;
+      var caughtError,
+          reportId = '1234',
+          serviceParams = { id: reportId };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond(403, 'Forbidden');
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId)).respond(403, 'Forbidden');
 
-      successMetricsDataService.getComponentCountsData().catch(function(e) {
+      successMetricsDataService.getComponentCountsData(serviceParams).catch(function(e) {
         caughtError = e;
       });
 

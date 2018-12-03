@@ -48,7 +48,7 @@ function successMetricsReportController($q, $state, $stateParams, systemConfigur
       if (vm.successMetricsReport) {
         return $q.all([
           successMetricsDataService.getChartData(vm.successMetricsReport),
-          successMetricsDataService.getComponentCountsData(vm.successMetricsReport.scope)
+          successMetricsDataService.getComponentCountsData(vm.successMetricsReport)
         ]);
       }
       else {

@@ -175,7 +175,7 @@ describe('successMetricsReportSpec', function() {
     expect(mockSuccessMetricsDataService.getChartData).toHaveBeenCalledWith(
         getSuccessMetricsReportsForCurrentUserData[0]);
     expect(mockSuccessMetricsDataService.getComponentCountsData)
-        .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0].scope);
+        .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0]);
   });
 
   it('sets the successMetricsChartName from the matched SuccessMetrics', function() {

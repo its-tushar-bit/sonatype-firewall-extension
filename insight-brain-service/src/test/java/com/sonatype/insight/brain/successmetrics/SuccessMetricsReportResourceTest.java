@@ -13,10 +13,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -181,5 +184,49 @@ public class SuccessMetricsReportResourceTest
     assertThat(dto.quality.applicationsWithCriticalViolations, is(0));
     assertThat(dto.other.applicationsWithViolations, is(0));
     assertThat(dto.other.applicationsWithCriticalViolations, is(0));
+  }
+
+  @Test
+  public void testGetComponentCounts() throws Exception {
+    // create two apps in two orgs
+    Application app1 = tempEntity.newApplicationWithParent("appId1", "app 1", "test org 1");
+    Application app2 = tempEntity.newApplicationWithParent("appId2", "app 2", "test org 2");
+
+    // an evaluation for each app, with one violation each
+    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "scan1",
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "scan2",
+        ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"));
+    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date());
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2", new Date());
+    tempEntity.newPolicyViolation(eval1, policy1, "groupId", "artifactId", "version", "scan1", "reason1");
+    tempEntity.newPolicyViolation(eval2, policy1, "groupId2", "artifactId2", "version2", "scan2", "reason2");
+
+    Set<String> orgIds = Collections.singleton(app1.getOrganizationId());
+    Set<String> appIds = Collections.singleton(app1.getId());
+
+    SuccessMetricsReport report = createSuccessMetricsReport(orgIds, appIds);
+
+    HttpResponse response = restRequest().path(SuccessMetricsReportResource.COMPONENT_COUNTS_PATH)
+        .parameter(report.getId()).get();
+
+    assertResponseStatus(200, response);
+    assertGetComponentCountResponse(response, component1);
+  }
+
+  private void assertGetComponentCountResponse(HttpResponse response, ApplicationComponent expectedComponent) {
+    ComponentCountsDTO componentCountsDTO = response.getBody(ComponentCountsDTO.class);
+
+    assertThat(componentCountsDTO, notNullValue());
+    assertThat(componentCountsDTO.componentsPerApplication, is(1));
+    assertThat(componentCountsDTO.componentsInTheMostApplications, hasSize(1));
+    assertThat(componentCountsDTO.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(componentCountsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.getComponentIdentifier()).toString()));
+    assertThat(componentCountsDTO.componentsWithTheMostViolations, hasSize(1));
+    assertThat(componentCountsDTO.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(componentCountsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.getComponentIdentifier()).toString()));
   }
 }

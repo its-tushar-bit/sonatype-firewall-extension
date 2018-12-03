@@ -463,8 +463,11 @@ public class SuccessMetricsReportDataService
     return Ordering.natural().max(a, b);
   }
 
-  public ComponentCountsDTO getComponentCounts(Set<String> organizationIds, Set<String> applicationIds) {
-    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
+  public ComponentCountsDTO getComponentCounts(String successMetricsReportId) {
+    SuccessMetricsReport report = successMetricsReportService
+        .findSuccessMetricsReportByIdForCurrentUser(successMetricsReportId);
+    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(report.getScopeOrganizationIds(),
+        report.getScopeApplicationIds());
 
     // beginning of last month a year ago
     Date sinceDate = new LocalDate().withDayOfMonth(1).minusMonths(13).toDate();

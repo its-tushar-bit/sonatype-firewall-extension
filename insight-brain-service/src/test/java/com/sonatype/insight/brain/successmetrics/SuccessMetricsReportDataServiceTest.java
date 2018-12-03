@@ -1955,7 +1955,7 @@ public class SuccessMetricsReportDataServiceTest
     // app3 does not have the component
     tempEntity.newApplicationWithParent("app3");
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     //app1=2 components, app2=1 component, app3=0 components
@@ -1975,7 +1975,7 @@ public class SuccessMetricsReportDataServiceTest
 
   @Test
   public void testGetComponentCounts_NoComponents() {
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsPerApplication, is(0));
@@ -2001,7 +2001,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
     tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId1", "artifactId1", "version1", hash2, "reason2");
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsPerApplication, is(1));
@@ -2043,7 +2043,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1, waivedComponentId, hash1, waiver);
     tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId1", "artifactId1", "version1", hash2, "reason2");
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsPerApplication, is(2));
@@ -2087,7 +2087,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "Z2", "artifactId2", "version2", hash2, "reason2");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId3", "artifactId3", "version3", hash3, "reason3");
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsPerApplication, is(3));
@@ -2134,7 +2134,7 @@ public class SuccessMetricsReportDataServiceTest
               "reason1" + i);
     }
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsPerApplication, is(6));
@@ -2200,7 +2200,7 @@ public class SuccessMetricsReportDataServiceTest
 
     tempEntity.newPolicyViolation(policyEvaluation4, policy2, "groupId3", "artifactId3", "version3", hash3, "reason3");
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsPerApplication, is(1));
@@ -2288,7 +2288,7 @@ public class SuccessMetricsReportDataServiceTest
 
     tempEntity.newPolicyViolation(policyEvaluation3, policy, nullComponentIdentifier, hash3, "reason3");
 
-    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(null, null);
+    ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO, notNullValue());
 
     assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(4));

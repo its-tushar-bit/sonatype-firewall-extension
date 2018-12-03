@@ -70,8 +70,8 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
     }
   }
 
-  function getComponentCountsData(postData) {
-    return $http.post(CLMLocations.getSuccessMetricsComponentCountsUrl(), postData).then(function({data}) {
+  function getComponentCountsData(successMetricsReport) {
+    return $http.get(CLMLocations.getSuccessMetricsComponentCountsUrl(successMetricsReport.id)).then(function({data}) {
       var componentCountMostApplications = data.componentsInTheMostApplications.length;
       if (componentCountMostApplications > 0 && componentCountMostApplications < 5) {
         data.componentsInTheMostApplications = data.componentsInTheMostApplications.concat(

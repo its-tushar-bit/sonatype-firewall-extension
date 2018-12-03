@@ -687,7 +687,7 @@ angularCommon.service('maximizeHeightService', ['$timeout', '$window', function 
         me.setDimensions(element, options);
       }
       // guard against infinitely checking an element that was removed from DOM
-      else if (document.contains(element[0])) {
+      else if (document.body.contains(element[0])) {
         return $timeout(function () {
           me.updateDimensions(element, options);
         }, 100);

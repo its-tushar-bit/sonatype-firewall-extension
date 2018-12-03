@@ -346,9 +346,11 @@ public class ReportResource
   @Path(DOWNLOAD_BUNDLE_PATH)
   @Produces("application/zip")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   public Response downloadBundle(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                                  @PathParam("scanId") final String scanId) throws IOException
   {
+    AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.fetchReport(work, app.getId(), scanId, true);
     String filename = "report-" + scanId + ".zip";

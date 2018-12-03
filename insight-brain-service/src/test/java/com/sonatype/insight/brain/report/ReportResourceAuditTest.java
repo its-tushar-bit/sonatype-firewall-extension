@@ -117,6 +117,29 @@ public class ReportResourceAuditTest
     assertApplicationData(auditDTO, app);
   }
 
+  @Test
+  public void testDownloadBundle() throws Exception {
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+
+    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
+        .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
+    restRequest(app.getPublicId(), SCAN_ID).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, "reportId", SCAN_ID);
+  }
+
+  @Test
+  public void testDownloadBundle_Unauthorized() throws Exception {
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+
+    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
   private void assertNoAuditSubpath(final String subpath) throws Exception {
     mockReport(SCAN_ID, "/ReportResourceTest/report");
 

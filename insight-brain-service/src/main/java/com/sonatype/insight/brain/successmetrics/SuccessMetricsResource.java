@@ -14,6 +14,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+
 import com.codahale.metrics.annotation.Timed;
 
 /**
@@ -42,6 +45,7 @@ public class SuccessMetricsResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_SUCCESS_METRICS)
   public SuccessMetricsConfigurationDTO update(SuccessMetricsConfigurationDTO configuration) {
     return successMetricsService.update(configuration);
   }

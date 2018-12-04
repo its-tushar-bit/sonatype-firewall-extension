@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.successmetrics;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -42,6 +43,7 @@ public class SuccessMetricsService
     log.debug("{} success metrics", configuration.enabled ? "Enabling" : "Disabling");
     systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(PROPERTY_ENABLED, Boolean.toString(configuration.enabled)));
+    AuditData.get().setData("successMetricsFeature", configuration.enabled ? "enabled" : "disabled");
     return configuration;
   }
 }

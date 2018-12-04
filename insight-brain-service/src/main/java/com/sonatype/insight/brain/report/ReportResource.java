@@ -312,9 +312,11 @@ public class ReportResource
   @Path(PRINT_PATH)
   @Produces("application/pdf")
   @Authorize(permission = Permission.READ)
+  @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
   public Response printReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                               @PathParam("scanId") final String scanId) throws IOException
   {
+    AuditData.get().setReportId(scanId);
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());

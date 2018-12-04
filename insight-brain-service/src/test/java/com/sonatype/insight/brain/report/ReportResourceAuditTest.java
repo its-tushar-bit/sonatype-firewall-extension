@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.File;
+import java.io.IOException;
+
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -13,11 +16,14 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
+import static com.sonatype.insight.brain.report.ReportResource.PRINT_PATH;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 
@@ -140,11 +146,41 @@ public class ReportResourceAuditTest
     assertApplicationData(auditDTO, app);
   }
 
+  @Test
+  public void testPrintReport() throws Exception {
+    createReportFile(app.getId(), SCAN_ID);
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
+
+    try {
+      restRequest(app.getPublicId(), SCAN_ID).path(PRINT_PATH).get();
+    }
+    finally {
+      Pdf.destroy();
+    }
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, "reportId", SCAN_ID);
+  }
+
+  @Test
+  public void testPrintReport_Unauthorized() throws Exception {
+    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(PRINT_PATH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
   private void assertNoAuditSubpath(final String subpath) throws Exception {
     mockReport(SCAN_ID, "/ReportResourceTest/report");
 
     restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, subpath).get();
 
     assertThat(awaitLogEntries(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, 0), empty());
+  }
+
+  private void createReportFile(String appId, String scanId) throws IOException {
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
+    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"), reportFile);
   }
 }

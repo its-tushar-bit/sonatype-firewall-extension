@@ -118,7 +118,7 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
     },
     plugins: plugins,
     externals,
-    devtool: production ? undefined : 'eval',
+    devtool: production ? undefined : 'eval-sourcemap',
     devServer: {
       port: 8070,
 

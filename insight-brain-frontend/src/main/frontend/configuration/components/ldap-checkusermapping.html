@@ -1,7 +1,9 @@
 <div id="ldap-checkusermapping-modal">
   <div class="iq-modal-header">
-    <h3>Verify LDAP Field Mappings</h3>
-    <span class="icon-question-sign" style="position: absolute;right: 15px;top: 15px;" data-popover="{{infoText}}" data-popover-placement="left"
+    <h2>Verify LDAP Field Mappings</h2>
+    <span class="icon-question-sign"
+          data-popover="{{infoText}}"
+          data-popover-placement="left"
           data-popover-trigger="mouseenter"></span>
   </div>
   <div class="iq-modal-content iq-scrollable modal-ldap-user-list">
@@ -41,6 +43,6 @@
     </table>
   </div>
   <div class="iq-modal-footer">
-    <button class="btn btn-link btn-cancel" ng-click="$close()">Close</button>
+    <button class="iq-btn" id="verify-field-mappings-cancel" ng-click="$close()">Close</button>
   </div>
 </div>

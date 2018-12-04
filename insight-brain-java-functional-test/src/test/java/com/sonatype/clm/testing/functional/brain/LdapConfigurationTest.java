@@ -161,7 +161,7 @@ public class LdapConfigurationTest
     discardChangesAndReset(ldapConnectionForm);
 
     // User And Group Form
-    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
 
     // Fill out form
@@ -204,13 +204,13 @@ public class LdapConfigurationTest
 
     testRequiredFormFields(ldapConnectionForm);
 
-    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
     userAndGroupSettingsForm.shouldBe(visible);
 
     testRequiredFormFields(userAndGroupSettingsForm);
 
-    LdapConfigurationPage.connectionTab().click();
+    LdapConfigurationPage.connectionTab().scrollIntoView(false).click();
     ldapConnectionForm.shouldBe(visible);
   }
 
@@ -262,7 +262,7 @@ public class LdapConfigurationTest
 
     connectionForm.cancelButton().shouldBe(enabled);
     connectionForm.saveButton().shouldBe(enabled);
-    connectionForm.testConnectionButton().shouldBe(enabled).click();
+    connectionForm.testConnectionButton().shouldBe(enabled).scrollIntoView(false).click();
 
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
 
@@ -305,7 +305,7 @@ public class LdapConfigurationTest
   }
 
   private void testUserMapping() {
-    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
     LdapConfigurationPage.ldapConnectionForm().shouldBe(hidden);
 
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
@@ -317,7 +317,7 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.cancelButton().shouldBe(visible, disabled);
 
     // Fill out form
-    userAndGroupSettingsForm.userObjectClass().shouldBe(empty).setValue("person");
+    userAndGroupSettingsForm.userObjectClass().scrollIntoView(false).shouldBe(empty).setValue("person");
     userAndGroupSettingsForm.userIDAttribute().shouldBe(empty).setValue("uid");
     userAndGroupSettingsForm.userRealNameAttribute().shouldBe(empty).setValue("cn");
     userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
@@ -363,11 +363,11 @@ public class LdapConfigurationTest
     userMappingModal.cancelButton().shouldBe(enabled).click();
 
     // Fill all remaining fields only to ensure persisted on save
-    userAndGroupSettingsForm.userBaseDN().shouldBe(empty).setValue("just checking if persisted");
+    userAndGroupSettingsForm.userBaseDN().scrollIntoView(true).shouldBe(empty).setValue("just checking if persisted");
     userAndGroupSettingsForm.userFilter().shouldBe(empty).setValue("just checking if persisted");
 
     // Save and ensure persistence of the user mapping
-    userAndGroupSettingsForm.saveButton().shouldBe(enabled).click();
+    userAndGroupSettingsForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
     userAndGroupSettingsForm.saveButton().shouldBe(disabled);
 

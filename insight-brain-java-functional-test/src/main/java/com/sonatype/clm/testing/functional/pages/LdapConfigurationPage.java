@@ -36,11 +36,11 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement connectionTab() {
-    return $(".tri-pane li:first-child a");
+    return $("#tab-connection");
   }
 
   public static SelenideElement userAndGroupSettingsTab() {
-    return $(".tri-pane li:nth-child(2) a");
+    return $("#tab-user");
   }
 
   public static LdapConnectionForm ldapConnectionForm() {
@@ -54,7 +54,7 @@ public class LdapConfigurationPage
   public static LdapNameEditor ldapNameEditor() {return new LdapNameEditor("#ldap-name");}
 
   public static SelenideElement discardChangesModalButton() {
-    return $("#ldap-unsaved-changes button.btn-primary");
+    return $("#ldap-unsaved-changes .iq-btn--primary");
   }
 
   public static SelenideElement deleteButton() {
@@ -62,6 +62,6 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement deleteConfirmationButton() {
-    return $("#delete-ldap-confirmation button.btn-primary");
+    return $("#delete-ldap-confirmation .btn-primary");
   }
 }

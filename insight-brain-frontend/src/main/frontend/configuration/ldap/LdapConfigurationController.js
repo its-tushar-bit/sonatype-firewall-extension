@@ -19,8 +19,8 @@ function resetDialog(Modal, discardFn, discardLabel) {
       template: '<div id="ldap-unsaved-changes"><div class="iq-modal-header"><h2>Unsaved Changes</h2></div>' +
           '<div class="iq-modal-content">There are unsaved changes, continuing will discard them.</div>' +
           '<div class="iq-modal-footer">' +
-            '<button class="btn btn-primary" ng-click="discardChanges()">' + discardLabel + '</button>' +
-            '<button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>' +
+            '<button class="iq-btn iq-btn--primary" ng-click="discardChanges()">' + discardLabel + '</button>' +
+            '<button class="iq-btn" ng-click="$close()">Cancel</button>' +
           '</div></div>',
       controller: [
         '$scope', function(modalScope) {

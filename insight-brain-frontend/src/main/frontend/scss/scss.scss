@@ -26,7 +26,7 @@
   
 // Components
 @import "../components/components";
-@import "ldap";
+@import "../configuration/ldap/ldap";
 @import "reports";
 @import "../mainHeader/mainHeader";
 

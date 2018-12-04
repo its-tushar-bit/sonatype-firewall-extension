@@ -19,7 +19,7 @@ public class LdapNameEditor
   }
 
   public NameEditor nameEditor() {
-    return new NameEditor(childSelector(".inline-editor"));
+    return new NameEditor(childSelector(".iq-ldap-name-editor"));
   }
 
   public SelenideElement cancelButton() {
@@ -27,7 +27,7 @@ public class LdapNameEditor
   }
 
   public SelenideElement saveButton() {
-    return child("#ldap-name-edit-btns > button:first-child");
+    return child("#ldap-name-edit-btns > button:nth-child(2)");
   }
 
   public static class NameEditor

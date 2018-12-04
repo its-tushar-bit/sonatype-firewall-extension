@@ -98,7 +98,7 @@ public class LdapUserAndGroupSettingsForm
   }
 
   public SelenideElement groupSearchWarning() {
-    return child(".group-search-warning");
+    return child("#group-search-warning");
   }
 
   public TestLoginModal testLoginModal() {
@@ -151,11 +151,11 @@ public class LdapUserAndGroupSettingsForm
     }
 
     public SelenideElement testLoginButton() {
-      return child(".iq-modal-footer", ".btn-primary");
+      return child(".iq-modal-footer", ".iq-btn--primary");
     }
 
     public SelenideElement cancelButton() {
-      return child(".iq-modal-footer", ".btn-cancel");
+      return child(".iq-modal-footer", "#check-login-cancel");
     }
   }
 
@@ -171,7 +171,7 @@ public class LdapUserAndGroupSettingsForm
     }
 
     public SelenideElement cancelButton() {
-      return child(".btn-cancel");
+      return child("#verify-field-mappings-cancel");
     }
 
     public CheckUserMappingModal shouldHaveUserEntry(int row, String username, String name, String email, String groups)

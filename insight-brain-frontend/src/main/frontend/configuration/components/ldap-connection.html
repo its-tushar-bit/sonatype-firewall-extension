@@ -1,86 +1,140 @@
-<div id="ldap-connection-form" class="well clm-well">
-  <div ng-if='ldapConn == null' class='ldap-loading'>
-    <h5><i class='icon icon-time'></i> Loading...</h5>
+<div id="ldap-connection-form" class="iq-tile-content">
+  <div ng-if="ldapConn == null" class="ldap-loading">
+    <h5><i class="icon icon-time"></i> Loading...</h5>
   </div>
-  <form ng-show='ldapConn != null' name='ldapConnectionEditor' class="clm-form" novalidate autocomplete="off">
+  <form ng-show="ldapConn != null" name="ldapConnectionEditor" class="iq-form" novalidate autocomplete="off">
+
     <!-- These two fields are in place solely to stop browsers from autopopulating the ldap auth fields -->
-    <input type="text" style="display:none">
-    <input type="password" style="display:none">
-      <div class="content-header">
-        <h4>Connection Details</h4>
+    <input type="text" class="hidden-input-hack">
+    <input type="password" class="hidden-input-hack">
+
+    <h4 class="iq-tile__section-header">Connection Details</h4>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-protocol">Protocol</label>
+      <select name="ldap-protocol"
+              id="ldap-protocol"
+              ng-model="ldapConn.protocol"
+              ng-options="p for p in ldapProtocols"
+              autofocus></select>
+    </div>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-hostname">Hostname</label>
+      <input clm-input
+             class="iq-text-input"
+             name="ldap-hostname"
+             id="ldap-hostname"
+             ng-model="ldapConn.hostname"
+             required
+             type="text">
+    </div>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-port">Port</label>
+      <input clm-input
+             class="iq-text-input"
+             name="ldap-port"
+             id="ldap-port"
+             ng-model="ldapConn.port"
+             required
+             type="number"
+             min="1"
+             max="65535"
+             placeholder="Integer between 1 to 65535"/>
+    </div>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-search-base">Search Base</label>
+      <input clm-input
+             class="iq-text-input"
+             name="ldap-search-base"
+             id="ldap-search-base"
+             ng-model="ldapConn.searchBase"
+             required
+             type="text">
+    </div>
+    <h4 class="iq-tile__section-header">Authentication</h4>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-authentication-method">Method</label>
+      <select name="ldap-authentication-method"
+              id="ldap-authentication-method"
+              ng-model="ldapConn.authenticationMethod"
+              ng-options="m for m in ldapMethods"></select>
+    </div>
+    <div ng-show="ldapConn.authenticationMethod != 'NONE'">
+      <div class="iq-form-group">
+        <label class="iq-label" for="ldap-sasl-realm">SASL Realm</label>
+        <input clm-input
+               class="iq-text-input"
+               name="ldap-sasl-realm"
+               id="ldap-sasl-realm"
+               ng-model="ldapConn.saslRealm"
+               type="text">
       </div>
-      <div class="control-group">
-        <label class="control-label" for="ldap-protocol">Protocol</label>
-        <div class="controls">
-          <select name='ldap-protocol' id="ldap-protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"
-                  autofocus></select>
-        </div>
+      <div class="iq-form-group">
+        <label class="iq-label" for="ldap-system-username">Username</label>
+        <input clm-input
+               class="iq-text-input"
+               name="ldap-system-username"
+               id="ldap-system-username"
+               ng-model="ldapConn.systemUsername"
+               type="text"
+               ng-required="ldapConn.authenticationMethod != 'NONE'">
       </div>
-      <div clm-control-group for="ldap-hostname" label="Hostname">
-        <input clm-input name='ldap-hostname' id='ldap-hostname' ng-model='ldapConn.hostname' required type='text'>
+      <div class="iq-form-group">
+        <label class="iq-label" for="ldap-system-password">Password</label>
+        <input clm-input
+               class="iq-text-input"
+               name="ldap-system-password"
+               id="ldap-system-password"
+               ng-model="ldapConn.systemPassword"
+               type="password"
+               ng-required="ldapConn.authenticationMethod != 'NONE'">
       </div>
-      <div clm-control-group for="ldap-port" label="Port">
-        <input clm-input name='ldap-port' id='ldap-port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
-               placeholder="Integer between 1 to 65535"/>
-      </div>
-      <div clm-control-group for="ldap-search-base" label="Search Base">
-        <input clm-input name='ldap-search-base' id='ldap-search-base' ng-model='ldapConn.searchBase' required type='text'>
-      </div>
-      <div class="content-header">
-        <h4>Authentication</h4>
-      </div>
-      <div class="control-group">
-        <label class="control-label" for="ldap-authentication-method">Method</label>
-        <div class="controls">
-          <select name='ldap-authentication-method' id='ldap-authentication-method' ng-model="ldapConn.authenticationMethod"
-                  ng-options="m for m in ldapMethods"></select>
-        </div>
-      </div>
-      <div ng-show="ldapConn.authenticationMethod != 'NONE'">
-        <div clm-control-group for="ldap-sasl-realm" label="SASL Realm">
-          <input clm-input name='ldap-sasl-realm' id='ldap-sasl-realm' ng-model='ldapConn.saslRealm' type='text'>
-        </div>
-        <div clm-control-group for="ldap-system-username" label="Username">
-          <input clm-input name='ldap-system-username' id='ldap-system-username' ng-model='ldapConn.systemUsername' type='text'
-                 ng-required="ldapConn.authenticationMethod != 'NONE'">
-        </div>
-        <div clm-control-group for="ldap-system-password" label="Password">
-          <input clm-input name='ldap-system-password' id='ldap-system-password' ng-model='ldapConn.systemPassword' type='password'
-                 ng-required="ldapConn.authenticationMethod != 'NONE'">
-        </div>
-      </div>
-      <div class="content-header">
-        <h4>Timeouts</h4>
-      </div>
-      <div clm-control-group for="ldap-connection-timeout" label="Connection">
-        <input clm-input name='ldap-connection-timeout' id='ldap-connection-timeout' ng-model='ldapConn.connectionTimeout'
-               type='number' min='0' max='999' placeholder="Integer between 0 (default) to 999">
-      </div>
-      <div clm-control-group for="ldap-retry-delay" label="Retry Delay">
-        <input clm-input name='ldap-retry-delay' id='ldap-retry-delay' ng-model='ldapConn.retryDelay' type='number' min='0'
-               max='999' placeholder="Integer between 0 (default) to 999">
-      </div>
+    </div>
+    <h4 class="iq-tile__section-header">Timeouts</h4>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-connection-timeout">Connection</label>
+      <input clm-input
+             class="iq-text-input"
+             name="ldap-connection-timeout"
+             id="ldap-connection-timeout"
+             ng-model="ldapConn.connectionTimeout"
+             type="number"
+             min="0"
+             max="999"
+             placeholder="Integer between 0 (default) to 999">
+    </div>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-retry-delay">Retry Delay</label>
+      <input clm-input
+             class="iq-text-input"
+             name="ldap-retry-delay"
+             id="ldap-retry-delay"
+             ng-model="ldapConn.retryDelay"
+             type="number"
+             min="0"
+             max="999"
+             placeholder="Integer between 0 (default) to 999">
+    </div>
   </form>
-  <div clm-alerts='alerts'></div>
-  <div ng-show='!saving && ldapConn'>
-    <button id="ldap-connection-save"
-            class="btn btn-primary"
-            ng-disabled="!canSaveEdit()"
-            ng-click="save()">
-          Save
-    </button>
-    <button id="ldap-connection-cancel"
-            class="btn btn-link btn-cancel"
-            ng-disabled="!isDirty()"
-            ng-click="reset()">
-          Cancel
-    </button>
-    <button id="ldap-connection-test"
-            class="btn btn-tertiary"
-            ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
-            ng-click="testConnection()">
-          Test Connection
-    </button>
-  </div>
-  <div ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</div>
+  <div clm-alerts="alerts"></div>
 </div>
+<div class="iq-tile-footer" ng-show="!saving && ldapConn">
+  <button id="ldap-connection-save"
+          class="iq-btn iq-btn--primary"
+          ng-disabled="!canSaveEdit()"
+          ng-click="save()">
+        Save
+  </button><!--
+--><button id="ldap-connection-cancel"
+          class="iq-btn"
+          ng-disabled="!isDirty()"
+          ng-click="reset()">
+        Cancel
+  </button><!--
+--><button id="ldap-connection-test"
+          class="iq-btn iq-btn--tertiary"
+          ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
+          ng-click="testConnection()">
+        Test Connection
+  </button>
+</div>
+<div ng-show="saving" class="iq-ldap-saving-message"><i class="icon-time"></i> Saving</div>

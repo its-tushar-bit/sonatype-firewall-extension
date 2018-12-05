@@ -358,6 +358,10 @@ public class ApplicationReportCipTest
     assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
     assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
 
+    // open full-size license selector dropdown before eyes check
+    LicenseCIP.status().selectOption("Overridden");
+    LicenseCIP.licenseSelector().button().shouldBe(visible).click();
+
     eyesWatcher.eyesCheck("Licenses Tab");
 
     // remove

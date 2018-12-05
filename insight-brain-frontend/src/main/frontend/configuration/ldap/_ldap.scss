@@ -47,6 +47,8 @@
       @include bold();
 
       color: $iq-slate;
+      cursor: text;
+      display: block;
       font-size: 40px;
       width: 460px;
     }

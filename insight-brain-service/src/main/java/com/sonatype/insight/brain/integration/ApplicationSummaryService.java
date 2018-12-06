@@ -194,7 +194,7 @@ public class ApplicationSummaryService
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   void checkEvaluateApplicationPermissionForOrganization(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+                                                         @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
   {
   }
 

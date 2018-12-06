@@ -91,5 +91,21 @@
     "createTime" : 1211417575000,
     "lastModifiedTime" : null,
     "lastModifiedEntryTime" : null
-  } ]
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "unknown.jar" ],
+    "pathnames" : [ "unknown.jar" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "81399f9f3278d8615a7c",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1539139670000,
+    "lastModifiedEntryTime" : 1539139634000,
+    "website" : null
+  }]
 }

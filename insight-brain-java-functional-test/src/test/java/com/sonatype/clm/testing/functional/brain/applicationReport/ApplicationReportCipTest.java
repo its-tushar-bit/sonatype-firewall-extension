@@ -138,18 +138,38 @@ public class ApplicationReportCipTest
     cipModal.closeButton().click();
     cipModal.getElement().shouldBe(hidden);
 
-    reportPage.resultRow(4).click();
+    reportPage.resultRow(5).click();
     cipModal.getElement().shouldBe(visible);
 
-    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    cipModal.header().shouldHave(exactText("unknown.jar"));
     cipModal.nextButton().shouldBe(disabled);
     cipModal.previousButton().shouldBe(enabled).click();
 
-    cipModal.header().shouldHave(exactText("org.mortbay.jetty : jetty : 6.1.15"));
+    cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
     cipModal.nextButton().shouldBe(enabled);
     cipModal.previousButton().shouldBe(enabled);
     cipModal.closeButton().click();
     cipModal.getElement().shouldBe(hidden);
+
+    // test tab state while navigating with Next/Prev
+    reportPage.resultRow(3).click();
+    cipModal.getElement().shouldBe(visible);
+    cipModal.tabLink(6).shouldHave(text("Vulnerabilities")).click();
+
+    // navigate to another exact-matched component - should stay on Vulnerabilities tab
+    cipModal.nextButton().click();
+    cipModal.tabLink(6).shouldHave(ACTIVE_CLASS).shouldHave(exactText("Vulnerabilities"));
+
+    // navigate to unknown component while on vulnerabilities tab - should go back to Component Info tab
+    cipModal.nextButton().click();
+    cipModal.tabLink(1).shouldHave(ACTIVE_CLASS).shouldHave(exactText("Component Info"));
+
+    cipModal.tabLink(5).shouldHave(exactText("Claim")).click();
+
+    // navigate to exact-match component while on Claim tab - should go back to Component Info tab
+    cipModal.previousButton().click();
+    cipModal.tabLink(1).shouldHave(ACTIVE_CLASS).shouldHave(exactText("Component Info"));
+    cipModal.closeButton().click();
 
     testComponentInfoTab();
     testPolicyTab();
@@ -388,8 +408,8 @@ public class ApplicationReportCipTest
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();
 
-    cipModal.tabLink(9).shouldNotHave(ACTIVE_CLASS).click();
-    cipModal.tabLink(9).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(8).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(8).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
 
     CipAuditTab auditTab = cipModal.getAuditTab();

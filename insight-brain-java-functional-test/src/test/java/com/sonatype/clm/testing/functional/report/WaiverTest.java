@@ -59,7 +59,7 @@ public class WaiverTest
 
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-  public static final int numberOfComponents = 4;
+  public static final int numberOfComponents = 5;
 
   private Application app;
 
@@ -215,7 +215,7 @@ public class WaiverTest
     ReportPage.policyTabButton().click();
 
     ReportPolicyPage.rows().shouldHaveSize(numberOfComponents);
-    ReportPolicyPage.resultsWithNoScore().shouldHaveSize(1);
+    ReportPolicyPage.resultsWithNoScore().shouldHaveSize(2);
   }
 
   @Test
@@ -252,7 +252,7 @@ public class WaiverTest
     refreshOrOpen(ReportPage.url(app, scanId));
     ReportPage.policyTabButton().shouldBe(visible).click();
 
-    ReportPolicyPage.rows().shouldHaveSize(4);
+    ReportPolicyPage.rows().shouldHaveSize(numberOfComponents);
     ReportPolicyPage.row(0).openCip();
     ReportCip.policyTab().should(appear).click();
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();

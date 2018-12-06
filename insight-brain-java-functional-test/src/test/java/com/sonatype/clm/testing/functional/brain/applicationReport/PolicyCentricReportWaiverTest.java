@@ -214,7 +214,7 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
-    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "None"));
+    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "None", "None"));
   }
 
   @Test
@@ -235,7 +235,7 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
-    reportPage.resultRows().shouldHave(texts("Waived", "Waived", "Waived", "Waived"));
+    reportPage.resultRows().shouldHave(texts("Waived", "Waived", "Waived", "Waived", "None"));
   }
 
   private void assertWaiver(ExistingWaiver waiver, String comment) {
@@ -252,7 +252,7 @@ public class PolicyCentricReportWaiverTest
 
     CipModal cipModal = reportPage.cipModal();
 
-    reportPage.resultRows().shouldHaveSize(4);
+    reportPage.resultRows().shouldHaveSize(5);
     reportPage.resultRow(1).click();
     cipModal.tabLink(2).click();
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();

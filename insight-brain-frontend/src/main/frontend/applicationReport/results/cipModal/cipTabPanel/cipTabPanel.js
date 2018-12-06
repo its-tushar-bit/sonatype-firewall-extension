@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { find, isNil, propEq, reject } from 'ramda';
 
 import template from './cipTabPanel.html';
 
@@ -22,14 +23,57 @@ export default {
   }
 };
 
-function CipTabPanelController() {
+function CipTabPanelController($scope) {
   const vm = this;
 
   Object.assign(vm, {
-    selectedTab: 'componentInfo',
+    selectedTab: 'componentInfo'
+  });
 
-    isComponentUnknown() {
-      return vm.selectedComponent.matchState === 'unknown';
+  function updateTabs() {
+    const { selectedComponent } = vm,
+        { matchState } = selectedComponent,
+        unknown = matchState === 'unknown',
+        exact = matchState === 'exact',
+        claimed = selectedComponent.identificationSource === 'Manual';
+
+    vm.tabs = reject(isNil, [{
+      name: 'componentInfo',
+      displayName: 'Component Info'
+    }, {
+      name: 'policy',
+      displayName: 'Policy'
+    }, {
+      name: 'similar',
+      displayName: 'Similar'
+    }, {
+      name: 'occurrences',
+      displayName: 'Occurrences'
+    }, unknown ? null : {
+      name: 'licenses',
+      displayName: 'Licenses'
+    }, unknown || claimed ? null : {
+      name: 'vulnerabilities',
+      displayName: 'Vulnerabilities'
+    }, unknown ? null : {
+      name: 'labels',
+      displayName: 'Labels'
+    }, exact && !claimed ? null : {
+      name: 'claimComponent',
+      displayName: 'Claim'
+    }, unknown ? null : {
+      name: 'auditLog',
+      displayName: 'Audit Log'
+    }]);
+  }
+
+  $scope.$watch('vm.selectedComponent', function() {
+    updateTabs();
+
+    if (!find(propEq('name', vm.selectedTab), vm.tabs)) {
+      vm.selectedTab = vm.tabs[0].name;
     }
   });
 }
+
+CipTabPanelController.$inject = ['$scope'];

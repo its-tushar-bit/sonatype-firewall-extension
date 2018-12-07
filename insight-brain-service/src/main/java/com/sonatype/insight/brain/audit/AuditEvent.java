@@ -120,7 +120,9 @@ public enum AuditEvent
   EXPORT_APPLICATION_COMPOSITION_REPORT(Domain.REPORTING_APPLICATION_COMPOSITION_REPORT, Type.EXPORT),
   PRINT_APPLICATION_COMPOSITION_REPORT(Domain.REPORTING_APPLICATION_COMPOSITION_REPORT, Type.PRINT),
 
-  CONFIGURE_SUCCESS_METRICS(Domain.REPORTING_SUCCESS_METRICS, Type.CONFIGURE);
+  CONFIGURE_SUCCESS_METRICS(Domain.REPORTING_SUCCESS_METRICS, Type.CONFIGURE),
+
+  SAVE_DASHBOARD_FILTER(Domain.REPORTING_DASHBOARD_FILTER, Type.SAVE);
 
   private final String domain;
 
@@ -233,6 +235,10 @@ public enum AuditEvent
 
     String REPORTING_SUCCESS_METRICS = join(REPORTING, "success-metrics");
 
+    String REPORTING_DASHBOARD = join(REPORTING, "dashboard");
+
+    String REPORTING_DASHBOARD_FILTER = join(REPORTING_DASHBOARD, "filter");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -303,5 +309,7 @@ public enum AuditEvent
     String EXPORT = "export";
 
     String PRINT = "print";
+
+    String SAVE = "save";
   }
 }

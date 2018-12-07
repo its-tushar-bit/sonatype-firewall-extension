@@ -13,6 +13,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -154,6 +155,7 @@ public class DashboardFilterService
         dashboardFilter.setId(existingDashboardFilter.getId());
         dashboardFilterDAO.update(dashboardFilter);
       }
+      auditDashboardFilter(dashboardFilter);
     }
 
     createOrUpdateActiveFilter(namedDashboardFilterDTO, username);
@@ -183,6 +185,15 @@ public class DashboardFilterService
     else {
       dashboardFilterDAO.insert(newActiveFilter);
     }
+    if (ACTIVE_FILTER_NAME.equals(namedDashboardFilterDTO.name)) {
+      auditDashboardFilter(newActiveFilter);
+    }
+  }
+
+  private void auditDashboardFilter(final DashboardFilter dashboardFilter) {
+    AuditData.get().setData("filterId", dashboardFilter.getId())
+        .setData("filterName",
+            dashboardFilter.getName().equals(ACTIVE_FILTER_NAME) ? "(active)" : dashboardFilter.getName());
   }
 
   /**

@@ -22,6 +22,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -138,6 +141,7 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "updateDashboardFilterForCurrentUserExceptionMeter")
+  @Audited(AuditEvent.SAVE_DASHBOARD_FILTER)
   public DashboardFilterDTO updateDashboardFilterForCurrentUser(NamedDashboardFilterDTO namedDashboardFilterDTO) {
     namedDashboardFilterDTO.name = "";
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO).filter;
@@ -151,6 +155,7 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "createOrUpdateDashboardFilterForCurrentUserExceptionMeter")
+  @Audited(AuditEvent.SAVE_DASHBOARD_FILTER)
   public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO dashboardFilterDTO) {
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }

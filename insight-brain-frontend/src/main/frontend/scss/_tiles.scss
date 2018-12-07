@@ -21,15 +21,15 @@ $iq-tile-header-margin-top: 8px;
     background-color: $iq-warn-color-bg;
     border: 1px solid $iq-warn-color;
     color: $iq-warn-color;
-    
-    > :first-child {
-      margin-top: 0;
-      
-      h2 {
-        margin-top: 10px;
-      }
+
+    > .iq-tile-header {
+      margin-top: 8px;
     }
-    
+
+    .iq-tile-header__icon.fa {
+      font-size: 23px;
+    }
+
     .iq-tile-header + .iq-tile-content {
       padding-top: 0;
     }
@@ -49,10 +49,6 @@ $iq-tile-header-margin-top: 8px;
     background-color: $iq-off-white;
     border-color: $iq-dark-blue;
     color: $iq-off-black;
-    
-    .fa {
-      font-size: 23px;
-    }
   }
 }
 

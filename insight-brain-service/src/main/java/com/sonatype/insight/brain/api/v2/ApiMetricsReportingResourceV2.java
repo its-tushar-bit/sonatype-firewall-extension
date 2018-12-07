@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingFlattenedDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiMetricsReportingServiceV2;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -43,12 +45,14 @@ public class ApiMetricsReportingResourceV2
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EXPORT_SUCCESS_METRICS)
   public List<ApiMetricsReportingDTOV2> getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
     return metricsReportingService.getMetrics(queryDTO);
   }
 
   @POST
   @Produces("text/csv")
+  @Audited(AuditEvent.EXPORT_SUCCESS_METRICS)
   public List<ApiMetricsReportingFlattenedDTOV2> getFlattenedMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
     return metricsReportingService.getFlattenedMetrics(queryDTO);
   }

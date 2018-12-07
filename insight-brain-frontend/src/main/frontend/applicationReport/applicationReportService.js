@@ -43,7 +43,7 @@ const flatMap = pipe(map, flatten),
       policyName: 'None',
       waived: false,
       grandfathered: false,
-      derivedComponentName: deriveComponentNameFromDisplayName(component.displayName)
+      derivedComponentName: deriveComponentName(component)
     });
 
 /**
@@ -57,7 +57,7 @@ function makeViolationEntriesV3(policyResult, bomDataByKey) {
         makeEntryForViolation = violation => ({
           ...pick(['policyThreatLevel', 'policyName', 'waived', 'grandfathered'], violation),
           ...bomComponent,
-          derivedComponentName: deriveComponentNameFromDisplayName(bomComponent.displayName)
+          derivedComponentName: deriveComponentName(bomComponent)
         });
 
     return map(makeEntryForViolation, component.allViolations);
@@ -79,7 +79,7 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
           grandfathered: false,
           ...pick(['policyThreatLevel', 'policyName'], violation),
           ...bomComponent,
-          derivedComponentName: deriveComponentNameFromDisplayName(bomComponent.displayName)
+          derivedComponentName: deriveComponentName(bomComponent)
         });
 
     return concat(
@@ -104,14 +104,20 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
       grandfathered: false,
       ...pick(['policyThreatLevel', 'policyName'], violation),
       ...bomComponent,
-      derivedComponentName: deriveComponentNameFromDisplayName(bomComponent.displayName)
+      derivedComponentName: deriveComponentName(bomComponent)
     };
   }
 
   return map(makeEntryForViolation, filter(nullHashCheck, policyResult.aaData));
 }
 
+const deriveComponentName = ({ displayName, filenames }) =>
+  displayName && deriveComponentNameFromDisplayName(displayName) ||
+  filenames && deriveComponentNameFromFilenames(filenames) ||
+  'unknown';
+
 const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''), toLower);
+const deriveComponentNameFromFilenames = pipe(join(', '), toLower);
 
 // A map of makeViolationEntries functions, indexed by policyResult version
 const makeViolationEntriesMap = new window.Map([

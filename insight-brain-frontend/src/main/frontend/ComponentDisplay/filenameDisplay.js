@@ -7,10 +7,11 @@
 export default {
   controllerAs: 'vm',
   bindings: {
-    filename: '<'
+    component: '<'
   },
   template: `
     <div class="filename">
-      <em>{{vm.filename}}</em>
+      <em ng-if="vm.component.filename">{{vm.component.filename}}</em>
+      <em ng-if="!vm.component.filename && vm.component.filenames">{{vm.component.filenames.join(', ')}}</em>
     </div>`
 };

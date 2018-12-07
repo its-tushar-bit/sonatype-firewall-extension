@@ -46,7 +46,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
             const bomResult = results[2].data || undefined;
             const dataResult = results[3].data;
             const partialMatches = results[4].data || undefined;
-            const unknownJsResult = isUnknownJs ? results[4].unknownJsResult : undefined;
+            const unknownJsResult = isUnknownJs && results[5].data || undefined;
             const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult, partialMatches);
             dispatch(loadReportFulfilled({ ...metadata, allEntries, ...dataResult, scanId }, isUnknownJs));
           })

@@ -15,8 +15,9 @@ export default {
        <div ng-if="vm.component.displayName" ng-class="{'truncate-ellipsis': vm.truncate}">
          <component-name name="vm.component.displayName"></component-name>
        </div>
-       <div ng-if="!vm.component.displayName && vm.component.filename" ng-class="{'truncate-ellipsis': vm.truncate}">
-         <filename-display filename="vm.component.filename"></filename-display>
+       <div ng-if="!vm.component.displayName && (vm.component.filename || vm.component.filenames)"
+            ng-class="{'truncate-ellipsis': vm.truncate}">
+         <filename-display component="vm.component"></filename-display>
        </div>
        <div ng-if="!vm.component.displayName && !vm.component.filename" ng-class="{'truncate-ellipsis': vm.truncate}">
          <div><em>Unknown</em></div>

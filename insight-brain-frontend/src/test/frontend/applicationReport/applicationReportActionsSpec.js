@@ -102,7 +102,11 @@ describe('applicationReportActions', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
           .respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond(null);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond({
+        aaData: [{
+          filenames: ['foo.js']
+        }]
+      });
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
@@ -112,7 +116,14 @@ describe('applicationReportActions', function() {
         payload: {
           report: {
             reportTitle: 'test',
-            allEntries: [],
+            allEntries: [{
+              filenames: ['foo.js'],
+              policyThreatLevel: 0,
+              policyName: 'None',
+              waived: false,
+              grandfathered: false,
+              derivedComponentName: 'foo.js'
+            }],
             scanId: 'scanId'
           },
           isUnknownJs: true

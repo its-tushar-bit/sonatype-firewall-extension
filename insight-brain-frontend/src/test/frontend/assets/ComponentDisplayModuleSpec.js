@@ -43,6 +43,16 @@ describe('ComponentDisplay', function() {
       expect(element.text()).toContain('foo.jar');
     });
 
+    it('Can show an element with a list of filenames', function() {
+      scope.component = {
+        displayName: null,
+        filenames: ['foo.jar', 'bar.jar']
+      };
+      var element = $compile(angular.element('<component-display component="component"></component-display>'))(scope);
+      scope.$digest();
+      expect(element.text()).toContain('foo.jar, bar.jar');
+    });
+
     it('Can show an element with no identifiers', function() {
       scope.component = { };
       var element = $compile(angular.element('<component-display component="component"></component-display>'))(scope);

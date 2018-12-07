@@ -42,11 +42,7 @@ describe('applicationReportService', function() {
         unknownJSData = {
           aaData: [{
             hash: 'bazHash',
-            displayName: {
-              parts: [
-                {field: 'Filename', value: 'unknown_js_file'}
-              ]
-            },
+            filenames: ['baz.js', 'bazzzz.js'],
             otherProp: 'baz'
           }]
         },
@@ -187,7 +183,7 @@ describe('applicationReportService', function() {
       expect(result).toContain(jasmine.objectContaining({
         hash: 'bazHash',
         otherProp: 'baz',
-        derivedComponentName: 'unknown_js_file',
+        derivedComponentName: 'baz.js, bazzzz.js',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
@@ -304,7 +300,7 @@ describe('applicationReportService', function() {
       expect(result).toContain(jasmine.objectContaining({
         hash: 'bazHash',
         otherProp: 'baz',
-        derivedComponentName: 'unknown_js_file',
+        derivedComponentName: 'baz.js, bazzzz.js',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
@@ -415,7 +411,7 @@ describe('applicationReportService', function() {
       expect(result).toContain(jasmine.objectContaining({
         hash: 'bazHash',
         otherProp: 'baz',
-        derivedComponentName: 'unknown_js_file',
+        derivedComponentName: 'baz.js, bazzzz.js',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,

@@ -40,6 +40,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -96,7 +97,9 @@ public class ApplicationReportTest
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
-    reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
+
+    // Options menu has been temporarily hidden until it has working entries - CLM-11460
+    //reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("22"));
     reportPage.threatIndicators().severe().shouldHave(text("38"));
     reportPage.threatIndicators().moderate().shouldHave(text("4"));
@@ -118,6 +121,7 @@ public class ApplicationReportTest
   }
 
   @Test
+  @Ignore // Options menu has been temporarily hidden until it has working entries - CLM-11460
   public void testOptionsMenu() {
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);

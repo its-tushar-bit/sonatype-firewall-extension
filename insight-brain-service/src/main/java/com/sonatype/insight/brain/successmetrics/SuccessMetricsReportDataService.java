@@ -24,6 +24,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -120,6 +121,7 @@ public class SuccessMetricsReportDataService
 
     Set<String> applicationIdsToQuery = getApplicationIdsToQuery(report.getScopeOrganizationIds(),
         report.getScopeApplicationIds());
+    auditViewSuccessMetricsReport(report, applicationIdsToQuery.size());
 
     DateTime currentDateTime = new DateTime();
 
@@ -153,6 +155,12 @@ public class SuccessMetricsReportDataService
     catch (IOException e) {
       throw new IllegalStateException("Could not parse Success Metrics chart data.", e);
     }
+  }
+
+  private void auditViewSuccessMetricsReport(SuccessMetricsReport report, final int inspectedApplicationCount) {
+    AuditData.get().setData("reportId", report.getId())
+        .setData("reportName", report.getName())
+        .setData("inspectedApplicationCount", inspectedApplicationCount);
   }
 
   private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
@@ -468,6 +476,7 @@ public class SuccessMetricsReportDataService
         .findSuccessMetricsReportByIdForCurrentUser(successMetricsReportId);
     Set<String> applicationIdsToQuery = getApplicationIdsToQuery(report.getScopeOrganizationIds(),
         report.getScopeApplicationIds());
+    auditViewSuccessMetricsReport(report, applicationIdsToQuery.size());
 
     // beginning of last month a year ago
     Date sinceDate = new LocalDate().withDayOfMonth(1).minusMonths(13).toDate();

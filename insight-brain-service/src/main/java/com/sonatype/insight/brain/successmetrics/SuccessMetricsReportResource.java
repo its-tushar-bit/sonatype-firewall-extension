@@ -19,6 +19,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 
@@ -74,6 +77,7 @@ public class SuccessMetricsReportResource
   @Path(CHART_DATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getSuccessMetricsChartDataExceptionMeter")
+  @Audited(AuditEvent.VIEW_SUCCESS_METRICS_REPORT)
   public SuccessMetricsChartDataDTO getChartData(@PathParam("successMetricsReportId") String successMetricsReportId) {
     return successMetricsReportDataService.getChartData(successMetricsReportId);
   }
@@ -85,6 +89,7 @@ public class SuccessMetricsReportResource
   @Path(COMPONENT_COUNTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getComponentCountsExceptionMeter")
+  @Audited(AuditEvent.VIEW_SUCCESS_METRICS_REPORT)
   public ComponentCountsDTO getComponentCounts(@PathParam("successMetricsReportId") String successMetricsReportId) {
     return successMetricsReportDataService.getComponentCounts(successMetricsReportId);
   }

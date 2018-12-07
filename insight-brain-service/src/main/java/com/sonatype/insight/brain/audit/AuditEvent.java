@@ -127,7 +127,9 @@ public enum AuditEvent
 
   VIEW_DASHBOARD_COMPONENT_DETAILS(Domain.REPORTING_DASHBOARD_COMPONENT_DETAILS, Type.VIEW),
   VIEW_REPOSITORY_RESULTS(Domain.REPORTING_REPOSITORY_RESULTS, Type.VIEW),
-  VIEW_COMPONENT_INFORMATION(Domain.REPORTING_COMPONENT_INFORMATION, Type.VIEW);
+  VIEW_COMPONENT_INFORMATION(Domain.REPORTING_COMPONENT_INFORMATION, Type.VIEW),
+
+  VIEW_SUCCESS_METRICS_REPORT(Domain.REPORTING_SUCCESS_METRICS_REPORT, Type.VIEW);
 
   private final String domain;
 
@@ -249,6 +251,8 @@ public enum AuditEvent
     String REPORTING_REPOSITORY_RESULTS = join(REPORTING, "repository-results");
 
     String REPORTING_COMPONENT_INFORMATION = join(REPORTING, "component-information");
+    
+    String REPORTING_SUCCESS_METRICS_REPORT = join(REPORTING_SUCCESS_METRICS, "report");
 
     static String join(String parent, String child) {
       return parent + "." + child;

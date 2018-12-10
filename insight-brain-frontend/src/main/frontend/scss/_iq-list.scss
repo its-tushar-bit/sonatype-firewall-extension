@@ -170,3 +170,26 @@
     margin-right: 3px;
   }
 }
+
+/*
+ * Definition Lists
+ *
+ * Typically use <dl>
+ */
+
+.iq-list--definition-list {
+  box-sizing: border-box;
+
+  .iq-list__item {
+    @include regular();
+    
+    display: inline-block;
+    width: 75%;
+  }
+  
+  .iq-list__item--label {
+    @include semi-bold();
+    
+    width: 25%;
+  }
+}

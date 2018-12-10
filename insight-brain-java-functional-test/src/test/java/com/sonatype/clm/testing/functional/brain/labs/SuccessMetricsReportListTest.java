@@ -160,7 +160,7 @@ public class SuccessMetricsReportListTest
     modal.nthOrg(4).shouldHave(text(organization2.getName()));
     modal.orgPickerCounter().shouldHave(text("1 of 3"));
     modal.appPickerCounter().shouldHave(text("2 of 3"));
-    modal.appPickerTrigger().click();
+    modal.appPickerTrigger().scrollIntoView(false).click();
     modal.nthApp(1).shouldHave(text("all/none")).shouldNotBe(selected);
     modal.nthApp(2).shouldHave(text(application1.getName())).shouldBe(selected);
     modal.nthApp(3).shouldHave(text(application2.getName())).shouldBe(selected);

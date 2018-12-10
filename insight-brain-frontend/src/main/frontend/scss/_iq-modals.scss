@@ -84,7 +84,7 @@ $iq-modal-bottom-spacing: 8px;
   border-top: 1px solid $iq-grey-4;
   padding: 12px;
   
-  &.error {
+  &.error, &.iq-error {
     background-color: $iq-fail-color-bg;
     border: 1px solid $iq-fail-color;
     color: $iq-fail-color;
@@ -94,6 +94,7 @@ $iq-modal-bottom-spacing: 8px;
     
     > .iq-alert--error {
       border: none;
+      padding-top: 0;
     }
   }
   

@@ -152,11 +152,11 @@ public class DashboardFilters
     }
 
     public SelenideElement saveButton() {
-      return child(".iq-modal-footer", ".btn-primary");
+      return child(".iq-modal-footer", ".iq-btn--primary");
     }
 
     public SelenideElement cancelButton() {
-      return child("#dismiss-btn");
+      return child("#dismiss-save-filter-modal");
     }
 
     public SelenideElement nameInput() {
@@ -184,15 +184,15 @@ public class DashboardFilters
     }
 
     public SelenideElement deleteButton() {
-      return child(".iq-modal-footer", ".btn-primary");
+      return child(".iq-modal-footer", ".iq-btn--primary");
     }
 
     public ElementsCollection filters() {
-      return children(".clm-form iq-checkbox");
+      return children(".iq-form iq-checkbox");
     }
 
     public IqCheckbox checkboxItem(int index) {
-      return new IqCheckbox(child(".clm-form iq-checkbox", nthChild(index)));
+      return new IqCheckbox(child(".iq-form iq-checkbox", nthChild(index)));
     }
   }
 

@@ -7,7 +7,7 @@
    --><span ng-if="vm.warning === vm.NAME_IN_USE">Name in Use</span>
     </h2>
   </header>
-  <form class="clm-form"
+  <form class="iq-form iq-form--no-padding iq-form--no-border"
         role="form"
         name="vm.saveFilterForm"
         ng-submit="vm.trySave()"
@@ -25,7 +25,7 @@
           This action cannot be undone.
         </span>
       </div>
-      <fieldset class="iq-radio-group" ng-if="!vm.warning">
+      <fieldset class="iq-radio-group iq-form-group" ng-if="!vm.warning">
         <legend>Choose an Option</legend>
         <iq-radio id="dashboard-filter-overwrite"
                   model="vm.saveMode"
@@ -36,37 +36,36 @@
         <iq-radio id="dashboard-filter-save-as" model="vm.saveMode" value="vm.SAVE_AS">
           save as…
         </iq-radio>
-        <div id="filter-name-section" ng-if="vm.saveMode === vm.SAVE_AS" class="section">
-          <div class="field">
-            <input id="filter-name-input"
-                   name="filter-name"
-                   type="text"
-                   ng-model="vm.filterName"
-                   ng-maxlength="60"
-                   focus-input="true"
-                   clm-input
-                   autofocus
-                   ng-required="true"
-                   valid-name-characters/>
-          </div>
+        <div id="filter-name-section" ng-if="vm.saveMode === vm.SAVE_AS">
+          <input id="filter-name-input"
+                 class="iq-text-input"
+                 name="filter-name"
+                 type="text"
+                 ng-model="vm.filterName"
+                 ng-maxlength="60"
+                 focus-input="true"
+                 clm-input
+                 autofocus
+                 ng-required="true"
+                 valid-name-characters/>
         </div>
       </fieldset>
     </section>
-    <footer class="iq-modal-footer" ng-class="{ error : vm.saveError }">
-      <div ng-if="vm.saveError" class="section with-icon"><i class="fa fa-warning"></i>{{::vm.saveError}}</div>
+    <footer class="iq-modal-footer" ng-class="{ 'iq-error' : vm.saveError }">
+      <div ng-if="vm.saveError" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{::vm.saveError}}</div>
       <button ng-if="!vm.saveError"
-              class="btn btn-primary"
+              class="iq-btn iq-btn--primary"
               type="submit"
               submit-validation
               submit-type="Save"
               submit-dirty="vm.isSaveEnabled()">
         <span ng-if="vm.warning">Continue</span>
         <span ng-if="!vm.warning">Save</span>
-      </button>
-      <button ng-if="vm.saveError" class="btn btn-error" type="submit">
+      </button><!--
+   --><button ng-if="vm.saveError" class="iq-btn iq-btn--error" type="submit">
         <i class="fa fa-refresh"></i>Retry
-      </button>
-      <button id="dismiss-btn" class="btn" type="button" ng-click="vm.onCancel()">Cancel</button>
+      </button><!--
+   --><button id="dismiss-save-filter-modal" class="iq-btn" type="button" ng-click="vm.onCancel()">Cancel</button>
     </footer>
   </form>
 </section>

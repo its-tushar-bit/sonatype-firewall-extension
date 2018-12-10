@@ -18,7 +18,7 @@ public class ImportPolicyModal
   }
 
   public static SelenideElement fileInput() {
-    return $(ROOT_SELECTOR + " #importFile");
+    return $(ROOT_SELECTOR + " #import-file");
   }
 
   public static SelenideElement importButton() {

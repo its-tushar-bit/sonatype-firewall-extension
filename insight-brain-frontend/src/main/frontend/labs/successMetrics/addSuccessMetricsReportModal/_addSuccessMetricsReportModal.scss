@@ -23,4 +23,11 @@
   .iq-scrollable {
     position: relative;
   }
+  
+  fieldset {
+    .iq-alert {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
 }

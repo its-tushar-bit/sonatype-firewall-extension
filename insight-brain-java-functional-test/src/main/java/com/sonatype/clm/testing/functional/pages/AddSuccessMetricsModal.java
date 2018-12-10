@@ -18,9 +18,9 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class AddSuccessMetricsModal
     extends BasicElement<AddSuccessMetricsModal>
 {
-  public static final String FOOTER_ERROR_CLASS = "error";
+  public static final String FOOTER_ERROR_CLASS = "iq-error";
 
-  public static final String SUBMIT_BUTTON_ERROR_CLASS = "btn-error";
+  public static final String SUBMIT_BUTTON_ERROR_CLASS = "iq-btn--error";
 
   public static final String SUBMIT_BUTTON_DISABLED_CLASS = "disabled";
 

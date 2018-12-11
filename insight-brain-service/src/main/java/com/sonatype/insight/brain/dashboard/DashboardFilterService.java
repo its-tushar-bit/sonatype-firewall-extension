@@ -14,6 +14,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -208,27 +210,34 @@ public class DashboardFilterService
     List<DashboardFilterErrorResponseDTO> errorMessages = new ArrayList<>();
     String username = currentUser.getUsername();
     DashboardFilter appliedDashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
+    AuditData.get().setEvent(null);
+
     for (String filterName : filterNames) {
-      try {
-        DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, filterName);
-        if (dashboardFilter != null) {
-          if (appliedDashboardFilter != null && filterName.equals(appliedDashboardFilter.getBasedOnFilterName())) {
-            appliedDashboardFilter.setBasedOnFilterName(null);
-            dashboardFilterDAO.update(appliedDashboardFilter);
+      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_DASHBOARD_FILTER, true)) {
+        try {
+          DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, filterName);
+          if (dashboardFilter != null) {
+            if (appliedDashboardFilter != null && filterName.equals(appliedDashboardFilter.getBasedOnFilterName())) {
+              appliedDashboardFilter.setBasedOnFilterName(null);
+              dashboardFilterDAO.update(appliedDashboardFilter);
+            }
+            dashboardFilterDAO.delete(dashboardFilter);
+            auditDashboardFilter(dashboardFilter);
           }
-          dashboardFilterDAO.delete(dashboardFilter);
+          else {
+            String errorMessage = "Cannot find a filter with name " + filterName + " for user " + username + ".";
+            errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 404));
+            AuditData.get().setHttpStatus(404);
+          }
         }
-        else {
-          String errorMessage = "Cannot find a filter with name " + filterName + " for user " + username + ".";
-          errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 404));
+        catch (Exception exception) {
+          String errorMessage =
+              "An exception occurred while trying to find or delete filter name " + filterName + " for user " +
+                  username + ".";
+          errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 500));
+          log.error(errorMessage, exception);
+          AuditData.get().setException(exception);
         }
-      }
-      catch (Exception exception) {
-        String errorMessage =
-            "An exception occurred while trying to find or delete filter name " + filterName + " for user " + username +
-                ".";
-        errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 500));
-        log.error(errorMessage, exception);
       }
     }
     return errorMessages;

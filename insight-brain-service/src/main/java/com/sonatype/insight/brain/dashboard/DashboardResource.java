@@ -168,6 +168,7 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "deleteDashboardFiltersForCurrentUserByFilterNameExceptionMeter")
+  @Audited(AuditEvent.DELETE_DASHBOARD_FILTER)
   public Response deleteDashboardFiltersForCurrentUserByFilterName(final List<String> names) {
     List<DashboardFilterErrorResponseDTO> errorResponseDTOs = dashboardFilterService
         .deleteDashboardFiltersForCurrentUserByFilterName(names);

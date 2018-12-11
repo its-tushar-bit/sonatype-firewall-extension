@@ -16,6 +16,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -41,6 +43,7 @@ public class ComponentDetailResource
   @GET
   @Path("applications")
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_DASHBOARD_COMPONENT_DETAILS)
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getApplicationDetailsByHash(hash);
   }

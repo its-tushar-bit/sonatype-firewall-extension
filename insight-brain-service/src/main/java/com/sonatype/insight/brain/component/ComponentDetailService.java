@@ -10,11 +10,13 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -69,6 +71,7 @@ public class ComponentDetailService
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
+    AuditData.get().setData("componentHash", hash);
     validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
@@ -158,10 +161,28 @@ public class ComponentDetailService
       result.add(applicationComponentDetails);
     }
 
+    auditApplicationComponentDetails(hash, applications.size(), result.size());
+
     log.debug("Loaded component details from {} out of {} applications in {} ms", result.size(), applications.size(),
         System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  private void auditApplicationComponentDetails(String hash, int inspectedApplicationCount, int resultRecordCount) {
+    ApplicationComponent applicationComponent = getLastByHash(hash);
+    if (applicationComponent != null) {
+      if (applicationComponent.getComponentIdentifier() != null) {
+        AuditData.get().setComponentIdentifier(applicationComponent.getComponentIdentifier());
+      }
+      else {
+        Optional<String> filename = new ComponentDisplayFilename().addPathnames(applicationComponent.getPathnames())
+            .getFilename();
+        AuditData.get().setData("componentFilename", filename.orElse(null));
+      }
+    }
+    AuditData.get().setData("inspectedApplicationCount", inspectedApplicationCount)
+        .setData("resultRecordCount", resultRecordCount);
   }
 
   private Map<String, StageDetailDTO> initStageDetails(Collection<StageType> stageTypes) {
@@ -187,7 +208,7 @@ public class ComponentDetailService
   public ComponentDisplayName getComponentNameByHash(String hash) {
     validateDashboardLicensed();
 
-    ApplicationComponent applicationComponent = applicationComponentDAO.getLastByHash(hash);
+    ApplicationComponent applicationComponent = getLastByHash(hash);
     if (applicationComponent == null) {
       throw new BadRequestException("Unknown component with hash " + hash + ".");
     }
@@ -201,6 +222,10 @@ public class ComponentDetailService
     }
 
     return componentNameDTO;
+  }
+
+  private ApplicationComponent getLastByHash(String hash) {
+    return applicationComponentDAO.getLastByHash(hash);
   }
 
   private void validateDashboardLicensed() {

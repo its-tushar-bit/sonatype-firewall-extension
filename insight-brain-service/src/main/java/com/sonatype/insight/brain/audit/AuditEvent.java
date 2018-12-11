@@ -123,7 +123,9 @@ public enum AuditEvent
   CONFIGURE_SUCCESS_METRICS(Domain.REPORTING_SUCCESS_METRICS, Type.CONFIGURE),
 
   SAVE_DASHBOARD_FILTER(Domain.REPORTING_DASHBOARD_FILTER, Type.SAVE),
-  DELETE_DASHBOARD_FILTER(Domain.REPORTING_DASHBOARD_FILTER, Type.DELETE);
+  DELETE_DASHBOARD_FILTER(Domain.REPORTING_DASHBOARD_FILTER, Type.DELETE),
+
+  VIEW_DASHBOARD_COMPONENT_DETAILS(Domain.REPORTING_DASHBOARD_COMPONENT_DETAILS, Type.VIEW);
 
   private final String domain;
 
@@ -239,6 +241,8 @@ public enum AuditEvent
     String REPORTING_DASHBOARD = join(REPORTING, "dashboard");
 
     String REPORTING_DASHBOARD_FILTER = join(REPORTING_DASHBOARD, "filter");
+
+    String REPORTING_DASHBOARD_COMPONENT_DETAILS = join(REPORTING_DASHBOARD, "component-details");
 
     static String join(String parent, String child) {
       return parent + "." + child;

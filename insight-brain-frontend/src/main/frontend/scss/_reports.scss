@@ -45,8 +45,8 @@
 // Begin styles from /application/application.css
 .report__title {
   @include bold();
-  
-  padding: 10px 0px;
+
+  margin: 10px auto;
 }
 // end styles from /application/application.css
 
@@ -56,6 +56,7 @@
 .report__title--expanded-coverage {
   @include bold();
 
+  margin: auto;
   padding: 10px 0px;
   color: $iq-off-white;
 }

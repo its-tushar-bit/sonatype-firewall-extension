@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, $, clmBuildTimestamp, window */
+import { pick } from 'ramda';
+
 import commonServicesModule from '../util/CommonServices';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
@@ -44,6 +46,7 @@ reportModule.controller('ReportController', [
       $scope.error = null;
 
       $scope.reportUrl = clmLocations.getReportUrl($state.params.publicId, $state.params.scanId);
+      Object.assign($scope, pick(['publicId', 'scanId'], $state.params));
 
       $http.get(clmLocations.getReportMetadataUrl($state.params.publicId, $state.params.scanId))
           .then(function(response) {

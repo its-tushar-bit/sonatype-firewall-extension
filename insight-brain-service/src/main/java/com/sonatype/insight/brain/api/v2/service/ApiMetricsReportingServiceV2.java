@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregatio
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
-import com.sonatype.insight.brain.utils.OwnerAuditUtils;
+import com.sonatype.insight.brain.utils.AuditUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;
@@ -125,9 +125,9 @@ public class ApiMetricsReportingServiceV2
     AuditData.get()
         .setData("beginDate", startDate.toString())
         .setData("endDate", endDate.orElse(LocalDate.now()).toString())
-        .setData("selectedOrganizations", OwnerAuditUtils.getSelectedOrganizationsById(queryDTO.organizationIds))
-        .setData("selectedApplications", OwnerAuditUtils
-            .getSelectedApplicationsById(queryDTO.applicationIds, queryDTO.organizationIds, applicationsById))
+        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(queryDTO.organizationIds))
+        .setData("selectedApplications",
+            AuditUtils.getSelectedApplicationsById(queryDTO.applicationIds, queryDTO.organizationIds, applicationsById))
         .setData("inspectedApplicationCount", applicationsById.size());
   }
 

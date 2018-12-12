@@ -16,15 +16,20 @@ import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
 import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.tag.TagDTO;
 
-public class OwnerAuditUtils
+public class AuditUtils
 {
   private static final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private OwnerAuditUtils() {
+  private static final TagDAO applicationCategoryDAO = new TagDAO();
+
+  private AuditUtils() {
     // Utility class
   }
 
@@ -67,5 +72,30 @@ public class OwnerAuditUtils
     Map<String, Application> applicationsById = applications.stream()
         .collect(Collectors.toMap(Application::getId, Function.identity()));
     return getSelectedApplicationsById(applicationIds, organizationIds, applicationsById);
+  }
+
+  public static List<TagDTO> getSelectedApplicationCategoriesById(Set<String> applicationCategoryIds) {
+    List<TagDTO> applicationCategoryDTOs = new ArrayList<>();
+
+    if (applicationCategoryIds == null) {
+      return applicationCategoryDTOs;
+    }
+
+    for (String applicationCategoryId : applicationCategoryIds) {
+      if (applicationCategoryId == null) {
+        applicationCategoryDTOs.add(new TagDTO(null, "(Uncategorized)"));
+      }
+      else {
+        Tag applicationCategory = applicationCategoryDAO.getById(applicationCategoryId);
+        if (applicationCategory == null) {
+          applicationCategoryDTOs.add(new TagDTO(applicationCategoryId, null));
+        }
+        else {
+          applicationCategoryDTOs.add(new TagDTO(applicationCategory));
+        }
+      }
+    }
+
+    return applicationCategoryDTOs;
   }
 }

@@ -5,14 +5,16 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.audit.AuditDTO;
-import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
+import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
+import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
@@ -21,6 +23,22 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
 import static java.util.Arrays.asList;
+
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.tag.TagDTO;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertThat;
 
 public class DashboardResourceAuditTest
     extends AbstractAuditTest
@@ -98,5 +116,89 @@ public class DashboardResourceAuditTest
 
   private HttpRequest dashboardRequest() {
     return restRequest().path(DashboardResource.RESOURCE_PATH);
+  }
+
+  @Test
+  public void testGetNewestRisks() throws Exception {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org1.getId());
+    Application app2 = tempEntity.newApplication(org2.getId());
+    Tag appCategory1 = tempEntity.newTag(org1.getId());
+    Tag appCategory2 = tempEntity.newTag(org2.getId());
+    tempEntity.newApplicationTag(app1.getId(), appCategory1.getId());
+    tempEntity.newApplicationTag(app2.getId(), appCategory2.getId());
+    Policy policy = tempEntity.newPolicy(org1);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app1.getId(), StageTypes.BUILD.getId(), "scanId");
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String unknownOrgId = "unknownOrgId";
+    String unknownAppId = "unknownAppId";
+    String unknownAppCategoryId = "unknownAppCategoryId";
+    String uncategorizedAppCategoryId = null;
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+    risksFilterDTO.organizationIds = new HashSet<>(Arrays.asList(org1.getId(), unknownOrgId));
+    risksFilterDTO.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId(), unknownAppId));
+    risksFilterDTO.tagIds = new HashSet<>(
+        Arrays.asList(appCategory1.getId(), appCategory2.getId(), unknownAppCategoryId, uncategorizedAppCategoryId));
+
+    dashboardRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).body(risksFilterDTO).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST, null);
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(unknownOrgId, null),
+        new OrganizationAuditDTO(org1.getId(), org1));
+    // app1 is not in the audit list of selected applications because its parent org is in the list of selected orgs.
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(unknownAppId, null),
+        new ApplicationAuditDTO(app2.getId(), app2));
+    assertSelectedApplicationCategories(auditDTO, new TagDTO(unknownAppCategoryId, null),
+        new TagDTO(null, "(Uncategorized)"), new TagDTO(appCategory1), new TagDTO(appCategory2));
+    assertCustomData(auditDTO, "inspectedApplicationCount", 2);
+    assertCustomData(auditDTO, "resultRecordCount", 1);
+  }
+
+  @Test
+  public void testGetNewestRisks_EmptyFilter() throws Exception {
+    tempEntity.newApplicationWithParent();
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+
+    dashboardRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).body(risksFilterDTO).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST, null);
+    assertSelectedOrganizations(auditDTO);
+    assertSelectedApplications(auditDTO);
+    assertSelectedApplicationCategories(auditDTO);
+    assertCustomData(auditDTO, "inspectedApplicationCount", 1);
+    assertCustomData(auditDTO, "resultRecordCount", 0);
+  }
+
+  private HttpRequest dashboardRequest() {
+    return restRequest().path(DashboardResource.RESOURCE_PATH);
+  }
+
+  private void assertSelectedOrganizations(AuditDTO auditDTO, OrganizationAuditDTO... expected) {
+    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
+        new TypeReference<List<OrganizationAuditDTO>>()
+        {
+        });
+    assertThat(actuals, containsInAnyOrder(expected));
+  }
+
+  private void assertSelectedApplications(AuditDTO auditDTO, ApplicationAuditDTO... expected) {
+    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
+        new TypeReference<List<ApplicationAuditDTO>>()
+        {
+        });
+    assertThat(actuals, containsInAnyOrder(expected));
+  }
+
+  private void assertSelectedApplicationCategories(AuditDTO auditDTO, TagDTO... expected) {
+    List<TagDTO> actuals =
+        objectMapper.convertValue(auditDTO.data.get("selectedApplicationCategories"), new TypeReference<List<TagDTO>>()
+        {
+        });
+    assertThat(actuals, containsInAnyOrder(expected));
   }
 }

@@ -357,6 +357,11 @@ public abstract class AuditData
     return this;
   }
 
+  public AuditData setSelectedApplicationCategories(List<TagDTO> applicationCategories) {
+    setData("selectedApplicationCategories", applicationCategories);
+    return this;
+  }
+
   public AuditData setOwner(Owner owner) {
     if (owner != null) {
       switch (owner.getType()) {

@@ -80,6 +80,7 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getNewestRisksExceptionMeter")
+  @Audited(AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST)
   public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
     return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,

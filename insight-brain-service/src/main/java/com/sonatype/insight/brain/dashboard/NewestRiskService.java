@@ -26,22 +26,27 @@ import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
+import com.sonatype.insight.brain.utils.OwnerAuditUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +64,8 @@ public class NewestRiskService
 
   private final OrganizationDAO organizationDAO;
 
+  private final TagDAO applicationCategoryDAO;
+
   private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
@@ -66,11 +73,13 @@ public class NewestRiskService
   @Inject
   public NewestRiskService(ApplicationService applicationService,
                            OrganizationDAO organizationDAO,
+                           TagDAO applicationCategoryDAO,
                            PolicyViolationLoader policyViolationLoader,
                            DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
+    this.applicationCategoryDAO = applicationCategoryDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
   }
@@ -98,6 +107,12 @@ public class NewestRiskService
 
     List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
 
+    AuditData.get() //
+        .setData("selectedOrganizations", OwnerAuditUtils.getSelectedOrganizationsById(organizationIds)) //
+        .setData("selectedApplications", OwnerAuditUtils.getSelectedApplicationsById(applicationIds, organizationIds)) //
+        .setSelectedApplicationCategories(getSelectedApplicationCategoriesForAudit(tagIds)) //
+        .setData("inspectedApplicationCount", applications.size());
+
     Collection<ApplicationView> appViews = getPolicyViolations(applications, stageIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter, maxDaysOld);
 
@@ -113,9 +128,36 @@ public class NewestRiskService
 
     DashboardResultsDTO<NewestRiskDTO> result = buildResultsDTO(riskDTOs, maxResults);
 
+    AuditData.get().setData("resultRecordCount", result.numResults);
+
     log.debug("getNewestRisks finished in {} ms", System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  private List<TagDTO> getSelectedApplicationCategoriesForAudit(Set<String> applicationCategoryIds) {
+    List<TagDTO> applicationCategoryDTOs = new ArrayList<>();
+
+    if (applicationCategoryIds == null) {
+      return applicationCategoryDTOs;
+    }
+
+    for (String applicationCategoryId : applicationCategoryIds) {
+      if (applicationCategoryId == null) {
+        applicationCategoryDTOs.add(new TagDTO(null, "(Uncategorized)"));
+      }
+      else {
+        Tag applicationCategory = applicationCategoryDAO.getById(applicationCategoryId);
+        if (applicationCategory == null) {
+          applicationCategoryDTOs.add(new TagDTO(applicationCategoryId, null));
+        }
+        else {
+          applicationCategoryDTOs.add(new TagDTO(applicationCategory));
+        }
+      }
+    }
+
+    return applicationCategoryDTOs;
   }
 
   private void validateMaxDaysOld(Integer maxDaysOld) {

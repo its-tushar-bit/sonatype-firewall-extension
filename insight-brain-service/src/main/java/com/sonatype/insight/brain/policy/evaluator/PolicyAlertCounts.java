@@ -70,4 +70,8 @@ public class PolicyAlertCounts
   public int getBlue() {
     return blue;
   }
+
+  public int getTotal() {
+    return getRed() + getOrange() + getYellow() + getDarkBlue() + getBlue();
+  }
 }

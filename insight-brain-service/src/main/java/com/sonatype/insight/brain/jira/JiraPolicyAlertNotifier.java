@@ -122,11 +122,9 @@ public class JiraPolicyAlertNotifier
             request.issueType(jiraNotification.getIssueTypeId());
 
             final PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
-            final int alerts =
-                counts.getRed() + counts.getOrange() + counts.getYellow() + counts.getDarkBlue() + counts.getBlue();
 
             request.summary(String.format("Nexus IQ: Application %s; %s stage; %d Policy alerts",
-                app.getName(), stage.getStageName(), alerts
+                app.getName(), stage.getStageName(), counts.getTotal()
             ));
 
             // render description from template; prepare template parameters with appropriate details

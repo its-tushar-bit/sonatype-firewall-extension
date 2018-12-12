@@ -49,7 +49,6 @@ public abstract class AbstractPolicyAlertEmailer
   protected String createPolicyMailSubject(PolicyAlertCounts counts, String ownerName) {
     StringBuilder buffer = new StringBuilder(128);
     buffer.append("Policy Alert for ").append(ownerName).append(": ");
-    int total = counts.getRed() + counts.getOrange() + counts.getYellow() + counts.getDarkBlue() + counts.getBlue();
     int highest = 0;
     if (counts.getRed() > 0) {
       buffer.append(highest = counts.getRed()).append(" critical");
@@ -64,7 +63,7 @@ public abstract class AbstractPolicyAlertEmailer
       buffer.append(highest = counts.getBlue() + counts.getDarkBlue()).append(" neutral");
     }
     buffer.append(" violation").append(highest != 1 ? "s" : "");
-    buffer.append(" out of ").append(total);
+    buffer.append(" out of ").append(counts.getTotal());
     return buffer.toString();
   }
 

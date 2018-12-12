@@ -16,6 +16,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 
 import com.codahale.metrics.annotation.Timed;
@@ -46,6 +48,7 @@ public class RepositoryReportResource
   @GET
   @Path(SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_REPOSITORY_RESULTS)
   public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getReportSummary(repositoryId);
   }
@@ -70,6 +73,7 @@ public class RepositoryReportResource
   @GET
   @Path(DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_REPOSITORY_RESULTS)
   public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId,
                                                        @QueryParam("hash") String hash,
                                                        @QueryParam("pathname") String pathname)

@@ -31,8 +31,6 @@ public class ComponentDetailResource
 {
   public static final String RESOURCE_PATH = "rest/componentDetails";
 
-  public static final String GET_COMPONENT_COUNTS = "componentCounts";
-
   private final ComponentDetailService componentDetailService;
 
   @Inject

@@ -158,9 +158,7 @@ public class SuccessMetricsReportDataService
   }
 
   private void auditViewSuccessMetricsReport(SuccessMetricsReport report, final int inspectedApplicationCount) {
-    AuditData.get().setData("reportId", report.getId())
-        .setData("reportName", report.getName())
-        .setData("inspectedApplicationCount", inspectedApplicationCount);
+    AuditData.get().setSuccessMetricsReport(report).setData("inspectedApplicationCount", inspectedApplicationCount);
   }
 
   private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {

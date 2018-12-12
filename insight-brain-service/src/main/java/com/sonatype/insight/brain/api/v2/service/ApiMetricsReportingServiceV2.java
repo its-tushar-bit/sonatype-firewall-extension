@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -24,15 +23,15 @@ import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingFlattenedDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
-import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
+import com.sonatype.insight.brain.utils.OwnerAuditUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;
@@ -71,14 +70,10 @@ public class ApiMetricsReportingServiceV2
 
   private final PolicyViolationAggregationService policyViolationAggregationService;
 
-  private final ApplicationDAO applicationDAO;
-
   @Inject
   public ApiMetricsReportingServiceV2(ApplicationService applicationService,
-                                      PolicyViolationAggregationService policyViolationAggregationService,
-                                      ApplicationDAO applicationDAO)
+                                      PolicyViolationAggregationService policyViolationAggregationService)
   {
-    this.applicationDAO = applicationDAO;
     policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
     organizationDAO = new OrganizationDAO();
     this.applicationService = applicationService;
@@ -127,44 +122,13 @@ public class ApiMetricsReportingServiceV2
                                         final LocalDate startDate,
                                         final Optional<LocalDate> endDate)
   {
-    Map<String, OrganizationAuditDTO> organizationDtosById = getSelectedOrganizationsById(queryDTO.organizationIds);
     AuditData.get()
         .setData("beginDate", startDate.toString())
         .setData("endDate", endDate.orElse(LocalDate.now()).toString())
-        .setData("selectedOrganizations", organizationDtosById.values())
-        .setData("selectedApplications",
-            getSelectedApplications(queryDTO.applicationIds, applicationsById, organizationDtosById))
+        .setData("selectedOrganizations", OwnerAuditUtils.getSelectedOrganizationsById(queryDTO.organizationIds))
+        .setData("selectedApplications", OwnerAuditUtils
+            .getSelectedApplicationsById(queryDTO.applicationIds, queryDTO.organizationIds, applicationsById))
         .setData("inspectedApplicationCount", applicationsById.size());
-  }
-
-  private List<ApplicationAuditDTO> getSelectedApplications(final Set<String> queriedApplicationIds,
-                                                            final Map<String, Application> applicationsById,
-                                                            final Map<String, OrganizationAuditDTO> organizationDtosByIds)
-  {
-    List<ApplicationAuditDTO> applicationAuditDTOs = new ArrayList<>();
-    if (queriedApplicationIds != null) {
-      for (String queriedApplicationId : queriedApplicationIds) {
-        Application application = applicationsById.get(queriedApplicationId);
-        if (application == null) {
-          application = applicationDAO.getById(queriedApplicationId);
-        }
-        if (application == null || !organizationDtosByIds.containsKey(application.getOrganizationId())) {
-          applicationAuditDTOs.add(new ApplicationAuditDTO(queriedApplicationId, application));
-        }
-      }
-    }
-    return applicationAuditDTOs;
-  }
-
-  private Map<String, OrganizationAuditDTO> getSelectedOrganizationsById(final Set<String> queriedOrganizationIds) {
-    Map<String, OrganizationAuditDTO> organizationsByIds = new HashMap<>();
-    if (queriedOrganizationIds != null) {
-      for (String queriedOrganizationId : queriedOrganizationIds) {
-        organizationsByIds.put(queriedOrganizationId,
-            new OrganizationAuditDTO(queriedOrganizationId, organizationDAO.getById(queriedOrganizationId)));
-      }
-    }
-    return organizationsByIds;
   }
 
   /**

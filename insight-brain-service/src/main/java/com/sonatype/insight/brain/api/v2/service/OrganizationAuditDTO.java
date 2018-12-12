@@ -23,7 +23,7 @@ public class OrganizationAuditDTO
     //for jackson
   }
 
-  OrganizationAuditDTO(String organizationId, Organization organization) {
+  public OrganizationAuditDTO(String organizationId, Organization organization) {
     this.organizationId = organizationId;
     if (organization != null) {
       this.organizationName = organization.getName();

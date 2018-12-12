@@ -54,6 +54,7 @@ public class SuccessMetricsReportResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_SUCCESS_METRICS_REPORT)
   public SuccessMetricsReportDTO createSuccessMetricsReportForCurrentUser(SuccessMetricsReportDTO successMetricsDTO) {
     return successMetricsReportService.createSuccessMetricsReportForCurrentUser(successMetricsDTO);
   }

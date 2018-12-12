@@ -5,23 +5,46 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
+import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.After;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class SuccessMetricsReportResourceAuditTest
     extends AbstractAuditTest
 {
+  private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
+
+  private static final String METRICS_NAME = "metricsName";
+
+  @After
+  public void cleanup() {
+    successMetricsReportDAO.getByUsername("admin").forEach(successMetricsReportDAO::delete);
+  }
+
   @Test
   public void testGetChartData() throws Exception {
     testViewSuccessMetricsData(SuccessMetricsReportResource.CHART_DATA_PATH);
@@ -40,6 +63,87 @@ public class SuccessMetricsReportResourceAuditTest
   @Test
   public void testGetComponentCounts_Unauthorized() throws Exception {
     testViewSuccessMetricsData_Unauthorized(SuccessMetricsReportResource.COMPONENT_COUNTS_PATH);
+  }
+
+  @Test
+  public void testCreateSuccessMetricsReportForCurrentUser() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+
+    SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(toIds(app1, app2),
+        toIds(org1, org2));
+    SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
+    HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
+    SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
+
+    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app1.getId(), app1),
+        new ApplicationAuditDTO(app2.getId(), app2));
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org1.getId(), org1),
+        new OrganizationAuditDTO(org2.getId(), org2));
+  }
+
+  @Test
+  public void testCreateSuccessMetricsReportForCurrentUser_SelectedAppAndParentOrg() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(toIds(app), toIds(org));
+    SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
+    HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
+    SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
+
+    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    assertSelectedApplications(auditDTO);
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org.getId(), org));
+  }
+
+  @Test
+  public void testCreateSuccessMetricsReportForCurrentUser_SelectedAppDoesNotExist() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    String appId = "appId";
+    SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(
+        new HashSet<>(Arrays.asList(appId)), toIds(org));
+    SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
+    HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
+    SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
+
+    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(appId, null));
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org.getId(), org));
+  }
+
+  @Test
+  public void testCreateSuccessMetricsReportForCurrentUser_SelectedOrgDoesNotExist() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String orgId = "orgId";
+    SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(toIds(app),
+        new HashSet<>(Arrays.asList(orgId)));
+    SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
+    HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
+    SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
+
+    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app.getId(), app));
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(orgId, null));
+  }
+
+  @Test
+  public void testCreateSuccessMetricsReportForCurrentUser_NoOrgSelected() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(toIds(app),
+        Collections.emptySet());
+    SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
+    HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
+    SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
+
+    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app.getId(), app));
+    assertSelectedOrganizations(auditDTO);
   }
 
   private void testViewSuccessMetricsData_Unauthorized(final String resourceSubpath) throws Exception {
@@ -76,6 +180,25 @@ public class SuccessMetricsReportResourceAuditTest
     assertCustomData(auditDTO, "inspectedApplicationCount", includedApplicationCount);
   }
 
+  private void assertSelectedApplications(final AuditDTO auditDTO, final ApplicationAuditDTO... expected) {
+    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
+        new TypeReference<List<ApplicationAuditDTO>>() { });
+    assertThat(actuals, containsInAnyOrder(expected));
+  }
+
+  private void assertSelectedOrganizations(final AuditDTO auditDTO, final OrganizationAuditDTO... expected) {
+    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
+        new TypeReference<List<OrganizationAuditDTO>>() { });
+    assertThat(actuals, containsInAnyOrder(expected));
+  }
+
+  private AuditDTO assertReportData(final String id, final String name) {
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, null);
+    assertCustomData(auditDTO, "reportId", id);
+    assertCustomData(auditDTO, "reportName", name);
+    return auditDTO;
+  }
+
   private HttpRequest successMetricsReportRequest() {
     return restRequest().path(SuccessMetricsReportResource.RESOURCE_PATH);
   }
@@ -90,5 +213,9 @@ public class SuccessMetricsReportResourceAuditTest
 
     return tempEntity
         .newSuccessMetricsReport(username == null ? getUsername() : username, "report", JsonUtils.format(scope));
+  }
+
+  private Set<String> toIds(Owner... owners) {
+    return Arrays.stream(owners).map(Owner::getId).collect(Collectors.toSet());
   }
 }

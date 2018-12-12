@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
@@ -382,6 +383,14 @@ public abstract class AuditData
 
   public AuditData setReportId(final String reportId) {
     setData("reportId", reportId);
+    return this;
+  }
+
+  public AuditData setSuccessMetricsReport(final SuccessMetricsReport successMetricsReport) {
+    if (successMetricsReport != null) {
+      setData("reportId", successMetricsReport.getId());
+      setData("reportName", successMetricsReport.getName());
+    }
     return this;
   }
 }

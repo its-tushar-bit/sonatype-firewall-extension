@@ -25,7 +25,7 @@ public class ApplicationAuditDTO
     //for jackson
   }
 
-  ApplicationAuditDTO(String applicationId, Application application) {
+  public ApplicationAuditDTO(String applicationId, Application application) {
     this.applicationId = applicationId;
     if (application != null) {
       this.applicationPublicId = application.getPublicId();

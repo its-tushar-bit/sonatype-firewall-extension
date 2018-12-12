@@ -12,9 +12,11 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.utils.OwnerAuditUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -68,6 +70,7 @@ public class SuccessMetricsReportService
     successMetricsReportDAO.insert(successMetricsReport);
 
     successMetricsDTO.id = successMetricsReport.getId();
+    auditCreateSuccessMetricsReport(successMetricsReport, successMetricsDTO);
 
     return successMetricsDTO;
   }
@@ -89,5 +92,15 @@ public class SuccessMetricsReportService
           + currentUser.getUsername() + ".");
     }
     return successMetricsReport;
+  }
+
+  private void auditCreateSuccessMetricsReport(final SuccessMetricsReport report,
+                                               final SuccessMetricsReportDTO successMetricsReportDTO)
+  {
+    AuditData.get().setSuccessMetricsReport(report).setData("selectedOrganizations",
+        OwnerAuditUtils.getSelectedOrganizationsById(successMetricsReportDTO.scope.organizationIds))
+        .setData("selectedApplications", OwnerAuditUtils
+            .getSelectedApplicationsById(successMetricsReportDTO.scope.applicationIds,
+                successMetricsReportDTO.scope.organizationIds));
   }
 }

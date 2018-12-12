@@ -9,17 +9,20 @@ import iqBackButton from './iqBackButton/iqBackButton';
 import iqTreeViewMultiSelect from './iqTreeViewMultiSelect/iqTreeViewMultiSelect';
 import iqTreeViewRadioSelect from './iqTreeViewRadioSelect/iqTreeViewRadioSelect';
 import utilityModule from '../utility/utility.module';
+import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import iqOrgAppPicker from './iqOrgAppPicker/iqOrgAppPicker';
 import iqRenderPlottable from './iqRenderPlottable/iqRenderPlottable';
 import coverageDonut from './coverageDonut';
+import externalLink from './externalLink/externalLink';
 
-export default angular.module('components', [utilityModule.name])
+export default angular.module('components', [utilityModule.name, utilityDirectivesModule.name])
     .component('iqCheckbox', iqCheckbox)
     .component('iqRadio', iqRadio)
     .component('iqBackButton', iqBackButton)
     .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
     .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
     .component('iqOrgAppPicker', iqOrgAppPicker)
+    .component('externalLink', externalLink)
     .directive('iqRenderPlottable', iqRenderPlottable)
     .directive('coverageDonut', coverageDonut)
 ;

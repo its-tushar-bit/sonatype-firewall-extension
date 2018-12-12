@@ -1,3 +1,1 @@
-<a target="_blank" href="{{::vm.href}}" ng-click="vm.onClick()" middle-click>
-  {{::vm.linkText}} <i class="fa fa-external-link fa-fw"></i>
-</a>
+<external-link href={{::vm.href}} link-text="{{::vm.linkText}}" on-click="vm.onClick()"></external-link>

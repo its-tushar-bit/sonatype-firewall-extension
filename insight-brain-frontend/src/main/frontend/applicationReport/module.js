@@ -6,6 +6,7 @@
 import cipModalModule from './results/cipModal/module';
 import CLMLocationsModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
+import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 
 import applicationReport from './applicationReport';
@@ -16,7 +17,8 @@ import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorMo
 
 export default angular.module('applicationReportModule',
     [
-      cipModalModule.name, CLMLocationsModule.name, utilityModule.name, ComponentDisplayModule.name
+      cipModalModule.name, CLMLocationsModule.name, utilityModule.name, utilityDirectivesModule.name,
+      ComponentDisplayModule.name
     ])
     .component('applicationReport', applicationReport)
     .component('applicationReportResults', applicationReportResults)

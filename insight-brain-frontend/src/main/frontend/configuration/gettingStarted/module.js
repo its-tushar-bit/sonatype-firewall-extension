@@ -12,6 +12,7 @@ import gettingStartedDocLink from './gettingStartedDocLink/gettingStartedDocLink
 import PermissionServiceModule from '../../util/PermissionService';
 import CLMLocationModule from '../../util/CLMLocation';
 import telemetryServiceModule from '../../services/telemetryService';
+import componentsModule from '../../components/module';
 import gettingStartedUsageTelemetryService from './gettingStartedUsageTelemetryService';
 
 import {DEPARTED_ACTION} from './gettingStartedUsageTelemetryService';
@@ -21,7 +22,7 @@ export const GETTING_STARTED_STATE = 'gettingStarted';
 export default angular.module('gettingStartedModule',
     [
       'ui.router', CLMLocationModule.name, 'mainHeader', PermissionServiceModule.name, reduxConfigModule.name,
-      telemetryServiceModule.name
+      telemetryServiceModule.name, componentsModule.name
     ])
     .component('gettingStarted', gettingStarted)
     .component('productLicenseSummary', productLicenseSummary)

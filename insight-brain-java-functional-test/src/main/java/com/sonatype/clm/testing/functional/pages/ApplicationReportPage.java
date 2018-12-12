@@ -17,7 +17,6 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ApplicationReportPage
@@ -36,11 +35,11 @@ public class ApplicationReportPage
   }
 
   public SelenideElement reportTitle() {
-    return $(".iq-tile-header__title");
+    return child(".iq-tile--application-report .iq-tile-header__title");
   }
 
   public SelenideElement reportDate() {
-    return $(".iq-tile-header__subtitle");
+    return child(".iq-tile--application-report .iq-tile-header__subtitle");
   }
 
   public SelenideElement reevaluateButton() {

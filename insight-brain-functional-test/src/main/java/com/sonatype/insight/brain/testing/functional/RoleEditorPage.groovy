@@ -29,11 +29,11 @@ extends BasePage {
 
     descriptionEditor { $('textarea') }
 
-    cancel { $('button.btn-cancel').module(FormElement) }
-    save { $('button.btn-primary').module(FormElement) }
+    cancel { $('button#role-details-cancel').module(FormElement) }
+    save { $('button.iq-btn--primary').module(FormElement) }
 
     permissionCategories(required: false) {
-      $('tbody[ng-repeat="permissionCategory in dirtyRole.permissionCategories"]').moduleList(DisplayedPermissionCategory)
+      $('.iq-list--role-permissions').moduleList(DisplayedPermissionCategory)
     }
     permissionCategory { String name ->
       permissionCategories.find { it.groupName.text() == name }.module(DisplayedPermissionCategory)
@@ -45,7 +45,7 @@ class DisplayedPermissionCategory
 extends Module {
   static content = {
     groupName { $('h3') }
-    permissions { $('tr[ng-repeat="permission in permissionCategory.permissions"]').moduleList(DisplayedPermission) }
+    permissions { $('.iq-list--role-permissions .iq-list__item').moduleList(DisplayedPermission) }
     permission { index -> permissions.getAt(index) }
   }
 }
@@ -55,7 +55,7 @@ extends Module {
   static content = {
     toggleSwitch { $('.toggle-checkbox').module(ToggleSwitch) }
     name { $('label > span') }
-    description { $('td', 1) }
+    description { $('.iq-role-description') }
   }
 }
 

@@ -106,6 +106,9 @@ extends BaseSpec {
 
     when: 'enter the role description'
     roleEditorPage.descriptionEditor << 'bottom rung'
+    interact {
+      moveToElement(roleEditorPage.save)
+    }
 
     then: 'save button is enabled'
     roleEditorPage.save.enabled
@@ -139,6 +142,9 @@ extends BaseSpec {
     waitFor { roleEditorPage.save.enabled }
 
     when: 'save is clicked'
+    interact {
+      moveToElement(roleEditorPage.save)
+    }
     roleEditorPage.save.click()
 
     then: 'updated role is visible'

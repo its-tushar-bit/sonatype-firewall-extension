@@ -748,23 +748,6 @@ dropdown-selector {
 }
 
 /*
-  ##Inline Controls with Description
-*/
-.inline-table {
-  border-spacing: 0 5px;
-  border-collapse: separate;
-}
-
-.inline-table label {
-  margin: 0;
-}
-
-.inline-control {
-  padding-right: 24px;
-  white-space: nowrap;
-}
-
-/*
   ##Validation popovers
   Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input
   See clmInput directive.

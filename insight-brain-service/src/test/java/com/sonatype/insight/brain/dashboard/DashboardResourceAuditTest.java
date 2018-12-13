@@ -178,22 +178,6 @@ public class DashboardResourceAuditTest
     return restRequest().path(DashboardResource.RESOURCE_PATH);
   }
 
-  private void assertSelectedOrganizations(AuditDTO auditDTO, OrganizationAuditDTO... expected) {
-    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
-        new TypeReference<List<OrganizationAuditDTO>>()
-        {
-        });
-    assertThat(actuals, containsInAnyOrder(expected));
-  }
-
-  private void assertSelectedApplications(AuditDTO auditDTO, ApplicationAuditDTO... expected) {
-    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
-        new TypeReference<List<ApplicationAuditDTO>>()
-        {
-        });
-    assertThat(actuals, containsInAnyOrder(expected));
-  }
-
   private void assertSelectedApplicationCategories(AuditDTO auditDTO, TagDTO... expected) {
     List<TagDTO> actuals =
         objectMapper.convertValue(auditDTO.data.get("selectedApplicationCategories"), new TypeReference<List<TagDTO>>()

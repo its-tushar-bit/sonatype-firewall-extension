@@ -53,9 +53,10 @@ public class ApplicationReportContainerTest
 
   @Test
   public void testPolicyCentricAppReportPreview() {
+    ApplicationReportContainerPage.policyCentricAppReportPreviewAlert().shouldBe(visible);
+
     eyesWatcher.eyesCheck();
 
-    ApplicationReportContainerPage.policyCentricAppReportPreviewAlert().shouldBe(visible);
     ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
 
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));

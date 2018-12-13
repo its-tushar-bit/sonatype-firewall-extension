@@ -13,6 +13,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
+import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -25,6 +27,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,15 +36,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 public abstract class AbstractAuditTest
     extends AbstractResourceTest
@@ -227,5 +222,21 @@ public abstract class AbstractAuditTest
     AuditDTO auditDTO = auditDTOs.stream().filter(a -> a.data.get(dataKey).equals(dataValue)).findFirst().orElse(null);
     assertThat("Failed to find an audit dto with " + dataKey + " equal to " + dataValue, auditDTO, notNullValue());
     return auditDTO;
+  }
+
+  protected void assertSelectedApplications(AuditDTO auditDTO, ApplicationAuditDTO... expected) {
+    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
+        new TypeReference<List<ApplicationAuditDTO>>()
+        {
+        });
+    assertThat(actuals, containsInAnyOrder(expected));
+  }
+
+  protected void assertSelectedOrganizations(AuditDTO auditDTO, OrganizationAuditDTO... expected) {
+    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
+        new TypeReference<List<OrganizationAuditDTO>>()
+        {
+        });
+    assertThat(actuals, containsInAnyOrder(expected));
   }
 }

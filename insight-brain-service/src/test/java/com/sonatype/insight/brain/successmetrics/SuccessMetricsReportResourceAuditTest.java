@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.successmetrics;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,12 +25,8 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class SuccessMetricsReportResourceAuditTest
     extends AbstractAuditTest
@@ -178,18 +173,6 @@ public class SuccessMetricsReportResourceAuditTest
     assertCustomData(auditDTO, "reportId", report.getId());
     assertCustomData(auditDTO, "reportName", report.getName());
     assertCustomData(auditDTO, "inspectedApplicationCount", includedApplicationCount);
-  }
-
-  private void assertSelectedApplications(final AuditDTO auditDTO, final ApplicationAuditDTO... expected) {
-    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
-        new TypeReference<List<ApplicationAuditDTO>>() { });
-    assertThat(actuals, containsInAnyOrder(expected));
-  }
-
-  private void assertSelectedOrganizations(final AuditDTO auditDTO, final OrganizationAuditDTO... expected) {
-    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
-        new TypeReference<List<OrganizationAuditDTO>>() { });
-    assertThat(actuals, containsInAnyOrder(expected));
   }
 
   private AuditDTO assertReportData(final String id, final String name) {

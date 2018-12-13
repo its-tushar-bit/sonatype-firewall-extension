@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -20,13 +19,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class ApiMetricsReportingResourceV2AuditTest
     extends AbstractAuditTest
@@ -65,18 +61,6 @@ public class ApiMetricsReportingResourceV2AuditTest
     assertSelectedApplications(auditDTO, new ApplicationAuditDTO(unknownApplicationId, null),
         new ApplicationAuditDTO(app2.getId(), app2));
     assertCustomData(auditDTO, "inspectedApplicationCount", 2);
-  }
-
-  private void assertSelectedApplications(final AuditDTO auditDTO, final ApplicationAuditDTO... expected) {
-    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
-        new TypeReference<List<ApplicationAuditDTO>>() { });
-    assertThat(actuals, containsInAnyOrder(expected));
-  }
-
-  private void assertSelectedOrganizations(final AuditDTO auditDTO, final OrganizationAuditDTO... expected) {
-    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
-        new TypeReference<List<OrganizationAuditDTO>>() { });
-    assertThat(actuals, containsInAnyOrder(expected));
   }
 
   private HttpRequest metricsReportRequest(String acceptType) {

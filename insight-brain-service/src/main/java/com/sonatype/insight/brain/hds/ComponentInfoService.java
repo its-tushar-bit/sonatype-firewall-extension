@@ -118,6 +118,7 @@ public class ComponentInfoService
                                                                   boolean proprietary,
                                                                   HttpServletRequest httpRequest) throws IOException
   {
+    auditComponentAccess(componentIdentifier, hash);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest);
   }
@@ -249,6 +250,7 @@ public class ComponentInfoService
                                                                      String matchState,
                                                                      HttpServletRequest httpRequest) throws IOException
   {
+    auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, httpRequest);
     augmentComponentDetails(componentDetailsList.getList(), matchState, owner);
@@ -267,6 +269,7 @@ public class ComponentInfoService
                                                                                     ComponentIdentifier componentIdentifier,
                                                                                     HttpServletRequest httpRequest) throws IOException
   {
+    auditComponentAccess(componentIdentifier, null);
     return getComponentDetailsForAllVersions(ownerType, ownerId, componentIdentifier, httpRequest);
   }
 
@@ -381,6 +384,7 @@ public class ComponentInfoService
                                        ComponentIdentifier componentIdentifier,
                                        HttpServletRequest httpRequest) throws IOException
   {
+    auditComponentAccess(componentIdentifier, null);
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
@@ -412,6 +416,7 @@ public class ComponentInfoService
                                                                      final HttpServletRequest httpRequest)
       throws IOException
   {
+    auditComponentAccess(componentIdentifier, hash);
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }

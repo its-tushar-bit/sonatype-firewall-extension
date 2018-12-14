@@ -5,66 +5,36 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import java.util.Collections;
-
-import com.sonatype.clm.dto.model.component.ComponentDetails;
-import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceAuditTest;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
-import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
-
 public class IDEComponentInfoResourceAuditTest
-    extends AbstractAuditTest
+    extends AbstractComponentInfoResourceAuditTest
 {
-  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1", "a1",
-      "v1", "", "jar");
-
-  private static final String COMPONENT_HASH = "hash";
-
-  private Application application;
-
-  @Before
-  public void before() {
-    application = tempEntity.newApplicationWithParent();
-  }
-
   @Test
   public void testGetComponentDetails_CoordinatesOnly() throws Exception {
     detailsRequest(application.getPublicId(), COMPONENT_IDENTIFIER, null).get();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
-    assertApplicationData(auditDTO, application);
-    assertCustomObject(auditDTO, "componentIdentifier", COMPONENT_IDENTIFIER);
-    assertCustomObject(auditDTO, "componentHash", null);
+    assertAuditComponentInfo(application, COMPONENT_IDENTIFIER, null);
   }
 
   @Test
   public void testGetComponentDetails_HashOnly() throws Exception {
     detailsRequest(application.getPublicId(), null, COMPONENT_HASH).get();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
-    assertApplicationData(auditDTO, application);
-    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
-    assertCustomObject(auditDTO, "componentIdentifier", null);
+    assertAuditComponentInfo(application, null, COMPONENT_HASH);
   }
 
   @Test
   public void testGetComponentDetails_CoordinatesAndHash() throws Exception {
     detailsRequest(application.getPublicId(), COMPONENT_IDENTIFIER, COMPONENT_HASH).get();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
-    assertApplicationData(auditDTO, application);
-    assertCustomObject(auditDTO, "componentIdentifier", COMPONENT_IDENTIFIER);
-    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+    assertAuditComponentInfo(application, COMPONENT_IDENTIFIER, COMPONENT_HASH);
   }
 
   @Test
@@ -82,9 +52,7 @@ public class IDEComponentInfoResourceAuditTest
 
     detailsListRequest.get();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
-    assertApplicationData(auditDTO, application);
-    assertCustomObject(auditDTO, "componentIdentifier", COMPONENT_IDENTIFIER);
+    assertAuditComponentInfo(application, COMPONENT_IDENTIFIER);
   }
 
   @Test
@@ -102,9 +70,7 @@ public class IDEComponentInfoResourceAuditTest
 
     detailsAllVersionsRequest.get();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
-    assertApplicationData(auditDTO, application);
-    assertCustomObject(auditDTO, "componentIdentifier", COMPONENT_IDENTIFIER);
+    assertAuditComponentInfo(application, COMPONENT_IDENTIFIER);
   }
 
   @Test
@@ -113,13 +79,6 @@ public class IDEComponentInfoResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
     assertApplicationData(auditDTO, application);
-  }
-
-  private void setupHdsResponseForComponent(final HttpRequest httpRequest) {
-    ComponentDetails hdsComponentDetails = newComponentDetails(COMPONENT_IDENTIFIER);
-    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
-    setHdsResponseForURI(convertToHdsUrl(httpRequest.getUrl()), hdsComponentDetailsList, 200);
   }
 
   private HttpRequest detailsAllVersionsRequest(String applicationId,

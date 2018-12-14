@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -35,7 +37,7 @@ public class CIComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";
 
-  private static final String COMPONENT_DETAILS_PATH = "{ownerType: application|repository}/{ownerId}";
+  static final String COMPONENT_DETAILS_PATH = "{ownerType: application|repository}/{ownerId}";
 
   public static final String LICENSES_PATH = COMPONENT_DETAILS_PATH + "/licenses";
 
@@ -55,6 +57,7 @@ public class CIComponentInfoResource
   @GET
   @Path(COMPONENT_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public NamedComponentDetails getComponentDetails(@PathParam("ownerType") final OwnerType ownerType,
                                                    @PathParam("ownerId") final String ownerId,
                                                    @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -73,6 +76,7 @@ public class CIComponentInfoResource
   @GET
   @Path(COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public ComponentDetailsList getComponentDetailsList(@PathParam("ownerType") final OwnerType ownerType,
                                                       @PathParam("ownerId") final String ownerId,
                                                       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -88,6 +92,7 @@ public class CIComponentInfoResource
   @GET
   @Path(COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("ownerType") final OwnerType ownerType,
                                                                      @PathParam("ownerId") final String ownerId,
                                                                      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
@@ -99,6 +104,7 @@ public class CIComponentInfoResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(LICENSES_PATH)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public ComponentLicenses getLicenses(@PathParam("ownerType") final OwnerType ownerType,
                                        @PathParam("ownerId") final String ownerId,
                                        @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
@@ -113,6 +119,7 @@ public class CIComponentInfoResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(VULNERABILITIES_PATH)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@PathParam("ownerType") final OwnerType ownerType,
                                                                      @PathParam("ownerId") final String ownerId,
                                                                      @QueryParam("hash") final String hash,

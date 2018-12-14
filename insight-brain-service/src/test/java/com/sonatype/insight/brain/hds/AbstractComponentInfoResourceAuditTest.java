@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.hds;
+
+import java.util.Collections;
+
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.audit.AuditDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
+
+import org.junit.Before;
+
+import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
+import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
+
+public abstract class AbstractComponentInfoResourceAuditTest
+    extends AbstractAuditTest
+{
+  protected static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "v1", "", "jar");
+
+  protected static final String COMPONENT_HASH = "hash";
+
+  protected Application application;
+
+  @Before
+  public void createApplication() {
+    application = tempEntity.newApplicationWithParent();
+  }
+
+  protected AuditDTO assertAuditComponentInfo(Owner owner, ComponentIdentifier componentIdentifier) {
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertOwnerData(auditDTO, owner);
+    assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
+    return auditDTO;
+  }
+
+  protected void assertAuditComponentInfo(Owner owner, ComponentIdentifier componentIdentifier, String hash) {
+    AuditDTO auditDTO = assertAuditComponentInfo(owner, componentIdentifier);
+    assertCustomData(auditDTO, "componentHash", hash);
+  }
+
+  protected void setupHdsResponseForComponent(final HttpRequest httpRequest) {
+    ComponentDetails hdsComponentDetails = newComponentDetails(COMPONENT_IDENTIFIER);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
+    setHdsResponseForURI(convertToHdsUrl(httpRequest.getUrl()), hdsComponentDetailsList, 200);
+  }
+
+  private void assertOwnerData(final AuditDTO auditDTO, final Owner owner) {
+    if (OwnerType.APPLICATION.equals(owner.getType())) {
+      assertApplicationData(auditDTO, (Application) owner);
+    }
+    else if (OwnerType.REPOSITORY.equals(owner.getType())) {
+      assertRepositoryData(auditDTO, (Repository) owner);
+    }
+    else {
+      throw new RuntimeException("unsupported owner type");
+    }
+  }
+}

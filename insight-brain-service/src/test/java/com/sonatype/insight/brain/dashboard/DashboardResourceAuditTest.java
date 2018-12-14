@@ -120,6 +120,7 @@ public class DashboardResourceAuditTest
 
   @Test
   public void testGetNewestRisks() throws Exception {
+  private void testGetRisks(String restPath, AuditEvent expectedAuditEvent) throws Exception {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
     Application app1 = tempEntity.newApplication(org1.getId());
@@ -144,9 +145,9 @@ public class DashboardResourceAuditTest
     risksFilterDTO.tagIds = new HashSet<>(
         Arrays.asList(appCategory1.getId(), appCategory2.getId(), unknownAppCategoryId, uncategorizedAppCategoryId));
 
-    dashboardRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).body(risksFilterDTO).post();
+    dashboardRequest().path(restPath).body(risksFilterDTO).post();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST, null);
+    AuditDTO auditDTO = assertAuditLog(expectedAuditEvent, null);
     assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(unknownOrgId, null),
         new OrganizationAuditDTO(org1.getId(), org1));
     // app1 is not in the audit list of selected applications because its parent org is in the list of selected orgs.
@@ -159,19 +160,38 @@ public class DashboardResourceAuditTest
   }
 
   @Test
-  public void testGetNewestRisks_EmptyFilter() throws Exception {
+  public void testGetNewestRisks() throws Exception {
+    testGetRisks(DashboardResource.GET_NEWEST_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST);
+  }
+
+  @Test
+  public void testGetApplicationRisks() throws Exception {
+    testGetRisks(DashboardResource.GET_APPLICATION_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_APPLICATION_LIST);
+  }
+
+  private void testGetRisks_EmptyFilter(String restPath, AuditEvent expectedAuditEvent) throws Exception {
     tempEntity.newApplicationWithParent();
 
     RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
 
-    dashboardRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).body(risksFilterDTO).post();
+    dashboardRequest().path(restPath).body(risksFilterDTO).post();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST, null);
+    AuditDTO auditDTO = assertAuditLog(expectedAuditEvent, null);
     assertSelectedOrganizations(auditDTO);
     assertSelectedApplications(auditDTO);
     assertSelectedApplicationCategories(auditDTO);
     assertCustomData(auditDTO, "inspectedApplicationCount", 1);
     assertCustomData(auditDTO, "resultRecordCount", 0);
+  }
+
+  @Test
+  public void testGetNewestRisks_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_NEWEST_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_VIOLATION_LIST);
+  }
+
+  @Test
+  public void testGetApplicationRisks_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_APPLICATION_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_APPLICATION_LIST);
   }
 
   private HttpRequest dashboardRequest() {

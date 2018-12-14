@@ -18,6 +18,7 @@ import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.utils.AuditUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +83,13 @@ public class ApplicationRiskService
     List<Application> appsToSearch = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
         applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
+
+    AuditData.get() //
+        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
+        .setData("selectedApplications", AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds)) //
+        .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
+        .setData("inspectedApplicationCount", appsToSearch.size());
+
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
@@ -93,6 +102,8 @@ public class ApplicationRiskService
     result.numResults = applicationRiskScoreDTOs.size();
     result.dashboardResults = 
         applicationRiskScoreDTOs.subList(0, Math.min(applicationRiskScoreDTOs.size(), maxResults));
+
+    AuditData.get().setData("resultRecordCount", result.numResults);
 
     log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
 

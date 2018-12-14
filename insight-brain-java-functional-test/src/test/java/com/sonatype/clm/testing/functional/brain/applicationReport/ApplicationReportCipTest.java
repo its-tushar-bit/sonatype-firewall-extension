@@ -698,6 +698,7 @@ public class ApplicationReportCipTest
     claimComponentTab.claimBtn().shouldBe(visible, enabled).click();
     claimComponentTab.validationErrors()
         .shouldHave(exactText("Group ID, Artifact ID, Version and Extension are required"));
+    eyesWatcher.eyesCheck("Form and validation message");
 
     claimComponentTab.group().shouldHave(ERROR_CLASS).input().val("groupId");
     claimComponentTab.group().shouldNotHave(ERROR_CLASS);
@@ -727,7 +728,6 @@ public class ApplicationReportCipTest
     cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));
     claimComponentTab.revokeBtn().shouldBe(enabled);
     claimComponentTab.cancelBtn().shouldBe(disabled);
-    eyesWatcher.eyesCheck();
     cipModal.closeButton().click();
     // the new name pushes the component one entry up in the results page
     reportPage.resultRow(5).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
@@ -749,6 +749,7 @@ public class ApplicationReportCipTest
     claimComponentTab.revokeBtn().click();
     ConfirmRevokeClaimDialog confirmRevokeClaimDialog = new ConfirmRevokeClaimDialog();
     confirmRevokeClaimDialog.shouldBe(visible);
+    eyesWatcher.eyesCheck("Revoke Claim dialog");
     confirmRevokeClaimDialog.revokeClaimButton().click();
     confirmRevokeClaimDialog.shouldBe(hidden);
     claimComponentTab.allFormInputs().forEach(i -> i.shouldBe(empty));

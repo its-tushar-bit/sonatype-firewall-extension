@@ -4,10 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  both,
+  findIndex,
   identity,
   inc,
   lensPath,
   pipe,
+  propEq,
   reduceBy,
   reject,
   set,
@@ -48,7 +51,8 @@ const initState = {
   // example: { policyName: 'security', derivedComponentName: 'foo' }
   substringFilters: {},
   selectedReport: null,
-  selectedComponentIndex: null
+  selectedComponentIndex: null,
+  isUnknownJs: false
 };
 
 export default function(state = initState, {type, payload}) {
@@ -57,12 +61,7 @@ export default function(state = initState, {type, payload}) {
       return {...state, loading: true, loadError: null, selectedReport: null};
 
     case LOAD_REPORT_FULFILLED:
-      return updateDisplayedEntries({
-        ...state,
-        loading: false,
-        isUnknownJs: payload.isUnknownJs,
-        selectedReport: {...(payload.report), ...getViolationCountsPerThreatLevel(payload.report.allEntries)}
-      });
+      return setSelectedReport(state, payload);
 
     case REEVALUATE_REPORT_REQUESTED:
       return {...state, reevaluating: true, reevaluationError: null};
@@ -95,6 +94,28 @@ export default function(state = initState, {type, payload}) {
     default:
       return state;
   }
+}
+
+function setSelectedReport(state, {report, isUnknownJs}) {
+  const newState = updateDisplayedEntries({
+    ...state,
+    loading: false,
+    isUnknownJs,
+    selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)}
+  });
+
+  // if there is selected component, update selectedComponentIndex
+  if (state.selectedReport && state.selectedComponentIndex != null) {
+    const selectedComponent = state.selectedReport.displayedEntries[state.selectedComponentIndex];
+    const findPredicate = state.aggregate
+      ? propEq('hash', selectedComponent.hash)
+      : both(propEq('hash', selectedComponent.hash), propEq('policyName', selectedComponent.policyName));
+    const selectedComponentIndex = findIndex(findPredicate, newState.selectedReport.displayedEntries);
+    if (selectedComponentIndex >= 0) {
+      return {...newState, selectedComponentIndex};
+    }
+  }
+  return newState;
 }
 
 /**

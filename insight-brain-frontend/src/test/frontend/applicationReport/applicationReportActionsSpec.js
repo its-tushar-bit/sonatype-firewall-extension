@@ -1,7 +1,7 @@
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 
 describe('applicationReportActions', function() {
-  let applicationReportActions, initialState, CLMLocations, $httpBackend;
+  let applicationReportActions, CLMLocations, $httpBackend;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -9,10 +9,6 @@ describe('applicationReportActions', function() {
     applicationReportActions = $injector.get('applicationReportActions');
     CLMLocations = $injector.get('CLMLocations');
     $httpBackend = $injector.get('$httpBackend');
-
-    initialState = {
-      loading: false
-    };
   }));
 
   afterEach(function() {
@@ -22,7 +18,7 @@ describe('applicationReportActions', function() {
 
   describe('loadReport', function() {
     it('fires LOAD_REPORT_FAILED action if report request fails', function() {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore({});
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport('appId', 'scanId')).catch(errorSpy);
 
@@ -31,13 +27,7 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(500,
-          'test error');
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
-          .respond(200);
+      mockFetchReportDataFailure();
       $httpBackend.flush();
 
       expect(errorSpy).toHaveBeenCalled();
@@ -49,7 +39,7 @@ describe('applicationReportActions', function() {
     });
 
     it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore({});
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport('appId', 'scanId', false)).catch(errorSpy);
 
@@ -58,14 +48,7 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
-          {reportTitle: 'test'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
-          null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
-          .respond(null);
+      mockFetchReportDataSuccess();
 
       $httpBackend.flush();
 
@@ -85,7 +68,7 @@ describe('applicationReportActions', function() {
     });
 
     it('fetches unknown js results when so told', function() {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore({});
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport('appId', 'scanId', true)).catch(errorSpy);
 
@@ -94,24 +77,108 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_REQUESTED'
       });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
-          {reportTitle: 'test'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
-          null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
-          .respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond({
-        aaData: [{
-          filenames: ['foo.js']
-        }]
-      });
+      mockFetchReportDataSuccess(true);
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {
+            reportTitle: 'test',
+            allEntries: [{
+              filenames: ['foo.js'],
+              policyThreatLevel: 0,
+              policyName: 'None',
+              waived: false,
+              grandfathered: false,
+              derivedComponentName: 'foo.js'
+            }],
+            scanId: 'scanId'
+          },
+          isUnknownJs: true
+        }
+      });
+    });
+  });
+
+  describe('reloadReport', function() {
+    let initialState;
+    beforeEach(function() {
+      initialState = {
+        applicationReport: {
+          isUnknownJs: false,
+          selectedReport: {
+            application: {
+              publicId: 'appId'
+            },
+            scanId: 'scanId'
+          }
+        }
+      };
+    });
+
+    it('fires LOAD_REPORT_FAILED action if report request fails', function() {
+      const store = SpecUtil.mockReduxStore(initialState);
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions.reloadReport()).catch(errorSpy);
+
+      // should not dispatch 'LOAD_REPORT_REQUESTED'
+      expect(store.getActions().length).toBe(0);
+
+      mockFetchReportDataFailure();
+      $httpBackend.flush();
+
+      expect(errorSpy).toHaveBeenCalled();
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_REPORT_FAILED',
+        payload: 'test error'
+      });
+    });
+
+    it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
+      const store = SpecUtil.mockReduxStore(initialState);
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions.reloadReport()).catch(errorSpy);
+
+      // should not dispatch 'LOAD_REPORT_REQUESTED'
+      expect(store.getActions().length).toBe(0);
+
+      mockFetchReportDataSuccess();
+      $httpBackend.flush();
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {
+            reportTitle: 'test',
+            allEntries: [],
+            scanId: 'scanId'
+          },
+          isUnknownJs: false
+        }
+      });
+    });
+
+    it('fetches unknown js results if it was requested before', function() {
+      initialState.applicationReport.isUnknownJs = true;
+      const store = SpecUtil.mockReduxStore(initialState);
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions.reloadReport()).catch(errorSpy);
+
+      // should not dispatch 'LOAD_REPORT_REQUESTED'
+      expect(store.getActions().length).toBe(0);
+
+      mockFetchReportDataSuccess(true);
+      $httpBackend.flush();
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {
@@ -220,16 +287,7 @@ describe('applicationReportActions', function() {
       });
 
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
-          {reportTitle: 'test'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
-          null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
-          .respond(null);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond(null);
-
+      mockFetchReportDataSuccess(true);
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
@@ -248,7 +306,14 @@ describe('applicationReportActions', function() {
         payload: {
           report: {
             reportTitle: 'test',
-            allEntries: [],
+            allEntries: [{
+              filenames: ['foo.js'],
+              policyThreatLevel: 0,
+              policyName: 'None',
+              waived: false,
+              grandfathered: false,
+              derivedComponentName: 'foo.js'
+            }],
             scanId: 'scanId'
           },
           isUnknownJs: {}
@@ -279,13 +344,7 @@ describe('applicationReportActions', function() {
       });
 
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(500,
-          'test error');
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(200);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
-          .respond(200);
+      mockFetchReportDataFailure();
       $httpBackend.flush();
 
       expect(errorSpy).toHaveBeenCalled();
@@ -314,4 +373,33 @@ describe('applicationReportActions', function() {
       expect(action.payload).not.toBeDefined();
     });
   });
+
+  function mockFetchReportDataSuccess(isUnknownJs) {
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
+        {reportTitle: 'test'});
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
+        null);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
+        .respond(null);
+
+    if (isUnknownJs) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond({
+        aaData: [{
+          filenames: ['foo.js']
+        }]
+      });
+    }
+  }
+
+  function mockFetchReportDataFailure() {
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(500,
+        'test error');
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(200);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(200);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(200);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
+        .respond(200);
+  }
 });

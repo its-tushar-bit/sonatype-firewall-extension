@@ -54,6 +54,10 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
 
     isNextDisabled() {
       return vm.selectedComponentIndex >= getLastIndex();
+    },
+
+    reloadReportAndHandleError() {
+      return vm.reloadReport().catch(vm.dismiss);
     }
   });
 

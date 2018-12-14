@@ -38,6 +38,7 @@ describe('applicationReportReducer', function() {
       expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
       expect(newState.exactValueFilters).toEqual({});
       expect(newState.substringFilters).toEqual({});
+      expect(newState.isUnknownJs).toBe(false);
     });
   });
 
@@ -164,6 +165,106 @@ describe('applicationReportReducer', function() {
         waived: false,
         grandfathered: false
       }]);
+    });
+
+    it('sets selectedComponentIndex while in aggregated mode if a component was previously selected', function() {
+      const state = Object.freeze({
+        loading: true,
+        loadError: null,
+        aggregate: true,
+        sortFields: ['derivedComponentName'],
+        selectedComponentIndex: 0,
+        selectedReport: {
+          displayedEntries: [{
+            hash: '1',
+            derivedComponentName: '1'
+          }, {
+            hash: '2',
+            derivedComponentName: '2'
+          }, {
+            hash: '3',
+            derivedComponentName: '3'
+          }]
+        },
+        other: otherObject
+      });
+
+      const entries = [{
+        hash: '1',
+        derivedComponentName: '5'
+      }, {
+        hash: '2',
+        derivedComponentName: '2'
+      }, {
+        hash: '3',
+        derivedComponentName: '3'
+      }];
+
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {allEntries: entries}
+        }
+      });
+
+      expect(newState.selectedComponentIndex).toBe(2);
+    });
+
+    it('sets selectedComponentIndex while in non aggregated mode if a component was previously selected', function() {
+      const state = Object.freeze({
+        loading: true,
+        loadError: null,
+        aggregate: false,
+        sortFields: ['derivedComponentName', 'policyName'],
+        selectedComponentIndex: 1,
+        selectedReport: {
+          displayedEntries: [{
+            hash: '1',
+            policyName: 'P1',
+            derivedComponentName: '1'
+          }, {
+            hash: '1',
+            policyName: 'P2',
+            derivedComponentName: '1'
+          }, {
+            hash: '2',
+            policyName: 'P2',
+            derivedComponentName: '2'
+          }, {
+            hash: '3',
+            policyName: 'P3',
+            derivedComponentName: '3'
+          }]
+        },
+        other: otherObject
+      });
+
+      const entries = [{
+        hash: '1',
+        policyName: 'P1',
+        derivedComponentName: '5'
+      }, {
+        hash: '1',
+        policyName: 'P2',
+        derivedComponentName: '5'
+      }, {
+        hash: '2',
+        policyName: 'P2',
+        derivedComponentName: '2'
+      }, {
+        hash: '3',
+        policyName: 'P3',
+        derivedComponentName: '3'
+      }];
+
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {allEntries: entries}
+        }
+      });
+
+      expect(newState.selectedComponentIndex).toBe(3);
     });
   });
 

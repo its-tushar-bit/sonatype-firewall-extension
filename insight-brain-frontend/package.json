@@ -26,6 +26,7 @@
     "jquery": "=3.2.1",
     "jquery-ui": "git+https://github.com/components/jqueryui.git#1.11.4",
     "jquery.browser": "=0.1.0",
+    "moment": "=2.22.2",
     "ng-redux": "=3.5.2",
     "ng-upload": "https://github.com/twilson63/ngUpload.git#v0.5.18",
     "ngUpload": "git+https://github.com/twilson63/ngUpload.git#v0.5.18",

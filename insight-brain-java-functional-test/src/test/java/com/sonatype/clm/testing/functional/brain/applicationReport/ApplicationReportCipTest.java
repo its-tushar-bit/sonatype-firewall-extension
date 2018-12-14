@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DatePicker;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
@@ -21,10 +22,12 @@ import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVDetailModal;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
+import com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP;
+import com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP.ConfirmRevokeClaimDialog;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipAuditTab;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurrencesTab;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimilarTab;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -37,12 +40,14 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -61,6 +66,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -69,9 +75,11 @@ import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP.ERROR_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -669,6 +677,98 @@ public class ApplicationReportCipTest
     cipModal.closeButton().click();
   }
 
+  @Test
+  public void testClaimComponentTab() {
+    mockHdsResponseForClaimedComponent();
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(5).shouldHave(text("unknown.jar")).click();
+    cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(5).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+
+    ClaimComponentCIP claimComponentTab = new ClaimComponentCIP();
+    claimComponentTab.shouldBe(visible);
+    claimComponentTab.allFormInputs().forEach(i -> i.shouldBe(empty));
+    claimComponentTab.revokeBtn().shouldBe(hidden);
+    claimComponentTab.cancelBtn().shouldBe(hidden);
+    claimComponentTab.updateBtn().shouldBe(hidden);
+    claimComponentTab.claimBtn().shouldBe(visible, disabled);
+
+    claimComponentTab.comment().input().val("comment");
+    claimComponentTab.claimBtn().shouldBe(visible, enabled).click();
+    claimComponentTab.validationErrors()
+        .shouldHave(exactText("Group ID, Artifact ID, Version and Extension are required"));
+
+    claimComponentTab.group().shouldHave(ERROR_CLASS).input().val("groupId");
+    claimComponentTab.group().shouldNotHave(ERROR_CLASS);
+
+    claimComponentTab.artifactId().shouldHave(ERROR_CLASS).input().val("artifactId");
+    claimComponentTab.artifactId().shouldNotHave(ERROR_CLASS);
+
+    claimComponentTab.version().shouldHave(ERROR_CLASS).input().val("version");
+    claimComponentTab.version().shouldNotHave(ERROR_CLASS);
+
+    claimComponentTab.extension().shouldHave(ERROR_CLASS).input().val("extension");
+    claimComponentTab.extension().shouldNotHave(ERROR_CLASS);
+    claimComponentTab.validationErrors().shouldBe(empty);
+
+    claimComponentTab.created().shouldNotHave(ERROR_CLASS).input().val("foo");
+    claimComponentTab.created().shouldHave(ERROR_CLASS);
+    claimComponentTab.validationErrors().shouldHave(exactText("Date format is MM/DD/YYYY"));
+    claimComponentTab.created().click();
+    new DatePicker().today().click();
+    claimComponentTab.validationErrors().shouldBe(empty);
+    claimComponentTab.created().shouldNotHave(ERROR_CLASS);
+
+    claimComponentTab.classifier().shouldNotHave(ERROR_CLASS).input().val("classifier");
+
+    claimComponentTab.claimBtn().click();
+    claimComponentTab.revokeBtn().waitUntil(visible, 10*1000); // sometimes takes a surprisingly long time
+    cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));
+    claimComponentTab.revokeBtn().shouldBe(enabled);
+    claimComponentTab.cancelBtn().shouldBe(disabled);
+    eyesWatcher.eyesCheck();
+    cipModal.closeButton().click();
+    // the new name pushes the component one entry up in the results page
+    reportPage.resultRow(5).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    reportPage.resultRow(4).shouldHave(text("groupId : artifactId : extension : classifier : version")).click();
+    cipModal.tabLink(7).shouldHave(exactText("CLAIM")).click(); // a few extra tabs have been added
+
+    HashComponentIdentifier claimedComponent = new HashComponentIdentifierDAO().getByComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version", "classifier", "extension"));
+
+    assertThat(claimedComponent, is(notNullValue()));
+    assertThat(claimedComponent.getComment(), is("comment"));
+    assertThat(claimedComponent.getCreateTime(), is(DateTime.now().withTimeAtStartOfDay().toDate()));
+
+    claimComponentTab.group().input().val("groupie");
+    claimComponentTab.cancelBtn().shouldBe(enabled).click();
+    claimComponentTab.group().input().shouldHave(value("groupId"));
+    claimComponentTab.cancelBtn().shouldBe(disabled);
+
+    claimComponentTab.revokeBtn().click();
+    ConfirmRevokeClaimDialog confirmRevokeClaimDialog = new ConfirmRevokeClaimDialog();
+    confirmRevokeClaimDialog.shouldBe(visible);
+    confirmRevokeClaimDialog.revokeClaimButton().click();
+    confirmRevokeClaimDialog.shouldBe(hidden);
+    claimComponentTab.allFormInputs().forEach(i -> i.shouldBe(empty));
+    cipModal.header().shouldHave(text("unknown.jar"));
+  }
+
+  @Test
+  public void testClaimComponentTabDisplayRules() {
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(4).click();
+    cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).shouldHave(exactText("LICENSES"));
+    cipModal.nextButton().click();
+    cipModal.tabLink(5).shouldHave(exactText("CLAIM")).click();
+    cipModal.tabLink(5).shouldHave(ACTIVE_CLASS);
+    cipModal.previousButton().click();
+    cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS);
+  }
+
   private Policy createPolicy(String ownerId,
                               int threatLevel,
                               String name,
@@ -702,6 +802,10 @@ public class ApplicationReportCipTest
         getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
   }
 
+  private void mockHdsResponseForClaimedComponent() {
+    testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":false}", 200);
+  }
+    
   private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {
     actualRow.identifier().shouldHave(text(identifier));
     actualRow.info().shouldBe(visible);

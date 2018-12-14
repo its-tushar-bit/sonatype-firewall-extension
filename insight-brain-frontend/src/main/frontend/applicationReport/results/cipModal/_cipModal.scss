@@ -5,6 +5,7 @@
 @import '../../../cip/cip.policy.violations/cip-policy-violations';
 @import '../../../cip/cip.license.editor/cip-license-editor';
 @import '../../../cip/cip.label.editor/cip-label-editor';
+@import '~bootstrap-datepicker/dist/css/bootstrap-datepicker3.standalone';
 
 // Vulnerabilities tab
 @import '../../../cip/cip.vulnerability.editor/cip.vulnerability.editor';
@@ -30,6 +31,16 @@ $iq-cip-tab-content-padding-top: 5px;
         padding-top: $iq-cip-tab-content-padding-top;
         width: 100%;
 
+        .well .form-horizontal {
+          .controls {
+            margin-left: 105px;
+          }
+
+          .control-label {
+            width: 85px;
+          }
+        }
+
         #cip-policy-violations {
           .table {
             // avoid scroll bar when possible
@@ -42,16 +53,6 @@ $iq-cip-tab-content-padding-top: 5px;
             line-height: 10px;
             vertical-align: bottom;
             padding-bottom: 8px;
-          }
-
-          .well .form-horizontal {
-            label {
-              width: 85px;
-            }
-
-            .controls {
-              margin-left: 105px;
-            }
           }
 
           // compensate for discrepancies in Bootstrap in CIP - v2.0.4 vs IQ - v2.3.2
@@ -136,4 +137,35 @@ cip-similar, cip-occurrences {
 
 cip-similar {
   margin-top: 1px;
+}
+
+#claim-component-editor {
+  padding: 5px;
+
+  #comment-input textarea {
+    height: 86px;
+  }
+
+  .alert {
+    margin: auto;
+    margin-top: 20px;
+    padding-top: 5px;
+    width: 50%;
+  }
+
+  td {
+    vertical-align: top;
+  }
+
+  .control-group {
+    margin-bottom: 10px;
+  }
+
+  .validation-error {
+    color: $iq-invalid-color;
+    font-size: 12px;
+    vertical-align: middle;
+    padding-left: 105px;
+    max-width: 280px;
+  }
 }

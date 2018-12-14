@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
+import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.toLicenseDTO;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;

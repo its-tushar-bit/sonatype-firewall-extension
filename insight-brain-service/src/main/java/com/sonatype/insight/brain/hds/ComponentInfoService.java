@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -101,6 +102,7 @@ public class ComponentInfoService
                                                                                HttpServletRequest httpRequest)
       throws IOException
   {
+    auditComponentAccess(identifier, hash);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     NamedComponentDetails details = getComponentDetails(app, identifier, matchState, hash, proprietary, httpRequest);
 
@@ -210,6 +212,7 @@ public class ComponentInfoService
                                                                                   HttpServletRequest httpRequest)
       throws IOException
   {
+    auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, httpRequest);
     augmentComponentDetails(componentDetailsList.getList(), matchState, app);
@@ -227,6 +230,7 @@ public class ComponentInfoService
                                                                                                  ComponentIdentifier componentIdentifier,
                                                                                                  HttpServletRequest httpRequest) throws IOException
   {
+    auditComponentAccess(componentIdentifier, null);
     return getComponentDetailsForAllVersions(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
         httpRequest);
   }
@@ -417,6 +421,10 @@ public class ComponentInfoService
     ComponentDetails componentDetails = getComponentDetailsFromHDS(null, hash, componentIdentifier, httpRequest);
     componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
+  }
+
+  private void auditComponentAccess(final ComponentIdentifier identifier, final String hash) {
+    AuditData.get().setComponentIdentifier(identifier).setComponentHash(hash);
   }
 
   private Set<License> getSelectableLicenses(Collection<License> declared, Collection<License> observed) {

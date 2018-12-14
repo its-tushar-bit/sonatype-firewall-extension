@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
@@ -34,7 +36,7 @@ public class IDEComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ide/componentDetails";
 
-  private static final String APPLICATION_COMPONENT_DETAILS_PATH = "application/{applicationPublicId}";
+  static final String APPLICATION_COMPONENT_DETAILS_PATH = "application/{applicationPublicId}";
 
   private final ComponentInfoService componentInfoService;
 
@@ -50,6 +52,7 @@ public class IDEComponentInfoResource
   @GET
   @Path(APPLICATION_COMPONENT_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public NamedComponentDetails getComponentDetails(@PathParam("applicationPublicId") String applicationPublicId,
                                                    @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
                                                    @QueryParam("matchState") String matchState,
@@ -67,6 +70,7 @@ public class IDEComponentInfoResource
   @GET
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public ComponentDetailsList getComponentDetailsList(@PathParam("applicationPublicId") String applicationPublicId,
                                                       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
                                                       @QueryParam("matchState") String matchState) throws IOException
@@ -81,6 +85,7 @@ public class IDEComponentInfoResource
   @GET
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("applicationPublicId") String applicationPublicId,
                                                                      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {

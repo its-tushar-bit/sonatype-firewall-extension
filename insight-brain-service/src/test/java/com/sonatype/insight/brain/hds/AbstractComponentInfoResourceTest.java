@@ -7,29 +7,25 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.license.MultiLicense;
-import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
+import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -105,35 +101,6 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = detailsRequest(getOwnerId(),
         ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv"), "ulh", MatchState.UNKNOWN, null).get();
     assertResponseStatus(402, response);
-  }
-
-  private ComponentDetails newComponentDetails(ComponentIdentifier componentIdentifier) {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-    ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
-    componentDetails.setHash("somehash");
-    componentDetails.setMatchState(MatchState.EXACT.getId());
-    componentDetails.setDeclaredLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO
-        .getByIdNotNull("Apache-2.0"))));
-    componentDetails
-        .setObservedLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("EPL-1.0"))));
-    componentDetails
-        .setOverriddenLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("GPL-1.0"))));
-    componentDetails
-        .setEffectiveLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("GPL-1.0"))));
-    componentDetails.setEffectiveLicenseStatus(LicenseStatus.Overridden);
-    SecurityVulnerability sv = new SecurityVulnerability("refid", "source", 1F);
-    sv.setStatus(SecurityVulnerabilityOverrideStatus.OPEN.getName());
-    componentDetails.setSecurityVulnerabilities(Collections.singletonList(sv));
-    componentDetails.setCatalogDate(new Date().getTime());
-    componentDetails.setWebsite("http://www.example.com");
-    componentDetails.setLicenseThreatLevel(2);
-    componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-    componentDetails.setIdentificationSourceComment("No comments");
-    return componentDetails;
-  }
-
-  protected License toLicenseDTO(MultiLicense multiLicense) {
-    return new License(multiLicense.getId(), multiLicense.getShortDisplayName());
   }
 
   protected void testGetComponentDetails_EvaluateComponentPermission() throws Exception {
@@ -214,11 +181,6 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(componentDetailsForAllVersions, arrayWithSize(1));
     ComponentDetailsDTO componentDetailsDTO = componentDetailsForAllVersions[0];
     assertComponentDetails(componentDetailsDTO, hdsComponentDetails);
-  }
-
-  String convertToHdsUrl(String brainUrl) {
-    return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+/[^/]+)(.*)", "$2/componentDetails$4")
-        .replace("allVersions", "list");
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {

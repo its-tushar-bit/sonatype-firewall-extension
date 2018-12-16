@@ -16,11 +16,8 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 public class H2DatabaseMigratorTest
@@ -35,8 +32,8 @@ public class H2DatabaseMigratorTest
                 "target/test-classes/H2DatabaseMigratorTest/testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"),
             databaseDir);
     File databaseVersionFile = new File(databaseDir, "dm.ver");
-    assertThat(databaseVersionFile.isFile(), is(true));
-    assertThat(readDatabaseVersion(databaseVersionFile), is("3"));
+    assertThat(databaseVersionFile).isFile();
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("3");
 
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
 
@@ -46,13 +43,10 @@ public class H2DatabaseMigratorTest
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
-    try {
+    assertThatThrownBy(() -> {
       new H2DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
-      fail("Expected exception");
-    }
-    catch (ScriptStatementFailedException expected) {
-      assertThat(readDatabaseVersion(databaseVersionFile), is("6"));
-    }
+    }).isInstanceOf(ScriptStatementFailedException.class);
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("6");
   }
 
   @Test
@@ -61,18 +55,18 @@ public class H2DatabaseMigratorTest
     copyDatabase(databaseDir,  getClass().getSimpleName() + "/PostIncrementalMigrator");
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
     int desiredVersion = 12;
-    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredVersion - 2)));
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredVersion - 2));
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "PostIncrementalMigrator");
 
     new H2DatabaseMigrator().migrate(databaseConfig, "PostIncrementalMigrator", dataSource);
 
-    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredVersion)));
-    assertThat(PostIncrementalMigratorVersionMinus1.invoked, is(false));
-    assertThat(PostIncrementalMigratorVersion.invoked, is(false));
-    assertThat(PostIncrementalMigratorVersionPlus1.invoked, is(true));
-    assertThat(PostIncrementalMigratorVersionDesired.invoked, is(true));
-    assertThat(PostIncrementalMigratorVersionDesiredPlus1.invoked, is(false));
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredVersion));
+    assertThat(PostIncrementalMigratorVersionMinus1.invoked).isFalse();
+    assertThat(PostIncrementalMigratorVersion.invoked).isFalse();
+    assertThat(PostIncrementalMigratorVersionPlus1.invoked).isTrue();
+    assertThat(PostIncrementalMigratorVersionDesired.invoked).isTrue();
+    assertThat(PostIncrementalMigratorVersionDesiredPlus1.invoked).isFalse();
   }
 
   @Test
@@ -86,12 +80,12 @@ public class H2DatabaseMigratorTest
     new H2DatabaseMigrator().backup(databaseDir, dbName, backupDir);
 
     File backupZip = new File(backupDir, dbName + ".zip");
-    assertThat(backupZip.exists(), is(true));
+    assertThat(backupZip).isFile();
 
     try (ZipFile zipFile = new ZipFile(backupZip)) {
-      assertThat(zipFile.size(), is(2));
-      assertThat(zipFile.getEntry("test.h2.db"), is(notNullValue()));
-      assertThat(zipFile.getEntry("test.ver"), is(notNullValue()));
+      assertThat(zipFile.size()).isEqualTo(2);
+      assertThat(zipFile.getEntry("test.h2.db")).isNotNull();
+      assertThat(zipFile.getEntry("test.ver")).isNotNull();
     }
   }
 
@@ -100,17 +94,14 @@ public class H2DatabaseMigratorTest
     File databaseDir = tempDir.newFolder();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/MissingVersionFile");
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
-    assertThat(databaseVersionFile.exists(), is(false));
+    assertThat(databaseVersionFile).doesNotExist();
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "MissingVersionFile");
 
-    try {
+    assertThatThrownBy(() -> {
       new H2DatabaseMigrator().migrate(databaseConfig, "MissingVersionFile", dataSource);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is("Missing the database version file " + databaseVersionFile + "."));
-    }
+    }).isInstanceOf(IllegalStateException.class)
+        .hasMessage("Missing the database version file " + databaseVersionFile + ".");
   }
 
   @Test
@@ -122,48 +113,39 @@ public class H2DatabaseMigratorTest
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
 
-    try {
+    assertThatThrownBy(() -> {
       new H2DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), containsString("was created by a newer product version"));
-      assertThat(readDatabaseVersion(databaseVersionFile), is("9999"));
-    }
+    }).isInstanceOf(IllegalStateException.class).hasMessageContaining("was created by a newer product version");
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("9999");
   }
 
   @Test
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringExecute() {
-    try {
-      new H2DatabaseMigrator().runPostIncrementalMigrator("/H2DatabaseMigratorTest/" +
-              "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
+    assertThatThrownBy(() -> {
+      new H2DatabaseMigrator().runPostIncrementalMigrator(
+          "/H2DatabaseMigratorTest/"
+              + "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
           mock(DataSource.class));
-      fail("Expected exception");
-    }
-    catch (RuntimeException e) {
-      assertThat(e.getMessage(), is("Failed to execute the PostIncrementalMigrator referenced in " +
-          "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/" +
-          "schema_incremental_0089.cls."));
-    }
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
+            + "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/"
+            + "schema_incremental_0089.cls.");
   }
 
   @Test
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringLoad() {
-    try {
-      new H2DatabaseMigrator().runPostIncrementalMigrator("/H2DatabaseMigratorTest/" +
-          "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls", null);
-      fail("Expected exception");
-    }
-    catch (RuntimeException e) {
-      assertThat(e.getMessage(), is("Failed to execute the PostIncrementalMigrator referenced in " +
-          "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/" +
-          "schema_incremental_0090.cls."));
-    }
+    assertThatThrownBy(() -> {
+      new H2DatabaseMigrator().runPostIncrementalMigrator("/H2DatabaseMigratorTest/"
+          + "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls", null);
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
+            + "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/"
+            + "schema_incremental_0090.cls.");
   }
 
   @Test
   public void testDetermineDesiredVersion() {
-    assertThat(H2DatabaseMigrator.determineDesiredVersion("DetermineDesiredVersion"), is(12));
+    assertThat(H2DatabaseMigrator.determineDesiredVersion("DetermineDesiredVersion")).isEqualTo(12);
   }
 
   static class PostIncrementalMigratorVersionMinus1

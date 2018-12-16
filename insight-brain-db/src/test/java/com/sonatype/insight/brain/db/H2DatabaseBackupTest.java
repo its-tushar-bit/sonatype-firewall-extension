@@ -19,11 +19,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class H2DatabaseBackupTest
     extends AbstractDatabaseTest
@@ -34,8 +30,8 @@ public class H2DatabaseBackupTest
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseBackupTest/testBackupOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
-    assertTrue(databaseVersionFile.exists());
-    assertEquals("6", FileUtils.fileRead(databaseVersionFile, "UTF-8"));
+    assertThat(databaseVersionFile).exists();
+    assertThat(FileUtils.fileRead(databaseVersionFile, "UTF-8")).isEqualTo("6");
 
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "ods");
 
@@ -51,18 +47,18 @@ public class H2DatabaseBackupTest
     File dbBackupFile = new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX);
     try (ZipFile dbBackupZipFile = new ZipFile(dbBackupFile)) {
       ZipEntry zipEntryDb = dbBackupZipFile.getEntry("ods.h2.db");
-      assertThat("The db file is missing from the db backup", zipEntryDb, notNullValue());
-      assertThat(getZipEntryContent(dbBackupZipFile, zipEntryDb),
-          is(getFileContent(new File(databaseDir, "ods.h2.db"))));
+      assertThat(zipEntryDb).as("The db file is missing from the db backup").isNotNull();
+      assertThat(getZipEntryContent(dbBackupZipFile, zipEntryDb))
+          .isEqualTo(getFileContent(new File(databaseDir, "ods.h2.db")));
 
       ZipEntry zipEntryDbVersion = dbBackupZipFile.getEntry("ods.ver");
-      assertThat("The db version file is missing from the db backup", zipEntryDbVersion, notNullValue());
-      assertThat(new String(getZipEntryContent(dbBackupZipFile, zipEntryDbVersion), "UTF-8"),
-          is(FileUtils.fileRead(databaseVersionFile, "UTF-8")));
+      assertThat(zipEntryDbVersion).as("The db version file is missing from the db backup").isNotNull();
+      assertThat(new String(getZipEntryContent(dbBackupZipFile, zipEntryDbVersion), "UTF-8"))
+          .isEqualTo(FileUtils.fileRead(databaseVersionFile, "UTF-8"));
     }
 
     File restoreIntructionsFile = new File(dbBackupDir, H2DatabaseBackup.RESTORE_FILENAME);
-    assertThat("The restore instructions file is missing from the db backup", restoreIntructionsFile.isFile(), is(true));
+    assertThat(restoreIntructionsFile).as("The restore instructions file is missing from the db backup").isFile();
   }
 
   private byte[] getZipEntryContent(ZipFile zipFile, ZipEntry zipEntry) throws IOException {

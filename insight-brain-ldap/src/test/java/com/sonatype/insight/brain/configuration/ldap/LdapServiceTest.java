@@ -7,11 +7,8 @@ package com.sonatype.insight.brain.configuration.ldap;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
@@ -34,18 +31,9 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.offset;
 
 /**
  * @since 1.7
@@ -108,15 +96,11 @@ public class LdapServiceTest
     ldapService.testConnection(ldapConnection);
   }
 
-  private void assertCannotConnect(LdapConnection ldapConnection) throws NamingException {
-    try {
+  private void assertCannotConnect(LdapConnection ldapConnection) {
+    assertThatThrownBy(() -> {
       ldapService.testConnection(ldapConnection);
-      fail("Expected exception");
-    }
-    catch (CommunicationException expected) {
-      assertThat(expected.getCause(), is(notNullValue()));
-      assertThat(expected.getCause().getMessage(), startsWith("Connection refused"));
-    }
+    }).isInstanceOf(CommunicationException.class)
+        .satisfies(e -> assertThat(e.getCause()).hasMessageStartingWith("Connection refused"));
   }
 
   @Test
@@ -142,33 +126,25 @@ public class LdapServiceTest
 
       // test very short timeout
 
-      try {
-        ldapConnection.setConnectionTimeout(1);
-        begin = System.currentTimeMillis();
+      ldapConnection.setConnectionTimeout(1);
+      begin = System.currentTimeMillis();
+      assertThatThrownBy(() -> {
         ldapService.testConnection(ldapConnection);
+      }).isInstanceOf(NamingException.class);
+      end = System.currentTimeMillis();
 
-        fail("Expected NamingException");
-      }
-      catch (NamingException expected) {
-        end = System.currentTimeMillis();
-      }
-
-      assertThat(Double.valueOf(end - begin), is(closeTo(1300, 500)));
+      assertThat(Double.valueOf(end - begin)).isCloseTo(1300, offset(500.0));
 
       // test slightly longer timeout
 
-      try {
-        ldapConnection.setConnectionTimeout(5);
-        begin = System.currentTimeMillis();
+      ldapConnection.setConnectionTimeout(5);
+      begin = System.currentTimeMillis();
+      assertThatThrownBy(() -> {
         ldapService.testConnection(ldapConnection);
+      }).isInstanceOf(NamingException.class);
+      end = System.currentTimeMillis();
 
-        fail("Expected NamingException");
-      }
-      catch (NamingException expected) {
-        end = System.currentTimeMillis();
-      }
-
-      assertThat(Double.valueOf(end - begin), is(closeTo(5300, 500)));
+      assertThat(Double.valueOf(end - begin)).isCloseTo(5300, offset(500.0));
     }
   }
 
@@ -189,13 +165,9 @@ public class LdapServiceTest
       // force three failures by attempting auth against the dangling socket
 
       for (int failures = 0; failures < 3; failures++) {
-        try {
+        assertThatThrownBy(() -> {
           ldapService.authenticateUser("user", "pass".toCharArray());
-          fail("Expected NamingException");
-        }
-        catch (NamingException expected) {
-          assertThat(expected.getMessage(), containsString("read timed out"));
-        }
+        }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
       }
 
       long lastFailure = System.currentTimeMillis();
@@ -203,13 +175,9 @@ public class LdapServiceTest
       // the next requests should be ignored while the retry delay is active
 
       for (int failures = 0; failures < 3; failures++) {
-        try {
+        assertThatThrownBy(() -> {
           ldapService.authenticateUser("user", "pass".toCharArray());
-          fail("Expected NamingException");
-        }
-        catch (NamingException expected) {
-          assertThat(expected.getMessage(), containsString("Delaying retry"));
-        }
+        }).isInstanceOf(NamingException.class).hasMessageContaining("Delaying retry");
       }
 
       while (System.currentTimeMillis() - lastFailure <= 5000) {
@@ -218,13 +186,9 @@ public class LdapServiceTest
 
       // the next request should NOT be ignored because the delay has expired
 
-      try {
+      assertThatThrownBy(() -> {
         ldapService.authenticateUser("user", "pass".toCharArray());
-        fail("Expected NamingException");
-      }
-      catch (NamingException expected) {
-        assertThat(expected.getMessage(), containsString("read timed out"));
-      }
+      }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
     }
   }
 
@@ -232,13 +196,9 @@ public class LdapServiceTest
   public void testAuthenticateUser_SingleExceptionThrownAsIs() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUser("test_user2_2", "test".toCharArray());
-      fail("wrong password for valid user in 'Test Server2' should fail");
-    }
-    catch (NameNotFoundException e) {
-      assertThat(e.getMessage(), is("LDAP user with username 'test_user2_2' does not exist"));
-    }
+    }).isInstanceOf(NameNotFoundException.class).hasMessage("LDAP user with username 'test_user2_2' does not exist");
   }
 
   @Test
@@ -246,19 +206,15 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUser("test_user2_2", "badPWD".toCharArray());
-      fail("wrong password for valid user in 'Test Server2' should fail");
-    }
-    catch (AuthenticationException e) {
-      assertThat(e.getMessage(), is(
-          "LDAP Server: Test Server2 -> [LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
-
-      assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user2_2' does not exist"));
-      assertThat(e.getSuppressed()[1].getMessage(), is(
-          "[LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
-      assertThat(e.getSuppressed().length, is(2));
-    }
+    }).isInstanceOf(AuthenticationException.class)
+        .hasMessage("LDAP Server: Test Server2 -> [LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed:"
+            + " ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]")
+        .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+            "LDAP user with username 'test_user2_2' does not exist",
+            "[LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: "
+                + "ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
   }
 
   private void loadLdapServer(final TestLdapServer testLdapServer, final String serverName) throws Exception {
@@ -275,18 +231,13 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
-      try {
+      assertThatThrownBy(() -> {
         ldapService.authenticateUser("any-user", "anything".toCharArray());
-        fail("magic string 'timeout' in any error message should fail");
-      }
-      catch (NamingException e) {
-        assertThat(e.getMessage(),
-            is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"));
-
-        assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-        assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'any-user' does not exist"));
-        assertThat(e.getSuppressed().length, is(2));
-      }
+      }).isInstanceOf(NamingException.class)
+          .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n")
+          .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+              "LDAP response read timed out, timeout used:1000ms.",
+              "LDAP user with username 'any-user' does not exist"));
     }
   }
 
@@ -307,21 +258,15 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer3, "Test Server3");
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
       try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
-
-        try {
+        assertThatThrownBy(() -> {
           ldapService.authenticateUser("any-user", "anything".toCharArray());
-          fail("magic string 'timeout' in any error message should fail");
-        }
-        catch (NamingException e) {
-          assertThat(e.getMessage(),
-              is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
-                  + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
-
-          assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-          assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-          assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
-          assertThat(e.getSuppressed().length, is(3));
-        }
+        }).isInstanceOf(NamingException.class)
+            .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
+                + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n")
+            .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+                "LDAP response read timed out, timeout used:1000ms.",
+                "LDAP response read timed out, timeout used:1000ms.",
+                "LDAP user with username 'any-user' does not exist"));
       }
     }
   }
@@ -333,19 +278,16 @@ public class LdapServiceTest
 
     final int ldapServer1Port = testLdapServer1.getPort();
     testLdapServer1.stop();
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUser("test_user4", "anything".toCharArray());
-      fail("Unknown user in any server should fail");
-    }
-    catch (NamingException e) {
-      assertThat(e.getMessage(), is("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port + ";\n"
-          + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
-
-      // Use startsWith because the error message depends on the OS.
-      assertThat(e.getSuppressed()[0].getCause().getMessage(), startsWith("Connection refused"));
-      assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
-      assertThat(e.getSuppressed().length, is(2));
-    }
+    }).isInstanceOf(NamingException.class).hasMessage("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port
+        + ";\n" + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
+        .satisfies(e -> {
+          assertThat(e.getSuppressed()).hasSize(2);
+          // Use startsWith because the error message depends on the OS.
+          assertThat(e.getSuppressed()[0].getCause()).hasMessageStartingWith("Connection refused");
+          assertThat(e.getSuppressed()[1]).hasMessage("LDAP user with username 'test_user4' does not exist");
+        });
   }
 
   @Test
@@ -353,19 +295,14 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUser("test_user4", "anything".toCharArray());
-      fail("Unknown user in any server should fail");
-    }
-    catch (NameNotFoundException e) {
-      assertThat(e.getMessage(),
-          is("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
-              + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
-
-      assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
-      assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
-      assertThat(e.getSuppressed().length, is(2));
-    }
+    }).isInstanceOf(NameNotFoundException.class)
+        .hasMessage("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
+            + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
+        .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+            "LDAP user with username 'test_user4' does not exist",
+            "LDAP user with username 'test_user4' does not exist"));
   }
 
   @Test
@@ -374,7 +311,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.authenticateUser("test_user2_1", "test".toCharArray());
-    assertThat(ldapUser.getRealName(), is("Test User 2 1"));
+    assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 1");
   }
 
   @Test
@@ -383,7 +320,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.authenticateUser("test_user2_2", "test".toCharArray());
-    assertThat(ldapUser.getRealName(), is("Test User 2 2"));
+    assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 2");
   }
 
   @Test
@@ -403,13 +340,9 @@ public class LdapServiceTest
       // force three failures by attempting auth against the dangling socket
 
       for (int failures = 0; failures < 3; failures++) {
-        try {
+        assertThatThrownBy(() -> {
           ldapService.authenticateUserForReverseProxy("user");
-          fail("Expected NamingException");
-        }
-        catch (NamingException expected) {
-          assertThat(expected.getMessage(), containsString("read timed out"));
-        }
+        }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
       }
 
       long lastFailure = System.currentTimeMillis();
@@ -417,13 +350,9 @@ public class LdapServiceTest
       // the next requests should be ignored while the retry delay is active
 
       for (int failures = 0; failures < 3; failures++) {
-        try {
+        assertThatThrownBy(() -> {
           ldapService.authenticateUserForReverseProxy("user");
-          fail("Expected NamingException");
-        }
-        catch (NamingException expected) {
-          assertThat(expected.getMessage(), containsString("Delaying retry"));
-        }
+        }).isInstanceOf(NamingException.class).hasMessageContaining("Delaying retry");
       }
 
       while (System.currentTimeMillis() - lastFailure <= 5000) {
@@ -432,13 +361,9 @@ public class LdapServiceTest
 
       // the next request should NOT be ignored because the delay has expired
 
-      try {
+      assertThatThrownBy(() -> {
         ldapService.authenticateUserForReverseProxy("user");
-        fail("Expected NamingException");
-      }
-      catch (NamingException expected) {
-        assertThat(expected.getMessage(), containsString("read timed out"));
-      }
+      }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
     }
   }
 
@@ -446,13 +371,9 @@ public class LdapServiceTest
   public void testAuthenticateUserForReverseProxy_SingleExceptionThrownAsIs() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUserForReverseProxy("test_user2_2");
-      fail("wrong password for valid user in 'Test Server2' should fail");
-    }
-    catch (NameNotFoundException e) {
-      assertThat(e.getMessage(), is("LDAP user with username 'test_user2_2' does not exist"));
-    }
+    }).isInstanceOf(NameNotFoundException.class).hasMessage("LDAP user with username 'test_user2_2' does not exist");
   }
 
   @Test
@@ -461,18 +382,13 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
-      try {
+      assertThatThrownBy(() -> {
         ldapService.authenticateUserForReverseProxy("any-user");
-        fail("magic string 'timeout' in any error message should fail");
-      }
-      catch (NamingException e) {
-        assertThat(e.getMessage(),
-            is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"));
-
-        assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-        assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'any-user' does not exist"));
-        assertThat(e.getSuppressed().length, is(2));
-      }
+      }).isInstanceOf(NamingException.class)
+          .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n")
+          .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+              "LDAP response read timed out, timeout used:1000ms.",
+              "LDAP user with username 'any-user' does not exist"));
     }
   }
 
@@ -484,21 +400,15 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer3, "Test Server3");
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
       try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
-
-        try {
+        assertThatThrownBy(() -> {
           ldapService.authenticateUserForReverseProxy("any-user");
-          fail("magic string 'timeout' in any error message should fail");
-        }
-        catch (NamingException e) {
-          assertThat(e.getMessage(),
-              is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
-                  + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
-
-          assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-          assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-          assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
-          assertThat(e.getSuppressed().length, is(3));
-        }
+        }).isInstanceOf(NamingException.class)
+            .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
+                + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n")
+            .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+                "LDAP response read timed out, timeout used:1000ms.",
+                "LDAP response read timed out, timeout used:1000ms.",
+                "LDAP user with username 'any-user' does not exist"));
       }
     }
   }
@@ -510,19 +420,16 @@ public class LdapServiceTest
 
     final int ldapServer1Port = testLdapServer1.getPort();
     testLdapServer1.stop();
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUserForReverseProxy("test_user4");
-      fail("Unknown user in any server should fail");
-    }
-    catch (NamingException e) {
-      assertThat(e.getMessage(), is("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port + ";\n"
-          + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
-
-      // Use startsWith because the error message depends on the OS.
-      assertThat(e.getSuppressed()[0].getCause().getMessage(), startsWith("Connection refused"));
-      assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
-      assertThat(e.getSuppressed().length, is(2));
-    }
+    }).isInstanceOf(NamingException.class).hasMessage("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port
+        + ";\n" + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
+        .satisfies(e -> {
+          assertThat(e.getSuppressed()).hasSize(2);
+          // Use startsWith because the error message depends on the OS.
+          assertThat(e.getSuppressed()[0].getCause()).hasMessageStartingWith("Connection refused");
+          assertThat(e.getSuppressed()[1]).hasMessage("LDAP user with username 'test_user4' does not exist");
+        });
   }
 
   @Test
@@ -530,19 +437,14 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUserForReverseProxy("test_user4");
-      fail("Unknown user in any server should fail");
-    }
-    catch (NameNotFoundException e) {
-      assertThat(e.getMessage(),
-          is("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
-              + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
-
-      assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
-      assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
-      assertThat(e.getSuppressed().length, is(2));
-    }
+    }).isInstanceOf(NameNotFoundException.class)
+        .hasMessage("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
+            + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
+        .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
+            "LDAP user with username 'test_user4' does not exist",
+            "LDAP user with username 'test_user4' does not exist"));
   }
 
   @Test
@@ -551,7 +453,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.authenticateUserForReverseProxy("test_user2_1");
-    assertThat(ldapUser.getRealName(), is("Test User 2 1"));
+    assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 1");
   }
 
   @Test
@@ -560,7 +462,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.authenticateUserForReverseProxy("test_user2_2");
-    assertThat(ldapUser.getRealName(), is("Test User 2 2"));
+    assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 2");
   }
 
   @Test
@@ -571,12 +473,9 @@ public class LdapServiceTest
 
     ldapConnection.setSearchBase("!@£$%^&*()");
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.testConnection(ldapConnection);
-      fail("Expected NamingException");
-    }
-    catch (NamingException expected) {
-    }
+    }).isInstanceOf(NamingException.class);
   }
 
   private void setSearchBase(LdapConnection ldapConnection, String searchBase) {
@@ -603,33 +502,33 @@ public class LdapServiceTest
   }
 
   private void assertUserMapping(List<LdapUser> users, String suffix) {
-    assertThat(users, hasSize(3));
+    assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
 
     LdapUser user = users.get(0);
-    assertThat(user.getUsername(), is("test*user1_" + suffix));
-    assertThat(user.getDn(), is("uid=test*user1_" + suffix + ",ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test*User 1 " + suffix));
-    assertThat(user.getEmail(), is("test.user3_" + suffix + "@company.com"));
-    assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
-    assertThat(user.getMembership(), nullValue());
+    assertThat(user.getUsername()).isEqualTo("test*user1_" + suffix);
+    assertThat(user.getDn()).isEqualTo("uid=test*user1_" + suffix + ",ou=users,dc=company,dc=com");
+    assertThat(user.getRealName()).isEqualTo("Test*User 1 " + suffix);
+    assertThat(user.getEmail()).isEqualTo("test.user3_" + suffix + "@company.com");
+    assertThat(user.getPassword()).isNull(); // make sure password is not passed back
+    assertThat(user.getMembership()).isNull();
 
     user = users.get(1);
-    assertThat(user.getUsername(), is("test_user1_" + suffix));
-    assertThat(user.getDn(), is("uid=test_user1_" + suffix + ",ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test User 1 " + suffix));
-    assertThat(user.getEmail(), is("test.user1_" + suffix + "@company.com"));
-    assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
-    assertThat(user.getMembership(), nullValue());
+    assertThat(user.getUsername()).isEqualTo("test_user1_" + suffix);
+    assertThat(user.getDn()).isEqualTo("uid=test_user1_" + suffix + ",ou=users,dc=company,dc=com");
+    assertThat(user.getRealName()).isEqualTo("Test User 1 " + suffix);
+    assertThat(user.getEmail()).isEqualTo("test.user1_" + suffix + "@company.com");
+    assertThat(user.getPassword()).isNull(); // make sure password is not passed back
+    assertThat(user.getMembership()).isNull();
 
     user = users.get(2);
-    assertThat(user.getUsername(), is("test_user2_" + suffix));
-    assertThat(user.getDn(), is("uid=test_user2_" + suffix + ",ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test User 2 " + suffix));
-    assertThat(user.getEmail(), is("test.user2_" + suffix + "@company.com"));
-    assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
-    assertThat(user.getMembership(), nullValue());
+    assertThat(user.getUsername()).isEqualTo("test_user2_" + suffix);
+    assertThat(user.getDn()).isEqualTo("uid=test_user2_" + suffix + ",ou=users,dc=company,dc=com");
+    assertThat(user.getRealName()).isEqualTo("Test User 2 " + suffix);
+    assertThat(user.getEmail()).isEqualTo("test.user2_" + suffix + "@company.com");
+    assertThat(user.getPassword()).isNull(); // make sure password is not passed back
+    assertThat(user.getMembership()).isNull();
   }
 
   @Test
@@ -643,13 +542,13 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
 
     List<LdapUser> users = ldapService.testUserMapping(umap, -1);
-    assertThat(users, hasSize(3));
+    assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
 
-    assertThat(users.get(0).getMembership(), containsInAnyOrder("ab", "bc", "bx"));
-    assertThat(users.get(1).getMembership(), containsInAnyOrder("ab", "abc", "xb"));
-    assertThat(users.get(2).getMembership(), containsInAnyOrder("ab", "bc", "bx"));
+    assertThat(users.get(0).getMembership()).containsExactlyInAnyOrder("ab", "bc", "bx");
+    assertThat(users.get(1).getMembership()).containsExactlyInAnyOrder("ab", "abc", "xb");
+    assertThat(users.get(2).getMembership()).containsExactlyInAnyOrder("ab", "bc", "bx");
   }
 
   @Test
@@ -665,13 +564,13 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("${dn}");
 
     List<LdapUser> users = ldapService.testUserMapping(umap, -1);
-    assertThat(users, hasSize(3));
+    assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
 
-    assertThat(users.get(0).getMembership(), hasSize(0));
-    assertThat(users.get(1).getMembership(), containsInAnyOrder("Alpha"));
-    assertThat(users.get(2).getMembership(), containsInAnyOrder("Beta"));
+    assertThat(users.get(0).getMembership()).isEmpty();
+    assertThat(users.get(1).getMembership()).containsExactlyInAnyOrder("Alpha");
+    assertThat(users.get(2).getMembership()).containsExactlyInAnyOrder("Beta");
 
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -679,13 +578,13 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=${username}");
 
     users = ldapService.testUserMapping(umap, -1);
-    assertThat(users, hasSize(3));
+    assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
 
-    assertThat(users.get(0).getMembership(), hasSize(0));
-    assertThat(users.get(1).getMembership(), containsInAnyOrder("Gamma", "Theta", "Omega"));
-    assertThat(users.get(2).getMembership(), containsInAnyOrder("Theta"));
+    assertThat(users.get(0).getMembership()).isEmpty();
+    assertThat(users.get(1).getMembership()).containsExactlyInAnyOrder("Gamma", "Theta", "Omega");
+    assertThat(users.get(2).getMembership()).containsExactlyInAnyOrder("Theta");
   }
 
   @Test
@@ -735,26 +634,17 @@ public class LdapServiceTest
     ldapService.testUserLogin(umap, username, password.toCharArray());
   }
 
-  private void assertCannotLogin(LdapUserMapping umap, String username, String password) throws NamingException {
-    try {
+  private void assertCannotLogin(LdapUserMapping umap, String username, String password) {
+    assertThatThrownBy(() -> {
       ldapService.testUserLogin(umap, username, password.toCharArray());
-      fail("Expected AuthenticationException");
-    }
-    catch (AuthenticationException expected) {
-    }
+    }).isInstanceOf(AuthenticationException.class);
   }
 
-  private void assertCannotLoginWhenServerIsDown(LdapUserMapping umap, String username, String password)
-      throws NamingException
-  {
-    try {
+  private void assertCannotLoginWhenServerIsDown(LdapUserMapping umap, String username, String password) {
+    assertThatThrownBy(() -> {
       ldapService.testUserLogin(umap, username, password.toCharArray());
-      fail("Expected AuthenticationException");
-    }
-    catch (CommunicationException expected) {
-      assertThat(expected.getCause(), is(notNullValue()));
-      assertThat(expected.getCause().getMessage(), startsWith("Connection refused"));
-    }
+    }).isInstanceOf(CommunicationException.class)
+        .satisfies(e -> assertThat(e.getCause()).hasMessageStartingWith("Connection refused"));
   }
 
   @Test
@@ -764,13 +654,9 @@ public class LdapServiceTest
     startLdapServer(testLdapServer1, ldapConnection);
     createUserMapping(ldapServer);
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.authenticateUser("test_user", "".toCharArray());
-      fail("Expected exception");
-    }
-    catch (AuthenticationException expected) {
-      // expected
-    }
+    }).isInstanceOf(AuthenticationException.class);
   }
 
   @Test
@@ -780,13 +666,9 @@ public class LdapServiceTest
     startLdapServer(testLdapServer1, ldapConnection);
     LdapUserMapping umap = createUserMapping(ldapServer);
 
-    try {
+    assertThatThrownBy(() -> {
       ldapService.testUserLogin(umap, "test_user", "".toCharArray());
-      fail("Expected exception");
-    }
-    catch (AuthenticationException expected) {
-      // expected
-    }
+    }).isInstanceOf(AuthenticationException.class);
   }
 
   @Test
@@ -796,15 +678,11 @@ public class LdapServiceTest
     startLdapServer(testLdapServer1, ldapConnection);
     createUserMapping(ldapServer);
 
-    try {
+    assertThatThrownBy(() -> {
       // prior to the sanitization of query parameters, an AuthenticationException
       // would've been thrown here, and it leaked the first user name in the system
       ldapService.authenticateUser("*)(uid=*))(|(uid=*", "invalid".toCharArray());
-      fail("authentication should have failed");
-    }
-    catch (NameNotFoundException e) {
-      assertThat(e.getMessage(), not(containsString("test_user")));
-    }
+    }).isInstanceOf(NameNotFoundException.class).satisfies(e -> assertThat(e.getMessage()).doesNotContain("test_user"));
   }
 
   @Test(expected = NameNotFoundException.class)
@@ -836,15 +714,11 @@ public class LdapServiceTest
     startLdapServer(testLdapServer1, ldapConnection);
     createUserMapping(ldapServer);
 
-    try {
+    assertThatThrownBy(() -> {
       // prior to the sanitization of query parameters, an AuthenticationException
       // would've been thrown here, and it leaked the first user name in the system
       ldapService.authenticateUserForReverseProxy("*)(uid=*))(|(uid=*");
-      fail("authentication should have failed");
-    }
-    catch (NameNotFoundException e) {
-      assertThat(e.getMessage(), not(containsString("test_user")));
-    }
+    }).isInstanceOf(NameNotFoundException.class).satisfies(e -> assertThat(e.getMessage()).doesNotContain("test_user"));
   }
 
   @Test(expected = NameNotFoundException.class)
@@ -884,18 +758,14 @@ public class LdapServiceTest
 
     List<LdapUser> users1 = ldapService.getUsersByName(ldapServer1,
         new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
-    assertThat(users1.size(), is(2));
-    Collections.sort(users1);
-    assertThat(users1.get(0).getUsername(), is("test_user1_1"));
-    assertThat(users1.get(1).getUsername(), is("test_user2_1"));
+    assertThat(users1).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_1", "test_user2_1");
 
     users1 = ldapService.getUsersByName(ldapServer1, new String[] { "foo" });
-    assertThat(users1.size(), is(0));
+    assertThat(users1).isEmpty();
 
     List<LdapUser> users2 = ldapService.getUsersByName(ldapServer2,
         new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
-    assertThat(users2.size(), is(1));
-    assertThat(users2.get(0).getUsername(), is("test_user1_2"));
+    assertThat(users2).extracting(LdapUser::getUsername).containsExactly("test_user1_2");
   }
 
   @Test
@@ -907,7 +777,7 @@ public class LdapServiceTest
     createUserMapping(ldapServer);
 
     List<LdapUser> users = ldapService.getUsersByName(ldapServer, new String[] { "test_user*" });
-    assertThat(users.size(), is(0));
+    assertThat(users).isEmpty();
   }
 
   @Test
@@ -925,10 +795,10 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "Gamma", "Theta" });
-    assertThat(groups.size(), is(2));
+    assertThat(groups).hasSize(2);
 
     groups = ldapService.getGroupsByName(ldapServer, new String[] { "foo" });
-    assertThat(groups.size(), is(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -946,7 +816,7 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "*ta" });
-    assertThat(groups.size(), is(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -962,10 +832,10 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab", "abc", "bc" });
-    assertThat(groups.size(), is(3));
+    assertThat(groups).hasSize(3);
 
     groups = ldapService.getGroupsByName(ldapServer, new String[] { "foo" });
-    assertThat(groups.size(), is(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -981,7 +851,7 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab*" });
-    assertThat(groups.size(), is(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -993,8 +863,7 @@ public class LdapServiceTest
     createUserMapping(ldapServer);
 
     List<LdapUser> users = ldapService.findUsersByName(ldapServer, "Test User 2 1", 100);
-    assertThat(users, hasSize(1));
-    assertThat(users.get(0).getRealName(), is("Test User 2 1"));
+    assertThat(users).extracting(LdapUser::getRealName).containsExactly("Test User 2 1");
   }
 
   @Test
@@ -1006,8 +875,7 @@ public class LdapServiceTest
     createUserMapping(ldapServer);
 
     List<LdapUser> users = ldapService.findUsersByName(ldapServer, "tEST user 2 1", 100);
-    assertThat(users, hasSize(1));
-    assertThat(users.get(0).getRealName(), is("Test User 2 1"));
+    assertThat(users).extracting(LdapUser::getRealName).containsExactly("Test User 2 1");
   }
 
   @Test
@@ -1019,7 +887,7 @@ public class LdapServiceTest
     createUserMapping(ldapServer);
 
     List<LdapUser> users = ldapService.findUsersByName(ldapServer, null /* name */, 100);
-    assertThat(users, hasSize(0));
+    assertThat(users).isEmpty();
   }
 
   @Test
@@ -1031,12 +899,8 @@ public class LdapServiceTest
     createUserMapping(ldapServer);
 
     List<LdapUser> users = ldapService.findUsersByName(ldapServer, "*" /* name */, 100);
-    assertThat(users, hasSize(3));
-    List<String> foundNames = new ArrayList<>();
-    for (LdapUser user : users) {
-      foundNames.add(user.getUsername());
-    }
-    assertThat(foundNames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
+    assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_1", "test_user2_1",
+        "test*user1_1");
   }
 
   @Test
@@ -1051,20 +915,12 @@ public class LdapServiceTest
     startLdapServer(testLdapServer2, ldapConnection2);
 
     List<LdapUser> users1 = ldapService.findUsersByName(ldapServer1, "test*" /* name */, 100);
-    assertThat(users1, hasSize(3));
-    List<String> foundNames1 = new ArrayList<>();
-    for (LdapUser user : users1) {
-      foundNames1.add(user.getUsername());
-    }
-    assertThat(foundNames1, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
+    assertThat(users1).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_1", "test_user2_1",
+        "test*user1_1");
 
     List<LdapUser> users2 = ldapService.findUsersByName(ldapServer2, "test*" /* name */, 100);
-    assertThat(users2, hasSize(3));
-    List<String> foundNames2 = new ArrayList<>();
-    for (LdapUser user : users2) {
-      foundNames2.add(user.getUsername());
-    }
-    assertThat(foundNames2, containsInAnyOrder("test_user1_2", "test_user2_2", "test*user1_2"));
+    assertThat(users2).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_2", "test_user2_2",
+        "test*user1_2");
   }
 
   @Test
@@ -1076,10 +932,10 @@ public class LdapServiceTest
     createUserMapping(ldapServer);
 
     List<LdapUser> users = ldapService.findUsersByName(ldapServer, "*" /* name */, 100);
-    assertThat(users, hasSize(3));
+    assertThat(users).hasSize(3);
 
     users = ldapService.findUsersByName(ldapServer, "*" /* name */, 1);
-    assertThat(users, hasSize(1));
+    assertThat(users).hasSize(1);
   }
 
   @Test
@@ -1092,7 +948,7 @@ public class LdapServiceTest
 
     // Wrong Objectclass, groupOfUniqueNames not groupOfNames
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "Alpha", 100);
-    assertThat(groups, hasSize(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -1104,11 +960,10 @@ public class LdapServiceTest
     createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "Omega", 100);
-    assertThat(groups, hasSize(1));
-    assertThat(groups.get(0).getGroupname(), is("Omega"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactly("Omega");
 
     groups = ldapService.findGroupsByName(ldapServer, "meg", 100);
-    assertThat(groups, hasSize(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -1120,8 +975,7 @@ public class LdapServiceTest
     createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "oMEGA", 100);
-    assertThat(groups, hasSize(1));
-    assertThat(groups.get(0).getGroupname(), is("Omega"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactly("Omega");
   }
 
   @Test
@@ -1133,10 +987,10 @@ public class LdapServiceTest
     createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "*a*", 100);
-    assertThat(groups, hasSize(5));
+    assertThat(groups).hasSize(5);
 
     groups = ldapService.findGroupsByName(ldapServer, "*a*", 2);
-    assertThat(groups, hasSize(2));
+    assertThat(groups).hasSize(2);
   }
 
   @Test
@@ -1148,12 +1002,8 @@ public class LdapServiceTest
     createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "*a", 100);
-    assertThat(groups, hasSize(5));
-    List<String> foundNames = new ArrayList<>();
-    for (LdapGroup group : groups) {
-      foundNames.add(group.getGroupname());
-    }
-    assertThat(foundNames, containsInAnyOrder("Gamma", "Omega", "Theta", "Lambda", "Delta"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactlyInAnyOrder("Gamma", "Omega", "Theta",
+        "Lambda", "Delta");
   }
 
   @Test
@@ -1165,7 +1015,7 @@ public class LdapServiceTest
     createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "Foo", 100);
-    assertThat(groups, hasSize(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -1183,9 +1033,7 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
-    assertThat(users, hasSize(2));
-    List<String> foundUserNames = users.stream().map(LdapUser::getUsername).collect(toList());
-    assertThat(foundUserNames, containsInAnyOrder("test_user1", "test_user2"));
+    assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1", "test_user2");
   }
 
   @Test
@@ -1203,7 +1051,7 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delta");
-    assertThat(users, hasSize(2));
+    assertThat(users).hasSize(2);
   }
 
   @Test
@@ -1221,7 +1069,7 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Lambda");
-    assertThat(users, hasSize(2));
+    assertThat(users).hasSize(2);
   }
 
   @Test
@@ -1239,7 +1087,7 @@ public class LdapServiceTest
     userMappingDAO.update(umap);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delt*");
-    assertThat(users, hasSize(0));
+    assertThat(users).isEmpty();
   }
 
   @Test
@@ -1254,7 +1102,7 @@ public class LdapServiceTest
     new LdapUserMappingDAO().update(umap);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "a*");
-    assertThat(users, hasSize(0));
+    assertThat(users).isEmpty();
   }
 
   private void createStaticGroupMapping(LdapServer ldapServer) {
@@ -1284,10 +1132,10 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "*b*", 100);
-    assertThat(groups, hasSize(5));
+    assertThat(groups).hasSize(5);
 
     groups = ldapService.findGroupsByName(ldapServer, "*b*", 2);
-    assertThat(groups, hasSize(2));
+    assertThat(groups).hasSize(2);
   }
 
   @Test
@@ -1299,12 +1147,7 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "*b", 100);
-    assertThat(groups, hasSize(2));
-    List<String> foundNames = new ArrayList<>();
-    for (LdapGroup group : groups) {
-      foundNames.add(group.getGroupname());
-    }
-    assertThat(foundNames, containsInAnyOrder("ab", "xb"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactlyInAnyOrder("ab", "xb");
   }
 
   @Test
@@ -1316,12 +1159,7 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "b*", 100);
-    assertThat(groups, hasSize(2));
-    List<String> foundNames = new ArrayList<>();
-    for (LdapGroup group : groups) {
-      foundNames.add(group.getGroupname());
-    }
-    assertThat(foundNames, containsInAnyOrder("bc", "bx"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactlyInAnyOrder("bc", "bx");
   }
 
   @Test
@@ -1333,12 +1171,7 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "*b*", 100);
-    assertThat(groups.toString(), groups, hasSize(5));
-    List<String> foundNames = new ArrayList<>();
-    for (LdapGroup group : groups) {
-      foundNames.add(group.getGroupname());
-    }
-    assertThat(foundNames, containsInAnyOrder("ab", "abc", "bc", "xb", "bx"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactlyInAnyOrder("ab", "abc", "bc", "xb", "bx");
   }
 
   @Test
@@ -1350,11 +1183,10 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "ab", 100);
-    assertThat(groups, hasSize(1));
-    assertThat(groups.get(0).getGroupname(), is("ab"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactly("ab");
 
     groups = ldapService.findGroupsByName(ldapServer, "b", 100);
-    assertThat(groups, hasSize(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
@@ -1366,8 +1198,7 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "ABC", 100);
-    assertThat(groups, hasSize(1));
-    assertThat(groups.get(0).getGroupname(), is("abc"));
+    assertThat(groups).extracting(LdapGroup::getGroupname).containsExactly("abc");
   }
 
   @Test
@@ -1379,22 +1210,22 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = ldapService.findGroupsByName(ldapServer, "Foo", 100);
-    assertThat(groups, hasSize(0));
+    assertThat(groups).isEmpty();
   }
 
   @Test
   public void testIsLdapEnabled() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    assertThat(ldapService.isLdapEnabled(ldapServer), is(false));
+    assertThat(ldapService.isLdapEnabled(ldapServer)).isFalse();
 
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     ldapConnection.setHostname("localhost");
     ldapService.saveConnection(ldapConnection);
-    assertThat(ldapService.isLdapEnabled(ldapServer), is(false));
+    assertThat(ldapService.isLdapEnabled(ldapServer)).isFalse();
 
     createUserMapping(ldapServer);
 
-    assertThat(ldapService.isLdapEnabled(ldapServer), is(true));
+    assertThat(ldapService.isLdapEnabled(ldapServer)).isTrue();
   }
   
   @Test
@@ -1402,7 +1233,7 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     createLdapConnection(ldapServer);
 
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(false));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.NONE);
@@ -1410,23 +1241,23 @@ public class LdapServiceTest
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.update(umap);
 
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(false));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     userMappingDAO.update(umap);
 
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(true));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isTrue();
 
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setDynamicGroupSearchEnabled(true);
     userMappingDAO.update(umap);
 
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(true));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isTrue();
 
     umap.setDynamicGroupSearchEnabled(false);
     userMappingDAO.update(umap);
 
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(false));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
   }
 
   @Test
@@ -1434,7 +1265,7 @@ public class LdapServiceTest
     setupLdapWithDynamicGroupType("test server 1", false);
     setupLdapWithDynamicGroupType("test server 2", true);
     
-    assertThat(ldapService.isDynamicGroupSearchDisabled(), is(true));
+    assertThat(ldapService.isDynamicGroupSearchDisabled()).isTrue();
   }
 
   @Test
@@ -1442,7 +1273,7 @@ public class LdapServiceTest
     setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.STATIC);
     setupLdapWithDynamicGroupType("test server 2", false);
     
-    assertThat(ldapService.isDynamicGroupSearchDisabled(), is(true));
+    assertThat(ldapService.isDynamicGroupSearchDisabled()).isTrue();
   }
 
   @Test
@@ -1451,7 +1282,7 @@ public class LdapServiceTest
     setupLdapWithNonDynamicGroupType("test server 2", LdapGroupMappingType.STATIC);
     setupLdapWithNonDynamicGroupType("test server 3", LdapGroupMappingType.NONE);
     
-    assertThat(ldapService.isDynamicGroupSearchDisabled(), is(false));
+    assertThat(ldapService.isDynamicGroupSearchDisabled()).isFalse();
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {
@@ -1514,23 +1345,20 @@ public class LdapServiceTest
 
     // Group with one user
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "xb");
-    assertThat(users, hasSize(1));
+    assertThat(users).hasSize(1);
     LdapUser user = users.get(0);
-    assertThat(user.getUsername(), is("test_user1_1"));
-    assertThat(user.getRealName(), is("Test User 1 1"));
-    assertThat(user.getEmail(), is("test.user1_1@company.com"));
+    assertThat(user.getUsername()).isEqualTo("test_user1_1");
+    assertThat(user.getRealName()).isEqualTo("Test User 1 1");
+    assertThat(user.getEmail()).isEqualTo("test.user1_1@company.com");
 
     // Group with two users
     users = ldapService.getUsersByGroup(ldapServer, "ab");
-    Set<String> usernames = new HashSet<>();
-    for (LdapUser user1 : users) {
-      usernames.add(user1.getUsername());
-    }
-    assertThat(usernames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
+    assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_1", "test_user2_1",
+        "test*user1_1");
 
     // Group without users
     users = ldapService.getUsersByGroup(ldapServer, "no such group");
-    assertThat(users, hasSize(0));
+    assertThat(users).isEmpty();
   }
 
   private static int getRandomPort() {

@@ -26,10 +26,8 @@ import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -71,11 +69,11 @@ public class PagedNamingEnumerationTest
   }
 
   private void assertRequestControls(Control[] requestControls, boolean critical, byte pageSize, Byte cookie) {
-    assertThat(requestControls.length, is(1));
-    assertThat(requestControls[0], is(instanceOf(PagedResultsControl.class)));
+    assertThat(requestControls).hasSize(1);
+    assertThat(requestControls[0]).isInstanceOf(PagedResultsControl.class);
     PagedResultsControl control = (PagedResultsControl) requestControls[0];
-    assertThat(control.isCritical(), is(critical));
-    assertThat(control.getEncodedValue(), is(berEncoded(pageSize, cookie)));
+    assertThat(control.isCritical()).isEqualTo(critical);
+    assertThat(control.getEncodedValue()).isEqualTo(berEncoded(pageSize, cookie));
   }
 
   private Control[] newResponseControls(Byte cookie) throws Exception {
@@ -96,13 +94,10 @@ public class PagedNamingEnumerationTest
     Control[] requestControls = {};
     when(ctx.getRequestControls()).thenReturn(requestControls);
     when(ctx.search(baseDN, filter, searchControls)).thenThrow(NamingException.class);
-    try {
+    assertThatThrownBy(() -> {
       new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-      fail("Expected exception");
-    }
-    catch (NamingException e) {
-      verify(ctx).setRequestControls(same(requestControls));
-    }
+    }).isInstanceOf(NamingException.class);
+    verify(ctx).setRequestControls(same(requestControls));
   }
 
   @Test
@@ -146,7 +141,7 @@ public class PagedNamingEnumerationTest
   public void testHasMoreElements_EatsNamingExceptionAsPerApi() throws Exception {
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
     when(results.hasMore()).thenThrow(NamingException.class);
-    assertThat(new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize).hasMoreElements(), is(false));
+    assertThat(new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize).hasMoreElements()).isFalse();
   }
 
   @Test
@@ -155,7 +150,7 @@ public class PagedNamingEnumerationTest
     when(results.hasMore()).thenReturn(true);
     when(results.next()).thenReturn(result);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    assertThat(en.nextElement(), is(result));
+    assertThat(en.nextElement()).isEqualTo(result);
   }
 
   @Test
@@ -163,13 +158,9 @@ public class PagedNamingEnumerationTest
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
     when(results.hasMore()).thenReturn(false);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    try {
+    assertThatThrownBy(() -> {
       en.nextElement();
-      fail("Expected exception");
-    }
-    catch (NoSuchElementException e) {
-      // good boy
-    }
+    }).isInstanceOf(NoSuchElementException.class);
   }
 
   @Test
@@ -177,7 +168,7 @@ public class PagedNamingEnumerationTest
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
     when(results.hasMore()).thenReturn(true);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    assertThat(en.hasMore(), is(true));
+    assertThat(en.hasMore()).isTrue();
     verify(ctx).search(baseDN, filter, searchControls);
   }
 
@@ -194,7 +185,7 @@ public class PagedNamingEnumerationTest
     }).thenReturn(true);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
     verify(ctx).search(baseDN, filter, searchControls);
-    assertThat(en.hasMore(), is(true));
+    assertThat(en.hasMore()).isTrue();
     ArgumentCaptor<Control[]> requestControlsArg = ArgumentCaptor.forClass(Control[].class);
     verify(ctx, times(2)).setRequestControls(requestControlsArg.capture());
     assertRequestControls(requestControlsArg.getAllValues().get(1), true, pageSize, cookie);
@@ -214,7 +205,7 @@ public class PagedNamingEnumerationTest
     });
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
     verify(ctx).search(baseDN, filter, searchControls);
-    assertThat(en.hasMore(), is(false));
+    assertThat(en.hasMore()).isFalse();
     verify(ctx).search(baseDN, filter, searchControls);
   }
 
@@ -224,7 +215,7 @@ public class PagedNamingEnumerationTest
     when(results.hasMore()).thenReturn(true);
     when(results.next()).thenReturn(result);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    assertThat(en.next(), is(result));
+    assertThat(en.next()).isEqualTo(result);
   }
 
   @Test
@@ -232,12 +223,8 @@ public class PagedNamingEnumerationTest
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
     when(results.hasMore()).thenReturn(false);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    try {
+    assertThatThrownBy(() -> {
       en.next();
-      fail("Expected exception");
-    }
-    catch (NoSuchElementException e) {
-      // good boy
-    }
+    }).isInstanceOf(NoSuchElementException.class);
   }
 }

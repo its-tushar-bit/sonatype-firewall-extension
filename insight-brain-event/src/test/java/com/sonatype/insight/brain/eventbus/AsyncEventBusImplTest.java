@@ -16,8 +16,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AsyncEventBusImplTest
 {
@@ -46,17 +45,17 @@ public class AsyncEventBusImplTest
   public void testRegister_EventsDispatched() throws Exception {
     underTest.post("foo");
 
-    assertThat(handler1.getLatch().await(5, TimeUnit.SECONDS), is(true));
-    assertThat(handler2.getLatch().await(5, TimeUnit.SECONDS), is(true));
+    assertThat(handler1.getLatch().await(5, TimeUnit.SECONDS)).isTrue();
+    assertThat(handler2.getLatch().await(5, TimeUnit.SECONDS)).isTrue();
   }
 
   @Test
   public void testRegister_HandlerException() throws Exception {
     underTest.post("foo");
 
-    assertThat(handler1.getLatch().await(5, TimeUnit.SECONDS), is(true));
-    assertThat(handler2.getLatch().await(5, TimeUnit.SECONDS), is(true));
-    assertThat(handlerWithException.getLatch().await(5, TimeUnit.SECONDS), is(true));
+    assertThat(handler1.getLatch().await(5, TimeUnit.SECONDS)).isTrue();
+    assertThat(handler2.getLatch().await(5, TimeUnit.SECONDS)).isTrue();
+    assertThat(handlerWithException.getLatch().await(5, TimeUnit.SECONDS)).isTrue();
   }
 
   @Test
@@ -70,8 +69,8 @@ public class AsyncEventBusImplTest
     underTest.post("bar");
 
     logOutput.assertError("Discarding event because the thread bounds and queue capacities are reached");
-    assertThat(longHandler.getLatch().await(2, TimeUnit.SECONDS), is(false));
-    assertThat(longHandler.getLatch().getCount(), is(1L));
+    assertThat(longHandler.getLatch().await(2, TimeUnit.SECONDS)).isFalse();
+    assertThat(longHandler.getLatch().getCount()).isEqualTo(1);
   }
 
   private class Handler

@@ -27,10 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -90,8 +87,8 @@ public class InsightMailerTest
     smtpServer.waitForIncomingEmail(1);
     MimeMessage mail = smtpServer.getReceivedMessages()[0];
     System.out.println(GreenMailUtil.getHeaders(mail));
-    assertTrue(GreenMailUtil.getBody(mail).contains(msg));
-    assertEquals(toAddr, mail.getRecipients(RecipientType.TO)[0].toString());
+    assertThat(GreenMailUtil.getBody(mail)).contains(msg);
+    assertThat(mail.getRecipients(RecipientType.TO)[0].toString()).isEqualTo(toAddr);
   }
 
   @Test
@@ -106,7 +103,7 @@ public class InsightMailerTest
         .forClass(EmailerConfiguration.class);
     new InsightMailer(eMailer, mailConfig);
     verify(eMailer).configure(emailerConfigurationArgumentCaptor.capture());
-    assertThat(emailerConfigurationArgumentCaptor.getValue().getMailPort(), is(25));
+    assertThat(emailerConfigurationArgumentCaptor.getValue().getMailPort()).isEqualTo(25);
   }
 
   public static String get(String key) {

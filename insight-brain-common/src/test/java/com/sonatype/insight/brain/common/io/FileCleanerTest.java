@@ -14,8 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,10 +27,10 @@ public class FileCleanerTest
   @Test
   public void canDeleteFile() throws IOException {
     File file = folder.newFile();
-    assertThat(file.exists(), is(true));
+    assertThat(file).exists();
 
     new FileCleaner().delete(file);
-    assertThat(file.exists(), is(false));
+    assertThat(file).doesNotExist();
   }
 
   @Test(expected = FileDeletionException.class)
@@ -67,7 +66,7 @@ public class FileCleanerTest
   @Test
   public void ignoresNonExistentFileObjects() throws Exception {
     File file = new File(folder.getRoot(), "lochness.monster");
-    assertThat(file.exists(), is(false));
+    assertThat(file).doesNotExist();
     new FileCleaner().delete(file);
   }
 }

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.util.Iterator;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -32,14 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.7
@@ -185,36 +177,26 @@ public class LdapRealmTest
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertNotNull(principalCollection);
-    assertFalse(principalCollection.isEmpty());
-    Iterator<?> principalIterator = principalCollection.iterator();
-    Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(username, displayName, false), principal);
-    assertThat(((UserPrincipal) principal).getMembership(), containsInAnyOrder(groups));
-    assertFalse(principalIterator.hasNext());
-    assertThat(principalCollection.getRealmNames(), hasSize(1));
-    assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
+    assertThat((Iterable<?>) principalCollection).hasSize(1);
+    Object principal = principalCollection.iterator().next();
+    assertThat(principal).isEqualTo(new UserPrincipal(username, displayName, false));
+    assertThat(((UserPrincipal) principal).getMembership()).containsExactlyInAnyOrder(groups);
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
   }
 
   private void assertBadCredentials(String username, String password) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
-    try {
+    assertThatThrownBy(() -> {
       realm.getAuthenticationInfo(usernamePasswordToken);
-      fail("Expected IncorrectCredentialsException");
-    }
-    catch (AuthenticationException expected) {
-    }
+    }).isInstanceOf(AuthenticationException.class);
   }
 
   private void assertEmptyPassword(String username, String password) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
-    try {
+    assertThatThrownBy(() -> {
       realm.getAuthenticationInfo(usernamePasswordToken);
-      fail("Expected AuthenticationException");
-    }
-    catch (AuthenticationException expected) {
-      assertThat(expected.getCause().getMessage(), is("Password must not be empty"));
-    }
+    }).isInstanceOf(AuthenticationException.class)
+        .satisfies(e -> assertThat(e.getCause()).hasMessage("Password must not be empty"));
   }
 
   private LdapRealmTest withSimpleAuth() {

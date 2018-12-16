@@ -13,9 +13,7 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicenseDataTest
 {
@@ -27,7 +25,7 @@ public class LicenseDataTest
           while (results.next()) {
             ids.add(results.getString(1));
           }
-          assertThat(ids, is(empty()));
+          assertThat(ids).isEmpty();
         }
       }
     }

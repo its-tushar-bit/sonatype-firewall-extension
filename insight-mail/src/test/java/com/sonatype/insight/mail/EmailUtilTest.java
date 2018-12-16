@@ -5,16 +5,13 @@
  */
 package com.sonatype.insight.mail;
 
-import java.util.List;
-
 import javax.mail.internet.AddressException;
 
 import org.sonatype.micromailer.Address;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmailUtilTest
 {
@@ -92,32 +89,23 @@ public class EmailUtilTest
 
   @Test
   public void testSplit_Null() throws Exception {
-    List<Address> addresses = EmailUtil.split(null);
-    assertNotNull(addresses);
-    assertEquals(0, addresses.size());
+    assertThat(EmailUtil.split(null)).isEmpty();
   }
 
   @Test
   public void testSplit_Empty() throws Exception {
-    List<Address> addresses = EmailUtil.split("");
-    assertNotNull(addresses);
-    assertEquals(0, addresses.size());
+    assertThat(EmailUtil.split("")).isEmpty();
   }
 
   @Test
   public void testSplit_One() throws Exception {
-    List<Address> addresses = EmailUtil.split("info@sonatype.com");
-    assertNotNull(addresses);
-    assertEquals(1, addresses.size());
-    assertEquals("info@sonatype.com", addresses.get(0).getMailAddress());
+    assertThat(EmailUtil.split("info@sonatype.com")).extracting(Address::getMailAddress)
+        .containsExactly("info@sonatype.com");
   }
 
   @Test
   public void testSplit_Many() throws Exception {
-    List<Address> addresses = EmailUtil.split("info@sonatype.com, nul@sonatype.com");
-    assertNotNull(addresses);
-    assertEquals(2, addresses.size());
-    assertEquals("info@sonatype.com", addresses.get(0).getMailAddress());
-    assertEquals("nul@sonatype.com", addresses.get(1).getMailAddress());
+    assertThat(EmailUtil.split("info@sonatype.com, nul@sonatype.com")).extracting(Address::getMailAddress)
+        .containsExactly("info@sonatype.com", "nul@sonatype.com");
   }
 }

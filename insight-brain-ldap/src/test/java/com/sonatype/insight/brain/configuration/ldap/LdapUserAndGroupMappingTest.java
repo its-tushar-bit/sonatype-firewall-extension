@@ -24,9 +24,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Mapping tests ported from nexus-ldap-common; LDAP schema files (ldif) were not changed.
@@ -251,26 +249,26 @@ public class LdapUserAndGroupMappingTest
     LdapUser user;
 
     user = users.get(0);
-    assertThat(user.getUsername(), is("brianf"));
-    assertThat(user.getRealName(), is("Brian Fox"));
-    assertThat(user.getEmail(), is("brianf@sonatype.com"));
-    assertThat(user.getMembership(), containsInAnyOrder("public", "releases"));
+    assertThat(user.getUsername()).isEqualTo("brianf");
+    assertThat(user.getRealName()).isEqualTo("Brian Fox");
+    assertThat(user.getEmail()).isEqualTo("brianf@sonatype.com");
+    assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "releases");
 
     ldapService.testUserLogin(umap, "brianf", "brianf123".toCharArray());
 
     user = users.get(1);
-    assertThat(user.getUsername(), is("cstamas"));
-    assertThat(user.getRealName(), is("Tamas Cservenak"));
-    assertThat(user.getEmail(), is("cstamas@sonatype.com"));
-    assertThat(user.getMembership(), containsInAnyOrder("public", "snapshots"));
+    assertThat(user.getUsername()).isEqualTo("cstamas");
+    assertThat(user.getRealName()).isEqualTo("Tamas Cservenak");
+    assertThat(user.getEmail()).isEqualTo("cstamas@sonatype.com");
+    assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "snapshots");
 
     ldapService.testUserLogin(umap, "cstamas", "cstamas123".toCharArray());
 
     user = users.get(2);
-    assertThat(user.getUsername(), is("jvanzyl"));
-    assertThat(user.getRealName(), is("Jason Van Zyl"));
-    assertThat(user.getEmail(), is("jvanzyl@sonatype.com"));
-    assertThat(user.getMembership(), containsInAnyOrder("public", "releases", "snapshots"));
+    assertThat(user.getUsername()).isEqualTo("jvanzyl");
+    assertThat(user.getRealName()).isEqualTo("Jason Van Zyl");
+    assertThat(user.getEmail()).isEqualTo("jvanzyl@sonatype.com");
+    assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "releases", "snapshots");
 
     ldapService.testUserLogin(umap, "jvanzyl", "jvanzyl123".toCharArray());
 

@@ -19,9 +19,7 @@ import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * This may sound silly, but this test actually tests test LDAP server.
@@ -85,13 +83,9 @@ public class EmbeddedLdapServerTest
 
     Hashtable<String, Object> env = getEnv(AUTH_DIGESTMD5);
     env.put("java.naming.security.sasl.realm", "wrongrealm");
-    try {
+    assertThatThrownBy(() -> {
       new InitialDirContext(env).close();
-      fail();
-    }
-    catch (NamingException expected) {
-      assertThat(expected.toString(), containsString("Nonexistent realm: wrongrealm"));
-    }
+    }).isInstanceOf(NamingException.class).hasMessageContaining("Nonexistent realm: wrongrealm");
   }
 
   @Test
@@ -121,17 +115,12 @@ public class EmbeddedLdapServerTest
     }
   }
 
-  private void assertLoginFailure(String... mechanisms) throws NamingException {
+  private void assertLoginFailure(String... mechanisms) {
     for (String mechanism : mechanisms) {
-      try {
+      assertThatThrownBy(() -> {
         login(mechanism);
-        fail();
-      }
-      catch (AuthenticationException expected) {
         // oddly, apacheds throws auth exception for unsupported simple auth
-      }
-      catch (AuthenticationNotSupportedException expected) {
-      }
+      }).isInstanceOfAny(AuthenticationException.class, AuthenticationNotSupportedException.class);
     }
   }
 

@@ -17,10 +17,9 @@ import com.sonatype.insight.test.LogOutput;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.core.StringContains.containsString;
 
 public class OperationalDataStoreProviderTest
     extends AbstractDatabaseProviderTest
@@ -48,14 +47,14 @@ public class OperationalDataStoreProviderTest
     File databaseDir = tempDir.newFolder();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/Migrate");
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "ods");
-    assertThat(databaseVersionFile.isFile(), is(true));
-    assertThat(readDatabaseVersion(databaseVersionFile),
-        is(String.valueOf(OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION)));
+    assertThat(databaseVersionFile).isFile();
+    assertThat(readDatabaseVersion(databaseVersionFile))
+        .isEqualTo(String.valueOf(OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION));
 
     initDatabase(getDatabaseConfig(databaseDir, "ods"));
 
     int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
-    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredDbVersion)));
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredDbVersion));
   }
 
   @Test
@@ -66,16 +65,12 @@ public class OperationalDataStoreProviderTest
     String oldVersion = String.valueOf(OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION - 1);
     Files.write(databaseVersionFile.toPath(), oldVersion.getBytes(StandardCharsets.UTF_8));
 
-    try {
+    assertThatThrownBy(() -> {
       initDatabase(getDatabaseConfig(databaseDir, "ods"));
-      fail("Expected exception");
-    }
-    catch (UnsupportedOperationException e) {
-      assertThat(e.getMessage(),
-          is("Cannot migrate insight_brain_ods database, this requires version "
-              + OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION + " at minimum, but you have version "
-              + oldVersion + ".\nPlease upgrade to Nexus IQ Server version 1.16 before upgrading to this version."));
-    }
+    }).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("Cannot migrate insight_brain_ods database, this requires version "
+            + OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION + " at minimum, but you have version " + oldVersion
+            + ".\nPlease upgrade to Nexus IQ Server version 1.16 before upgrading to this version.");
   }
 
   @Test
@@ -86,15 +81,11 @@ public class OperationalDataStoreProviderTest
     String oldVersion = String.valueOf(OperationalDataStoreProvider.OLD_VIOLATION_MODEL_DATABASE_VERSION);
     Files.write(databaseVersionFile.toPath(), oldVersion.getBytes(StandardCharsets.UTF_8));
 
-    try {
+    assertThatThrownBy(() -> {
       OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
-      fail("Expected exception");
-    }
-    catch (UnsupportedOperationException e) {
-      assertThat(e.getMessage(), is("Consent to upgrade has not been given."));
-      logOutput.assertError(containsString("Upgrade requires consent to proceed"));
-      logOutput.assertError(containsString("https://links.sonatype.com/products/clm/doc/upgrade/1.45"));
-    }
+    }).isInstanceOf(UnsupportedOperationException.class).hasMessage("Consent to upgrade has not been given.");
+    logOutput.assertError(containsString("Upgrade requires consent to proceed"));
+    logOutput.assertError(containsString("https://links.sonatype.com/products/clm/doc/upgrade/1.45"));
   }
 
   @Test
@@ -106,6 +97,6 @@ public class OperationalDataStoreProviderTest
     OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
 
     int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
-    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredDbVersion)));
+    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredDbVersion));
   }
 }

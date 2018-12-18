@@ -12,8 +12,7 @@ import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.7
@@ -35,7 +34,7 @@ public class ActiveDirectoryStaticGroupsLoginTest
     GatlingPropertiesBuilder props = configureGatling("LDAP Login Simulation with Active Directory Static Groups",
         "com.sonatype.insight.brain.LdapLoginSimulation");
     int result = Gatling.fromMap(props.build());
-    assertThat("Failures were detected from Gatling", result, equalTo(0));
+    assertThat(result).as("Failures were detected from Gatling").isZero();
   }
 
 }

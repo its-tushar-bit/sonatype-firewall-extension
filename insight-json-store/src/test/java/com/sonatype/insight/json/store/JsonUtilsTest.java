@@ -16,41 +16,35 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonUtilsTest
 {
   @Test
   public void testIsNull() throws IOException {
-    assertTrue(JsonUtils.isNull(null));
-    assertTrue(JsonUtils.isNull(NullNode.getInstance()));
+    assertThat(JsonUtils.isNull(null)).isTrue();
+    assertThat(JsonUtils.isNull(NullNode.getInstance())).isTrue();
 
     JsonNode jsonNode = JsonUtils.parse("{\"a\":\"text value\",\"b\":null}");
-    assertNotNull(jsonNode);
-    assertFalse(JsonUtils.isNull(jsonNode));
-    assertFalse(JsonUtils.isNull(jsonNode.get("a")));
-    assertTrue(JsonUtils.isNull(jsonNode.get("b")));
-    assertTrue(JsonUtils.isNull(jsonNode.get("c")));
+    assertThat(jsonNode).isNotNull();
+    assertThat(JsonUtils.isNull(jsonNode)).isFalse();
+    assertThat(JsonUtils.isNull(jsonNode.get("a"))).isFalse();
+    assertThat(JsonUtils.isNull(jsonNode.get("b"))).isTrue();
+    assertThat(JsonUtils.isNull(jsonNode.get("c"))).isTrue();
   }
 
   @Test
   public void testAAData() throws IOException {
     final int[] pi = { 3, 1, 4, 5, 9 };
 
-    assertArrayEquals(pi, JsonUtils.parse(Arrays.toString(pi), int[].class));
-    assertArrayEquals(pi, JsonUtils.parse("{\"aaData\":" + Arrays.toString(pi) + "}", int[].class));
+    assertThat(JsonUtils.parse(Arrays.toString(pi), int[].class)).isEqualTo(pi);
+    assertThat(JsonUtils.parse("{\"aaData\":" + Arrays.toString(pi) + "}", int[].class)).isEqualTo(pi);
 
     final List<String> words = Arrays.asList("This", "is", "a", "test");
     final ArrayNode tree = JsonUtils.asTree(words);
 
-    assertEquals(tree, JsonUtils.asTree(JsonUtils.aaData(words)).get("aaData"));
-    assertEquals(tree, JsonUtils.aaDataNode(tree).get("aaData"));
+    assertThat(JsonUtils.asTree(JsonUtils.aaData(words)).get("aaData")).isEqualTo(tree);
+    assertThat(JsonUtils.aaDataNode(tree).get("aaData")).isEqualTo(tree);
   }
 
   @Test
@@ -61,6 +55,6 @@ public class JsonUtilsTest
     pojo.put("version", "5.5.23");
 
     String expectedJson = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
-    assertThat(JsonUtils.writeUnformatted(pojo), is(expectedJson));
+    assertThat(JsonUtils.writeUnformatted(pojo)).isEqualTo(expectedJson);
   }
 }

@@ -7,15 +7,14 @@ package com.sonatype.insight.json.store;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("boxing")
 public class AuditingTest
@@ -48,8 +47,8 @@ public class AuditingTest
     final byte[] buf = JsonUtils.generate(store.history(JsonUtils.parse("{\"id\":\"B\"}".getBytes("UTF-8")),
         "sample.json"));
 
-    assertThat(new String(buf, "UTF-8").replaceAll("\"time\" : [0-9]+", "\"time\" : 0"),
-        equalToIgnoringWhiteSpace(result));
+    assertThat(new String(buf, StandardCharsets.UTF_8).replaceAll("\"time\" : [0-9]+", "\"time\" : 0"))
+        .isEqualToIgnoringWhitespace(result);
   }
 
   @Test
@@ -77,8 +76,8 @@ public class AuditingTest
 
     final byte[] buf = JsonUtils.generate(store.history(JsonUtils.parse("{\"id\":\"B\"}".getBytes("UTF-8"))));
 
-    assertThat(new String(buf, "UTF-8").replaceAll("\"time\" : [0-9]+", "\"time\" : 0"),
-        equalToIgnoringWhiteSpace(result));
+    assertThat(new String(buf, StandardCharsets.UTF_8).replaceAll("\"time\" : [0-9]+", "\"time\" : 0"))
+        .isEqualToIgnoringWhitespace(result);
   }
 
   @Test
@@ -107,12 +106,12 @@ public class AuditingTest
 
     final byte[] buf = JsonUtils.generate(store.history(null));
 
-    assertThat(new String(buf, "UTF-8").replaceAll("\"time\" : [0-9]+", "\"time\" : 0"),
-        equalToIgnoringWhiteSpace(result));
+    assertThat(new String(buf, StandardCharsets.UTF_8).replaceAll("\"time\" : [0-9]+", "\"time\" : 0"))
+        .isEqualToIgnoringWhitespace(result);
   }
 
   @Test
   public void testEmptyAuditFeed() throws IOException {
-    assertNull(store.history(null, ""));
+    assertThat(store.history(null, "")).isNull();
   }
 }

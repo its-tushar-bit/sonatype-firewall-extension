@@ -20,11 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScannerTest extends InjectedTest
 {
@@ -45,27 +41,26 @@ public class ScannerTest extends InjectedTest
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
     File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
         proprietaryConfig);
-    assertThat(scanFile, is(notNullValue()));
-    assertThat(scanFile.isFile(), is(true));
+    assertThat(scanFile).isFile();
 
     Scan scan = scanReader.read(scanFile);
-    assertThat(scan, is(notNullValue()));
-    assertThat(scan.getItems(), hasSize(1));
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
-    assertThat(item.getPath(), is("test-app.zip"));
-    assertThat(item.getItems(), hasSize(1));
+    assertThat(item.getPath()).isEqualTo("test-app.zip");
+    assertThat(item.getItems()).hasSize(1);
     item = item.getItems().get(0);
-    assertThat(item.getPath(), is("proprietary.jar"));
-    assertThat(item.getItems(), hasSize(1));
-    assertThat(item.isProprietary(), nullValue());
+    assertThat(item.getPath()).isEqualTo("proprietary.jar");
+    assertThat(item.getItems()).hasSize(1);
+    assertThat(item.isProprietary()).isNull();
     item = item.getItems().get(0);
-    assertThat(item.getSha1(), is("44a17e5a5594edeebc94"));
-    assertThat(item.getSha1JA001(), is(notNullValue()));
-    assertThat(item.getSha1JB001(), is(notNullValue()));
-    assertThat(item.getSha1JC001(), is(notNullValue()));
-    assertThat(item.getSha1JD001(), is(notNullValue()));
-    assertThat(item.getPath(), is(nullValue()));
-    assertThat(item.getNoPathReason(), is("proprietaryPackages"));
+    assertThat(item.getSha1()).isEqualTo("44a17e5a5594edeebc94");
+    assertThat(item.getSha1JA001()).isNotNull();
+    assertThat(item.getSha1JB001()).isNotNull();
+    assertThat(item.getSha1JC001()).isNotNull();
+    assertThat(item.getSha1JD001()).isNotNull();
+    assertThat(item.getPath()).isNull();
+    assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
   }
 
   @Test
@@ -76,17 +71,16 @@ public class ScannerTest extends InjectedTest
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
     File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
         proprietaryConfig);
-    assertThat(scanFile, is(notNullValue()));
-    assertThat(scanFile.isFile(), is(true));
+    assertThat(scanFile).isFile();
 
     Scan scan = scanReader.read(scanFile);
-    assertThat(scan, is(notNullValue()));
-    assertThat(scan.getItems(), hasSize(1));
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
-    assertThat(item.getPath(), is("test-app.zip"));
-    assertThat(item.getItems(), hasSize(1));
+    assertThat(item.getPath()).isEqualTo("test-app.zip");
+    assertThat(item.getItems()).hasSize(1);
     item = item.getItems().get(0);
-    assertThat(item.getPath(), is("proprietary.jar"));
-    assertThat(item.isProprietary(), is(true));
+    assertThat(item.getPath()).isEqualTo("proprietary.jar");
+    assertThat(item.isProprietary()).isTrue();
   }
 }

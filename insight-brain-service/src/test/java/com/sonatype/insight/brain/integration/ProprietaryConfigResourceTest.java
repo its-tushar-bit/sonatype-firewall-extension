@@ -5,18 +5,15 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import java.io.File;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class ProprietaryConfigResourceTest
     extends AbstractResourceTest
@@ -35,12 +32,6 @@ public class ProprietaryConfigResourceTest
       request.query(ProprietaryConfigResource.APPLICATION_PARAM, applicationId);
     }
     return request;
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    File configFile = new File(getCLMServer().getDataDir(), "proprietary.json");
-    assertTrue(configFile.delete() || !configFile.exists());
   }
 
   @Test

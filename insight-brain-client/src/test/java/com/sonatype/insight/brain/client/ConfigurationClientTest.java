@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,7 +33,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
 import org.hamcrest.MatcherAssert;
-import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -51,12 +49,6 @@ public class ConfigurationClientTest
 {
   private void assertMatch(String pattern, String text) {
     assertTrue(text + " does not match pattern " + pattern, text != null && text.matches(pattern));
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    File configFile = new File(getCLMServer().getDataDir(), "proprietary.json");
-    assertTrue(configFile.delete() || !configFile.exists());
   }
 
   @Test

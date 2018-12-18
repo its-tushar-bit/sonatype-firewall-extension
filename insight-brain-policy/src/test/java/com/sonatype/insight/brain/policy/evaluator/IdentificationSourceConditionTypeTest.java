@@ -22,9 +22,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class IdentificationSourceConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -55,8 +54,7 @@ public class IdentificationSourceConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID, policyAlerts);
   }
@@ -83,8 +81,7 @@ public class IdentificationSourceConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID, policyAlerts);
   }
@@ -92,14 +89,8 @@ public class IdentificationSourceConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(IdentificationSourceConditionType.ID, "is", "abc");
-    try {
+    assertThatThrownBy(() -> {
       new IdentificationSourceConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Value not supported: abc")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
   }
 }

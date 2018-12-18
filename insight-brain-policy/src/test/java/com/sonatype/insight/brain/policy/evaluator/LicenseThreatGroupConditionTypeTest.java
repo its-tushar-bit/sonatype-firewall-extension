@@ -36,13 +36,8 @@ import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -102,8 +97,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -115,7 +109,7 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals("Found a license in the 'Copyleft' license threat group.", actualReason);
+    assertThat(actualReason).isEqualTo("Found a license in the 'Copyleft' license threat group.");
   }
 
   @Test
@@ -146,8 +140,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -159,7 +152,7 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals("Did not find a license in the 'Copyleft' license threat group.", actualReason);
+    assertThat(actualReason).isEqualTo("Did not find a license in the 'Copyleft' license threat group.");
   }
 
   @Test
@@ -190,8 +183,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -203,7 +195,7 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals("Found a license in the 'Copyleft' license threat group.", actualReason);
+    assertThat(actualReason).isEqualTo("Found a license in the 'Copyleft' license threat group.");
   }
 
   @Test
@@ -234,8 +226,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -247,7 +238,7 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals("Did not find a license in the 'Copyleft' license threat group.", actualReason);
+    assertThat(actualReason).isEqualTo("Did not find a license in the 'Copyleft' license threat group.");
   }
 
   @Test
@@ -282,8 +273,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -295,7 +285,7 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals("Found a license in the 'Copyleft' license threat group.", actualReason);
+    assertThat(actualReason).isEqualTo("Found a license in the 'Copyleft' license threat group.");
   }
 
   @Test
@@ -330,8 +320,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -343,21 +332,15 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals("Did not find a license in the 'Copyleft' license threat group.", actualReason);
+    assertThat(actualReason).isEqualTo("Did not find a license in the 'Copyleft' license threat group.");
   }
 
   @Test
   public void testValidateCondition_InvalidLicenseThreatGroupId() {
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "abc");
-    try {
+    assertThatThrownBy(() -> {
       new LicenseThreatGroupConditionType().validateCondition(null, condition, app.getId());
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Invalid license threat group id: abc")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid license threat group id: abc");
   }
 
   @Test
@@ -396,8 +379,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -409,9 +391,8 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertEquals(
-        "Found a license in the 'testEvaluate-LicenseThreatGroupFromOrganization' license threat group.",
-        actualReason);
+    assertThat(actualReason)
+        .isEqualTo("Found a license in the 'testEvaluate-LicenseThreatGroupFromOrganization' license threat group.");
   }
 
   @Test
@@ -438,7 +419,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -446,10 +427,10 @@ public class LicenseThreatGroupConditionTypeTest
 
     List<ConditionFact> conditionFacts = assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
         LicenseThreatGroupConditionType.ID, expectedConditionTrigger, policyAlerts);
-    assertThat(conditionFacts, hasSize(1));
-    assertThat(conditionFacts.get(0).getReason(),
-        is("Found a license that is not assigned to any license threat group."));
-    assertThat(conditionFacts.get(0).getSummary(), is("License Threat Group is '[unassigned]'"));
+    assertThat(conditionFacts).hasSize(1);
+    assertThat(conditionFacts.get(0).getReason())
+        .isEqualTo("Found a license that is not assigned to any license threat group.");
+    assertThat(conditionFacts.get(0).getSummary()).isEqualTo("License Threat Group is '[unassigned]'");
   }
 
   @Test
@@ -476,7 +457,7 @@ public class LicenseThreatGroupConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -484,17 +465,17 @@ public class LicenseThreatGroupConditionTypeTest
 
     List<ConditionFact> conditionFacts = assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
         LicenseThreatGroupConditionType.ID, expectedConditionTrigger, policyAlerts);
-    assertThat(conditionFacts, hasSize(1));
-    assertThat(conditionFacts.get(0).getReason(),
-        is("Did not find a license that is not assigned to any license threat group."));
-    assertThat(conditionFacts.get(0).getSummary(), is("License Threat Group is not '[unassigned]'"));
+    assertThat(conditionFacts).hasSize(1);
+    assertThat(conditionFacts.get(0).getReason())
+        .isEqualTo("Did not find a license that is not assigned to any license threat group.");
+    assertThat(conditionFacts.get(0).getSummary()).isEqualTo("License Threat Group is not '[unassigned]'");
   }
 
   @Test
   public void testExplainCondition_MissingLTG() {
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "id-of-missing-ltg");
     LicenseThreatGroupConditionType conditionType = new LicenseThreatGroupConditionType();
-    assertThat(conditionType.explainCondition(condition), is(conditionType.getName() + " is '[deleted]'"));
+    assertThat(conditionType.explainCondition(condition)).isEqualTo(conditionType.getName() + " is '[deleted]'");
   }
 
   @Test
@@ -502,7 +483,7 @@ public class LicenseThreatGroupConditionTypeTest
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "id-of-missing-ltg");
     LicenseThreatGroupConditionType conditionType = new LicenseThreatGroupConditionType();
     try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
-      assertThat(conditionType.generateDroolsConditionCode(tx, condition), is(notNullValue()));
+      assertThat(conditionType.generateDroolsConditionCode(tx, condition)).isNotNull();
     }
   }
 
@@ -527,7 +508,7 @@ public class LicenseThreatGroupConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
@@ -539,7 +520,7 @@ public class LicenseThreatGroupConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertThat(actualReason, is("Found a license in the 'Copyleft' license threat group."));
+    assertThat(actualReason).isEqualTo("Found a license in the 'Copyleft' license threat group.");
   }
 
   @Test
@@ -563,6 +544,6 @@ public class LicenseThreatGroupConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertThat(policyAlerts, hasSize(0));
+    assertThat(policyAlerts).isEmpty();
   }
 }

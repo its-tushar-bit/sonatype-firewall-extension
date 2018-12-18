@@ -24,14 +24,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CoordinatesConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -72,8 +66,7 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -88,7 +81,7 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "c", "e");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGavec, componentGavce));
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
@@ -104,7 +97,7 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "e");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavc));
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
@@ -127,7 +120,7 @@ public class CoordinatesConditionTypeTest
 
     List<PolicyAlert> policyAlerts = evaluate(policy,
         Arrays.asList(componentGav3, componentGav5, componentGave, componentGavc, componentGavec));
-    assertThat(policyAlerts, hasSize(5));
+    assertThat(policyAlerts).hasSize(5);
     for (PolicyAlert policyAlert : policyAlerts) {
       assertFactCounts(1, 1, policyAlert);
     }
@@ -164,7 +157,7 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGav, componentGave, componentGavec));
-    assertThat(policyAlerts, hasSize(3));
+    assertThat(policyAlerts).hasSize(3);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertFactCounts(1, 1, policyAlerts.get(2));
@@ -192,7 +185,7 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_ANAME, "n", "q", "v");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(componentNqv));
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentNqv, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
@@ -208,7 +201,7 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
@@ -224,7 +217,7 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
-    assertThat(policyAlerts, hasSize(2));
+    assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
@@ -258,8 +251,7 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -296,8 +288,7 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -334,8 +325,7 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -372,8 +362,7 @@ public class CoordinatesConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -391,8 +380,7 @@ public class CoordinatesConditionTypeTest
     components.add(component1);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
@@ -400,38 +388,26 @@ public class CoordinatesConditionTypeTest
   @Test
   public void testValidateCondition_NullCoordinates() {
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", null);
-    try {
+    assertThatThrownBy(() -> {
       new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      assertThat(expected.getMessage(), endsWith("Missing coordinates"));
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
   }
 
   @Test
   public void testValidateCondition_EmptyCoordinates() {
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", " ");
-    try {
+    assertThatThrownBy(() -> {
       new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      assertThat(expected.getMessage(), endsWith("Missing coordinates"));
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
   }
 
   @Test
   public void testValidateCondition_UnsupportedCoordinateFormat() {
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", "nuget");
-    try {
+    assertThatThrownBy(() -> {
       new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      assertThat(expected.getMessage(),
-          endsWith("Unsupported component identifier format for coordinates policy condition: 'nuget'"));
-    }
+    }).isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Unsupported component identifier format for coordinates policy condition: 'nuget'");
   }
 
   @Test
@@ -461,7 +437,7 @@ public class CoordinatesConditionTypeTest
   }
 
   private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {
-    assertThat(createCoordinateCondition(value).getValue(), is(equalTo(expectedConvertedValue)));
+    assertThat(createCoordinateCondition(value).getValue()).isEqualTo(expectedConvertedValue);
   }
 
   private Condition createCoordinateCondition(final String value) {

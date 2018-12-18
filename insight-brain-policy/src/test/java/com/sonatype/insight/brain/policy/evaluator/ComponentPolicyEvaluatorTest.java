@@ -52,15 +52,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
@@ -82,11 +74,10 @@ public class ComponentPolicyEvaluatorTest
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
-    assertEquals("g : a : v", policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getDisplayName()
-        .toString());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getDisplayName().toString())
+        .isEqualTo("g : a : v");
   }
 
   @Test
@@ -119,10 +110,9 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     final List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
-    assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
-    assertEquals(1, policyAlerts.get(1).getTrigger().getComponentFacts().size());
+    assertThat(policyAlerts).hasSize(2);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
+    assertThat(policyAlerts.get(1).getTrigger().getComponentFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -150,8 +140,7 @@ public class ComponentPolicyEvaluatorTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
   }
 
   @Test
@@ -179,12 +168,10 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     List<ComponentFact> componentFacts = policyAlerts.get(0).getTrigger().getComponentFacts();
-    assertEquals(1, componentFacts.size());
-    List<ConstraintFact> constraintFacts = componentFacts.get(0).getConstraintFacts();
-    assertEquals(constraintFacts.toString(), 1, constraintFacts.size());
+    assertThat(componentFacts).hasSize(1);
+    assertThat(componentFacts.get(0).getConstraintFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component1, policy, constraint2, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
   }
@@ -218,12 +205,10 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     List<ComponentFact> componentFacts = policyAlerts.get(0).getTrigger().getComponentFacts();
-    assertEquals(1, componentFacts.size());
-    List<ConstraintFact> constraintFacts = componentFacts.get(0).getConstraintFacts();
-    assertEquals(constraintFacts.toString(), 1, constraintFacts.size());
+    assertThat(componentFacts).hasSize(1);
+    assertThat(componentFacts.get(0).getConstraintFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
   }
@@ -252,8 +237,7 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     // A component with Apache-2.0 license
     final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
@@ -263,8 +247,7 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     // A component with one security vulnerability and Apache-2.0 license
     final Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
@@ -275,9 +258,8 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component3, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -292,10 +274,9 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
-    assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
-    assertEquals(1, policyAlerts.get(1).getTrigger().getComponentFacts().size());
+    assertThat(policyAlerts).hasSize(2);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
+    assertThat(policyAlerts.get(1).getTrigger().getComponentFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component3, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -329,9 +310,8 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -344,10 +324,9 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
-    assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
-    assertEquals(1, policyAlerts.get(1).getTrigger().getComponentFacts().size());
+    assertThat(policyAlerts).hasSize(2);
+    assertThat(policyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
+    assertThat(policyAlerts.get(1).getTrigger().getComponentFacts()).hasSize(1);
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -362,10 +341,9 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(4, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(4);
     for (PolicyAlert policyAlert : policyAlerts) {
-      assertEquals(1, policyAlert.getTrigger().getComponentFacts().size());
+      assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
     }
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
@@ -384,10 +362,9 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy
     policyAlerts = evaluate(stage, policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(6, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(6);
     for (PolicyAlert policyAlert : policyAlerts) {
-      assertEquals(1, policyAlert.getTrigger().getComponentFacts().size());
+      assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
     }
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
@@ -428,32 +405,29 @@ public class ComponentPolicyEvaluatorTest
     // Evaluate the policy when developing
     policyAlerts = evaluate(new Stage(DevelopStageType.ID), policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     actions = policyAlerts.get(0).getActions();
-    assertEquals(1, actions.size());
-    assertEquals(WarnActionType.ID, actions.get(0).getActionTypeId());
-    assertNull(actions.get(0).getTarget());
+    assertThat(actions).hasSize(1);
+    assertThat(actions.get(0).getActionTypeId()).isEqualTo(WarnActionType.ID);
+    assertThat(actions.get(0).getTarget()).isNull();
 
     // Evaluate the policy when building
     policyAlerts = evaluate(new Stage(BuildStageType.ID), policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     actions = policyAlerts.get(0).getActions();
-    assertEquals(1, actions.size());
-    assertEquals(FailActionType.ID, actions.get(0).getActionTypeId());
-    assertNull(actions.get(0).getTarget());
+    assertThat(actions).hasSize(1);
+    assertThat(actions.get(0).getActionTypeId()).isEqualTo(FailActionType.ID);
+    assertThat(actions.get(0).getTarget()).isNull();
 
     // Evaluate the policy when releasing
     policyAlerts = evaluate(new Stage(ReleaseStageType.ID), policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     actions = policyAlerts.get(0).getActions();
-    assertEquals(1, actions.size());
-    assertEquals(NotifyActionType.ID, actions.get(0).getActionTypeId());
-    assertEquals("manager@some.com", actions.get(0).getTarget());
+    assertThat(actions).hasSize(1);
+    assertThat(actions.get(0).getActionTypeId()).isEqualTo(NotifyActionType.ID);
+    assertThat(actions.get(0).getTarget()).isEqualTo("manager@some.com");
   }
 
   @Test
@@ -505,7 +479,7 @@ public class ComponentPolicyEvaluatorTest
 
       policyFacts.sort(ComponentPolicyEvaluator.POLICY_FACT_COMPARATOR);
 
-      assertEquals(expectedPolicyFacts, policyFacts);
+      assertThat(policyFacts).isEqualTo(expectedPolicyFacts);
     }
 
     // Convert facts into alerts
@@ -522,7 +496,7 @@ public class ComponentPolicyEvaluatorTest
           new Stage(BuildStageType.ID), false /* forMonitoring */);
       final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
-      assertEquals(alertsToString(expectedAlerts), alertsToString(alerts));
+      assertThat(alertsToString(alerts)).isEqualTo(alertsToString(expectedAlerts));
     }
   }
 
@@ -583,8 +557,7 @@ public class ComponentPolicyEvaluatorTest
 
     // Evaluate the policies
     List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), stage, components);
-    assertNotNull(policyAlerts);
-    assertEquals(3, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(3);
     assertContainsPolicyAlert(component3, policyParentOrg, constraintParentOrg, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component1, policyOrg, constraintOrg, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -676,8 +649,7 @@ public class ComponentPolicyEvaluatorTest
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage,
         Arrays.asList(policy1, policy2), components);
     List<PolicyAlert> activePolicyAlerts = policyResults.getActiveAlerts();
-    assertNotNull(activePolicyAlerts);
-    assertEquals(4, activePolicyAlerts.size());
+    assertThat(activePolicyAlerts).hasSize(4);
     assertContainsPolicyAlert(component1, policy1, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component2, policy1, constraint1, FailActionType.ID,
@@ -686,7 +658,7 @@ public class ComponentPolicyEvaluatorTest
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component2, policy2, constraint2, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
-    assertThat(policyResults.getWaivedAlerts(), hasSize(0));
+    assertThat(policyResults.getWaivedAlerts()).isEmpty();
 
     // Waive the alert for policy1 and component1 and re-evaluate
     PolicyAlert policyAlertToWaive = findPolicyAlert(activePolicyAlerts, component1, policy1);
@@ -694,8 +666,7 @@ public class ComponentPolicyEvaluatorTest
         policyAlertToWaive.getTrigger().getComponentFacts().get(0).getConstraintFacts());
     policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     activePolicyAlerts = policyResults.getActiveAlerts();
-    assertNotNull(activePolicyAlerts);
-    assertEquals(3, activePolicyAlerts.size());
+    assertThat(activePolicyAlerts).hasSize(3);
     assertContainsPolicyAlert(component2, policy1, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component1, policy2, constraint2, FailActionType.ID,
@@ -704,13 +675,12 @@ public class ComponentPolicyEvaluatorTest
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
 
     List<PolicyAlert> waivedPolicyAlerts = policyResults.getWaivedAlerts();
-    assertThat(waivedPolicyAlerts, notNullValue());
-    assertThat(waivedPolicyAlerts, hasSize(1));
+    assertThat(waivedPolicyAlerts).hasSize(1);
     assertContainsPolicyAlert(component1, policy1, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, waivedPolicyAlerts);
-    assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts(), hasSize(1));
+    assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts()).hasSize(1);
     ComponentFact waivedComponentFact = waivedPolicyAlerts.get(0).getTrigger().getComponentFacts().get(0);
-    assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId(), is(policyWaiver.getId()));
+    assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId()).isEqualTo(policyWaiver.getId());
   }
 
   private PolicyAlert findPolicyAlert(List<PolicyAlert> policyAlerts, Component component, Policy policy) {
@@ -744,7 +714,7 @@ public class ComponentPolicyEvaluatorTest
     component2.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f));
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(component1, component2));
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
@@ -776,7 +746,7 @@ public class ComponentPolicyEvaluatorTest
     component2.addSecurityVulnerability(sv3);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(component1, component2));
-    assertThat(policyAlerts, hasSize(7));
+    assertThat(policyAlerts).hasSize(7);
     for (PolicyAlert policyAlert : policyAlerts) {
       assertFactCounts(1, 1, policyAlert);
     }
@@ -813,12 +783,12 @@ public class ComponentPolicyEvaluatorTest
     component.addSecurityVulnerability(securityVulnerability);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(component));
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     PolicyAlert policyAlert = policyAlerts.get(0);
     assertFactCounts(1, 1, policyAlert);
     List<ConditionFact> conditionFacts = policyAlert.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts();
-    assertThat(conditionFacts, hasSize(2));
+    assertThat(conditionFacts).hasSize(2);
     assertConditionFact(conditionFacts.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
         newConditionTriggerWithSeverity(0, securityVulnerability));
@@ -844,12 +814,12 @@ public class ComponentPolicyEvaluatorTest
     component.addSecurityVulnerability(securityVulnerability);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(component));
-    assertThat(policyAlerts, hasSize(2));
+    assertThat(policyAlerts).hasSize(2);
     PolicyAlert policyAlert1 = policyAlerts.get(0);
     assertFactCounts(1, 1, policyAlert1);
     List<ConditionFact> conditionFacts1 = policyAlert1.getTrigger().getComponentFacts().get(0).getConstraintFacts()
         .get(0).getConditionFacts();
-    assertThat(conditionFacts1, hasSize(1));
+    assertThat(conditionFacts1).hasSize(1);
     assertConditionFact(conditionFacts1.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
         newConditionTriggerWithSeverity(0, securityVulnerability));
@@ -858,7 +828,7 @@ public class ComponentPolicyEvaluatorTest
     assertFactCounts(1, 1, policyAlert2);
     List<ConditionFact> conditionFacts2 = policyAlert2.getTrigger().getComponentFacts().get(0).getConstraintFacts()
         .get(0).getConditionFacts();
-    assertThat(conditionFacts2, hasSize(1));
+    assertThat(conditionFacts2).hasSize(1);
     assertConditionFact(conditionFacts2.get(0), 1, SecurityVulnerabilityStatusConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with status 'Open'.", "Security Vulnerability Status is OPEN",
         newConditionTriggerWithStatus(1, securityVulnerability));
@@ -883,13 +853,15 @@ public class ComponentPolicyEvaluatorTest
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Lists.newArrayList(component1, component2), false);
 
-    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
-    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash(), is(hash1));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
+    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash1);
     assertThat(policyResults
-        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiver.getId()));
-    assertThat(policyResults.getActiveAlerts(), hasSize(1));
-    assertThat(policyResults.getActiveAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash(), is(hash2));
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId())
+            .isEqualTo(policyWaiver.getId());
+    assertThat(policyResults.getActiveAlerts()).hasSize(1);
+    assertThat(policyResults.getActiveAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash2);
   }
 
   @Test
@@ -911,16 +883,16 @@ public class ComponentPolicyEvaluatorTest
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Lists.newArrayList(component1, component2), false);
 
-    assertThat(policyResults.getWaivedAlerts(), hasSize(2));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(2);
     PolicyAlert waivedAlert1 = policyResults.getWaivedAlerts().get(0);
-    assertThat(waivedAlert1.getTrigger().getComponentFacts().get(0).getHash(), is(hash1));
-    assertThat(policyResults.getPolicyWaiver(waivedAlert1.getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiver.getId()));
+    assertThat(waivedAlert1.getTrigger().getComponentFacts().get(0).getHash()).isEqualTo(hash1);
+    assertThat(policyResults.getPolicyWaiver(waivedAlert1.getTrigger().getComponentFacts().get(0)).getId())
+        .isEqualTo(policyWaiver.getId());
     PolicyAlert waivedAlert2 = policyResults.getWaivedAlerts().get(1);
-    assertThat(waivedAlert2.getTrigger().getComponentFacts().get(0).getHash(), is(hash2));
-    assertThat(policyResults.getPolicyWaiver(waivedAlert2.getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiver.getId()));
-    assertThat(policyResults.getActiveAlerts(), hasSize(0));
+    assertThat(waivedAlert2.getTrigger().getComponentFacts().get(0).getHash()).isEqualTo(hash2);
+    assertThat(policyResults.getPolicyWaiver(waivedAlert2.getTrigger().getComponentFacts().get(0)).getId())
+        .isEqualTo(policyWaiver.getId());
+    assertThat(policyResults.getActiveAlerts()).isEmpty();
   }
 
   @Test
@@ -939,12 +911,12 @@ public class ComponentPolicyEvaluatorTest
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Collections.singletonList(component), false);
 
-    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
     PolicyAlert waivedAlert = policyResults.getWaivedAlerts().get(0);
-    assertThat(waivedAlert.getTrigger().getComponentFacts().get(0).getHash(), is(hash));
-    assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiver.getId()));
-    assertThat(policyResults.getActiveAlerts(), hasSize(0));
+    assertThat(waivedAlert.getTrigger().getComponentFacts().get(0).getHash()).isEqualTo(hash);
+    assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId())
+        .isEqualTo(policyWaiver.getId());
+    assertThat(policyResults.getActiveAlerts()).isEmpty();
   }
 
   @Test
@@ -963,12 +935,12 @@ public class ComponentPolicyEvaluatorTest
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Collections.singletonList(component), false);
 
-    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
     PolicyAlert waivedAlert = policyResults.getWaivedAlerts().get(0);
-    assertThat(waivedAlert.getTrigger().getComponentFacts().get(0).getHash(), is(hash));
-    assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiver.getId()));
-    assertThat(policyResults.getActiveAlerts(), hasSize(0));
+    assertThat(waivedAlert.getTrigger().getComponentFacts().get(0).getHash()).isEqualTo(hash);
+    assertThat(policyResults.getPolicyWaiver(waivedAlert.getTrigger().getComponentFacts().get(0)).getId())
+        .isEqualTo(policyWaiver.getId());
+    assertThat(policyResults.getActiveAlerts()).isEmpty();
   }
 
   @Test
@@ -989,11 +961,12 @@ public class ComponentPolicyEvaluatorTest
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Collections.singletonList(component), false);
 
-    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
-    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash(), is(hash));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
+    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash);
     assertThat(policyResults
-        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiver.getId()));
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId())
+            .isEqualTo(policyWaiver.getId());
   }
 
   @Test
@@ -1010,10 +983,10 @@ public class ComponentPolicyEvaluatorTest
 
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Collections.singletonList(component), false);
-    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
     assertThat(policyResults
-        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiverWithoutConstraintFacts.getId()));
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId())
+            .isEqualTo(policyWaiverWithoutConstraintFacts.getId());
 
     List<ConstraintFact> constraintFacts = policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts()
         .get(0).getConstraintFacts();
@@ -1021,10 +994,10 @@ public class ComponentPolicyEvaluatorTest
         constraintFacts);
     policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Collections.singletonList(component), false);
-    assertThat(policyResults.getWaivedAlerts(), hasSize(1));
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
     assertThat(policyResults
-        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId(),
-        is(policyWaiverWithConstraintFacts.getId()));
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId())
+            .isEqualTo(policyWaiverWithConstraintFacts.getId());
   }
 
   private void assertConditionFact(ConditionFact actual,
@@ -1034,15 +1007,12 @@ public class ComponentPolicyEvaluatorTest
                                    String expectedSummary,
                                    ConditionTrigger expectedConditionTrigger)
   {
-    assertThat(actual.getConditionIndex(), is(expectedConditionIndex));
-    assertThat(actual.getConditionTypeId(), is(expectedConditionTypeId));
-    assertThat(actual.getReason(), is(expectedReason));
-    assertThat(actual.getSummary(), is(expectedSummary));
-    assertThat(actual.getTriggerJson(), is(JsonUtils.writeUnformatted(expectedConditionTrigger)));
-    assertThat(actual.getTriggerJson(), not(containsString("\n")));
-    assertThat(actual.getTriggerJson(), not(containsString("\r")));
-    assertThat(actual.getTriggerJson(), not(containsString("\\n")));
-    assertThat(actual.getTriggerJson(), not(containsString("\\r")));
+    assertThat(actual.getConditionIndex()).isEqualTo(expectedConditionIndex);
+    assertThat(actual.getConditionTypeId()).isEqualTo(expectedConditionTypeId);
+    assertThat(actual.getReason()).isEqualTo(expectedReason);
+    assertThat(actual.getSummary()).isEqualTo(expectedSummary);
+    assertThat(actual.getTriggerJson()).isEqualTo(JsonUtils.writeUnformatted(expectedConditionTrigger))
+        .doesNotContain("\n", "\r", "\\n", "\\r");
   }
 
   private ConditionTrigger newConditionTriggerWithSeverity(int conditionIndex,

@@ -19,8 +19,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -59,8 +58,7 @@ public class ProprietaryConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
@@ -97,8 +95,7 @@ public class ProprietaryConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);

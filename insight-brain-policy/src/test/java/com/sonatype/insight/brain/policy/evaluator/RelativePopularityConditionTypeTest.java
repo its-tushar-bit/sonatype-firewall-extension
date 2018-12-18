@@ -21,9 +21,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RelativePopularityConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -48,8 +47,7 @@ public class RelativePopularityConditionTypeTest
     components.add(component);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
   }
 
   @Test
@@ -76,8 +74,7 @@ public class RelativePopularityConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
@@ -106,8 +103,7 @@ public class RelativePopularityConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
@@ -136,8 +132,7 @@ public class RelativePopularityConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
@@ -168,8 +163,7 @@ public class RelativePopularityConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
@@ -198,8 +192,7 @@ public class RelativePopularityConditionTypeTest
     components.add(component3);
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
@@ -209,42 +202,26 @@ public class RelativePopularityConditionTypeTest
   @Test
   public void testValidateCondition_ValueNotANumber() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "abc");
-    try {
+    assertThatThrownBy(() -> {
       new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Invalid relative popularity: abc")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid relative popularity: abc");
   }
 
   @Test
   public void testValidateCondition_ValueLessThanZero() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "-1");
-    try {
+    assertThatThrownBy(() -> {
       new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Relative popularity must be between 0 and 100")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Relative popularity must be between 0 and 100");
   }
 
   @Test
   public void testValidateCondition_ValueGreaterThan100() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "101");
-    try {
+    assertThatThrownBy(() -> {
       new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Relative popularity must be between 0 and 100")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Relative popularity must be between 0 and 100");
   }
 }

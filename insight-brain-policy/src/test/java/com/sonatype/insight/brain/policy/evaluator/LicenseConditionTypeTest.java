@@ -28,11 +28,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -82,8 +79,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
@@ -114,8 +110,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
@@ -146,8 +141,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
@@ -178,8 +172,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
@@ -214,8 +207,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
@@ -247,8 +239,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("Apache-2.0"));
@@ -264,8 +255,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("AFL-1.2"));
@@ -300,8 +290,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
@@ -312,15 +301,9 @@ public class LicenseConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLicenseId() {
     Condition condition = new Condition(LicenseConditionType.ID, "is", "abc");
-    try {
+    assertThatThrownBy(() -> {
       new LicenseConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Invalid license id: abc")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid license id: abc");
   }
 
   @Test
@@ -339,7 +322,7 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertThat(policyAlerts, hasSize(1));
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("Apache-2.0"));
@@ -363,6 +346,6 @@ public class LicenseConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
-    assertThat(policyAlerts, hasSize(0));
+    assertThat(policyAlerts).isEmpty();
   }
 }

@@ -21,9 +21,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MatchStateConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -55,8 +54,7 @@ public class MatchStateConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
   }
@@ -84,8 +82,7 @@ public class MatchStateConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertNotNull(policyAlerts);
-    assertEquals(2, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
@@ -95,14 +92,8 @@ public class MatchStateConditionTypeTest
   @Test
   public void testValidateCondition_ValueNotAStatusId() {
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "abc");
-    try {
+    assertThatThrownBy(() -> {
       new MatchStateConditionType().validateCondition(null, condition, null /* applicationId */);
-      fail("Expected InvalidConditionException");
-    }
-    catch (InvalidConditionException expected) {
-      if (!expected.getMessage().endsWith("Value not supported: abc")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
   }
 }

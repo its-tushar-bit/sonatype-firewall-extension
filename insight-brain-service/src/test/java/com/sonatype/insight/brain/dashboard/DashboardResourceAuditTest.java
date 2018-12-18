@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.tag.TagDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Test;
@@ -145,7 +146,7 @@ public class DashboardResourceAuditTest
     risksFilterDTO.tagIds = new HashSet<>(
         Arrays.asList(appCategory1.getId(), appCategory2.getId(), unknownAppCategoryId, uncategorizedAppCategoryId));
 
-    dashboardRequest().path(restPath).body(risksFilterDTO).post();
+    dashboardRequest(restPath, risksFilterDTO);
 
     AuditDTO auditDTO = assertAuditLog(expectedAuditEvent, null);
     assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(unknownOrgId, null),
@@ -169,12 +170,22 @@ public class DashboardResourceAuditTest
     testGetRisks(DashboardResource.GET_APPLICATION_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_APPLICATION_LIST);
   }
 
+  @Test
+  public void testGetNewestRisksExport() throws Exception {
+    testGetRisks(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH, AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST);
+  }
+
+  @Test
+  public void testGetApplicationRisksExport() throws Exception {
+    testGetRisks(DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH, AuditEvent.EXPORT_DASHBOARD_APPLICATION_LIST);
+  }
+
   private void testGetRisks_EmptyFilter(String restPath, AuditEvent expectedAuditEvent) throws Exception {
     tempEntity.newApplicationWithParent();
 
     RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
 
-    dashboardRequest().path(restPath).body(risksFilterDTO).post();
+    dashboardRequest(restPath, risksFilterDTO);
 
     AuditDTO auditDTO = assertAuditLog(expectedAuditEvent, null);
     assertSelectedOrganizations(auditDTO);
@@ -194,8 +205,26 @@ public class DashboardResourceAuditTest
     testGetRisks_EmptyFilter(DashboardResource.GET_APPLICATION_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_APPLICATION_LIST);
   }
 
-  private HttpRequest dashboardRequest() {
-    return restRequest().path(DashboardResource.RESOURCE_PATH);
+  @Test
+  public void testGetNewestRisksExport_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH,
+        AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST);
+  }
+
+  @Test
+  public void testGetApplicationRisksExport_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH,
+        AuditEvent.EXPORT_DASHBOARD_APPLICATION_LIST);
+  }
+
+  private void dashboardRequest(String restPath, RisksFilterDTO risksFilterDTO) throws Exception {
+    HttpRequest request = restRequest().path(DashboardResource.RESOURCE_PATH).path(restPath);
+    if (restPath.startsWith("export/")) {
+      request.part("filter", JsonUtils.format(risksFilterDTO)).post();
+    }
+    else {
+      request.body(risksFilterDTO).post();
+    }
   }
 
   private void assertSelectedApplicationCategories(AuditDTO auditDTO, TagDTO... expected) {

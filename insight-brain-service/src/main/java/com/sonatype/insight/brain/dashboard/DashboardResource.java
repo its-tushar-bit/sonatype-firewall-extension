@@ -207,6 +207,7 @@ public class DashboardResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces("text/csv")
   @ExceptionMetered(name = "getNewestRisksExportExceptionMeter")
+  @Audited(AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST)
   public Response getNewestRisksExport(FormDataMultiPart multiPart) throws IOException
   {
     String filterJson = multiPart.getField("filter").getValue();
@@ -256,6 +257,7 @@ public class DashboardResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces("text/csv")
   @ExceptionMetered(name = "getApplicationRisksExportExceptionMeter")
+  @Audited(AuditEvent.EXPORT_DASHBOARD_APPLICATION_LIST)
   public Response getApplicationRisksExport(FormDataMultiPart multiPart) throws IOException
   {
     String filterJson = multiPart.getField("filter").getValue();

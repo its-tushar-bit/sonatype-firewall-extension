@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.utils.AuditUtils;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -102,6 +104,8 @@ public class ComponentRiskService
     result.numResults = dtos.size();
     result.dashboardResults = dtos.subList(0, Math.min(dtos.size(), maxResults));
 
+    AuditData.get().setData("resultRecordCount", result.numResults);
+
     log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
 
     return result;
@@ -121,6 +125,13 @@ public class ComponentRiskService
   {
     List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
         applicationIds, tagIds);
+
+    AuditData.get() //
+        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
+        .setData("selectedApplications", AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds)) //
+        .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
+        .setData("inspectedApplicationCount", applications.size());
+
     log.debug("Loaded {} applications", applications.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,

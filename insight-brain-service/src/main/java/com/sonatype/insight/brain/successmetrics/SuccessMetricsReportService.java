@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.successmetrics;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -70,14 +71,19 @@ public class SuccessMetricsReportService
     successMetricsReportDAO.insert(successMetricsReport);
 
     successMetricsDTO.id = successMetricsReport.getId();
-    auditCreateSuccessMetricsReport(successMetricsReport, successMetricsDTO);
+    auditSuccessMetricsReport(successMetricsReport, successMetricsDTO.scope.applicationIds,
+        successMetricsDTO.scope.organizationIds);
 
     return successMetricsDTO;
   }
 
   void deleteSuccessMetricsReportForCurrentUser(String successMetricsId) {
+    AuditData.get().setData("reportId", successMetricsId);
     SuccessMetricsReport successMetricsReport = findSuccessMetricsReportByIdForCurrentUser(successMetricsId);
+    Set<String> applicationIds = successMetricsReport.getScopeApplicationIds();
+    Set<String> organizationIds = successMetricsReport.getScopeOrganizationIds();
 
+    auditSuccessMetricsReport(successMetricsReport, applicationIds, organizationIds);
     successMetricsReportDAO.delete(successMetricsReport);
   }
 
@@ -94,13 +100,12 @@ public class SuccessMetricsReportService
     return successMetricsReport;
   }
 
-  private void auditCreateSuccessMetricsReport(final SuccessMetricsReport report,
-                                               final SuccessMetricsReportDTO successMetricsReportDTO)
+  private void auditSuccessMetricsReport(final SuccessMetricsReport report,
+                                         final Set<String> applicationIds,
+                                         final Set<String> organizationIds)
   {
     AuditData.get().setSuccessMetricsReport(report).setData("selectedOrganizations",
-        OwnerAuditUtils.getSelectedOrganizationsById(successMetricsReportDTO.scope.organizationIds))
-        .setData("selectedApplications", OwnerAuditUtils
-            .getSelectedApplicationsById(successMetricsReportDTO.scope.applicationIds,
-                successMetricsReportDTO.scope.organizationIds));
+        OwnerAuditUtils.getSelectedOrganizationsById(organizationIds))
+        .setData("selectedApplications", OwnerAuditUtils.getSelectedApplicationsById(applicationIds, organizationIds));
   }
 }

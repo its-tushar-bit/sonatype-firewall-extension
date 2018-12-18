@@ -74,7 +74,7 @@ public class SuccessMetricsReportResourceAuditTest
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
 
-    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    AuditDTO auditDTO = assertReportData(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, result.id, result.name);
     assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app1.getId(), app1),
         new ApplicationAuditDTO(app2.getId(), app2));
     assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org1.getId(), org1),
@@ -91,7 +91,7 @@ public class SuccessMetricsReportResourceAuditTest
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
 
-    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    AuditDTO auditDTO = assertReportData(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, result.id, result.name);
     assertSelectedApplications(auditDTO);
     assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org.getId(), org));
   }
@@ -106,7 +106,7 @@ public class SuccessMetricsReportResourceAuditTest
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
 
-    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    AuditDTO auditDTO = assertReportData(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, result.id, result.name);
     assertSelectedApplications(auditDTO, new ApplicationAuditDTO(appId, null));
     assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org.getId(), org));
   }
@@ -121,7 +121,7 @@ public class SuccessMetricsReportResourceAuditTest
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
 
-    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    AuditDTO auditDTO = assertReportData(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, result.id, result.name);
     assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app.getId(), app));
     assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(orgId, null));
   }
@@ -136,9 +136,73 @@ public class SuccessMetricsReportResourceAuditTest
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
 
-    AuditDTO auditDTO = assertReportData(result.id, result.name);
+    AuditDTO auditDTO = assertReportData(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, result.id, result.name);
     assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app.getId(), app));
     assertSelectedOrganizations(auditDTO);
+  }
+
+  @Test
+  public void testDeleteSuccessMetricsReportForCurrentUser() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Organization org = tempEntity.newOrganization();
+    SuccessMetricsReport report = createSuccessMetricsReport(Collections.singleton(org.getId()),
+        Collections.singleton(app.getId()), null);
+    successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).delete();
+
+    AuditDTO auditDTO = assertReportData(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, report.getId(), report.getName());
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(app.getId(), app));
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org.getId(), org));
+  }
+
+  @Test
+  public void testDeleteSuccessMetricsReportForCurrentUser_SelectedAppAndParentOrg() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    SuccessMetricsReport report = createSuccessMetricsReport(Collections.singleton(org.getId()),
+        Collections.singleton(app.getId()), null);
+    successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).delete();
+
+    AuditDTO auditDTO = assertReportData(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, report.getId(), report.getName());
+    assertSelectedApplications(auditDTO);
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(org.getId(), org));
+  }
+
+  @Test
+  public void testDeleteSuccessMetricsReportForCurrentUser_SelectedOrgDoesNotExist() throws Exception {
+    String orgId = "orgId";
+    SuccessMetricsReport report = createSuccessMetricsReport(Collections.singleton(orgId), Collections.emptySet(),
+        null);
+    successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).delete();
+
+    AuditDTO auditDTO = assertReportData(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, report.getId(), report.getName());
+    assertSelectedApplications(auditDTO);
+    assertSelectedOrganizations(auditDTO, new OrganizationAuditDTO(orgId, null));
+  }
+
+  @Test
+  public void testDeleteSuccessMetricsReportForCurrentUser_SelectedAppDoesNotExist() throws Exception {
+    String appId = "appId";
+    SuccessMetricsReport report = createSuccessMetricsReport(Collections.emptySet(), Collections.singleton(appId),
+        null);
+    successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).delete();
+
+    AuditDTO auditDTO = assertReportData(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, report.getId(), report.getName());
+    assertSelectedApplications(auditDTO, new ApplicationAuditDTO(appId, null));
+    assertSelectedOrganizations(auditDTO);
+  }
+
+  @Test
+  public void testDeleteSuccessMetricsReportForCurrentUser_Unauthorized() throws Exception {
+    SuccessMetricsReport report = createSuccessMetricsReport(Collections.emptySet(), Collections.emptySet(), null);
+    successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).with(unauthorizedUser())
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, "not-found",
+        unauthorizedUser.getUsername());
+    assertCustomData(auditDTO, "reportId", report.getId());
+    assertCustomData(auditDTO, "reportName", null);
+    assertCustomData(auditDTO, "selectedOrganizations", null);
+    assertCustomData(auditDTO, "selectedApplications", null);
   }
 
   private void testViewSuccessMetricsData_Unauthorized(final String resourceSubpath) throws Exception {
@@ -175,8 +239,8 @@ public class SuccessMetricsReportResourceAuditTest
     assertCustomData(auditDTO, "inspectedApplicationCount", includedApplicationCount);
   }
 
-  private AuditDTO assertReportData(final String id, final String name) {
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_SUCCESS_METRICS_REPORT, null);
+  private AuditDTO assertReportData(final AuditEvent auditEvent, final String id, final String name) {
+    AuditDTO auditDTO = assertAuditLog(auditEvent, null);
     assertCustomData(auditDTO, "reportId", id);
     assertCustomData(auditDTO, "reportName", name);
     return auditDTO;

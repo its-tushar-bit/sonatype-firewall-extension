@@ -32,15 +32,8 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class FirewallClientTest
     extends AbstractBrainServiceTest
@@ -68,8 +61,8 @@ public class FirewallClientTest
 
     Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
         REPOSITORY_PUBLIC_ID);
-    assertEquals(REPOSITORY_PUBLIC_ID, repo.getPublicId());
-    assertTrue(repo.isEnabled());
+    assertThat(repo.getPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
+    assertThat(repo.isEnabled()).isTrue();
   }
 
   @Test
@@ -83,7 +76,7 @@ public class FirewallClientTest
       fail("Did not throw the expected exception");
     }
     catch (HttpResponseException e) {
-      assertEquals(401, e.getStatusCode());
+      assertThat(e.getStatusCode()).isEqualTo(401);
     }
   }
 
@@ -95,8 +88,8 @@ public class FirewallClientTest
 
     Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
         REPOSITORY_PUBLIC_ID);
-    assertEquals(REPOSITORY_PUBLIC_ID, repo.getPublicId());
-    assertFalse(repo.isEnabled());
+    assertThat(repo.getPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
+    assertThat(repo.isEnabled()).isFalse();
   }
 
   @Test
@@ -104,13 +97,13 @@ public class FirewallClientTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
 
     // Check that the initial value is false
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isQuarantineEnabled()).isFalse();
 
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
     client.setQuarantine(true);
 
     Repository repo = repositoryDAO.getById(repository.getId());
-    assertThat(repo.isQuarantineEnabled(), is(true));
+    assertThat(repo.isQuarantineEnabled()).isTrue();
   }
 
   @Test
@@ -118,13 +111,13 @@ public class FirewallClientTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true, true);
 
     // Check that the initial value is true
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
     client.setQuarantine(false);
 
     Repository repo = repositoryDAO.getById(repository.getId());
-    assertThat(repo.isQuarantineEnabled(), is(false));
+    assertThat(repo.isQuarantineEnabled()).isFalse();
   }
 
   @Test
@@ -135,8 +128,8 @@ public class FirewallClientTest
       fail("Expected HttpResponseException");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(404));
-      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID)));
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
     }
   }
 
@@ -155,11 +148,11 @@ public class FirewallClientTest
 
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId());
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = client.getPolicyEvaluationSummary();
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(3));
-    assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(3);
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);
   }
 
   @Test
@@ -170,8 +163,8 @@ public class FirewallClientTest
       fail("Expected HttpResponseException");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(404));
-      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID)));
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
     }
   }
 
@@ -205,8 +198,8 @@ public class FirewallClientTest
       fail("Expected exception");
     }
     catch (HttpResponseException e) {
-      assertEquals(404, e.getStatusCode());
-      assertEquals(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID), e.getMessage());
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
     }
   }
 
@@ -237,8 +230,8 @@ public class FirewallClientTest
 
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult = client
         .evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
-    assertThat(repositoryComponentEvaluationResult.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine).isFalse();
   }
 
   @Test
@@ -252,8 +245,8 @@ public class FirewallClientTest
       fail("Expected exception");
     }
     catch (HttpResponseException e) {
-      assertEquals(404, e.getStatusCode());
-      assertEquals(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID), e.getMessage());
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
     }
   }
 
@@ -266,7 +259,7 @@ public class FirewallClientTest
 
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
     UnquarantinedComponentList components = client.getUnquarantinedComponents(timestamp);
-    assertThat(components.pathnames, contains(component.getPathname()));
+    assertThat(components.pathnames).containsExactly(component.getPathname());
   }
 
   @Test
@@ -278,8 +271,8 @@ public class FirewallClientTest
       fail("Expected exception");
     }
     catch (HttpResponseException e) {
-      assertEquals(404, e.getStatusCode());
-      assertEquals(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID), e.getMessage());
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
     }
   }
 
@@ -293,7 +286,7 @@ public class FirewallClientTest
     client.removeComponent(pathname);
 
     repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
-    assertThat(repositoryComponent, nullValue());
+    assertThat(repositoryComponent).isNull();
   }
 
   @Test
@@ -304,8 +297,8 @@ public class FirewallClientTest
       fail("Expected HttpResponseException");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(404));
-      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID)));
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
     }
   }
 }

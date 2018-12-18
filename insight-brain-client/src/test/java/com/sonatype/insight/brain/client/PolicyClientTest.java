@@ -20,11 +20,7 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyClientTest
     extends AbstractBrainServiceTest
@@ -35,7 +31,7 @@ public class PolicyClientTest
     PolicyClient policyClient = new PolicyClient(getCLMServer().getClientConfiguration(), appId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.MANAGEMENT_PATH);
-    assertEquals(policyClient.linkToManagement(), uriBuilder.build(OwnerType.APPLICATION, appId).toString());
+    assertThat(policyClient.linkToManagement()).isEqualTo(uriBuilder.build(OwnerType.APPLICATION, appId).toString());
   }
 
   @Test
@@ -51,7 +47,7 @@ public class PolicyClientTest
 
     PolicyEvaluationSummary policyEvaluationSummary = policyClient
         .getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
-    assertThat(policyEvaluationSummary, is(nullValue()));
+    assertThat(policyEvaluationSummary).isNull();;
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
         scanId);
@@ -60,12 +56,12 @@ public class PolicyClientTest
 
     policyEvaluationSummary = policyClient.getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
 
-    assertThat(policyEvaluationSummary, notNullValue());
-    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/application/" + application.getPublicId()
-        + "/report/" + scanId));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
+    assertThat(policyEvaluationSummary).isNotNull();
+    assertThat(policyEvaluationSummary.getReportUrl())
+        .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + scanId);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
   }
 }

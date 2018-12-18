@@ -14,12 +14,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ResourceClientTest
     extends AbstractBrainServiceTest
@@ -32,16 +28,16 @@ public class ResourceClientTest
       fail("No exception thrown");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(HttpStatus.SC_NOT_FOUND));
-      assertThat(e.getMessage(), containsString("Not Found"));
+      assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+      assertThat(e.getMessage()).contains("Not Found");
     }
   }
 
   @Test
   public void testValidFile() throws Exception {
     Resource resource = new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/index.html");
-    assertThat(new String(resource.getData(), StandardCharsets.UTF_8), startsWith("<!DOCTYPE html>"));
+    assertThat(new String(resource.getData(), StandardCharsets.UTF_8)).startsWith("<!DOCTYPE html>");
     // check mime type
-    assertThat(resource.getContentType(), is(equalToIgnoringCase("text/html;charset=UTF-8")));
+    assertThat(resource.getContentType()).isEqualToIgnoringCase("text/html;charset=UTF-8");
   }
 }

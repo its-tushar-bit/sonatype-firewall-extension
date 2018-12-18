@@ -22,9 +22,9 @@ import org.awaitility.core.ThrowingRunnable;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class FirewallMigrationClientTest
     extends AbstractBrainServiceTest
@@ -73,8 +73,8 @@ public class FirewallMigrationClientTest
       fail("Expected exception");
     }
     catch (HttpResponseException e) {
-      assertEquals(HttpStatus.SC_NOT_FOUND, e.getStatusCode());
-      assertEquals(RepositoryDAO.getErrMsgMissingRepo(sourceManager, sourceRepository), e.getMessage());
+      assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(sourceManager, sourceRepository));
     }
   }
 
@@ -91,10 +91,9 @@ public class FirewallMigrationClientTest
     {
       @Override
       public void run() throws IOException {
-        assertEquals(
+        assertThat(
             client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID)
-                .getState(),
-            MigrationState.COMPLETED);
+                .getState()).isEqualTo(MigrationState.COMPLETED);
       }
     });
   }
@@ -106,10 +105,9 @@ public class FirewallMigrationClientTest
       fail("Expected exception");
     }
     catch (HttpResponseException e) {
-      assertEquals(HttpStatus.SC_NOT_FOUND, e.getStatusCode());
-      assertEquals(
-          RepositoryDAO.getErrMsgMissingRepo(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID),
-          e.getMessage());
+      assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+      assertThat(e.getMessage()).isEqualTo(
+          RepositoryDAO.getErrMsgMissingRepo(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID));
     }
   }
 }

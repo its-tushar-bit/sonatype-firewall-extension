@@ -32,25 +32,14 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ConfigurationClientTest
     extends AbstractBrainServiceTest
 {
-  private void assertMatch(String pattern, String text) {
-    assertTrue(text + " does not match pattern " + pattern, text != null && text.matches(pattern));
-  }
-
   @Test
   public void testValidateConfiguration_AllGood() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
@@ -66,8 +55,8 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad context root");
     }
     catch (HttpResponseException e) {
-      assertEquals(404, e.getStatusCode());
-      assertThat(e.getMessage(), is("Resource not found, please check your request URL."));
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo("Resource not found, please check your request URL.");
     }
   }
 
@@ -80,8 +69,8 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to anonymous not being allowed");
     }
     catch (HttpResponseException e) {
-      assertEquals(401, e.getStatusCode());
-      assertThat(e.getMessage(), is("Unauthorized"));
+      assertThat(e.getStatusCode()).isEqualTo(401);
+      assertThat(e.getMessage()).isEqualTo("Unauthorized");
     }
   }
 
@@ -108,8 +97,8 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad authentication");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(401));
-      assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+      assertThat(e.getStatusCode()).isEqualTo(401);
+      assertThat(e.getMessage()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
     }
   }
 
@@ -122,7 +111,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad host");
     }
     catch (IOException e) {
-      assertThat(e.getMessage(), startsWith("Unknown host: 1234.bad.host.1234.com"));
+      assertThat(e.getMessage()).startsWith("Unknown host: 1234.bad.host.1234.com");
     }
   }
 
@@ -135,7 +124,7 @@ public class ConfigurationClientTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is("Invalid URL: FFFF"));
+      assertThat(e.getMessage()).isEqualTo("Invalid URL: FFFF");
     }
   }
 
@@ -148,7 +137,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad port");
     }
     catch (IOException e) {
-      assertMatch("(?i).*Connection.* refused.*", e.getMessage());
+      assertThat(e.getMessage()).containsPattern("(?i)Connection.* refused");
     }
   }
 
@@ -161,7 +150,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to invalid port");
     }
     catch (Exception e) {
-      assertMatch("(?i).*Illegal .* port.*", e.getMessage());
+      assertThat(e.getMessage()).containsPattern("(?i)Illegal .* port");
     }
   }
 
@@ -174,7 +163,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad proxy host");
     }
     catch (IOException e) {
-      assertThat(e.getMessage(), startsWith("Unknown host: 1234.bad.host.1234.com"));
+      assertThat(e.getMessage()).startsWith("Unknown host: 1234.bad.host.1234.com");
     }
   }
 
@@ -187,7 +176,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad proxy port");
     }
     catch (IOException e) {
-      assertMatch("(?i).*Connection.* refused.*", e.getMessage());
+      assertThat(e.getMessage()).containsPattern("(?i)Connection.* refused");
     }
   }
 
@@ -205,17 +194,17 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad app id");
     }
     catch (IOException e) {
-      assertEquals("Invalid application ID unknown-id.", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("Invalid application ID unknown-id.");
     }
   }
 
   private void assertApplicationSummaryList(ApplicationSummaryList actual, Application expected) {
-    assertThat(actual, notNullValue());
-    assertThat(actual.getApplicationSummaries(), hasSize(1));
+    assertThat(actual).isNotNull();
+    assertThat(actual.getApplicationSummaries()).hasSize(1);
     ApplicationSummary applicationSummary = actual.getApplicationSummaries().get(0);
-    assertThat(applicationSummary.getId(), is(expected.getId()));
-    assertThat(applicationSummary.getPublicId(), is(expected.getPublicId()));
-    assertThat(applicationSummary.getName(), is(expected.getName()));
+    assertThat(applicationSummary.getId()).isEqualTo(expected.getId());
+    assertThat(applicationSummary.getPublicId()).isEqualTo(expected.getPublicId());
+    assertThat(applicationSummary.getName()).isEqualTo(expected.getName());
   }
 
   @Test
@@ -237,8 +226,8 @@ public class ConfigurationClientTest
       fail("Request should have failed due to bad authentication");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(401));
-      assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+      assertThat(e.getStatusCode()).isEqualTo(401);
+      assertThat(e.getMessage()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
     }
   }
 
@@ -263,19 +252,19 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.ALL);
     // This rest call will return the stages in the following predefined order
-    MatcherAssert.assertThat(stages, hasSize(6));
-    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.PROXY.getId()));
-    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.PROXY.getName()));
-    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.DEVELOP.getId()));
-    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.DEVELOP.getName()));
-    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.BUILD.getId()));
-    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.BUILD.getName()));
-    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(4).getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(4).getStageName(), is(StageTypes.RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(5).getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    MatcherAssert.assertThat(stages.get(5).getStageName(), is(StageTypes.OPERATE.getName()));
+    assertThat(stages).hasSize(6);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.PROXY.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.DEVELOP.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.DEVELOP.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(4).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(4).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(5).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(5).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test
@@ -285,15 +274,15 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.CI);
     // This rest call will return the stages in the following predefined order
-    MatcherAssert.assertThat(stages, hasSize(4));
-    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.BUILD.getId()));
-    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.BUILD.getName()));
-    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.OPERATE.getName()));
+    assertThat(stages).hasSize(4);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test
@@ -303,17 +292,17 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.CLI);
     // This rest call will return the stages in the following predefined order
-    MatcherAssert.assertThat(stages, hasSize(5));
-    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.DEVELOP.getId()));
-    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.DEVELOP.getName()));
-    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.BUILD.getId()));
-    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.BUILD.getName()));
-    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(4).getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    MatcherAssert.assertThat(stages.get(4).getStageName(), is(StageTypes.OPERATE.getName()));
+    assertThat(stages).hasSize(5);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.DEVELOP.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.DEVELOP.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(4).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(4).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test
@@ -323,15 +312,15 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.QA);
     // This rest call will return the stages in the following predefined order
-    MatcherAssert.assertThat(stages, hasSize(4));
-    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.BUILD.getId()));
-    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.BUILD.getName()));
-    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.OPERATE.getName()));
+    assertThat(stages).hasSize(4);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test
@@ -341,15 +330,15 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.RM);
     // This rest call will return the stages in the following predefined order
-    MatcherAssert.assertThat(stages, hasSize(4));
-    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.BUILD.getId()));
-    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.BUILD.getName()));
-    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.OPERATE.getName()));
+    assertThat(stages).hasSize(4);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test
@@ -359,17 +348,17 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.MAVEN);
     // This rest call will return the stages in the following predefined order
-    MatcherAssert.assertThat(stages, hasSize(5));
-    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.DEVELOP.getId()));
-    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.DEVELOP.getName()));
-    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.BUILD.getId()));
-    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.BUILD.getName()));
-    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.RELEASE.getName()));
-    MatcherAssert.assertThat(stages.get(4).getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    MatcherAssert.assertThat(stages.get(4).getStageName(), is(StageTypes.OPERATE.getName()));
+    assertThat(stages).hasSize(5);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.DEVELOP.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.DEVELOP.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(4).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(4).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test
@@ -384,8 +373,8 @@ public class ConfigurationClientTest
     ProprietaryConfig config = new ConfigurationClient(clientConfig)
         .getProprietaryConfigForApplicationEvaluation(application.getPublicId());
 
-    assertEquals(packages, config.getPackages());
-    assertEquals(regexes, config.getRegexes());
+    assertThat(config.getPackages()).isEqualTo(packages);
+    assertThat(config.getRegexes()).isEqualTo(regexes);
   }
 
   @Test
@@ -400,8 +389,8 @@ public class ConfigurationClientTest
     ProprietaryConfig config = new ConfigurationClient(clientConfig)
         .getProprietaryConfigForComponentEvaluation(application.getPublicId());
 
-    assertEquals(packages, config.getPackages());
-    assertEquals(regexes, config.getRegexes());
+    assertThat(config.getPackages()).isEqualTo(packages);
+    assertThat(config.getRegexes()).isEqualTo(regexes);
   }
 
   private Configuration createConfigForPerm(String applicationId, Permission permission) {
@@ -425,7 +414,7 @@ public class ConfigurationClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
     FirewallIgnorePatterns firewallIgnorePatterns = client.getFirewallIgnorePatterns();
-    assertThat(firewallIgnorePatterns.regexpsByRepositoryFormat, is(hdsResult.regexpsByRepositoryFormat));
+    assertThat(firewallIgnorePatterns.regexpsByRepositoryFormat).isEqualTo(hdsResult.regexpsByRepositoryFormat);
   }
 
   @Test
@@ -438,7 +427,7 @@ public class ConfigurationClientTest
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
     boolean result = client.verifyOrCreateApplication(appPublicId);
-    assertThat(result, is(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -466,9 +455,8 @@ public class ConfigurationClientTest
       fail("Expected exception");
     }
     catch (UnsupportedServerVersionException expected) {
-      String expectedMessage = "The IQ Server version " + currentServerVersion
-          + " is not compatible. Supported IQ server versions are " + newerServerVersion + " or newer.";
-      assertThat(expected.getMessage(), is(expectedMessage));
+      assertThat(expected.getMessage()).isEqualTo("The IQ Server version " + currentServerVersion
+          + " is not compatible. Supported IQ server versions are " + newerServerVersion + " or newer.");
     }
   }
 

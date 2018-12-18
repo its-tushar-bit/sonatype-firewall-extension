@@ -21,11 +21,8 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ReportClientTest
     extends AbstractBrainServiceTest
@@ -45,7 +42,7 @@ public class ReportClientTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("Cannot create a ReportClient without a scanId"));
+      assertThat(expected.getMessage()).isEqualTo("Cannot create a ReportClient without a scanId");
     }
   }
 
@@ -56,7 +53,7 @@ public class ReportClientTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("Cannot create a ReportClient without a scanId"));
+      assertThat(expected.getMessage()).isEqualTo("Cannot create a ReportClient without a scanId");
     }
   }
 
@@ -67,7 +64,7 @@ public class ReportClientTest
     ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.REPORT_PATH);
-    assertEquals(reportClient.linkToReport(), uriBuilder.build(appId, scanId).toString());
+    assertThat(reportClient.linkToReport()).isEqualTo(uriBuilder.build(appId, scanId).toString());
   }
 
   @Test
@@ -85,8 +82,8 @@ public class ReportClientTest
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.downloadBundle(retrievedFile);
 
-    assertThat(retrievedFile.exists(), is(true));
-    assertThat(retrievedFile.length(), is(greaterThan(0L)));
+    assertThat(retrievedFile).isFile();
+    assertThat(retrievedFile.length()).isGreaterThan(0);
     // Verify that the file is in ZIP format
     new ZipFile(retrievedFile).close();
   }
@@ -99,14 +96,14 @@ public class ReportClientTest
     mockReport(scanId, "report-expanded-coverage");
 
     File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
-    assertThat(reportFile.exists(), is(false));
+    assertThat(reportFile).doesNotExist();
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.prepareExpandedCoverageReport();
 
-    assertThat(reportFile.isFile(), is(true));
+    assertThat(reportFile).isFile();
   }
 
   @Test
@@ -126,7 +123,7 @@ public class ReportClientTest
       fail("Expected an HttpResponseException for Unauthorized");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getMessage(), is("Unauthorized"));
+      assertThat(e.getMessage()).isEqualTo("Unauthorized");
     }
   }
 }

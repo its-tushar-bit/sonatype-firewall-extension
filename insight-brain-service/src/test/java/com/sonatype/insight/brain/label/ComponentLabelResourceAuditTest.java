@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -28,12 +29,14 @@ public class ComponentLabelResourceAuditTest
 
   private Label labelWithIdOnly;
 
-  private HttpRequest restRequest(OwnerType ownerType, String ownerId, String hash) {
-    return restRequest().path(ComponentLabelResource.RESOURCE_PATH).parameter(ownerType, ownerId, hash);
+  private HttpRequest restRequest(final Owner owner, final String hash) {
+    return restRequest().path(ComponentLabelResource.RESOURCE_PATH)
+        .parameter(owner.getType(), owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId(),
+            hash);
   }
 
-  private HttpRequest restRequest(OwnerType ownerType, String ownerId, String hash, String labelId) {
-    return restRequest().path(ComponentLabelResource.RESOURCE_PATH, labelId).parameter(ownerType, ownerId, hash);
+  private HttpRequest restRequest(Owner owner, String hash, String labelId) {
+    return restRequest(owner, hash).path(labelId);
   }
 
   private void assertComponentLabelData(final AuditDTO auditDTO) {
@@ -52,7 +55,7 @@ public class ComponentLabelResourceAuditTest
   @Test
   public void testSetComponentLabel_AppLevel() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH).body(labelWithIdOnly).post();
+    restRequest(application, COMPONENT_HASH).body(labelWithIdOnly).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, null);
     assertApplicationData(auditDTO, application);
@@ -62,7 +65,7 @@ public class ComponentLabelResourceAuditTest
   @Test
   public void testSetComponentLabel_OrgLevel() throws Exception {
     Organization organization = tempEntity.newOrganization();
-    restRequest(OwnerType.ORGANIZATION, organization.getId(), COMPONENT_HASH).body(labelWithIdOnly).post();
+    restRequest(organization, COMPONENT_HASH).body(labelWithIdOnly).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, null);
     assertOrganizationData(auditDTO, organization);
@@ -72,7 +75,7 @@ public class ComponentLabelResourceAuditTest
   @Test
   public void testSetComponentLabel_RepoLevel() throws Exception {
     Repository repository = tempEntity.newRepository();
-    restRequest(OwnerType.REPOSITORY, repository.getId(), COMPONENT_HASH).body(labelWithIdOnly).post();
+    restRequest(repository, COMPONENT_HASH).body(labelWithIdOnly).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, null);
     assertRepositoryData(auditDTO, repository);
@@ -81,8 +84,7 @@ public class ComponentLabelResourceAuditTest
 
   @Test
   public void testSetComponentLabel_RepoContainerLevel() throws Exception {
-    restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, COMPONENT_HASH)
-        .body(labelWithIdOnly).post();
+    restRequest(RepositoryContainer.SINGLETON, COMPONENT_HASH).body(labelWithIdOnly).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, null);
     assertRepositoryContainerData(auditDTO);
@@ -92,8 +94,7 @@ public class ComponentLabelResourceAuditTest
   @Test
   public void testSetComponentLabel_Unauthorized() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH).body(labelWithIdOnly)
-        .with(unauthorizedUser()).post();
+    restRequest(application, COMPONENT_HASH).body(labelWithIdOnly).with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -103,7 +104,7 @@ public class ComponentLabelResourceAuditTest
   public void testDeleteComponentLabel_AppLevel() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH, label.getId()).delete();
+    restRequest(application, COMPONENT_HASH, label.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
     assertApplicationData(auditDTO, application);
@@ -114,7 +115,7 @@ public class ComponentLabelResourceAuditTest
   public void testDeleteComponentLabel_OrgLevel() throws Exception {
     Organization organization = tempEntity.newOrganization();
     tempEntity.newComponentLabel(organization.getId(), label.getId(), COMPONENT_HASH);
-    restRequest(OwnerType.ORGANIZATION, organization.getId(), COMPONENT_HASH, label.getId()).delete();
+    restRequest(organization, COMPONENT_HASH, label.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
     assertOrganizationData(auditDTO, organization);
@@ -125,7 +126,7 @@ public class ComponentLabelResourceAuditTest
   public void testDeleteComponentLabel_RepoLevel() throws Exception {
     Repository repository = tempEntity.newRepository();
     tempEntity.newComponentLabel(repository.getId(), label.getId(), COMPONENT_HASH);
-    restRequest(OwnerType.REPOSITORY, repository.getId(), COMPONENT_HASH, label.getId()).delete();
+    restRequest(repository, COMPONENT_HASH, label.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
     assertRepositoryData(auditDTO, repository);
@@ -135,8 +136,7 @@ public class ComponentLabelResourceAuditTest
   @Test
   public void testDeleteComponentLabel_RepoContainerLevel() throws Exception {
     tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, label.getId(), COMPONENT_HASH);
-    restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, COMPONENT_HASH,
-        label.getId()).delete();
+    restRequest(RepositoryContainer.SINGLETON, COMPONENT_HASH, label.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
     assertRepositoryContainerData(auditDTO);
@@ -147,10 +147,57 @@ public class ComponentLabelResourceAuditTest
   public void testDeleteComponentLabel_Unauthorized() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), COMPONENT_HASH, label.getId())
-        .with(unauthorizedUser()).delete();
+    restRequest(application, COMPONENT_HASH, label.getId()).with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testGetComponentLabels_Application() throws Exception {
+    final Application application = tempEntity.newApplicationWithParent();
+    restRequest(application, COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetComponentLabels_Organization() throws Exception {
+    final Organization organization = tempEntity.newOrganization();
+    restRequest(organization, COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertOrganizationData(auditDTO, organization);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetComponentLabels_Repository() throws Exception {
+    final Repository repository = tempEntity.newRepository();
+    restRequest(repository, COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetComponentLabels_RepositoryContainer() throws Exception {
+    restRequest(RepositoryContainer.SINGLETON, COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertRepositoryContainerData(auditDTO);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetComponentLabels_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    restRequest(application, COMPONENT_HASH).with(unauthorizedUser()).get();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 }

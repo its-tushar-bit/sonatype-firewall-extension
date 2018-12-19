@@ -46,6 +46,7 @@ public class ComponentLabelResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public AppliedLabels getComponentLabels(@PathParam("ownerType") final OwnerType ownerType,
                                           @PathParam("ownerId") final String ownerId,
                                           @PathParam("hash") final String hash)

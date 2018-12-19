@@ -53,6 +53,7 @@ public class ComponentLabelService
                                           @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                           final String hash)
   {
+    AuditData.get().setComponentHash(hash);
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedLabels result = new AppliedLabels();

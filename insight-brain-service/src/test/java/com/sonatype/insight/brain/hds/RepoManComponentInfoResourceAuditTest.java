@@ -3,17 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.ide;
+package com.sonatype.insight.brain.hds;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceAuditBaseTest;
 
-public class IDEComponentInfoResourceAuditTest
+public class RepoManComponentInfoResourceAuditTest
     extends AbstractComponentInfoResourceAuditBaseTest
 {
   @Override
   protected HttpRequest resourceRequest() {
-    return restRequest()
-        .path(IDEComponentInfoResource.RESOURCE_PATH, IDEComponentInfoResource.APPLICATION_COMPONENT_DETAILS_PATH);
+    return restRequest().path(RepoManComponentInfoResource.RESOURCE_PATH,
+        RepoManComponentInfoResource.APPLICATION_COMPONENT_DETAILS_PATH);
   }
 }

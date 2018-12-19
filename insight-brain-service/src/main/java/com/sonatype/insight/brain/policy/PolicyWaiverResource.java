@@ -107,10 +107,12 @@ public class PolicyWaiverResource
   @Path("component/{hash}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public AppliedWaivers getPolicyWaiversByHash(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                                @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                                @PathParam("hash") String hash)
   {
+    AuditData.get().setComponentHash(hash);
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedWaivers result = new AppliedWaivers();

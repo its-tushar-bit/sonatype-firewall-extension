@@ -31,6 +31,8 @@ import org.junit.Test;
 public class PolicyWaiverResourceAuditTest
     extends AbstractAuditTest
 {
+  private static final String COMPONENT_HASH = "hash";
+
   private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
   private Policy policy;
@@ -161,12 +163,60 @@ public class PolicyWaiverResourceAuditTest
     assertRepositoryContainerData(auditDTO);
   }
 
+  @Test
+  public void testGetPolicyWaiversByHash_Application() throws Exception {
+    final Application application = tempEntity.newApplicationWithParent();
+    restRequest(application).path("component", COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetPolicyWaiversByHash_Organization() throws Exception {
+    final Organization organization = tempEntity.newOrganization();
+    restRequest(organization).path("component", COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertOrganizationData(auditDTO, organization);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetPolicyWaiversByHash_Repository() throws Exception {
+    final Repository repository = tempEntity.newRepository();
+    restRequest(repository).path("component", COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertRepositoryData(auditDTO, repository);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetPolicyWaiversByHash_RepositoryContainer() throws Exception {
+    restRequest(RepositoryContainer.SINGLETON).path("component", COMPONENT_HASH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertRepositoryContainerData(auditDTO);
+    assertCustomData(auditDTO, "componentHash", COMPONENT_HASH);
+  }
+
+  @Test
+  public void testGetPolicyWaiversByHash_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    restRequest(application).path("component", COMPONENT_HASH).with(unauthorizedUser()).get();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
   private PolicyWaiver savePolicyWaiver(String ownerId) {
-    return tempEntity.newWaiver("hash", policy.getId(), ownerId, constraintFacts(), "comment");
+    return tempEntity.newWaiver(COMPONENT_HASH, policy.getId(), ownerId, constraintFacts(), "comment");
   }
 
   private PolicyWaiver policyWaiver() {
-    return policyWaiver("hash", constraintFacts());
+    return policyWaiver(COMPONENT_HASH, constraintFacts());
   }
 
   private PolicyWaiver policyWaiver(String hash, List<ConstraintFact> constraintFacts) {

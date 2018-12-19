@@ -39,13 +39,13 @@ public class AuditingTest
         + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" } ] }";
 
     store.commit("sample.json",
-        JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes("UTF-8"))));
+        JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes(StandardCharsets.UTF_8))));
 
     store.commit("sample.json",
-        JsonUtils.stamp("test", "192.168.1.8", "home", JsonUtils.parse(addition2.getBytes("UTF-8"))));
+        JsonUtils.stamp("test", "192.168.1.8", "home", JsonUtils.parse(addition2.getBytes(StandardCharsets.UTF_8))));
 
-    final byte[] buf = JsonUtils.generate(store.history(JsonUtils.parse("{\"id\":\"B\"}".getBytes("UTF-8")),
-        "sample.json"));
+    final byte[] buf = JsonUtils
+        .generate(store.history(JsonUtils.parse("{\"id\":\"B\"}".getBytes(StandardCharsets.UTF_8)), "sample.json"));
 
     assertThat(new String(buf, StandardCharsets.UTF_8).replaceAll("\"time\" : [0-9]+", "\"time\" : 0"))
         .isEqualToIgnoringWhitespace(result);
@@ -66,15 +66,16 @@ public class AuditingTest
         + " ] }";
 
     store.commit("sample.json",
-        JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes("UTF-8"))));
+        JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes(StandardCharsets.UTF_8))));
 
     store.commit("sample.json",
-        JsonUtils.stamp("test", "192.168.1.8", "home", JsonUtils.parse(addition2.getBytes("UTF-8"))));
+        JsonUtils.stamp("test", "192.168.1.8", "home", JsonUtils.parse(addition2.getBytes(StandardCharsets.UTF_8))));
 
     store.commit("another.json",
-        JsonUtils.stamp("test", "127.0.0.1", "cafe", JsonUtils.parse(addition3.getBytes("UTF-8"))));
+        JsonUtils.stamp("test", "127.0.0.1", "cafe", JsonUtils.parse(addition3.getBytes(StandardCharsets.UTF_8))));
 
-    final byte[] buf = JsonUtils.generate(store.history(JsonUtils.parse("{\"id\":\"B\"}".getBytes("UTF-8"))));
+    final byte[] buf = JsonUtils
+        .generate(store.history(JsonUtils.parse("{\"id\":\"B\"}".getBytes(StandardCharsets.UTF_8))));
 
     assertThat(new String(buf, StandardCharsets.UTF_8).replaceAll("\"time\" : [0-9]+", "\"time\" : 0"))
         .isEqualToIgnoringWhitespace(result);
@@ -96,13 +97,13 @@ public class AuditingTest
         + " ] }";
 
     store.commit("sample.json",
-        JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes("UTF-8"))));
+        JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes(StandardCharsets.UTF_8))));
 
     store.commit("sample.json",
-        JsonUtils.stamp("test", "192.168.1.8", "home", JsonUtils.parse(addition2.getBytes("UTF-8"))));
+        JsonUtils.stamp("test", "192.168.1.8", "home", JsonUtils.parse(addition2.getBytes(StandardCharsets.UTF_8))));
 
     store.commit("another.json",
-        JsonUtils.stamp("test", "127.0.0.1", "cafe", JsonUtils.parse(addition3.getBytes("UTF-8"))));
+        JsonUtils.stamp("test", "127.0.0.1", "cafe", JsonUtils.parse(addition3.getBytes(StandardCharsets.UTF_8))));
 
     final byte[] buf = JsonUtils.generate(store.history(null));
 

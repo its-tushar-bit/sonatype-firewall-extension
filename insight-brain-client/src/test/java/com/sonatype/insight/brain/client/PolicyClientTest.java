@@ -47,7 +47,7 @@ public class PolicyClientTest
 
     PolicyEvaluationSummary policyEvaluationSummary = policyClient
         .getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
-    assertThat(policyEvaluationSummary).isNull();;
+    assertThat(policyEvaluationSummary).isNull();
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
         scanId);

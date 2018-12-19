@@ -8,14 +8,15 @@ package com.sonatype.insight.brain.repository;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceAuditTest;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class RepositoryReportResourceAuditTest
-    extends AbstractAuditTest
+    extends AbstractComponentInfoResourceAuditTest
 {
   private Repository repository;
 
@@ -54,6 +55,36 @@ public class RepositoryReportResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_REPOSITORY_RESULTS, "unauthorized");
     assertRepositoryData(auditDTO, repository);
+  }
+
+  @Test
+  public void testGetPolicyThreats() throws Exception {
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "dir/path");
+
+    restPolicyThreatRequest(repositoryComponent.getPathname()).get();
+    AuditDTO auditDTO = assertAuditComponentInfo(repository, repositoryComponent.getComponentIdentifier(),
+        repositoryComponent.getHash());
+    assertCustomData(auditDTO, "componentPathname", repositoryComponent.getPathname());
+  }
+
+  @Test
+  public void testGetPolicyThreats_NonExistent() throws Exception {
+    restPolicyThreatRequest("non-existent/path").get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "not-found");
+    assertCustomData(auditDTO, "componentPathname", "non-existent/path");
+  }
+
+  @Test
+  public void testGetPolicyThreats_Unauthorized() throws Exception {
+    restPolicyThreatRequest("a/path").with(unauthorizedUser()).get();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
+  private HttpRequest restPolicyThreatRequest(final String pathname) {
+    return restRequest().path(RepositoryReportResource.RESOURCE_PATH, RepositoryReportResource.POLICY_THREAT_PATH)
+        .parameter(repository.getId(), pathname);
   }
 
   private HttpRequest repositoryResourceRequest() {

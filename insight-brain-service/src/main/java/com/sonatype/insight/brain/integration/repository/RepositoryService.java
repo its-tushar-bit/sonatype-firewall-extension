@@ -120,7 +120,7 @@ public class RepositoryService
   public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname,
                                     final String clientUserAgent) {
     checkLicenseFeature();
-    AuditData.get().setData("componentPathname", pathname);
+    auditComponentPath(pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
         pathname);
     if (repositoryComponent == null) {
@@ -177,16 +177,24 @@ public class RepositoryService
     return getPolicyThreats(repository, pathname);
   }
 
+  private void auditComponentPath(final String pathname) {
+    AuditData.get().setData("componentPathname", pathname);
+  }
+
   @Authorize(permission = Permission.READ)
   RepositoryPolicyThreatDTO getPolicyThreats(@AuthzContext(Key.REPOSITORY) final Repository repository,
                                              final String pathname)
   {
+    auditComponentPath(pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     if (repositoryComponent == null) {
       throw new NotFoundException("Cannot find a component with path " + pathname + " in repository with ID "
           + repository.getId() + ".");
     }
+    AuditData.get()
+        .setComponentIdentifier(repositoryComponent.getComponentIdentifier())
+        .setComponentHash(repositoryComponent.getHash());
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
@@ -589,8 +597,8 @@ public class RepositoryService
       repositoryComponentDAO.delete(repositoryComponent);
       if (repositoryComponent.isQuarantined()) {
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, true)) {
-          AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash())
-              .setData("componentPathname", repositoryComponent.getPathname());
+          AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash());
+          auditComponentPath(repositoryComponent.getPathname());
         }
       }
     }

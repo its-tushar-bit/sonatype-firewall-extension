@@ -46,9 +46,10 @@ public abstract class AbstractComponentInfoResourceAuditTest
     return auditDTO;
   }
 
-  protected void assertAuditComponentInfo(Owner owner, ComponentIdentifier componentIdentifier, String hash) {
+  protected AuditDTO assertAuditComponentInfo(Owner owner, ComponentIdentifier componentIdentifier, String hash) {
     AuditDTO auditDTO = assertAuditComponentInfo(owner, componentIdentifier);
     assertCustomData(auditDTO, "componentHash", hash);
+    return auditDTO;
   }
 
   protected void setupHdsResponseForComponent(final HttpRequest httpRequest) {

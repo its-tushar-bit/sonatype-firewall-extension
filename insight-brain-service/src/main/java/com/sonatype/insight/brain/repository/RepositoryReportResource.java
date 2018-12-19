@@ -87,6 +87,7 @@ public class RepositoryReportResource
   @GET
   @Path(POLICY_THREAT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public RepositoryPolicyThreatDTO getPolicyThreats(@PathParam("repositoryId") final String repositoryId,
                                                     @PathParam("pathname") final String pathname)
   {

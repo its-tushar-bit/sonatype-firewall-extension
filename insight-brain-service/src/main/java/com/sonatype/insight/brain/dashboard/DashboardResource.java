@@ -234,6 +234,7 @@ public class DashboardResource
   @Produces("text/csv")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @ExceptionMetered(name = "getComponentRisksExportExceptionMeter")
+  @Audited(AuditEvent.EXPORT_DASHBOARD_COMPONENT_LIST)
   public Response getComponentRisksExport(FormDataMultiPart multiPart) throws IOException
   {
     String filterJson = multiPart.getField("filter").getValue();

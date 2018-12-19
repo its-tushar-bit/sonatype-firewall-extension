@@ -176,6 +176,11 @@ public class DashboardResourceAuditTest
   }
 
   @Test
+  public void testGetComponentRisksExport() throws Exception {
+    testGetRisks(DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH, AuditEvent.EXPORT_DASHBOARD_COMPONENT_LIST);
+  }
+
+  @Test
   public void testGetNewestRisksExport() throws Exception {
     testGetRisks(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH, AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST);
   }
@@ -213,6 +218,12 @@ public class DashboardResourceAuditTest
   @Test
   public void testGetComponentRisks_EmptyFilter() throws Exception {
     testGetRisks_EmptyFilter(DashboardResource.GET_COMPONENT_RISKS_PATH, AuditEvent.VIEW_DASHBOARD_COMPONENT_LIST);
+  }
+
+  @Test
+  public void testGetComponentRisksExport_EmptyFilter() throws Exception {
+    testGetRisks_EmptyFilter(DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH,
+        AuditEvent.EXPORT_DASHBOARD_COMPONENT_LIST);
   }
 
   @Test

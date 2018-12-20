@@ -159,7 +159,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   {
     log.info("Submitting scan to the IQ Server...");
     try {
-      return restClient.uploadScan(params.getApplicationId(), scanFile, clientScanType);
+      ScanReceipt scanReceipt = restClient.uploadScan(params.getApplicationId(), scanFile, clientScanType);
+      log.info("Assigned scan ID {}", scanReceipt.getScanId());
+      return scanReceipt;
     }
     catch (HttpResponseException e) {
       log.error("The scan could not be submitted to the IQ Server: {} ({})", e.getMessage(), e.getStatusCode());
@@ -173,25 +175,26 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   protected void evaluatePolicy(P params, RestClient restClient, ScanReceipt receipt) throws ExitException
   {
+    String scanId = receipt.getScanId();
     log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
     PolicyEvaluationResult eval;
     try {
       receipt.waitForReport();
-      eval = restClient.evaluatePolicy(params.getApplicationId(), receipt.getScanId(), params.getStage()
+      eval = restClient.evaluatePolicy(params.getApplicationId(), scanId, params.getStage()
           .getStageTypeId());
     }
     catch (HttpResponseException e) {
-      log.error("The policy evaluation results could not be fetched from the IQ Server: {} ({})", e.getMessage(),
-          e.getStatusCode());
+      log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server: {} ({})",
+          scanId, e.getMessage(), e.getStatusCode());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (ClientException e) {
-      log.error("The policy evaluation results could not be fetched from the IQ Server: {} ({})", e.getMessage(), e
-          .getResult().status());
+      log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server: {} ({})",
+          scanId, e.getMessage(), e.getResult().status());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
-      log.error("The policy evaluation results could not be fetched from the IQ Server", e);
+      log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server", scanId, e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (InterruptedException e) {

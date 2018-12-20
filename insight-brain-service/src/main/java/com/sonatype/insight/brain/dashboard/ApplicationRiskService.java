@@ -86,7 +86,8 @@ public class ApplicationRiskService
 
     AuditData.get() //
         .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
-        .setData("selectedApplications", AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds)) //
+        .setData("selectedApplications",
+            AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds, appsToSearch)) //
         .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", appsToSearch.size());
 

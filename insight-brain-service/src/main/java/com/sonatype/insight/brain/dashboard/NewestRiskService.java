@@ -42,8 +42,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 import com.sonatype.insight.brain.utils.AuditUtils;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +102,8 @@ public class NewestRiskService
 
     AuditData.get() //
         .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
-        .setData("selectedApplications", AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds)) //
+        .setData("selectedApplications",
+            AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
         .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", applications.size());
 

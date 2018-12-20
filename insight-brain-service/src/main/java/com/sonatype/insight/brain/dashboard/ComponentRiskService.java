@@ -128,7 +128,8 @@ public class ComponentRiskService
 
     AuditData.get() //
         .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
-        .setData("selectedApplications", AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds)) //
+        .setData("selectedApplications",
+            AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
         .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", applications.size());
 

@@ -69,6 +69,13 @@ public class AuditUtils
                                                                       final Set<String> organizationIds)
   {
     List<Application> applications = applicationDAO.getByIds(applicationIds);
+    return getSelectedApplicationsById(applicationIds, organizationIds, applications);
+  }
+
+  public static List<ApplicationAuditDTO> getSelectedApplicationsById(Set<String> applicationIds,
+                                                                      Set<String> organizationIds,
+                                                                      List<Application> applications)
+  {
     Map<String, Application> applicationsById = applications.stream()
         .collect(Collectors.toMap(Application::getId, Function.identity()));
     return getSelectedApplicationsById(applicationIds, organizationIds, applicationsById);

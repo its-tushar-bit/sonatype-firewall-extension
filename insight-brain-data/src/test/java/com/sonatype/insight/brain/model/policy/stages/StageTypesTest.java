@@ -9,10 +9,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StageTypesTest
 {
@@ -20,24 +17,33 @@ public class StageTypesTest
   @Test
   public void testIsIgnoredForDashboard() {
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(StageTypes.isIgnoredForDashboard(stageType.getId()),
-          anyOf(is(DevelopStageType.ID.equals(stageType.getId())), is(ProxyStageType.ID.equals(stageType.getId()))));
+      switch (stageType.getId()) {
+        case DevelopStageType.ID:
+        case ProxyStageType.ID:
+          assertThat(StageTypes.isIgnoredForDashboard(stageType.getId())).isTrue();
+          break;
+        default:
+          assertThat(StageTypes.isIgnoredForDashboard(stageType.getId())).isFalse();
+      }
     }
   }
 
   @Test
   public void testIsIgnoredForPolicyViolationAggregation() {
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId()),
-          is(DevelopStageType.ID.equals(stageType.getId())));
+      switch (stageType.getId()) {
+        case DevelopStageType.ID:
+          assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())).isTrue();
+          break;
+        default:
+          assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())).isFalse();
+      }
     }
   }
 
   @Test
   public void testGetAll_ChronologicalOrdering() {
-    assertThat(
-        StageTypes.getAll(),
-        contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
-            StageTypes.OPERATE));
+    assertThat(StageTypes.getAll()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD,
+        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
   }
 }

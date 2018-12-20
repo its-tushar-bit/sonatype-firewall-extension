@@ -9,10 +9,8 @@ import com.sonatype.insight.brain.model.SchemaInfo;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SchemaInfoDAOTest
     extends AbstractDbDAOTest
@@ -22,27 +20,20 @@ public class SchemaInfoDAOTest
   @Test
   public void testCRUD() throws Exception {
     SchemaInfo schemaInfo = dao.get();
-    assertThat(schemaInfo, is(notNullValue()));
+    assertThat(schemaInfo).isNotNull();
 
     schemaInfo.setDroolsCodeVersion(-13);
     dao.update(schemaInfo);
     schemaInfo = dao.get();
-    assertThat(schemaInfo.getDroolsCodeVersion(), is(-13));
+    assertThat(schemaInfo.getDroolsCodeVersion()).isEqualTo(-13);
 
-    try {
-      dao.delete(schemaInfo);
-      fail("Expected exception");
-    }
-    catch (UnsupportedOperationException e) {
-      // good boy
-    }
+    SchemaInfo schemaInfoToDelete = schemaInfo;
+    assertThatThrownBy(() -> {
+      dao.delete(schemaInfoToDelete);
+    }).isInstanceOf(UnsupportedOperationException.class);
 
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(new SchemaInfo());
-      fail("Expected exception");
-    }
-    catch (UnsupportedOperationException e) {
-      // good boy
-    }
+    }).isInstanceOf(UnsupportedOperationException.class);
   }
 }

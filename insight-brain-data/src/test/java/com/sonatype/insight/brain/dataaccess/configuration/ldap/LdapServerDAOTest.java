@@ -22,13 +22,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LdapServerDAOTest
     extends AbstractDbDAOTest
@@ -49,14 +44,14 @@ public class LdapServerDAOTest
     // select by id
 
     LdapServer echo = dao.getById(server.getId());
-    assertNotNull(echo);
-    assertEquals(name, echo.getName());
-    assertEquals(NameHelper.normalize(name), echo.getNameLowercaseNoWhitespace());
+    assertThat(echo).isNotNull();
+    assertThat(echo.getName()).isEqualTo(name);
+    assertThat(echo.getNameLowercaseNoWhitespace()).isEqualTo(NameHelper.normalize(name));
 
     // select by name
 
     echo = dao.getByName(name);
-    assertNotNull(echo);
+    assertThat(echo).isNotNull();
 
     // update
 
@@ -64,79 +59,59 @@ public class LdapServerDAOTest
     server.setName(changedName);
     dao.update(server);
     echo = dao.getById(server.getId());
-    assertEquals(changedName, echo.getName());
+    assertThat(echo.getName()).isEqualTo(changedName);
 
     // delete
     dao.delete(server);
-    assertNull(dao.getById(server.getId()));
+    assertThat(dao.getById(server.getId())).isNull();
   }
 
   @Test
   public void testValidateNullName_Insert() {
     LdapServer ldapServer = new LdapServer(null /* name */);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(ldapServer);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNullName_Update() {
     LdapServer ldapServer = tempEntity.newLdapServer("testValidateNullName");
-    assertEquals("testvalidatenullname", ldapServer.getNameLowercaseNoWhitespace());
+    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("testvalidatenullname");
 
     ldapServer.setName(null);
-    assertNull(ldapServer.getNameLowercaseNoWhitespace());
-    try {
+    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isNull();
+    assertThatThrownBy(() -> {
       dao.update(ldapServer);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newLdapServer(" ");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Update() {
     LdapServer ldapServer = tempEntity.newLdapServer("testValidateEmptyName");
-    assertEquals("testvalidateemptyname", ldapServer.getNameLowercaseNoWhitespace());
+    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("testvalidateemptyname");
 
     ldapServer.setName(" ");
-    assertEquals("", ldapServer.getNameLowercaseNoWhitespace());
-    try {
+    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("");
+    assertThatThrownBy(() -> {
       dao.update(ldapServer);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       LdapServer ldapServer = new LdapServer(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.insert(ldapServer);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -145,13 +120,9 @@ public class LdapServerDAOTest
     LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameInvalidChars");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       ldapServer.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.update(ldapServer);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -174,14 +145,10 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      try {
+      assertThatThrownBy(() -> {
         tempEntity.newLdapServer(name);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -190,14 +157,10 @@ public class LdapServerDAOTest
     LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameSpaces");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       ldapServer.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.update(ldapServer);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -207,26 +170,22 @@ public class LdapServerDAOTest
 
     LdapServer ldapServer = tempEntity.newLdapServer(name);
 
-    assertEquals(name, ldapServer.getName());
-    assertEquals("teststringwithcaseandwhitespace", ldapServer.getNameLowercaseNoWhitespace());
+    assertThat(ldapServer.getName()).isEqualTo(name);
+    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
 
     String name1 = "TEST String      With    cASE and      whitespace";
     LdapServer ldapServer1 = dao.getByName(name1);
-    assertNotNull(ldapServer1);
-    assertEquals(ldapServer.getId(), ldapServer1.getId());
+    assertThat(ldapServer1).isNotNull();
+    assertThat(ldapServer1.getId()).isEqualTo(ldapServer.getId());
   }
 
   @Test
   public void testDuplicateName_Insert() {
     tempEntity.newLdapServer("testDuplicateName");
 
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newLdapServer("testDuplicateName");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("testDuplicateName is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("testDuplicateName is already used as a name.");
   }
 
   @Test
@@ -235,25 +194,17 @@ public class LdapServerDAOTest
     LdapServer ldapServer = tempEntity.newLdapServer("testDuplicateName1");
 
     ldapServer.setName("Test Duplicate Name");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(ldapServer);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Test Duplicate Name is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newLdapServer(name + "a");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
 
     tempEntity.newLdapServer(name);
   }
@@ -264,13 +215,9 @@ public class LdapServerDAOTest
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     ldapServer.setName(name + "a");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(ldapServer);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
 
     ldapServer.setName(name);
     dao.update(ldapServer);
@@ -281,7 +228,7 @@ public class LdapServerDAOTest
     LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
     LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
 
-    assertThat(ldapServer2.getPriority(), is(greaterThan(ldapServer1.getPriority())));
+    assertThat(ldapServer2.getPriority()).isGreaterThan(ldapServer1.getPriority());
   }
 
   @Test
@@ -296,10 +243,10 @@ public class LdapServerDAOTest
     dao.updatePriority(serverPriorityList);
 
     List<LdapServer> servers = dao.getAll();
-    assertThat(servers.get(0).getName(), is("test2"));
-    assertThat(servers.get(0).getPriority(), is(1));
-    assertThat(servers.get(1).getName(), is("test1"));
-    assertThat(servers.get(1).getPriority(), is(2));
+    assertThat(servers.get(0).getName()).isEqualTo("test2");
+    assertThat(servers.get(0).getPriority()).isEqualTo(1);
+    assertThat(servers.get(1).getName()).isEqualTo("test1");
+    assertThat(servers.get(1).getPriority()).isEqualTo(2);
   }
 
   @Test

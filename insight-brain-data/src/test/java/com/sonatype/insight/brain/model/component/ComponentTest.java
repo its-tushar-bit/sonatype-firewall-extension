@@ -9,14 +9,13 @@ import java.util.Collections;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentTest
 {
   @Test
   public void defaultDoesNotOverrideLicense() {
-    assertThat(new Component().isLicenseOverridden(), is(false));
+    assertThat(new Component().isLicenseOverridden()).isFalse();
   }
 
   @Test
@@ -24,6 +23,6 @@ public class ComponentTest
     Component overridden = new Component();
     overridden.setLicenseOverrideIds(Collections.singleton("any-license-id"));
 
-    assertThat(overridden.isLicenseOverridden(), is(true));
+    assertThat(overridden.isLicenseOverridden()).isTrue();
   }
 }

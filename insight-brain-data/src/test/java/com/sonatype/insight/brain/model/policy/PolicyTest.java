@@ -28,9 +28,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasErrors;
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasNoErrors;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyTest
 {
@@ -52,7 +50,7 @@ public class PolicyTest
     constraint4.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint4);
 
-    assertThat(policy.getThreatCategory(), is(PolicyThreatCategory.SECURITY));
+    assertThat(policy.getThreatCategory()).isEqualTo(PolicyThreatCategory.SECURITY);
   }
 
   @Test
@@ -68,7 +66,7 @@ public class PolicyTest
     constraint3.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     policy.addConstraint(constraint3);
 
-    assertThat(policy.getThreatCategory(), is(PolicyThreatCategory.LICENSE));
+    assertThat(policy.getThreatCategory()).isEqualTo(PolicyThreatCategory.LICENSE);
   }
 
   @Test
@@ -81,7 +79,7 @@ public class PolicyTest
     constraint2.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "1"));
     policy.addConstraint(constraint2);
 
-    assertThat(policy.getThreatCategory(), is(PolicyThreatCategory.QUALITY));
+    assertThat(policy.getThreatCategory()).isEqualTo(PolicyThreatCategory.QUALITY);
   }
 
   @Test
@@ -94,7 +92,7 @@ public class PolicyTest
     constraint2.addCondition(new Condition(RelativePopularityConditionType.ID, "=", "10"));
     policy.addConstraint(constraint2);
 
-    assertThat(policy.getThreatCategory(), is(PolicyThreatCategory.QUALITY));
+    assertThat(policy.getThreatCategory()).isEqualTo(PolicyThreatCategory.QUALITY);
   }
 
   @Test
@@ -104,7 +102,7 @@ public class PolicyTest
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
     policy.addConstraint(constraint1);
 
-    assertThat(policy.getThreatCategory(), is(PolicyThreatCategory.OTHER));
+    assertThat(policy.getThreatCategory()).isEqualTo(PolicyThreatCategory.OTHER);
   }
 
   @Test
@@ -366,6 +364,6 @@ public class PolicyTest
     Policy policy = new Policy("PolicyId", "Policy Name");
     policy.setDroolsCode("unwanted");
     policy = JsonUtils.parse(JsonUtils.format(policy), Policy.class);
-    assertThat(policy.getDroolsCode(), is(nullValue()));
+    assertThat(policy.getDroolsCode()).isNull();
   }
 }

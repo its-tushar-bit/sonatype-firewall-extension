@@ -16,8 +16,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LabelValueTypeTest
 {
@@ -39,15 +38,13 @@ public class LabelValueTypeTest
   public void testGetAvailableValues_AppLevel() {
     LabelValueType type = new LabelValueType(app.getId());
     List<Label> labels = type.getAvailableValues();
-    assertNotNull(labels);
-    assertEquals(1, labels.size());
+    assertThat(labels).hasSize(1);
   }
 
   @Test
   public void testGetAvailableValues_OrgLevel() {
     LabelValueType type = new LabelValueType(org.getId());
     List<Label> labels = type.getAvailableValues();
-    assertNotNull(labels);
-    assertEquals(0, labels.size());
+    assertThat(labels).isEmpty();
   }
 }

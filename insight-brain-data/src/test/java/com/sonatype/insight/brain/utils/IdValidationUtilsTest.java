@@ -9,9 +9,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class IdValidationUtilsTest
 {
@@ -27,13 +25,9 @@ public class IdValidationUtilsTest
   @Test
   public void testGetScanDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatThrownBy(() -> {
         IdValidationUtils.validate(invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + invalidValue);
     }
   }
 }

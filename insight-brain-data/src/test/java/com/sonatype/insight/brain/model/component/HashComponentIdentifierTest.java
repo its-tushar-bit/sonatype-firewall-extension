@@ -6,40 +6,32 @@
 package com.sonatype.insight.brain.model.component;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.HashHelper;
 
-import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test of {@link HashComponentIdentifier} model.
  */
 public class HashComponentIdentifierTest
 {
-  private final String longHash = "123456789012345678901";
-
-  /**
-   * 20 characters as currently specified in HashHelper
-   */
-  private final String expectedTruncatedHash = "12345678901234567890";
-
-  @Before
-  public void preconditions() {
-    assertTrue(longHash.length() > 20);
-  }
-
   @Test
   public void testLongHashTruncatedWhenObjectCreated() {
+    String longHash = "123456789012345678901";
+    assertThat(longHash.length()).isGreaterThan(20);
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(longHash,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    assertEquals(expectedTruncatedHash, hashComponentIdentifier.getHash());
+    assertThat(hashComponentIdentifier.getHash()).isEqualTo(longHash.substring(0, HashHelper.MAX_LENGTH));
   }
 
   @Test
   public void testLongHashTruncatedWhenHashSet() {
+    String longHash = "123456789012345678901";
+    assertThat(longHash.length()).isGreaterThan(20);
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier();
     hashComponentIdentifier.setHash(longHash);
-    assertEquals(expectedTruncatedHash, hashComponentIdentifier.getHash());
+    assertThat(hashComponentIdentifier.getHash()).isEqualTo(longHash.substring(0, HashHelper.MAX_LENGTH));
   }
 }

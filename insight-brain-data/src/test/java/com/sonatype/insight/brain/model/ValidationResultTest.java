@@ -7,14 +7,13 @@ package com.sonatype.insight.brain.model;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ValidationResultTest
 {
   @Test
   public void testNoErrorsDefaultStateIsValid() {
-    assertThat(ValidationResult.noErrors().isValid(), is(true));
+    assertThat(ValidationResult.noErrors().isValid()).isTrue();
   }
 
   @Test
@@ -22,6 +21,6 @@ public class ValidationResultTest
     ValidationResult result = ValidationResult.noErrors();
     result.addError("any error");
 
-    assertThat(result.isValid(), is(false));
+    assertThat(result.isValid()).isFalse();
   }
 }

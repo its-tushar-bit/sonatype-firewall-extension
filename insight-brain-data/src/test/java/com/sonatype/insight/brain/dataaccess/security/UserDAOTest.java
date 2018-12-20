@@ -20,21 +20,12 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.7
@@ -50,11 +41,11 @@ public class UserDAOTest
     // Insert
     User user = createUser(username);
     String userId = user.getId();
-    assertThat(userId, notNullValue());
+    assertThat(userId).isNotNull();
 
     // Get
     user = dao.getByIdNotNull(userId);
-    assertThat(user.getUsername(), is(username));
+    assertThat(user.getUsername()).isEqualTo(username);
 
     // Update
     username += "Updated";
@@ -63,14 +54,14 @@ public class UserDAOTest
 
     // Get
     user = dao.getByIdNotNull(userId);
-    assertThat(user.getUsername(), is(username));
+    assertThat(user.getUsername()).isEqualTo(username);
 
     // Delete
     dao.delete(user);
 
     // Get
     user = dao.getById(userId);
-    assertThat(user, nullValue());
+    assertThat(user).isNull();
   }
 
   @Test
@@ -79,15 +70,8 @@ public class UserDAOTest
     User testUser1 = createUser("testUser1");
     User testUser2 = createUser("testUser2");
     List<User> users = dao.getByUsernames(Sets.newHashSet("testUser1", "testUser2"));
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(2));
-    List<String> userIds = Lists.newArrayList();
-    for (User user : users) {
-      userIds.add(user.getId());
-    }
-
     // getByUsernames returns users ordered by lower case user names.
-    assertThat(userIds, contains(testUser1.getId(), testUser2.getId()));
+    assertThat(users).extracting(User::getId).containsExactly(testUser1.getId(), testUser2.getId());
   }
 
   @Test
@@ -96,45 +80,34 @@ public class UserDAOTest
     User testUser1 = createUser("testUser1");
     User testUser2 = createUser("testUser2");
     List<User> users = dao.getByUsernames(Sets.newHashSet("TESTuser1", "testUSER2"));
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(2));
-    List<String> userIds = Lists.newArrayList();
-    for (User user : users) {
-      userIds.add(user.getId());
-    }
-
     // getByUsernames returns users ordered by lower case user names.
-    assertThat(userIds, contains(testUser1.getId(), testUser2.getId()));
+    assertThat(users).extracting(User::getId).containsExactly(testUser1.getId(), testUser2.getId());
   }
 
   @Test
   public void testGetByUsername() throws Exception {
     UserDAO dao = new UserDAO();
     User user = dao.getByUsername(User.ADMIN_USERNAME);
-    assertThat(user, notNullValue());
-    assertThat(user.getUsername(), is(User.ADMIN_USERNAME));
-    assertThat(user.getUsernameLowercase(), is(User.ADMIN_USERNAME));
+    assertThat(user).isNotNull();
+    assertThat(user.getUsername()).isEqualTo(User.ADMIN_USERNAME);
+    assertThat(user.getUsernameLowercase()).isEqualTo(User.ADMIN_USERNAME);
   }
 
   @Test
   public void testGetByUsername_CaseInsensitive() throws Exception {
     UserDAO dao = new UserDAO();
     User user = dao.getByUsername("aDMin");
-    assertThat(user, notNullValue());
-    assertThat(user.getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(user).isNotNull();
+    assertThat(user.getUsername()).isEqualTo(User.ADMIN_USERNAME);
   }
 
   @Test
   public void testDuplicateUsername_Insert() {
     createUser("testDuplicateUsername");
 
-    try {
+    assertThatThrownBy(() -> {
       createUser("TESTDuplicateUsername");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("TESTDuplicateUsername is already used as a username.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("TESTDuplicateUsername is already used as a username.");
   }
 
   @Test
@@ -143,24 +116,16 @@ public class UserDAOTest
     User user1 = createUser("testDuplicateUsername1");
 
     user1.setUsername("TESTDuplicateUsername");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user1);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("TESTDuplicateUsername is already used as a username.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("TESTDuplicateUsername is already used as a username.");
   }
 
   @Test
   public void testValidateNullUsername_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser(null /* username */);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("The username is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The username is required.");
   }
 
   @Test
@@ -168,51 +133,35 @@ public class UserDAOTest
     User user = createUser("testValidateNullUsername");
 
     user.setUsername(null);
-    assertNull(user.getUsernameLowercase());
-    try {
+    assertThat(user.getUsernameLowercase()).isNull();
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("The username is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The username is required.");
   }
 
   @Test
   public void testValidateEmptyUsername_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("The username is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The username is required.");
   }
 
   @Test
   public void testValidateEmptyUsername_Update() {
     User user = createUser("testValidateEmptyUsername");
     user.setUsername("");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("The username is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The username is required.");
   }
 
   @Test
   public void testValidateUsernameInvalidChars_Insert() {
     for (String username : NameHelperTest.INVALID_CHARACTERS) {
-      try {
+      assertThatThrownBy(() -> {
         createUser(username);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The username", username.charAt(0)),
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The username",
+          username.charAt(0));
     }
   }
 
@@ -221,14 +170,10 @@ public class UserDAOTest
     User user = createUser("testValidateUsernameInvalidChars");
     for (String username : NameHelperTest.INVALID_CHARACTERS) {
       user.setUsername(username);
-      try {
+      assertThatThrownBy(() -> {
         new UserDAO().update(user);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The username", username.charAt(0)),
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The username",
+          username.charAt(0));
     }
   }
 
@@ -257,15 +202,11 @@ public class UserDAOTest
 
   @Test
   public void testValidateUsernameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in", "double  space" };
+    String[] invalidSpacingNames = {" leadingSpace", "trailingSpace ", "space in", "double  space"};
     for (String username : invalidSpacingNames) {
-      try {
+      assertThatThrownBy(() -> {
         createUser(username);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("The username cannot contain spaces.", expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage("The username cannot contain spaces.");
     }
   }
 
@@ -276,26 +217,18 @@ public class UserDAOTest
     String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in", "double  space" };
     for (String username : invalidSpacingNames) {
       user.setUsername(username);
-      try {
+      assertThatThrownBy(() -> {
         new UserDAO().update(user);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("The username cannot contain spaces.", expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage("The username cannot contain spaces.");
     }
   }
 
   @Test
   public void testValidateUsernameLength_Insert() {
     String username = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    try {
+    assertThatThrownBy(() -> {
       createUser(username + "a");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("The username must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The username must be 60 characters or less.");
 
     createUser(username);
   }
@@ -306,13 +239,9 @@ public class UserDAOTest
 
     String username = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     user.setUsername(username + "a");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("The username must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The username must be 60 characters or less.");
 
     user.setUsername(username);
     new UserDAO().update(user);
@@ -320,13 +249,9 @@ public class UserDAOTest
 
   @Test
   public void testValidateNullFirstName_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", null /* firstName */, "lastName", "email@localhost");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The first name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The first name is required.");
   }
 
   @Test
@@ -334,13 +259,9 @@ public class UserDAOTest
     User user = createUser("testValidateNullFirstName");
 
     user.setFirstName(null);
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The first name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The first name is required.");
   }
 
   @Test
@@ -354,14 +275,10 @@ public class UserDAOTest
   @Test
   public void testValidateFirstNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      try {
+      assertThatThrownBy(() -> {
         createUser("username", "password", name, "lastName", "email@localhost");
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("The first name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("The first name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -379,28 +296,20 @@ public class UserDAOTest
     User user = createUser("username", "password", "firstName", "lastName", "email@localhost");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       user.setFirstName(name);
-      try {
+      assertThatThrownBy(() -> {
         new UserDAO().update(user);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("The first name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("The first name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
   @Test
   public void testValidateInvalidFirstName_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      try {
+      assertThatThrownBy(() -> {
         createUser("username", "password", name, "lastName", "email@localhost");
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertThat(expected.getMessage(),
-            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The first name", name.charAt(0))));
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The first name",
+          name.charAt(0));
     }
   }
 
@@ -409,53 +318,37 @@ public class UserDAOTest
     User user = createUser("testValidateInvalidFirstName");
 
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      try {
+      assertThatThrownBy(() -> {
         user.setFirstName(name);
         new UserDAO().update(user);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertThat(expected.getMessage(),
-            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The first name", name.charAt(0))));
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The first name",
+          name.charAt(0));
     }
   }
 
   @Test
   public void testValidateEmptyFirstName_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "", "lastName", "email@localhost");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The first name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The first name is required.");
   }
 
   @Test
   public void testValidateEmptyFirstName_Update() {
     User user = createUser("testValidateEmptyFirstName");
     user.setFirstName("");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The first name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The first name is required.");
   }
 
   @Test
   public void testValidateFirstNameLength_Insert() {
     String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", firstName + "a", "lastName", "email@localhost");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE
-          + " characters or less."));
-    }
+    }).isInstanceOf(InvalidNameException.class)
+        .hasMessage("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE + " characters or less.");
 
     createUser("username", "password", firstName, "lastName", "email@localhost");
   }
@@ -466,14 +359,10 @@ public class UserDAOTest
 
     String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
     user.setFirstName(firstName + "a");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE
-          + " characters or less."));
-    }
+    }).isInstanceOf(InvalidNameException.class)
+        .hasMessage("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE + " characters or less.");
 
     user.setFirstName(firstName);
     new UserDAO().update(user);
@@ -490,14 +379,10 @@ public class UserDAOTest
   @Test
   public void testValidateLastNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      try {
+      assertThatThrownBy(() -> {
         createUser("username", "password", "firstName", name, "email@localhost");
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("The last name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("The last name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -515,26 +400,18 @@ public class UserDAOTest
     User user = createUser("username", "password", "firstName", "lastName", "email@localhost");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       user.setLastName(name);
-      try {
+      assertThatThrownBy(() -> {
         new UserDAO().update(user);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("The last name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("The last name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
   @Test
   public void testValidateNullLastName_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "firstName", null, "email@localhost");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The last name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The last name is required.");
   }
 
   @Test
@@ -542,26 +419,18 @@ public class UserDAOTest
     User user = createUser("testValidateNullLastName");
 
     user.setLastName(null);
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The last name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The last name is required.");
   }
 
   @Test
   public void testValidateInvalidLastName_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      try {
+      assertThatThrownBy(() -> {
         createUser("username", "password", "firstName", name, "email@localhost");
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertThat(expected.getMessage(),
-            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The last name", name.charAt(0))));
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The last name",
+          name.charAt(0));
     }
   }
 
@@ -570,53 +439,37 @@ public class UserDAOTest
     User user = createUser("testValidateInvalidLastName");
 
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      try {
-        user.setLastName(name);
+      user.setLastName(name);
+      assertThatThrownBy(() -> {
         new UserDAO().update(user);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertThat(expected.getMessage(),
-            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The last name", name.charAt(0))));
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The last name",
+          name.charAt(0));
     }
   }
 
   @Test
   public void testValidateEmptyLastName_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "firstName", "", "email@localhost");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The last name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The last name is required.");
   }
 
   @Test
   public void testValidateEmptyLastName_Update() {
     User user = createUser("testValidateEmptyLastName");
     user.setLastName("");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The last name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("The last name is required.");
   }
 
   @Test
   public void testValidateLastNameLength_Insert() {
     String lastName = StringUtils.repeat("a", UserDAO.MAX_LAST_NAME_SIZE);
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "firstName", lastName + "a", "email@localhost");
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE
-          + " characters or less."));
-    }
+    }).isInstanceOf(InvalidNameException.class)
+        .hasMessage("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE + " characters or less.");
 
     createUser("username", "password", "firstName", lastName, "email@localhost");
   }
@@ -627,14 +480,10 @@ public class UserDAOTest
 
     String lastName = StringUtils.repeat("a", UserDAO.MAX_LAST_NAME_SIZE);
     user.setLastName(lastName + "a");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE
-          + " characters or less."));
-    }
+    }).isInstanceOf(InvalidNameException.class)
+        .hasMessage("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE + " characters or less.");
 
     user.setLastName(lastName);
     new UserDAO().update(user);
@@ -643,13 +492,10 @@ public class UserDAOTest
   @Test
   public void testValidateEmailLength_Insert() {
     String email = StringUtils.repeat("a", UserDAO.MAX_EMAIL_SIZE);
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "firstName", "lastName", email + "a");
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less."));
-    }
+    }).isInstanceOf(InvalidUserException.class)
+        .hasMessage("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less.");
 
     createUser("username", "password", "firstName", "lastName", email);
   }
@@ -660,13 +506,10 @@ public class UserDAOTest
 
     String email = StringUtils.repeat("a", UserDAO.MAX_EMAIL_SIZE);
     user.setEmail(email + "a");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less."));
-    }
+    }).isInstanceOf(InvalidUserException.class)
+        .hasMessage("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less.");
 
     user.setEmail(email);
     new UserDAO().update(user);
@@ -674,13 +517,9 @@ public class UserDAOTest
 
   @Test
   public void testValidateNullEmail_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "firstname", "lastName", null /* email */);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The email is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The email is required.");
   }
 
   @Test
@@ -688,24 +527,16 @@ public class UserDAOTest
     User user = createUser("testValidateNullEmail");
 
     user.setEmail(null);
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The email is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The email is required.");
   }
 
   @Test
   public void testValidateEmptyEmail_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", "password", "firstname", "lastName", " " /* email */);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The email is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The email is required.");
   }
 
   @Test
@@ -713,24 +544,16 @@ public class UserDAOTest
     User user = createUser("testValidateEmptyEmail");
 
     user.setEmail(" ");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The email is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The email is required.");
   }
 
   @Test
   public void testValidateNullPassword_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", null /* password */, "firstname", "lastName", "username@localhost");
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The password is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The password is required.");
   }
 
   @Test
@@ -738,24 +561,16 @@ public class UserDAOTest
     User user = createUser("testValidateNullPassword");
 
     user.setPassword(null);
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The password is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The password is required.");
   }
 
   @Test
   public void testValidateEmptyPassword_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       createUser("username", " " /* password */, "firstname", "lastName", "username@localhost");
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The password is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The password is required.");
   }
 
   @Test
@@ -763,13 +578,9 @@ public class UserDAOTest
     User user = createUser("testValidateEmptyPassword");
 
     user.setPassword(" ");
-    try {
+    assertThatThrownBy(() -> {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
-    }
-    catch (InvalidUserException expected) {
-      assertThat(expected.getMessage(), is("The password is required."));
-    }
+    }).isInstanceOf(InvalidUserException.class).hasMessage("The password is required.");
   }
 
   @Test
@@ -782,7 +593,7 @@ public class UserDAOTest
 
     new UserDAO().delete(user);
 
-    assertThat(membershipMappingDAO.getByUser(user.getUsername()), is(empty()));
+    assertThat(membershipMappingDAO.getByUser(user.getUsername())).isEmpty();
   }
 
   @Test
@@ -799,7 +610,7 @@ public class UserDAOTest
     dashboardFilterDAO.insert(dashboardFilter);
 
     new UserDAO().delete(user);
-    assertThat(dashboardFilterDAO.getByUsername(user.getUsername()), empty());
+    assertThat(dashboardFilterDAO.getByUsername(user.getUsername())).isEmpty();
   }
 
   @Test
@@ -814,7 +625,7 @@ public class UserDAOTest
 
     new UserDAO().delete(user);
 
-    assertThat(userViewedNotificationMappingDAO.getByUsername(user.getUsername()), is(empty()));
+    assertThat(userViewedNotificationMappingDAO.getByUsername(user.getUsername())).isEmpty();
   }
 
   @Test
@@ -828,9 +639,7 @@ public class UserDAOTest
     UserDAO dao = new UserDAO();
     List<User> users = dao.findUsersByName("%fOo%");
     // we only check first name and last name, so 2 results should be found
-    assertThat(users, hasSize(2));
-    assertThat(users.get(0).getUsername(), is(user0.getUsername()));
-    assertThat(users.get(1).getUsername(), is(user1.getUsername()));
+    assertThat(users).extracting(User::getUsername).containsExactly(user0.getUsername(), user1.getUsername());
   }
 
   @Test
@@ -839,7 +648,7 @@ public class UserDAOTest
 
     UserDAO dao = new UserDAO();
     List<User> users = dao.findUsersByName("foo");
-    assertEquals(0, users.size());
+    assertThat(users).isEmpty();
   }
 
   @Test
@@ -849,8 +658,7 @@ public class UserDAOTest
 
     UserDAO dao = new UserDAO();
     List<User> users = dao.findUsersByName("Jane Doe");
-    assertThat(users, hasSize(1));
-    assertThat(users.get(0).getUsername(), is(user2.getUsername()));
+    assertThat(users).extracting(User::getUsername).containsExactly(user2.getUsername());
   }
 
   private User createUser(String username) {

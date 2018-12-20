@@ -11,9 +11,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HasComponentIdTest
 {
@@ -23,22 +21,22 @@ public class HasComponentIdTest
     HasComponentId hasComponentId = new PolicyViolation();
     // classifier and extension are excluded from the stored results
     hasComponentId.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null));
-    assertThat(hasComponentId.getComponentIdCoordinatesJson(),
-        is("{\"artifactId\":\"a\",\"groupId\":\"g\",\"version\":\"v\"}"));
-    assertThat(hasComponentId.getComponentIdFormat(), is(ComponentIdentifier.FORMAT_MAVEN));
+    assertThat(hasComponentId.getComponentIdCoordinatesJson())
+        .isEqualTo("{\"artifactId\":\"a\",\"groupId\":\"g\",\"version\":\"v\"}");
+    assertThat(hasComponentId.getComponentIdFormat()).isEqualTo(ComponentIdentifier.FORMAT_MAVEN);
   }
 
   @Test
   public void testJsonFormattingForNuget() {
     HasComponentId hasComponentId = new LicenseOverrideInternal();
     hasComponentId.setComponentIdentifier(ComponentIdentifier.createNugetCoordinates("a", "v"));
-    assertThat(hasComponentId.getComponentIdCoordinatesJson(), is("{\"packageId\":\"a\",\"version\":\"v\"}"));
-    assertThat(hasComponentId.getComponentIdFormat(), is(ComponentIdentifier.FORMAT_NUGET));
+    assertThat(hasComponentId.getComponentIdCoordinatesJson()).isEqualTo("{\"packageId\":\"a\",\"version\":\"v\"}");
+    assertThat(hasComponentId.getComponentIdFormat()).isEqualTo(ComponentIdentifier.FORMAT_NUGET);
   }
 
   @Test
   public void testNullFormat() {
     HasComponentId hasComponentId = new PolicyViolation();
-    assertThat(hasComponentId.getComponentIdentifier(), is(nullValue()));
+    assertThat(hasComponentId.getComponentIdentifier()).isNull();
   }
 }

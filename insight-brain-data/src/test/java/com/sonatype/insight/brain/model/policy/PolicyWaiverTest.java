@@ -12,46 +12,31 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyWaiverTest
 {
-  private final String longHash = "123456789012345678901";
-
-  /**
-   * 20 characters as currently specified in HashHelper
-   */
-  private final String expectedTruncatedHash = "12345678901234567890";
-
-  @Before
-  public void preconditions() {
-    assertTrue(longHash.length() > 20);
-  }
-
   @Test
   public void testLongHashTruncatedWhenObjectCreated() {
+    String longHash = "123456789012345678901";
+    assertThat(longHash.length()).isGreaterThan(20);
     PolicyWaiver policyWaiver = new PolicyWaiver(longHash, null /* policyId */, null /* ownerId */, null /* comment */);
-    assertEquals(expectedTruncatedHash, policyWaiver.getHash());
+    assertThat(policyWaiver.getHash()).isEqualTo(longHash.substring(0, HashHelper.MAX_LENGTH));
   }
 
   @Test
   public void testLongHashTruncatedWhenHashSet() {
+    String longHash = "123456789012345678901";
+    assertThat(longHash.length()).isGreaterThan(20);
     PolicyWaiver policyWaiver = new PolicyWaiver();
     policyWaiver.setHash(longHash);
-    assertEquals(expectedTruncatedHash, policyWaiver.getHash());
+    assertThat(policyWaiver.getHash()).isEqualTo(longHash.substring(0, HashHelper.MAX_LENGTH));
   }
 
   @Test
@@ -61,7 +46,7 @@ public class PolicyWaiverTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyWaiver.setConstraintFactsJson(constraintFactsJson);
-    assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
   }
 
@@ -71,8 +56,8 @@ public class PolicyWaiverTest
 
     policyWaiver.setConstraintFactsJson(null);
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
-    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFactsJson()).isNull();
+    assertThat(policyWaiver.getConstraintFacts()).isNull();
   }
 
   @Test
@@ -81,8 +66,8 @@ public class PolicyWaiverTest
 
     policyWaiver.setConstraintFactsJson(" ");
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
-    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFactsJson()).isNull();
+    assertThat(policyWaiver.getConstraintFacts()).isNull();
   }
 
   @Test
@@ -92,11 +77,8 @@ public class PolicyWaiverTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyWaiver.setConstraintFacts(constraintFacts);
-    assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\n")));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\r")));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\n")));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\r")));
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r", "\\n",
+        "\\r");
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
   }
 
@@ -106,8 +88,8 @@ public class PolicyWaiverTest
 
     policyWaiver.setConstraintFacts(null);
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
-    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFactsJson()).isNull();
+    assertThat(policyWaiver.getConstraintFacts()).isNull();
   }
 
   @Test
@@ -116,8 +98,8 @@ public class PolicyWaiverTest
 
     policyWaiver.setConstraintFacts(Collections.emptyList());
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
-    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFactsJson()).isNull();
+    assertThat(policyWaiver.getConstraintFacts()).isNull();
   }
 
   @Test
@@ -127,11 +109,8 @@ public class PolicyWaiverTest
 
     PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(constraintFactsJson));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\n")));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\r")));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\n")));
-    assertThat(policyWaiver.getConstraintFactsJson(), not(containsString("\\r")));
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r", "\\n",
+        "\\r");
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
   }
 
@@ -141,8 +120,8 @@ public class PolicyWaiverTest
 
     PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
-    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFactsJson()).isNull();
+    assertThat(policyWaiver.getConstraintFacts()).isNull();
   }
 
   @Test
@@ -151,8 +130,8 @@ public class PolicyWaiverTest
 
     PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
 
-    assertThat(policyWaiver.getConstraintFactsJson(), is(nullValue()));
-    assertThat(policyWaiver.getConstraintFacts(), is(nullValue()));
+    assertThat(policyWaiver.getConstraintFactsJson()).isNull();
+    assertThat(policyWaiver.getConstraintFacts()).isNull();
   }
 
   private List<ConstraintFact> createConstraintFacts(int count) {
@@ -169,22 +148,22 @@ public class PolicyWaiverTest
   }
 
   private void assertConstraintFacts(List<ConstraintFact> actual, List<ConstraintFact> expected) {
-    assertThat(actual, hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
     for (int constraintFactIndex = 0; constraintFactIndex < expected.size(); constraintFactIndex++) {
       ConstraintFact expectedConstraintFact = expected.get(constraintFactIndex);
       ConstraintFact actualConstraintFact = actual.get(constraintFactIndex);
-      assertThat(actualConstraintFact.getConstraintId(), is(expectedConstraintFact.getConstraintId()));
-      assertThat(actualConstraintFact.getConstraintName(), is(expectedConstraintFact.getConstraintName()));
-      assertThat(actualConstraintFact.getOperatorName(), is(expectedConstraintFact.getOperatorName()));
+      assertThat(actualConstraintFact.getConstraintId()).isEqualTo(expectedConstraintFact.getConstraintId());
+      assertThat(actualConstraintFact.getConstraintName()).isEqualTo(expectedConstraintFact.getConstraintName());
+      assertThat(actualConstraintFact.getOperatorName()).isEqualTo(expectedConstraintFact.getOperatorName());
       for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
           .size(); conditionFactIndex++) {
         ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
         ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
-        assertThat(actualConditionFact.getConditionTypeId(), is(expectedConditionFact.getConditionTypeId()));
-        assertThat(actualConditionFact.getConditionIndex(), is(expectedConditionFact.getConditionIndex()));
-        assertThat(actualConditionFact.getSummary(), is(expectedConditionFact.getSummary()));
-        assertThat(actualConditionFact.getReason(), is(expectedConditionFact.getReason()));
-        assertThat(actualConditionFact.getTriggerJson(), is(expectedConditionFact.getTriggerJson()));
+        assertThat(actualConditionFact.getConditionTypeId()).isEqualTo(expectedConditionFact.getConditionTypeId());
+        assertThat(actualConditionFact.getConditionIndex()).isEqualTo(expectedConditionFact.getConditionIndex());
+        assertThat(actualConditionFact.getSummary()).isEqualTo(expectedConditionFact.getSummary());
+        assertThat(actualConditionFact.getReason()).isEqualTo(expectedConditionFact.getReason());
+        assertThat(actualConditionFact.getTriggerJson()).isEqualTo(expectedConditionFact.getTriggerJson());
       }
     }
   }

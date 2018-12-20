@@ -5,15 +5,9 @@
  */
 package com.sonatype.insight.brain.model;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.model.ExceptionMessageMatcher.hasMessage;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class NameHelperTest
 {
@@ -68,66 +62,27 @@ public class NameHelperTest
 
   @Test
   public void validateInvalidNameLength() {
-    try {
+    assertThatThrownBy(() -> {
       NameHelper.validate("test-field-name", "test-field-value", 2);
-    }
-    catch (InvalidNameException e) {
-      assertThat(e, hasMessage("test-field-name must be 2 characters or less."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("test-field-name must be 2 characters or less.");
   }
 
   private void verifyNameHasBadWhitespace(String name) {
-    try {
+    assertThatThrownBy(() -> {
       NameHelper.validate(name);
-      fail("Expected validation exception for bad whitespace in name");
-    }
-    catch (InvalidNameException validationException) {
-      assertThat(validationException,
-          hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row."));
-    }
+    }).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
   }
 
   private void verifyNameHasBadCharacter(String name, char c) {
-    try {
+    assertThatThrownBy(() -> {
       NameHelper.validate(name);
-      fail("Expected validation exception for bad characters in name");
-    }
-    catch (InvalidNameException validationException) {
-      assertThat(validationException, hasMessage(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", c)));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", c);
   }
 
   private void verifyNameRequired(String name) {
-    try {
+    assertThatThrownBy(() -> {
       NameHelper.validate(name);
-      fail("Expected validation exception for required name");
-    }
-    catch (InvalidNameException validationException) {
-      assertThat(validationException, hasMessage("Name is required."));
-    }
-  }
-}
-
-class ExceptionMessageMatcher
-    extends TypeSafeMatcher<Exception>
-{
-  private final Matcher<String> messageMatcher;
-
-  public static ExceptionMessageMatcher hasMessage(String expectedMessage) {
-    return new ExceptionMessageMatcher(expectedMessage);
-  }
-
-  public ExceptionMessageMatcher(String expectedMessage) {
-    this.messageMatcher = CoreMatchers.is(expectedMessage);
-  }
-
-  @Override
-  protected boolean matchesSafely(Exception e) {
-    return messageMatcher.matches(e.getMessage());
-  }
-
-  @Override
-  public void describeTo(Description description) {
-    description.appendText("exception with message that ").appendDescriptionOf(messageMatcher);
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 }

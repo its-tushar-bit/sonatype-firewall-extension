@@ -9,21 +9,20 @@ import java.util.Date;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryComponentTest
 {
   @Test
   public void testIsQuarantined() throws Exception {
     final RepositoryComponent component = new RepositoryComponent();
-    assertFalse(component.isQuarantined());
+    assertThat(component.isQuarantined()).isFalse();
 
     final Date now = new Date();
     component.setQuarantineTime(now);
-    assertTrue("Only 'QuarantineTime' == quarantined.", component.isQuarantined());
+    assertThat(component.isQuarantined()).as("Only 'QuarantineTime' == quarantined.").isTrue();
 
     component.setUnquarantineTime(now);
-    assertFalse("Both 'Un/QuarantineTime' != quarantined.", component.isQuarantined());
+    assertThat(component.isQuarantined()).as("Both 'Un/QuarantineTime' != quarantined.").isFalse();
   }
 }

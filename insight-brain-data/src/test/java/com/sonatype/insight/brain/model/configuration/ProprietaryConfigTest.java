@@ -9,92 +9,89 @@ import java.util.Collections;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConfigTest
 {
   @Test
   public void testSetPackages() {
     ProprietaryConfig config = new ProprietaryConfig("ownerId", null /* packages */, null /* regexes */);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
-    config = new ProprietaryConfig("ownerId", Collections.<String> emptyList() /* packages */, null /* regexes */);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    config = new ProprietaryConfig("ownerId", Collections.emptyList() /* packages */, null /* regexes */);
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
     config = new ProprietaryConfig("ownerId", Collections.singletonList("foo") /* packages */, null /* regexes */);
-    assertThat(config.getPackages(), hasSize(1));
-    assertThat(config.getPackages().get(0), is("foo"));
-    assertThat(config.getPackagesJson(), is("[\"foo\"]"));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(1);
+    assertThat(config.getPackages().get(0)).isEqualTo("foo");
+    assertThat(config.getPackagesJson()).isEqualTo("[\"foo\"]");
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
     config.setPackages(null);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
-    config.setPackages(Collections.<String> emptyList());
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    config.setPackages(Collections.emptyList());
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
     config.setPackages(Collections.singletonList("bar"));
-    assertThat(config.getPackages(), hasSize(1));
-    assertThat(config.getPackages().get(0), is("bar"));
-    assertThat(config.getPackagesJson(), is("[\"bar\"]"));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(1);
+    assertThat(config.getPackages().get(0)).isEqualTo("bar");
+    assertThat(config.getPackagesJson()).isEqualTo("[\"bar\"]");
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
   }
 
   @Test
   public void testSetRegexes() {
     ProprietaryConfig config = new ProprietaryConfig("ownerId", null /* packages */, null /* regexes */);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
-    config = new ProprietaryConfig("ownerId", null /* packages */, Collections.<String> emptyList() /* regexes */);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    config = new ProprietaryConfig("ownerId", null /* packages */, Collections.emptyList() /* regexes */);
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
     config = new ProprietaryConfig("ownerId", null /* packages */, Collections.singletonList("foo") /* regexes */);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(1));
-    assertThat(config.getRegexes().get(0), is("foo"));
-    assertThat(config.getRegexesJson(), is("[\"foo\"]"));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(1);
+    assertThat(config.getRegexes().get(0)).isEqualTo("foo");
+    assertThat(config.getRegexesJson()).isEqualTo("[\"foo\"]");
 
     config.setRegexes(null);
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
     config.setRegexes(Collections.<String> emptyList());
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(0));
-    assertThat(config.getRegexesJson(), is(nullValue()));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(0);
+    assertThat(config.getRegexesJson()).isNull();
 
     config.setRegexes(Collections.singletonList("bar"));
-    assertThat(config.getPackages(), hasSize(0));
-    assertThat(config.getPackagesJson(), is(nullValue()));
-    assertThat(config.getRegexes(), hasSize(1));
-    assertThat(config.getRegexes().get(0), is("bar"));
-    assertThat(config.getRegexesJson(), is("[\"bar\"]"));
+    assertThat(config.getPackages()).hasSize(0);
+    assertThat(config.getPackagesJson()).isNull();
+    assertThat(config.getRegexes()).hasSize(1);
+    assertThat(config.getRegexes().get(0)).isEqualTo("bar");
+    assertThat(config.getRegexesJson()).isEqualTo("[\"bar\"]");
   }
 }

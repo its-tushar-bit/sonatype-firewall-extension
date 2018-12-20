@@ -15,14 +15,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class HashComponentIdentifierDAOTest
     extends AbstractDbDAOTest
@@ -32,7 +26,7 @@ public class HashComponentIdentifierDAOTest
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
     String hash = "123456789012345678901";
-    assertTrue(hash.length() > 20);
+    assertThat(hash.length()).isGreaterThan(20);
     String truncatedHash = hash.substring(0, 20);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "e1", "c1");
     Date createTime = new Date();
@@ -40,30 +34,30 @@ public class HashComponentIdentifierDAOTest
     // Create
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     hashComponentIdentifier.setCreateTime(createTime);
-    assertNull(hashComponentIdentifier.getId());
+    assertThat(hashComponentIdentifier.getId()).isNull();
     dao.insert(hashComponentIdentifier);
-    assertNotNull(hashComponentIdentifier.getId());
+    assertThat(hashComponentIdentifier.getId()).isNotNull();
 
     // Read
     hashComponentIdentifier = dao.getById(hashComponentIdentifier.getId());
-    assertNotNull(hashComponentIdentifier);
+    assertThat(hashComponentIdentifier).isNotNull();
     assertHashComponentIdentifier(truncatedHash, componentIdentifier, createTime, hashComponentIdentifier);
-    assertThat(hashComponentIdentifier.getComment(), isEmptyOrNullString());
+    assertThat(hashComponentIdentifier.getComment()).isNullOrEmpty();
 
     // Update
     String comment = "Comment for update";
     hashComponentIdentifier.setComment(comment);
     dao.update(hashComponentIdentifier);
     hashComponentIdentifier = dao.getById(hashComponentIdentifier.getId());
-    assertNotNull(hashComponentIdentifier);
+    assertThat(hashComponentIdentifier).isNotNull();
     assertHashComponentIdentifier(truncatedHash, componentIdentifier, createTime, hashComponentIdentifier);
-    assertThat(hashComponentIdentifier.getComment(), is(comment));
+    assertThat(hashComponentIdentifier.getComment()).isEqualTo(comment);
 
     // Delete
     dao.delete(hashComponentIdentifier);
 
     hashComponentIdentifier = dao.getById(hashComponentIdentifier.getId());
-    assertNull(hashComponentIdentifier);
+    assertThat(hashComponentIdentifier).isNull();
   }
 
   @Test
@@ -76,7 +70,7 @@ public class HashComponentIdentifierDAOTest
     Date createTime = expectedHashComponentIdentifier.getCreateTime();
 
     HashComponentIdentifier actualHashComponentIdentifier = dao.getByHashNotNull(hash);
-    assertNotNull(actualHashComponentIdentifier);
+    assertThat(actualHashComponentIdentifier).isNotNull();
     assertHashComponentIdentifier(hash, componentIdentifier, createTime, actualHashComponentIdentifier);
   }
 
@@ -84,13 +78,9 @@ public class HashComponentIdentifierDAOTest
   public void testGetByHashNotNull_DoesNotExist() throws Exception {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
     String hash = "11111111111111111111";
-    try {
+    assertThatThrownBy(() -> {
       dao.getByHashNotNull(hash);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(HashComponentIdentifierDAO.NOT_FOUND_MESSAGE + hash + "."));
-    }
+    }).isInstanceOf(NotFoundException.class).hasMessage(HashComponentIdentifierDAO.NOT_FOUND_MESSAGE + hash + ".");
   }
 
   @Test
@@ -103,7 +93,7 @@ public class HashComponentIdentifierDAOTest
     Date createTime = expectedHashComponentIdentifier.getCreateTime();
 
     HashComponentIdentifier actualHashComponentIdentifier = dao.getByComponentIdentifier(componentIdentifier);
-    assertNotNull(actualHashComponentIdentifier);
+    assertThat(actualHashComponentIdentifier).isNotNull();
     assertHashComponentIdentifier(hash, componentIdentifier, createTime, actualHashComponentIdentifier);
   }
 
@@ -112,9 +102,9 @@ public class HashComponentIdentifierDAOTest
                                              Date createTime,
                                              HashComponentIdentifier hashComponentIdentifier)
   {
-    assertEquals(hash, hashComponentIdentifier.getHash());
-    assertEquals(componentIdentifier, hashComponentIdentifier.getComponentIdentifier());
-    assertEquals(createTime, hashComponentIdentifier.getCreateTime());
+    assertThat(hashComponentIdentifier.getHash()).isEqualTo(hash);
+    assertThat(hashComponentIdentifier.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(hashComponentIdentifier.getCreateTime()).isEqualTo(createTime);
   }
 
   @Test
@@ -125,19 +115,12 @@ public class HashComponentIdentifierDAOTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
 
-    HashComponentIdentifier hashComponentIdentifier1 = new HashComponentIdentifier(hash, componentIdentifier1);
-    dao.insert(hashComponentIdentifier1);
+    tempEntity.newClaimedComponent(hash, componentIdentifier1);
 
     HashComponentIdentifier hashComponentIdentifier2 = new HashComponentIdentifier(hash, componentIdentifier2);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(hashComponentIdentifier2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("This component is already mapped to 'g1 : a1 : v1'.", expected.getMessage());
-    }
-
-    dao.delete(hashComponentIdentifier1);
+    }).isInstanceOf(BadRequestException.class).hasMessage("This component is already mapped to 'g1 : a1 : v1'.");
   }
 
   @Test
@@ -147,18 +130,11 @@ public class HashComponentIdentifierDAOTest
     String hash = "ab1234ab1234ab";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
 
-    HashComponentIdentifier hashComponentIdentifier1 = new HashComponentIdentifier(hash, componentIdentifier);
-    dao.insert(hashComponentIdentifier1);
+    tempEntity.newClaimedComponent(hash, componentIdentifier);
 
     HashComponentIdentifier hashComponentIdentifier2 = new HashComponentIdentifier(hash + "1", componentIdentifier);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(hashComponentIdentifier2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Another component is already mapped to 'g1 : a1 : v1'.", expected.getMessage());
-    }
-
-    dao.delete(hashComponentIdentifier1);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Another component is already mapped to 'g1 : a1 : v1'.");
   }
 }

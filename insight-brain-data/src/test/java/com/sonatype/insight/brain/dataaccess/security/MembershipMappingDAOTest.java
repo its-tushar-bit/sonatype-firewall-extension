@@ -7,10 +7,11 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -20,19 +21,12 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.After;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MembershipMappingDAOTest
     extends AbstractDbDAOTest
@@ -43,37 +37,9 @@ public class MembershipMappingDAOTest
 
   private RoleDAO roleDAO = new RoleDAO();
 
-  private Matcher<MembershipMapping> eq(final MembershipMapping membership) {
-    return new BaseMatcher<MembershipMapping>()
-    {
-      @Override
-      public boolean matches(Object item) {
-        if (!(item instanceof MembershipMapping)) {
-          return false;
-        }
-        MembershipMapping mm = (MembershipMapping) item;
-        return membership.getContextId().equals(mm.getContextId()) && membership.getRoleId().equals(mm.getRoleId())
-            && membership.getMemberName().equals(mm.getMemberName())
-            && membership.getMemberType().equals(mm.getMemberType());
-      }
-
-      @Override
-      public void describeTo(Description description) {
-        description.appendValue(membership);
-      }
-    };
-  }
-
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  private Matcher<Collection<? extends MembershipMapping>> matches(List<MembershipMapping>... arrayOfMemberships) {
-    List<Matcher<MembershipMapping>> matchers = new ArrayList<>();
-    for (List<MembershipMapping> memberships : arrayOfMemberships) {
-      for (MembershipMapping membership : memberships) {
-        matchers.add(eq(membership));
-      }
-    }
-    return new IsIterableContainingInAnyOrder(matchers);
-  }
+  private Comparator<MembershipMapping> MEMBERSHIP_COMPARATOR = Comparator.comparing(MembershipMapping::getContextId)
+      .thenComparing(MembershipMapping::getRoleId).thenComparing(MembershipMapping::getMemberName)
+      .thenComparing(MembershipMapping::getMemberType);
 
   @After
   public void cleanup() {
@@ -83,31 +49,29 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testSetMembershipMappingsForContextAndRole() throws Exception {
     String roleId1 = roleDAO.getByName("Owner").getId();
     String roleId2 = roleDAO.getByName("Developer").getId();
 
     // check initial state
     List<MembershipMapping> memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, is(empty()));
+    assertThat(memberships).isEmpty();
 
     // add mapping for first role
     List<MembershipMapping> memberships1 = Arrays.asList(new MembershipMapping("john", MemberType.USER),
         new MembershipMapping("admins", MemberType.GROUP));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships1);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, matches(memberships1));
+    assertThat(memberships).usingElementComparator(MEMBERSHIP_COMPARATOR)
+        .containsExactlyInAnyOrderElementsOf(memberships1);
 
     // add mapping for another role
     List<MembershipMapping> memberships2 = Arrays.asList(new MembershipMapping("jane", MemberType.USER),
         new MembershipMapping("ops", MemberType.GROUP));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId2, memberships2);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, matches(memberships1, memberships2));
+    assertThat(memberships).usingElementComparator(MEMBERSHIP_COMPARATOR).containsExactlyInAnyOrderElementsOf(
+        Stream.concat(memberships1.stream(), memberships2.stream()).collect(toList()));
 
     // exercise update involving keeping, removing and adding new member for a role
     memberships1 = Arrays.asList(new MembershipMapping("john", MemberType.USER), new MembershipMapping("jane",
@@ -116,16 +80,16 @@ public class MembershipMappingDAOTest
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships1);
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId2, memberships2);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, matches(memberships1));
+    assertThat(memberships).usingElementComparator(MEMBERSHIP_COMPARATOR)
+        .containsExactlyInAnyOrderElementsOf(memberships1);
 
     // exercise update involving change of group flag
     memberships1 = Arrays.asList(new MembershipMapping("john", MemberType.USER), new MembershipMapping("jane",
         MemberType.GROUP));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships1);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, matches(memberships1));
+    assertThat(memberships).usingElementComparator(MEMBERSHIP_COMPARATOR)
+        .containsExactlyInAnyOrderElementsOf(memberships1);
   }
 
   @Test
@@ -136,26 +100,23 @@ public class MembershipMappingDAOTest
         new MembershipMapping("john", MemberType.USER));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, hasSize(1));
+    assertThat(memberships).hasSize(1);
   }
 
   @Test
   public void testAdminUserMappedToSystemAdminAndPolicyAdminRoles() throws Exception {
     List<MembershipMapping> memberships = membershipDAO.getByContextIdAndUser(MembershipMapping.GLOBAL_CONTEXT_ID,
         User.ADMIN_USERNAME);
-    assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, hasSize(2));
+    assertThat(memberships).hasSize(2);
     List<String> globalRoleIds = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       MembershipMapping membership = memberships.get(i);
-      assertThat(membership.getMemberType(), is(MemberType.USER));
+      assertThat(membership.getMemberType()).isEqualTo(MemberType.USER);
       Role role = roleDAO.getById(membership.getRoleId());
-      assertThat(role, is(notNullValue()));
+      assertThat(role).isNotNull();
       globalRoleIds.add(role.getId());
     }
-    assertThat(globalRoleIds, containsInAnyOrder(Role.SYSTEM_ADMIN_ROLE_ID, Role.POLICY_ADMIN_ROLE_ID));
-
+    assertThat(globalRoleIds).containsExactlyInAnyOrder(Role.SYSTEM_ADMIN_ROLE_ID, Role.POLICY_ADMIN_ROLE_ID);
   }
 
   @Test
@@ -165,16 +126,12 @@ public class MembershipMappingDAOTest
     List<MembershipMapping> memberships = Arrays.asList(new MembershipMapping("john", MemberType.USER));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships, hasSize(1));
+    assertThat(memberships).hasSize(1);
     MembershipMapping membership = memberships.get(0);
     membership.setMemberName("jane");
-    try {
+    assertThatThrownBy(() -> {
       membershipDAO.update(membership);
-      assertThat("Expected UnsupportedOperationException", false);
-    }
-    catch (UnsupportedOperationException e) {
-      // expected
-    }
+    }).isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test
@@ -185,8 +142,8 @@ public class MembershipMappingDAOTest
         "username");
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
     List<MembershipMapping> memberships = membershipDAO.getByRoleIds(Collections.singleton(role1.getId()));
-    assertThat(memberships, hasSize(1));
-    assertThat(memberships.get(0).getId(), is(membership.getId()));
+    assertThat(memberships).hasSize(1);
+    assertThat(memberships.get(0).getId()).isEqualTo(membership.getId());
   }
 
   @Test
@@ -208,7 +165,7 @@ public class MembershipMappingDAOTest
     List<MembershipMapping> memberships = membershipDAO.getByUserAndGroups(username, Collections.singleton(groupName));
     List<String> membershipIds = memberships.stream().map(MembershipMapping::getId).collect(Collectors.toList());
 
-    assertThat(membershipIds, containsInAnyOrder(membership1.getId(), membership2.getId()));
+    assertThat(membershipIds).containsExactlyInAnyOrder(membership1.getId(), membership2.getId());
   }
 
   @Test
@@ -217,8 +174,8 @@ public class MembershipMappingDAOTest
     MembershipMapping membership = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(),
         "username");
     MembershipMapping foundMembership = membershipDAO.getById(membership.getId());
-    assertThat(foundMembership, notNullValue());
-    assertThat(foundMembership.getId(), is(membership.getId()));
+    assertThat(foundMembership).isNotNull();
+    assertThat(foundMembership.getId()).isEqualTo(membership.getId());
   }
 
   @Test
@@ -230,8 +187,8 @@ public class MembershipMappingDAOTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
     try (TransactionContext tx = membershipDAO.createTransactionContext()) {
       List<MembershipMapping> foundMemberships = membershipDAO.getByRoleId(tx, role1.getId());
-      assertThat(foundMemberships, hasSize(1));
-      assertThat(foundMemberships.get(0).getId(), is(membership.getId()));
+      assertThat(foundMemberships).hasSize(1);
+      assertThat(foundMemberships.get(0).getId()).isEqualTo(membership.getId());
     }
   }
 }

@@ -9,10 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 // Copied from com.sonatype.nexus.procurement.ArtifactCoordinateTest
 public class ArtifactCoordinateTest
@@ -42,48 +39,56 @@ public class ArtifactCoordinateTest
 
     // pair matching
     // coordF1 is fixed, hence coordN1 is matchable against it and IS matching
-    assertTrue(coordN1.matches(coordF1.getComponentIdentifier()));
+    assertThat(coordN1.matches(coordF1.getComponentIdentifier())).isTrue();
     // coordN1 is not fixed, hence coordF1 is not matchable against it
-    assertFalse(coordF1.matches(coordN1.getComponentIdentifier()));
+    assertThat(coordF1.matches(coordN1.getComponentIdentifier())).isFalse();
     // coordF2 is fixed, hence coordN2 is matchable against it and IS matching
-    assertTrue(coordN2.matches(coordF2.getComponentIdentifier()));
+    assertThat(coordN2.matches(coordF2.getComponentIdentifier())).isTrue();
     // coordN2 is not fixed, hence coordF2 is not matchable against it
-    assertFalse(coordF2.matches(coordN2.getComponentIdentifier()));
+    assertThat(coordF2.matches(coordN2.getComponentIdentifier())).isFalse();
 
     // cross matching
     // coordF2 is fixed, hence coordN1 is matchable against it and IS NOT matching
-    assertFalse(coordN1.matches(coordF2.getComponentIdentifier()));
+    assertThat(coordN1.matches(coordF2.getComponentIdentifier())).isFalse();
     // coordN1 is not fixed, hence coordF2 is not matchable against it
-    assertFalse(coordF2.matches(coordN1.getComponentIdentifier()));
+    assertThat(coordF2.matches(coordN1.getComponentIdentifier())).isFalse();
     // coordF1 is fixed, hence coordN2 is matchable against it and IS NOT matching
-    assertFalse(coordN2.matches(coordF1.getComponentIdentifier()));
+    assertThat(coordN2.matches(coordF1.getComponentIdentifier())).isFalse();
     // coordN1 is not fixed, hence coordF2 is not matchable against it
-    assertFalse(coordF1.matches(coordN2.getComponentIdentifier()));
+    assertThat(coordF1.matches(coordN2.getComponentIdentifier())).isFalse();
 
     // only subgroups
-    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.2")));
-    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.3")));
-    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organ", "artifact", "1.2")));
-    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organic", "artifact", "1.3")));
-    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organic.group", "artifact", "1.2")));
-    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group", "artifact", "1.2")));
-    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group.where", "artifact", "1.3")));
-    assertFalse(coordN1.matches(ComponentIdentifier
-        .createMavenCoordinates("org.group.something.boo", "artifact", "2.0")));
-    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "non-artifact",
-        "1.0")));
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.2"))).isTrue();
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.3"))).isTrue();
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organ", "artifact", "1.2"))).isFalse();
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organic", "artifact", "1.3"))).isFalse();
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organic.group", "artifact", "1.2")))
+        .isFalse();
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group", "artifact", "1.2"))).isTrue();
+    assertThat(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group.where", "artifact", "1.3")))
+        .isTrue();
+    assertThat(
+        coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "artifact", "2.0")))
+            .isFalse();
+    assertThat(
+        coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "non-artifact", "1.0")))
+            .isFalse();
 
     // given group and subgroups
-    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.2")));
-    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.3")));
-    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organ", "artifact", "1.2")));
-    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organic", "artifact", "1.3")));
-    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organic.group", "artifact", "1.2")));
-    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org.group.where", "artifact", "1.3")));
-    assertFalse(coordN3.matches(ComponentIdentifier
-        .createMavenCoordinates("org.group.something.boo", "artifact", "2.0")));
-    assertFalse(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "non-artifact",
-        "1.0")));
+    assertThat(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.2"))).isTrue();
+    assertThat(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.3"))).isTrue();
+    assertThat(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organ", "artifact", "1.2"))).isTrue();
+    assertThat(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organic", "artifact", "1.3"))).isTrue();
+    assertThat(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organic.group", "artifact", "1.2")))
+        .isTrue();
+    assertThat(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org.group.where", "artifact", "1.3")))
+        .isTrue();
+    assertThat(
+        coordN3.matches(ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "artifact", "2.0")))
+            .isFalse();
+    assertThat(
+        coordN3.matches(ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "non-artifact", "1.0")))
+            .isFalse();
   }
 
   @Test
@@ -98,10 +103,10 @@ public class ArtifactCoordinateTest
     ArtifactCoordinate coord2 = new ArtifactCoordinate(ComponentIdentifier.createMavenCoordinates("org.apache.maven.*",
         "*", "*"));
 
-    assertFalse("Should not match!", coord1.matches(ComponentIdentifier.createMavenCoordinates(
-        "org.apache.maven.shared", "maven-repository-builder", "1.0-alpha-1")));
-    assertTrue("Should match!", coord2.matches(ComponentIdentifier.createMavenCoordinates("org.apache.maven.shared",
-        "maven-repository-builder", "1.0-alpha-1")));
+    assertThat(coord1.matches(ComponentIdentifier.createMavenCoordinates("org.apache.maven.shared",
+        "maven-repository-builder", "1.0-alpha-1"))).as("Should not match!").isFalse();
+    assertThat(coord2.matches(ComponentIdentifier.createMavenCoordinates("org.apache.maven.shared",
+        "maven-repository-builder", "1.0-alpha-1"))).as("Should match!").isTrue();
 
     // assertFalse( "Should not match!", coord1.matches( "/org/apache/maven/kuku/a/v/" ) );
     // assertTrue( "Should match!", coord2.matches( "/org/apache/maven/kuku/a/v/" ) );
@@ -112,7 +117,7 @@ public class ArtifactCoordinateTest
     ArtifactCoordinate coordinateWithEmptyClassifier = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
     ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e");
-    assertThat(coordinateWithEmptyClassifier.matches(valueWithEmptyClassifier), is(true));
+    assertThat(coordinateWithEmptyClassifier.matches(valueWithEmptyClassifier)).isTrue();
   }
 
   @Test
@@ -120,7 +125,7 @@ public class ArtifactCoordinateTest
     ArtifactCoordinate coordinateWithEmptyClassifier = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
     ComponentIdentifier valueWithClassifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    assertThat(coordinateWithEmptyClassifier.matches(valueWithClassifier), is(false));
+    assertThat(coordinateWithEmptyClassifier.matches(valueWithClassifier)).isFalse();
   }
 
   @Test
@@ -129,7 +134,7 @@ public class ArtifactCoordinateTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "*", "e"));
     ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "", "e");
-    assertThat(coordinateWithWildcardClassifier.matches(valueWithEmptyClassifier), is(true));
+    assertThat(coordinateWithWildcardClassifier.matches(valueWithEmptyClassifier)).isTrue();
   }
 
   @Test
@@ -138,7 +143,7 @@ public class ArtifactCoordinateTest
         ComponentIdentifier.createMavenCoordinates("org.apache.commons", "commons-lang3", "3.5", "sources", "jar"));
     ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier
         .createMavenCoordinates("org.apache.commons", "commons-lang3", "3.5", "", "jar");
-    assertThat(coordinate.matches(valueWithEmptyClassifier), is(false));
+    assertThat(coordinate.matches(valueWithEmptyClassifier)).isFalse();
   }
 
   @Test
@@ -147,27 +152,27 @@ public class ArtifactCoordinateTest
         ComponentIdentifier.createMavenCoordinates("g*", "a*", "v*", "c*", "e*"));
     ComponentIdentifier mavenValueWithNullGroupId = ComponentIdentifier
         .createMavenCoordinates(null, "a", "v", "c", "e");
-    assertThat(mavenCoordinate.matches(mavenValueWithNullGroupId), is(false));
+    assertThat(mavenCoordinate.matches(mavenValueWithNullGroupId)).isFalse();
     ComponentIdentifier mavenValueWithNullArtifactId = ComponentIdentifier
         .createMavenCoordinates("g", null, "v", "c", "e");
-    assertThat(mavenCoordinate.matches(mavenValueWithNullArtifactId), is(false));
+    assertThat(mavenCoordinate.matches(mavenValueWithNullArtifactId)).isFalse();
     ComponentIdentifier mavenValueWithNullVersion = ComponentIdentifier
         .createMavenCoordinates("g", "a", null, "c", "e");
-    assertThat(mavenCoordinate.matches(mavenValueWithNullVersion), is(false));
+    assertThat(mavenCoordinate.matches(mavenValueWithNullVersion)).isFalse();
     ComponentIdentifier mavenValueWithNullClassifier = ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", null, "e");
-    assertThat(mavenCoordinate.matches(mavenValueWithNullClassifier), is(false));
+    assertThat(mavenCoordinate.matches(mavenValueWithNullClassifier)).isFalse();
     ComponentIdentifier mavenValueWithNullExtension = ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", null);
-    assertThat(mavenCoordinate.matches(mavenValueWithNullExtension), is(false));
+    assertThat(mavenCoordinate.matches(mavenValueWithNullExtension)).isFalse();
 
     ArtifactCoordinate anameCoordinate = new ArtifactCoordinate(
         ComponentIdentifier.createAnameCoordinates("n*", "q*", "v*"));
     ComponentIdentifier anameValueWithNullName = ComponentIdentifier.createAnameCoordinates(null, "q", "v");
-    assertThat(anameCoordinate.matches(anameValueWithNullName), is(false));
+    assertThat(anameCoordinate.matches(anameValueWithNullName)).isFalse();
     ComponentIdentifier anameValueWithNullQualifier = ComponentIdentifier.createAnameCoordinates("n", null, "v");
-    assertThat(anameCoordinate.matches(anameValueWithNullQualifier), is(false));
+    assertThat(anameCoordinate.matches(anameValueWithNullQualifier)).isFalse();
     ComponentIdentifier anameValueWithNullVersion = ComponentIdentifier.createAnameCoordinates("n", "q", null);
-    assertThat(anameCoordinate.matches(anameValueWithNullVersion), is(false));
+    assertThat(anameCoordinate.matches(anameValueWithNullVersion)).isFalse();
   }
 }

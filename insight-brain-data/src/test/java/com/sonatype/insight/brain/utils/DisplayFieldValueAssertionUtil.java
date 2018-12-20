@@ -12,10 +12,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import static com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil.GAV_SEPARATOR;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Shared assertions for structure of DisplayFieldValues
@@ -28,8 +25,8 @@ public class DisplayFieldValueAssertionUtil
                                              final String field,
                                              final String value)
   {
-    assertThat(displayFieldValue.field, is(field));
-    assertThat(displayFieldValue.value, is(value));
+    assertThat(displayFieldValue.field).isEqualTo(field);
+    assertThat(displayFieldValue.value).isEqualTo(value);
   }
 
   public static void assertDisplayFieldValuesForGAV(List<ComponentDisplayNamePart> displayName,
@@ -37,7 +34,7 @@ public class DisplayFieldValueAssertionUtil
                                                     String artifactId,
                                                     String version)
   {
-    assertThat(displayName, hasSize(5));
+    assertThat(displayName).hasSize(5);
     assertDisplayFieldValue(displayName.get(0), "Group", groupId);
     assertDisplayFieldValue(displayName.get(1), null, GAV_SEPARATOR);
     assertDisplayFieldValue(displayName.get(2), "Artifact", artifactId);
@@ -48,10 +45,8 @@ public class DisplayFieldValueAssertionUtil
   public static void assertDisplayFieldValues(final List<ComponentDisplayNamePart> displayName,
                                               final PolicyViolation policyViolation)
   {
-    if (policyViolation.getComponentIdentifier() == null) {
-      fail();
-    }
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
+    assertThat(componentIdentifier).isNotNull();
     assertDisplayFieldValuesForGAV(displayName, componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
         componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
         componentIdentifier.get(ComponentIdentifier.VERSION));

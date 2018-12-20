@@ -19,14 +19,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SuccessMetricsReportDAOTest
     extends AbstractDbDAOTest
@@ -42,7 +36,7 @@ public class SuccessMetricsReportDAOTest
     SuccessMetricsReport successMetrics = tempEntity.newSuccessMetricsReport(username, metricsName, "testScopeString",
         createTime);
 
-    assertNotNull(successMetrics.getId());
+    assertThat(successMetrics.getId()).isNotNull();
 
     // Retrieve metrics and test
     SuccessMetricsReport returnedMetric = successMetricsReportDAO.getById(successMetrics.getId());
@@ -51,19 +45,16 @@ public class SuccessMetricsReportDAOTest
     // attempt to update metric
     String username2 = "bob";
     successMetrics.setUsername(username2);
-    try {
+    assertThatThrownBy(() -> {
       successMetricsReportDAO.update(successMetrics);
-      fail("Expected exception to be thrown.");
-    }
-    catch (UnsupportedOperationException expected) {
-      assertEquals("SuccessMetricsReport does not support update operations.", expected.getMessage());
-    }
+    }).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("SuccessMetricsReport does not support update operations.");
 
     // Delete
     successMetricsReportDAO.delete(successMetrics);
 
     // Retrieve metric and test
-    assertThat(successMetricsReportDAO.getById(successMetrics.getId()), nullValue());
+    assertThat(successMetricsReportDAO.getById(successMetrics.getId())).isNull();
   }
 
   @Test
@@ -75,7 +66,7 @@ public class SuccessMetricsReportDAOTest
 
     // Retrieve metrics and test
     List<SuccessMetricsReport> actual = successMetricsReportDAO.getByUsername(username);
-    assertThat(actual, hasSize(2));
+    assertThat(actual).hasSize(2);
     assertMetrics(actual.get(0), username, "testMetricsString 1", "metrics 1", "metrics1", createTime1);
     assertMetrics(actual.get(1), username, "testMetricsString 2", "metrics 2", "metrics2", createTime2);
   }
@@ -96,38 +87,26 @@ public class SuccessMetricsReportDAOTest
   @Test
   public void testValidateNullName_Insert() {
     SuccessMetricsReport successMetrics = new SuccessMetricsReport(null);
-    try {
+    assertThatThrownBy(() -> {
       successMetricsReportDAO.insert(successMetrics);
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
     SuccessMetricsReport successMetrics = new SuccessMetricsReport("");
-    try {
+    assertThatThrownBy(() -> {
       successMetricsReportDAO.insert(successMetrics);
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       SuccessMetricsReport successMetrics = new SuccessMetricsReport(name);
-      try {
+      assertThatThrownBy(() -> {
         successMetricsReportDAO.insert(successMetrics);
-        fail("Expected exception to be thrown.");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -143,14 +122,10 @@ public class SuccessMetricsReportDAOTest
   public void testValidateNameSpaces_Insert() {
     String username = "test123";
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      try {
+      assertThatThrownBy(() -> {
         tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1");
-        fail("Expected exception to be thrown.");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -159,39 +134,31 @@ public class SuccessMetricsReportDAOTest
     String username = "test123";
     String name = "test string With Case and Whitespace";
     SuccessMetricsReport successMetrics = tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1111");
-    assertEquals(name, successMetrics.getName());
-    assertEquals("teststringwithcaseandwhitespace", successMetrics.getNameLowercaseNoWhitespace());
+    assertThat(successMetrics.getName()).isEqualTo(name);
+    assertThat(successMetrics.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
 
     String name1 = "TEST String      With    cASE and      whitespace";
     SuccessMetricsReport actual = successMetricsReportDAO.getByUsernameAndName(username, name1);
-    assertNotNull(actual);
-    assertEquals(successMetrics.getId(), actual.getId());
+    assertThat(actual).isNotNull();
+    assertThat(actual.getId()).isEqualTo(successMetrics.getId());
   }
 
   @Test
   public void testDuplicateName_Insert() {
     String username = "test123";
     tempEntity.newSuccessMetricsReport(username, "Metrics12345", "testMetricsString 1111");
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newSuccessMetricsReport(username, "METRICS 12345", "testMetricsString 1111");
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("METRICS 12345 is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("METRICS 12345 is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newSuccessMetricsReport(username, name + "a", "testMetricsString 1111");
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
     tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1111");
   }
 
@@ -203,7 +170,7 @@ public class SuccessMetricsReportDAOTest
 
     successMetricsReportDAO.delete(report);
 
-    assertThat(successMetricsReportDataDAO.getById(reportData.getId()), is(nullValue()));
+    assertThat(successMetricsReportDataDAO.getById(reportData.getId())).isNull();
   }
 
   private void assertMetrics(SuccessMetricsReport actualMetrics,
@@ -213,12 +180,12 @@ public class SuccessMetricsReportDAOTest
                              String nameLowercaseNoWhitespace,
                              Date createTime)
   {
-    assertThat(actualMetrics, notNullValue());
-    assertThat(actualMetrics.getId(), is(notNullValue()));
-    assertThat(actualMetrics.getCreateTime(), is(createTime));
-    assertThat(actualMetrics.getUsername(), is(username));
-    assertThat(actualMetrics.getScopeJson(), is(scopeJson));
-    assertThat(actualMetrics.getName(), is(name));
-    assertThat(actualMetrics.getNameLowercaseNoWhitespace(), is(nameLowercaseNoWhitespace));
+    assertThat(actualMetrics).isNotNull();
+    assertThat(actualMetrics.getId()).isNotNull();
+    assertThat(actualMetrics.getCreateTime()).isEqualTo(createTime);
+    assertThat(actualMetrics.getUsername()).isEqualTo(username);
+    assertThat(actualMetrics.getScopeJson()).isEqualTo(scopeJson);
+    assertThat(actualMetrics.getName()).isEqualTo(name);
+    assertThat(actualMetrics.getNameLowercaseNoWhitespace()).isEqualTo(nameLowercaseNoWhitespace);
   }
 }

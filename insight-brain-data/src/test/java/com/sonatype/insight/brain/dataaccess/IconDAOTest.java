@@ -19,11 +19,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class IconDAOTest
 {
@@ -43,33 +40,24 @@ public class IconDAOTest
     iconDAO.setIcon(ownerId, iconDir, byteArrayInputStream);
 
     byte[] iconBytes = iconDAO.getIcon(ownerId, iconDir);
-    assertThat(iconBytes, notNullValue());
-    assertThat(iconBytes.length, greaterThan(0));
+    assertThat(iconBytes).isNotEmpty();
   }
 
   @Test
   public void testGetIcon_InvalidOwnerId() throws Exception {
     File iconDir = tmpDir.newFolder();
-    try {
+    assertThatThrownBy(() -> {
       iconDAO.getIcon(BAD_OWNER_ID, iconDir);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Invalid value: " + BAD_OWNER_ID));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
   @Test
   public void testSetIcon_InvalidOwnerId() throws Exception {
     File iconDir = tmpDir.newFolder();
-    try {
-      ByteArrayInputStream byteArrayInputStream = getIconImageStream();
+    ByteArrayInputStream byteArrayInputStream = getIconImageStream();
+    assertThatThrownBy(() -> {
       iconDAO.setIcon(BAD_OWNER_ID, iconDir, byteArrayInputStream);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Invalid value: " + BAD_OWNER_ID));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
   private ByteArrayInputStream getIconImageStream() throws IOException {

@@ -17,10 +17,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
@@ -37,13 +34,13 @@ public class RepositoryPolicyViolationDAOTest
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), "path", now,
         policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier,
         "constraint data");
-    assertThat(policyViolation.getId(), is(nullValue()));
+    assertThat(policyViolation.getId()).isNull();
     dao.insert(policyViolation);
-    assertThat(policyViolation.getId(), is(notNullValue()));
+    assertThat(policyViolation.getId()).isNotNull();
 
     // Read
     policyViolation = dao.getById(policyViolation.getId());
-    assertThat(policyViolation, is(notNullValue()));
+    assertThat(policyViolation).isNotNull();
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
         PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, null /* actionTypeId */,
         policyViolation);
@@ -53,7 +50,7 @@ public class RepositoryPolicyViolationDAOTest
 
     // Read
     policyViolation = dao.getById(policyViolation.getId());
-    assertThat(policyViolation, is(notNullValue()));
+    assertThat(policyViolation).isNotNull();
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
         PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, Action.ID_FAIL, policyViolation);
 
@@ -61,7 +58,7 @@ public class RepositoryPolicyViolationDAOTest
     dao.delete(policyViolation);
 
     policyViolation = dao.getById(policyViolation.getId());
-    assertThat(policyViolation, is(nullValue()));
+    assertThat(policyViolation).isNull();
   }
 
   private void assertPolicyViolation(String repositoryId,
@@ -76,16 +73,16 @@ public class RepositoryPolicyViolationDAOTest
                                      String actionTypeId,
                                      RepositoryPolicyViolation actual)
   {
-    assertThat(actual.getRepositoryId(), is(repositoryId));
-    assertThat(actual.getPathname(), is(pathname));
-    assertThat(actual.getPolicyId(), is(policyId));
-    assertThat(actual.getPolicyName(), is(policyName));
-    assertThat(actual.getThreatLevel(), is(threatLevel));
-    assertThat(actual.getThreatCategory(), is(threatCategory));
-    assertThat(actual.getHash(), is(hash));
-    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getTime(), is(time));
-    assertThat(actual.getActionTypeId(), is(actionTypeId));
+    assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
+    assertThat(actual.getPathname()).isEqualTo(pathname);
+    assertThat(actual.getPolicyId()).isEqualTo(policyId);
+    assertThat(actual.getPolicyName()).isEqualTo(policyName);
+    assertThat(actual.getThreatLevel()).isEqualTo(threatLevel);
+    assertThat(actual.getThreatCategory()).isEqualTo(threatCategory);
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getTime()).isEqualTo(time);
+    assertThat(actual.getActionTypeId()).isEqualTo(actionTypeId);
   }
 
   @Test
@@ -105,14 +102,14 @@ public class RepositoryPolicyViolationDAOTest
 
     int i = 0;
     final RepositoryPolicyViolation firstViolation = violations.get(i++);
-    assertThat(firstViolation.getThreatLevel(), is(3));
-    assertThat(firstViolation.getPolicyId(), is("policyId"));
+    assertThat(firstViolation.getThreatLevel()).isEqualTo(3);
+    assertThat(firstViolation.getPolicyId()).isEqualTo("policyId");
 
     final RepositoryPolicyViolation secondViolation = violations.get(i++);
-    assertThat(secondViolation.getThreatLevel(), is(3));
-    assertThat(secondViolation.getPolicyId(), is(policyIdSecond));
+    assertThat(secondViolation.getThreatLevel()).isEqualTo(3);
+    assertThat(secondViolation.getPolicyId()).isEqualTo(policyIdSecond);
 
-    assertThat(violations.get(i++).getThreatLevel(), is(2));
-    assertThat(violations.get(i).getThreatLevel(), is(1));
+    assertThat(violations.get(i++).getThreatLevel()).isEqualTo(2);
+    assertThat(violations.get(i).getThreatLevel()).isEqualTo(1);
   }
 }

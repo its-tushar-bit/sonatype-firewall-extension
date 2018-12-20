@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.notification;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,10 +13,9 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class UserViewedProductNotificationDAOTest
     extends AbstractDbDAOTest
@@ -36,24 +34,21 @@ public class UserViewedProductNotificationDAOTest
     // Get
     List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO
         .getByUsername(username);
-    assertThat(notificationViewedList.size(), is(1));
-    assertThat(notificationViewedList.get(0).getNotificationId(), is(notificationId));
-    assertThat(notificationViewedList.get(0).getUsername(), is(username));
+    assertThat(notificationViewedList).hasSize(1);
+    assertThat(notificationViewedList.get(0).getNotificationId()).isEqualTo(notificationId);
+    assertThat(notificationViewedList.get(0).getUsername()).isEqualTo(username);
 
-    try {
+    assertThatThrownBy(() -> {
       userViewedNotificationMappingDAO.update(notificationViewed);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException e) {
-      assertThat(e.getMessage(), is("The UserViewedProductNotification table does not support update operations"));
-    }
+    }).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("The UserViewedProductNotification table does not support update operations");
 
     // Delete
     userViewedNotificationMappingDAO.delete(notificationViewed);
 
     // Get
     notificationViewedList = userViewedNotificationMappingDAO.getByUsername(username);
-    assertThat(notificationViewedList.size(), is(0));
+    assertThat(notificationViewedList).isEmpty();
   }
 
   @Test
@@ -66,8 +61,8 @@ public class UserViewedProductNotificationDAOTest
     UserViewedProductNotification retrieved = userViewedNotificationMappingDAO.getByUsernameAndNotificationId(
         expected.getUsername(), expected.getNotificationId());
 
-    assertThat(retrieved.getUsername(), is(expected.getUsername()));
-    assertThat(retrieved.getNotificationId(), is(expected.getNotificationId()));
+    assertThat(retrieved.getUsername()).isEqualTo(expected.getUsername());
+    assertThat(retrieved.getNotificationId()).isEqualTo(expected.getNotificationId());
   }
 
   @Test
@@ -78,14 +73,9 @@ public class UserViewedProductNotificationDAOTest
         .toString());
 
     List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO.getAll();
-    assertThat(notificationViewedList.size(), is(2));
-    List<String> userAndNotificationId = new ArrayList<>();
-    for (UserViewedProductNotification notificationViewed : notificationViewedList) {
-      userAndNotificationId.add(notificationViewed.getUsername() + notificationViewed.getNotificationId());
-    }
-    assertThat(
-        userAndNotificationId,
-        containsInAnyOrder(expected1.getUsername() + expected1.getNotificationId(),
-            expected2.getUsername() + expected2.getNotificationId()));
+    assertThat(notificationViewedList)
+        .extracting(UserViewedProductNotification::getUsername, UserViewedProductNotification::getNotificationId)
+        .containsExactlyInAnyOrder(tuple(expected1.getUsername(), expected1.getNotificationId()),
+            tuple(expected2.getUsername(), expected2.getNotificationId()));
   }
 }

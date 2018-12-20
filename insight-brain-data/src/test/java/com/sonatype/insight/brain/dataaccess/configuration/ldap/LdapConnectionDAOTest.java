@@ -14,9 +14,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapConnectionDAOTest
     extends AbstractDbDAOTest
@@ -57,23 +55,23 @@ public class LdapConnectionDAOTest
     conn.setSystemPassword(systemPassword);
     conn.setConnectionTimeout(connectionTimeout);
     conn.setRetryDelay(retryDelay);
-    assertNull(conn.getId()); // sanity check
+    assertThat(conn.getId()).isNull(); // sanity check
     dao.insert(conn);
 
     // select by id
 
     LdapConnection echo = dao.getById(conn.getId());
-    assertNotNull(echo);
-    assertEquals(protocol, echo.getProtocol());
-    assertEquals(hostname, echo.getHostname());
-    assertEquals(port, echo.getPort());
-    assertEquals(searchBase, echo.getSearchBase());
-    assertEquals(authenticationMethod, echo.getAuthenticationMethod());
-    assertEquals(saslRealm, echo.getSaslRealm());
-    assertEquals(systemUsername, echo.getSystemUsername());
-    assertEquals(systemPassword, echo.getSystemPassword());
-    assertEquals(connectionTimeout, echo.getConnectionTimeout());
-    assertEquals(retryDelay, echo.getRetryDelay());
+    assertThat(echo).isNotNull();
+    assertThat(echo.getProtocol()).isEqualTo(protocol);
+    assertThat(echo.getHostname()).isEqualTo(hostname);
+    assertThat(echo.getPort()).isEqualTo(port);
+    assertThat(echo.getSearchBase()).isEqualTo(searchBase);
+    assertThat(echo.getAuthenticationMethod()).isEqualTo(authenticationMethod);
+    assertThat(echo.getSaslRealm()).isEqualTo(saslRealm);
+    assertThat(echo.getSystemUsername()).isEqualTo(systemUsername);
+    assertThat(echo.getSystemPassword()).isEqualTo(systemPassword);
+    assertThat(echo.getConnectionTimeout()).isEqualTo(connectionTimeout);
+    assertThat(echo.getRetryDelay()).isEqualTo(retryDelay);
 
     // update
 
@@ -81,11 +79,11 @@ public class LdapConnectionDAOTest
     conn.setSystemPassword(changedPassword);
     dao.update(conn);
     echo = dao.getById(conn.getId());
-    assertEquals(changedPassword, echo.getSystemPassword());
+    assertThat(echo.getSystemPassword()).isEqualTo(changedPassword);
 
     // delete
     dao.delete(conn);
-    assertNull(dao.getById(conn.getId()));
+    assertThat(dao.getById(conn.getId())).isNull();
   }
 
   @Test
@@ -93,7 +91,7 @@ public class LdapConnectionDAOTest
     LdapConnection conn = createLdapConnection();
     conn.setPort(65535);
     dao.insert(conn);
-    assertNotNull(conn.getId());
+    assertThat(conn.getId()).isNotNull();
   }
 
   private LdapConnection createLdapConnection() {

@@ -15,15 +15,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MultiLicenseDAOTest
     extends AbstractLicenseDAOTest
@@ -35,32 +28,32 @@ public class MultiLicenseDAOTest
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
     String shortName = "SDN";
-    assertNull(dao.getByName(shortName));
+    assertThat(dao.getByName(shortName)).isNull();
     MultiLicense multiLicense = new MultiLicense();
     multiLicense.setShortDisplayName(shortName);
     multiLicense.setLongDisplayName("Long Display Name");
     dao.insert(multiLicense);
-    assertNotNull(multiLicense.getId());
+    assertThat(multiLicense.getId()).isNotNull();
     dao.load();
 
     multiLicense = dao.getById(multiLicense.getId());
-    assertNotNull(multiLicense);
-    assertEquals("SDN", multiLicense.getShortDisplayName());
-    assertEquals("Long Display Name", multiLicense.getLongDisplayName());
+    assertThat(multiLicense).isNotNull();
+    assertThat(multiLicense.getShortDisplayName()).isEqualTo("SDN");
+    assertThat(multiLicense.getLongDisplayName()).isEqualTo("Long Display Name");
 
     multiLicense.setLongDisplayName("New Long Display Name");
     dao.update(multiLicense);
     dao.load();
 
     dao.getById(multiLicense.getId());
-    assertNotNull(multiLicense);
-    assertEquals("New Long Display Name", multiLicense.getLongDisplayName());
+    assertThat(multiLicense).isNotNull();
+    assertThat(multiLicense.getLongDisplayName()).isEqualTo("New Long Display Name");
 
     dao.delete(multiLicense);
     dao.load();
 
     multiLicense = dao.getById(multiLicense.getId());
-    assertNull(multiLicense);
+    assertThat(multiLicense).isNull();
   }
 
   @Test
@@ -68,8 +61,7 @@ public class MultiLicenseDAOTest
     MultiLicenseDAO dao = new MultiLicenseDAO();
     Collection<MultiLicense> multiLicenses = dao.getAll();
 
-    assertNotNull(multiLicenses);
-    assertFalse(multiLicenses.isEmpty());
+    assertThat(multiLicenses).isNotEmpty();
   }
 
   @Test
@@ -83,12 +75,14 @@ public class MultiLicenseDAOTest
 
     for (MultiLicense multiLicense : multiLicenses) {
       Integer threat = dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, multiLicense.getId());
-      assertTrue("Multilicense Threat Level between null and 10", threat == null || (threat >= 0 && threat <= 10));
+      if (threat != null) {
+        assertThat(threat).isBetween(0, 10);
+      }
     }
 
-    assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0"));
-    assertEquals(Integer.valueOf(5), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-2.0"));
-    assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-3.0"));
+    assertThat(dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0")).isEqualTo(0);
+    assertThat(dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-2.0")).isEqualTo(5);
+    assertThat(dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-3.0")).isEqualTo(9);
   }
 
   @Test(expected = NotFoundException.class)
@@ -101,19 +95,15 @@ public class MultiLicenseDAOTest
   public void testGetLicensesByMultiLicenseIdRefreshedRemotely() {
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
-    try {
+    assertThatThrownBy(() -> {
       dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID);
-      fail("Expected a NotFoundException to be thrown");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("A multi-license with ID '" + MOCK_REMOTE_LICENSE_ID
-          + "' does not exist locally or remotely."));
-    }
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("A multi-license with ID '" + MOCK_REMOTE_LICENSE_ID + "' does not exist locally or remotely.");
 
     MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
     LicenseDataUpdater.setUpdater(updater);
 
-    assertThat(dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID), notNullValue());
+    assertThat(dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID)).isNotNull();
     updater.cleanup();
   }
 
@@ -121,7 +111,7 @@ public class MultiLicenseDAOTest
   public void testLicenseDataRefresh() {
     String newId = "new multi license id";
     MultiLicenseDAO dao = new MultiLicenseDAO();
-    assertNull(dao.getById(newId));
+    assertThat(dao.getById(newId)).isNull();
     int count = dao.getAll().size();
 
     MultiLicense newMultiLicense = new MultiLicense();
@@ -134,12 +124,12 @@ public class MultiLicenseDAOTest
     multiLicenseLicense.setLicenseId("GPL-2.0");
     MultiLicenseLicenseInternalDAO multiLicenseLicenseDAO = new MultiLicenseLicenseInternalDAO();
     multiLicenseLicenseDAO.insert(multiLicenseLicense);
-    assertNull(dao.getById(newId));
+    assertThat(dao.getById(newId)).isNull();
 
     LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
 
-    assertNotNull(dao.getById(newId));
-    assertEquals(count + 1, dao.getAll().size());
+    assertThat(dao.getById(newId)).isNotNull();
+    assertThat(dao.getAll()).hasSize(count + 1);
 
     multiLicenseLicenseDAO.delete(multiLicenseLicense);
     dao.delete(newMultiLicense);

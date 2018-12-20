@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -25,14 +23,10 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
-import org.hamcrest.core.IsCollectionContaining;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDAOTest
     extends AbstractDbDAOTest
@@ -67,7 +61,7 @@ public class ComponentDAOTest
   private void assertSecurityVulnerabilities(List<com.sonatype.insight.brain.model.component.SecurityVulnerability> actual,
                                              com.sonatype.insight.brain.model.component.SecurityVulnerability... expected)
   {
-    assertEquals(expected.length, actual.size());
+    assertThat(actual).hasSameSizeAs(expected);
     for (int i = 0, n = expected.length; i < n; i++) {
       assertSecurityVulnerability(expected[i], actual.get(i));
     }
@@ -76,25 +70,21 @@ public class ComponentDAOTest
   private void assertSecurityVulnerability(com.sonatype.insight.brain.model.component.SecurityVulnerability expected,
                                            com.sonatype.insight.brain.model.component.SecurityVulnerability actual)
   {
-    assertEquals(expected.getRefId(), actual.getRefId());
-    assertEquals(expected.getSource(), actual.getSource());
-    assertEquals(expected.getSeverity(), actual.getSeverity());
-    assertEquals(expected.getStatus(), actual.getStatus());
+    assertThat(actual.getRefId()).isEqualTo(expected.getRefId());
+    assertThat(actual.getSource()).isEqualTo(expected.getSource());
+    assertThat(actual.getSeverity()).isEqualTo(expected.getSeverity());
+    assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
   }
 
   private void assertLicenseThreatGroups(Set<LicenseThreatGroup> actual, String... expected) {
-    Set<String> actualNames = new TreeSet<>();
-    for (LicenseThreatGroup group : actual) {
-      actualNames.add(group.getName());
-    }
-    assertEquals(new TreeSet<>(Arrays.asList(expected)), actualNames);
+    assertThat(actual).extracting(LicenseThreatGroup::getName).containsExactlyInAnyOrder(expected);
   }
 
   @SuppressWarnings("deprecation")
   private void assertGav(MatchedComponent expectedMatchedComponent, Component actualComponent) {
-    assertEquals(expectedMatchedComponent.getGroupId(), actualComponent.getGroupId());
-    assertEquals(expectedMatchedComponent.getArtifactId(), actualComponent.getArtifactId());
-    assertEquals(expectedMatchedComponent.getVersion(), actualComponent.getVersion());
+    assertThat(actualComponent.getGroupId()).isEqualTo(expectedMatchedComponent.getGroupId());
+    assertThat(actualComponent.getArtifactId()).isEqualTo(expectedMatchedComponent.getArtifactId());
+    assertThat(actualComponent.getVersion()).isEqualTo(expectedMatchedComponent.getVersion());
   }
 
   @Test
@@ -116,23 +106,22 @@ public class ComponentDAOTest
     matchedComponent.addObservedLicenseId("MIT");
     matchedComponent.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
     Component component = componentDAO.getComponent(application, matchedComponent);
-    assertNotNull(component);
-    assertEquals(matchedComponent.getHash(), component.getHash());
-    assertEquals(matchedComponent.getComponentIdentifier(), component.getComponentIdentifier());
+    assertThat(component).isNotNull();
+    assertThat(component.getHash()).isEqualTo(matchedComponent.getHash());
+    assertThat(component.getComponentIdentifier()).isEqualTo(matchedComponent.getComponentIdentifier());
     assertGav(matchedComponent, component);
-    assertEquals(matchedComponent.getMatchState(), component.getMatchState().getId());
-    assertEquals(matchedComponent.getCatalogDate(), component.getCatalogDate());
-    assertEquals(matchedComponent.getRelativePopularity(), new Integer(component.getRelativePopularity()));
-    assertEquals(matchedComponent.getDeclaredLicenseIds(), component.getDeclaredLicenseIds());
-    assertEquals(matchedComponent.getObservedLicenseIds(), component.getObservedLicenseIds());
+    assertThat(component.getMatchState().getId()).isEqualTo(matchedComponent.getMatchState());
+    assertThat(component.getCatalogDate()).isEqualTo(matchedComponent.getCatalogDate());
+    assertThat(component.getRelativePopularity()).isEqualTo(matchedComponent.getRelativePopularity());
+    assertThat(component.getDeclaredLicenseIds()).isEqualTo(matchedComponent.getDeclaredLicenseIds());
+    assertThat(component.getObservedLicenseIds()).isEqualTo(matchedComponent.getObservedLicenseIds());
 
-    assertTrue(component.getLicenseOverrideIds().isEmpty());
+    assertThat(component.getLicenseOverrideIds()).isEmpty();
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1");
     assertSecurityVulnerabilities(component.getSecurityVulnerabilities(),
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityOverrideStatus.OPEN));
 
-    assertEquals(2, component.getLabelIds().size());
-    assertThat(component.getLabelIds(), IsCollectionContaining.hasItems(appLabel.getId(), orgLabel.getId()));
+    assertThat(component.getLabelIds()).containsExactlyInAnyOrder(appLabel.getId(), orgLabel.getId());
   }
 
   @Test
@@ -141,8 +130,8 @@ public class ComponentDAOTest
     matchedComponent.setHash(COMP_HASH);
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     Component component = componentDAO.getComponent(application, matchedComponent);
-    assertNotNull(component);
-    assertTrue(component.getLicenseOverrideIds().isEmpty());
+    assertThat(component).isNotNull();
+    assertThat(component.getLicenseOverrideIds()).isEmpty();
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     // Override at org level
@@ -152,18 +141,16 @@ public class ComponentDAOTest
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
     component = componentDAO.getComponent(application, matchedComponent);
-    assertNotNull(component);
-    assertTrue(component.getLicenseOverrideIds().size() == 1);
-    assertTrue(component.getLicenseOverrideIds().contains("GPL-3.0"));
+    assertThat(component).isNotNull();
+    assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-3.0");
 
     // Override at app level
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
     component = componentDAO.getComponent(application, matchedComponent);
-    assertNotNull(component);
-    assertTrue(component.getLicenseOverrideIds().size() == 1);
-    assertTrue(component.getLicenseOverrideIds().contains("GPL-2.0"));
+    assertThat(component).isNotNull();
+    assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-2.0");
   }
 
   @Test
@@ -174,11 +161,8 @@ public class ComponentDAOTest
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-3.0");
     Component component = componentDAO.getComponent(application, matchedComponent);
-    assertNotNull(component);
-    assertEquals(component.getDeclaredLicenseIds().toString(), 3, component.getDeclaredLicenseIds().size());
-    assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
-    assertTrue(component.getDeclaredLicenseIds().contains("GPL-2.0"));
-    assertTrue(component.getDeclaredLicenseIds().contains("GPL-3.0"));
+    assertThat(component).isNotNull();
+    assertThat(component.getDeclaredLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
   }
 
@@ -190,11 +174,8 @@ public class ComponentDAOTest
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-3.0");
     Component component = componentDAO.getComponent(application, matchedComponent);
-    assertNotNull(component);
-    assertEquals(component.getObservedLicenseIds().toString(), 3, component.getObservedLicenseIds().size());
-    assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));
-    assertTrue(component.getObservedLicenseIds().contains("GPL-2.0"));
-    assertTrue(component.getObservedLicenseIds().contains("GPL-3.0"));
+    assertThat(component).isNotNull();
+    assertThat(component.getObservedLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
   }
 }

@@ -21,11 +21,7 @@ import org.junit.Test;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentIdentifierAdapterTest
 {
@@ -59,27 +55,27 @@ public class ComponentIdentifierAdapterTest
   public void testGetComponentIdentifier() throws Exception {
     JsonNode jsonNode = mapper.readTree(MAVEN_CONTENT);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
-    assertThat(componentIdentifier, equalTo(MAVEN_COMPONENT));
+    assertThat(componentIdentifier).isEqualTo(MAVEN_COMPONENT);
   }
 
   @Test
   public void testGetComponentIdentifierLegacy() throws Exception {
     JsonNode jsonNode = mapper.readTree(GAV_CONTENT);
-    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode), equalTo(MAVEN_COMPONENT));
+    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode)).isEqualTo(MAVEN_COMPONENT);
   }
 
   @Test
   public void testGetComponentIdentifierNuget() throws Exception {
     JsonNode jsonNode = mapper.readTree(NUGET_CONTENT);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
-    assertThat(componentIdentifier, equalTo(NUGET_COMPONENT));
+    assertThat(componentIdentifier).isEqualTo(NUGET_COMPONENT);
   }
 
   @Test
   public void testGetComponentIdentifierUnknownFormat() throws Exception {
     JsonNode jsonNode = mapper.readTree(ANY_CONTENT);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
-    assertThat(componentIdentifier, equalTo(ANY_COMPONENT_ID));
+    assertThat(componentIdentifier).isEqualTo(ANY_COMPONENT_ID);
   }
 
   @Test(expected = InvalidComponentIdentifierException.class)
@@ -90,7 +86,7 @@ public class ComponentIdentifierAdapterTest
 
   @Test
   public void testToComponentIdentifierNull() throws Exception {
-    assertThat(ComponentIdentifierAdapter.toComponentIdentifier(null), nullValue());
+    assertThat(ComponentIdentifierAdapter.toComponentIdentifier(null)).isNull();
   }
 
   @Test
@@ -98,12 +94,12 @@ public class ComponentIdentifierAdapterTest
     JsonNode jsonNode = mapper.readTree(GAV_CONTENT);
     JsonNode copy = jsonNode.deepCopy();
     ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
-    assertThat(copy, not(jsonNode));
+    assertThat(copy).isNotEqualTo(jsonNode);
     for (String key : Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION)) {
-      assertThat(jsonNode.hasNonNull(key), is(false));
+      assertThat(jsonNode.hasNonNull(key)).isFalse();
     }
-    assertThat(jsonNode.hasNonNull(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER), is(true));
-    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode), is(MAVEN_COMPONENT));
+    assertThat(jsonNode.hasNonNull(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER)).isTrue();
+    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode)).isEqualTo(MAVEN_COMPONENT);
   }
 
   @Test
@@ -111,12 +107,12 @@ public class ComponentIdentifierAdapterTest
     JsonNode jsonNode = mapper.readTree(GAV_CONTENT);
     JsonNode copy = jsonNode.deepCopy();
     ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) jsonNode);
-    assertThat(copy, not(jsonNode));
+    assertThat(copy).isNotEqualTo(jsonNode);
     for (String key : Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION)) {
-      assertThat(jsonNode.hasNonNull(key), is(true));
+      assertThat(jsonNode.hasNonNull(key)).isTrue();
     }
-    assertThat(jsonNode.hasNonNull(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER), is(true));
-    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode), is(MAVEN_COMPONENT));
+    assertThat(jsonNode.hasNonNull(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER)).isTrue();
+    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode)).isEqualTo(MAVEN_COMPONENT);
   }
 
   @Test
@@ -124,7 +120,7 @@ public class ComponentIdentifierAdapterTest
     JsonNode jsonNode = mapper.readTree(MAVEN_CONTENT);
     JsonNode copy = jsonNode.deepCopy();
     ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) jsonNode);
-    assertThat(copy, is(jsonNode));
+    assertThat(copy).isEqualTo(jsonNode);
   }
 
   @Test
@@ -132,23 +128,22 @@ public class ComponentIdentifierAdapterTest
     JsonNode jsonNode = mapper.readTree("{\"blah\":{}}");
     JsonNode copy = jsonNode.deepCopy();
     ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) jsonNode);
-    assertThat(copy, is(jsonNode));
+    assertThat(copy).isEqualTo(jsonNode);
   }
 
   @Test
   public void testToJsonComponentIdentifier() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     String json = ComponentIdentifierAdapter.toJson(componentIdentifier);
-    assertThat(
-        json,
-        is("{\"format\":\"maven\",\"coordinates\":{\"artifactId\":\"a\",\"classifier\":\"c\",\"extension\":\"e\",\"groupId\":\"g\",\"version\":\"v\"}}"));
+    assertThat(json).isEqualTo("{\"format\":\"maven\",\"coordinates\":{\"artifactId\":\"a\","
+        + "\"classifier\":\"c\",\"extension\":\"e\",\"groupId\":\"g\",\"version\":\"v\"}}");
   }
 
   @Test
   public void testToJsonComponentIdentifierNull() {
     ComponentIdentifier componentIdentifier = null;
     String json = ComponentIdentifierAdapter.toJson(componentIdentifier);
-    assertThat(json, is("null"));
+    assertThat(json).isEqualTo("null");
   }
 
   @Test
@@ -160,6 +155,6 @@ public class ComponentIdentifierAdapterTest
 
     // generated from H2 as in schema_incremental_0060.sql
     String h2ConcatenatedValue = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
-    assertThat(ComponentIdentifierAdapter.toJson(coordinates), is(h2ConcatenatedValue));
+    assertThat(ComponentIdentifierAdapter.toJson(coordinates)).isEqualTo(h2ConcatenatedValue);
   }
 }

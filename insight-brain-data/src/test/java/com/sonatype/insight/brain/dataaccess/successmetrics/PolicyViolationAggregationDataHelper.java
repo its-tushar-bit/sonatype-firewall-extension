@@ -33,8 +33,7 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationAggregationDataHelper
 {
@@ -578,7 +577,7 @@ public class PolicyViolationAggregationDataHelper
         3);
 
     // sanity check
-    assertThat(beginningOfMonth, is(today.withDayOfMonth(1)));
+    assertThat(beginningOfMonth).isEqualTo(today.withDayOfMonth(1));
 
     Organization org = tempEntity.newOrganizationWithSpecificId(ORG_ID);
     for (String appId : APPLICATION_IDS) {
@@ -1114,7 +1113,7 @@ public class PolicyViolationAggregationDataHelper
         3);
 
     // sanity check
-    assertThat(beginningOfWeek, is(today.withDayOfWeek(1)));
+    assertThat(beginningOfWeek).isEqualTo(today.withDayOfWeek(1));
   }
 
   public static Set<String> createApplicationCountAggregationHistory(TemporaryEntity tempEntity) {
@@ -1535,7 +1534,7 @@ public class PolicyViolationAggregationDataHelper
         3);
 
     // sanity check
-    assertThat(beginningOfMonth, is(withDayOfTimePeriod(today, MONTH, 1)));
+    assertThat(beginningOfMonth).isEqualTo(withDayOfTimePeriod(today, MONTH, 1));
   }
 
   /**
@@ -1945,7 +1944,7 @@ public class PolicyViolationAggregationDataHelper
         3);
 
     // sanity check
-    assertThat(beginningOfWeek, is(withDayOfTimePeriod(today, WEEK, 1)));
+    assertThat(beginningOfWeek).isEqualTo(withDayOfTimePeriod(today, WEEK, 1));
   }
 
   // These methods exist to improve readability of client code.

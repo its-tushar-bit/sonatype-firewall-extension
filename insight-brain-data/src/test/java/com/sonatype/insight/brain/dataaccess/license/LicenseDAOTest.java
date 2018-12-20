@@ -6,17 +6,14 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import com.sonatype.insight.brain.model.license.License;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicenseDAOTest
     extends AbstractLicenseDAOTest
@@ -25,23 +22,15 @@ public class LicenseDAOTest
   public void testGetAll() {
     LicenseDAO dao = new LicenseDAO();
     List<License> licenses = dao.getAll();
-    assertNotNull(licenses);
-    assertTrue(licenses.size() > 0);
-    for (int i = 0; i < licenses.size() - 1; i++) {
-      License license1 = licenses.get(i);
-      License license2 = licenses.get(i + 1);
-      assertTrue(
-          license1.getShortDisplayName() + " >= " + license2.getShortDisplayName(),
-          license1.getShortDisplayName().toLowerCase(Locale.ENGLISH)
-              .compareTo(license2.getShortDisplayName().toLowerCase(Locale.ENGLISH)) < 0);
-    }
+    assertThat(licenses).isNotEmpty()
+        .isSortedAccordingTo(Comparator.comparing(License::getShortDisplayName, String.CASE_INSENSITIVE_ORDER));
   }
 
   @Test
   public void testLicenseDataRefresh() {
     String newId = "new license id";
     LicenseDAO dao = new LicenseDAO();
-    assertNull(dao.getById(newId));
+    assertThat(dao.getById(newId)).isNull();
     int count = dao.getAll().size();
 
     License newLicense = new License();
@@ -49,12 +38,12 @@ public class LicenseDAOTest
     newLicense.setShortDisplayName("New short name");
     newLicense.setLongDisplayName("New long name");
     dao.insert(newLicense);
-    assertNull(dao.getById(newId));
+    assertThat(dao.getById(newId)).isNull();
 
     LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
 
-    assertNotNull(dao.getById(newId));
-    assertEquals(count + 1, dao.getAll().size());
+    assertThat(dao.getById(newId)).isNotNull();
+    assertThat(dao.getAll()).hasSize(count + 1);
 
     dao.delete(newLicense);
     dao.load();
@@ -71,11 +60,13 @@ public class LicenseDAOTest
 
     for (License license : licenses) {
       Integer threat = dao.getLicenseThreatLevelByOwnerAndLicenseId(application, license.getId());
-      assertTrue("License Threat Level between null and 10", threat == null || (threat >= 0 && threat <= 10));
+      if (threat != null) {
+        assertThat(threat).isBetween(0, 10);
+      }
     }
 
-    assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "Apache-2.0"));
-    assertEquals(Integer.valueOf(5), dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "GPL-2.0"));
-    assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "GPL-3.0"));
+    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "Apache-2.0")).isEqualTo(0);
+    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "GPL-2.0")).isEqualTo(5);
+    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "GPL-3.0")).isEqualTo(9);
   }
 }

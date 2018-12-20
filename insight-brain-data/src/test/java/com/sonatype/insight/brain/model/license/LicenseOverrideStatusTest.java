@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.model.license;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.6
@@ -19,23 +18,19 @@ public class LicenseOverrideStatusTest
   @Test
   public void testGetByName() {
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      assertEquals(status, LicenseOverrideStatus.getByName(status.getName()));
+      assertThat(LicenseOverrideStatus.getByName(status.getName())).isEqualTo(status);
     }
   }
 
   @Test
   public void testGetByName_Null() {
-    assertNull(LicenseOverrideStatus.getByName(null));
+    assertThat(LicenseOverrideStatus.getByName(null)).isNull();
   }
 
   @Test
   public void testGetByName_Invalid() {
-    try {
+    assertThatThrownBy(() -> {
       LicenseOverrideStatus.getByName("Yeti");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertEquals("Unknown license override status with name: Yeti", expected.getMessage());
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("Unknown license override status with name: Yeti");
   }
 }

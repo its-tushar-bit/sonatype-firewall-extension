@@ -23,15 +23,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @since 1.6
@@ -53,9 +47,9 @@ public class LicenseOverrideDAOTest
     // Create
     LicenseOverride licenseOverride = new LicenseOverride(ownerId, componentIdentifier, status, licenseId, comment);
     dao.insert(licenseOverride);
-    assertNotNull(licenseOverride.getId());
+    assertThat(licenseOverride.getId()).isNotNull();
     licenseOverride = dao.getById(licenseOverride.getId());
-    assertNotNull(licenseOverride);
+    assertThat(licenseOverride).isNotNull();
     assertLicenseOverride(ownerId, componentIdentifier, status, licenseId, comment, licenseOverride);
 
     // Update
@@ -63,13 +57,13 @@ public class LicenseOverrideDAOTest
     licenseOverride.setComment(comment);
     dao.update(licenseOverride);
     licenseOverride = dao.getById(licenseOverride.getId());
-    assertNotNull(licenseOverride);
+    assertThat(licenseOverride).isNotNull();
     assertLicenseOverride(ownerId, componentIdentifier, status, licenseId, comment, licenseOverride);
 
     // Delete
     dao.delete(licenseOverride);
     licenseOverride = dao.getById(licenseOverride.getId());
-    assertNull(licenseOverride);
+    assertThat(licenseOverride).isNull();
   }
 
   private void assertLicenseOverride(String ownerId,
@@ -89,11 +83,11 @@ public class LicenseOverrideDAOTest
                                      String comment,
                                      LicenseOverride actual)
   {
-    assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(componentIdentifier, actual.getComponentIdentifier());
-    assertEquals(status, actual.getStatus());
-    assertEquals(licenseIds, actual.getLicenseIds());
-    assertEquals(comment, actual.getComment());
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getStatus()).isEqualTo(status);
+    assertThat(actual.getLicenseIds()).isEqualTo(licenseIds);
+    assertThat(actual.getComment()).isEqualTo(comment);
   }
 
   @Test
@@ -116,48 +110,31 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
         (String) null, StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(override);
-      fail("Expected BadRequestException");
     }
-    catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
-    }
+    ).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
     override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE));
     dao.insert(override);
     override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
-    try {
+    assertThatThrownBy(() -> {
       dao.update(override);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
   }
 
   @Test
   public void testInvalidLicenseId_Insert() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
-        "FataMorganaId", "My comment");
-    try {
-      dao.insert(override);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
-    }
+    assertThatThrownBy(() -> {
+      dao.insert(new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+          "FataMorganaId", "My comment"));
+    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
 
-    override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED, "FataMorganaId",
-        "My comment");
-    try {
-      dao.insert(override);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
-    }
+    assertThatThrownBy(() -> {
+      dao.insert(new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED, "FataMorganaId",
+          "My comment"));
+    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
   }
 
   @Test
@@ -169,22 +146,14 @@ public class LicenseOverrideDAOTest
     dao.insert(override);
 
     override.setLicenseIds(Collections.singleton("FataMorganaId"));
-    try {
+    assertThatThrownBy(() -> {
       dao.update(override);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
-    }
+    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
 
     override.setStatus(LicenseOverrideStatus.SELECTED);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(override);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
-    }
+    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
   }
 
   @Test
@@ -203,13 +172,10 @@ public class LicenseOverrideDAOTest
           break;
         case OVERRIDDEN:
         case SELECTED:
-          try {
+          assertThatThrownBy(() -> {
             dao.insert(override);
-            fail("Expected BadRequestException");
-          }
-          catch (BadRequestException expected) {
-            assertEquals("Expected at least one license ID for license override.", expected.getMessage());
-          }
+          }).isInstanceOf(BadRequestException.class)
+              .hasMessage("Expected at least one license ID for license override.");
           break;
         default:
           fail("Unknown license override status: " + status.getId());
@@ -234,13 +200,10 @@ public class LicenseOverrideDAOTest
           break;
         case OVERRIDDEN:
         case SELECTED:
-          try {
+          assertThatThrownBy(() -> {
             dao.update(override);
-            fail("Expected BadRequestException");
-          }
-          catch (BadRequestException expected) {
-            assertEquals("Expected at least one license ID for license override.", expected.getMessage());
-          }
+          }).isInstanceOf(BadRequestException.class)
+              .hasMessage("Expected at least one license ID for license override.");
           break;
         default:
           fail("Unknown license override status: " + status.getId());
@@ -259,13 +222,9 @@ public class LicenseOverrideDAOTest
         case ACKNOWLEDGED:
         case CONFIRMED:
         case OPEN:
-          try {
+          assertThatThrownBy(() -> {
             dao.insert(override);
-            fail("Expected BadRequestException");
-          }
-          catch (BadRequestException expected) {
-            assertEquals("Expected no license IDs for license override.", expected.getMessage());
-          }
+          }).isInstanceOf(BadRequestException.class).hasMessage("Expected no license IDs for license override.");
           break;
         case OVERRIDDEN:
         case SELECTED:
@@ -291,13 +250,9 @@ public class LicenseOverrideDAOTest
         case ACKNOWLEDGED:
         case CONFIRMED:
         case OPEN:
-          try {
+          assertThatThrownBy(() -> {
             dao.update(override);
-            fail("Expected BadRequestException");
-          }
-          catch (BadRequestException expected) {
-            assertEquals("Expected no license IDs for license override.", expected.getMessage());
-          }
+          }).isInstanceOf(BadRequestException.class).hasMessage("Expected no license IDs for license override.");
           break;
         case OVERRIDDEN:
         case SELECTED:
@@ -315,13 +270,10 @@ public class LicenseOverrideDAOTest
     LicenseOverride override = tempEntity.newLicenseOverride(applicationId, MAVEN_COORDINATES,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(override);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("LicenseOverride already exists for this ownerId and component"));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("LicenseOverride already exists for this ownerId and component");
   }
 
   @Test
@@ -335,13 +287,13 @@ public class LicenseOverrideDAOTest
 
     // Find by GAVEC
     LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavecIdentifier);
-    assertThat(foundLicenseOverride, is(notNullValue()));
-    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+    assertThat(foundLicenseOverride).isNotNull();
+    assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
 
     // Find by GAV
     foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
-    assertThat(foundLicenseOverride, is(notNullValue()));
-    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+    assertThat(foundLicenseOverride).isNotNull();
+    assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
   }
 
   @Test
@@ -355,12 +307,12 @@ public class LicenseOverrideDAOTest
 
     // Find by GAVEC
     LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavecIdentifier);
-    assertThat(foundLicenseOverride, is(notNullValue()));
-    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+    assertThat(foundLicenseOverride).isNotNull();
+    assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
 
     // Find by GAV
     foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
-    assertThat(foundLicenseOverride, is(nullValue()));
+    assertThat(foundLicenseOverride).isNull();
   }
 
   @Test
@@ -381,15 +333,13 @@ public class LicenseOverrideDAOTest
     try (TransactionContext tx = new LicenseOverrideLicenseInternalDAO().createTransactionContext()) {
       licenseOverrideList = dao.getByComponentIdentifier(tx, gavecIdentifier);
     }
-    assertThat(licenseOverrideList, hasSize(1));
-    assertThat(licenseOverrideList.get(0).getId(), is(gavecLicenseOverride.getId()));
+    assertThat(licenseOverrideList).extracting(LicenseOverride::getId).containsExactly(gavecLicenseOverride.getId());
 
     // Find by GAV (expect only GAV matching)
     try (TransactionContext tx = new LicenseOverrideLicenseInternalDAO().createTransactionContext()) {
       licenseOverrideList = dao.getByComponentIdentifier(tx, gavIdentifier);
     }
-    assertThat(licenseOverrideList, hasSize(1));
-    assertThat(licenseOverrideList.get(0).getId(), is(gavLicenseOverride.getId()));
+    assertThat(licenseOverrideList).extracting(LicenseOverride::getId).containsExactly(gavLicenseOverride.getId());
   }
 
   @Test
@@ -401,8 +351,8 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, nugetIdentifier);
-    assertThat(foundLicenseOverride, is(notNullValue()));
-    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+    assertThat(foundLicenseOverride).isNotNull();
+    assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
   }
 
   @Test
@@ -416,9 +366,9 @@ public class LicenseOverrideDAOTest
     LicenseOverride licenseOverride = new LicenseOverride(applicationId, componentIdentifier, status, licenseIds,
         comment);
     dao.insert(licenseOverride);
-    assertNotNull(licenseOverride.getId());
+    assertThat(licenseOverride.getId()).isNotNull();
     licenseOverride = dao.getById(licenseOverride.getId());
-    assertNotNull(licenseOverride);
+    assertThat(licenseOverride).isNotNull();
     assertLicenseOverride(applicationId, componentIdentifier, status, licenseIds, comment, licenseOverride);
   }
 
@@ -430,13 +380,13 @@ public class LicenseOverrideDAOTest
     // No Override Set
     LicenseOverride override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
         componentIdentifier);
-    assertNull(override);
+    assertThat(override).isNull();
 
     // Set @ Root
     tempEntity.newLicenseOverride(organization.getParentOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD");
     override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
-    assertNotNull(override);
+    assertThat(override).isNotNull();
     assertLicenseOverride(organization.getParentOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD", "testing", override);
 
@@ -445,7 +395,7 @@ public class LicenseOverrideDAOTest
         "BSD-2-Clause");
     override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
         componentIdentifier);
-    assertNotNull(override);
+    assertThat(override).isNotNull();
     assertLicenseOverride(organization.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-2-Clause",
         "testing", override);
 
@@ -455,7 +405,7 @@ public class LicenseOverrideDAOTest
 
     override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
         componentIdentifier);
-    assertNotNull(override);
+    assertThat(override).isNotNull();
     assertLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-3-Clause",
         "testing", override);
 
@@ -465,7 +415,7 @@ public class LicenseOverrideDAOTest
 
     override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(repository.getId(),
         componentIdentifier);
-    assertNotNull(override);
+    assertThat(override).isNotNull();
     assertLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-4-Clause",
         "testing", override);
   }

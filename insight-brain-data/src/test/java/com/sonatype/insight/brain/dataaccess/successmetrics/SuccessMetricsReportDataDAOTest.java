@@ -11,9 +11,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SuccessMetricsReportDataDAOTest
     extends AbstractDbDAOTest
@@ -25,7 +23,7 @@ public class SuccessMetricsReportDataDAOTest
     SuccessMetricsReport report = tempEntity.newSuccessMetricsReport("username", "metrics", "{}");
     SuccessMetricsReportData reportData = tempEntity.newSuccessMetricsReportData(report.getId());
 
-    assertThat(reportData.getId(), is(report.getId()));
+    assertThat(reportData.getId()).isEqualTo(report.getId());
 
     reportData = dao.getById(reportData.getId());
 
@@ -35,9 +33,9 @@ public class SuccessMetricsReportDataDAOTest
     dao.update(reportData);
 
     reportData = dao.getById(reportData.getId());
-    assertThat(reportData.getMonthCount(), is(originalMonthCount + 1));
+    assertThat(reportData.getMonthCount()).isEqualTo(originalMonthCount + 1);
 
     dao.delete(reportData);
-    assertThat(dao.getById(reportData.getId()), is(nullValue()));
+    assertThat(dao.getById(reportData.getId())).isNull();
   }
 }

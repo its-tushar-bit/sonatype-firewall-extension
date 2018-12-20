@@ -10,7 +10,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentPopularityTest
 {
@@ -20,7 +20,7 @@ public class ComponentPopularityTest
 
     ComponentPopularity componentPopularity = new ObjectMapper().readValue(json, ComponentPopularity.class);
 
-    assertEquals(ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"),
-        componentPopularity.getComponentIdentifier());
+    assertThat(componentPopularity.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"));
   }
 }

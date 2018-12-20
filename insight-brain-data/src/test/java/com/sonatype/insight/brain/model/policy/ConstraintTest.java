@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasErrors;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstraintTest
 {
@@ -61,10 +60,10 @@ public class ConstraintTest
     constraint.addCondition(condition1);
     constraint.addCondition(condition2);
 
-    assertThat(condition1, is(constraint.getConditions().get(0)));
-    assertThat(condition1.getConditionIndex(), is(0));
-    assertThat(condition2, is(constraint.getConditions().get(1)));
-    assertThat(condition2.getConditionIndex(), is(1));
+    assertThat(condition1).isEqualTo(constraint.getConditions().get(0));
+    assertThat(condition1.getConditionIndex()).isEqualTo(0);
+    assertThat(condition2).isEqualTo(constraint.getConditions().get(1));
+    assertThat(condition2.getConditionIndex()).isEqualTo(1);
   }
 
   @Test
@@ -75,9 +74,9 @@ public class ConstraintTest
 
     constraint.setConditions(Arrays.asList(condition1, condition2));
 
-    assertThat(condition1, is(constraint.getConditions().get(0)));
-    assertThat(condition1.getConditionIndex(), is(0));
-    assertThat(condition2, is(constraint.getConditions().get(1)));
-    assertThat(condition2.getConditionIndex(), is(1));
+    assertThat(condition1).isEqualTo(constraint.getConditions().get(0));
+    assertThat(condition1.getConditionIndex()).isEqualTo(0);
+    assertThat(condition2).isEqualTo(constraint.getConditions().get(1));
+    assertThat(condition2.getConditionIndex()).isEqualTo(1);
   }
 }

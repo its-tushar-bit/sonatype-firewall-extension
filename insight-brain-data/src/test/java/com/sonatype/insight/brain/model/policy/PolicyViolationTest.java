@@ -19,13 +19,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyViolationTest
 {
@@ -44,9 +39,9 @@ public class PolicyViolationTest
   public void testConstructor_InitializeFromEvaluation() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.getApplicationId(), is(evaluation.getApplicationId()));
-    assertThat(policyViolation.getStageTypeId(), is(evaluation.getStageTypeId()));
-    assertThat(policyViolation.getOpenTime(), is(evaluation.getTime()));
+    assertThat(policyViolation.getApplicationId()).isEqualTo(evaluation.getApplicationId());
+    assertThat(policyViolation.getStageTypeId()).isEqualTo(evaluation.getStageTypeId());
+    assertThat(policyViolation.getOpenTime()).isEqualTo(evaluation.getTime());
   }
 
   @Test
@@ -57,11 +52,8 @@ public class PolicyViolationTest
     // Test construction of PolicyViolation with constraint facts.
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, null);
-    assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
-    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\n")));
-    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\r")));
-    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\\n")));
-    assertThat(policyViolation.getConstraintFactsJson(), not(containsString("\\r")));
+    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r",
+        "\\n", "\\r");
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
 
@@ -74,7 +66,7 @@ public class PolicyViolationTest
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, filename);
 
-    assertThat(policyViolation.getFilename(), is(filename));
+    assertThat(policyViolation.getFilename()).isEqualTo(filename);
   }
 
   @Test
@@ -84,7 +76,7 @@ public class PolicyViolationTest
 
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFactsJson, null);
-    assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
+    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
 
@@ -97,7 +89,7 @@ public class PolicyViolationTest
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFactsJson, filename);
 
-    assertThat(policyViolation.getFilename(), is(filename));
+    assertThat(policyViolation.getFilename()).isEqualTo(filename);
   }
 
   @Test
@@ -107,7 +99,7 @@ public class PolicyViolationTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyViolation.setConstraintFactsJson(constraintFactsJson);
-    assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
+    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
 
@@ -115,78 +107,54 @@ public class PolicyViolationTest
   public void testSetConstraintFactsJson_Null() throws Exception {
     PolicyViolation policyViolation = new PolicyViolation();
 
-    try {
+    assertThatThrownBy(() -> {
       policyViolation.setConstraintFactsJson(null);
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
   public void testSetConstraintFactsJson_Empty() throws Exception {
     PolicyViolation policyViolation = new PolicyViolation();
 
-    try {
+    assertThatThrownBy(() -> {
       policyViolation.setConstraintFactsJson(" ");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
   public void testConstructorConstraintFactsJson_Null() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       String constraintFactsJson = null;
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
           "hash", MAVEN_IDENTIFIER, constraintFactsJson, "filename");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
   public void testConstructorConstraintFactsJson_Empty() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       String constraintFactsJson = " ";
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
           "hash", MAVEN_IDENTIFIER, constraintFactsJson, "filename");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
   public void testConstructorConstraintFacts_Null() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = null;
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
           "hash", MAVEN_IDENTIFIER, constraintFacts, "filename");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("ConstraintFacts cannot be null or empty."));
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null or empty.");
   }
 
   @Test
   public void testConstructorConstraintFacts_Empty() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = new ArrayList<>();
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
           "hash", MAVEN_IDENTIFIER, constraintFacts, "filename");
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage(), is("ConstraintFacts cannot be null or empty."));
-    }
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null or empty.");
   }
 
   private List<ConstraintFact> createConstraintFacts(int count) {
@@ -203,22 +171,22 @@ public class PolicyViolationTest
   }
 
   private void assertConstraintFacts(List<ConstraintFact> actual, List<ConstraintFact> expected) {
-    assertThat(actual, hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
     for (int constraintFactIndex = 0; constraintFactIndex < expected.size(); constraintFactIndex++) {
       ConstraintFact expectedConstraintFact = expected.get(constraintFactIndex);
       ConstraintFact actualConstraintFact = actual.get(constraintFactIndex);
-      assertThat(actualConstraintFact.getConstraintId(), is(expectedConstraintFact.getConstraintId()));
-      assertThat(actualConstraintFact.getConstraintName(), is(expectedConstraintFact.getConstraintName()));
-      assertThat(actualConstraintFact.getOperatorName(), is(expectedConstraintFact.getOperatorName()));
+      assertThat(actualConstraintFact.getConstraintId()).isEqualTo(expectedConstraintFact.getConstraintId());
+      assertThat(actualConstraintFact.getConstraintName()).isEqualTo(expectedConstraintFact.getConstraintName());
+      assertThat(actualConstraintFact.getOperatorName()).isEqualTo(expectedConstraintFact.getOperatorName());
       for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
           .size(); conditionFactIndex++) {
         ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
         ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
-        assertThat(actualConditionFact.getConditionTypeId(), is(expectedConditionFact.getConditionTypeId()));
-        assertThat(actualConditionFact.getConditionIndex(), is(expectedConditionFact.getConditionIndex()));
-        assertThat(actualConditionFact.getSummary(), is(expectedConditionFact.getSummary()));
-        assertThat(actualConditionFact.getReason(), is(expectedConditionFact.getReason()));
-        assertThat(actualConditionFact.getTriggerJson(), is(expectedConditionFact.getTriggerJson()));
+        assertThat(actualConditionFact.getConditionTypeId()).isEqualTo(expectedConditionFact.getConditionTypeId());
+        assertThat(actualConditionFact.getConditionIndex()).isEqualTo(expectedConditionFact.getConditionIndex());
+        assertThat(actualConditionFact.getSummary()).isEqualTo(expectedConditionFact.getSummary());
+        assertThat(actualConditionFact.getReason()).isEqualTo(expectedConditionFact.getReason());
+        assertThat(actualConditionFact.getTriggerJson()).isEqualTo(expectedConditionFact.getTriggerJson());
       }
     }
   }
@@ -227,67 +195,59 @@ public class PolicyViolationTest
   public void testSetWaiveTime() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.getWaiveTime(), is(nullValue()));
+    assertThat(policyViolation.getWaiveTime()).isNull();
 
     Date now = new Date();
     policyViolation.setWaiveTime(now);
-    assertThat(policyViolation.getWaiveTime(), is(now));
+    assertThat(policyViolation.getWaiveTime()).isEqualTo(now);
 
-    try {
+    assertThatThrownBy(() -> {
       policyViolation.setWaiveTime(null);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is("Cannot un-waive a policy violation."));
-    }
+    }).isInstanceOf(IllegalStateException.class).hasMessage("Cannot un-waive a policy violation.");
   }
 
   @Test
   public void testSetFixTime() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.getFixTime(), is(nullValue()));
+    assertThat(policyViolation.getFixTime()).isNull();
 
     Date now = new Date();
     policyViolation.setFixTime(now);
-    assertThat(policyViolation.getFixTime(), is(now));
+    assertThat(policyViolation.getFixTime()).isEqualTo(now);
 
-    try {
+    assertThatThrownBy(() -> {
       policyViolation.setFixTime(null);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is("Cannot un-fix a policy violation."));
-    }
+    }).isInstanceOf(IllegalStateException.class).hasMessage("Cannot un-fix a policy violation.");
   }
 
   @Test
   public void testIsActive_Fixed() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.isActive(), is(true));
+    assertThat(policyViolation.isActive()).isTrue();
 
     policyViolation.setFixTime(new Date());
-    assertThat(policyViolation.isActive(), is(false));
+    assertThat(policyViolation.isActive()).isFalse();
   }
 
   @Test
   public void testIsActive_Waived() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.isActive(), is(true));
+    assertThat(policyViolation.isActive()).isTrue();
 
     policyViolation.setWaiveTime(new Date());
-    assertThat(policyViolation.isActive(), is(false));
+    assertThat(policyViolation.isActive()).isFalse();
   }
 
   @Test
   public void testIsActive_Grandfathered() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.isActive(), is(true));
+    assertThat(policyViolation.isActive()).isTrue();
 
     policyViolation.setGrandfatherTime(new Date());
-    assertThat(policyViolation.isActive(), is(false));
+    assertThat(policyViolation.isActive()).isFalse();
   }
 }

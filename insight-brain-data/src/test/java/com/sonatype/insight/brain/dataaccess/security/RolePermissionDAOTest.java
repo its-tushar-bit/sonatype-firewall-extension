@@ -16,14 +16,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RolePermissionDAOTest
     extends AbstractDbDAOTest
@@ -35,66 +29,61 @@ public class RolePermissionDAOTest
   @Test
   public void testSystemAdminRoleHasConfigureSystemPermissions() throws Exception {
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
-    assertThat(role, is(notNullValue()));
+    assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, containsInAnyOrder(Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES));
+    assertThat(perms).containsExactlyInAnyOrder(Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
   }
 
   @Test
   public void testPolicyAdminRoleHasIqPermissions() throws Exception {
     Role role = roleDAO.getById(Role.POLICY_ADMIN_ROLE_ID);
-    assertThat(role, is(notNullValue()));
+    assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(
-        perms,
-        containsInAnyOrder(Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.MANAGE_PROPRIETARY,
-            Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT,
-            Permission.CLAIM_COMPONENT, Permission.ADD_APPLICATION, Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION));
+    assertThat(perms).containsExactlyInAnyOrder(Permission.EDIT_ROLES, Permission.VIEW_ROLES,
+        Permission.MANAGE_PROPRIETARY, Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
+        Permission.EVALUATE_COMPONENT, Permission.CLAIM_COMPONENT, Permission.ADD_APPLICATION,
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
   }
 
   @Test
   public void testOwnerRoleHasExpectedPermissions() throws Exception {
     Role role = roleDAO.getByName("Owner");
-    assertThat(role, is(notNullValue()));
+    assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, is(notNullValue()));
-    assertThat(
-        perms,
-        containsInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
-            Permission.EVALUATE_COMPONENT, Permission.VIEW_ROLES, Permission.ADD_APPLICATION,
-            Permission.MANAGE_PROPRIETARY));
+    assertThat(perms).containsExactlyInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
+        Permission.EVALUATE_COMPONENT, Permission.VIEW_ROLES, Permission.ADD_APPLICATION,
+        Permission.MANAGE_PROPRIETARY);
   }
 
   @Test
   public void testDeveloperRoleHasExpectedPermissions() throws Exception {
     Role role = roleDAO.getByName("Developer");
-    assertThat(role, is(notNullValue()));
+    assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, is(notNullValue()));
-    assertThat(perms, containsInAnyOrder(Permission.READ, Permission.EVALUATE_COMPONENT));
+    assertThat(perms).containsExactlyInAnyOrder(Permission.READ, Permission.EVALUATE_COMPONENT);
   }
 
   @Test
   public void testGetRoleIdsByPermission() throws Exception {
     String roleId = tempEntity.newRole("testing", false /* global */).getId();
     for (Permission perm : Permission.values()) {
-      assertThat(permDAO.getRoleIdsByPermission(perm), not(hasItem(roleId)));
+      assertThat(permDAO.getRoleIdsByPermission(perm)).doesNotContain(roleId);
     }
 
     RolePermission rolePerm = new RolePermission(roleId, Permission.values()[0]);
     permDAO.insert(rolePerm);
     for (Permission perm : Permission.values()) {
       if (Permission.values()[0].equals(perm)) {
-        assertThat(permDAO.getRoleIdsByPermission(perm), hasItem(roleId));
+        assertThat(permDAO.getRoleIdsByPermission(perm)).contains(roleId);
       }
       else {
-        assertThat(permDAO.getRoleIdsByPermission(perm), not(hasItem(roleId)));
+        assertThat(permDAO.getRoleIdsByPermission(perm)).doesNotContain(roleId);
       }
     }
 
     permDAO.delete(rolePerm);
     for (Permission perm : Permission.values()) {
-      assertThat(permDAO.getRoleIdsByPermission(perm), not(hasItem(roleId)));
+      assertThat(permDAO.getRoleIdsByPermission(perm)).doesNotContain(roleId);
     }
   }
 
@@ -102,41 +91,30 @@ public class RolePermissionDAOTest
   public void testUpdateNotSupported() {
     RolePermission rolePerm = permDAO.getByRoleId(tempEntity.newRole(false, Permission.WRITE).getId()).get(0);
     rolePerm.setPermission(Permission.READ);
-    try {
+    assertThatThrownBy(() -> {
       permDAO.update(rolePerm);
-      fail("Expected exception");
-    }
-    catch (UnsupportedOperationException e) {
-      // expected
-    }
+    }).isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test
   public void testSetPermissionsForRole_BuiltInRolesAreReadOnly() {
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
-    try {
+    assertThatThrownBy(() -> {
       permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot change permissions for built-in role '" + role.getName() + "'"));
-      assertThat(permDAO.getPermissionsForRole(role.getId()), hasSize(2));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot change permissions for built-in role '" + role.getName() + "'");
+    assertThat(permDAO.getPermissionsForRole(role.getId())).hasSize(2);
   }
 
   @Test
   public void testSetPermissionsForRole_CustomRolesCannotGetCertainPermissions() {
     Role role = tempEntity.newRole("Tester", false);
-    try {
-      assertThat(Permission.CONFIGURE_SYSTEM.isAllowedInCustomRoles(), is(false));
+    assertThat(Permission.CONFIGURE_SYSTEM.isAllowedInCustomRoles()).isFalse();
+    assertThatThrownBy(() -> {
       permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '"
-          + role.getName() + "'"));
-      assertThat(permDAO.getPermissionsForRole(role.getId()), hasSize(0));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage(
+        "Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '" + role.getName() + "'");
+    assertThat(permDAO.getPermissionsForRole(role.getId())).isEmpty();
   }
 
   @Test
@@ -144,14 +122,14 @@ public class RolePermissionDAOTest
     Role role = tempEntity.newRole("Tester", false);
     Set<Permission> permissions = EnumSet.of(Permission.WRITE, Permission.READ);
     permDAO.setPermissionsForRole(role.getId(), permissions);
-    assertThat(permDAO.getPermissionsForRole(role.getId()), is(permissions));
+    assertThat(permDAO.getPermissionsForRole(role.getId())).isEqualTo(permissions);
 
     permissions = EnumSet.of(Permission.WRITE, Permission.EVALUATE_APPLICATION);
     permDAO.setPermissionsForRole(role.getId(), permissions);
-    assertThat(permDAO.getPermissionsForRole(role.getId()), is(permissions));
+    assertThat(permDAO.getPermissionsForRole(role.getId())).isEqualTo(permissions);
 
     permissions.clear();
     permDAO.setPermissionsForRole(role.getId(), permissions);
-    assertThat(permDAO.getPermissionsForRole(role.getId()), hasSize(0));
+    assertThat(permDAO.getPermissionsForRole(role.getId())).isEmpty();
   }
 }

@@ -31,14 +31,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RepositoryDAOTest
     extends AbstractDbDAOTest
@@ -51,71 +45,55 @@ public class RepositoryDAOTest
     Repository repository = tempEntity.newRepository("My Repo Public Id");
     String id = repository.getId();
     repository = dao.getById(id);
-    assertThat(repository.getName(), is(repository.getPublicId()));
-    assertThat(repository.getPublicId(), is("My Repo Public Id"));
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.getParentOwnerId(), is(RepositoryContainer.REPOSITORY_CONTAINER_ID));
-    assertThat(repository.canHaveChildren(), is(false));
-    assertThat(repository.getType(), is(OwnerType.REPOSITORY));
+    assertThat(repository.getName()).isEqualTo(repository.getPublicId());
+    assertThat(repository.getPublicId()).isEqualTo("My Repo Public Id");
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.getParentOwnerId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repository.canHaveChildren()).isFalse();
+    assertThat(repository.getType()).isEqualTo(OwnerType.REPOSITORY);
 
     // Update
     repository.setEnabled(false);
     dao.update(repository);
     repository = dao.getById(id);
-    assertThat(repository.isEnabled(), is(false));
+    assertThat(repository.isEnabled()).isFalse();
 
     // Delete
     dao.delete(repository);
     repository = dao.getById(id);
-    assertThat(repository, is(nullValue()));
+    assertThat(repository).isNull();
   }
 
   @Test
   public void testValidateNullPublicId_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newRepository(null /* publicId */);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
-    }
+    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateNullPublicId_Update() {
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(null);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(repository);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
-    }
+    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateEmptyPublicId_Insert() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newRepository(" " /* publicId */);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
-    }
+    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateEmptyPublicId_Update() {
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(" ");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(repository);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
-    }
+    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
@@ -123,14 +101,10 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     tempEntity.newRepository(repoManager, "SomePublicID");
 
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newRepository(repoManager, "SomePublicID");
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertEquals("There is already a repository with public ID 'SomePublicID' for the same repository manager.",
-          expected.getMessage());
-    }
+    }).isInstanceOf(InvalidRepositoryException.class)
+        .hasMessage("There is already a repository with public ID 'SomePublicID' for the same repository manager.");
   }
 
   @Test
@@ -139,15 +113,11 @@ public class RepositoryDAOTest
     tempEntity.newRepository(repoManager, "SomePublicID1");
     Repository repository = tempEntity.newRepository(repoManager, "SomePublicID2");
 
-    try {
-      repository.setPublicId("SomePublicID1");
+    repository.setPublicId("SomePublicID1");
+    assertThatThrownBy(() -> {
       dao.update(repository);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertEquals("There is already a repository with public ID 'SomePublicID1' for the same repository manager.",
-          expected.getMessage());
-    }
+    }).isInstanceOf(InvalidRepositoryException.class)
+        .hasMessage("There is already a repository with public ID 'SomePublicID1' for the same repository manager.");
   }
 
   @Test
@@ -157,7 +127,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new RepositoryComponentDAO().getById(repositoryComponent.getId()), is(nullValue()));
+    assertThat(new RepositoryComponentDAO().getById(repositoryComponent.getId())).isNull();
   }
 
   @Test
@@ -167,7 +137,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new RepositoryPolicyViolationDAO().getById(policyViolation.getId()), is(nullValue()));
+    assertThat(new RepositoryPolicyViolationDAO().getById(policyViolation.getId())).isNull();
   }
 
   @Test
@@ -178,7 +148,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new LicenseOverrideDAO().getById(licenseOverride.getId()), is(nullValue()));
+    assertThat(new LicenseOverrideDAO().getById(licenseOverride.getId())).isNull();
   }
 
   @Test
@@ -188,7 +158,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId()), is(nullValue()));
+    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId())).isNull();
   }
 
   @Test
@@ -201,20 +171,17 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(policyWaiverDAO.getByOwnerId(repository.getId()), hasSize(0));
+    assertThat(policyWaiverDAO.getByOwnerId(repository.getId())).isEmpty();
   }
 
   @Test
   public void testGetByRepositoryManagerInstanceIdAndPublicIdNotNull() throws Exception {
     final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
     final String publicId = "publicId";
-    try {
+    assertThatThrownBy(() -> {
       dao.getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, publicId);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId)));
-    }
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId));
   }
 
   @Test
@@ -224,8 +191,8 @@ public class RepositoryDAOTest
         .newRepository(repoManager, "SomePublicID", false /* enabled */, true /* quarantineEnabled */);
 
     repository = dao.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(false));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
   @Test
@@ -241,13 +208,13 @@ public class RepositoryDAOTest
     dao.update(repository);
 
     repository = dao.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(false));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
 
     List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(0));
+    assertThat(repositoryComponents).isEmpty();
     policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
-    assertThat(policyViolation.isActive(), is(false));
+    assertThat(policyViolation.isActive()).isFalse();
   }
 
   @Test
@@ -264,11 +231,10 @@ public class RepositoryDAOTest
     Date after = new Date();
 
     repository = dao.getById(repository.getId());
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isQuarantineEnabled()).isFalse();
 
     repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
-    assertThat(repositoryComponent.isQuarantined(), is(false));
-    assertThat(repositoryComponent.getUnquarantineTime(), is(greaterThanOrEqualTo(before)));
-    assertThat(repositoryComponent.getUnquarantineTime(), is(lessThanOrEqualTo(after)));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
+    assertThat(repositoryComponent.getUnquarantineTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
   }
 }

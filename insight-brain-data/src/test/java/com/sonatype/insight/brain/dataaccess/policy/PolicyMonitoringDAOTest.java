@@ -12,13 +12,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyMonitoringDAOTest
     extends AbstractDbDAOTest
@@ -32,13 +27,13 @@ public class PolicyMonitoringDAOTest
 
     // Create
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, stageTypeId);
-    assertNull(policyMonitoring.getId());
+    assertThat(policyMonitoring.getId()).isNull();
     dao.insert(policyMonitoring);
-    assertNotNull(policyMonitoring.getId());
+    assertThat(policyMonitoring.getId()).isNotNull();
 
     // Read
     policyMonitoring = dao.getById(policyMonitoring.getId());
-    assertNotNull(policyMonitoring);
+    assertThat(policyMonitoring).isNotNull();
     assertPolicyMonitoring(ownerId, stageTypeId, policyMonitoring);
 
     // Update
@@ -47,19 +42,19 @@ public class PolicyMonitoringDAOTest
 
     // Read
     policyMonitoring = dao.getById(policyMonitoring.getId());
-    assertNotNull(policyMonitoring);
+    assertThat(policyMonitoring).isNotNull();
     assertPolicyMonitoring(ownerId, Stage.ID_STAGE_RELEASE, policyMonitoring);
 
     // Delete
     dao.delete(policyMonitoring);
 
     policyMonitoring = dao.getById(policyMonitoring.getId());
-    assertNull(policyMonitoring);
+    assertThat(policyMonitoring).isNull();
   }
 
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {
-    assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(stageTypeId, actual.getStageTypeId());
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
   }
 
   @Test
@@ -71,13 +66,10 @@ public class PolicyMonitoringDAOTest
     dao.insert(policyMonitoring1);
 
     PolicyMonitoring policyMonitoring2 = new PolicyMonitoring(ownerId, Stage.ID_STAGE_RELEASE);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(policyMonitoring2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("This application/organization already has policy monitoring.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("This application/organization already has policy monitoring.");
   }
 
   @Test
@@ -87,11 +79,11 @@ public class PolicyMonitoringDAOTest
     String ownerId = applicationId;
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.set(policyMonitoring);
-    assertThat(policyMonitoring.getId(), is(notNullValue()));
+    assertThat(policyMonitoring.getId()).isNotNull();
 
     PolicyMonitoring policyMonitoringRetrieved = dao.getByOwnerId(ownerId);
-    assertThat(policyMonitoringRetrieved.getId(), is(policyMonitoring.getId()));
-    assertThat(policyMonitoringRetrieved.getStageTypeId(), is(Stage.ID_RELEASE));
+    assertThat(policyMonitoringRetrieved.getId()).isEqualTo(policyMonitoring.getId());
+    assertThat(policyMonitoringRetrieved.getStageTypeId()).isEqualTo(Stage.ID_RELEASE);
   }
 
   @Test
@@ -101,14 +93,14 @@ public class PolicyMonitoringDAOTest
     String ownerId = applicationId;
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.insert(policyMonitoring);
-    assertThat(policyMonitoring.getId(), is(notNullValue()));
+    assertThat(policyMonitoring.getId()).isNotNull();
 
     policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_BUILD);
     dao.set(policyMonitoring);
-    assertThat(policyMonitoring.getId(), is(notNullValue()));
+    assertThat(policyMonitoring.getId()).isNotNull();
 
     PolicyMonitoring policyMonitoringRetrieved = dao.getByOwnerId(ownerId);
-    assertThat(policyMonitoringRetrieved.getId(), is(policyMonitoring.getId()));
-    assertThat(policyMonitoringRetrieved.getStageTypeId(), is(Stage.ID_BUILD));
+    assertThat(policyMonitoringRetrieved.getId()).isEqualTo(policyMonitoring.getId());
+    assertThat(policyMonitoringRetrieved.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
   }
 }

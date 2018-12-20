@@ -13,9 +13,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractConditionTypeTest
 {
@@ -58,6 +56,6 @@ public class AbstractConditionTypeTest
         return null;
       }
     };
-    assertThat(abstractConditionType.convertIfNeeded("value"), is(equalTo("value")));
+    assertThat(abstractConditionType.convertIfNeeded("value")).isEqualTo("value");
   }
 }

@@ -7,17 +7,17 @@ package com.sonatype.insight.brain.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ColorTest
 {
   @Test
   public void testToValueReplacesUnderscoresWithHyphens() {
-    assertEquals("light-red", Color.light_red.toValue());
+    assertThat(Color.light_red.toValue()).isEqualTo("light-red");
   }
 
   @Test
   public void testToValueDoesNotChangeNamesWithoutUnderscores() {
-    assertEquals("orange", Color.orange.toValue());
+    assertThat(Color.orange.toValue()).isEqualTo("orange");
   }
 }

@@ -5,28 +5,16 @@
  */
 package com.sonatype.insight.brain.model;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HashHelperTest
 {
-  private final String longHash = "123456789012345678901";
-
-  /**
-   * 20 characters as currently specified in HashHelper
-   */
-  private final String expectedTruncatedHash = "12345678901234567890";
-
-  @Before
-  public void preconditions() {
-    assertTrue(longHash.length() > HashHelper.MAX_LENGTH);
-  }
-
   @Test
   public void testTruncateHash() {
-    assertEquals(expectedTruncatedHash, HashHelper.truncateHash(longHash));
+    String longHash = "123456789012345678901";
+    assertThat(longHash.length()).isGreaterThan(HashHelper.MAX_LENGTH);
+    assertThat(HashHelper.truncateHash(longHash)).isEqualTo(longHash.substring(0, 20));
   }
 }

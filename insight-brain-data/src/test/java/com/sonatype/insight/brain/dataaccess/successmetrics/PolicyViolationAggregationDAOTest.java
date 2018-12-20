@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -51,13 +50,8 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 
 public class PolicyViolationAggregationDAOTest
     extends AbstractDbDAOTest
@@ -109,27 +103,27 @@ public class PolicyViolationAggregationDAOTest
         mttrCriticalThreatStats, discoveredCounts, fixedCounts, waivedCounts, openCounts, evaluationCount);
 
     // create
-    assertThat(aggregation.getId(), is(nullValue()));
+    assertThat(aggregation.getId()).isNull();
     dao.insert(aggregation);
-    assertThat(aggregation.getId(), is(notNullValue()));
+    assertThat(aggregation.getId()).isNotNull();
 
     // read
     aggregation = dao.getById(aggregation.getId());
-    assertThat(aggregation, is(notNullValue()));
-    assertThat(aggregation.getApplicationId(), is(applicationId));
-    assertThat(aggregation.getTimePeriodStart(), is(timePeriodStart));
-    assertThat(aggregation.getTimePeriodEnd(), is(timePeriodEnd));
-    assertThat(aggregation.getTimePeriod(), is(MONTH));
-    assertThat(aggregation.getMttrLowThreat(), is(2L));
-    assertThat(aggregation.getMttrModerateThreat(), is(8L));
-    assertThat(aggregation.getMttrSevereThreat(), is(44L));
-    assertThat(aggregation.getMttrCriticalThreat(), is(nullValue()));
-    assertThat(aggregation.getResolvedCountLowThreat(), is(3));
-    assertThat(aggregation.getResolvedCountModerateThreat(), is(1));
-    assertThat(aggregation.getResolvedCountSevereThreat(), is(3));
-    assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
-    assertThat(aggregation.getOpenCount(QUALITY, CRITICAL), is(2));
-    assertThat(aggregation.getEvaluationCount(), is(evaluationCount));
+    assertThat(aggregation).isNotNull();
+    assertThat(aggregation.getApplicationId()).isEqualTo(applicationId);
+    assertThat(aggregation.getTimePeriodStart()).isEqualTo(timePeriodStart);
+    assertThat(aggregation.getTimePeriodEnd()).isEqualTo(timePeriodEnd);
+    assertThat(aggregation.getTimePeriod()).isEqualTo(MONTH);
+    assertThat(aggregation.getMttrLowThreat()).isEqualTo(2);
+    assertThat(aggregation.getMttrModerateThreat()).isEqualTo(8);
+    assertThat(aggregation.getMttrSevereThreat()).isEqualTo(44);
+    assertThat(aggregation.getMttrCriticalThreat()).isNull();
+    assertThat(aggregation.getResolvedCountLowThreat()).isEqualTo(3);
+    assertThat(aggregation.getResolvedCountModerateThreat()).isEqualTo(1);
+    assertThat(aggregation.getResolvedCountSevereThreat()).isEqualTo(3);
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(0);
+    assertThat(aggregation.getOpenCount(QUALITY, CRITICAL)).isEqualTo(2);
+    assertThat(aggregation.getEvaluationCount()).isEqualTo(evaluationCount);
 
     // update
     aggregation.setTimePeriodStart(new Date(aggregation.getTimePeriodStart().getTime() + 5000L));
@@ -138,15 +132,15 @@ public class PolicyViolationAggregationDAOTest
 
     aggregation = dao.getById(aggregation.getId());
 
-    assertThat(aggregation, is(notNullValue()));
-    assertThat(aggregation.getApplicationId(), is("test-app-id-2"));
-    assertThat(aggregation.getTimePeriodStart().getTime(), is(timePeriodStart.getTime() + 5000L));
+    assertThat(aggregation).isNotNull();
+    assertThat(aggregation.getApplicationId()).isEqualTo("test-app-id-2");
+    assertThat(aggregation.getTimePeriodStart().getTime()).isEqualTo(timePeriodStart.getTime() + 5000);
 
     // delete
     String id = aggregation.getId();
     dao.delete(aggregation);
 
-    assertThat(dao.getById(id), is(nullValue()));
+    assertThat(dao.getById(id)).isNull();
   }
 
   @Test
@@ -161,7 +155,7 @@ public class PolicyViolationAggregationDAOTest
     PolicyViolationAggregation retrievedAggregation = dao
         .getMostRecentByApplicationIdAndTimePeriod(applicationId, MONTH);
 
-    assertThat(retrievedAggregation.getId(), is(aggregation1Id));
+    assertThat(retrievedAggregation.getId()).isEqualTo(aggregation1Id);
   }
 
   @Test
@@ -171,7 +165,7 @@ public class PolicyViolationAggregationDAOTest
     PolicyViolationAggregation retrievedAggregation = dao
         .getMostRecentByApplicationIdAndTimePeriod(applicationId, MONTH);
 
-    assertThat(retrievedAggregation, is(nullValue()));
+    assertThat(retrievedAggregation).isNull();
   }
 
   @Test
@@ -187,15 +181,15 @@ public class PolicyViolationAggregationDAOTest
     PolicyViolationAggregation retrievedAggregation = dao
         .getMostRecentByApplicationIdAndTimePeriod(applicationId, MONTH);
 
-    assertThat(retrievedAggregation.getId(), is(aggregationMonthId));
-    assertThat(retrievedAggregation.getTimePeriod(), is(MONTH));
-    assertThat(retrievedAggregation.getTimePeriodStart(), is(monthStartDate));
+    assertThat(retrievedAggregation.getId()).isEqualTo(aggregationMonthId);
+    assertThat(retrievedAggregation.getTimePeriod()).isEqualTo(MONTH);
+    assertThat(retrievedAggregation.getTimePeriodStart()).isEqualTo(monthStartDate);
     
     retrievedAggregation = dao.getMostRecentByApplicationIdAndTimePeriod(applicationId, WEEK);
 
-    assertThat(retrievedAggregation.getId(), is(aggregationWeekId));
-    assertThat(retrievedAggregation.getTimePeriod(), is(WEEK));
-    assertThat(retrievedAggregation.getTimePeriodStart(), is(weekStartDate));
+    assertThat(retrievedAggregation.getId()).isEqualTo(aggregationWeekId);
+    assertThat(retrievedAggregation.getTimePeriod()).isEqualTo(WEEK);
+    assertThat(retrievedAggregation.getTimePeriodStart()).isEqualTo(weekStartDate);
   }
 
   @Test
@@ -223,7 +217,7 @@ public class PolicyViolationAggregationDAOTest
     };
 
     // check that only the most recent 12 months are included
-    assertThat(results.size(), is(12));
+    assertThat(results).hasSize(12);
     for (int i = 0; i < 12; i++) {
       assertMttrMonth(results.get(i), expectedResults[i]);
     }
@@ -254,7 +248,7 @@ public class PolicyViolationAggregationDAOTest
     };
 
     // check that only the most recent 12 months are included, including current month
-    assertThat(results.size(), is(12));
+    assertThat(results).hasSize(12);
     for (int i = 0; i < 12; i++) {
       assertMttrMonth(results.get(i), expectedResults[i]);
     }
@@ -268,14 +262,14 @@ public class PolicyViolationAggregationDAOTest
 
     List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds, false);
 
-    assertThat(results, hasSize(0));
+    assertThat(results).isEmpty();
   }
 
   @Test
   public void testGetMttrMonthlyAverages_EmptyApplicationIdSet() {
     List<MttrMonth> results = dao.getMttrMonthlyAverages(new HashSet<String>(), false);
 
-    assertThat(results, hasSize(0));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -345,23 +339,23 @@ public class PolicyViolationAggregationDAOTest
 
     List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp1, testApp2), false);
 
-    assertThat(results, hasSize(3));
-    assertThat(results.get(0).timePeriodStart, is(aggregationStart.toDate()));
-    assertThat(results.get(0).evaluationCount, is(3));
+    assertThat(results).hasSize(3);
+    assertThat(results.get(0).timePeriodStart).isEqualTo(aggregationStart.toDate());
+    assertThat(results.get(0).evaluationCount).isEqualTo(3);
     assertAverages(results.get(0).security, 2, 3, 4, 5);
     assertAverages(results.get(0).license, 3, 4, 5, 6);
     assertAverages(results.get(0).quality, 4, 5, 6, 7);
     assertAverages(results.get(0).other, 5, 6, 7, 8);
 
-    assertThat(results.get(1).timePeriodStart, is(plusTimePeriod(aggregationStart, MONTH, 1).toDate()));
-    assertThat(results.get(1).evaluationCount, is(7));
+    assertThat(results.get(1).timePeriodStart).isEqualTo(plusTimePeriod(aggregationStart, MONTH, 1).toDate());
+    assertThat(results.get(1).evaluationCount).isEqualTo(7);
     assertAverages(results.get(1).security, 3, 4, 5, 6);
     assertAverages(results.get(1).license, 4, 5, 6, 7);
     assertAverages(results.get(1).quality, 5, 6, 7, 8);
     assertAverages(results.get(1).other, 6, 7, 8, 9);
 
-    assertThat(results.get(2).timePeriodStart, is(plusTimePeriod(aggregationStart, MONTH, 2).toDate()));
-    assertThat(results.get(2).evaluationCount, is(1));
+    assertThat(results.get(2).timePeriodStart).isEqualTo(plusTimePeriod(aggregationStart, MONTH, 2).toDate());
+    assertThat(results.get(2).evaluationCount).isEqualTo(1);
     assertAverages(results.get(2).security, 2, 2, 2, 2);
     assertAverages(results.get(2).license, 2, 2, 2, 2);
     assertAverages(results.get(2).quality, 2, 2, 2, 2);
@@ -390,11 +384,11 @@ public class PolicyViolationAggregationDAOTest
     }
     List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp), false);
 
-    assertThat(results, hasSize(12));
+    assertThat(results).hasSize(12);
     for (int i = 0; i < 12; i++) {
       AverageMonth month = results.get(i);
-      assertThat(month.timePeriodStart, is(plusTimePeriod(aggregationStart, MONTH, i).toDate()));
-      assertThat(month.evaluationCount, is(1));
+      assertThat(month.timePeriodStart).isEqualTo(plusTimePeriod(aggregationStart, MONTH, i).toDate());
+      assertThat(month.evaluationCount).isEqualTo(1);
       assertAverages(month.security, 1, 2, 3, 4);
       assertAverages(month.license, 2, 3, 4, 5);
       assertAverages(month.quality, 3, 4, 5, 6);
@@ -444,11 +438,11 @@ public class PolicyViolationAggregationDAOTest
     }
     List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp), true);
 
-    assertThat(results, hasSize(12));
+    assertThat(results).hasSize(12);
     for (int i = 0; i < 12; i++) {
       AverageMonth month = results.get(i);
-      assertThat(month.timePeriodStart, is(plusTimePeriod(monthAggregationStart, MONTH, i).toDate()));
-      assertThat(month.evaluationCount, is(1));
+      assertThat(month.timePeriodStart).isEqualTo(plusTimePeriod(monthAggregationStart, MONTH, i).toDate());
+      assertThat(month.evaluationCount).isEqualTo(1);
       assertAverages(month.security, 1, 2, 3, 4);
       assertAverages(month.license, 2, 3, 4, 5);
       assertAverages(month.quality, 3, 4, 5, 6);
@@ -464,14 +458,14 @@ public class PolicyViolationAggregationDAOTest
 
     List<AverageMonth> results = dao.getMonthlyAverages(applicationIds, false);
 
-    assertThat(results, hasSize(0));
+    assertThat(results).isEmpty();
   }
 
   @Test
   public void testGetMonthlyAverages_EmptyApplicationIdSet() {
     List<AverageMonth> monthlyAverages = dao.getMonthlyAverages(new HashSet<String>(), false);
 
-    assertThat(monthlyAverages, hasSize(0));
+    assertThat(monthlyAverages).isEmpty();
   }
 
   @Test
@@ -480,7 +474,7 @@ public class PolicyViolationAggregationDAOTest
 
     int result = dao.getActiveApplicationCount(applicationIds, false);
 
-    assertThat(result, is(4));
+    assertThat(result).isEqualTo(4);
   }
 
   @Test
@@ -489,7 +483,7 @@ public class PolicyViolationAggregationDAOTest
 
     int result = dao.getActiveApplicationCount(new HashSet<String>(), false);
 
-    assertThat(result, is(0));
+    assertThat(result).isEqualTo(0);
   }
 
   @Test
@@ -499,16 +493,16 @@ public class PolicyViolationAggregationDAOTest
 
     ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(applicationIds, false);
 
-    assertThat(result.countAnyThreat, is(4));
-    assertThat(result.countAnyCriticalThreat, is(3));
-    assertThat(result.countSecurityThreat, is(4));
-    assertThat(result.countSecurityCriticalThreat, is(2));
-    assertThat(result.countLicenseThreat, is(3));
-    assertThat(result.countLicenseCriticalThreat, is(1));
-    assertThat(result.countQualityThreat, is(1));
-    assertThat(result.countQualityCriticalThreat, is(0));
-    assertThat(result.countOtherThreat, is(1));
-    assertThat(result.countOtherCriticalThreat, is(1));
+    assertThat(result.countAnyThreat).isEqualTo(4);
+    assertThat(result.countAnyCriticalThreat).isEqualTo(3);
+    assertThat(result.countSecurityThreat).isEqualTo(4);
+    assertThat(result.countSecurityCriticalThreat).isEqualTo(2);
+    assertThat(result.countLicenseThreat).isEqualTo(3);
+    assertThat(result.countLicenseCriticalThreat).isEqualTo(1);
+    assertThat(result.countQualityThreat).isEqualTo(1);
+    assertThat(result.countQualityCriticalThreat).isEqualTo(0);
+    assertThat(result.countOtherThreat).isEqualTo(1);
+    assertThat(result.countOtherCriticalThreat).isEqualTo(1);
   }
 
   @Test
@@ -518,16 +512,16 @@ public class PolicyViolationAggregationDAOTest
 
     ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(applicationIds, true);
 
-    assertThat(result.countAnyThreat, is(4));
-    assertThat(result.countAnyCriticalThreat, is(4));
-    assertThat(result.countSecurityThreat, is(4));
-    assertThat(result.countSecurityCriticalThreat, is(2));
-    assertThat(result.countLicenseThreat, is(4));
-    assertThat(result.countLicenseCriticalThreat, is(1));
-    assertThat(result.countQualityThreat, is(3));
-    assertThat(result.countQualityCriticalThreat, is(0));
-    assertThat(result.countOtherThreat, is(3));
-    assertThat(result.countOtherCriticalThreat, is(3));
+    assertThat(result.countAnyThreat).isEqualTo(4);
+    assertThat(result.countAnyCriticalThreat).isEqualTo(4);
+    assertThat(result.countSecurityThreat).isEqualTo(4);
+    assertThat(result.countSecurityCriticalThreat).isEqualTo(2);
+    assertThat(result.countLicenseThreat).isEqualTo(4);
+    assertThat(result.countLicenseCriticalThreat).isEqualTo(1);
+    assertThat(result.countQualityThreat).isEqualTo(3);
+    assertThat(result.countQualityCriticalThreat).isEqualTo(0);
+    assertThat(result.countOtherThreat).isEqualTo(3);
+    assertThat(result.countOtherCriticalThreat).isEqualTo(3);
   }
 
   @Test
@@ -536,16 +530,16 @@ public class PolicyViolationAggregationDAOTest
 
     ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(new HashSet<String>(), false);
 
-    assertThat(result.countAnyThreat, is(0));
-    assertThat(result.countAnyCriticalThreat, is(0));
-    assertThat(result.countSecurityThreat, is(0));
-    assertThat(result.countSecurityCriticalThreat, is(0));
-    assertThat(result.countLicenseThreat, is(0));
-    assertThat(result.countLicenseCriticalThreat, is(0));
-    assertThat(result.countQualityThreat, is(0));
-    assertThat(result.countQualityCriticalThreat, is(0));
-    assertThat(result.countOtherThreat, is(0));
-    assertThat(result.countOtherCriticalThreat, is(0));
+    assertThat(result.countAnyThreat).isEqualTo(0);
+    assertThat(result.countAnyCriticalThreat).isEqualTo(0);
+    assertThat(result.countSecurityThreat).isEqualTo(0);
+    assertThat(result.countSecurityCriticalThreat).isEqualTo(0);
+    assertThat(result.countLicenseThreat).isEqualTo(0);
+    assertThat(result.countLicenseCriticalThreat).isEqualTo(0);
+    assertThat(result.countQualityThreat).isEqualTo(0);
+    assertThat(result.countQualityCriticalThreat).isEqualTo(0);
+    assertThat(result.countOtherThreat).isEqualTo(0);
+    assertThat(result.countOtherCriticalThreat).isEqualTo(0);
   }
 
   @Test
@@ -678,7 +672,7 @@ public class PolicyViolationAggregationDAOTest
 
     List<ViolationCountPeriod> actualList = dao.getViolationCountsByApplicationIds(new HashSet<>(), true);
 
-    assertEquals(Collections.emptyList(), actualList);
+    assertThat(actualList).isEmpty();
   }
 
   @Test
@@ -740,7 +734,7 @@ public class PolicyViolationAggregationDAOTest
     List<OpenViolationCountsWeek> actualList = dao
         .getOpenViolationsCountsByApplicationIds(new HashSet<>(), false);
 
-    assertEquals(Collections.emptyList(), actualList);
+    assertThat(actualList).isEmpty();
   }
 
   @Test
@@ -774,7 +768,7 @@ public class PolicyViolationAggregationDAOTest
     assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.MONTH, beginningOfMonth13MonthsAgo, 13, false);
 
     // app 6 has no data
-    assertThat(resultsIter.hasNext(), is(false));
+    assertThat(resultsIter.hasNext()).isFalse();
   }
 
   @Test
@@ -799,7 +793,7 @@ public class PolicyViolationAggregationDAOTest
         9, false);
 
     // apps 4+ filtered out
-    assertThat(resultsIter.hasNext(), is(false));
+    assertThat(resultsIter.hasNext()).isFalse();
   }
 
   @Test
@@ -826,7 +820,7 @@ public class PolicyViolationAggregationDAOTest
     assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.WEEK, beginningOfWeek13WeeksAgo, 13, false);
 
     // app 6 has no data
-    assertThat(resultsIter.hasNext(), is(false));
+    assertThat(resultsIter.hasNext()).isFalse();
   }
 
   @Test
@@ -851,7 +845,7 @@ public class PolicyViolationAggregationDAOTest
     assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.MONTH, beginningOfMonth5MonthsAgo, 5, false);
 
     // app 6 has no data
-    assertThat(resultsIter.hasNext(), is(false));
+    assertThat(resultsIter.hasNext()).isFalse();
   }
 
   @Test
@@ -878,7 +872,7 @@ public class PolicyViolationAggregationDAOTest
     assertAggregations(resultsIter, applicationIds.get(4), TimePeriod.MONTH, beginningOfMonth13MonthsAgo, 13, false);
 
     // app 6 has no data
-    assertThat(resultsIter.hasNext(), is(false));
+    assertThat(resultsIter.hasNext()).isFalse();
   }
 
   /**
@@ -900,15 +894,15 @@ public class PolicyViolationAggregationDAOTest
   {
     for (int i = 0; i < expectedAggregationsCount; i++) {
       PolicyViolationAggregation aggregation = aggregationIter.next();
-      assertThat(aggregation.getApplicationId(), is(applicationId));
-      assertThat(aggregation.getTimePeriod(), is(timePeriod));
-      assertThat(aggregation.getTimePeriodStart(), is(startingDate.plus(timePeriod.getPeriod(i)).toDate()));
+      assertThat(aggregation.getApplicationId()).isEqualTo(applicationId);
+      assertThat(aggregation.getTimePeriod()).isEqualTo(timePeriod);
+      assertThat(aggregation.getTimePeriodStart()).isEqualTo(startingDate.plus(timePeriod.getPeriod(i)).toDate());
 
       if (expectTimePeriodEnd && i == expectedAggregationsCount - 1) {
-        assertThat(aggregation.getTimePeriodEnd(), is(notNullValue()));
+        assertThat(aggregation.getTimePeriodEnd()).isNotNull();
       }
       else {
-        assertThat(aggregation.getTimePeriodEnd(), is(nullValue()));
+        assertThat(aggregation.getTimePeriodEnd()).isNull();
       }
     }
 
@@ -926,32 +920,34 @@ public class PolicyViolationAggregationDAOTest
   private void assertViolationCountHistory(List<ViolationCountPeriod> expectedList,
                                            List<ViolationCountPeriod> actualList)
   {
-    assertThat(actualList, hasSize(expectedList.size()));
+    assertThat(actualList).hasSameSizeAs(expectedList);
     for (int i = 0; i < expectedList.size(); i++) {
-      assertThat(i + " discovered", actualList.get(i).discoveredCounts, is(expectedList.get(i).discoveredCounts));
-      assertThat(i + " fixed", actualList.get(i).fixedCounts, is(expectedList.get(i).fixedCounts));
-      assertThat(i + " waived", actualList.get(i).waivedCounts, is(expectedList.get(i).waivedCounts));
-      assertThat(actualList.get(i).periodStart, is(expectedList.get(i).periodStart));
+      assertThat(actualList.get(i).discoveredCounts).as(i + " discovered")
+          .isEqualTo(expectedList.get(i).discoveredCounts);
+      assertThat(actualList.get(i).fixedCounts).as(i + " fixed").isEqualTo(expectedList.get(i).fixedCounts);
+      assertThat(actualList.get(i).waivedCounts).as(i + " waived").isEqualTo(expectedList.get(i).waivedCounts);
+      assertThat(actualList.get(i).periodStart).isEqualTo(expectedList.get(i).periodStart);
     }
   }
 
   private void assertOpenViolationCountsWeekHistory(List<OpenViolationCountsWeek> expectedList,
                                                     List<OpenViolationCountsWeek> actualList)
   {
-    assertThat(actualList, hasSize(expectedList.size()));
+    assertThat(actualList).hasSameSizeAs(expectedList);
     for (int i = 0; i < expectedList.size(); i++) {
       OpenViolationCountsWeek expected = expectedList.get(i);
       OpenViolationCountsWeek actual = actualList.get(i);
-      assertThat(i + " week start", actual.weekStart, is(expected.weekStart));
-      assertThat(i + " open", actualList.get(i).openViolationCounts, is(expectedList.get(i).openViolationCounts));
+      assertThat(actual.weekStart).as(i + " week start").isEqualTo(expected.weekStart);
+      assertThat(actualList.get(i).openViolationCounts).as(i + " open")
+          .isEqualTo(expectedList.get(i).openViolationCounts);
     }
   }
 
   private void assertAverages(AverageThreatCategoryMonth actual, double low, double moderate, double severe, double critical) {
-    assertThat(actual.averageDiscoveredLowThreat, closeTo(low, TOLERANCE));
-    assertThat(actual.averageDiscoveredModerateThreat, closeTo(moderate, TOLERANCE));
-    assertThat(actual.averageDiscoveredSevereThreat, closeTo(severe, TOLERANCE));
-    assertThat(actual.averageDiscoveredCriticalThreat, closeTo(critical, TOLERANCE));
+    assertThat(actual.averageDiscoveredLowThreat).isCloseTo(low, offset(TOLERANCE));
+    assertThat(actual.averageDiscoveredModerateThreat).isCloseTo(moderate, offset(TOLERANCE));
+    assertThat(actual.averageDiscoveredSevereThreat).isCloseTo(severe, offset(TOLERANCE));
+    assertThat(actual.averageDiscoveredCriticalThreat).isCloseTo(critical, offset(TOLERANCE));
   }
 
   private Set<String> getApplicationIds(Application... testApps) {
@@ -963,15 +959,15 @@ public class PolicyViolationAggregationDAOTest
   }
 
   private void assertMttrMonth(final MttrMonth actual, final MttrMonth expected) {
-    assertThat(actual.monthStart, is(expected.monthStart));
-    assertThat(actual.mttrLowThreat, is(expected.mttrLowThreat));
-    assertThat(actual.mttrModerateThreat, is(expected.mttrModerateThreat));
-    assertThat(actual.mttrSevereThreat, is(expected.mttrSevereThreat));
-    assertThat(actual.mttrCriticalThreat, is(expected.mttrCriticalThreat));
-    assertThat(actual.resolvedCountLowThreat, is(expected.resolvedCountLowThreat));
-    assertThat(actual.resolvedCountModerateThreat, is(expected.resolvedCountModerateThreat));
-    assertThat(actual.resolvedCountSevereThreat, is(expected.resolvedCountSevereThreat));
-    assertThat(actual.resolvedCountCriticalThreat, is(expected.resolvedCountCriticalThreat));
+    assertThat(actual.monthStart).isEqualTo(expected.monthStart);
+    assertThat(actual.mttrLowThreat).isEqualTo(expected.mttrLowThreat);
+    assertThat(actual.mttrModerateThreat).isEqualTo(expected.mttrModerateThreat);
+    assertThat(actual.mttrSevereThreat).isEqualTo(expected.mttrSevereThreat);
+    assertThat(actual.mttrCriticalThreat).isEqualTo(expected.mttrCriticalThreat);
+    assertThat(actual.resolvedCountLowThreat).isEqualTo(expected.resolvedCountLowThreat);
+    assertThat(actual.resolvedCountModerateThreat).isEqualTo(expected.resolvedCountModerateThreat);
+    assertThat(actual.resolvedCountSevereThreat).isEqualTo(expected.resolvedCountSevereThreat);
+    assertThat(actual.resolvedCountCriticalThreat).isEqualTo(expected.resolvedCountCriticalThreat);
   }
 
   private static Date toDate(LocalDate date) {

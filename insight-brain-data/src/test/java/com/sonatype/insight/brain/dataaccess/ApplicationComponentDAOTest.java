@@ -22,12 +22,8 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
@@ -42,29 +38,27 @@ public class ApplicationComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */);
     dao.insert(appComponent);
-    assertThat(appComponent.getId(), notNullValue());
+    assertThat(appComponent.getId()).isNotNull();
 
     // Get
     appComponent = dao.getById(appComponent.getId());
-    assertThat(appComponent, notNullValue());
+    assertThat(appComponent).isNotNull();
     assertApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */, appComponent);
 
     // Update
-    try {
-      dao.update(appComponent);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException expected) {
-    }
+    ApplicationComponent appComponentToUpdate = appComponent;
+    assertThatThrownBy(() -> {
+      dao.update(appComponentToUpdate);
+    }).isInstanceOf(UnsupportedOperationException.class);
 
     // Delete
     dao.delete(appComponent);
 
     // Get
     appComponent = dao.getById(appComponent.getId());
-    assertThat(appComponent, nullValue());
+    assertThat(appComponent).isNull();
   }
 
   private void assertApplicationComponent(String applicationId,
@@ -78,15 +72,15 @@ public class ApplicationComponentDAOTest
                                           String pathnames,
                                           ApplicationComponent actual)
   {
-    assertThat(actual.getApplicationId(), is(applicationId));
-    assertThat(actual.getStageTypeId(), is(stageTypeId));
-    assertThat(actual.getHash(), is(hash));
-    assertThat(actual.getTime(), is(time));
-    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getMatchStateId(), is(matchStateId));
-    assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
-    assertThat(actual.isProprietary(), is(proprietary));
-    assertThat(actual.getPathnamesString(), is(pathnames));
+    assertThat(actual.getApplicationId()).isEqualTo(applicationId);
+    assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getTime()).isEqualTo(time);
+    assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getMatchStateId()).isEqualTo(matchStateId);
+    assertThat(actual.getIdentificationSourceId()).isEqualTo(identificationSourceId);
+    assertThat(actual.isProprietary()).isEqualTo(proprietary);
+    assertThat(actual.getPathnamesString()).isEqualTo(pathnames);
   }
 
   @Test
@@ -136,29 +130,22 @@ public class ApplicationComponentDAOTest
 
     Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.<String> emptySet(), stageTypeIds, date);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
-    assertThat(components, hasSize(2));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId2), stageTypeIds, date);
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId3));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds,
         date);
-    assertThat(components, hasSize(3));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
-    assertThat(components.get(2).getId(), is(componentId3));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+        componentId3);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
-    assertThat(components, hasSize(3));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
-    assertThat(components.get(2).getId(), is(componentId3));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+        componentId3);
   }
 
   @Test
@@ -182,27 +169,23 @@ public class ApplicationComponentDAOTest
 
     Set<String> appIds = Collections.singleton(application.getId());
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, null, date);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.<String> emptySet(),
         Collections.<String> emptySet(), date);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"),
         Collections.singleton("missing"), date);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1),
         Collections.singleton(BuildStageType.ID), date);
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1),
         Collections.singleton(ReleaseStageType.ID), date);
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId2));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId2);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)),
         new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), date);
-    assertThat(components, hasSize(3));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
-    assertThat(components.get(2).getId(), is(componentId3));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+        componentId3);
   }
 
   @Test
@@ -220,19 +203,15 @@ public class ApplicationComponentDAOTest
     Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
     Set<String> appIds = Collections.singleton(application.getId());
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageTypeIds, null);
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
         new Date(date.getTime() + 3000));
-    assertThat(components, hasSize(0));
+    assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
-    assertThat(components, hasSize(2));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
         new DateTime(date).minusDays(1).toDate());
-    assertThat(components, hasSize(2));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
   }
 
   @Test
@@ -255,22 +234,20 @@ public class ApplicationComponentDAOTest
     Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
     Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageIds, date);
-    assertThat(components, hasSize(3));
-    assertThat(components.get(0).getId(), is(componentId1));
-    assertThat(components.get(1).getId(), is(componentId2));
-    assertThat(components.get(2).getId(), is(componentId3));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+        componentId3);
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {
-    assertThat(actual, notNullValue());
-    assertThat(actual.getApplicationId(), is(expected.getApplicationId()));
-    assertThat(actual.getHash(), is(expected.getHash()));
-    assertThat(actual.getId(), is(expected.getId()));
-    assertThat(actual.getIdentificationSourceId(), is(expected.getIdentificationSourceId()));
-    assertThat(actual.getStageTypeId(), is(expected.getStageTypeId()));
-    assertThat(actual.getMatchStateId(), is(expected.getMatchStateId()));
-    assertThat(actual.isProprietary(), is(expected.isProprietary()));
-    assertThat(actual.getPathnames(), is(expected.getPathnames()));
-    assertThat(actual.getPathnamesString(), is(expected.getPathnamesString()));
+    assertThat(actual).isNotNull();
+    assertThat(actual.getApplicationId()).isEqualTo(expected.getApplicationId());
+    assertThat(actual.getHash()).isEqualTo(expected.getHash());
+    assertThat(actual.getId()).isEqualTo(expected.getId());
+    assertThat(actual.getIdentificationSourceId()).isEqualTo(expected.getIdentificationSourceId());
+    assertThat(actual.getStageTypeId()).isEqualTo(expected.getStageTypeId());
+    assertThat(actual.getMatchStateId()).isEqualTo(expected.getMatchStateId());
+    assertThat(actual.isProprietary()).isEqualTo(expected.isProprietary());
+    assertThat(actual.getPathnames()).isEqualTo(expected.getPathnames());
+    assertThat(actual.getPathnamesString()).isEqualTo(expected.getPathnamesString());
   }
 }

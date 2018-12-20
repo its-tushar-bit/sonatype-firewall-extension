@@ -7,23 +7,19 @@ package com.sonatype.insight.brain.model.policy;
 
 import com.sonatype.insight.brain.model.ValidationResult;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ValidationAssert
 {
   public static void assertValidationResultHasNoErrors(ValidationResult result) {
-    assertThat(result, is(notNullValue()));
-    assertThat(result.isValid(), is(true));
-    assertThat(result.getErrors(), hasSize(0));
+    assertThat(result).isNotNull();
+    assertThat(result.isValid()).isTrue();
+    assertThat(result.getErrors()).isEmpty();
   }
 
   public static void assertValidationResultHasErrors(ValidationResult result, String... errors) {
-    assertThat(result, is(notNullValue()));
-    assertThat(result.isValid(), is(false));
-    assertThat(result.getErrors(), contains(errors));
+    assertThat(result).isNotNull();
+    assertThat(result.isValid()).isFalse();
+    assertThat(result.getErrors()).containsExactly(errors);
   }
 }

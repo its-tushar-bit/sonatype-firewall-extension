@@ -17,15 +17,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class DashboardFilterDAOTest
     extends AbstractDbDAOTest
@@ -56,7 +49,7 @@ public class DashboardFilterDAOTest
     dashboardFilterDAO.delete(dashboardFilter);
 
     // Retrieve filter and test
-    assertThat(dashboardFilterDAO.getByUsername(username2), empty());
+    assertThat(dashboardFilterDAO.getByUsername(username2)).isEmpty();
   }
 
   @Test
@@ -68,7 +61,7 @@ public class DashboardFilterDAOTest
 
     // Retrieve filters and test
     List<DashboardFilter> actual = dashboardFilterDAO.getByUsername(username);
-    assertThat(actual, hasSize(2));
+    assertThat(actual).hasSize(2);
     assertFilter(actual.get(0), dashboardFilter2);
     assertFilter(actual.get(1), dashboardFilter1);
   }
@@ -83,7 +76,7 @@ public class DashboardFilterDAOTest
 
     // Retrieve filters and test
     List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(username);
-    assertThat(actual, hasSize(2));
+    assertThat(actual).hasSize(2);
     assertFilter(actual.get(0), dashboardFilter1);
     assertFilter(actual.get(1), dashboardFilter2);
   }
@@ -103,25 +96,17 @@ public class DashboardFilterDAOTest
   @Test
   public void testValidateNullName_Insert() {
     DashboardFilter dashboardFilter = new DashboardFilter(null);
-    try {
+    assertThatThrownBy(() -> {
       dashboardFilterDAO.insert(dashboardFilter);
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNullName_Update() {
     DashboardFilter dashboardFilter = new DashboardFilter(null);
-    try {
+    assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
@@ -152,13 +137,9 @@ public class DashboardFilterDAOTest
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       DashboardFilter dashboardFilter = new DashboardFilter(name);
-      try {
+      assertThatThrownBy(() -> {
         dashboardFilterDAO.insert(dashboardFilter);
-        fail("Expected exception to be thrown.");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -168,13 +149,9 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "test 1", "testFilterString 1");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       dashboardFilter.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dashboardFilterDAO.update(dashboardFilter);
-        fail("Expected exception to be thrown.");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -200,14 +177,10 @@ public class DashboardFilterDAOTest
   public void testValidateNameSpaces_Insert() {
     String username = "test123";
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      try {
+      assertThatThrownBy(() -> {
         tempEntity.newDashboardFilter(username, name, "testFilterString 1");
-        fail("Expected exception to be thrown.");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -217,14 +190,10 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "sample filter", "testFilterString 1111");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       dashboardFilter.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dashboardFilterDAO.update(dashboardFilter);
-        fail("Expected exception to be thrown.");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -233,26 +202,22 @@ public class DashboardFilterDAOTest
     String username = "test123";
     String name = "test string With Case and Whitespace";
     DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, name, "testFilterString 1111");
-    assertEquals(name, dashboardFilter.getName());
-    assertEquals("teststringwithcaseandwhitespace", dashboardFilter.getNameLowercaseNoWhitespace());
+    assertThat(dashboardFilter.getName()).isEqualTo(name);
+    assertThat(dashboardFilter.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
 
     String name1 = "TEST String      With    cASE and      whitespace";
     DashboardFilter actual = dashboardFilterDAO.getByUsernameAndName(username, name1);
-    assertNotNull(actual);
-    assertEquals(dashboardFilter.getId(), actual.getId());
+    assertThat(actual).isNotNull();
+    assertThat(actual.getId()).isEqualTo(dashboardFilter.getId());
   }
   
   @Test
   public void testDuplicateName_Insert() {
     String username = "test123";
     tempEntity.newDashboardFilter(username, "Filter12345", "testFilterString 1111");
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newDashboardFilter(username, "FILTER 12345", "testFilterString 1111");
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("FILTER 12345 is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
@@ -261,26 +226,18 @@ public class DashboardFilterDAOTest
     tempEntity.newDashboardFilter(username, "Filter12345", "testFilterString 1111");
     DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "Filter 0123", "testFilterString 1111");
     dashboardFilter.setName("FILTER 12345");
-    try {
+    assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("FILTER 12345 is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newDashboardFilter(username, name + "a", "testFilterString 1111");
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
     tempEntity.newDashboardFilter(username, name, "testFilterString 1111");
   }
 
@@ -290,13 +247,9 @@ public class DashboardFilterDAOTest
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "valid name", "testFilterString 1111");
     dashboardFilter.setName(name + "a");
-    try {
+    assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
-      fail("Expected exception to be thrown.");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
     dashboardFilter.setName(name);
     dashboardFilterDAO.update(dashboardFilter);
   }
@@ -305,13 +258,9 @@ public class DashboardFilterDAOTest
   public void testValidate_insertNamedFilterBasedOnAnother() {
     DashboardFilter dashboardFilter = new DashboardFilter("valid name");
     dashboardFilter.setBasedOnFilterName("any non-null value");
-    try {
+    assertThatThrownBy(() -> {
       dashboardFilterDAO.insert(dashboardFilter);
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Only the active filter can be based on another filter.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test
@@ -323,7 +272,7 @@ public class DashboardFilterDAOTest
     dashboardFilterDAO.insert(dashboardFilter);
 
     DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName("test user", "");
-    assertNull(activeFilter.getBasedOnFilterName());
+    assertThat(activeFilter.getBasedOnFilterName()).isNull();
   }
 
   @Test
@@ -331,13 +280,9 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("test user", "valid name", "originalFilter");
     dashboardFilter.setFilter("updatedFilter");
     dashboardFilter.setBasedOnFilterName("any non-null value");
-    try {
+    assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Only the active filter can be based on another filter.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test
@@ -348,15 +293,15 @@ public class DashboardFilterDAOTest
     dashboardFilterDAO.update(dashboardFilter);
 
     DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName("test user", "");
-    assertNull(activeFilter.getBasedOnFilterName());
+    assertThat(activeFilter.getBasedOnFilterName()).isNull();
   }
 
   private void assertFilter(DashboardFilter actualFilter, DashboardFilter expectedFilter) {
-    assertThat(actualFilter, notNullValue());
-    assertThat(actualFilter.getId(), is(expectedFilter.getId()));
-    assertThat(actualFilter.getUsername(), is(expectedFilter.getUsername()));
-    assertThat(actualFilter.getFilter(), is(expectedFilter.getFilter()));
-    assertThat(actualFilter.getName(), is(expectedFilter.getName()));
-    assertThat(actualFilter.getNameLowercaseNoWhitespace(), is(expectedFilter.getNameLowercaseNoWhitespace()));
+    assertThat(actualFilter).isNotNull();
+    assertThat(actualFilter.getId()).isEqualTo(expectedFilter.getId());
+    assertThat(actualFilter.getUsername()).isEqualTo(expectedFilter.getUsername());
+    assertThat(actualFilter.getFilter()).isEqualTo(expectedFilter.getFilter());
+    assertThat(actualFilter.getName()).isEqualTo(expectedFilter.getName());
+    assertThat(actualFilter.getNameLowercaseNoWhitespace()).isEqualTo(expectedFilter.getNameLowercaseNoWhitespace());
   }
 }

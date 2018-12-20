@@ -7,34 +7,22 @@ package com.sonatype.insight.brain.model.policy;
 
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyMonitoringTest
 {
   @Test
   public void testInvalidStageTypeId_Constructor() {
-    try {
+    assertThatThrownBy(() -> {
       new PolicyMonitoring("fakeOwnerId", "fakeStageTypeId");
-      fail("Expected InvalidStageException");
-    }
-    catch (InvalidStageException expected) {
-      if (!expected.getMessage().equals("Invalid stage id=fakeStageTypeId")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidStageException.class).hasMessage("Invalid stage id=fakeStageTypeId");
   }
 
   @Test
   public void testInvalidStageTypeId_Setter() {
     PolicyMonitoring policyMonitoring = new PolicyMonitoring();
-    try {
+    assertThatThrownBy(() -> {
       policyMonitoring.setStageTypeId("fakeStageTypeId");
-      fail("Expected InvalidStageException");
-    }
-    catch (InvalidStageException expected) {
-      if (!expected.getMessage().equals("Invalid stage id=fakeStageTypeId")) {
-        throw expected;
-      }
-    }
+    }).isInstanceOf(InvalidStageException.class).hasMessage("Invalid stage id=fakeStageTypeId");
   }
 }

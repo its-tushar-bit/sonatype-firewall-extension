@@ -7,8 +7,7 @@ package com.sonatype.insight.brain.model.security;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PermissionTest
 {
@@ -18,10 +17,10 @@ public class PermissionTest
       switch (permission) {
         case CONFIGURE_SYSTEM:
         case EDIT_ROLES:
-          assertThat(permission.isAllowedInCustomRoles(), is(false));
+          assertThat(permission.isAllowedInCustomRoles()).isFalse();
           break;
         default:
-          assertThat(permission.isAllowedInCustomRoles(), is(true));
+          assertThat(permission.isAllowedInCustomRoles()).isTrue();
           break;
       }
     }

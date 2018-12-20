@@ -25,8 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatabaseAccessTest
 {
@@ -41,12 +40,11 @@ public class DatabaseAccessTest
   }
 
   private void assertDataSource(DataSource dataSource, DatabaseConfig databaseConfig) throws SQLException {
-    assertNotNull(dataSource);
+    assertThat(dataSource).isNotNull();
     try (Connection conn = dataSource.getConnection()) {
       String databaseURL = conn.getMetaData().getURL();
-      assertNotNull(databaseURL);
-      assertTrue("databaseConfig.url=" + databaseConfig.getUrl().toString() + " expected to start with "
-          + databaseURL, databaseConfig.getUrl().startsWith(databaseURL + ";"));
+      assertThat(databaseURL).isNotNull();
+      assertThat(databaseConfig.getUrl()).startsWith(databaseURL + ";");
     }
   }
 
@@ -65,8 +63,8 @@ public class DatabaseAccessTest
     odsDatabaseConfig.setMaxConnections(50);
     OperationalDataStoreProvider.init(odsDatabaseConfig, true);
     assertDataSource(OperationalDataStoreProvider.getDataSource(), odsDatabaseConfig);
-    assertTrue(databaseDir.exists());
-    assertTrue(new File(databaseDir, "ods.h2.db").exists());
+    assertThat(databaseDir).isDirectory();
+    assertThat(new File(databaseDir, "ods.h2.db")).isFile();
 
     DatabaseConfig dmDatabaseConfig = new DatabaseConfig();
     dmDatabaseConfig.setDriverClassName("org.h2.Driver");
@@ -77,8 +75,8 @@ public class DatabaseAccessTest
     dmDatabaseConfig.setMaxConnections(50);
     DatamartProvider.init(dmDatabaseConfig);
     assertDataSource(DatamartProvider.getDataSource(), dmDatabaseConfig);
-    assertTrue(databaseDir.exists());
-    assertTrue(new File(databaseDir, "dm.h2.db").exists());
+    assertThat(databaseDir).isDirectory();
+    assertThat(new File(databaseDir, "dm.h2.db")).isFile();
 
     Organization org = new Organization("testConcurrentDatabaseAccess");
     new OrganizationDAO().insert(org);

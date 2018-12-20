@@ -19,10 +19,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryComponentDAOTest
     extends AbstractDbDAOTest
@@ -46,11 +43,11 @@ public class RepositoryComponentDAOTest
     RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path", createTime, "hash",
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
     dao.insert(repositoryComponent);
-    assertThat(repositoryComponent.getId(), notNullValue());
+    assertThat(repositoryComponent.getId()).isNotNull();
 
     // Get
     repositoryComponent = dao.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent, notNullValue());
+    assertThat(repositoryComponent).isNotNull();
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, repositoryComponent);
 
@@ -59,7 +56,7 @@ public class RepositoryComponentDAOTest
     repositoryComponent.setLastEvaluationTime(updateTime);
     dao.update(repositoryComponent);
     repositoryComponent = dao.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent, notNullValue());
+    assertThat(repositoryComponent).isNotNull();
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, repositoryComponent);
 
@@ -68,12 +65,12 @@ public class RepositoryComponentDAOTest
 
     // Get
     repositoryComponent = dao.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent, nullValue());
+    assertThat(repositoryComponent).isNull();
   }
 
   @Test
   public void testGetComponentCountByRepositoryId() {
-    assertThat(dao.getComponentCountByRepositoryId(repository.getId()), is(0));
+    assertThat(dao.getComponentCountByRepositoryId(repository.getId())).isEqualTo(0);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
@@ -82,7 +79,7 @@ public class RepositoryComponentDAOTest
     // Component in another repository
     tempEntity.newRepositoryComponent(repositoryTwo.getId());
 
-    assertThat(dao.getComponentCountByRepositoryId(repository.getId()), is(2));
+    assertThat(dao.getComponentCountByRepositoryId(repository.getId())).isEqualTo(2);
   }
 
   @Test
@@ -90,16 +87,16 @@ public class RepositoryComponentDAOTest
     // Component in another repository
     tempEntity.newRepositoryComponent(repositoryTwo.getId());
 
-    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(0));
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId())).isEqualTo(0);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
         ComponentIdentifier.createMavenCoordinates("unknown", "component", "1"));
-    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(0));
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId())).isEqualTo(0);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(1));
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId())).isEqualTo(1);
   }
 
   private void assertRepositoryComponent(String repositoryId,
@@ -112,29 +109,29 @@ public class RepositoryComponentDAOTest
                                          Date lastEvaluationTime,
                                          RepositoryComponent actual)
   {
-    assertThat(actual.getRepositoryId(), is(repositoryId));
-    assertThat(actual.getPathname(), is(pathname));
-    assertThat(actual.getHash(), is(hash));
-    assertThat(actual.getTime(), is(time));
-    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getMatchStateId(), is(matchStateId));
-    assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
-    assertThat(actual.getLastEvaluationTime(), is(lastEvaluationTime));
+    assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
+    assertThat(actual.getPathname()).isEqualTo(pathname);
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getTime()).isEqualTo(time);
+    assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getMatchStateId()).isEqualTo(matchStateId);
+    assertThat(actual.getIdentificationSourceId()).isEqualTo(identificationSourceId);
+    assertThat(actual.getLastEvaluationTime()).isEqualTo(lastEvaluationTime);
   }
 
   @Test
   public void testGetQuarantinedComponentCountByRepositoryId() {
-    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(0));
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(0);
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", new Date(), null);
-    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(1));
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(1);
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), null);
-    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(2);
     // unquarantined component, so shouldn't add to to total
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined3", new Date(), new Date());
-    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(2);
     // not a quarantined item, shouldn't add to count
     tempEntity.newRepositoryComponent(repository.getId(), "/notquarantined", null, null);
-    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(2);
   }
 
   @Test
@@ -146,7 +143,7 @@ public class RepositoryComponentDAOTest
     dao.delete(repositoryComponent);
 
     policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
-    assertThat(policyViolation.isActive(), is(false));
+    assertThat(policyViolation.isActive()).isFalse();
   }
 
   @Test
@@ -156,6 +153,6 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), oldest);
     tempEntity.newRepositoryComponent(repository.getId(), new Date(oldest.getTime() + 2000));
 
-    assertThat(dao.getOldestComponentEvaluationTimeByRepositoryId(repository.getId()), is(oldest));
+    assertThat(dao.getOldestComponentEvaluationTimeByRepositoryId(repository.getId())).isEqualTo(oldest);
   }
 }

@@ -17,11 +17,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ProprietaryConfigDAOTest
     extends AbstractDbDAOTest
@@ -35,7 +32,7 @@ public class ProprietaryConfigDAOTest
     List<String> regexes = Collections.<String> singletonList("bar");
     ProprietaryConfig config = new ProprietaryConfig(applicationId, packages, regexes);
     dao.insert(config);
-    assertThat(config.getId(), is(notNullValue()));
+    assertThat(config.getId()).isNotNull();
 
     // Read
     config = dao.getById(config.getId());
@@ -54,7 +51,7 @@ public class ProprietaryConfigDAOTest
     dao.delete(config);
 
     config = dao.getById(config.getId());
-    assertThat(config, is(nullValue()));
+    assertThat(config).isNull();
   }
 
   @Test
@@ -62,13 +59,10 @@ public class ProprietaryConfigDAOTest
     tempEntity.newProprietaryConfig(applicationId);
 
     ProprietaryConfig config1 = new ProprietaryConfig(applicationId, null /* packages */, null /* regexes */);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(config1);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("A proprietary config already exists for owner id " + applicationId));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A proprietary config already exists for owner id " + applicationId);
   }
 
   @Test
@@ -77,13 +71,10 @@ public class ProprietaryConfigDAOTest
     ProprietaryConfig config1 = tempEntity.newProprietaryConfig(organization.getId());
 
     config1.setOwnerId(applicationId);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(config1);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("A proprietary config already exists for owner id " + applicationId));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A proprietary config already exists for owner id " + applicationId);
   }
 
   private void assertProprietaryConfig(String applicationId,
@@ -91,9 +82,9 @@ public class ProprietaryConfigDAOTest
                                        List<String> regexes,
                                        ProprietaryConfig config)
   {
-    assertThat(config.getOwnerId(), is(applicationId));
-    assertThat(config.getPackages(), is(packages));
-    assertThat(config.getRegexes(), is(regexes));
+    assertThat(config.getOwnerId()).isEqualTo(applicationId);
+    assertThat(config.getPackages()).isEqualTo(packages);
+    assertThat(config.getRegexes()).isEqualTo(regexes);
   }
 
   @Test
@@ -101,13 +92,10 @@ public class ProprietaryConfigDAOTest
     for (String regex : ProprietaryConfigDAO.REGEX_BLACK_LIST) {
       List<String> regexes = Arrays.asList(regex);
       ProprietaryConfig config = new ProprietaryConfig(applicationId, null /* packages */, regexes);
-      try {
+      assertThatThrownBy(() -> {
         dao.insert(config);
-        fail("Expected exception");
-      }
-      catch (InvalidProprietaryConfigRegexException expected) {
-        assertThat(expected.getMessage(), is("This regex is specifically disallowed: " + regex));
-      }
+      }).isInstanceOf(InvalidProprietaryConfigRegexException.class)
+          .hasMessage("This regex is specifically disallowed: " + regex);
     }
   }
 
@@ -133,13 +121,10 @@ public class ProprietaryConfigDAOTest
     for (String regex : ProprietaryConfigDAO.REGEX_BLACK_LIST) {
       List<String> regexes = Arrays.asList(regex);
       config.setRegexes(regexes);
-      try {
+      assertThatThrownBy(() -> {
         dao.update(config);
-        fail("Expected exception");
-      }
-      catch (InvalidProprietaryConfigRegexException expected) {
-        assertThat(expected.getMessage(), is("This regex is specifically disallowed: " + regex));
-      }
+      }).isInstanceOf(InvalidProprietaryConfigRegexException.class)
+          .hasMessage("This regex is specifically disallowed: " + regex);
     }
   }
 

@@ -29,14 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.9
@@ -56,11 +50,11 @@ public class TagDAOTest
     // Create
     Tag tag = new Tag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow);
     dao.insert(tag);
-    assertThat(tag.getId(), notNullValue());
+    assertThat(tag.getId()).isNotNull();
 
     // Get
     tag = dao.getById(tag.getId());
-    assertThat(tag, notNullValue());
+    assertThat(tag).isNotNull();
     assertTag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow, tag);
 
     // Update
@@ -70,7 +64,7 @@ public class TagDAOTest
 
     // Get
     tag = dao.getById(tag.getId());
-    assertThat(tag, notNullValue());
+    assertThat(tag).isNotNull();
     assertTag(organization.getId(), "Updated Name", "testCRUD description", Color.dark_purple, tag);
 
     // Delete
@@ -78,19 +72,15 @@ public class TagDAOTest
 
     // Get
     tag = dao.getById(tag.getId());
-    assertThat(tag, nullValue());
+    assertThat(tag).isNull();
   }
 
   @Test
   public void testValidateNullName_Insert() {
     Tag tag = new Tag(organization.getId(), null /* name */, "description", Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
@@ -99,25 +89,17 @@ public class TagDAOTest
     dao.insert(tag);
 
     tag.setName(null);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
     Tag tag = new Tag(organization.getId(), " " /* name */, "description", Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
@@ -126,13 +108,9 @@ public class TagDAOTest
     dao.insert(tag);
 
     tag.setName(" ");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name is required.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
@@ -140,13 +118,9 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       tag.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.insert(tag);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -156,13 +130,9 @@ public class TagDAOTest
     dao.insert(tag);
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       tag.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.update(tag);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -187,14 +157,10 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       tag.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.insert(tag);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -205,14 +171,10 @@ public class TagDAOTest
 
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       tag.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         dao.update(tag);
-        fail("Expected InvalidNameException");
-      }
-      catch (InvalidNameException expected) {
-        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
-            expected.getMessage());
-      }
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -223,8 +185,8 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), name, "description", Color.yellow);
     dao.insert(tag);
 
-    assertEquals(name, tag.getName());
-    assertEquals("teststringwithcaseandwhitespace", tag.getNameLowercaseNoWhitespace());
+    assertThat(tag.getName()).isEqualTo(name);
+    assertThat(tag.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
   }
 
   @Test
@@ -233,13 +195,9 @@ public class TagDAOTest
     dao.insert(tag);
 
     Tag tag1 = new Tag(organization.getId(), "Test Duplicate Name", "description", Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag1);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Test Duplicate Name is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
@@ -251,26 +209,18 @@ public class TagDAOTest
     dao.insert(tag1);
 
     tag1.setName("Test Duplicate Name");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag1);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Test Duplicate Name is already used as a name.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     Tag tag = new Tag(organization.getId(), name + "a", "description", Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
 
     tag.setName(name);
     dao.insert(tag);
@@ -283,13 +233,9 @@ public class TagDAOTest
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     tag.setName(name + "a");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
 
     tag.setName(name);
     dao.update(tag);
@@ -299,14 +245,10 @@ public class TagDAOTest
   public void testValidateDescriptionLength_Insert() {
     String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     Tag tag = new Tag(organization.getId(), "name", description + "a", Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description cannot be longer than 255 characters, the one supplied has 256 characters.");
 
     tag.setDescription(description);
     dao.insert(tag);
@@ -319,14 +261,10 @@ public class TagDAOTest
 
     String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     tag.setDescription(description + "a");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description cannot be longer than 255 characters, the one supplied has 256 characters.");
 
     tag.setDescription(description);
     dao.update(tag);
@@ -335,13 +273,9 @@ public class TagDAOTest
   @Test
   public void testValidateNullDescription_Insert() {
     Tag tag = new Tag(organization.getId(), "name", null /* description */, Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("The description is required.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
@@ -350,25 +284,17 @@ public class TagDAOTest
     dao.insert(tag);
 
     tag.setDescription(null);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("The description is required.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
   public void testValidateEmptyDescription_Insert() {
     Tag tag = new Tag(organization.getId(), "name", " " /* description */, Color.yellow);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("The description is required.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
@@ -377,25 +303,17 @@ public class TagDAOTest
     dao.insert(tag);
 
     tag.setDescription(" ");
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("The description is required.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
   public void testValidateNullColor_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description", null);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(tag);
-      fail("Expected InvalidTagException");
-    }
-    catch (InvalidTagException expected) {
-      assertEquals("The application category color must be assigned.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidTagException.class).hasMessage("The application category color must be assigned.");
   }
 
   @Test
@@ -404,13 +322,9 @@ public class TagDAOTest
     dao.insert(tag);
 
     tag.setColor(null);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(tag);
-      fail("Expected InvalidTagException");
-    }
-    catch (InvalidTagException expected) {
-      assertEquals("The application category color must be assigned.", expected.getMessage());
-    }
+    }).isInstanceOf(InvalidTagException.class).hasMessage("The application category color must be assigned.");
   }
 
   @Test
@@ -425,28 +339,22 @@ public class TagDAOTest
 
     // Insert
     for (Color color : legacyColors) {
-      try {
-        tag.setColor(color);
+      tag.setColor(color);
+      assertThatThrownBy(() -> {
         dao.insert(tag);
-        fail("Expected InvalidTagException");
-      }
-      catch (InvalidTagException e) {
-        assertEquals("The application category color " + color.toValue() + " is invalid.", e.getMessage());
-      }
+      }).isInstanceOf(InvalidTagException.class)
+          .hasMessage("The application category color " + color.toValue() + " is invalid.");
     }
 
     // Update
     tag.setColor(Color.dark_blue);
     dao.insert(tag);
     for (Color color : legacyColors) {
-      try {
-        tag.setColor(color);
+      tag.setColor(color);
+      assertThatThrownBy(() -> {
         dao.update(tag);
-        fail("Expected InvalidTagException");
-      }
-      catch (InvalidTagException e) {
-        assertEquals("The application category color " + color.toValue() + " is invalid.", e.getMessage());
-      }
+      }).isInstanceOf(InvalidTagException.class)
+          .hasMessage("The application category color " + color.toValue() + " is invalid.");
     }
   }
 
@@ -486,7 +394,7 @@ public class TagDAOTest
 
     dao.delete(tag);
 
-    assertThat(appTagDAO.getByTagId(tag.getId()), is(empty()));
+    assertThat(appTagDAO.getByTagId(tag.getId())).isEmpty();
   }
 
   @Test
@@ -495,16 +403,12 @@ public class TagDAOTest
     Tag tag = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policy.getId(), tag.getId());
 
-    try {
+    assertThatThrownBy(() -> {
       dao.delete(tag);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(),
-          is("Cannot delete the application category because it is associated with policies."));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot delete the application category because it is associated with policies.");
 
-    assertThat(new PolicyTagDAO().getByTagId(tag.getId()), hasSize(1));
+    assertThat(new PolicyTagDAO().getByTagId(tag.getId())).hasSize(1);
   }
 
   @Test
@@ -545,15 +449,15 @@ public class TagDAOTest
   }
 
   private void assertTag(String orgId, String name, String description, Color color, Tag actual) {
-    assertThat(actual.getOrganizationId(), is(orgId));
-    assertThat(actual.getName(), is(name));
-    assertThat(actual.getNameLowercaseNoWhitespace(), is(NameHelper.normalize(name)));
-    assertThat(actual.getDescription(), is(description));
-    assertThat(actual.getColor(), is(color));
+    assertThat(actual.getOrganizationId()).isEqualTo(orgId);
+    assertThat(actual.getName()).isEqualTo(name);
+    assertThat(actual.getNameLowercaseNoWhitespace()).isEqualTo(NameHelper.normalize(name));
+    assertThat(actual.getDescription()).isEqualTo(description);
+    assertThat(actual.getColor()).isEqualTo(color);
   }
 
   private void assertAppliedTags(List<Tag> expected, List<Tag> actual) {
-    assertThat(actual, hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
 
     Set<String> tagIds = new HashSet<>();
     for (Tag tag : expected) {
@@ -561,7 +465,7 @@ public class TagDAOTest
     }
 
     for (Tag tag : actual) {
-      assertThat(tagIds.contains(tag.getId()), is(true));
+      assertThat(tag.getId()).isIn(tagIds);
     }
   }
 
@@ -608,29 +512,19 @@ public class TagDAOTest
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = new Tag(orgId, tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH), "description");
-    try {
+    assertThatThrownBy(() -> {
       new TagDAO().insert(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals(
-          "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'",
-          expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage(
+        "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'");
   }
 
   private void assertUpdateTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = tempEntity.newTag(orgId, "another name");
     tag.setName(tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    try {
+    assertThatThrownBy(() -> {
       new TagDAO().update(tag);
-      fail("Expected InvalidNameException");
-    }
-    catch (InvalidNameException expected) {
-      assertEquals(
-          "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'",
-          expected.getMessage());
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage(
+        "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'");
   }
 }

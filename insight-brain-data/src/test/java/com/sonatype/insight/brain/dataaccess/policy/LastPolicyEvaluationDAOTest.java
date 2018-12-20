@@ -14,10 +14,8 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LastPolicyEvaluationDAOTest
     extends AbstractDbDAOTest
@@ -38,24 +36,21 @@ public class LastPolicyEvaluationDAOTest
 
     // Read
     final LastPolicyEvaluation policyEvaluation = dao.getByEvaluationId(eval.getId());
-    assertThat(policyEvaluation.getId(), is(eval.getId()));
-    assertThat(policyEvaluation.getApplicationId(), is(applicationId));
-    assertThat(policyEvaluation.getStageTypeId(), is(stageTypeId));
+    assertThat(policyEvaluation.getId()).isEqualTo(eval.getId());
+    assertThat(policyEvaluation.getApplicationId()).isEqualTo(applicationId);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(stageTypeId);
 
     // Update is not allowed
-    try {
+    assertThatThrownBy(() -> {
       dao.update(policyEvaluation);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException expected) {
-      assertThat(expected.getMessage(), is("The LastPolicyEvaluation table does not support update operations"));
-    }
+    }).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("The LastPolicyEvaluation table does not support update operations");
 
     // Delete
     dao.delete(policyEvaluation);
 
     LastPolicyEvaluation readPolicyEvaluation2 = dao.getByEvaluationId(eval.getId());
-    assertThat(readPolicyEvaluation2, is(nullValue()));
+    assertThat(readPolicyEvaluation2).isNull();
   }
 
   @Test
@@ -67,31 +62,31 @@ public class LastPolicyEvaluationDAOTest
     // put one guy in, he should be first
     final PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, eval1Date);
     final LastPolicyEvaluation firstPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
-    assertThat(firstPolicyEvaluation.getId(), is(eval1.getId()));
+    assertThat(firstPolicyEvaluation.getId()).isEqualTo(eval1.getId());
 
     // put in a newer guy, he should be the newest now
     final Date eval2Date = new Date(eval1Date.getTime() + 10);
     final PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, eval2Date);
     final LastPolicyEvaluation secondPolicyEvaluation = dao
         .getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
-    assertThat(secondPolicyEvaluation.getId(), is(eval2.getId()));
+    assertThat(secondPolicyEvaluation.getId()).isEqualTo(eval2.getId());
 
     // put a guy in the middle (timewise), he should not change who the newest is
     final Date eval3Date = new Date(eval1Date.getTime() + 5);
     final PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, eval3Date);
     final LastPolicyEvaluation thirdPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
-    assertThat(thirdPolicyEvaluation.getId(), is(eval2.getId()));
+    assertThat(thirdPolicyEvaluation.getId()).isEqualTo(eval2.getId());
 
     // delete the newest guy, should now be the middle guy
     peDao.delete(eval2);
     final LastPolicyEvaluation fourthPolicyEvaluation = dao
         .getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
-    assertThat(fourthPolicyEvaluation.getId(), is(eval3.getId()));
+    assertThat(fourthPolicyEvaluation.getId()).isEqualTo(eval3.getId());
 
     // delete currently newest guy, should now be the first guy
     peDao.delete(eval3);
     final LastPolicyEvaluation fifthPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
-    assertThat(fifthPolicyEvaluation.getId(), is(eval1.getId()));
+    assertThat(fifthPolicyEvaluation.getId()).isEqualTo(eval1.getId());
   }
 
 }

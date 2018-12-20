@@ -25,14 +25,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RoleDAOTest
     extends AbstractDbDAOTest
@@ -46,30 +40,14 @@ public class RoleDAOTest
   @Test
   public void testGetGlobalRoles() throws Exception {
     List<Role> roles = roleDAO.getGlobalRoles();
-    int roleCount = roles.size();
-    assertThat(roleCount, is(greaterThanOrEqualTo(2)));
-    for (Role role : roles) {
-      assertThat(role.isGlobal(), is(true));
-    }
+    assertThat(roles).allMatch(Role::isGlobal).size().isGreaterThanOrEqualTo(2);
   }
 
   @Test
   public void testGetApplicationRoles() throws Exception {
     List<Role> roles = roleDAO.getApplicationRoles();
-    assertThat(roles, is(notNullValue()));
-    assertThat(roles, hasSize(4));
-    Role role = roles.get(0);
-    assertThat(role.getName(), is("Application Evaluator"));
-    assertThat(role.isGlobal(), is(false));
-    role = roles.get(1);
-    assertThat(role.getName(), is("Component Evaluator"));
-    assertThat(role.isGlobal(), is(false));
-    role = roles.get(2);
-    assertThat(role.getName(), is("Developer"));
-    assertThat(role.isGlobal(), is(false));
-    role = roles.get(3);
-    assertThat(role.getName(), is("Owner"));
-    assertThat(role.isGlobal(), is(false));
+    assertThat(roles).noneMatch(Role::isGlobal).extracting(Role::getName).containsExactly("Application Evaluator",
+        "Component Evaluator", "Developer", "Owner");
   }
 
   @Test
@@ -78,7 +56,7 @@ public class RoleDAOTest
     Role role = newRole("cascade");
     rolePermissionDAO.insert(new RolePermission(role.getId(), Permission.values()[0]));
     roleDAO.delete(role);
-    assertThat(rolePermissionDAO.getPermissionsForRole(role.getId()), is(empty()));
+    assertThat(rolePermissionDAO.getPermissionsForRole(role.getId())).isEmpty();
   }
 
   @Test
@@ -87,7 +65,7 @@ public class RoleDAOTest
     MembershipMapping membershipMapping = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         role.getId(), "username");
     roleDAO.delete(role);
-    assertThat(new MembershipMappingDAO().getById(membershipMapping.getId()), nullValue());
+    assertThat(new MembershipMappingDAO().getById(membershipMapping.getId())).isNull();
   }
 
   @Test
@@ -103,51 +81,47 @@ public class RoleDAOTest
     roleDAO.delete(role);
 
     policyWithNotifyActions = policyDAO.getById(policyWithNotifyActions.getId());
-    assertThat(policyWithNotifyActions.getNotifications().getRoleNotifications(), hasSize(0));
+    assertThat(policyWithNotifyActions.getNotifications().getRoleNotifications()).isEmpty();
   }
 
   @Test
   public void testGetAll() {
     List<Role> roles = roleDAO.getAll();
     int roleCount = roles.size();
-    assertThat(roleCount, is(greaterThanOrEqualTo(6)));
+    assertThat(roleCount).isGreaterThanOrEqualTo(6);
 
     Role roleNonGlobal = tempEntity.newRole("AAA Non Global", false /* global */);
     roles = roleDAO.getAll();
-    assertThat(roles, hasSize(roleCount + 1));
-    assertThat(roles.get(0).getName(), is(roleNonGlobal.getName()));
+    assertThat(roles).hasSize(roleCount + 1);
+    assertThat(roles.get(0).getName()).isEqualTo(roleNonGlobal.getName());
   }
 
   @Test
   public void testCRUD() {
     Role role = newRole("custom");
     role = roleDAO.getByIdNotNull(role.getId());
-    assertThat(role.isBuiltIn(), is(false));
-    assertThat(role.getName(), is("custom"));
-    assertThat(role.getDescription(), is("custom description"));
+    assertThat(role.isBuiltIn()).isFalse();
+    assertThat(role.getName()).isEqualTo("custom");
+    assertThat(role.getDescription()).isEqualTo("custom description");
 
     role.setName("Updated Name");
     role.setDescription("Updated Description");
     roleDAO.update(role);
     role = roleDAO.getByIdNotNull(role.getId());
-    assertThat(role.getName(), is("Updated Name"));
-    assertThat(role.getDescription(), is("Updated Description"));
+    assertThat(role.getName()).isEqualTo("Updated Name");
+    assertThat(role.getDescription()).isEqualTo("Updated Description");
 
     roleDAO.delete(role);
-    assertThat(roleDAO.getById(role.getId()), is(nullValue()));
+    assertThat(roleDAO.getById(role.getId())).isNull();
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
     Role role = new Role();
     role.setName("");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected exception");
-    }
-    catch (InvalidNameException e) {
-      assertThat(e.getMessage(), is("Name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
@@ -155,13 +129,9 @@ public class RoleDAOTest
     Role role = new Role();
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       role.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         roleDAO.insert(role);
-        fail("Expected exception");
-      }
-      catch (InvalidNameException e) {
-        assertThat(e.getMessage(), is("Name contains an invalid character: '" + name + "'."));
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage("Name contains an invalid character: '" + name + "'.");
     }
   }
 
@@ -169,26 +139,18 @@ public class RoleDAOTest
   public void testDuplicateName_Insert() {
     Role role = new Role();
     role.setName("applicationEVALUATOR");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected exception");
-    }
-    catch (InvalidNameException e) {
-      assertThat(e.getMessage(), is("A role with the same name already exists."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("A role with the same name already exists.");
   }
 
   @Test
   public void testValidateEmptyName_Update() {
     Role role = newRole("Test");
     role.setName("");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected exception");
-    }
-    catch (InvalidNameException e) {
-      assertThat(e.getMessage(), is("Name is required."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
@@ -196,13 +158,9 @@ public class RoleDAOTest
     Role role = newRole("Test");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       role.setName(name);
-      try {
+      assertThatThrownBy(() -> {
         roleDAO.update(role);
-        fail("Expected exception");
-      }
-      catch (InvalidNameException e) {
-        assertThat(e.getMessage(), is("Name contains an invalid character: '" + name + "'."));
-      }
+      }).isInstanceOf(InvalidNameException.class).hasMessage("Name contains an invalid character: '" + name + "'.");
     }
   }
 
@@ -210,122 +168,87 @@ public class RoleDAOTest
   public void testDuplicateName_Update() {
     Role role = newRole("Test");
     role.setName("applicationEVALUATOR");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected exception");
-    }
-    catch (InvalidNameException e) {
-      assertThat(e.getMessage(), is("A role with the same name already exists."));
-    }
+    }).isInstanceOf(InvalidNameException.class).hasMessage("A role with the same name already exists.");
   }
 
   @Test
   public void testBuiltInRoles() {
     List<Role> roles = roleDAO.getAll();
-    assertThat(roles, hasSize(6));
-    for (Role role : roles) {
-      assertThat(role.toString(), role.isBuiltIn(), is(true));
-    }
+    assertThat(roles).hasSize(6).allMatch(Role::isBuiltIn);
   }
 
   @Test
   public void testBuiltInRoleCannotBeDeleted() {
     Role builtInRole = roleDAO.getByName("Owner");
-    assertThat(builtInRole.isBuiltIn(), is(true));
+    assertThat(builtInRole.isBuiltIn()).isTrue();
     Role role = new Role("Name", "Description");
     // the protection must be based on the identifier, all other properties can be fudged
     role.setId(builtInRole.getId());
-    assertThat(role.isBuiltIn(), is(false));
-    try {
+    assertThat(role.isBuiltIn()).isFalse();
+    assertThatThrownBy(() -> {
       roleDAO.delete(role);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot delete built-in role 'Owner'."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot delete built-in role 'Owner'.");
   }
 
   @Test
   public void testBuiltInRoleCannotBeUpdated() {
     Role builtInRole = roleDAO.getByName("Owner");
-    assertThat(builtInRole.isBuiltIn(), is(true));
+    assertThat(builtInRole.isBuiltIn()).isTrue();
     Role role = new Role("Name", "Description");
     // the protection must be based on the identifier, all other properties can be fudged
     role.setId(builtInRole.getId());
-    assertThat(role.isBuiltIn(), is(false));
-    try {
+    assertThat(role.isBuiltIn()).isFalse();
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot change built-in role 'Owner'."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change built-in role 'Owner'.");
   }
 
   @Test
   public void testBuiltInRoleCannotBeInserted() {
     Role role = new Role("Test", "Description");
     role.setBuiltIn(true);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot add built-in role 'Test'."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot add built-in role 'Test'.");
   }
 
   @Test
   public void testCustomRoleCannotBeGlobal_Insert() {
     Role role = new Role("Name", "Description");
     role.setGlobal(true);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot add custom role 'Name' at global scope."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot add custom role 'Name' at global scope.");
   }
 
   @Test
   public void testCustomRoleCannotBeGlobal_Update() {
     Role role = newRole("Name");
     role.setGlobal(true);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot change custom role 'Name' to global scope."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change custom role 'Name' to global scope.");
   }
 
   @Test
   public void testCustomRoleCannotBeChangedToBuiltIn() {
     Role role = newRole("Name");
     role.setBuiltIn(true);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot change custom role 'Name' to built-in."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change custom role 'Name' to built-in.");
   }
 
   @Test
   public void testValidateDescriptionLength_Insert() {
     String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     Role role = new Role("name", description + "a");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description cannot be longer than 255 characters, the one supplied has 256 characters.");
 
     role.setDescription(description);
     roleDAO.insert(role);
@@ -338,14 +261,10 @@ public class RoleDAOTest
 
     String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     role.setDescription(description + "a");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description cannot be longer than 255 characters, the one supplied has 256 characters.");
 
     role.setDescription(description);
     roleDAO.update(role);
@@ -354,13 +273,9 @@ public class RoleDAOTest
   @Test
   public void testValidateEmptyDescription_Insert() {
     Role role = new Role("name", " " /* description */);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The description is required."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
@@ -368,25 +283,17 @@ public class RoleDAOTest
     Role role = tempEntity.newRole(false /* global */);
 
     role.setDescription(" ");
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The description is required."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
   public void testValidateNullDescription_Insert() {
     Role role = new Role("name", null /* description */);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.insert(role);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The description is required."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 
   @Test
@@ -394,12 +301,8 @@ public class RoleDAOTest
     Role role = tempEntity.newRole(false /* global */);
 
     role.setDescription(null);
-    try {
+    assertThatThrownBy(() -> {
       roleDAO.update(role);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The description is required."));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
   }
 }

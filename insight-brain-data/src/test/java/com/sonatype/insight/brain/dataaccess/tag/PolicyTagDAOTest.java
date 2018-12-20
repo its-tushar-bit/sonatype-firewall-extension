@@ -23,13 +23,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.9
@@ -54,11 +49,11 @@ public class PolicyTagDAOTest
     // Create
     PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
     dao.insert(policyTag);
-    assertThat(policyTag.getId(), notNullValue());
+    assertThat(policyTag.getId()).isNotNull();
 
     // Get
     policyTag = dao.getById(policyTag.getId());
-    assertThat(policyTag, notNullValue());
+    assertThat(policyTag).isNotNull();
     assertPolicyTag(policyId, tag.getId(), policyTag);
 
     // Delete
@@ -66,7 +61,7 @@ public class PolicyTagDAOTest
 
     // Get
     policyTag = dao.getById(policyTag.getId());
-    assertThat(policyTag, nullValue());
+    assertThat(policyTag).isNull();
   }
 
   @Test
@@ -78,13 +73,10 @@ public class PolicyTagDAOTest
     PolicyTag updatedPolicyTag = new PolicyTag("updated_policy_id", tag.getId());
     updatedPolicyTag.setId(policyTag.getId());
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(updatedPolicyTag);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException expected) {
-      assertThat(expected.getMessage(), is("The PolicyTag table does not support update operations"));
-    }
+    }).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("The PolicyTag table does not support update operations");
   }
 
   @Test
@@ -146,12 +138,12 @@ public class PolicyTagDAOTest
   }
 
   private void assertPolicyTag(String policyId, String tagId, PolicyTag actual) {
-    assertThat(actual.getPolicyId(), is(policyId));
-    assertThat(actual.getTagId(), is(tagId));
+    assertThat(actual.getPolicyId()).isEqualTo(policyId);
+    assertThat(actual.getTagId()).isEqualTo(tagId);
   }
 
   private void assertPolicyTags(String policyId, List<Tag> expected, List<PolicyTag> actual) {
-    assertThat(actual, hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
 
     Set<String> tagIds = new HashSet<>();
     for (Tag tag : expected) {
@@ -159,13 +151,13 @@ public class PolicyTagDAOTest
     }
 
     for (PolicyTag policyTag : actual) {
-      assertThat(policyTag.getPolicyId(), equalTo(policyId));
-      assertThat(tagIds.contains(policyTag.getTagId()), is(true));
+      assertThat(policyTag.getPolicyId()).isEqualTo(policyId);
+      assertThat(policyTag.getTagId()).isIn(tagIds);
     }
   }
 
   private void assertPolicyTags(List<PolicyTag> expected, List<PolicyTag> actual) {
-    assertThat(actual, hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
 
     Map<String, PolicyTag> expectedPolicyTags = new HashMap<>();
     for (PolicyTag policyTag : expected) {
@@ -174,9 +166,9 @@ public class PolicyTagDAOTest
 
     for (PolicyTag policyTag : actual) {
       PolicyTag expectedPolicyTag = expectedPolicyTags.get(policyTag.getId());
-      assertThat(expectedPolicyTag, notNullValue());
-      assertThat(policyTag.getTagId(), is(expectedPolicyTag.getTagId()));
-      assertThat(policyTag.getPolicyId(), is(expectedPolicyTag.getPolicyId()));
+      assertThat(expectedPolicyTag).isNotNull();
+      assertThat(policyTag.getTagId()).isEqualTo(expectedPolicyTag.getTagId());
+      assertThat(policyTag.getPolicyId()).isEqualTo(expectedPolicyTag.getPolicyId());
     }
   }
 
@@ -185,13 +177,13 @@ public class PolicyTagDAOTest
     Policy policy = tempEntity.newPolicy(organization);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(true));
+      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId()))).isTrue();
 
       tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(organization.getId()).getId());
-      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(false));
+      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId()))).isFalse();
 
       tempEntity.newPolicyTag(policy.getId(), tag.getId());
-      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(true));
+      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId()))).isTrue();
     }
   }
 }

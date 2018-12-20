@@ -18,11 +18,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.9
@@ -44,11 +40,11 @@ public class ApplicationTagDAOTest
     // Create
     ApplicationTag appTag = new ApplicationTag(applicationId, tag.getId());
     dao.insert(appTag);
-    assertThat(appTag.getId(), notNullValue());
+    assertThat(appTag.getId()).isNotNull();
 
     // Get
     appTag = dao.getById(appTag.getId());
-    assertThat(appTag, notNullValue());
+    assertThat(appTag).isNotNull();
     assertAppTag(applicationId, tag.getId(), appTag);
 
     // Update
@@ -56,7 +52,7 @@ public class ApplicationTagDAOTest
     appTag.setTagId(newTag.getId());
     dao.update(appTag);
     appTag = dao.getById(appTag.getId());
-    assertThat(appTag, notNullValue());
+    assertThat(appTag).isNotNull();
     assertAppTag(applicationId, newTag.getId(), appTag);
 
     // Delete
@@ -64,7 +60,7 @@ public class ApplicationTagDAOTest
 
     // Get
     appTag = dao.getById(appTag.getId());
-    assertThat(appTag, nullValue());
+    assertThat(appTag).isNull();
   }
 
   @Test
@@ -100,12 +96,12 @@ public class ApplicationTagDAOTest
   }
 
   private void assertAppTag(String appId, String tagId, ApplicationTag actual) {
-    assertThat(actual.getApplicationId(), is(appId));
-    assertThat(actual.getTagId(), is(tagId));
+    assertThat(actual.getApplicationId()).isEqualTo(appId);
+    assertThat(actual.getTagId()).isEqualTo(tagId);
   }
 
   private void assertAppTags(String appId, List<Tag> expected, List<ApplicationTag> actual) {
-    assertThat(actual.size(), is(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
 
     Set<String> tagIds = new HashSet<>();
     for (Tag tag : expected) {
@@ -113,8 +109,8 @@ public class ApplicationTagDAOTest
     }
 
     for (ApplicationTag appTag : actual) {
-      assertThat(appTag.getApplicationId(), equalTo(appId));
-      assertThat(tagIds.contains(appTag.getTagId()), is(true));
+      assertThat(appTag.getApplicationId()).isEqualTo(appId);
+      assertThat(appTag.getTagId()).isIn(tagIds);
     }
   }
 }

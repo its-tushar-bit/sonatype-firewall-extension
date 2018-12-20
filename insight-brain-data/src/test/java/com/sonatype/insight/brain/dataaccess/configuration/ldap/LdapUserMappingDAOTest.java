@@ -13,9 +13,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapUserMappingDAOTest
     extends AbstractDbDAOTest
@@ -52,42 +50,42 @@ public class LdapUserMappingDAOTest
     // insert
     LdapUserMapping umap = newLdapUserMapping();
     tempEntity.newLdapUserMapping(umap);
-    assertNotNull(umap.getId());
+    assertThat(umap.getId()).isNotNull();
 
     // select by id
     umap = dao.getById(umap.getId());
 
-    assertEquals(server.getId(), umap.getServerId());
-    assertEquals(userBaseDN, umap.getUserBaseDN());
-    assertEquals(userSubtree, umap.isUserSubtree());
-    assertEquals(userObjectClass, umap.getUserObjectClass());
-    assertEquals(userFilter, umap.getUserFilter());
-    assertEquals(userIDAttribute, umap.getUserIDAttribute());
-    assertEquals(realNameAttribute, umap.getUserRealNameAttribute());
-    assertEquals(emailAttribute, umap.getUserEmailAttribute());
-    assertEquals(passwordAttribute, umap.getUserPasswordAttribute());
+    assertThat(umap.getServerId()).isEqualTo(server.getId());
+    assertThat(umap.getUserBaseDN()).isEqualTo(userBaseDN);
+    assertThat(umap.isUserSubtree()).isEqualTo(userSubtree);
+    assertThat(umap.getUserObjectClass()).isEqualTo(userObjectClass);
+    assertThat(umap.getUserFilter()).isEqualTo(userFilter);
+    assertThat(umap.getUserIDAttribute()).isEqualTo(userIDAttribute);
+    assertThat(umap.getUserRealNameAttribute()).isEqualTo(realNameAttribute);
+    assertThat(umap.getUserEmailAttribute()).isEqualTo(emailAttribute);
+    assertThat(umap.getUserPasswordAttribute()).isEqualTo(passwordAttribute);
 
-    assertEquals(groupMappingType, umap.getGroupMappingType());
-    assertEquals(groupBaseDN, umap.getGroupBaseDN());
-    assertEquals(groupObjectClass, umap.getGroupObjectClass());
-    assertEquals(groupIDAttribute, umap.getGroupIDAttribute());
-    assertEquals(groupMemberAttribute, umap.getGroupMemberAttribute());
-    assertEquals(groupMemberFormat, umap.getGroupMemberFormat());
-    assertEquals(userMemberOfGroupAttribute, umap.getUserMemberOfGroupAttribute());
+    assertThat(umap.getGroupMappingType()).isEqualTo(groupMappingType);
+    assertThat(umap.getGroupBaseDN()).isEqualTo(groupBaseDN);
+    assertThat(umap.getGroupObjectClass()).isEqualTo(groupObjectClass);
+    assertThat(umap.getGroupIDAttribute()).isEqualTo(groupIDAttribute);
+    assertThat(umap.getGroupMemberAttribute()).isEqualTo(groupMemberAttribute);
+    assertThat(umap.getGroupMemberFormat()).isEqualTo(groupMemberFormat);
+    assertThat(umap.getUserMemberOfGroupAttribute()).isEqualTo(userMemberOfGroupAttribute);
 
     // server by server id
-    assertNotNull(dao.getByServerId(server.getId()));
+    assertThat(dao.getByServerId(server.getId())).isNotNull();
 
     // update
     String userBaseDN_changed = userBaseDN + "-changed";
     umap.setUserBaseDN(userBaseDN_changed);
     dao.update(umap);
     umap = dao.getById(umap.getId());
-    assertEquals(userBaseDN_changed, umap.getUserBaseDN());
+    assertThat(umap.getUserBaseDN()).isEqualTo(userBaseDN_changed);
 
     // delete
     dao.delete(umap);
-    assertNull(dao.getById(umap.getId()));
+    assertThat(dao.getById(umap.getId())).isNull();
   }
 
   private LdapUserMapping newLdapUserMapping() {

@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -21,16 +21,8 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyEvaluationDAOTest
     extends AbstractDbDAOTest
@@ -44,31 +36,29 @@ public class PolicyEvaluationDAOTest
 
     // Create
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
-    assertThat(policyEvaluation.getId(), is(nullValue()));
+    assertThat(policyEvaluation.getId()).isNull();
     dao.insert(policyEvaluation);
-    assertThat(policyEvaluation.getId(), is(notNullValue()));
-    assertThat(policyEvaluation.getTime().getTime(), is(lessThan(System.currentTimeMillis() + 1000)));
-    assertThat(policyEvaluation.getTime().getTime(), is(greaterThan(System.currentTimeMillis() - 10 * 1000)));
+    assertThat(policyEvaluation.getId()).isNotNull();
+    assertThat(policyEvaluation.getTime().getTime()).isBetween(System.currentTimeMillis() - 10 * 1000,
+        System.currentTimeMillis() + 1000);
 
     // Read
     policyEvaluation = dao.getById(policyEvaluation.getId());
-    assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation).isNotNull();
     assertPolicyEvaluation(applicationId, stageTypeId, scanId, false, false, policyEvaluation);
 
     // Update is not allowed
-    try {
-      dao.update(policyEvaluation);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException expected) {
-      assertThat(expected.getMessage(), is("The PolicyEvaluation table does not support update operations"));
-    }
+    PolicyEvaluation policyEvaluationToUpdate = policyEvaluation;
+    assertThatThrownBy(() -> {
+      dao.update(policyEvaluationToUpdate);
+    }).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessage("The PolicyEvaluation table does not support update operations");
 
     // Delete
     dao.delete(policyEvaluation);
 
     policyEvaluation = dao.getById(policyEvaluation.getId());
-    assertThat(policyEvaluation, is(nullValue()));
+    assertThat(policyEvaluation).isNull();
   }
 
   @Test
@@ -84,9 +74,9 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndScanId(applicationId, scanId);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getId(), is(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
   }
 
   @Test
@@ -101,10 +91,10 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getId(), is(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -121,10 +111,10 @@ public class PolicyEvaluationDAOTest
         true /* isReevaluation */, false /* forMonitoring */, time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getId(), is(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -143,10 +133,10 @@ public class PolicyEvaluationDAOTest
         false /* forMonitoring */, true /* isForObsoleteScan */, time3);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getId(), is(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -163,9 +153,9 @@ public class PolicyEvaluationDAOTest
         false /* forMonitoring */, time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastPrimaryByApplicationIdAndStageId(applicationId, ReleaseStageType.ID);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getTime(), is(time1));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getTime()).isEqualTo(time1);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   private void assertPolicyEvaluation(String applicationId,
@@ -175,11 +165,11 @@ public class PolicyEvaluationDAOTest
                                       boolean forMonitoring,
                                       PolicyEvaluation actual)
   {
-    assertThat(actual.getApplicationId(), is(applicationId));
-    assertThat(actual.getStageTypeId(), is(stageTypeId));
-    assertThat(actual.getScanId(), is(scanId));
-    assertThat(actual.isReevaluation(), is(reevaluation));
-    assertThat(actual.isForMonitoring(), is(forMonitoring));
+    assertThat(actual.getApplicationId()).isEqualTo(applicationId);
+    assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
+    assertThat(actual.getScanId()).isEqualTo(scanId);
+    assertThat(actual.isReevaluation()).isEqualTo(reevaluation);
+    assertThat(actual.isForMonitoring()).isEqualTo(forMonitoring);
   }
 
   @Test
@@ -195,12 +185,12 @@ public class PolicyEvaluationDAOTest
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
         Sets.newHashSet(ReleaseStageType.ID));
-    assertThat(policyEvaluations, hasSize(1));
+    assertThat(policyEvaluations).hasSize(1);
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -227,10 +217,10 @@ public class PolicyEvaluationDAOTest
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
         Sets.newHashSet(ReleaseStageType.ID));
-    assertThat(policyEvaluations, hasSize(1));
+    assertThat(policyEvaluations).hasSize(1);
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getTime(), is(time1));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getTime()).isEqualTo(time1);
   }
 
   @Test
@@ -243,11 +233,11 @@ public class PolicyEvaluationDAOTest
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
         Sets.newHashSet(ReleaseStageType.ID));
-    assertThat(policyEvaluations, hasSize(1));
+    assertThat(policyEvaluations).hasSize(1);
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
-    assertThat(policyEvaluation, is(notNullValue()));
-    assertThat(policyEvaluation.getTime(), is(time1));
-    assertThat(policyEvaluation.getId(), equalTo(pe1.getId()));
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getTime()).isEqualTo(time1);
+    assertThat(policyEvaluation.getId()).isEqualTo(pe1.getId());
   }
 
   @Test
@@ -267,15 +257,8 @@ public class PolicyEvaluationDAOTest
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(
         Sets.newHashSet(applicationId, application2.getId()), Sets.newHashSet(ReleaseStageType.ID));
-    assertThat(policyEvaluations, hasSize(2));
-    Set<String> policyIds = new HashSet<>();
-    for (PolicyEvaluation pe : policyEvaluations) {
-      assertThat(pe, is(notNullValue()));
-      policyIds.add(pe.getId());
-      assertThat(pe.getTime(), is(time2));
-    }
-    assertThat(policyIds, hasSize(2));
-    assertThat(policyIds, containsInAnyOrder(pe2.getId(), pe4.getId()));
+    assertThat(policyEvaluations).noneMatch(Objects::isNull).allSatisfy(pe -> assertThat(pe.getTime()).isEqualTo(time2))
+        .extracting(PolicyEvaluation::getId).containsExactlyInAnyOrder(pe2.getId(), pe4.getId());
   }
 
   @Test
@@ -295,11 +278,10 @@ public class PolicyEvaluationDAOTest
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
         Sets.newHashSet(stageTypeId));
-    assertThat(policyEvaluations, is(notNullValue()));
-    assertThat(policyEvaluations, hasSize(1));
-    assertThat(policyEvaluations.get(0).getTime(), is(time2));
-    assertThat(policyEvaluations.get(0).getId(), is(pe2.getId()));
-    assertThat(policyEvaluations.get(0).isForObsoleteScan(), is(false));
+    assertThat(policyEvaluations).hasSize(1);
+    assertThat(policyEvaluations.get(0).getTime()).isEqualTo(time2);
+    assertThat(policyEvaluations.get(0).getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluations.get(0).isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -340,16 +322,8 @@ public class PolicyEvaluationDAOTest
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(
         Sets.newHashSet(applicationId, application2.getId(), application3.getId()), Sets.newHashSet(stageTypeId));
-    assertThat(policyEvaluations, is(notNullValue()));
-    assertThat(policyEvaluations, hasSize(3));
-    Set<String> policyIds = new HashSet<>();
-    for (PolicyEvaluation pe : policyEvaluations) {
-      assertThat(pe, is(notNullValue()));
-      assertThat(pe.isForObsoleteScan(), is(false));
-      policyIds.add(pe.getId());
-    }
-    assertThat(policyIds, hasSize(3));
-    assertThat(policyIds, containsInAnyOrder(pe2.getId(), pe5.getId(), pe8.getId()));
+    assertThat(policyEvaluations).noneMatch(Objects::isNull).noneMatch(PolicyEvaluation::isForObsoleteScan)
+        .extracting(PolicyEvaluation::getId).containsExactlyInAnyOrder(pe2.getId(), pe5.getId(), pe8.getId());
   }
 
   @Test
@@ -371,11 +345,11 @@ public class PolicyEvaluationDAOTest
     appIds.add(applicationId);
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(appIds,
         Collections.singleton(BuildStageType.ID));
-    assertThat(policyEvaluations, hasSize(1));
+    assertThat(policyEvaluations).hasSize(1);
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
-    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -384,13 +358,9 @@ public class PolicyEvaluationDAOTest
 
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, ReleaseStageType.ID, "scanId");
     policyEvaluation.setForObsoleteScan(true);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(policyEvaluation);
-      fail("Expected IllegalStateException");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is("Primary evaluations cannot be for obsolete scans"));
-    }
+    }).isInstanceOf(IllegalStateException.class).hasMessage("Primary evaluations cannot be for obsolete scans");
   }
 
   @Test
@@ -406,11 +376,11 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId3", time2);
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIds(Sets.newHashSet(applicationId));
-    assertThat(policyEvaluations, hasSize(1));
+    assertThat(policyEvaluations).hasSize(1);
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
-    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -431,11 +401,11 @@ public class PolicyEvaluationDAOTest
     }
     appIds.add(applicationId);
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIds(appIds);
-    assertThat(policyEvaluations, hasSize(1));
+    assertThat(policyEvaluations).hasSize(1);
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
-    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
-    assertThat(policyEvaluation.getTime(), is(time2));
-    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+    assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
+    assertThat(policyEvaluation.getTime()).isEqualTo(time2);
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
   @Test
@@ -452,13 +422,13 @@ public class PolicyEvaluationDAOTest
 
     // Assert we have a last policy evaluation and that it is the second one
     PolicyEvaluation lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(lastPolicyEvaluation.getId(), is(pe2.getId()));
+    assertThat(lastPolicyEvaluation.getId()).isEqualTo(pe2.getId());
 
     // Delete the second evaluation. The last policy eval will be updated to the first policy eval.
     dao.delete(pe2, true /* updateLastPolicyEvaluation */);
 
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(lastPolicyEvaluation.getId(), is(pe1.getId()));
+    assertThat(lastPolicyEvaluation.getId()).isEqualTo(pe1.getId());
   }
 
   @Test
@@ -475,14 +445,14 @@ public class PolicyEvaluationDAOTest
 
     // Assert we have a last policy evaluation and that it is the second one
     PolicyEvaluation lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(lastPolicyEvaluation.getId(), is(pe2.getId()));
+    assertThat(lastPolicyEvaluation.getId()).isEqualTo(pe2.getId());
 
     // Delete the second evaluation. The last policy eval will be deleted and there will not be a new last policy eval
     // because we tell the delete to not update the last policy eval.
     dao.delete(pe2, false /* updateLastPolicyEvaluation */);
 
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
-    assertThat(lastPolicyEvaluation, is(nullValue()));
+    assertThat(lastPolicyEvaluation).isNull();
   }
 
   @Test
@@ -510,9 +480,7 @@ public class PolicyEvaluationDAOTest
     List<PolicyEvaluation> results = dao.getBetweenDatesByApplicationIdAndStageIds(now, latest, app.getId(),
         Collections.singleton(BuildStageType.ID));
 
-    assertThat(results, hasSize(2));
-    assertThat(results.get(0).getId(), is(eval2.getId()));
-    assertThat(results.get(1).getId(), is(eval3.getId()));
+    assertThat(results).extracting(PolicyEvaluation::getId).containsExactly(eval2.getId(), eval3.getId());
   }
 
   @Test
@@ -531,7 +499,7 @@ public class PolicyEvaluationDAOTest
 
     PolicyEvaluation results = dao.getOldestByApplicationId(app.getId());
 
-    assertThat(results, is(notNullValue()));
-    assertThat(results.getId(), is(eval2.getId()));
+    assertThat(results).isNotNull();
+    assertThat(results.getId()).isEqualTo(eval2.getId());
   }
 }

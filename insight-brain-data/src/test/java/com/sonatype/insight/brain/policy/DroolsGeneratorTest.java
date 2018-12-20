@@ -26,9 +26,7 @@ import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DroolsGeneratorTest
 {
@@ -61,14 +59,14 @@ public class DroolsGeneratorTest
     final KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
     // this will parse and compile in one step
     kbuilder.add(ResourceFactory.newReaderResource(new StringReader(policy.getDroolsCode())), ResourceType.DRL);
-    assertFalse(kbuilder.getErrors().toString(), kbuilder.hasErrors());
+    assertThat(kbuilder.getErrors()).isEmpty();
   }
 
   @Test
   public void testGet_NoPolicies() {
     List<Policy> policies = Collections.emptyList();
     String droolsCode = DroolsGenerator.get(policies);
-    assertThat(droolsCode, is(""));
+    assertThat(droolsCode).isEqualTo("");
   }
 
   @Test
@@ -77,7 +75,7 @@ public class DroolsGeneratorTest
     policy.setDroolsCode("abc");
     List<Policy> policies = Collections.singletonList(policy);
     String droolsCode = DroolsGenerator.get(policies);
-    assertThat(droolsCode, is("abc\n"));
+    assertThat(droolsCode).isEqualTo("abc\n");
   }
 
   @Test
@@ -88,6 +86,6 @@ public class DroolsGeneratorTest
     policy2.setDroolsCode("def");
     List<Policy> policies = Arrays.asList(policy1, policy2);
     String droolsCode = DroolsGenerator.get(policies);
-    assertThat(droolsCode, is("abc\ndef\n"));
+    assertThat(droolsCode).isEqualTo("abc\ndef\n");
   }
 }

@@ -27,29 +27,17 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
   @Test
   public void testGetByIdNotNull() {
-    try {
+    assertThatThrownBy(() -> {
       new PolicyWaiverDAO().getByIdNotNull("fake id");
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("Cannot find a policy waiver with ID fake id.", expected.getMessage());
-    }
+    }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a policy waiver with ID fake id.");
   }
 
   @Test
@@ -57,7 +45,7 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "123456789012345678901";
-    assertTrue(hash.length() > 20);
+    assertThat(hash.length()).isGreaterThan(20);
     String truncatedHash = hash.substring(0, 20);
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -67,19 +55,18 @@ public class PolicyWaiverDAOTest
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     policyWaiver.setConstraintFacts(createRandomConstraintFacts());
-    assertNull(policyWaiver.getId());
-    long beforeInsert = System.currentTimeMillis();
+    assertThat(policyWaiver.getId()).isNull();
+    Date beforeInsert = new Date();
     dao.insert(policyWaiver);
-    long afterInsert = System.currentTimeMillis();
-    assertNotNull(policyWaiver.getId());
-    assertNotNull(policyWaiver.getCreateTime());
+    Date afterInsert = new Date();
+    assertThat(policyWaiver.getId()).isNotNull();
+    assertThat(policyWaiver.getCreateTime()).isNotNull();
     Date createTime = policyWaiver.getCreateTime();
-    assertTrue(beforeInsert <= createTime.getTime());
-    assertTrue(createTime.getTime() <= afterInsert);
+    assertThat(createTime).isAfterOrEqualsTo(beforeInsert).isBeforeOrEqualsTo(afterInsert);
 
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());
-    assertNotNull(policyWaiver);
+    assertThat(policyWaiver).isNotNull();
     assertPolicyWaiver(truncatedHash, policyId, ownerId, comment, createTime, policyWaiver);
 
     // Update
@@ -89,14 +76,14 @@ public class PolicyWaiverDAOTest
 
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());
-    assertNotNull(policyWaiver);
+    assertThat(policyWaiver).isNotNull();
     assertPolicyWaiver(truncatedHash, policyId, ownerId, updateComment, createTime, policyWaiver);
 
     // Delete
     dao.delete(policyWaiver);
 
     policyWaiver = dao.getById(policyWaiver.getId());
-    assertNull(policyWaiver);
+    assertThat(policyWaiver).isNull();
   }
 
   private void assertPolicyWaiver(String hash,
@@ -106,18 +93,18 @@ public class PolicyWaiverDAOTest
                                   Date createTime,
                                   PolicyWaiver actual)
   {
-    assertEquals(hash, actual.getHash());
-    assertEquals(policyId, actual.getPolicyId());
-    assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(comment, actual.getComment());
-    assertEquals(createTime, actual.getCreateTime());
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getPolicyId()).isEqualTo(policyId);
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getComment()).isEqualTo(comment);
+    assertThat(actual.getCreateTime()).isEqualTo(createTime);
   }
 
   private void assertPolicyWaiver(PolicyWaiver expected, PolicyWaiver actual) {
-    assertEquals(expected.getHash(), actual.getHash());
-    assertEquals(expected.getPolicyId(), actual.getPolicyId());
-    assertEquals(expected.getOwnerId(), actual.getOwnerId());
-    assertEquals(expected.getComment(), actual.getComment());
+    assertThat(actual.getHash()).isEqualTo(expected.getHash());
+    assertThat(actual.getPolicyId()).isEqualTo(expected.getPolicyId());
+    assertThat(actual.getOwnerId()).isEqualTo(expected.getOwnerId());
+    assertThat(actual.getComment()).isEqualTo(expected.getComment());
   }
 
   @Test
@@ -134,13 +121,9 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiver1);
 
     PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(policyWaiver2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("This policy waiver already exists.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("This policy waiver already exists.");
 
     dao.delete(policyWaiver1);
   }
@@ -158,13 +141,9 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiver1);
 
     PolicyWaiver policyWaiver2 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFacts, comment);
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(policyWaiver2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("This policy waiver already exists.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("This policy waiver already exists.");
 
     dao.delete(policyWaiver1);
   }
@@ -183,20 +162,20 @@ public class PolicyWaiverDAOTest
 
     // Assert for application
     List<PolicyWaiver> policyWaivers = dao.getApplicableByOwnerId(application.getId());
-    assertEquals(3, policyWaivers.size());
+    assertThat(policyWaivers).hasSize(3);
     assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
     assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(1));
     assertPolicyWaiver(policyWaiverApp, policyWaivers.get(2));
 
     // Assert for organization
     policyWaivers = dao.getApplicableByOwnerId(organization.getId());
-    assertEquals(2, policyWaivers.size());
+    assertThat(policyWaivers).hasSize(2);
     assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
     assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(1));
 
     // Assert for parent organization
     policyWaivers = dao.getApplicableByOwnerId(organization.getParentOrganizationId());
-    assertEquals(1, policyWaivers.size());
+    assertThat(policyWaivers).hasSize(1);
     assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
   }
 
@@ -210,13 +189,9 @@ public class PolicyWaiverDAOTest
     String comment = StringUtils.repeat("X", 1001);
     PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
 
-    try {
+    assertThatThrownBy(() -> {
       dao.insert(policyWaiver1);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
 
     dao.delete(policyWaiver1);
   }
@@ -229,19 +204,14 @@ public class PolicyWaiverDAOTest
     String comment = StringUtils.repeat("X", 1001);
     policyWaiver.setComment(comment);
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(policyWaiver);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
 
     comment = comment.substring(0, 1000);
     policyWaiver.setComment(comment);
     dao.update(policyWaiver);
-    policyWaiver = dao.getById(policyWaiver.getId());
-    assertThat(policyWaiver.getComment(), is(comment));
+    assertThat(dao.getById(policyWaiver.getId()).getComment()).isEqualTo(comment);
   }
 
   @Test
@@ -259,13 +229,10 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId, constraintFacts, comment);
 
     policyWaiver2.setHash(hash1);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(policyWaiver2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("A policy waiver for the same policy violation already exists.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 
   @Test
@@ -283,13 +250,10 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver(null /* hash */, policyId2, ownerId, constraintFacts, comment);
 
     policyWaiver2.setPolicyId(policyId1);
-    try {
+    assertThatThrownBy(() -> {
       dao.update(policyWaiver2);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("A policy waiver for the same policy violation already exists.", expected.getMessage());
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 
   @Test
@@ -310,10 +274,7 @@ public class PolicyWaiverDAOTest
     dao.delete(policyWaiver1);
     dao.delete(policyWaiver2);
 
-    assertThat(waivers, is(notNullValue()));
-    assertThat(waivers, hasSize(2));
-    assertThat(waivers.get(0).getId(), is(policyWaiver1.getId()));
-    assertThat(waivers.get(1).getId(), is(policyWaiver2.getId()));
+    assertThat(waivers).extracting(PolicyWaiver::getId).containsExactly(policyWaiver1.getId(), policyWaiver2.getId());
   }
 
   @Test
@@ -324,10 +285,10 @@ public class PolicyWaiverDAOTest
         "PolicyWaiverDAOTest");
     PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
+    assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId())).isNotNull();
 
     new PolicyWaiverDAO().delete(policyWaiver);
-    assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
+    assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId())).isNotNull();
   }
 
   @Test
@@ -343,22 +304,21 @@ public class PolicyWaiverDAOTest
     try (TransactionContext tx = dao.createTransactionContext()) {
       List<PolicyWaiver> waivers = dao.getByPolicyIdAndOwnerIds(tx, policy2.getId(),
           Collections.singleton(application.getId()));
-      assertThat(waivers, hasSize(1));
-      assertThat(waivers.get(0).getId(), is(waiver2.getId()));
+      assertThat(waivers).extracting(PolicyWaiver::getId).containsExactly(waiver2.getId());
     }
   }
 
   @Test
   public void testGetCount() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
-    assertThat(dao.getCount(), is(0));
+    assertThat(dao.getCount()).isEqualTo(0);
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(organization);
     Policy policy3 = tempEntity.newPolicy(organization);
     tempEntity.newWaiver(policy1.getId(), application.getId());
     tempEntity.newWaiver(policy2.getId(), application.getId());
     tempEntity.newWaiver(policy3.getId(), application.getId());
-    assertThat(dao.getCount(), is(3));
+    assertThat(dao.getCount()).isEqualTo(3);
   }
 
   @Test
@@ -376,7 +336,7 @@ public class PolicyWaiverDAOTest
     try (TransactionContext tx = dao.createTransactionContext()) {
       PolicyWaiver foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
           constraintFacts);
-      assertThat(foundPolicyWaiver.getId(), is(policyWaiver1.getId()));
+      assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
     }
   }
 
@@ -394,12 +354,12 @@ public class PolicyWaiverDAOTest
       // Get using null constraint facts
       PolicyWaiver foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
           null /* constraintFacts */);
-      assertThat(foundPolicyWaiver.getId(), is(policyWaiver1.getId()));
+      assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
 
       // Get using not null constraint facts
       foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
           createRandomConstraintFacts());
-      assertThat(foundPolicyWaiver, is(nullValue()));
+      assertThat(foundPolicyWaiver).isNull();
     }
   }
 

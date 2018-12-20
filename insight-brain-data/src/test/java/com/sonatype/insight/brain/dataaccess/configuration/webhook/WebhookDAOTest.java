@@ -20,13 +20,8 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class WebhookDAOTest
     extends AbstractDbDAOTest
@@ -40,22 +35,22 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhookWithSecret(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     Webhook result = dao.getById(webhook.getId());
 
-    assertThat(result, not(nullValue()));
-    assertThat(result.getUrl(), equalTo(webhook.getUrl()));
-    assertThat(result.getSecretKey(), equalTo(webhook.getSecretKey()));
+    assertThat(result).isNotNull();
+    assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
+    assertThat(result.getSecretKey()).isEqualTo(webhook.getSecretKey());
 
     webhook.setUrl("http://some-other.url");
     dao.update(webhook);
 
     result = dao.getById(webhook.getId());
 
-    assertThat(result, not(nullValue()));
-    assertThat(result.getUrl(), equalTo("http://some-other.url"));
+    assertThat(result).isNotNull();
+    assertThat(result.getUrl()).isEqualTo("http://some-other.url");
 
     dao.delete(webhook);
     result = dao.getById(webhook.getId());
 
-    assertThat(result, is(nullValue()));
+    assertThat(result).isNull();
   }
 
   @Test
@@ -64,78 +59,58 @@ public class WebhookDAOTest
         .newWebhookWithSecret("https://localhost:3000", Collections.singleton(POLICY_MANAGEMENT));
     Webhook result = dao.getById(webhook.getId());
 
-    assertThat(result, not(nullValue()));
-    assertThat(result.getUrl(), equalTo(webhook.getUrl()));
-    assertThat(result.getSecretKey(), equalTo(webhook.getSecretKey()));
+    assertThat(result).isNotNull();
+    assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
+    assertThat(result.getSecretKey()).isEqualTo(webhook.getSecretKey());
 
     webhook.setUrl("https://some-other.url");
     dao.update(webhook);
 
     result = dao.getById(webhook.getId());
 
-    assertThat(result, not(nullValue()));
-    assertThat(result.getUrl(), equalTo("https://some-other.url"));
+    assertThat(result).isNotNull();
+    assertThat(result.getUrl()).isEqualTo("https://some-other.url");
 
     dao.delete(webhook);
     result = dao.getById(webhook.getId());
 
-    assertThat(result, is(nullValue()));
+    assertThat(result).isNull();
   }
 
   @Test
   public void testInsert_MissingURL() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newWebhook("", Collections.singleton(POLICY_MANAGEMENT));
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL is required"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
   public void testInsert_NullURL() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newWebhook(null, Collections.singleton(POLICY_MANAGEMENT));
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL is required"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
   public void testInsert_NonHttp() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newWebhook("ftp://test.com", Collections.singleton(POLICY_MANAGEMENT));
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL must start with http:// or https://"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
   }
 
   @Test
   public void testInsert_BlankURL() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newWebhook("   ", Collections.singleton(POLICY_MANAGEMENT));
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL is required"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
   public void testInsert_InvalidURL() {
-    try {
+    assertThatThrownBy(() -> {
       tempEntity.newWebhook("http://boom crash", Collections.singleton(POLICY_MANAGEMENT));
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Webhook URL is invalid: Illegal character in authority at index 7: http://boom crash"));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://boom crash");
   }
 
   @Test
@@ -143,13 +118,9 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("");
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(webhook);
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL is required"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
@@ -157,13 +128,9 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl(null);
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(webhook);
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL is required"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
@@ -171,13 +138,9 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("   ");
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(webhook);
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL is required"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
@@ -185,13 +148,9 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("ftp://test.com");
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(webhook);
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Webhook URL must start with http:// or https://"));
-    }
+    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
   }
 
   @Test
@@ -199,14 +158,10 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("http://not valid");
 
-    try {
+    assertThatThrownBy(() -> {
       dao.update(webhook);
-      fail("Should have failed with BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Webhook URL is invalid: Illegal character in authority at index 7: http://not valid"));
-    }
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://not valid");
   }
 
   @Test
@@ -217,7 +172,7 @@ public class WebhookDAOTest
 
     Webhook actual = dao.getByIdNotNull(webhook.getId());
 
-    assertThat(actual.getEventTypes(), is(eventTypes));
+    assertThat(actual.getEventTypes()).isEqualTo(eventTypes);
   }
 
   @Test
@@ -226,8 +181,6 @@ public class WebhookDAOTest
     Webhook webhook2 = tempEntity.newWebhookWithSecret(VALID_URL, Collections.singleton(APPLICATION_EVALUATION));
 
     List<Webhook> results = dao.getAll();
-    assertThat(results, hasSize(2));
-    assertThat(results.get(0).getUrl(), equalTo(webhook1.getUrl()));
-    assertThat(results.get(1).getUrl(), equalTo(webhook2.getUrl()));
+    assertThat(results).extracting(Webhook::getUrl).containsExactly(webhook1.getUrl(), webhook2.getUrl());
   }
 }

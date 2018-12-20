@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.utils;
+package com.sonatype.insight.brain.audit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,14 +12,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
-import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.tag.TagDTO;
 
 public class AuditUtils
 {
@@ -81,8 +78,8 @@ public class AuditUtils
     return getSelectedApplicationsById(applicationIds, organizationIds, applicationsById);
   }
 
-  public static List<TagDTO> getSelectedApplicationCategoriesById(Set<String> applicationCategoryIds) {
-    List<TagDTO> applicationCategoryDTOs = new ArrayList<>();
+  public static List<ApplicationCategoryAuditDTO> getSelectedApplicationCategoriesById(Set<String> applicationCategoryIds) {
+    List<ApplicationCategoryAuditDTO> applicationCategoryDTOs = new ArrayList<>();
 
     if (applicationCategoryIds == null) {
       return applicationCategoryDTOs;
@@ -90,15 +87,15 @@ public class AuditUtils
 
     for (String applicationCategoryId : applicationCategoryIds) {
       if (applicationCategoryId == null) {
-        applicationCategoryDTOs.add(new TagDTO(null, "(Uncategorized)"));
+        applicationCategoryDTOs.add(new ApplicationCategoryAuditDTO(null, "(Uncategorized)"));
       }
       else {
         Tag applicationCategory = applicationCategoryDAO.getById(applicationCategoryId);
         if (applicationCategory == null) {
-          applicationCategoryDTOs.add(new TagDTO(applicationCategoryId, null));
+          applicationCategoryDTOs.add(new ApplicationCategoryAuditDTO(applicationCategoryId, null));
         }
         else {
-          applicationCategoryDTOs.add(new TagDTO(applicationCategory));
+          applicationCategoryDTOs.add(new ApplicationCategoryAuditDTO(applicationCategory));
         }
       }
     }

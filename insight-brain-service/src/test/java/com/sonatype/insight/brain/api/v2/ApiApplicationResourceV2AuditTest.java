@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -24,7 +25,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.AbstractMembershipMappingAuditTest;
-import com.sonatype.insight.brain.tag.TagDTO;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -83,7 +83,8 @@ public class ApiApplicationResourceV2AuditTest
 
     AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, null);
     assertApplicationData(auditDTOCategories, application);
-    assertCustomObject(auditDTOCategories, "applicationCategories", TagDTO.transcribe(asList(tag1, tag2)));
+    assertCustomObject(auditDTOCategories, "applicationCategories",
+        ApplicationCategoryAuditDTO.transcribe(asList(tag1, tag2)));
   }
 
   @Test
@@ -120,7 +121,8 @@ public class ApiApplicationResourceV2AuditTest
 
     AuditDTO auditDTOCategories = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, null);
     assertApplicationData(auditDTOCategories, applicationDTO.id, applicationDTO.publicId, applicationDTO.name);
-    assertCustomObject(auditDTOCategories, "applicationCategories", TagDTO.transcribe(asList(tag1, tag2)));
+    assertCustomObject(auditDTOCategories, "applicationCategories",
+        ApplicationCategoryAuditDTO.transcribe(asList(tag1, tag2)));
   }
 
   @Test

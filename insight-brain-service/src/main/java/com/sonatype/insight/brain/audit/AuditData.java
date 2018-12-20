@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
-import com.sonatype.insight.brain.tag.TagDTO;
 
 /**
  * The data for one audit record. Code populates audit data for the current operation/event using
@@ -341,23 +340,23 @@ public abstract class AuditData
     return this;
   }
 
-  public AuditData setInheritanceScope(final List<TagDTO> tags) {
-    if (tags.isEmpty()) {
+  public AuditData setInheritanceScope(final List<ApplicationCategoryAuditDTO> applicationCategories) {
+    if (applicationCategories.isEmpty()) {
       setData("inheritanceScope", "all-children");
     }
     else {
       setData("inheritanceScope", "matching-application-category");
-      setApplicationCategories(tags);
+      setApplicationCategories(applicationCategories);
     }
     return this;
   }
 
-  public AuditData setApplicationCategories(final List<TagDTO> tags) {
-    setData("applicationCategories", tags);
+  public AuditData setApplicationCategories(final List<ApplicationCategoryAuditDTO> applicationCategories) {
+    setData("applicationCategories", applicationCategories);
     return this;
   }
 
-  public AuditData setSelectedApplicationCategories(List<TagDTO> applicationCategories) {
+  public AuditData setSelectedApplicationCategories(List<ApplicationCategoryAuditDTO> applicationCategories) {
     setData("selectedApplicationCategories", applicationCategories);
     return this;
   }

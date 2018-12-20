@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -38,7 +39,7 @@ public class ApplicationTagResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, null);
     assertApplicationData(auditDTO, application);
-    assertCustomObject(auditDTO, "applicationCategories", TagDTO.transcribe(tags));
+    assertCustomObject(auditDTO, "applicationCategories", ApplicationCategoryAuditDTO.transcribe(tags));
   }
 
   @Test

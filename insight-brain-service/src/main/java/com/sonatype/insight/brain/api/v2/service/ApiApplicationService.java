@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -35,7 +36,6 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -224,7 +224,8 @@ public class ApiApplicationService
     if (auditEmptyCategories || !tags.isEmpty()) {
       try (AuditSession auditSession = AuditData.get()
           .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, false)) {
-        AuditData.get().setApplication(application).setApplicationCategories(TagDTO.transcribe(tags));
+        AuditData.get().setApplication(application)
+            .setApplicationCategories(ApplicationCategoryAuditDTO.transcribe(tags));
       }
     }
   }

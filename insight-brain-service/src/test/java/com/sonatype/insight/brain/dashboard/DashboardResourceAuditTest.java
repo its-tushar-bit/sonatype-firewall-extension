@@ -10,10 +10,11 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
-import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
+import com.sonatype.insight.brain.audit.ApplicationAuditDTO;
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.OrganizationAuditDTO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -23,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -147,8 +147,9 @@ public class DashboardResourceAuditTest
     // app1 is not in the audit list of selected applications because its parent org is in the list of selected orgs.
     assertSelectedApplications(auditDTO, new ApplicationAuditDTO(unknownAppId, null),
         new ApplicationAuditDTO(app2.getId(), app2));
-    assertSelectedApplicationCategories(auditDTO, new TagDTO(unknownAppCategoryId, null),
-        new TagDTO(null, "(Uncategorized)"), new TagDTO(appCategory1), new TagDTO(appCategory2));
+    assertSelectedApplicationCategories(auditDTO, new ApplicationCategoryAuditDTO(unknownAppCategoryId, null),
+        new ApplicationCategoryAuditDTO(null, "(Uncategorized)"), new ApplicationCategoryAuditDTO(appCategory1),
+        new ApplicationCategoryAuditDTO(appCategory2));
     assertCustomData(auditDTO, "inspectedApplicationCount", 2);
     assertCustomData(auditDTO, "resultRecordCount", 1);
   }
@@ -241,9 +242,9 @@ public class DashboardResourceAuditTest
     }
   }
 
-  private void assertSelectedApplicationCategories(AuditDTO auditDTO, TagDTO... expected) {
-    List<TagDTO> actuals =
-        objectMapper.convertValue(auditDTO.data.get("selectedApplicationCategories"), new TypeReference<List<TagDTO>>()
+  private void assertSelectedApplicationCategories(AuditDTO auditDTO, ApplicationCategoryAuditDTO... expected) {
+    List<ApplicationCategoryAuditDTO> actuals = objectMapper.convertValue(
+        auditDTO.data.get("selectedApplicationCategories"), new TypeReference<List<ApplicationCategoryAuditDTO>>()
         {
         });
     assertThat(actuals, containsInAnyOrder(expected));

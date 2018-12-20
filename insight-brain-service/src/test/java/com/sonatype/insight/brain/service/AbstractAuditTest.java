@@ -13,11 +13,11 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
-import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
+import com.sonatype.insight.brain.audit.ApplicationAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.OrganizationAuditDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;

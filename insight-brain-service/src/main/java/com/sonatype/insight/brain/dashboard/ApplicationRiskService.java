@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditUtils;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
@@ -32,7 +33,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-import com.sonatype.insight.brain.utils.AuditUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

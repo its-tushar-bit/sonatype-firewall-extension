@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -37,7 +38,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.tag.TagDTO;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -495,9 +495,9 @@ public class PolicyResourceAuditTest
   }
 
   private void assertAuditedTags(final AuditDTO auditDTO, final List<Tag> tags) {
-    List<TagDTO> auditedTags = ((Collection<?>) auditDTO.data.get("applicationCategories")).stream()
-        .map(p -> objectMapper.convertValue(p,
-            TagDTO.class)).collect(Collectors.toList());
+    List<ApplicationCategoryAuditDTO> auditedTags =
+        ((Collection<?>) auditDTO.data.get("applicationCategories")).stream()
+            .map(p -> objectMapper.convertValue(p, ApplicationCategoryAuditDTO.class)).collect(Collectors.toList());
     TagDAO tagDAO = new TagDAO();
 
     assertThat(auditedTags, hasSize(tags.size()));

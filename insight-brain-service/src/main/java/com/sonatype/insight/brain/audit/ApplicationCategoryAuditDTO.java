@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tag;
+package com.sonatype.insight.brain.audit;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,28 +16,28 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import static java.util.stream.Collectors.toList;
 
 @JsonInclude(Include.NON_NULL)
-public class TagDTO
+public class ApplicationCategoryAuditDTO
 {
   public String applicationCategoryId;
 
   public String applicationCategoryName;
 
-  public TagDTO() {
+  public ApplicationCategoryAuditDTO() {
     //for jackson
   }
 
-  public TagDTO(Tag tag) {
+  public ApplicationCategoryAuditDTO(Tag tag) {
     this.applicationCategoryId = tag.getId();
     this.applicationCategoryName = tag.getName();
   }
 
-  public TagDTO(String id, String name) {
+  public ApplicationCategoryAuditDTO(String id, String name) {
     applicationCategoryId = id;
     applicationCategoryName = name;
   }
 
-  public static List<TagDTO> transcribe(List<Tag> tags) {
-    return tags.stream().map(TagDTO::new).collect(toList());
+  public static List<ApplicationCategoryAuditDTO> transcribe(List<Tag> tags) {
+    return tags.stream().map(ApplicationCategoryAuditDTO::new).collect(toList());
   }
 
   @Override
@@ -48,7 +48,7 @@ public class TagDTO
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TagDTO that = (TagDTO) o;
+    ApplicationCategoryAuditDTO that = (ApplicationCategoryAuditDTO) o;
     return Objects.equals(applicationCategoryId, that.applicationCategoryId)
         && Objects.equals(applicationCategoryName, that.applicationCategoryName);
   }

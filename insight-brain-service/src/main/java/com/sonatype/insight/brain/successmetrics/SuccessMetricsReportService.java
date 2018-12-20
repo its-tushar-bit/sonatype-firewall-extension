@@ -14,10 +14,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditUtils;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.utils.AuditUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;

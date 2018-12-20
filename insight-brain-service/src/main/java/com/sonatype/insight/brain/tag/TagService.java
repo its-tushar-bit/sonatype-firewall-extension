@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -261,11 +262,11 @@ class TagService
   }
 
   private void auditUpdatePolicyTags(final Policy policy, final List<Tag> newTags) {
-    AuditData.get().setPolicy(policy).setInheritanceScope(TagDTO.transcribe(newTags));
+    AuditData.get().setPolicy(policy).setInheritanceScope(ApplicationCategoryAuditDTO.transcribe(newTags));
   }
 
   private void auditUpdateApplicationTags(final List<Tag> applicationTags) {
-    AuditData.get().setApplicationCategories(TagDTO.transcribe(applicationTags));
+    AuditData.get().setApplicationCategories(ApplicationCategoryAuditDTO.transcribe(applicationTags));
   }
 
   @Authorize(permission = Permission.READ)

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -47,7 +48,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -406,7 +406,8 @@ public class PolicyImportExport
 
   private void auditPolicyTags(Organization organization, final Policy policy, final List<Tag> tags) {
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_POLICY_INHERITANCE, false)) {
-      AuditData.get().setOrganization(organization).setPolicy(policy).setInheritanceScope(TagDTO.transcribe(tags));
+      AuditData.get().setOrganization(organization).setPolicy(policy)
+          .setInheritanceScope(ApplicationCategoryAuditDTO.transcribe(tags));
     }
   }
 

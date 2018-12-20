@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingFlattenedDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditUtils;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -31,7 +32,6 @@ import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregatio
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
-import com.sonatype.insight.brain.utils.AuditUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;

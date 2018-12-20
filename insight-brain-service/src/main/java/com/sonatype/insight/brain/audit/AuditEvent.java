@@ -265,8 +265,6 @@ public enum AuditEvent
     
     String REPORTING_SUCCESS_METRICS_REPORT = join(REPORTING_SUCCESS_METRICS, "report");
 
-    String REPORTING_DASHBOARD = join(REPORTING, "dashboard");
-
     String REPORTING_DASHBOARD_VIOLATION_LIST = join(REPORTING_DASHBOARD, "violation-list");
 
     String REPORTING_DASHBOARD_APPLICATION_LIST = join(REPORTING_DASHBOARD, "application-list");

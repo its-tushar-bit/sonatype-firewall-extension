@@ -10,23 +10,14 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
-import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.api.v2.service.ApplicationAuditDTO;
 import com.sonatype.insight.brain.api.v2.service.OrganizationAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
-import com.sonatype.insight.json.store.JsonUtils;
-
-import org.junit.After;
-import org.junit.Test;
-
-import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
-import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
-import static java.util.Arrays.asList;
-
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -36,8 +27,12 @@ import com.sonatype.insight.brain.tag.TagDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.After;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
+import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
@@ -119,8 +114,6 @@ public class DashboardResourceAuditTest
     return restRequest().path(DashboardResource.RESOURCE_PATH);
   }
 
-  @Test
-  public void testGetNewestRisks() throws Exception {
   private void testGetRisks(String restPath, AuditEvent expectedAuditEvent) throws Exception {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();

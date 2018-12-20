@@ -16,14 +16,6 @@
   <artifactId>insight-rm-common</artifactId>
   <name>Sonatype CLM Repository Manager Common Integration</name>
 
-  <properties>
-    <!-- Nexus 2 consumes insight-rm-common and must still support 1.7 -->
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <animal-sniffer-signature>java17</animal-sniffer-signature>
-    <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>

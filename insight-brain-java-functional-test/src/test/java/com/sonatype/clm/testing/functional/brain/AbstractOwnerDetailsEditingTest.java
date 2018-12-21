@@ -41,8 +41,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest
@@ -88,7 +87,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
-    assertThat(OwnerDetailTreeView.headerHref(), containsString(OwnerSummaryPage.url(currentOwner)));
+    assertThat(OwnerDetailTreeView.headerHref()).contains(OwnerSummaryPage.url(currentOwner));
 
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
       eyesWatcher.eyesCheck("Non-repository owner detail tree view");

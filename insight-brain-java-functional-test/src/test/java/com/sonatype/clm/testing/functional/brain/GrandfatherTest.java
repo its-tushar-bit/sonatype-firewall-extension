@@ -29,8 +29,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GrandfatherTest
     extends AbstractFunctionalTest
@@ -101,7 +100,7 @@ public class GrandfatherTest
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation grandfatheredPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(false));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isFalse();
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.grandfather().shouldBe(visible).click();
@@ -110,7 +109,7 @@ public class GrandfatherTest
     modal.grandfatherButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
     modal.shouldBe(hidden);
   }
 
@@ -122,7 +121,7 @@ public class GrandfatherTest
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation grandfatheredPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(false));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isFalse();
 
     ActionDropDown.actionButton().click();
     ActionDropDown.grandfather().click();
@@ -130,7 +129,7 @@ public class GrandfatherTest
 
     modal.cancelButton().click();
 
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(false));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isFalse();
     modal.shouldBe(hidden);
   }
 }

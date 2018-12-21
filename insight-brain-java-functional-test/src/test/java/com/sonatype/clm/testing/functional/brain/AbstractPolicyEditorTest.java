@@ -91,13 +91,7 @@ import static com.sonatype.clm.testing.functional.elements.ActionsSection.warnCl
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -162,14 +156,13 @@ public abstract class AbstractPolicyEditorTest
 
     Policy newPolicy = getPolicyByName("New Policy");
 
-    assertThat(newPolicy, is(notNullValue()));
-    assertThat(newPolicy.getConstraints(), is(notNullValue()));
-    assertThat(newPolicy.getConstraints().size(), is(1));
+    assertThat(newPolicy).isNotNull();
+    assertThat(newPolicy.getConstraints()).hasSize(1);
     Constraint constraint = newPolicy.getConstraints().get(0);
-    assertThat(constraint.getName(), is("New Constraint"));
-    assertThat(constraint.getOperator(), is(LogicalOperator.OR));
+    assertThat(constraint.getName()).isEqualTo("New Constraint");
+    assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions().size(), is(14));
+    assertThat(constraint.getConditions()).hasSize(14);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -193,16 +186,17 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(13), IdentificationSourceConditionType.ID, "is not",
         IdentificationSource.MANUAL.getId());
 
-    assertThat(newPolicy.getActions().get(Stage.ID_BUILD), is("warn"));
+    assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
-    assertThat(newPolicy.getNotifications().getUserNotifications(), hasSize(1));
-    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getEmailAddress(), is("aaa@sonatype.com"));
-    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getStageIds(),
-        containsInAnyOrder(com.sonatype.clm.dto.model.policy.Stage.ID_BUILD));
+    assertThat(newPolicy.getNotifications().getUserNotifications()).hasSize(1);
+    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getEmailAddress())
+        .isEqualTo("aaa@sonatype.com");
+    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getStageIds())
+        .containsExactlyInAnyOrder(com.sonatype.clm.dto.model.policy.Stage.ID_BUILD);
 
-    assertThat(newPolicy.getNotifications().getRoleNotifications(), hasSize(1));
-    assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds(),
-        containsInAnyOrder(Notification.CONTINUOUS_MONITORING));
+    assertThat(newPolicy.getNotifications().getRoleNotifications()).hasSize(1);
+    assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds())
+        .containsExactlyInAnyOrder(Notification.CONTINUOUS_MONITORING);
     
     testCreatePolicy_navigatingAwayWithUnsavedData();
   }
@@ -212,9 +206,9 @@ public abstract class AbstractPolicyEditorTest
                                       String expectedOp,
                                       String expectedValue)
   {
-    assertThat(actualCondition.getConditionTypeId(), is(expectedType));
-    assertThat(actualCondition.getOperator(), is(expectedOp));
-    assertThat(actualCondition.getValue(), is(expectedValue));
+    assertThat(actualCondition.getConditionTypeId()).isEqualTo(expectedType);
+    assertThat(actualCondition.getOperator()).isEqualTo(expectedOp);
+    assertThat(actualCondition.getValue()).isEqualTo(expectedValue);
   }
 
   @Test
@@ -300,9 +294,9 @@ public abstract class AbstractPolicyEditorTest
     // verify persisted policy
     Policy policy = getPolicyByName("New Policy");
     List<JiraNotification> notifications = policy.getNotifications().getJiraNotifications();
-    assertThat(notifications.size(), is(1));
-    assertThat(notifications.get(0).getProjectKey(), is("key1"));
-    assertThat(notifications.get(0).getIssueTypeId(), is(1L));
+    assertThat(notifications).hasSize(1);
+    assertThat(notifications.get(0).getProjectKey()).isEqualTo("key1");
+    assertThat(notifications.get(0).getIssueTypeId()).isEqualTo(1);
 
     refreshOrOpen(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
@@ -312,7 +306,7 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.savePolicy();
 
     policy = getPolicyByName("New Policy");
-    assertTrue(policy.getNotifications().getJiraNotifications().isEmpty());
+    assertThat(policy.getNotifications().getJiraNotifications()).isEmpty();
   }
 
   private Policy getPolicyByName(String policyName) {
@@ -420,7 +414,7 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_summarySection(String policyId) {
     Policy policy = policyDAO.getById(policyId);
     // Sanity check to verify that the initial value is as expected.
-    assertThat(policy.isPolicyViolationGrandfatheringAllowed(), is(false));
+    assertThat(policy.isPolicyViolationGrandfatheringAllowed()).isFalse();
 
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("updated name");
@@ -440,9 +434,9 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     Policy updatedPolicy = policyDAO.getById(policy.getId());
-    assertThat(updatedPolicy.getName(), is("updated name"));
-    assertThat(updatedPolicy.isPolicyViolationGrandfatheringAllowed(), is(true));
-    assertThat(updatedPolicy.getThreatLevel(), is(6));
+    assertThat(updatedPolicy.getName()).isEqualTo("updated name");
+    assertThat(updatedPolicy.isPolicyViolationGrandfatheringAllowed()).isTrue();
+    assertThat(updatedPolicy.getThreatLevel()).isEqualTo(6);
   }
 
   private void testEditPolicy_constraintSection(Policy policy) {
@@ -514,7 +508,7 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.savePolicy();
 
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getName(), is("New Constraint Name"));
+    assertThat(policy.getConstraints().get(0).getName()).isEqualTo("New Constraint Name");
 
     constraintEdit.conditions().shouldHaveSize(1);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
@@ -528,9 +522,9 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintsPill().click();
 
     Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0).getConditions().get(0);
-    assertThat(updatedAgeCondition.getConditionTypeId(), is(AgeInDaysConditionType.ID));
-    assertThat(updatedAgeCondition.getValue(), is(Integer.toString(3 * 30)));
-    assertThat(updatedAgeCondition.getOperator(), is("younger than"));
+    assertThat(updatedAgeCondition.getConditionTypeId()).isEqualTo(AgeInDaysConditionType.ID);
+    assertThat(updatedAgeCondition.getValue()).isEqualTo(Integer.toString(3 * 30));
+    assertThat(updatedAgeCondition.getOperator()).isEqualTo("younger than");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
@@ -544,13 +538,13 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
-    assertThat(constraints.get(0).getConditions().size(), is(2));
+    assertThat(constraints.get(0).getConditions()).hasSize(2);
 
     Condition ltgCondition = constraints.get(0).getConditions().get(1);
-    assertThat(ltgCondition.getConditionTypeId(), is(LicenseThreatGroupConditionType.ID));
-    assertThat(ltgCondition.getValue(),
-        is(new LicenseThreatGroupDAO().getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId()));
-    assertThat(ltgCondition.getOperator(), is("is not"));
+    assertThat(ltgCondition.getConditionTypeId()).isEqualTo(LicenseThreatGroupConditionType.ID);
+    assertThat(ltgCondition.getValue())
+        .isEqualTo(new LicenseThreatGroupDAO().getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId());
+    assertThat(ltgCondition.getOperator()).isEqualTo("is not");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
@@ -567,12 +561,12 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
-    assertThat(constraints.get(0).getConditions().size(), is(3));
+    assertThat(constraints.get(0).getConditions()).hasSize(3);
 
     Condition coordinatesCondition = constraints.get(0).getConditions().get(2);
-    assertThat(coordinatesCondition.getConditionTypeId(), is(CoordinatesConditionType.ID));
-    assertThat(coordinatesCondition.getValue(), is("maven:com.eclipse.*:*:*:*:*"));
-    assertThat(coordinatesCondition.getOperator(), is("do not match"));
+    assertThat(coordinatesCondition.getConditionTypeId()).isEqualTo(CoordinatesConditionType.ID);
+    assertThat(coordinatesCondition.getValue()).isEqualTo("maven:com.eclipse.*:*:*:*:*");
+    assertThat(coordinatesCondition.getOperator()).isEqualTo("do not match");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.condition(2).type()
@@ -587,12 +581,13 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
-    assertThat(constraints.get(0).getConditions().size(), is(3));
+    assertThat(constraints.get(0).getConditions()).hasSize(3);
 
     Condition securityVulnerabilityCondition = constraints.get(0).getConditions().get(2);
-    assertThat(securityVulnerabilityCondition.getConditionTypeId(), is(SecurityVulnerabilitySeverityConditionType.ID));
-    assertThat(securityVulnerabilityCondition.getValue(), is("1"));
-    assertThat(securityVulnerabilityCondition.getOperator(), is(">="));
+    assertThat(securityVulnerabilityCondition.getConditionTypeId())
+        .isEqualTo(SecurityVulnerabilitySeverityConditionType.ID);
+    assertThat(securityVulnerabilityCondition.getValue()).isEqualTo("1");
+    assertThat(securityVulnerabilityCondition.getOperator()).isEqualTo(">=");
 
     // Check that severity can be set to 0 as well
     constraintEdit.inputCondition(2).value().val("0");
@@ -613,7 +608,7 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
-    assertThat(constraints.get(0).getConditions().size(), is(1));
+    assertThat(constraints.get(0).getConditions()).hasSize(1);
   }
 
   private void testEditPolicy_notificationsSection(Policy policy) {
@@ -675,11 +670,11 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notifications().get(1).shouldHave(text("Application Evaluator"));
 
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getNotifications().getRoleNotifications(), hasSize(2));
-    assertThat(policy.getNotifications().getUserNotifications(), hasSize(1));
+    assertThat(policy.getNotifications().getRoleNotifications()).hasSize(2);
+    assertThat(policy.getNotifications().getUserNotifications()).hasSize(1);
     Notifications notifications = policy.getNotifications().getApplicable(Stage.ID_BUILD, false);
-    assertThat(notifications.getUserNotifications(), hasSize(0));
-    assertThat(notifications.getRoleNotifications(), hasSize(1));
+    assertThat(notifications.getUserNotifications()).hasSize(0);
+    assertThat(notifications.getRoleNotifications()).hasSize(1);
 
     // check 'operate' and 'continuousMonitoring' stages
     NotificationsSection.notificationFor("aaa@sonatype.com").operate().click();
@@ -687,8 +682,8 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.savePolicy();
     PolicyEditorPage.notificationsPill().click();
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, false).getUserNotifications(), hasSize(1));
-    assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, true).getRoleNotifications(), hasSize(1));
+    assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, false).getUserNotifications()).hasSize(1);
+    assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, true).getRoleNotifications()).hasSize(1);
 
     // test "All roles are being notified." message
     addNotification.notificationType().selectedItem().click();
@@ -738,12 +733,12 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getActions().get(Stage.ID_BUILD), is(Action.ID_FAIL));
-    assertThat(policy.getActions().get(Stage.ID_DEVELOP), is(Action.ID_WARN));
-    assertThat(policy.getActions().get(Stage.ID_PROXY), is(Action.ID_WARN));
-    assertThat(policy.getActions().get(Stage.ID_OPERATE), is(Action.ID_FAIL));
-    assertThat(policy.getActions().get(Stage.ID_STAGE_RELEASE), is(nullValue()));
-    assertThat(policy.getActions().get(Stage.ID_RELEASE), is(nullValue()));
+    assertThat(policy.getActions().get(Stage.ID_BUILD)).isEqualTo(Action.ID_FAIL);
+    assertThat(policy.getActions().get(Stage.ID_DEVELOP)).isEqualTo(Action.ID_WARN);
+    assertThat(policy.getActions().get(Stage.ID_PROXY)).isEqualTo(Action.ID_WARN);
+    assertThat(policy.getActions().get(Stage.ID_OPERATE)).isEqualTo(Action.ID_FAIL);
+    assertThat(policy.getActions().get(Stage.ID_STAGE_RELEASE)).isNull();
+    assertThat(policy.getActions().get(Stage.ID_RELEASE)).isNull();
   }
 
   private void testDeletePolicy(Policy policy) {
@@ -759,7 +754,7 @@ public abstract class AbstractPolicyEditorTest
     DeleteModal.root().shouldBe(hidden);
 
     assertNewPolicyStateIsCorrect();
-    assertThat(policyDAO.getById(policy.getId()), is(nullValue()));
+    assertThat(policyDAO.getById(policy.getId())).isNull();
   }
 
   public void testCreatePolicy_summarySection() {

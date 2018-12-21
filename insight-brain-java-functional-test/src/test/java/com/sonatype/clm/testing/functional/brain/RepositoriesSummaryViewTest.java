@@ -45,10 +45,7 @@ import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurati
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrolledOffTop;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoriesSummaryViewTest
     extends AbstractFunctionalTest
@@ -126,7 +123,7 @@ public class RepositoriesSummaryViewTest
     DeleteModal.cancelButton().shouldBe(visible).click();
     DeleteModal.root().shouldBe(hidden);
 
-    assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(not(nullValue())));
+    assertThat(repositoryDAO.getById(repositoryToDelete.getId())).isNotNull();
 
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();
     DeleteModal.root().shouldBe(visible);
@@ -135,7 +132,7 @@ public class RepositoriesSummaryViewTest
     FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldBe(hidden);
 
-    assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(nullValue()));
+    assertThat(repositoryDAO.getById(repositoryToDelete.getId())).isNull();
   }
 
   @Test

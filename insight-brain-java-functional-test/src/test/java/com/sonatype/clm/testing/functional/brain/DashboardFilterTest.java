@@ -75,9 +75,7 @@ import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardFilterTest
     extends AbstractFunctionalTest
@@ -303,7 +301,7 @@ public class DashboardFilterTest
     // assert stored filter
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
         .getByUsername("admin");
-    assertThat(filter.get(0).getFilter().replace("\r\n", "\n"), is("{\n" +
+    assertThat(filter.get(0).getFilter().replace("\r\n", "\n")).isEqualTo("{\n" +
         "  \"minPolicyThreatLevel\" : 2,\n" +
         "  \"maxPolicyThreatLevel\" : 7,\n" +
         "  \"applicationFilters\" : [ \"" + firstApp.getId() + "\" ],\n" +
@@ -313,7 +311,7 @@ public class DashboardFilterTest
         "  \"stageTypeFilters\" : [ \"release\" ],\n" +
         "  \"maxDaysOld\" : 30,\n" +
         "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ]\n" +
-        "}"));
+        "}");
 
     // assert applied filters
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
@@ -548,9 +546,9 @@ public class DashboardFilterTest
     eyesWatcher.eyesCheck("'Dirty' asterisk remains");
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = new DashboardFilterDAO()
         .getByUsername("admin");
-    assertThat(filters.size(), is(2));
-    assertThat(filters.get(0).getName(), is(""));
-    assertThat(filters.get(0).getBasedOnFilterName(), is("Initial"));
+    assertThat(filters).hasSize(2);
+    assertThat(filters.get(0).getName()).isEqualTo("");
+    assertThat(filters.get(0).getBasedOnFilterName()).isEqualTo("Initial");
 
     // save new filter
     saveFilter("New Filter", "Initial", false, false);
@@ -644,9 +642,9 @@ public class DashboardFilterTest
 
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    assertThat(filters.size(), is(2));
-    assertThat(filters.get(0).getName(), is("")); // default filter
-    assertThat(filters.get(1).getName(), is(filter2));
+    assertThat(filters).hasSize(2);
+    assertThat(filters.get(0).getName()).isEqualTo(""); // default filter
+    assertThat(filters.get(1).getName()).isEqualTo(filter2);
   }
 
   @Test
@@ -681,7 +679,7 @@ public class DashboardFilterTest
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     com.sonatype.insight.brain.model.filter.DashboardFilter filter = dashboardFilterDAO
         .getByUsernameAndName("admin", "");
-    assertThat(filter.getBasedOnFilterName(), is(nullValue()));
+    assertThat(filter.getBasedOnFilterName()).isNull();
   }
 
   @Test
@@ -721,9 +719,9 @@ public class DashboardFilterTest
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
 
-    assertThat(filters.size(), is(2)); // one for the active and named
-    assertThat(filters.get(0).isAcknowledged(), is(false));
-    assertThat(filters.get(1).isAcknowledged(), is(false));
+    assertThat(filters).hasSize(2); // one for the active and named
+    assertThat(filters.get(0).isAcknowledged()).isFalse();
+    assertThat(filters.get(1).isAcknowledged()).isFalse();
 
     testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
     refreshOrOpen(VIOLATIONS_URL);

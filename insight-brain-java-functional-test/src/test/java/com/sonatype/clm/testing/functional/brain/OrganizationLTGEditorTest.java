@@ -21,10 +21,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationLTGEditorTest
     extends AbstractLTGEditorTest
@@ -54,10 +51,10 @@ public class OrganizationLTGEditorTest
 
     assertNewLTGStateIsCorrect();
     LicenseThreatGroup ltg = ltgDAO.getByOwnerIdAndName(currentOwner.getId(), ltgName);
-    assertThat(ltg, notNullValue());
-    assertThat(ltg.getName(), is(ltgName));
-    assertThat(ltg.getThreatLevel(), is(LTGEditorPage.DEFAULT_THREAT_LEVEL));
-    assertThat(ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId()), empty());
+    assertThat(ltg).isNotNull();
+    assertThat(ltg.getName()).isEqualTo(ltgName);
+    assertThat(ltg.getThreatLevel()).isEqualTo(LTGEditorPage.DEFAULT_THREAT_LEVEL);
+    assertThat(ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId())).isEmpty();
   }
 
   @Override

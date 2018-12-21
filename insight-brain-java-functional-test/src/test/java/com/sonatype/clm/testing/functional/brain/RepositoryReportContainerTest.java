@@ -26,9 +26,8 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
-import static junit.framework.TestCase.fail;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class RepositoryReportContainerTest
     extends AbstractFunctionalTest
@@ -59,7 +58,7 @@ public class RepositoryReportContainerTest
     refreshOrOpen(RepositoryReportContainerPage.url(repository.getId()));
 
     Date oldest = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
-    assertThat(oldest, is(repositoryComponent.getLastEvaluationTime()));
+    assertThat(oldest).isEqualTo(repositoryComponent.getLastEvaluationTime());
     RepositoryReportContainerPage.refreshButton().shouldBe(visible);
     RepositoryReportContainerPage.oldestEvalTime().shouldBe(visible)
         .shouldBe(Condition.exactTextCaseSensitive("Oldest evaluation 3 days ago"));

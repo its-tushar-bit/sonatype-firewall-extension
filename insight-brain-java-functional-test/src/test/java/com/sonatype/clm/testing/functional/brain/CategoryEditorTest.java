@@ -37,12 +37,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_red;
 import static com.sonatype.insight.brain.model.Color.light_green;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CategoryEditorTest
     extends AbstractFunctionalTest
@@ -102,11 +97,11 @@ public class CategoryEditorTest
     assertInitialStateIsCorrect(); // form reset
 
     Tag category = getCategoryByName(org.getId(), CATEGORY_NAME);
-    assertNotNull(category);
-    assertEquals(org.getId(), category.getOrganizationId());
-    assertEquals(CATEGORY_NAME, category.getName());
-    assertEquals("Description", category.getDescription());
-    assertEquals(light_green, category.getColor());
+    assertThat(category).isNotNull();
+    assertThat(category.getOrganizationId()).isEqualTo(org.getId());
+    assertThat(category.getName()).isEqualTo(CATEGORY_NAME);
+    assertThat(category.getDescription()).isEqualTo("Description");
+    assertThat(category.getColor()).isEqualTo(light_green);
   }
 
   @Test
@@ -132,11 +127,11 @@ public class CategoryEditorTest
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
 
     category = getCategoryByName(org.getId(), "updated name");
-    assertNotNull(category);
-    assertEquals(org.getId(), category.getOrganizationId());
-    assertEquals("updated name", category.getName());
-    assertEquals("updated description", category.getDescription());
-    assertEquals(dark_red, category.getColor());
+    assertThat(category).isNotNull();
+    assertThat(category.getOrganizationId()).isEqualTo(org.getId());
+    assertThat(category.getName()).isEqualTo("updated name");
+    assertThat(category.getDescription()).isEqualTo("updated description");
+    assertThat(category.getColor()).isEqualTo(dark_red);
   }
 
   @Test
@@ -155,7 +150,7 @@ public class CategoryEditorTest
     DeleteModal.root().shouldBe(hidden);
     CategoryEditorPage.categoryName().shouldHave(value(category.getName()));
     category = tagDAO.getById(category.getId());
-    assertThat(category, is(not(nullValue())));
+    assertThat(category).isNotNull();
     // when
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
     // then
@@ -166,7 +161,7 @@ public class CategoryEditorTest
     waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
 
     category = tagDAO.getById(category.getId());
-    assertThat(category, is(nullValue()));
+    assertThat(category).isNull();
   }
 
   @Test
@@ -189,8 +184,8 @@ public class CategoryEditorTest
 
     waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
 
-    assertThat(tagDAO.getById(category.getId()), is(nullValue()));
-    assertThat(appTagDao.getByApplicationIdAndTagId(app.getId(), category.getId()), is(nullValue()));
+    assertThat(tagDAO.getById(category.getId())).isNull();
+    assertThat(appTagDao.getByApplicationIdAndTagId(app.getId(), category.getId())).isNull();
   }
 
   @Test

@@ -30,7 +30,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MoveApplicationTest
     extends AbstractFunctionalTest
@@ -101,7 +101,7 @@ public class MoveApplicationTest
 
     // test new parent
     Application updatedApp = appDAO.getById(application.getId());
-    assertEquals(updatedApp.getParentOwnerId(), otherOrg.getId());
+    assertThat(updatedApp.getParentOwnerId()).isEqualTo(otherOrg.getId());
   }
 
   @Test
@@ -130,7 +130,7 @@ public class MoveApplicationTest
 
     // test new parent
     Application updatedApp = appDAO.getById(application.getId());
-    assertEquals(updatedApp.getParentOwnerId(), otherOrg.getId());
+    assertThat(updatedApp.getParentOwnerId()).isEqualTo(otherOrg.getId());
   }
 
   @Test
@@ -177,8 +177,7 @@ public class MoveApplicationTest
 
     Dropdown destinationDropdown = modal.destinationDropdown();
     destinationDropdown.shouldBe(visible).selectedItem().click();
-    assertEquals(SOME_OTHER_ORGANIZATION, destinationDropdown.listItem(0).text());
-    destinationDropdown.listItem(0).click();
+    destinationDropdown.listItem(0).shouldHave(text(SOME_OTHER_ORGANIZATION)).click();
 
     modal.footer().shouldNotHave(ERROR);
     modal.dismissButton().shouldHave(text("Cancel"));

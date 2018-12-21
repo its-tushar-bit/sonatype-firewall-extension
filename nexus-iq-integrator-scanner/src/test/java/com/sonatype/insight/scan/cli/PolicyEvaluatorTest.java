@@ -7,6 +7,7 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -39,10 +40,8 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.mockito.ArgumentCaptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -112,30 +111,24 @@ public class PolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, "Maintenance"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-p", "localhost:8888", "-U",
         "proxyuser:proxypass", "-i", "the-app-id", "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
-      assertEquals("http://localhost:8070/", httpConfig.getValue().getServerUrl());
-      assertEquals("localhost", httpConfig.getValue().getProxyHost());
-      assertEquals(8888, httpConfig.getValue().getProxyPort());
-      assertEquals("proxyuser", httpConfig.getValue().getProxyAuth().getUsername());
-      assertEquals("proxypass", new String(httpConfig.getValue().getProxyAuth().getPassword()));
-    }
+    });
+    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
+    assertThat(httpConfig.getValue().getServerUrl()).isEqualTo("http://localhost:8070/");
+    assertThat(httpConfig.getValue().getProxyHost()).isEqualTo("localhost");
+    assertThat(httpConfig.getValue().getProxyPort()).isEqualTo(8888);
+    assertThat(httpConfig.getValue().getProxyAuth().getUsername()).isEqualTo("proxyuser");
+    assertThat(new String(httpConfig.getValue().getProxyAuth().getPassword())).isEqualTo("proxypass");
   }
 
   @Test
   public void testInvalidAppId() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The application ID the-app-id is invalid.");
-    }
+    });
+    logOutput.assertError("The application ID the-app-id is invalid.");
   }
 
   @Test
@@ -191,13 +184,9 @@ public class PolicyEvaluatorTest
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(1, ex.getExitCode());
-    }
+    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
     logOutput.assertInfo("Policy Action: Failure");
     logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
     logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
@@ -209,30 +198,22 @@ public class PolicyEvaluatorTest
   public void testPassWhenIgnoreSystemExceptions() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, ""));
 
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params1 = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
-    try {
-      evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(1, ex.getExitCode());
-    }
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
+      evaluator.run(params1);
+    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
 
     logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
 
-    params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-e",
-        "true");
+    Parameters params2 = new Parameters(
+        Stream.concat(Stream.of("-e", "true"), Stream.of(params1.getArgs())).toArray(String[]::new));
 
-    // The evaluator will still throw an exit exception in the case where the -g flag is passed in as true
+    // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
     // The exception will have exit status code 0 such that it will "pass" in a CI
-    try {
-      evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(0, ex.getExitCode());
-    }
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
+      evaluator.run(params2);
+    }).satisfies(e -> assertThat(e.getExitCode()).isZero());
 
     logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
   }
@@ -250,28 +231,27 @@ public class PolicyEvaluatorTest
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertNotNull(scanFile.getValue());
+    assertThat(scanFile.getValue()).isNotNull();
     Scan scan = scanReader.read(scanFile.getValue());
-    assertNotNull(scan);
+    assertThat(scan).isNotNull();
     ScanSummary summary = scan.getSummary();
-    assertNotNull(summary);
-    assertNotNull(summary.getStartTime());
-    assertNotNull(summary.getEndTime());
-    assertNotNull(summary.getClientInfo());
-    assertNotNull(summary.getClientInfo().getProperty("java.version"));
+    assertThat(summary).isNotNull();
+    assertThat(summary.getStartTime()).isNotNull();
+    assertThat(summary.getEndTime()).isNotNull();
+    assertThat(summary.getClientInfo()).containsKey("java.version");
     ScanConfiguration config = scan.getConfiguration();
-    assertNotNull(config);
-    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryPackages"));
-    assertEquals(1, scan.getItems().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "proprietaryPackages")).isEqualTo(ScanWriter.PROPERTY_MASKED);
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem jar = scan.getItems().get(0);
-    assertEquals("artifact.jar", jar.getPath());
-    assertEquals("87cf012929052d02c3f1", jar.getSha1());
-    assertEquals(1, jar.getItems().size());
+    assertThat(jar.getPath()).isEqualTo("artifact.jar");
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
+    assertThat(jar.getItems()).hasSize(1);
     for (ScanItem item : jar.getItems()) {
-      assertNull(item.getPath());
-      assertNotNull(item.getSha1());
-      assertNotNull(item.getSha1JA001());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getSha1()).isNotNull();
+      assertThat(item.getSha1JA001()).isNotNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
   }
 
@@ -289,21 +269,21 @@ public class PolicyEvaluatorTest
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-D", "proprietaryPackages=com.sonatype");
     evaluator.run(params);
-    assertNotNull(scanFile.getValue());
+    assertThat(scanFile.getValue()).isNotNull();
     Scan scan = scanReader.read(scanFile.getValue());
-    assertNotNull(scan);
+    assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
-    assertNotNull(config);
-    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryPackages"));
-    assertEquals(1, scan.getItems().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "proprietaryPackages")).isEqualTo(ScanWriter.PROPERTY_MASKED);
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem jar = scan.getItems().get(0);
-    assertEquals("artifact.jar", jar.getPath());
-    assertEquals("87cf012929052d02c3f1", jar.getSha1());
+    assertThat(jar.getPath()).isEqualTo("artifact.jar");
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
     for (ScanItem item : jar.getItems()) {
-      assertNull(item.getPath());
-      assertNotNull(item.getSha1());
-      assertNotNull(item.getSha1JA001());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getSha1()).isNotNull();
+      assertThat(item.getSha1JA001()).isNotNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
   }
 
@@ -321,21 +301,21 @@ public class PolicyEvaluatorTest
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-D", "proprietaryRegexes=com.sonatype.*");
     evaluator.run(params);
-    assertNotNull(scanFile.getValue());
+    assertThat(scanFile.getValue()).isNotNull();
     Scan scan = scanReader.read(scanFile.getValue());
-    assertNotNull(scan);
+    assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
-    assertNotNull(config);
-    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryRegexes"));
-    assertEquals(1, scan.getItems().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "proprietaryRegexes")).isEqualTo(ScanWriter.PROPERTY_MASKED);
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem jar = scan.getItems().get(0);
-    assertEquals("artifact.jar", jar.getPath());
-    assertEquals("87cf012929052d02c3f1", jar.getSha1());
+    assertThat(jar.getPath()).isEqualTo("artifact.jar");
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
     for (ScanItem item : jar.getItems()) {
-      assertNull(item.getPath());
-      assertNotNull(item.getSha1());
-      assertNotNull(item.getSha1JA001());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getSha1()).isNotNull();
+      assertThat(item.getSha1JA001()).isNotNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
   }
 
@@ -345,14 +325,11 @@ public class PolicyEvaluatorTest
     HttpResponseException expectedException = new HttpResponseException(500, "error");
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenThrow(expectedException);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("Could not retrieve configuration for proprietary components from the IQ Server",
-          expectedException);
-    }
+    });
+    logOutput.assertError("Could not retrieve configuration for proprietary components from the IQ Server",
+        expectedException);
   }
 
   @Test
@@ -384,7 +361,7 @@ public class PolicyEvaluatorTest
   public void testInvalidStage() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-t", "invalid-stage-id");
-    assertNotNull("Invalid stage id was not detected", params.getError());
+    assertThat(params.getError()).as("Invalid stage id was not detected").isNotNull();
   }
 
   @Test

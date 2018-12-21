@@ -68,9 +68,9 @@ import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.joda.time.DateTime.now;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class DashboardViolationsTest
     extends AbstractFunctionalTest
@@ -409,7 +409,7 @@ public class DashboardViolationsTest
     DashboardFilters.apply();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
-    assertEquals("Expected empty export", CSV_HEADERS, exportCsv);
+    assertThat(exportCsv).as("Expected empty export").isEqualTo(CSV_HEADERS);
   }
 
   @Test
@@ -740,7 +740,7 @@ public class DashboardViolationsTest
     String[] lines = csv.split("\r\n");
 
     // assert CSV header
-    assertEquals(CSV_HEADERS, lines[0]);
+    assertThat(lines[0]).isEqualTo(CSV_HEADERS);
 
     // assert CSV results
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
@@ -759,10 +759,11 @@ public class DashboardViolationsTest
         String dateFirstSeen = matcher.group(2);
         String dateFirstSeenMillis = matcher.group(3);
 
-        assertEquals(expectedResultWithoutTimestamps, actualResultWithoutTimestamps);
-        assertEquals(dateFormat.format(expectedDate), dateFirstSeen);
-        assertEquals(expectedDate.getTime(), Long.parseLong(dateFirstSeenMillis));
-      } else {
+        assertThat(actualResultWithoutTimestamps).isEqualTo(expectedResultWithoutTimestamps);
+        assertThat(dateFirstSeen).isEqualTo(dateFormat.format(expectedDate));
+        assertThat(Long.parseLong(dateFirstSeenMillis)).isEqualTo(expectedDate.getTime());
+      }
+      else {
         fail("The CSV line was not in expected format: " + result);
       }
     }

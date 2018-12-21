@@ -46,8 +46,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClass;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardApplicationsTest
     extends AbstractFunctionalTest
@@ -451,9 +450,9 @@ public class DashboardApplicationsTest
 
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
-    assertEquals("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
+    assertThat(lines[0]).isEqualTo("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low");
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
-    assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
+    assertThat(results).isEqualTo(expectedSortedResults);
   }
 
   private Application createApp(String id) {

@@ -28,8 +28,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapServerListTest
     extends AbstractFunctionalTest
@@ -130,8 +129,8 @@ public class LdapServerListTest
     String[] serverNames = new String[] { "First Server", "Second Server", "Third Server", "Fourth Server" };
     for (int i = 0; i < serverNames.length; i++) {
       LdapServer server = actualServers.get(i);
-      assertThat(server.getName(), is(serverNames[i]));
-      assertThat(server.getPriority(), is(i + 1));
+      assertThat(server.getName()).isEqualTo(serverNames[i]);
+      assertThat(server.getPriority()).isEqualTo(i + 1);
     }
   }
 }

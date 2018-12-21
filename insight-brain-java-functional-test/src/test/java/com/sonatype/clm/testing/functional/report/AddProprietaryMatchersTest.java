@@ -38,9 +38,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AddProprietaryMatchersTest
     extends AbstractFunctionalTest
@@ -123,10 +121,8 @@ public class AddProprietaryMatchersTest
     modal.addButton().shouldNotBe(DISABLED).click();
     modal.shouldBe(hidden);
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(app.getId());
-    assertThat(config.getRegexes(), hasSize(3));
-    assertThat(config.getRegexes().get(0), is("\\QHelloWorldApp.jar/HelloWorld.jar\\E"));
-    assertThat(config.getRegexes().get(1), is("\\QHelloWorld.jar\\E"));
-    assertThat(config.getRegexes().get(2), is("foo"));
+    assertThat(config.getRegexes()).containsExactly("\\QHelloWorldApp.jar/HelloWorld.jar\\E", "\\QHelloWorld.jar\\E",
+        "foo");
 
     // submit same data - config should not change
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
@@ -134,10 +130,8 @@ public class AddProprietaryMatchersTest
     modal.addButton().shouldNotBe(DISABLED).click();
     modal.shouldBe(hidden);
     config = proprietaryConfigDAO.getByOwnerId(app.getId());
-    assertThat(config.getRegexes(), hasSize(3));
-    assertThat(config.getRegexes().get(0), is("\\QHelloWorldApp.jar/HelloWorld.jar\\E"));
-    assertThat(config.getRegexes().get(1), is("\\QHelloWorld.jar\\E"));
-    assertThat(config.getRegexes().get(2), is("foo"));
+    assertThat(config.getRegexes()).containsExactly("\\QHelloWorldApp.jar/HelloWorld.jar\\E", "\\QHelloWorld.jar\\E",
+        "foo");
 
     // nothing selected
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
@@ -167,11 +161,8 @@ public class AddProprietaryMatchersTest
     modal.retryButton().shouldNotBe(DISABLED).click();
     modal.shouldBe(hidden);
     config = proprietaryConfigDAO.getByOwnerId(app.getId());
-    assertThat(config.getRegexes(), hasSize(4));
-    assertThat(config.getRegexes().get(0), is("\\QHelloWorldApp.jar/HelloWorld.jar\\E"));
-    assertThat(config.getRegexes().get(1), is("\\QHelloWorld.jar\\E"));
-    assertThat(config.getRegexes().get(2), is("foo"));
-    assertThat(config.getRegexes().get(3), is("bar"));
+    assertThat(config.getRegexes()).containsExactly("\\QHelloWorldApp.jar/HelloWorld.jar\\E", "\\QHelloWorld.jar\\E",
+        "foo", "bar");
   }
 
   private void createGavViolatingPolicy(String ownerId) {

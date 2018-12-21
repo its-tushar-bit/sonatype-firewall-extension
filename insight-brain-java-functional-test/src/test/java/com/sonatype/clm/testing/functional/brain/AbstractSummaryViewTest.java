@@ -64,11 +64,7 @@ import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderCol
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.DOWN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.UP_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.PolicyTileList.threatLevel;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractSummaryViewTest
     extends AbstractFunctionalTest
@@ -464,7 +460,7 @@ public abstract class AbstractSummaryViewTest
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
     final int hierarchySize = parentOwners.size() + 1;
     LabelTile labelTile = OwnerSummaryPage.labelTile();
-    assertThat(inheritedLabels.size(), equalTo(parentOwners.size()));
+    assertThat(inheritedLabels).hasSameSizeAs(parentOwners);
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
@@ -525,7 +521,7 @@ public abstract class AbstractSummaryViewTest
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 
     OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
-    assertThat(currentOwner, is(not(nullValue())));
+    assertThat(currentOwner).isNotNull();
 
     ActionDropDown.actionButton().click();
     ActionDropDown.deleteOwnerButton().shouldBe(visible).shouldHave(text(ownerName)).click();
@@ -541,7 +537,7 @@ public abstract class AbstractSummaryViewTest
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 
-    assertThat(currentOwner, is(nullValue()));
+    assertThat(currentOwner).isNull();
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(parentOwners.size() - 1).getId())) {
       OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldNotHave(text(ownerName));
@@ -637,7 +633,7 @@ public abstract class AbstractSummaryViewTest
   private void testPolicyTile_Inherited(List<List<Policy>> inheritedPolicies, List<Owner> parentOwners) {
     int hierarchySize = parentOwners.size() + 1;
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
-    assertThat(inheritedPolicies.size(), equalTo(parentOwners.size()));
+    assertThat(inheritedPolicies).hasSameSizeAs(parentOwners);
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
     // scroll to the policy tile

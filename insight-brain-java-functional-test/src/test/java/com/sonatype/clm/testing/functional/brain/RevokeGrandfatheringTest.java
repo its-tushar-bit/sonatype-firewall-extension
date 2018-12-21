@@ -25,8 +25,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RevokeGrandfatheringTest
     extends AbstractFunctionalTest
@@ -70,7 +69,7 @@ public class RevokeGrandfatheringTest
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.revokeGrandfathered().shouldBe(visible).click();
@@ -79,7 +78,7 @@ public class RevokeGrandfatheringTest
     modal.revokeButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(false));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isFalse();
     modal.shouldBe(hidden);
   }
 
@@ -88,7 +87,7 @@ public class RevokeGrandfatheringTest
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
 
     ActionDropDown.actionButton().click();
     ActionDropDown.revokeGrandfathered().click();
@@ -96,7 +95,7 @@ public class RevokeGrandfatheringTest
 
     modal.cancelButton().click();
 
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
     modal.shouldBe(hidden);
   }
 }

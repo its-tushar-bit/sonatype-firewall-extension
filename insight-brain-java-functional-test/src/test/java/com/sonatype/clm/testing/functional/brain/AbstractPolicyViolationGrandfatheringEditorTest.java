@@ -29,8 +29,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     extends AbstractFunctionalTest
@@ -102,8 +101,8 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     policyViolationGrandfatheringDTO = policyViolationGrandfatheringService.getGrandfathering(currentOwner.getType(),
         currentOwner.getPublicId());
 
-    assertThat(policyViolationGrandfatheringDTO.enabled, is(true));
-    assertThat(policyViolationGrandfatheringDTO.allowOverride, is(false));
+    assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
+    assertThat(policyViolationGrandfatheringDTO.allowOverride).isFalse();
 
     eyesWatcher.eyesCheck();
   }

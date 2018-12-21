@@ -90,12 +90,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryReportTest
     extends AbstractFunctionalTest
@@ -201,7 +196,7 @@ public class RepositoryReportTest
     UnquarantineDialog.releaseButton().should(disappear);
 
     component = new RepositoryComponentDAO().getById(component.getId());
-    assertFalse(component.isQuarantined());
+    assertThat(component.isQuarantined()).isFalse();
   }
 
   @Test
@@ -368,8 +363,8 @@ public class RepositoryReportTest
     // Verify override on backend
     final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(), CRITICAL_IDENTIFIER);
-    assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
-    assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
+    assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.SELECTED);
+    assertThat(override.getLicenseIds()).isEqualTo(Collections.singleton("Apache-2.0"));
 
     // remove
     LicenseCIP.status().selectOption("Inherit Status (Acknowledged)");
@@ -379,7 +374,7 @@ public class RepositoryReportTest
 
     LicenseCIP.updateButton().shouldBe(disabled);
     override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(), CRITICAL_IDENTIFIER);
-    assertNull(override);
+    assertThat(override).isNull();
 
     // Close CIP should disappear
     RepositoryReportPage.table().closeCipButton().shouldBe(visible).click();
@@ -445,7 +440,7 @@ public class RepositoryReportTest
     RepositoryReportPage.waitForComponentUpdater();
 
     // label persisted
-    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash).size(), is(2));
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash)).hasSize(2);
 
     // new table row for the policy violation
     RepositoryReportPage.filter().allViolations().click();
@@ -468,8 +463,7 @@ public class RepositoryReportTest
     // backend check that it was removed
     List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(),
         criticalComponentHash);
-    assertThat(appliedLabels.size(), is(1));
-    assertThat(appliedLabels.get(0).getLabelId(), is(elJunko.getId()));
+    assertThat(appliedLabels).extracting(ComponentLabel::getLabelId).containsExactlyInAnyOrder(elJunko.getId());
 
     // CIP should disappear
     RepositoryReportPage.table().cip().shouldBe(hidden);
@@ -527,19 +521,19 @@ public class RepositoryReportTest
     // Verify repository policy violation and policy waiver both contain the correct content
     List<RepositoryPolicyViolation> repositoryPolicyViolations = new RepositoryPolicyViolationDAO()
         .getByRepositoryId(repo.getId());
-    assertThat(repositoryPolicyViolations, hasSize(4));
+    assertThat(repositoryPolicyViolations).hasSize(4);
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(repo.getId());
-    assertThat(policyWaivers, hasSize(1));
+    assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     RepositoryPolicyViolation repositoryPolicyViolation = repositoryPolicyViolations.stream()
         .filter(violation -> policyWaiver.getConstraintFactsJson().equals(violation.getConstraintFactsJson()))
         .findFirst().get();
 
-    assertThat(policyWaiver.getPolicyId(), is(repositoryPolicyViolation.getPolicyId()));
-    assertThat(policyWaiver.getOwnerId(), is(repositoryPolicyViolation.getRepositoryId()));
-    assertThat(policyWaiver.getHash(), is(criticalComponentHash));
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(policyWaiver.getOwnerId()).isEqualTo(repositoryPolicyViolation.getRepositoryId());
+    assertThat(policyWaiver.getHash()).isEqualTo(criticalComponentHash);
 
     // re-open CIP
     RepositoryReportPage.table().cipTab("Policy").click();
@@ -649,13 +643,12 @@ public class RepositoryReportTest
     RepositoryReportPage.waitForComponentUpdater();
 
     row.status().shouldHave(text("Open"));
-    assertNull(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(repo.getId(),
-        criticalComponentHash, "cve", "CVE-1234-56789"));
+    assertThat(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(repo.getId(),
+        criticalComponentHash, "cve", "CVE-1234-56789")).isNull();
 
     ArrayNode allLogJsonData = JsonUtils.read(new File(insightWork.getAuditDir(repo.getId()), "security.json"));
-    assertNotNull(allLogJsonData);
-    assertThat(allLogJsonData.size(), is(1));
-    assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
+    assertThat(allLogJsonData).hasSize(1);
+    assertThat(allLogJsonData.get(0).get("data").get("comment").asText()).isEqualTo("woot");
 
     // close CIP
     RepositoryReportPage.table().cipCloseButton().click();

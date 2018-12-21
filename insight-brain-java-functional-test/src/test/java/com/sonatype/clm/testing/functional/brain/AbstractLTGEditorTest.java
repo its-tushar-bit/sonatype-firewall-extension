@@ -38,10 +38,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractLTGEditorTest
     extends AbstractFunctionalTest
@@ -100,10 +97,10 @@ public abstract class AbstractLTGEditorTest
     List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
 
     ltg = ltgDAO.getById(ltg.getId());
-    assertThat(ltg, notNullValue());
-    assertThat(ltg.getName(), is("updated name"));
-    assertThat(ltg.getThreatLevel(), is(6));
-    assertThat(includedLicenses.size(), is(3));
+    assertThat(ltg).isNotNull();
+    assertThat(ltg.getName()).isEqualTo("updated name");
+    assertThat(ltg.getThreatLevel()).isEqualTo(6);
+    assertThat(includedLicenses).hasSize(3);
 
     for (int i = 0; i < includedLicenses.size(); i++) {
       picker.pickedItem(i).label()
@@ -125,7 +122,7 @@ public abstract class AbstractLTGEditorTest
     DeleteModal.root().shouldBe(hidden);
 
     assertNewLTGStateIsCorrect();
-    assertThat(ltgDAO.getById(ltg.getId()), is(nullValue()));
+    assertThat(ltgDAO.getById(ltg.getId())).isNull();
   }
 
   protected void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {

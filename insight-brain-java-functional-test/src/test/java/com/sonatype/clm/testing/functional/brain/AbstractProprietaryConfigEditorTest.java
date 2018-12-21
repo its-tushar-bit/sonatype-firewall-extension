@@ -39,9 +39,7 @@ import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorP
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.INVALID_PACKAGE_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.WILDCARD_PACKAGE_MESSAGE;
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractProprietaryConfigEditorTest extends AbstractFunctionalTest
 {
@@ -132,8 +130,8 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     FormMask.seeAndWaitForDismissal();
     
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(currentOwner.getId());
-    assertThat(config.getPackages(), contains("com.local"));
-    assertThat(config.getRegexes(), contains("com.sonatype.*"));
+    assertThat(config.getPackages()).containsExactly("com.local");
+    assertThat(config.getRegexes()).containsExactly("com.sonatype.*");
 
     ProprietaryConfigEditorPage.updateButton().shouldHave(DISABLED);
 
@@ -158,8 +156,8 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     FormMask.seeAndWaitForDismissal();
 
     config = proprietaryConfigDAO.getByOwnerId(currentOwner.getId());
-    assertTrue(config.getPackages().isEmpty());
-    assertTrue(config.getRegexes().isEmpty());
+    assertThat(config.getPackages()).isEmpty();
+    assertThat(config.getRegexes()).isEmpty();
   }
 
   private void assertInheritanceSection() {

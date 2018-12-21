@@ -77,11 +77,7 @@ import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP.ERROR_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportCipTest
     extends AbstractFunctionalTest
@@ -383,8 +379,8 @@ public class ApplicationReportCipTest
     // Verify override on backend
     final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
-    assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
-    assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
+    assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.SELECTED);
+    assertThat(override.getLicenseIds()).isEqualTo(Collections.singleton("Apache-2.0"));
 
     // open full-size license selector dropdown before eyes check
     LicenseCIP.status().selectOption("Overridden");
@@ -400,7 +396,7 @@ public class ApplicationReportCipTest
 
     LicenseCIP.updateButton().shouldBe(disabled);
     override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
-    assertNull(override);
+    assertThat(override).isNull();
 
     // check that tab loads next component when using Next button
     mockHdsResponseForSecondComponent();
@@ -518,7 +514,7 @@ public class ApplicationReportCipTest
     AddLabelModal.root().shouldBe(hidden);
 
     // label persisted
-    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH).size(), is(2));
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH)).hasSize(2);
 
     // Check new policy violation was added
     evaluator.reevaluatePolicy();
@@ -542,8 +538,7 @@ public class ApplicationReportCipTest
 
     // backend check that it was removed
     List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH);
-    assertThat(appliedLabels.size(), is(1));
-    assertThat(appliedLabels.get(0).getLabelId(), is(elMagnifico.getId()));
+    assertThat(appliedLabels).extracting(ComponentLabel::getLabelId).containsExactlyInAnyOrder(elMagnifico.getId());
 
     // Check new policy violation is gone
     evaluator.reevaluatePolicy();
@@ -609,13 +604,12 @@ public class ApplicationReportCipTest
     VulnerabilityCIP.Editor.saveButton().click();
 
     row.status().shouldHave(text("Open"));
-    assertNull(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(app.getId(),
-        JAVANCSS_HASH, "cve", "CVE-1234-56789"));
+    assertThat(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(app.getId(),
+        JAVANCSS_HASH, "cve", "CVE-1234-56789")).isNull();
 
     ArrayNode allLogJsonData = JsonUtils.read(new File(insightWork.getAuditDir(app.getId()), "security.json"));
-    assertNotNull(allLogJsonData);
-    assertThat(allLogJsonData.size(), is(1));
-    assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
+    assertThat(allLogJsonData).hasSize(1);
+    assertThat(allLogJsonData.get(0).get("data").get("comment").asText()).isEqualTo("woot");
 
     // check that tab loads next component when using Next button
     mockHdsResponseForSecondComponent();
@@ -737,9 +731,9 @@ public class ApplicationReportCipTest
     HashComponentIdentifier claimedComponent = new HashComponentIdentifierDAO().getByComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version", "classifier", "extension"));
 
-    assertThat(claimedComponent, is(notNullValue()));
-    assertThat(claimedComponent.getComment(), is("comment"));
-    assertThat(claimedComponent.getCreateTime(), is(DateTime.now().withTimeAtStartOfDay().toDate()));
+    assertThat(claimedComponent).isNotNull();
+    assertThat(claimedComponent.getComment()).isEqualTo("comment");
+    assertThat(claimedComponent.getCreateTime()).isEqualTo(DateTime.now().withTimeAtStartOfDay().toDate());
 
     claimComponentTab.group().input().val("groupie");
     claimComponentTab.cancelBtn().shouldBe(enabled).click();

@@ -46,9 +46,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WaiverTest
     extends AbstractFunctionalTest
@@ -88,19 +86,19 @@ public class WaiverTest
     AddWaiverDialog.root().should(disappear);
 
     List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
-    assertThat(policyViolations, hasSize(4));
+    assertThat(policyViolations).hasSize(4);
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
-    assertThat(policyWaivers, hasSize(1));
+    assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     PolicyViolation policyViolation = policyViolations.stream()
         .filter(violation -> policyWaiver.getConstraintFactsJson().equals(violation.getConstraintFactsJson()))
         .findFirst().get();
 
-    assertThat(policyWaiver.getPolicyId(), is(policyViolation.getPolicyId()));
-    assertThat(policyWaiver.getOwnerId(), is(policyViolation.getApplicationId()));
-    assertThat(policyWaiver.getHash(), is(policyViolation.getHash()));
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    assertThat(policyWaiver.getOwnerId()).isEqualTo(policyViolation.getApplicationId());
+    assertThat(policyWaiver.getHash()).isEqualTo(policyViolation.getHash());
 
     evaluator.reevaluatePolicy();
 

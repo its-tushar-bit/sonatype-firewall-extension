@@ -47,12 +47,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapConfigurationTest
     extends AbstractFunctionalTest
@@ -114,7 +109,7 @@ public class LdapConfigurationTest
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers"));
 
     server = ldapServerDAO.getByName("Another Ldap Server");
-    assertThat(server, is(notNullValue()));
+    assertThat(server).isNotNull();
 
     testFormValidation();
 
@@ -188,7 +183,7 @@ public class LdapConfigurationTest
     waitUntilUrl(LdapServerListPage.URL);
     serverListPage.ldapServerList().elements().shouldHaveSize(0);
     serverListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
-    assertThat(new LdapServerDAO().getById(server.getId()), is(nullValue()));
+    assertThat(new LdapServerDAO().getById(server.getId())).isNull();
   }
 
   private void testFormValidation() {
@@ -285,17 +280,17 @@ public class LdapConfigurationTest
     // Ensure persisted Connection matches
     LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(server.getId());
 
-    assertThat(persistedConnection, is(notNullValue()));
-    assertThat(persistedConnection.getProtocol(), is(LdapProtocol.LDAP));
-    assertThat(persistedConnection.getHostname(), is(testLdapServer.getHostname()));
-    assertThat(persistedConnection.getPort(), is(testLdapServer.getPort()));
-    assertThat(persistedConnection.getSearchBase(), is("ou=users,dc=company,dc=com"));
-    assertThat(persistedConnection.getAuthenticationMethod(), is(LdapAuthenticationMethod.SIMPLE));
-    assertThat(persistedConnection.getSaslRealm(), is("just checking if persisted"));
-    assertThat(persistedConnection.getSystemUsername(), is("just checking if persisted"));
-    assertThat(persistedConnection.getSystemPassword(), is(not("just checking if persisted")));
-    assertThat(persistedConnection.getConnectionTimeout(), is(31));
-    assertThat(persistedConnection.getRetryDelay(), is(31));
+    assertThat(persistedConnection).isNotNull();
+    assertThat(persistedConnection.getProtocol()).isEqualTo(LdapProtocol.LDAP);
+    assertThat(persistedConnection.getHostname()).isEqualTo(testLdapServer.getHostname());
+    assertThat(persistedConnection.getPort()).isEqualTo(testLdapServer.getPort());
+    assertThat(persistedConnection.getSearchBase()).isEqualTo("ou=users,dc=company,dc=com");
+    assertThat(persistedConnection.getAuthenticationMethod()).isEqualTo(LdapAuthenticationMethod.SIMPLE);
+    assertThat(persistedConnection.getSaslRealm()).isEqualTo("just checking if persisted");
+    assertThat(persistedConnection.getSystemUsername()).isEqualTo("just checking if persisted");
+    assertThat(persistedConnection.getSystemPassword()).isNotEqualTo("just checking if persisted");
+    assertThat(persistedConnection.getConnectionTimeout()).isEqualTo(31);
+    assertThat(persistedConnection.getRetryDelay()).isEqualTo(31);
 
     // Revert back to no authentication
     connectionForm.authenticationMethod().shouldHave(value("SIMPLE")).selectOption("NONE");
@@ -373,16 +368,16 @@ public class LdapConfigurationTest
 
     LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(server.getId());
 
-    assertThat(persistedUserMapping, is(notNullValue()));
-    assertThat(persistedUserMapping.getUserBaseDN(), is("just checking if persisted"));
-    assertThat(persistedUserMapping.getUserObjectClass(), is("person"));
-    assertThat(persistedUserMapping.getUserFilter(), is("just checking if persisted"));
-    assertThat(persistedUserMapping.getUserIDAttribute(), is("uid"));
-    assertThat(persistedUserMapping.getUserRealNameAttribute(), is("cn"));
-    assertThat(persistedUserMapping.getUserEmailAttribute(), is("mail"));
-    assertThat(persistedUserMapping.isUserSubtree(), is(true));
-    assertThat(persistedUserMapping.getGroupMappingType(), is(LdapGroupMappingType.DYNAMIC));
-    assertThat(persistedUserMapping.getUserMemberOfGroupAttribute(), is("departmentNumber"));
+    assertThat(persistedUserMapping).isNotNull();
+    assertThat(persistedUserMapping.getUserBaseDN()).isEqualTo("just checking if persisted");
+    assertThat(persistedUserMapping.getUserObjectClass()).isEqualTo("person");
+    assertThat(persistedUserMapping.getUserFilter()).isEqualTo("just checking if persisted");
+    assertThat(persistedUserMapping.getUserIDAttribute()).isEqualTo("uid");
+    assertThat(persistedUserMapping.getUserRealNameAttribute()).isEqualTo("cn");
+    assertThat(persistedUserMapping.getUserEmailAttribute()).isEqualTo("mail");
+    assertThat(persistedUserMapping.isUserSubtree()).isTrue();
+    assertThat(persistedUserMapping.getGroupMappingType()).isEqualTo(LdapGroupMappingType.DYNAMIC);
+    assertThat(persistedUserMapping.getUserMemberOfGroupAttribute()).isEqualTo("departmentNumber");
   }
 
   private void testLdapFormDataMatchesPersistedData() {
@@ -414,7 +409,7 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userIDAttribute().shouldHave(value(persistedUserMapping.getUserIDAttribute()));
     userAndGroupSettingsForm.userRealNameAttribute().shouldHave(value(persistedUserMapping.getUserRealNameAttribute()));
     userAndGroupSettingsForm.userEmailAttribute().shouldHave(value(persistedUserMapping.getUserEmailAttribute()));
-    assertThat(userAndGroupSettingsForm.userSubtree().isSelected(), equalTo(persistedUserMapping.isUserSubtree()));
+    assertThat(userAndGroupSettingsForm.userSubtree().isSelected()).isEqualTo(persistedUserMapping.isUserSubtree());
 
     userAndGroupSettingsForm.groupMappingType()
         .shouldHave(value(persistedUserMapping.getGroupMappingType().toString()));

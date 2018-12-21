@@ -29,8 +29,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationAccessEditorTest
     extends AbstractAccessEditorTest
@@ -95,10 +94,10 @@ public class ApplicationAccessEditorTest
     AccessEditorPage.addGroupBox().shouldBe(visible, value(""));
 
     List<MembershipMapping> mappings = getMembershipMappings(currentOwner.getId(), roleName);
-    assertThat(mappings.size(), is(1));
+    assertThat(mappings).hasSize(1);
 
     MembershipMapping mapping = mappings.get(0);
-    assertThat(mapping.getMemberType(), is(MemberType.GROUP));
-    assertThat(mapping.getMemberName(), is("FooBar"));
+    assertThat(mapping.getMemberType()).isEqualTo(MemberType.GROUP);
+    assertThat(mapping.getMemberName()).isEqualTo("FooBar");
   }
 }

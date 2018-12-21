@@ -23,8 +23,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AutomaticApplicationsConfigurationTest
     extends AbstractFunctionalTest
@@ -93,7 +92,7 @@ public class AutomaticApplicationsConfigurationTest
   private void verifyConfiguration(boolean enabled, Organization organization) {
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
 
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(enabled));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(organization.getId()));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isEqualTo(enabled);
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());
   }
 }

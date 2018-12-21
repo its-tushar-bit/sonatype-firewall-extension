@@ -11,8 +11,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DoubleColumnPickerTestHelper
 {
@@ -25,7 +24,7 @@ public class DoubleColumnPickerTestHelper
 
     if (filterOn) {
       picker.filter().shouldBe(visible);
-      assertThat(picker.filter().val(), isEmptyOrNullString());
+      assertThat(picker.filter().val()).isNullOrEmpty();
     }
     else {
       picker.filter().shouldNot(exist);

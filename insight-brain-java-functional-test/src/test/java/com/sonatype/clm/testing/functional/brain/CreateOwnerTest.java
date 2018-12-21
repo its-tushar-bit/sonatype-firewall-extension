@@ -57,9 +57,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CreateOwnerTest
     extends AbstractFunctionalTest
@@ -162,10 +160,10 @@ public class CreateOwnerTest
 
     // check backend
     Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
-    assertNotNull(app);
-    assertEquals(APP_PUBLIC_ID, app.getPublicId());
-    assertEquals(parentOrg.getId(), app.getOrganizationId());
-    assertEquals(NAME, app.getName());
+    assertThat(app).isNotNull();
+    assertThat(app.getPublicId()).isEqualTo(APP_PUBLIC_ID);
+    assertThat(app.getOrganizationId()).isEqualTo(parentOrg.getId());
+    assertThat(app.getName()).isEqualTo(NAME);
 
     orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
   }
@@ -200,10 +198,10 @@ public class CreateOwnerTest
 
     // validate system is updated
     Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
-    assertNotNull(app);
-    assertEquals(APP_PUBLIC_ID, app.getPublicId());
-    assertEquals(parentOrg.getId(), app.getOrganizationId());
-    assertEquals(NAME, app.getName());
+    assertThat(app).isNotNull();
+    assertThat(app.getPublicId()).isEqualTo(APP_PUBLIC_ID);
+    assertThat(app.getOrganizationId()).isEqualTo(parentOrg.getId());
+    assertThat(app.getName()).isEqualTo(NAME);
 
     // validate the selected image is displayed
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
@@ -240,7 +238,7 @@ public class CreateOwnerTest
 
     // validate system is updated
     Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
-    assertNotNull(app);
+    assertThat(app).isNotNull();
 
     // validate the selected image is displayed
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
@@ -288,7 +286,7 @@ public class CreateOwnerTest
 
     // validate image persisted and displayed is same as image that was selected
     Organization org = organizationDAO.getByName(NAME);
-    assertNotNull(org);
+    assertThat(org).isNotNull();
 
     BufferedImage persistedImage = readImage(OwnerType.ORGANIZATION, org.getId());
     assertImageEquals(userSelectedImage, persistedImage);
@@ -314,7 +312,7 @@ public class CreateOwnerTest
 
     // check backend
     Organization org = organizationDAO.getByName(NAME);
-    assertNotNull(org);
+    assertThat(org).isNotNull();
 
     // check frontend
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
@@ -361,7 +359,7 @@ public class CreateOwnerTest
 
     // check backend
     Organization org = organizationDAO.getByName(NAME);
-    assertNotNull(org);
+    assertThat(org).isNotNull();
 
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
 
@@ -394,7 +392,7 @@ public class CreateOwnerTest
     byte[] resizedImage1Bytes = bufferedImageToBytesArray(resizedImage1);
     BufferedImage resizedImage2 = resizeImage(image2, image2.getType());
     byte[] resizedImage2Bytes = bufferedImageToBytesArray(resizedImage2);
-    assertArrayEquals(resizedImage1Bytes, resizedImage2Bytes);
+    assertThat(resizedImage1Bytes).isEqualTo(resizedImage2Bytes);
   }
 
   private BufferedImage resizeImage(BufferedImage originalImage, int type) {

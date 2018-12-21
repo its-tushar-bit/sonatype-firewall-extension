@@ -61,9 +61,7 @@ import static com.codeborne.selenide.Condition.textCaseSensitive;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationSummaryViewTest
     extends AbstractSummaryViewTest
@@ -379,7 +377,7 @@ public class ApplicationSummaryViewTest
       tempFile = tempDir.newFile("mockApplicationBinary.war");
     }
     catch (IOException e) {
-      fail("Could not create temporary mock binary to evaluate. " + e.getMessage());
+      throw new AssertionError("Could not create temporary mock binary to evaluate. ", e);
     }
     finally {
       if (tempFile != null) {
@@ -421,7 +419,7 @@ public class ApplicationSummaryViewTest
         PolicyEvaluation policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(
             application.getId(), StageTypes.RELEASE.getId());
 
-        assertThat(policyEvaluations, notNullValue());
+        assertThat(policyEvaluations).isNotNull();
 
         modal.viewReportButton().shouldBe(visible, enabled).click();
 

@@ -69,11 +69,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractFunctionalTest
 {
@@ -364,16 +360,16 @@ public abstract class AbstractFunctionalTest
     waitUntil(webDriver -> {
       String url = webDriver.getCurrentUrl();
       try {
-        assertThat(url, not(anyOf(endsWith("/assets/index.html"), endsWith("/assets/index.html#/management/view"))));
+        assertThat(url).doesNotEndWith("/assets/index.html").doesNotEndWith("/assets/index.html#/management/view");
       }
       catch (AssertionError e) {
         // interim URL, unless ...
         // ... the login modal is shown
         try {
-          assertThat(webDriver.findElement(By.id("login-modal")).isDisplayed(), is(true));
+          assertThat(webDriver.findElement(By.id("login-modal")).isDisplayed()).isTrue();
           // ... and not currently performing a login
           try {
-            assertThat(webDriver.findElement(By.cssSelector(".form-mask")).isDisplayed(), is(true));
+            assertThat(webDriver.findElement(By.cssSelector(".form-mask")).isDisplayed()).isTrue();
           }
           catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
             return;
@@ -386,11 +382,11 @@ public abstract class AbstractFunctionalTest
         if (url.endsWith("#/management/view")) {
           // ... has finished loading
           try {
-            assertThat(webDriver.findElement(By.id("owner-tree-view-owner-rows")).isDisplayed(), is(true));
+            assertThat(webDriver.findElement(By.id("owner-tree-view-owner-rows")).isDisplayed()).isTrue();
             // ... and nothing to redirect to
             try {
-              assertThat(webDriver.findElement(By.cssSelector(".owner-tree-view__row--organization")).isDisplayed(),
-                  is(true));
+              assertThat(webDriver.findElement(By.cssSelector(".owner-tree-view__row--organization")).isDisplayed())
+                  .isTrue();
             }
             catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
               return;
@@ -406,11 +402,11 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void waitUntilUrl(final String url) {
-    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), is(url)));
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl()).isEqualTo(url));
   }
 
   protected static void waitUntilNotUrl(final String url) {
-    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), is(not(url))));
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl()).isNotEqualTo(url));
   }
 
   private static void waitUntil(Consumer<WebDriver> assertion) {

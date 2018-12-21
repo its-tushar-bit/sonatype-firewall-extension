@@ -19,8 +19,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ExternalLinkTest
     extends AbstractFunctionalTest
@@ -44,7 +43,7 @@ public class ExternalLinkTest
 
     gettingStartedPage.systemSetup().shouldBe(visible);
     gettingStartedPage.docLink(0).shouldBe(visible).click();
-    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles().size(), is(2));
+    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles()).hasSize(2);
     Selenide.switchTo().window(1).close();
     Selenide.switchTo().window(0);
   }
@@ -57,7 +56,7 @@ public class ExternalLinkTest
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
     gettingStartedPage.systemSetup().shouldBe(visible);
     gettingStartedPage.docLink(0).shouldBe(visible).click();
-    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles().size(), is(1));
+    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles()).hasSize(1);
     ExternalLinkModal modal = new ExternalLinkModal();
     modal.shouldBe(visible).body().shouldHave(text("http://links.sonatype.com/products/nxiq/doc/requirements"));
     modal.closeButton().click();
@@ -76,7 +75,7 @@ public class ExternalLinkTest
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
     gettingStartedPage.systemSetup().shouldBe(visible);
     gettingStartedPage.docLinkIcon(0).shouldBe(visible).click();
-    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles().size(), is(1));
+    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles()).hasSize(1);
     ExternalLinkModal modal = new ExternalLinkModal();
     modal.shouldBe(visible).body().shouldHave(text("http://links.sonatype.com/products/nxiq/doc/requirements"));
     modal.closeButton().click();

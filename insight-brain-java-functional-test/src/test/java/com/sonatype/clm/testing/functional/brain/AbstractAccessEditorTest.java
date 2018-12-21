@@ -44,12 +44,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.PRISTINE;
 import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.DISABLED_GROUP_SEARCH_WARNING;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractAccessEditorTest
     extends AbstractFunctionalTest
@@ -98,7 +93,7 @@ public abstract class AbstractAccessEditorTest
     roleDropdown.selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
     eyesWatcher.eyesCheck();
     String roleName = roleDropdown.listItem(1).text();
-    assertThat(getMembershipMappings(currentOwner.getId(), roleName), is(empty()));
+    assertThat(getMembershipMappings(currentOwner.getId(), roleName)).isEmpty();
     roleDropdown.listItem(1).click();
     AccessEditorPage.saveButton().shouldHave(DISABLED);
     AccessEditorPage.searchButton().shouldHave(DISABLED);
@@ -126,7 +121,7 @@ public abstract class AbstractAccessEditorTest
     assertThatRoleNotAvailableInDropdown(roleName);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
-    assertThat(membershipMappings, hasSize(4));
+    assertThat(membershipMappings).hasSize(4);
   }
 
   @Test
@@ -164,7 +159,7 @@ public abstract class AbstractAccessEditorTest
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), role.getName());
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     picker.pickedItems().shouldHaveSize(4);
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(4));
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).hasSize(4);
   }
 
   @Test
@@ -190,7 +185,7 @@ public abstract class AbstractAccessEditorTest
     DeleteModal.body().shouldBe(hidden);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
 
   @Test
@@ -209,7 +204,7 @@ public abstract class AbstractAccessEditorTest
     DeleteModal.body().shouldBe(hidden);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
 
   @Test
@@ -256,7 +251,7 @@ public abstract class AbstractAccessEditorTest
   private void assertThatRoleNotAvailableInDropdown(final String roleName) {
     AccessEditorPage.roleDropdown().selectedItem().click();
     List<String> roleNames = AccessEditorPage.roleDropdown().listItems().texts();
-    assertThat(roleNames, not(contains(roleName)));
+    assertThat(roleNames).doesNotContain(roleName);
   }
 
   private void assertAddRoleInitialStateIsCorrect(int numAvailableRoles) {

@@ -33,12 +33,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_red;
 import static com.sonatype.insight.brain.model.Color.light_green;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LabelEditorTest
     extends AbstractFunctionalTest
@@ -84,11 +79,11 @@ public class LabelEditorTest
     // then
     assertInitialStateIsCorrect();
     Label label = getLabelByName(app.getId(), LABEL_NAME);
-    assertNotNull(label);
-    assertEquals(app.getId(), label.getOwnerId());
-    assertEquals(LABEL_NAME, label.getLabel());
-    assertEquals("a description", label.getDescription());
-    assertEquals(light_green, label.getColor());
+    assertThat(label).isNotNull();
+    assertThat(label.getOwnerId()).isEqualTo(app.getId());
+    assertThat(label.getLabel()).isEqualTo(LABEL_NAME);
+    assertThat(label.getDescription()).isEqualTo("a description");
+    assertThat(label.getColor()).isEqualTo(light_green);
   }
 
   @Test
@@ -117,11 +112,11 @@ public class LabelEditorTest
     LabelEditorPage.saveButton().shouldHave(DISABLED);
 
     label = getLabelByName(app.getOrganizationId(), "updated name");
-    assertNotNull(label);
-    assertEquals(app.getOrganizationId(), label.getOwnerId());
-    assertEquals("updated name", label.getLabel());
-    assertEquals("updated description", label.getDescription());
-    assertEquals(dark_red, label.getColor());
+    assertThat(label).isNotNull();
+    assertThat(label.getOwnerId()).isEqualTo(app.getOrganizationId());
+    assertThat(label.getLabel()).isEqualTo("updated name");
+    assertThat(label.getDescription()).isEqualTo("updated description");
+    assertThat(label.getColor()).isEqualTo(dark_red);
   }
 
   @Test
@@ -141,7 +136,7 @@ public class LabelEditorTest
     DeleteModal.root().shouldBe(hidden);
     LabelEditorPage.labelName().shouldHave(value(label.getLabel()));
     label = labelDAO.getById(label.getId());
-    assertThat(label, is(not(nullValue())));
+    assertThat(label).isNotNull();
   }
 
   @Test
@@ -159,7 +154,7 @@ public class LabelEditorTest
     waitUntilUrl(createLabelUrl);
 
     label = labelDAO.getById(label.getId());
-    assertThat(label, is(nullValue()));
+    assertThat(label).isNull();
   }
 
   private void testLabelCreate_testInputValidation() {

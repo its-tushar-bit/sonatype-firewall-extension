@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -37,15 +38,9 @@ import com.sonatype.insight.scan.model.io.ScanWriter;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.hamcrest.core.StringStartsWith.startsWith;
 
 public class DefaultPolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
@@ -59,13 +54,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
-    }
+    });
+    logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
   }
 
   @Test
@@ -73,13 +65,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The application ID the-app-id is invalid.");
-    }
+    });
+    logOutput.assertError("The application ID the-app-id is invalid.");
   }
 
   @Test
@@ -87,13 +76,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
-    }
+    });
+    logOutput.assertError("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
   }
 
   @Test
@@ -103,13 +89,10 @@ public class DefaultPolicyEvaluatorTest
         "-a", "user:" + TemporaryEntity.USER_PASSWORD_CLEAR, //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The application ID the-app-id is invalid.");
-    }
+    });
+    logOutput.assertError("The application ID the-app-id is invalid.");
   }
 
   @Test
@@ -117,14 +100,11 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", "--pki-authentication", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError(
-          "Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.");
-    }
+    });
+    logOutput.assertError(
+        "Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.");
   }
 
   @Test
@@ -133,13 +113,10 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
-    }
+    });
+    logOutput.assertError("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
   }
 
   @Test
@@ -182,13 +159,9 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(1, ex.getExitCode());
-    }
+    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
     logOutput.assertInfo("Policy Action: Failure");
     PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
@@ -206,10 +179,10 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     createPolicy(app.getId(), "TestPolicy", Action.ID_WARN, 9);
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    evaluator.run(params1);
     logOutput.assertInfo("Policy Action: Warning");
     PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
@@ -219,17 +192,11 @@ public class DefaultPolicyEvaluatorTest
 
     logOutput.clear();
 
-    params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
-        "-w", //
-        "src/test/data/artifact.jar");
-    try {
-      evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(1, ex.getExitCode());
-    }
+    Parameters params2 = new Parameters(
+        Stream.concat(Stream.of("-w"), Stream.of(params1.getArgs())).toArray(String[]::new));
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
+      evaluator.run(params2);
+    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
     logOutput.assertInfo("Policy Action: Warning");
     assertLogSummary(expectedPolicyEvaluationResult);
     logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(TestPolicy)"));
@@ -241,34 +208,24 @@ public class DefaultPolicyEvaluatorTest
 
     tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
-      evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(1, ex.getExitCode());
-    }
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
+      evaluator.run(params1);
+    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
 
     logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
 
     logOutput.clear();
 
-    params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
-        "-e", //
-        "src/test/data/artifact.jar");
+    Parameters params2 = new Parameters(
+        Stream.concat(Stream.of("-e"), Stream.of(params1.getArgs())).toArray(String[]::new));
     // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
     // The exception will have exit status code 0 such that it will "pass" in a CI
-    try {
-      evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException ex) {
-      assertEquals(0, ex.getExitCode());
-    }
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
+      evaluator.run(params2);
+    }).satisfies(e -> assertThat(e.getExitCode()).isZero());
 
     logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
   }
@@ -297,26 +254,25 @@ public class DefaultPolicyEvaluatorTest
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
-    assertNotNull(scan);
+    assertThat(scan).isNotNull();
     ScanSummary summary = scan.getSummary();
-    assertNotNull(summary);
-    assertNotNull(summary.getStartTime());
-    assertNotNull(summary.getEndTime());
-    assertNotNull(summary.getClientInfo());
-    assertNotNull(summary.getClientInfo().getProperty("java.version"));
+    assertThat(summary).isNotNull();
+    assertThat(summary.getStartTime()).isNotNull();
+    assertThat(summary.getEndTime()).isNotNull();
+    assertThat(summary.getClientInfo()).containsKey("java.version");
     ScanConfiguration config = scan.getConfiguration();
-    assertNotNull(config);
-    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryPackages"));
-    assertEquals(1, scan.getItems().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "proprietaryPackages")).isEqualTo(ScanWriter.PROPERTY_MASKED);
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem jar = scan.getItems().get(0);
-    assertEquals("artifact.jar", jar.getPath());
-    assertEquals("87cf012929052d02c3f1", jar.getSha1());
-    assertEquals(1, jar.getItems().size());
+    assertThat(jar.getPath()).isEqualTo("artifact.jar");
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
+    assertThat(jar.getItems()).hasSize(1);
     for (ScanItem item : jar.getItems()) {
-      assertNull(item.getPath());
-      assertNotNull(item.getSha1());
-      assertNotNull(item.getSha1JA001());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getSha1()).isNotNull();
+      assertThat(item.getSha1JA001()).isNotNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
   }
 
@@ -333,19 +289,19 @@ public class DefaultPolicyEvaluatorTest
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
-    assertNotNull(scan);
+    assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
-    assertNotNull(config);
-    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryPackages"));
-    assertEquals(1, scan.getItems().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "proprietaryPackages")).isEqualTo(ScanWriter.PROPERTY_MASKED);
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem jar = scan.getItems().get(0);
-    assertEquals("artifact.jar", jar.getPath());
-    assertEquals("87cf012929052d02c3f1", jar.getSha1());
+    assertThat(jar.getPath()).isEqualTo("artifact.jar");
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
     for (ScanItem item : jar.getItems()) {
-      assertNull(item.getPath());
-      assertNotNull(item.getSha1());
-      assertNotNull(item.getSha1JA001());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getSha1()).isNotNull();
+      assertThat(item.getSha1JA001()).isNotNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
   }
 
@@ -363,19 +319,19 @@ public class DefaultPolicyEvaluatorTest
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
-    assertNotNull(scan);
+    assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
-    assertNotNull(config);
-    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryRegexes"));
-    assertEquals(1, scan.getItems().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "proprietaryRegexes")).isEqualTo(ScanWriter.PROPERTY_MASKED);
+    assertThat(scan.getItems()).hasSize(1);
     ScanItem jar = scan.getItems().get(0);
-    assertEquals("artifact.jar", jar.getPath());
-    assertEquals("87cf012929052d02c3f1", jar.getSha1());
+    assertThat(jar.getPath()).isEqualTo("artifact.jar");
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
     for (ScanItem item : jar.getItems()) {
-      assertNull(item.getPath());
-      assertNotNull(item.getSha1());
-      assertNotNull(item.getSha1JA001());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getSha1()).isNotNull();
+      assertThat(item.getSha1JA001()).isNotNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
   }
 
@@ -389,8 +345,7 @@ public class DefaultPolicyEvaluatorTest
         "src/test/data/artifact.jar");
     evaluator.run(params);
 
-    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_RELEASE),
-        is(notNullValue()));
+    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_RELEASE)).isNotNull();
   }
 
   @Test
@@ -402,8 +357,7 @@ public class DefaultPolicyEvaluatorTest
         "src/test/data/artifact.jar");
     evaluator.run(params);
 
-    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD),
-        is(notNullValue()));
+    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD)).isNotNull();
   }
 
   @Test
@@ -418,11 +372,11 @@ public class DefaultPolicyEvaluatorTest
     evaluator.run(params);
     
     ResultData resultData = JsonUtils.parse(Files.readAllBytes(jsonFile.toPath()), ResultData.class);
-    assertThat(resultData.scanId, is("SCAN-ID"));
-    assertThat(resultData.applicationId, is(app.getPublicId()));
-    assertThat(resultData.reportDataUrl, is(notNullValue()));
-    assertThat(resultData.reportHtmlUrl, is(notNullValue()));
-    assertThat(resultData.reportPdfUrl, is(notNullValue()));
+    assertThat(resultData.scanId).isEqualTo("SCAN-ID");
+    assertThat(resultData.applicationId).isEqualTo(app.getPublicId());
+    assertThat(resultData.reportDataUrl).isNotNull();
+    assertThat(resultData.reportHtmlUrl).isNotNull();
+    assertThat(resultData.reportPdfUrl).isNotNull();
   }
 
   @Test
@@ -472,7 +426,7 @@ public class DefaultPolicyEvaluatorTest
 
     ApplicationDAO appDAO = new ApplicationDAO();
     Application app = appDAO.getByPublicId("non-existent-app-public-id");
-    assertThat(app, is(notNullValue()));
+    assertThat(app).isNotNull();
     appDAO.delete(app);
 
     assertLogSummary(new PolicyEvaluationResult());
@@ -483,20 +437,17 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
-    }
+    });
+    logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
   }
 
   private File findScanFile(Parameters params) {
     File scanOutputDir = params.getOutputDirectory();
 
     File[] scanFiles = scanOutputDir.listFiles(file -> file.getName().startsWith("scan-"));
-    assertThat(scanFiles.length, is(1));
+    assertThat(scanFiles).hasSize(1);
 
     return scanFiles[0];
   }
@@ -532,14 +483,12 @@ public class DefaultPolicyEvaluatorTest
     String olderServerVersion = decrementVersion(AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED);
     versionService.setVersion(olderServerVersion);
     try {
-      evaluator.run(params);
-      fail("Expected exception");
-    }
-    catch (ExitException expected) {
       String expectedMessage = "The IQ Server version " + olderServerVersion
           + " is not compatible. Supported IQ server versions are "
           + AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED + " or newer.";
-      assertThat(expected.getMessage(), endsWith(expectedMessage));
+      assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
+        evaluator.run(params);
+      }).withMessageEndingWith(expectedMessage);
       logOutput.assertError(expectedMessage);
     }
     finally {

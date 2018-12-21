@@ -26,10 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @RunWith(Parameterized.class)
 public class DefaultPolicyEvaluatorReverseProxyAuthTest
@@ -78,14 +76,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
       assertLogSummary(new PolicyEvaluationResult());
     }
     else {
-      try {
+      assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
         evaluator.run(params);
-        fail("Reverse proxy authentication is disabled and anonymous not allowed - auth should fail");
-      }
-      catch (ExitException ee) {
-        assertThat(ee.getCause(), is(instanceOf(HttpResponseException.class)));
-        assertThat(ee.getCause().getMessage(), is("Unauthorized"));
-      }
+      }).withCauseInstanceOf(HttpResponseException.class)
+          .satisfies(e -> assertThat(e.getCause().getMessage()).isEqualTo("Unauthorized"));
     }
   }
 
@@ -96,14 +90,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     Parameters params = new Parameters("-s", reverseProxy.getSslUrl(), "-a", "mrbasic:secret", "-i",
         "another_app", "src/test/data/artifact.jar");
 
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("User doesn't exist yet, so basic auth should have failed");
-    }
-    catch (ExitException ee) {
-      assertThat(ee.getCause(), is(instanceOf(HttpResponseException.class)));
-      assertThat(ee.getCause().getMessage(), is("Invalid credentials. Please try again."));
-    }
+    }).withCauseInstanceOf(HttpResponseException.class)
+        .satisfies(e -> assertThat(e.getCause().getMessage()).isEqualTo("Invalid credentials. Please try again."));
 
     // same, but with good credentials
     createAppAndAuthorizedUser("another_app", "mrbasic", "secret");
@@ -123,14 +113,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
       logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
     }
     else {
-      try {
+      assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
         evaluator.run(params);
-        fail("Anonymous access not enabled, auth should fail");
-      }
-      catch (ExitException ee) {
-        assertThat(ee.getCause(), is(instanceOf(HttpResponseException.class)));
-        assertThat(ee.getCause().getMessage(), is("Unauthorized"));
-      }
+      }).withCauseInstanceOf(HttpResponseException.class)
+          .satisfies(e -> assertThat(e.getCause().getMessage()).isEqualTo("Unauthorized"));
     }
   }
 

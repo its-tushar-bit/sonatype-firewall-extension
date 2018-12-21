@@ -25,12 +25,8 @@ import com.sonatype.insight.rm.rest.RestClient.Repository;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -50,15 +46,13 @@ public class RestClientFactoryTest
     when(scanClient.uploadRepoManScan(any(File.class))).thenThrow(hre);
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(scanClient).when(factory).newScanClient(any(Configuration.class), eq("appId"));
-    try {
-      RestClient.App client = factory.forConfiguration(new RestClientConfiguration()).forApplication("appId");
+    RestClient.App client = factory.forConfiguration(new RestClientConfiguration()).forApplication("appId");
+    assertThatExceptionOfType(HttpException.class).isThrownBy(() -> {
       client.uploadScan(new File(""));
-      fail("Expected HttpException");
-    }
-    catch (HttpException e) {
-      assertEquals(hre.getStatusCode(), e.getStatus());
-      assertEquals(hre.getMessage(), e.getReason());
-    }
+    }).satisfies(e -> {
+      assertThat(e.getReason()).isEqualTo(hre.getMessage());
+      assertThat(e.getStatus()).isEqualTo(hre.getStatusCode());
+    });
   }
 
   @Test
@@ -69,7 +63,7 @@ public class RestClientFactoryTest
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    assertSame(config, client.getProprietaryConfigForApplicationEvaluation("appId"));
+    assertThat(client.getProprietaryConfigForApplicationEvaluation("appId")).isSameAs(config);
   }
 
   @Test
@@ -79,15 +73,13 @@ public class RestClientFactoryTest
     when(configClient.getProprietaryConfigForApplicationEvaluation(eq("appId"))).thenThrow(hre);
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
-    try {
-      RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    assertThatExceptionOfType(HttpException.class).isThrownBy(() -> {
       client.getProprietaryConfigForApplicationEvaluation("appId");
-      fail("Expected HttpException");
-    }
-    catch (HttpException e) {
-      assertEquals(hre.getStatusCode(), e.getStatus());
-      assertEquals(hre.getMessage(), e.getReason());
-    }
+    }).satisfies(e -> {
+      assertThat(e.getReason()).isEqualTo(hre.getMessage());
+      assertThat(e.getStatus()).isEqualTo(hre.getStatusCode());
+    });
   }
 
   @Test
@@ -109,7 +101,7 @@ public class RestClientFactoryTest
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
 
-    assertSame(applicationSummaryList, client.getApplicationsForApplicationEvaluation());
+    assertThat(client.getApplicationsForApplicationEvaluation()).isSameAs(applicationSummaryList);
   }
 
   @Test
@@ -244,15 +236,11 @@ public class RestClientFactoryTest
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       repository.getUnquarantinedComponents(0L);
-      fail("Exception expected");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e, sameInstance(httpResponseException));
-      verify(firewallClient).getUnquarantinedComponents(0L);
-      verifyNoMoreInteractions(firewallClient);
-    }
+    }).isSameAs(httpResponseException);
+    verify(firewallClient).getUnquarantinedComponents(0L);
+    verifyNoMoreInteractions(firewallClient);
   }
 
   @Test
@@ -271,15 +259,11 @@ public class RestClientFactoryTest
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
-    try {
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
       repository.getUnquarantinedComponents(0L);
-      fail("Exception expected");
-    }
-    catch (UnsupportedOperationException e) {
-      assertThat((HttpResponseException) e.getCause(), sameInstance(httpResponseException));
-      verify(firewallClient).getUnquarantinedComponents(0L);
-      verifyNoMoreInteractions(firewallClient);
-    }
+    }).withCause(httpResponseException);
+    verify(firewallClient).getUnquarantinedComponents(0L);
+    verifyNoMoreInteractions(firewallClient);
   }
 
   @Test
@@ -303,7 +287,7 @@ public class RestClientFactoryTest
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
-    assertSame(policyEvaluationSummary, repository.getPolicyEvaluationSummary());
+    assertThat(repository.getPolicyEvaluationSummary()).isSameAs(policyEvaluationSummary);
   }
 
   @Test
@@ -371,7 +355,7 @@ public class RestClientFactoryTest
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    assertSame(firewallIgnorePatterns, client.getFirewallIgnorePatterns());
+    assertThat(client.getFirewallIgnorePatterns()).isSameAs(firewallIgnorePatterns);
   }
 
   @Test
@@ -384,16 +368,11 @@ public class RestClientFactoryTest
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
 
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    try {
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
       client.getFirewallIgnorePatterns();
-      fail("Exception expected");
-    }
-    catch (UnsupportedOperationException e) {
-      assertThat((HttpResponseException) e.getCause(), sameInstance(httpResponseException));
-      assertThat(e.getMessage(), is("IQ Server doesn't support firewall ignore patterns, "
-          + "upgrade it to version 1.35, or newer, to support it."));
-      verify(configClient).getFirewallIgnorePatterns();
-      verifyNoMoreInteractions(configClient);
-    }
+    }).withCause(httpResponseException).withMessage("IQ Server doesn't support firewall ignore patterns, "
+        + "upgrade it to version 1.35, or newer, to support it.");
+    verify(configClient).getFirewallIgnorePatterns();
+    verifyNoMoreInteractions(configClient);
   }
 }

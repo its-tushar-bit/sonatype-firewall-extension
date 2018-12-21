@@ -7,8 +7,6 @@ package com.sonatype.insight.rm.scan;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.Repository;
@@ -23,9 +21,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScanFactoryTest
 {
@@ -49,36 +45,26 @@ public class ScanFactoryTest
   }
 
   private void assertRepository(Repository repo) {
-    assertNotNull(repo);
-    assertEquals("staging-001", repo.getId());
-    assertEquals("maven2", repo.getFormat());
-    assertEquals("CLM 1.0", repo.getName());
+    assertThat(repo).isNotNull();
+    assertThat(repo.getId()).isEqualTo("staging-001");
+    assertThat(repo.getFormat()).isEqualTo("maven2");
+    assertThat(repo.getName()).isEqualTo("CLM 1.0");
   }
 
   private void assertSummary(int archives, int files, ScanSummary summary) {
-    assertNotNull(summary);
-    assertNotNull(summary.getStartTime());
-    assertNotNull(summary.getEndTime());
-    assertEquals(archives, summary.getArchives());
-    assertEquals(files, summary.getFiles());
+    assertThat(summary).isNotNull();
+    assertThat(summary.getStartTime()).isNotNull();
+    assertThat(summary.getEndTime()).isNotNull();
+    assertThat(summary.getArchives()).isEqualTo(archives);
+    assertThat(summary.getFiles()).isEqualTo(files);
   }
 
   private void assertIds(ScanItemProvider items, String... ids) {
-    Set<String> expected = new TreeSet<>(Arrays.asList(ids));
-    Set<String> actual = new TreeSet<>();
-    for (ScanItem item : items.getItems()) {
-      actual.add(String.valueOf(item.getId()));
-    }
-    assertEquals(expected, actual);
+    assertThat(items.getItems()).extracting(ScanItem::getId).containsExactlyInAnyOrder(ids);
   }
 
   private void assertPaths(ScanItemProvider items, String... paths) {
-    Set<String> expected = new TreeSet<>(Arrays.asList(paths));
-    Set<String> actual = new TreeSet<>();
-    for (ScanItem item : items.getItems()) {
-      actual.add(String.valueOf(item.getPath()));
-    }
-    assertEquals(expected, actual);
+    assertThat(items.getItems()).extracting(ScanItem::getPath).containsOnly(paths);
   }
 
   @Test
@@ -86,8 +72,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/a"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0");
@@ -101,8 +86,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/b"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:zip:dist:1.0");
@@ -119,8 +103,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/c"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0");
@@ -134,8 +117,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/d"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:zip:dist:1.0");
@@ -151,8 +133,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/e"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan);
@@ -164,8 +145,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/f"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:jar:1.1");
@@ -181,8 +161,7 @@ public class ScanFactoryTest
     ScanConfiguration config = newConfig();
     TestRepositoryItem.add(config, new File("src/test/repos/g"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:jar:1.1");
@@ -190,11 +169,11 @@ public class ScanFactoryTest
     assertPaths(scan.getItems().get(0), "META-INF/MANIFEST.MF");
     assertPaths(scan.getItems().get(1), "com/sonatype/insight/scan/model/ScanItem.class");
     ScanItem item = scan.getItems().get(1).getItems().get(0);
-    assertNotNull(item.getSha1());
-    assertNotNull(item.getSha1JA001());
-    assertNotNull(item.getSha1JB001());
-    assertNotNull(item.getSha1JC001());
-    assertNotNull(item.getSha1JD001());
+    assertThat(item.getSha1()).isNotNull();
+    assertThat(item.getSha1JA001()).isNotNull();
+    assertThat(item.getSha1JB001()).isNotNull();
+    assertThat(item.getSha1JC001()).isNotNull();
+    assertThat(item.getSha1JD001()).isNotNull();
     assertSummary(2, 2, scan.getSummary());
   }
 
@@ -222,25 +201,24 @@ public class ScanFactoryTest
     config.setProprietaryConfig(proprietaryConfig);
     TestRepositoryItem.add(config, new File("src/test/repos/h"));
     File scanFile = newScan(config);
-    assertNotNull(scanFile);
-    assertTrue(scanFile.getAbsolutePath(), scanFile.isFile());
+    assertThat(scanFile).isFile();
     Scan scan = parse(scanFile);
     assertRepository(scan.getRepository());
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:jar:1.1");
     ScanItem projectItem = scan.getItems().get(0).getItems().get(0);
-    assertEquals("target/mod-a-1.0.jar", projectItem.getPath());
-    assertPaths(projectItem, "META-INF/MANIFEST.MF", "null");
+    assertThat(projectItem.getPath()).isEqualTo("target/mod-a-1.0.jar");
+    assertPaths(projectItem, "META-INF/MANIFEST.MF", null);
     for (ScanItem item : projectItem.getItems()) {
       if (!"META-INF/MANIFEST.MF".equals(item.getPath())) {
-        assertEquals(null, item.getPath());
-        assertEquals("proprietaryPackages", item.getNoPathReason());
+        assertThat(item.getPath()).isNull();
+        assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
       }
     }
     ScanItem repoItem = scan.getItems().get(1);
-    assertEquals("com/sonatype/clm/its/mod-a/1.1/mod-a-1.1.jar", repoItem.getPath());
+    assertThat(repoItem.getPath()).isEqualTo("com/sonatype/clm/its/mod-a/1.1/mod-a-1.1.jar");
     for (ScanItem item : repoItem.getItems()) {
-      assertEquals(null, item.getPath());
-      assertEquals("proprietaryPackages", item.getNoPathReason());
+      assertThat(item.getPath()).isNull();
+      assertThat(item.getNoPathReason()).isEqualTo("proprietaryPackages");
     }
     assertSummary(2, 5, scan.getSummary());
   }

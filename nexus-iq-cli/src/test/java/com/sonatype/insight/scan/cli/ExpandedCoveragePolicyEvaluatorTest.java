@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -28,10 +27,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
@@ -67,16 +62,8 @@ import org.owasp.dependencycheck.utils.Settings;
 import org.owasp.dependencycheck.utils.Settings.KEYS;
 
 import static com.sonatype.insight.scan.cli.ExpandedCoveragePolicyEvaluator.EXPANDED_COVERAGE_SCAN_DISCLAIMER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -100,15 +87,19 @@ public class ExpandedCoveragePolicyEvaluatorTest
     binder.bind(RestClientFactory.class).toInstance(restClientFactory);
   }
 
+  private String getDependencyName(Dependency dependency) {
+    return dependency.getDisplayFileName().replace('\\', '/');
+  }
+
   @Test
   public void testScan_Java() throws Exception {
     List<Dependency> dependencies = testScan("java");
 
     logOutput.assertInfo("Found 3 items.");
-    assertThat(dependencies, hasSize(3));
-    assertThat(dependencies, hasItems(dependencyWithName("uber-1.0-SNAPSHOT.jar"),
-        dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)"),
-        dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)")));
+    assertThat(dependencies).extracting(this::getDependencyName).containsExactlyInAnyOrder( //
+        "uber-1.0-SNAPSHOT.jar", //
+        "uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)", //
+        "uber-1.0-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)");
   }
 
   @Test
@@ -116,8 +107,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     List<Dependency> dependencies = testScan("cmake");
 
     logOutput.assertInfo("Found 1 items.");
-    assertThat(dependencies, hasSize(1));
-    assertThat(dependencies, hasItem(dependencyWithName("zlib")));
+    assertThat(dependencies).extracting(this::getDependencyName).containsExactlyInAnyOrder("zlib");
   }
 
   @Test
@@ -125,30 +115,25 @@ public class ExpandedCoveragePolicyEvaluatorTest
     List<Dependency> dependencies = testScan("");
 
     logOutput.assertInfo("Found 18 items.");
-    assertThat(dependencies, hasSize(18));
-    assertThat(dependencies, hasItem(dependencyWithName("zlib")));
-    assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
-    assertThat(dependencies,
-        hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)")));
-    assertThat(dependencies,
-        hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)")));
-    assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg")));
-    assertThat(dependencies, hasItem(dependencyWithName("ActionSheet:1.0.0")));
-    assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.dll")));
-    assertThat(dependencies,
-        hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: b_jarWithStruts2pom.jar")));
-    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: ._OpenCVDetectPython.cmake")));
-    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: OpenCVDetectPython.cmake")));
-    assertThat(dependencies, hasItem(dependencyWithName("test/opensslv.h")));
-    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar")));
-    assertThat(dependencies, hasItem(dependencyWithName(
-        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar (shaded: com.example:uber:1.1-SNAPSHOT)")));
-    assertThat(dependencies, hasItem(dependencyWithName(
-        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)")));
-    assertThat(dependencies, hasItem(dependencyWithName("test.csproj")));
-    assertThat(dependencies, hasItem(dependencyWithName("Microsoft.AspNetCore.All:2.0.5")));
-    assertThat(dependencies, hasItem(dependencyWithName("packages.config")));
-    assertThat(dependencies, hasItem(dependencyWithName("Microsoft.AspNet.WebApi.Core:5.2.4")));
+    assertThat(dependencies).extracting(this::getDependencyName).containsExactlyInAnyOrder( //
+        "zlib", //
+        "uber-1.0-SNAPSHOT.jar", //
+        "uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)", //
+        "uber-1.0-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)", //
+        "actionsheet.1.0.0.mod.nupkg", //
+        "ActionSheet:1.0.0", //
+        "actionsheet.1.0.0.mod.nupkg: ActionSheet.dll", //
+        "unreadableJarsAroundReadableJar.zip: b_jarWithStruts2pom.jar", //
+        "macCompressWithMetaData.zip: ._OpenCVDetectPython.cmake", //
+        "macCompressWithMetaData.zip: OpenCVDetectPython.cmake", //
+        "test/opensslv.h", //
+        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar", //
+        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar (shaded: com.example:uber:1.1-SNAPSHOT)", //
+        "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar (shaded: org.apache.commons:commons-lang3:3.6)", //
+        "test.csproj", //
+        "Microsoft.AspNetCore.All:2.0.5", //
+        "packages.config", //
+        "Microsoft.AspNet.WebApi.Core:5.2.4");
   }
 
   @Test
@@ -157,11 +142,11 @@ public class ExpandedCoveragePolicyEvaluatorTest
     Set<String> values = new HashSet<>();
     for (Dependency dependency : dependencies) {
       for (Evidence evidence : dependency.getEvidence(EvidenceType.VENDOR)) {
-        assertThat(evidence.getValue(), is(notNullValue()));
+        assertThat(evidence.getValue()).isNotNull();
         values.add(evidence.getValue());
       }
     }
-    assertThat(values, hasItem(""));
+    assertThat(values).contains("");
   }
 
   @Test
@@ -184,7 +169,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is(nullValue()));
+    assertThat(dependency.getDisplayFileName()).isNull();
   }
 
   @Test
@@ -194,7 +179,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is("NotCMakeLists.txt"));
+    assertThat(dependency.getDisplayFileName()).isEqualTo("NotCMakeLists.txt");
   }
 
   @Test
@@ -204,7 +189,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is("CMakeLists.txt"));
+    assertThat(dependency.getDisplayFileName()).isEqualTo("CMakeLists.txt");
   }
 
   @Test
@@ -215,7 +200,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is("CMakeLists.txt"));
+    assertThat(dependency.getDisplayFileName()).isEqualTo("CMakeLists.txt");
   }
 
   @Test
@@ -226,7 +211,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is("name"));
+    assertThat(dependency.getDisplayFileName()).isEqualTo("name");
   }
 
   @Test
@@ -238,7 +223,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is("name:version"));
+    assertThat(dependency.getDisplayFileName()).isEqualTo("name:version");
   }
 
   @Test
@@ -250,26 +235,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     evaluator.fixCMakeAnalyzerDisplayName(dependency);
 
-    assertThat(dependency.getDisplayFileName(), is("name:version"));
-  }
-
-  private Matcher<Dependency> dependencyWithName(final String name) {
-    return new TypeSafeDiagnosingMatcher<Dependency>()
-    {
-      @Override
-      protected boolean matchesSafely(final Dependency item, final Description mismatchDescription) {
-        if (!Objects.equals(item.getDisplayFileName().replace('\\', '/'), name)) {
-          mismatchDescription.appendText("has displayFilename ").appendValue(item.getDisplayFileName());
-          return false;
-        }
-        return true;
-      }
-
-      @Override
-      public void describeTo(final Description description) {
-        description.appendText("Dependency with displayFilename ").appendValue(name);
-      }
-    };
+    assertThat(dependency.getDisplayFileName()).isEqualTo("name:version");
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {
@@ -290,18 +256,14 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     Scan scan = scanReader.read(scanFile);
 
-    assertThat(scan.getExpandedCoverage(), is(notNullValue()));
-    assertThat(scan.getExpandedCoverage().getVersion().matches("[0-9]+\\.[0-9]+.*"), is(true));
+    assertThat(scan.getExpandedCoverage()).isNotNull();
+    assertThat(scan.getExpandedCoverage().getVersion().matches("[0-9]+\\.[0-9]+.*")).isTrue();
 
     String dependenciesJson = scan.getExpandedCoverage().getDependenciesJson();
-    assertThat(dependenciesJson, is(notNullValue()));
+    assertThat(dependenciesJson).isNotNull();
     // Assert that Jackson is configured correctly to leave out derived properties
-    assertThat(dependenciesJson, not(containsString("\"actualFile\"")));
-    assertThat(dependenciesJson, not(containsString("\"fileNameForJavaScript\"")));
-    assertThat(dependenciesJson, not(containsString("\"displayFileName\"")));
-    assertThat(dependenciesJson, not(containsString("\"evidence\"")));
-    assertThat(dependenciesJson, not(containsString("\"evidenceForDisplay\"")));
-    assertThat(dependenciesJson, not(containsString("\"evidenceUsed\"")));
+    assertThat(dependenciesJson).doesNotContain("\"actualFile\"", "\"fileNameForJavaScript\"", "\"displayFileName\"",
+        "\"evidence\"", "\"evidenceForDisplay\"", "\"evidenceUsed\"");
 
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setVisibility(objectMapper.getDeserializationConfig().getDefaultVisibilityChecker()
@@ -312,50 +274,50 @@ public class ExpandedCoveragePolicyEvaluatorTest
   @Test
   public void testGetExpandedCoverageConfiguration_ConfigureAnalyzers() throws Exception {
     Settings settings = evaluator.getExpandedCoverageConfiguration();
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_EXPERIMENTAL_ENABLED), is(true));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIRED_ENABLED), is(true));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_ARTIFACTORY_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIREJS_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_EXPERIMENTAL_ENABLED)).isTrue();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIRED_ENABLED)).isTrue();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED)).isFalse();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_ARTIFACTORY_ENABLED)).isFalse();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED)).isFalse();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED)).isFalse();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED)).isFalse();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIREJS_ENABLED)).isFalse();
   }
 
   @Test
   public void testNewExpandedCoverageEngine_EnableWantedAnalyzers() throws Exception {
     List<Class<?>> analyzers = getEnabledAnalyzers();
     analyzers.remove(AssemblyAnalyzer.class); // windows-specific
-    assertThat(analyzers,
-        Matchers.<Class<?>> containsInAnyOrder( //
-            ArchiveAnalyzer.class, //
-            AutoconfAnalyzer.class, //
-            CMakeAnalyzer.class, //
-            CocoaPodsAnalyzer.class, //
-            ComposerLockAnalyzer.class, //
-            DependencyMergingAnalyzer.class, //
-            FileNameAnalyzer.class, //
-            JarAnalyzer.class, //
-            MSBuildProjectAnalyzer.class, //
-            NodePackageAnalyzer.class, //
-            NugetconfAnalyzer.class, //
-            NuspecAnalyzer.class, //
-            OpenSSLAnalyzer.class, //
-            PythonDistributionAnalyzer.class, //
-            PythonPackageAnalyzer.class, //
-            RubyBundlerAnalyzer.class, //
-            RubyGemspecAnalyzer.class, //
-            SwiftPackageManagerAnalyzer.class, //
-            VersionFilterAnalyzer.class));
+    assertThat(analyzers).contains( //
+        ArchiveAnalyzer.class, //
+        AutoconfAnalyzer.class, //
+        CMakeAnalyzer.class, //
+        CocoaPodsAnalyzer.class, //
+        ComposerLockAnalyzer.class, //
+        DependencyMergingAnalyzer.class, //
+        FileNameAnalyzer.class, //
+        JarAnalyzer.class, //
+        MSBuildProjectAnalyzer.class, //
+        NodePackageAnalyzer.class, //
+        NugetconfAnalyzer.class, //
+        NuspecAnalyzer.class, //
+        OpenSSLAnalyzer.class, //
+        PythonDistributionAnalyzer.class, //
+        PythonPackageAnalyzer.class, //
+        RubyBundlerAnalyzer.class, //
+        RubyGemspecAnalyzer.class, //
+        SwiftPackageManagerAnalyzer.class, //
+        VersionFilterAnalyzer.class);
   }
 
   @Test
   public void testNewExpandedCoverageEngine_DisableAnalyzersUsingExternalResources() throws Exception {
     List<Class<?>> analyzers = getEnabledAnalyzers();
-    assertThat(analyzers, not(hasItem(CentralAnalyzer.class)));
-    assertThat(analyzers, not(hasItem(NexusAnalyzer.class)));
-    assertThat(analyzers, not(hasItem(NspAnalyzer.class)));
-    assertThat(analyzers, not(hasItem(RubyBundleAuditAnalyzer.class)));
+    assertThat(analyzers).doesNotContain( //
+        CentralAnalyzer.class, //
+        NexusAnalyzer.class, //
+        NspAnalyzer.class, //
+        RubyBundleAuditAnalyzer.class);
   }
 
   @Test
@@ -382,13 +344,10 @@ public class ExpandedCoveragePolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(false);
     when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
-    try {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
-    }
+    });
+    logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
   }
 
   private List<Class<?>> getEnabledAnalyzers() throws Exception {

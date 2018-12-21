@@ -29,11 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -87,16 +84,16 @@ public class TwistlockPolicyEvaluatorTest
       ZipEntry entry = scanFileZip.getEntry("twistlockScanFile.tar.gz");
       try (InputStream expected = getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz")
           .openStream()) {
-        assertThat(IOUtil.contentEquals(expected, scanFileZip.getInputStream(entry)), is(true));
+        assertThat(IOUtil.contentEquals(expected, scanFileZip.getInputStream(entry))).isTrue();
       }
 
       // Verify the Sonatype scan in the scan zip file
       entry = scanFileZip.getEntry("scan.xml.gz");
       ScanReader scanReader = new DefaultScanReader();
       Scan scan = scanReader.read(new GZIPInputStream(scanFileZip.getInputStream(entry)));
-      assertThat(scan.getSummary().getStartTime(), notNullValue());
-      assertThat(scan.getSummary().getEndTime(), notNullValue());
-      assertThat(scan.getSummary().getClientInfo().size(), greaterThan(0));
+      assertThat(scan.getSummary().getStartTime()).isNotNull();
+      assertThat(scan.getSummary().getEndTime()).isNotNull();
+      assertThat(scan.getSummary().getClientInfo()).isNotEmpty();
     }
     finally {
       scanFile.delete();
@@ -136,25 +133,21 @@ public class TwistlockPolicyEvaluatorTest
     @SuppressWarnings("unchecked")
     ArgumentCaptor<List<String>> argCaptor = ArgumentCaptor.forClass(List.class);
     verify(spyTwistlockScanner).runTwistlockScannerCommand(argCaptor.capture());
-    assertThat(argCaptor.getValue(), is(expectedParameters));
+    assertThat(argCaptor.getValue()).isEqualTo(expectedParameters);
   }
 
   @Test
   public void testExtractScanResultUrl_Success() {
     String scannerOutput = DEFAULT_TWISTLOCK_SCANNER_OUTPUT;
     String scanResultsUrl = evaluator.extractScanResultUrl(scannerOutput);
-    assertThat(scanResultsUrl, is(DEFAULT_TWISTLOCK_RESULTS_URL));
+    assertThat(scanResultsUrl).isEqualTo(DEFAULT_TWISTLOCK_RESULTS_URL);
   }
 
   @Test
   public void testExtractScanResultUrl_Failure() {
     String scannerOutput = "Can't win them all!";
-    try {
+    assertThatThrownBy(() -> {
       evaluator.extractScanResultUrl(scannerOutput);
-      fail("Expected exception");
-    }
-    catch (RuntimeException expected) {
-      assertThat(expected.getMessage(), is("Twistlock scanner failed with:\nCan't win them all!"));
-    }
+    }).isInstanceOf(RuntimeException.class).hasMessage("Twistlock scanner failed with:\nCan't win them all!");
   }
 }

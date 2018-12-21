@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 
@@ -60,4 +61,13 @@ public class WebhookEditPage
   public SelenideElement remove() {
     return child(".iq-btn--tertiary");
   }
+
+  public ErrorBox errorAlert() {
+    return new ErrorBox(childSelector(".iq-alert--error"));
+  }
+
+  public SelenideElement form() {
+    return child(".iq-form");
+  }
+
 }

@@ -257,6 +257,7 @@ storesModule.service('WebhookStore', [
         secretKey: '',
         eventTypes: []
       },
+      type: 'webhook',
       getUrl: clmLocations.getWebhooksUrl
     };
 

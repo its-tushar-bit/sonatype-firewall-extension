@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -162,6 +163,25 @@ public class WebhookConfigurationTest
     }
 
     webhooks.emptyDescriptor().shouldBe(visible).shouldHave(text("No webhooks are defined"));
+  }
+
+  @Test
+  public void testInvalidWebhookIDErrorMessage() {
+    //navigate to a non-existing webhook
+    String badWebhookIdUrl = BaseUrl.resolvePageUrl("/webhooks/BAD_ID");
+    refreshOrOpen(badWebhookIdUrl);
+
+    webhookEditPage.should(appear);
+    webhookEditPage.form().shouldNot(appear);
+    
+    webhookEditPage.errorAlert().should(appear);
+    webhookEditPage.errorAlert().retryButton().should(appear)
+        .shouldHave(text("Retry"));
+    webhookEditPage.errorAlert()
+        .shouldHave(text("An error occurred loading data. Could not find an webhook with ID BAD_ID."));
+
+    webhookEditPage.backButton().shouldHave(text("Back to Webhook Configuration")).click();
+    webhookConfigurationPage.should(appear);
   }
 
   private void insertWebhooks() {

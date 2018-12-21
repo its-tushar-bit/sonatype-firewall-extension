@@ -2,7 +2,7 @@
   <div class="iq-tile iq-tile--sys-prefs iq-tile--back-button">
     <iq-back-button state="webhooks.list"></iq-back-button>
   </div>
-  <div class="iq-tile iq-tile--sys-prefs" load-wrapper="error" reload="doLoad()" loading="!vm.dirtyWebhook">
+  <div class="iq-tile iq-tile--sys-prefs" load-wrapper="vm.loadError" reload="doLoad()" loading="!vm.dirtyWebhook">
     <div class="iq-tile-header webhooks">
       <div class="iq-tile-header__title">
         <div class="iq-tile-header__icon">

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain;
 
-import java.util.function.Consumer;
-
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.jaxrs.testing.AbstractHttpRequest;
@@ -51,13 +49,6 @@ public class HttpRequest
 
   public HttpRequest auth() {
     auth(User.ADMIN_USERNAME, "admin123");
-    return this;
-  }
-
-  public HttpRequest with(Consumer<HttpRequest> configurator) {
-    if (configurator != null) {
-      configurator.accept(this);
-    }
     return this;
   }
 }

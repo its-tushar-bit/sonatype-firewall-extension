@@ -20,10 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.core.StringContains.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CompactCommandTest
 {
@@ -49,14 +46,13 @@ public class CompactCommandTest
     new CompactCommand().run(null, null, insightConfig);
 
     final long newSize = Files.size(databasePath);
-    assertThat(newSize, is(lessThan(originalSize)));
+    assertThat(newSize).isLessThan(originalSize);
     final BigDecimal percentChange = new BigDecimal(100 - newSize * 100.0d / originalSize)
         .setScale(2, BigDecimal.ROUND_HALF_EVEN);
-    logOutput.assertInfo("Compacting " + databasePath.toAbsolutePath().toString());
-    logOutput.assertInfo("This might take a while, please be patient.");
-    logOutput.assertInfo(containsString(
-        "Successfully compacted " + databasePath.toAbsolutePath().toString() + " from " + originalSize + " bytes to " +
-            newSize + " bytes " + "(reduced by " + percentChange + "%) in"));
+    assertThat(logOutput).atInfoLevel().contains("Compacting " + databasePath.toAbsolutePath().toString())
+        .contains("This might take a while, please be patient.")
+        .contains("Successfully compacted " + databasePath.toAbsolutePath().toString() + " from " + originalSize
+            + " bytes to " + newSize + " bytes " + "(reduced by " + percentChange + "%) in");
   }
 
   private Path setupDatabaseFile() throws Exception {

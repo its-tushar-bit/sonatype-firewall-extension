@@ -22,10 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DbModifierTest
 {
@@ -73,30 +70,30 @@ public class DbModifierTest
   public void testShiftDays_ForwardOneDay() {
     dbModifier.shiftDays(1);
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
-    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.plusDays(1))));
+    assertThat(minTimestamp).isEqualTo(getTimestamp(MIN_DATE.plusDays(1)));
     Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
-    assertThat(maxTimestamp, is(getTimestamp(MAX_DATE.plusDays(1))));
+    assertThat(maxTimestamp).isEqualTo(getTimestamp(MAX_DATE.plusDays(1)));
   }
 
   @Test
   public void testShiftDays_ForwardThirtyDays() {
     dbModifier.shiftDays(30);
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
-    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.plusDays(30))));
+    assertThat(minTimestamp).isEqualTo(getTimestamp(MIN_DATE.plusDays(30)));
   }
 
   @Test
   public void testShiftDays_BackwardOneDay() {
     dbModifier.shiftDays(-1);
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
-    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.minusDays(1))));
+    assertThat(minTimestamp).isEqualTo(getTimestamp(MIN_DATE.minusDays(1)));
   }
 
   @Test
   public void testShiftDays_BackwardThirtyDays() {
     dbModifier.shiftDays(-30);
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
-    assertThat(minTimestamp, is(getTimestamp(MIN_DATE.minusDays(30))));
+    assertThat(minTimestamp).isEqualTo(getTimestamp(MIN_DATE.minusDays(30)));
   }
 
   @Test
@@ -104,8 +101,8 @@ public class DbModifierTest
     dropTestDb(dbConnection);
     createEmptyTimestampDb(dbConnection);
     dbModifier.shiftDays(1);
-    assertThat(dbModifier.getMinTimestamp(), nullValue());
-    assertThat(dbModifier.getMaxTimestamp(), nullValue());
+    assertThat(dbModifier.getMinTimestamp()).isNull();
+    assertThat(dbModifier.getMaxTimestamp()).isNull();
   }
 
   @Test
@@ -123,10 +120,10 @@ public class DbModifierTest
   private void testDateShift(final LocalDate dateToShiftTo) {
     dbModifier.shiftToDate(dateToShiftTo);
     Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
-    assertThat(maxTimestamp, is(getTimestamp(dateToShiftTo)));
+    assertThat(maxTimestamp).isEqualTo(getTimestamp(dateToShiftTo));
     Duration timeDifference = Duration.between(getTimestamp(MAX_DATE).toLocalDateTime(), dateToShiftTo.atStartOfDay());
     long daysDifference = timeDifference.toDays();
-    assertThat(dbModifier.getMinTimestamp(), is(getTimestamp(MIN_DATE.plusDays(daysDifference))));
+    assertThat(dbModifier.getMinTimestamp()).isEqualTo(getTimestamp(MIN_DATE.plusDays(daysDifference)));
   }
 
   @Test
@@ -135,8 +132,8 @@ public class DbModifierTest
     createEmptyTimestampDb(dbConnection);
     LocalDate dateToShiftTo = LocalDate.of(2018, 6, 1);
     dbModifier.shiftToDate(dateToShiftTo);
-    assertThat(dbModifier.getMinTimestamp(), nullValue());
-    assertThat(dbModifier.getMaxTimestamp(), nullValue());
+    assertThat(dbModifier.getMinTimestamp()).isNull();
+    assertThat(dbModifier.getMaxTimestamp()).isNull();
   }
 
   @Test
@@ -146,10 +143,10 @@ public class DbModifierTest
     dbModifier.shiftToDate(dateToShiftTo);
     Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
     Timestamp expectedTimestamp = Timestamp.valueOf(dateToShiftTo.atTime(15, 23, 0));
-    assertThat(maxTimestamp, is(expectedTimestamp));
+    assertThat(maxTimestamp).isEqualTo(expectedTimestamp);
     Duration timeDifference = Duration.between(getTimestamp(MAX_DATE).toLocalDateTime(), dateToShiftTo.atStartOfDay());
     long daysDifference = timeDifference.toDays();
-    assertThat(dbModifier.getMinTimestamp(), is(getTimestamp(MIN_DATE.plusDays(daysDifference))));
+    assertThat(dbModifier.getMinTimestamp()).isEqualTo(getTimestamp(MIN_DATE.plusDays(daysDifference)));
   }
 
   @Test
@@ -157,12 +154,12 @@ public class DbModifierTest
     List<TableDateMinMax> tableDates = dbModifier.getDateInfo();
     tableDates.forEach(tableDate -> {
       if (tableDate.table.equals(TABLE_NAME1)) {
-        assertThat(tableDate.max, is(getTimestamp(MAX_DATE)));
-        assertThat(tableDate.min, is(getTimestamp(MIN_DATE_TABLE1)));
+        assertThat(tableDate.max).isEqualTo(getTimestamp(MAX_DATE));
+        assertThat(tableDate.min).isEqualTo(getTimestamp(MIN_DATE_TABLE1));
       }
       else {
-        assertThat(tableDate.max, is(getTimestamp(MAX_DATE_TABLE2)));
-        assertThat(tableDate.min, is(getTimestamp(MIN_DATE)));
+        assertThat(tableDate.max).isEqualTo(getTimestamp(MAX_DATE_TABLE2));
+        assertThat(tableDate.min).isEqualTo(getTimestamp(MIN_DATE));
       }
     });
   }
@@ -170,8 +167,7 @@ public class DbModifierTest
   @Test
   public void testGetAllTables() {
     List<String> allTables = dbModifier.getAllTables();
-    assertThat(allTables.size(), is(2));
-    assertThat(allTables, hasItems(TABLE_NAME1, TABLE_NAME2));
+    assertThat(allTables).containsExactlyInAnyOrder(TABLE_NAME1, TABLE_NAME2);
   }
 
   @Test
@@ -180,10 +176,10 @@ public class DbModifierTest
     allTimestampColumns.sort(Comparator.comparing(item -> item.table));
 
     Timestamp minTimestampInTable1 = dbModifier.getMinTimestampInTable(allTimestampColumns.get(0));
-    assertThat(minTimestampInTable1, is(getTimestamp(MIN_DATE_TABLE1)));
+    assertThat(minTimestampInTable1).isEqualTo(getTimestamp(MIN_DATE_TABLE1));
 
     Timestamp minTimestampInTable2 = dbModifier.getMinTimestampInTable(allTimestampColumns.get(1));
-    assertThat(minTimestampInTable2, is(getTimestamp(MIN_DATE)));
+    assertThat(minTimestampInTable2).isEqualTo(getTimestamp(MIN_DATE));
   }
 
   @Test
@@ -192,22 +188,22 @@ public class DbModifierTest
     allTimestampColumns.sort(Comparator.comparing(item -> item.table));
 
     Timestamp maxTimestampInTable1 = dbModifier.getMaxTimestampInTable(allTimestampColumns.get(0));
-    assertThat(maxTimestampInTable1, is(getTimestamp(MAX_DATE)));
+    assertThat(maxTimestampInTable1).isEqualTo(getTimestamp(MAX_DATE));
 
     Timestamp maxTimestampInTable2 = dbModifier.getMaxTimestampInTable(allTimestampColumns.get(1));
-    assertThat(maxTimestampInTable2, is(getTimestamp(MAX_DATE_TABLE2)));
+    assertThat(maxTimestampInTable2).isEqualTo(getTimestamp(MAX_DATE_TABLE2));
   }
 
   @Test
   public void testGetMaxTimestamp() {
     Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
-    assertThat(maxTimestamp, is(getTimestamp(MAX_DATE)));
+    assertThat(maxTimestamp).isEqualTo(getTimestamp(MAX_DATE));
   }
 
   @Test
   public void testGetMinTimestamp() {
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
-    assertThat(minTimestamp, is(getTimestamp(MIN_DATE)));
+    assertThat(minTimestamp).isEqualTo(getTimestamp(MIN_DATE));
   }
 
   @Test
@@ -215,7 +211,7 @@ public class DbModifierTest
     dropTestDb(dbConnection);
     createEmptyTimestampDb(dbConnection);
     Timestamp maxTimestamp = dbModifier.getMaxTimestamp();
-    assertThat(maxTimestamp, nullValue());
+    assertThat(maxTimestamp).isNull();
   }
 
   @Test
@@ -223,7 +219,7 @@ public class DbModifierTest
     dropTestDb(dbConnection);
     createEmptyTimestampDb(dbConnection);
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
-    assertThat(minTimestamp, nullValue());
+    assertThat(minTimestamp).isNull();
   }
 
   private static Connection createTestDbConnection() throws Exception {

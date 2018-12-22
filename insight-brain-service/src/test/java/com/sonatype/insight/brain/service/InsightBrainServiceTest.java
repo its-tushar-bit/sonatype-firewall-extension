@@ -48,15 +48,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class InsightBrainServiceTest
     extends AbstractBrainServiceTest
@@ -79,17 +74,17 @@ public class InsightBrainServiceTest
     tempEntity.register(sampleOrg);
     Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
 
-    assertThat(sampleOrg, is(notNullValue()));
-    assertThat(sampleApp, is(notNullValue()));
+    assertThat(sampleOrg).isNotNull();
+    assertThat(sampleApp).isNotNull();
   }
 
   @Test
   public void testCreateSampleData_Disabled() {
     // The creation of the sample data is disabled by default.
     Organization sampleOrg = new OrganizationDAO().getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
-    assertThat(sampleOrg, is(nullValue()));
+    assertThat(sampleOrg).isNull();
     Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
-    assertThat(sampleApp, is(nullValue()));
+    assertThat(sampleApp).isNull();
   }
 
   @Test
@@ -113,24 +108,24 @@ public class InsightBrainServiceTest
       MimeMultipart multipart = new MimeMultipart(response.getKey());
       BodyPart bodyPart = multipart.getBodyPart(0);
       String filename = bodyPart.getFileName();
-      assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
-      assertThat(status, is(204));
+      assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
+      assertThat(status).isEqualTo(204);
       try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
         byte[] buffer = new byte[1024];
 
         ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
-        assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
+        assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
         zipInputStream.read(buffer);
         TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
-        assertThat(telemetryHeaderReceived.getCreateTime(), greaterThanOrEqualTo(expectedMinCreateTime));
-        assertThat(telemetryHeaderReceived.getCreateTime(), lessThanOrEqualTo(expectedMaxCreateTime));
-        assertThat(telemetryHeaderReceived.getTelemetryId(), is(telemetryId.getId()));
-        assertThat(telemetryHeaderReceived.getProduct(),
-            is(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion()));
-        assertThat(telemetryHeaderReceived.getFormat(), is(TelemetrySender.FILE_FORMAT));
+        assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualsTo(expectedMinCreateTime)
+            .isBeforeOrEqualsTo(expectedMaxCreateTime);
+        assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
+        assertThat(telemetryHeaderReceived.getProduct())
+            .isEqualTo(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion());
+        assertThat(telemetryHeaderReceived.getFormat()).isEqualTo(TelemetrySender.FILE_FORMAT);
 
         ZipEntry zipEntryData = zipInputStream.getNextEntry();
-        assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
+        assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
         zipInputStream.read(buffer);
         TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
         TelemetryPurpose telemetryPurpose = telemetryDataReceived.getPurpose();
@@ -138,28 +133,22 @@ public class InsightBrainServiceTest
         telemetryPurposes.add(telemetryPurpose);
         switch (telemetryPurpose) {
           case HIERARCHY_METRICS:
-            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS),
-                is("0"));
-            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS),
-                is("0"));
-            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG),
-                is("0"));
-            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG),
-                is("0"));
-            assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG),
-                is("0"));
+            assertThat(telemetryDataReceived.getAttributes())
+                .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
+                .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
+                .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
+                .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+                .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
             break;
           case POLICY_STATUS_OVERRIDE:
-            assertThat(telemetryDataReceived.getAttributes()
-                .get(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT), is("0"));
-            assertThat(
-                telemetryDataReceived.getAttributes().get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT),
-                is("0"));
+            assertThat(telemetryDataReceived.getAttributes())
+                .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "0")
+                .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "0");
             break;
           case DATABASE:
             // The database is in memory, so the reported size is null.
-            assertThat(telemetryDataReceived.getAttributes().get(DatabaseTelemetryCollector.ODS_SIZE_BYTES),
-                is(nullValue()));
+            assertThat(telemetryDataReceived.getAttributes()).containsEntry(DatabaseTelemetryCollector.ODS_SIZE_BYTES,
+                null);
             break;
           default:
             fail("Unexpected telemetry purpose: " + telemetryPurpose);
@@ -168,8 +157,8 @@ public class InsightBrainServiceTest
       }
     }
 
-    assertThat(telemetryPurposes, containsInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
-        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE));
+    assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE);
   }
 
   @Test
@@ -189,22 +178,19 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testConfigWithHttp_SuggestsUpdateConfig() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       initServer(new Configurator()
       {
         @Override
-        public void configure(final InsightConfig config) { }
+        public void configure(final InsightConfig config) {
+        }
 
         @Override
         public String getConfigFilePath() {
           return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-http.yml").getFile();
         }
       });
-      fail("Expected exception");
-    }
-    catch (RuntimeException ex) {
-      assertThat(ex.getMessage(), is(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
-    }
+    }).isInstanceOf(RuntimeException.class).hasMessage(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
   }
 
   @Test
@@ -226,12 +212,12 @@ public class InsightBrainServiceTest
     LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = (LogbackAccessRequestLogFactory) 
         ((AbstractServerFactory) insightConfig.getServerFactory()).getRequestLogFactory();
     List<? extends AppenderFactory<?>> accessAppenders = logbackAccessRequestLogFactory.getAppenders();
-    assertThat(((ConsoleAppenderFactory<?>) accessAppenders.get(0)).getLogFormat(),
-        is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
-    assertThat(((FileAppenderFactory<?>) accessAppenders.get(1)).getLogFormat(),
-        is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
-    assertThat(((SyslogAppenderFactory) accessAppenders.get(2)).getLogFormat(),
-        is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
+    assertThat(((ConsoleAppenderFactory<?>) accessAppenders.get(0)).getLogFormat())
+        .isEqualTo(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT);
+    assertThat(((FileAppenderFactory<?>) accessAppenders.get(1)).getLogFormat())
+        .isEqualTo(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT);
+    assertThat(((SyslogAppenderFactory) accessAppenders.get(2)).getLogFormat())
+        .isEqualTo(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT);
   }
 
   @Test
@@ -241,6 +227,7 @@ public class InsightBrainServiceTest
     // again to test the log output as we'll miss the log output the first time during startup.
     logOutput.before();
     getCLMServer().getInjector().getInstance(InsightBrainService.class).printVersion();
-    logOutput.assertInfo("| Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
+    assertThat(logOutput).atInfoLevel()
+        .contains("Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
   }
 }

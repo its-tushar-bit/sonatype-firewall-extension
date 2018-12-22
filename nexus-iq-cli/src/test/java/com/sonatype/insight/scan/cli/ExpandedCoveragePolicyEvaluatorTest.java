@@ -95,7 +95,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Java() throws Exception {
     List<Dependency> dependencies = testScan("java");
 
-    logOutput.assertInfo("Found 3 items.");
+    assertThat(logOutput).atInfoLevel().contains("Found 3 items.");
     assertThat(dependencies).extracting(this::getDependencyName).containsExactlyInAnyOrder( //
         "uber-1.0-SNAPSHOT.jar", //
         "uber-1.0-SNAPSHOT.jar (shaded: com.example:uber:1.0-SNAPSHOT)", //
@@ -106,7 +106,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_CMake() throws Exception {
     List<Dependency> dependencies = testScan("cmake");
 
-    logOutput.assertInfo("Found 1 items.");
+    assertThat(logOutput).atInfoLevel().contains("Found 1 items.");
     assertThat(dependencies).extracting(this::getDependencyName).containsExactlyInAnyOrder("zlib");
   }
 
@@ -114,7 +114,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 18 items.");
+    assertThat(logOutput).atInfoLevel().contains("Found 18 items.");
     assertThat(dependencies).extracting(this::getDependencyName).containsExactlyInAnyOrder( //
         "zlib", //
         "uber-1.0-SNAPSHOT.jar", //
@@ -248,11 +248,11 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     File scanFile = evaluator.scan(params, new ProprietaryConfig());
 
-    // Assert that the disclaimer banner is logged
-    logOutput.assertInfo(EXPANDED_COVERAGE_SCAN_DISCLAIMER);
-
-    // Assert applied client settings are logged in debug move
-    logOutput.assertDebug("Setting: " + KEYS.ANALYZER_EXPERIMENTAL_ENABLED + "='true'");
+    assertThat(logOutput)
+        // Assert that the disclaimer banner is logged
+        .atInfoLevel().contains(EXPANDED_COVERAGE_SCAN_DISCLAIMER)
+        // Assert applied client settings are logged in debug move
+        .atDebugLevel().contains("Setting: " + KEYS.ANALYZER_EXPERIMENTAL_ENABLED + "='true'");
 
     Scan scan = scanReader.read(scanFile);
 
@@ -347,7 +347,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
-    logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
+    assertThat(logOutput).atErrorLevel().contains("The application ID non-existent-app-public-id is invalid.");
   }
 
   private List<Class<?>> getEnabledAnalyzers() throws Exception {

@@ -16,9 +16,7 @@ import com.sonatype.insight.brain.tools.common.PerfTestConfig.TestUrl;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CompoundReplacerTest
 {
@@ -59,15 +57,13 @@ public class CompoundReplacerTest
     List<String> allPayloads = testUrls.stream().map(TestUrl::getPayload).collect(Collectors.toList());
 
     for (String org : new String[]{"ORG_LIST_0", "ORG_LIST_1", "ORG_LIST_3", "ORG_LIST_4"}) {
-      assertThat(allPayloads, hasItem(buildFullPayload(org, "APP_LIST_0")));
-      assertThat(allPayloads, hasItem(buildFullPayload(org, "APP_LIST_1")));
-      assertThat(allPayloads, hasItem(buildFullPayload(org, "APP_LIST_3")));
-      assertThat(allPayloads, hasItem(buildFullPayload(org, "APP_LIST_4")));
+      assertThat(allPayloads).contains(buildFullPayload(org, "APP_LIST_0"), buildFullPayload(org, "APP_LIST_1"),
+          buildFullPayload(org, "APP_LIST_3"), buildFullPayload(org, "APP_LIST_4"));
     }
-    assertThat(testUrls, hasSize(16));
+    assertThat(testUrls).hasSize(16);
 
     TestUrl directtUrl = getBasicTestUrl("{}");
-    assertThat(replacer.generateUrls(directtUrl), hasSize(0));
+    assertThat(replacer.generateUrls(directtUrl)).isEmpty();
   }
 
   @Test
@@ -79,10 +75,9 @@ public class CompoundReplacerTest
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
     List<String> allPayloads = testUrls.stream().map(TestUrl::getPayload).collect(Collectors.toList());
 
-    assertThat(allPayloads, hasItem(buildFullPayload("ORG_LIST_0", "APP_LIST_0")));
-    assertThat(allPayloads, hasItem(buildFullPayload("ORG_LIST_0", "APP_LIST_1")));
-    assertThat(allPayloads, hasItem(buildFullPayload("ORG_LIST_0", "APP_LIST_3")));
-    assertThat(allPayloads, hasItem(buildFullPayload("ORG_LIST_0", "APP_LIST_4")));
+    assertThat(allPayloads).contains(buildFullPayload("ORG_LIST_0", "APP_LIST_0"),
+        buildFullPayload("ORG_LIST_0", "APP_LIST_1"), buildFullPayload("ORG_LIST_0", "APP_LIST_3"),
+        buildFullPayload("ORG_LIST_0", "APP_LIST_4"));
   }
 
   private TestUrl getBasicTestUrl(String payload) {

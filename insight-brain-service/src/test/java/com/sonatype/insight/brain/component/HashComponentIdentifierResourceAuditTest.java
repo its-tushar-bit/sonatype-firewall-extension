@@ -72,8 +72,7 @@ public class HashComponentIdentifierResourceAuditTest
 
     restRequest().with(unauthorizedUser()).body(hashComponentIdentifier).post();
 
-    assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, "unauthorized"),
-        hashComponentIdentifier(null, null, null));
+    assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, "unauthorized");
   }
 
   @Test

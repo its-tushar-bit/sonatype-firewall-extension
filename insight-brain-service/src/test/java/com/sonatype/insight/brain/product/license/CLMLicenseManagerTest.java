@@ -29,16 +29,8 @@ import org.sonatype.licensing.LicensingException;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -65,16 +57,12 @@ public class CLMLicenseManagerTest
   public void testLicenseLacksClmFeatureAndFirewallFeature() throws Exception {
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);
-    try {
+    assertThatThrownBy(() -> {
       installLicense();
-      fail("Expected LicensingException");
-    }
-    catch (LicensingException e) {
-      assertThat(e.getMessage(), is("License does not permit use of feature '" + CLMFeature.ID + "' or '"
-          + FirewallFeature.ID + "'"));
-    }
+    }).isInstanceOf(LicensingException.class)
+        .hasMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
 
-    assertNull(clmLicenseManager.getLicenseFingerprint());
+    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
   }
 
   @Test
@@ -83,34 +71,34 @@ public class CLMLicenseManagerTest
     long before = System.currentTimeMillis();
     installLicense();
 
-    assertEquals(true, clmLicenseManager.isValid());
+    assertThat(clmLicenseManager.isValid()).isTrue();
 
     Thread.sleep(2100 - (System.currentTimeMillis() - before));
 
-    assertEquals(false, clmLicenseManager.isValid());
+    assertThat(clmLicenseManager.isValid()).isFalse();
   }
 
   @Test
   public void testLicenseCache() throws Exception {
-    assertEquals(true, clmLicenseManager.isValid());
-    assertEquals(Integer.valueOf(100), clmLicenseManager.getApplicationCountLimit());
-    assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
-    assertEquals(true, clmLicenseManager.hasDashboard());
-    assertEquals(true, clmLicenseManager.hasQuality());
+    assertThat(clmLicenseManager.isValid()).isTrue();
+    assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
+    assertThat(clmLicenseManager.hasQuality()).isTrue();
 
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
-    assertEquals(Integer.valueOf(100), clmLicenseManager.getApplicationCountLimit());
+    assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
     licenseManager.setProducts("");
-    assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
-    assertEquals(true, clmLicenseManager.hasDashboard());
-    assertEquals(true, clmLicenseManager.hasQuality());
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
+    assertThat(clmLicenseManager.hasQuality()).isTrue();
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
-    assertEquals(Integer.valueOf(10), clmLicenseManager.getApplicationCountLimit());
-    assertEquals(false, clmLicenseManager.hasPolicyMonitoring());
+    assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(10);
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
   }
 
   @Test
@@ -119,7 +107,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts();
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard(), is(false));
+    assertThat(clmLicenseManager.hasDashboard()).isFalse();
   }
 
   @Test
@@ -127,7 +115,7 @@ public class CLMLicenseManagerTest
     licenseManager.setVersion(0);
     licenseManager.setProducts();
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard(), is(true));
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
   }
 
   @Test
@@ -135,21 +123,21 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard(), is(false));
+    assertThat(clmLicenseManager.hasDashboard()).isFalse();
   }
 
   @Test
   public void testHasDashboard_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard(), is(true));
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
   }
 
   @Test
   public void testHasQuality_NexusLifecycleLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.hasQuality(), is(true));
+    assertThat(clmLicenseManager.hasQuality()).isTrue();
   }
 
   @Test
@@ -159,7 +147,7 @@ public class CLMLicenseManagerTest
     String[] products = productSet.toArray(new String[ProductLicenseDetails.PRODUCTS.size()]);
     licenseManager.setProducts(products);
     installLicense();
-    assertThat(clmLicenseManager.hasQuality(), is(false));
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
   }
 
   @Test
@@ -168,7 +156,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts();
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.Release);
     installLicense();
-    assertThat(clmLicenseManager.hasQuality(), is(false));
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
   }
 
   @Test
@@ -177,7 +165,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts();
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.Build);
     installLicense();
-    assertThat(clmLicenseManager.hasQuality(), is(true));
+    assertThat(clmLicenseManager.hasQuality()).isTrue();
   }
 
   @Test
@@ -186,7 +174,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts();
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(false));
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
   }
 
   @Test
@@ -194,7 +182,7 @@ public class CLMLicenseManagerTest
     licenseManager.setVersion(0);
     licenseManager.setProducts();
     installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
   }
 
   @Test
@@ -202,42 +190,42 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(false));
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
   }
 
   @Test
   public void testHasPolicyMonitoring_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
   }
 
   @Test
   public void testHasRepositoryFirewall_NexusLifecycleLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
   }
 
   @Test
   public void testHasRepositoryFirewall_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
   }
 
   @Test
   public void testHasRepositoryFirewall_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
   }
 
   @Test
   public void testHasRepositoryFirewall_NexusFirewallLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
   }
 
   @Test(expected = LicensingException.class)
@@ -254,40 +242,32 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testInstallLicense_BadMaxFirewallUsers() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, "Invalid");
       installLicense();
-      fail("Expected LicensingException");
-    }
-    catch (LicensingException e) {
-      assertThat(e.getMessage(), is("Invalid value for max firewall users: Invalid"));
-    }
+    }).isInstanceOf(LicensingException.class).hasMessage("Invalid value for max firewall users: Invalid");
   }
 
   @Test
   public void testInstallLicense_BadMaxUsers() throws Exception {
-    try {
+    assertThatThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, "Invalid");
       installLicense();
-      fail("Expected LicensingException");
-    }
-    catch (LicensingException e) {
-      assertThat(e.getMessage(), is("Invalid value for max users: Invalid"));
-    }
+    }).isInstanceOf(LicensingException.class).hasMessage("Invalid value for max users: Invalid");
   }
 
   @Test
   public void testInstallLicense_UnknownEnforcementPointIsIgnored() throws Exception {
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build");
     installLicense();
-    assertThat(clmLicenseManager.getEnforcementPoints(), containsInAnyOrder(CLMEnforcementPoint.Build));
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Build);
   }
 
   @Test
   public void testInstallLicense_DeprecatedEnforcementPointIsIgnored() throws Exception {
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Build,Procure");
     installLicense();
-    assertThat(clmLicenseManager.getEnforcementPoints(), containsInAnyOrder(CLMEnforcementPoint.Build));
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Build);
   }
 
   @Test
@@ -320,8 +300,8 @@ public class CLMLicenseManagerTest
   public void testGetLicenseSummary_ProductEditionNone() throws Exception {
     clmLicenseManager.uninstallLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
-    assertThat(summary, is(notNullValue()));
-    assertThat(summary.productEdition, is(""));
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo("");
   }
 
   @Test
@@ -329,8 +309,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
-    assertThat(summary, is(notNullValue()));
-    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_AUDITOR));
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_AUDITOR);
   }
 
   @Test
@@ -338,8 +318,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
-    assertThat(summary, is(notNullValue()));
-    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_PRO_PLUS));
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_PRO_PLUS);
   }
 
   @Test
@@ -347,8 +327,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
-    assertThat(summary, is(notNullValue()));
-    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_LIFECYCLE));
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
   }
 
   @Test
@@ -356,8 +336,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
-    assertThat(summary, is(notNullValue()));
-    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_FIREWALL));
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL);
   }
 
   @Test
@@ -366,16 +346,16 @@ public class CLMLicenseManagerTest
     licenseFingerprinter.setDummyLicenseFingerprint(fingerprint);
     installLicense();
     LicenseInfo summary = clmLicenseManager.getLicenseInfo();
-    assertThat(summary, is(notNullValue()));
-    assertThat(summary.fingerprint, is(fingerprint));
+    assertThat(summary).isNotNull();
+    assertThat(summary.fingerprint).isEqualTo(fingerprint);
   }
 
   @Test
   public void testGetLicenseInfo_ProductEditionNone() throws Exception {
     clmLicenseManager.uninstallLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info, is(notNullValue()));
-    assertThat(info.productEdition, is(""));
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo("");
   }
 
   @Test
@@ -383,8 +363,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info, is(notNullValue()));
-    assertThat(info.productEdition, is(CLMLicenseManager.PRODUCT_AUDITOR));
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_AUDITOR);
   }
 
   @Test
@@ -392,8 +372,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info, is(notNullValue()));
-    assertThat(info.productEdition, is(CLMLicenseManager.PRODUCT_PRO_PLUS));
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_PRO_PLUS);
   }
 
   @Test
@@ -401,8 +381,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info, is(notNullValue()));
-    assertThat(info.productEdition, is(CLMLicenseManager.PRODUCT_LIFECYCLE));
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
   }
 
   @Test
@@ -410,74 +390,74 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info, is(notNullValue()));
-    assertThat(info.productEdition, is(CLMLicenseManager.PRODUCT_FIREWALL));
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL);
   }
 
   @Test
   public void testGetLicenseInfo_LicensedUsersToDisplay() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.licensedUsersToDisplay, is(50));
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
     // should be null when product is auditor
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.licensedUsersToDisplay, is(nullValue()));
+    assertThat(info.licensedUsersToDisplay).isNull();
 
     // should also be null when it is just Firewall
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.licensedUsersToDisplay, is(nullValue()));
+    assertThat(info.licensedUsersToDisplay).isNull();
 
     // should not be null when it is Pro+
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.licensedUsersToDisplay, is(50));
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
   }
 
   @Test
   public void testGetLicenseInfo_FirewallUsersToDisplay() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.firewallUsersToDisplay, is(45));
+    assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
     // should be null when product is auditor
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.firewallUsersToDisplay, is(nullValue()));
+    assertThat(info.firewallUsersToDisplay).isNull();
 
     // should not be null when it is just Firewall
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.firewallUsersToDisplay, is(45));
+    assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
     // should be null when Lifecycle but with null maxFirewallUsers
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     licenseManager.setMaxFirewallUsers(null);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.firewallUsersToDisplay, is(nullValue()));
+    assertThat(info.firewallUsersToDisplay).isNull();
   }
 
   @Test
   public void testGetLicenseInfo_ApplicationLimitToDisplay() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.applicationLimitToDisplay, is(nullValue()));
+    assertThat(info.applicationLimitToDisplay).isNull();
 
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.applicationLimitToDisplay, is(100));
+    assertThat(info.applicationLimitToDisplay).isEqualTo(100);
 
     // should also be null when it is just Firewall
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
-    assertThat(info.applicationLimitToDisplay, is(nullValue()));
+    assertThat(info.applicationLimitToDisplay).isNull();
   }
 
   @Test
@@ -487,8 +467,8 @@ public class CLMLicenseManagerTest
 
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info, is(notNullValue()));
-    assertThat(info.products, is(arrayContaining("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle", "Nexus Pro+")));
+    assertThat(info).isNotNull();
+    assertThat(info.products).containsExactly("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle", "Nexus Pro+");
   }
 
   @Test
@@ -497,7 +477,7 @@ public class CLMLicenseManagerTest
 
     clmLicenseManager.installLicenseIfUnlicensed(null);
 
-    assertThat(clmLicenseManager.getLicenseFingerprint(), is(nullValue()));
+    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
   }
 
   @Test
@@ -507,7 +487,7 @@ public class CLMLicenseManagerTest
 
     clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
 
-    logOutput.assertWarn(containsString(licenseFilePath));
+    assertThat(logOutput).atWarnLevel().contains(licenseFilePath);
   }
 
   @Test
@@ -517,23 +497,19 @@ public class CLMLicenseManagerTest
 
     clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
 
-    logOutput.assertInfo(containsString(licenseFilePath));
-    assertThat(clmLicenseManager.getLicenseFingerprint(), is(notNullValue()));
+    assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
+    assertThat(clmLicenseManager.getLicenseFingerprint()).isNotNull();
   }
 
   @Test
   public void testInstallLicenseIfUnlicensed_FileNotFoundException() throws Exception {
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = "path/to/license/file";
-    try {
+    assertThatThrownBy(() -> {
       clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
-      fail("Expected FileNotFoundException");
-    }
-    catch (FileNotFoundException e) {
-      assertThat(e.getMessage(), containsString(new File(licenseFilePath).getPath()));
-    }
-    logOutput.assertInfo(containsString(licenseFilePath));
-    assertThat(clmLicenseManager.getLicenseFingerprint(), is(nullValue()));
+    }).isInstanceOf(FileNotFoundException.class).hasMessageContaining(new File(licenseFilePath).getPath());
+    assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
+    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
   }
 
   @Test
@@ -541,14 +517,10 @@ public class CLMLicenseManagerTest
     licenseManager.setForceVerificationFailure(true);
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
-    try {
+    assertThatThrownBy(() -> {
       clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
-      fail("Expected LicensingException");
-    }
-    catch (LicensingException e) {
-      // noop
-    }
-    logOutput.assertInfo(containsString(licenseFilePath));
-    assertThat(clmLicenseManager.getLicenseFingerprint(), is(nullValue()));
+    }).isInstanceOf(LicensingException.class);
+    assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
+    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
   }
 }

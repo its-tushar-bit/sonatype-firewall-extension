@@ -30,12 +30,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.audit.AuditRecorder.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
@@ -60,28 +55,28 @@ public class AuditRecorderTest
     HttpServletRequest httpRequest = mockHttpServletRequest();
     AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
     try (AuditSession auditSession = auditRecorder.recordUserEvent(httpRequest)) {
-      assertThat(auditSession, is(notNullValue()));
+      assertThat(auditSession).isNotNull();
 
       AuditData auditData = AuditData.get();
-      assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
+      assertThat(auditData).isInstanceOf(ProxyAuditData.class);
       ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
 
       AuditData childAuditData = proxyAuditData.getAuditData();
-      assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
+      assertThat(childAuditData).isInstanceOf(RecordingAuditData.class);
       RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
       RequestData requestData = recordingAuditData.getRequestData();
-      assertThat(requestData.getMethod(), is(httpRequest.getMethod()));
+      assertThat(requestData.getMethod()).isEqualTo(httpRequest.getMethod());
     }
 
     // ensure that commitAuditData is called and correct httpRequest value set
     ArgumentCaptor<RecordingAuditData> argumentCaptor = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor.capture());
-    assertThat(argumentCaptor.getValue().getRequestData().getMethod(), is(httpRequest.getMethod()));
+    assertThat(argumentCaptor.getValue().getRequestData().getMethod()).isEqualTo(httpRequest.getMethod());
 
     // ensure recordAuditData is called and httpRequest value is still set
     ArgumentCaptor<RecordingAuditData> argumentCaptor2 = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor2.capture());
-    assertThat(argumentCaptor.getAllValues().get(0).getRequestData().getMethod(), is(httpRequest.getMethod()));
+    assertThat(argumentCaptor.getAllValues().get(0).getRequestData().getMethod()).isEqualTo(httpRequest.getMethod());
   }
 
   @Test
@@ -90,31 +85,31 @@ public class AuditRecorderTest
     AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
     doNothing().when(auditRecorder).recordAuditData(isA(RecordingAuditData.class), isNull());
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(auditEvent)) {
-      assertThat(auditSession, is(notNullValue()));
+      assertThat(auditSession).isNotNull();
 
       AuditData auditData = AuditData.get();
-      assertThat(auditData, is(instanceOf(ProxyAuditData.class)));
+      assertThat(auditData).isInstanceOf(ProxyAuditData.class);
       ProxyAuditData proxyAuditData = (ProxyAuditData) auditData;
 
       AuditData childAuditData = proxyAuditData.getAuditData();
-      assertThat(childAuditData, is(instanceOf(RecordingAuditData.class)));
+      assertThat(childAuditData).isInstanceOf(RecordingAuditData.class);
       RecordingAuditData recordingAuditData = (RecordingAuditData) childAuditData;
 
       AuditEvent event = recordingAuditData.getEvent();
-      assertThat(event.getType(), is(AuditEvent.LOGIN.getType()));
-      assertThat(event.getDomain(), is(AuditEvent.LOGIN.getDomain()));
-      assertThat(recordingAuditData.getUsername(), is(MDCUsernameScope.SYSTEM));
+      assertThat(event.getType()).isEqualTo(AuditEvent.LOGIN.getType());
+      assertThat(event.getDomain()).isEqualTo(AuditEvent.LOGIN.getDomain());
+      assertThat(recordingAuditData.getUsername()).isEqualTo(MDCUsernameScope.SYSTEM);
     }
 
     // ensure that commitAuditData is called and correct httpRequest value set
     ArgumentCaptor<RecordingAuditData> argumentCaptor = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor.capture());
-    assertThat(argumentCaptor.getValue().getEvent(), is(AuditEvent.LOGIN));
+    assertThat(argumentCaptor.getValue().getEvent()).isEqualTo(AuditEvent.LOGIN);
 
     // ensure recordAuditData is called and httpRequest value is still set
     ArgumentCaptor<RecordingAuditData> argumentCaptor2 = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).recordAuditData(argumentCaptor2.capture(), isNull());
-    assertThat(argumentCaptor2.getValue().getEvent(), is(AuditEvent.LOGIN));
+    assertThat(argumentCaptor2.getValue().getEvent()).isEqualTo(AuditEvent.LOGIN);
   }
 
   @Test(expected = NullPointerException.class)
@@ -284,7 +279,7 @@ public class AuditRecorderTest
 
     RecordingAuditData recordingAuditData;
     try (AuditSession auditSession = auditRecorder.recordUserEvent(httpRequest)) {
-      assertThat(auditSession, is(notNullValue()));
+      assertThat(auditSession).isNotNull();
 
       ProxyAuditData proxyAuditData = (ProxyAuditData) AuditData.get();
       recordingAuditData = (RecordingAuditData) proxyAuditData.getAuditData();
@@ -295,16 +290,20 @@ public class AuditRecorderTest
     // ensure that commitAuditData is called and error is set
     ArgumentCaptor<RecordingAuditData> argumentCaptor = ArgumentCaptor.forClass(RecordingAuditData.class);
     verify(auditRecorder).commitAuditData(argumentCaptor.capture());
-    assertThat(argumentCaptor.getValue().getEvent(), is(expectedEvent));
+    assertThat(argumentCaptor.getValue().getEvent()).isEqualTo(expectedEvent);
 
     // ensure recordAuditData is called and AuditEvent and error string is set
     ArgumentCaptor<RecordingAuditData> recordingAuditDataArg = ArgumentCaptor.forClass(RecordingAuditData.class);
     ArgumentCaptor<String> stringArg = ArgumentCaptor.forClass(String.class);
     if (expectedEvent != null) {
       verify(auditRecorder).recordAuditData(recordingAuditDataArg.capture(), stringArg.capture());
-      assertThat(recordingAuditDataArg.getValue(), is(recordingAuditData));
-      assertThat(stringArg.getValue(), expectedStatus == null ? nullValue() :
-          containsString(expectedStatus));
+      assertThat(recordingAuditDataArg.getValue()).isEqualTo(recordingAuditData);
+      if (expectedStatus != null) {
+        assertThat(stringArg.getValue()).contains(expectedStatus);
+      }
+      else {
+        assertThat(stringArg.getValue()).isNull();
+      }
     }
     else {
       verify(auditRecorder, never()).recordAuditData(any(RecordingAuditData.class), anyString());
@@ -351,31 +350,31 @@ public class AuditRecorderTest
 
   @Test
   public void testToLogger() {
-    assertThat(AuditRecorder.toLogger(AuditEvent.AUTHENTICATION_FAILURE).getName(),
-        is("com.sonatype.insight.audit.authentication"));
+    assertThat(AuditRecorder.toLogger(AuditEvent.AUTHENTICATION_FAILURE).getName())
+        .isEqualTo("com.sonatype.insight.audit.authentication");
   }
 
   @Test
   public void testToObjectNode() {
     ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData(), "derivedError");
 
-    assertThat(objectNode, is(notNullValue()));
+    assertThat(objectNode).isNotNull();
     ZonedDateTime parsed = ZonedDateTime
         .parse(objectNode.get("timestamp").asText(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     ZonedDateTime now = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.systemDefault());
-    assertThat(parsed.isBefore(now) || parsed.isEqual(now), is(true));
-    assertThat(objectNode.get("requestMethod").asText(), is("GET"));
-    assertThat(objectNode.get("requestUri").asText(), is("requestUri?queryString"));
-    assertThat(objectNode.get("remoteIpAddress").asText(), is("remoteAddr"));
-    assertThat(objectNode.get("forwarded").asText(), is("forwarded1, forwarded2, forwarded3"));
-    assertThat(objectNode.get("userAgent").asText(), is("userAgent"));
-    assertThat(objectNode.get("username").asText(), is("username"));
-    assertThat(objectNode.get("domain").asText(), is("authentication"));
-    assertThat(objectNode.get("type").asText(), is("failure"));
-    assertThat(objectNode.get("error").asText(), is("derivedError"));
-    assertThat(objectNode.get("data").get("key1").asText(), is("value1"));
-    assertThat(objectNode.get("data").get("key2").asLong(), is(1L));
+    assertThat(parsed).isBeforeOrEqualTo(now);
+    assertThat(objectNode.get("requestMethod").asText()).isEqualTo("GET");
+    assertThat(objectNode.get("requestUri").asText()).isEqualTo("requestUri?queryString");
+    assertThat(objectNode.get("remoteIpAddress").asText()).isEqualTo("remoteAddr");
+    assertThat(objectNode.get("forwarded").asText()).isEqualTo("forwarded1, forwarded2, forwarded3");
+    assertThat(objectNode.get("userAgent").asText()).isEqualTo("userAgent");
+    assertThat(objectNode.get("username").asText()).isEqualTo("username");
+    assertThat(objectNode.get("domain").asText()).isEqualTo("authentication");
+    assertThat(objectNode.get("type").asText()).isEqualTo("failure");
+    assertThat(objectNode.get("error").asText()).isEqualTo("derivedError");
+    assertThat(objectNode.get("data").get("key1").asText()).isEqualTo("value1");
+    assertThat(objectNode.get("data").get("key2").asLong()).isEqualTo(1);
   }
 
   @Test
@@ -384,8 +383,8 @@ public class AuditRecorderTest
     recordingAuditData.setEvent(AuditEvent.EVALUATE_APPLICATION);
     ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
 
-    assertThat(objectNode.has("requestMethod"), is(false));
-    assertThat(objectNode.has("requestUri"), is(false));
+    assertThat(objectNode.has("requestMethod")).isFalse();
+    assertThat(objectNode.has("requestUri")).isFalse();
   }
 
   @Test
@@ -394,22 +393,22 @@ public class AuditRecorderTest
     recordingAuditData.setEvent(AuditEvent.AUTHENTICATION_FAILURE);
     ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
 
-    assertThat(objectNode, is(notNullValue()));
+    assertThat(objectNode).isNotNull();
     ZonedDateTime parsed = ZonedDateTime
         .parse(objectNode.get("timestamp").asText(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     ZonedDateTime now = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.systemDefault());
-    assertThat(parsed.isBefore(now) || parsed.isEqual(now), is(true));
-    assertThat(objectNode.has("requestMethod"), is(false));
-    assertThat(objectNode.has("requestUri"), is(false));
-    assertThat(objectNode.has("remoteIpAddress"), is(false));
-    assertThat(objectNode.has("forwarded"), is(false));
-    assertThat(objectNode.has("userAgent"), is(false));
-    assertThat(objectNode.get("username").asText(), is("*UNKNOWN"));
-    assertThat(objectNode.get("domain").asText(), is("authentication"));
-    assertThat(objectNode.get("type").asText(), is("failure"));
-    assertThat(objectNode.get("error").asText(), is("derivedError"));
-    assertThat(objectNode.has("data"), is(false));
+    assertThat(parsed).isBeforeOrEqualTo(now);
+    assertThat(objectNode.has("requestMethod")).isFalse();
+    assertThat(objectNode.has("requestUri")).isFalse();
+    assertThat(objectNode.has("remoteIpAddress")).isFalse();
+    assertThat(objectNode.has("forwarded")).isFalse();
+    assertThat(objectNode.has("userAgent")).isFalse();
+    assertThat(objectNode.get("username").asText()).isEqualTo("*UNKNOWN");
+    assertThat(objectNode.get("domain").asText()).isEqualTo("authentication");
+    assertThat(objectNode.get("type").asText()).isEqualTo("failure");
+    assertThat(objectNode.get("error").asText()).isEqualTo("derivedError");
+    assertThat(objectNode.has("data")).isFalse();
   }
 
   @Test
@@ -418,7 +417,8 @@ public class AuditRecorderTest
 
     AuditRecorder.log(recordingAuditData, "derivedError");
 
-    logOutput.assertInfo(AuditRecorder.toObjectNode(recordingAuditData, "derivedError").toString());
+    assertThat(logOutput).atInfoLevel()
+        .contains(AuditRecorder.toObjectNode(recordingAuditData, "derivedError").toString());
   }
 
   private RecordingAuditData recordingAuditData() {

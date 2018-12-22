@@ -8,10 +8,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
@@ -68,14 +67,9 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -133,16 +127,16 @@ public class PolicyAlertEmailerTest
   @Test
   public void testNotificationEmailSubject() throws Exception {
     String ownerName = "ownerName";
-    assertEquals("Policy Alert for ownerName: 1 critical violation out of 15",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName));
-    assertEquals("Policy Alert for ownerName: 2 severe violations out of 14",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName));
-    assertEquals("Policy Alert for ownerName: 3 moderate violations out of 12",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName));
-    assertEquals("Policy Alert for ownerName: 9 neutral violations out of 9",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName));
-    assertEquals("Policy Alert for ownerName: 5 neutral violations out of 5",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName));
+    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName))
+        .isEqualTo("Policy Alert for ownerName: 1 critical violation out of 15");
+    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName))
+        .isEqualTo("Policy Alert for ownerName: 2 severe violations out of 14");
+    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName))
+        .isEqualTo("Policy Alert for ownerName: 3 moderate violations out of 12");
+    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName))
+        .isEqualTo("Policy Alert for ownerName: 9 neutral violations out of 9");
+    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName))
+        .isEqualTo("Policy Alert for ownerName: 5 neutral violations out of 5");
   }
 
   @Test
@@ -159,10 +153,11 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    logOutput.assertDebug(
-        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-            + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy",
-        NOTIFICATION_WAIT_TIMEOUT);
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel().contains(
+          "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+              + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy");
+    });
   }
 
   @Test
@@ -183,10 +178,11 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    logOutput.assertDebug(
-        "Sending notification email via " + mailer.getServer() + " to " + email + " for application "
-            + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(),
-        NOTIFICATION_WAIT_TIMEOUT);
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel()
+          .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
+              + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId());
+    });
   }
 
   @Test
@@ -209,9 +205,11 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    logOutput.assertError(
-        "Unable to send notification email to " + email + " for application " + app.getPublicId()
-            + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex, NOTIFICATION_WAIT_TIMEOUT);
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atErrorLevel()
+          .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
+              + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex);
+    });
   }
 
   @Test
@@ -409,7 +407,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
     List<LdapServer> ldapServers = new LdapServerDAO().getAll();
-    assertThat(ldapServers, hasSize(2));
+    assertThat(ldapServers).hasSize(2);
 
     Throwable expectedException = new NamingException("Naming exception!");
     LdapService ldapServiceSpy = Mockito.spy(ldapService);
@@ -424,9 +422,8 @@ public class PolicyAlertEmailerTest
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // make sure emails from server 2 still go out
     assertEmailAddresses("test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
-    logOutput.assertError(
-        "Cannot send notifications to members of group " + groupName + " using ldap server " +
-            ldapServers.get(0).getName(), expectedException);
+    assertThat(logOutput).atErrorLevel().contains("Cannot send notifications to members of group " + groupName
+        + " using ldap server " + ldapServers.get(0).getName(), expectedException);
   }
 
   @Test
@@ -482,24 +479,19 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
     // No email should be sent out with only Jira Notification
-    logOutput.assertDebug(
-        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-            + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy",
-        NOTIFICATION_WAIT_TIMEOUT);
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel().contains(
+          "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+              + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy");
+    });
   }
 
   private void assertEmailAddresses(String... expectedEmailAddresses) {
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(expectedEmailAddresses.length))
         .sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
 
-    assertThat(toAddressesArgumentCaptor.getAllValues(), hasSize(expectedEmailAddresses.length));
-    Set<String> actualEmailAddresses = new HashSet<>();
-    for (List<Address> addresses : toAddressesArgumentCaptor.getAllValues()) {
-      for (Address address : addresses) {
-        actualEmailAddresses.add(address.getMailAddress());
-      }
-    }
-    assertThat(actualEmailAddresses, containsInAnyOrder(expectedEmailAddresses));
+    assertThat(toAddressesArgumentCaptor.getAllValues()).flatExtracting(addresses -> addresses)
+        .extracting(Address::getMailAddress).containsExactlyInAnyOrder(expectedEmailAddresses);
   }
 
   private void startLdapServer1() throws Exception {
@@ -574,11 +566,10 @@ public class PolicyAlertEmailerTest
     Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(app, scanId, stage, policyFacts, 0);
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
-    assertThat(emailBody, containsString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString()));
-    assertThat(emailBody, not(containsString(hashMaven)));
-    assertThat(emailBody, containsString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString()));
-    assertThat(emailBody, not(containsString(hashAname)));
-    assertThat(emailBody, containsString(hashUnknown));
+    assertThat(emailBody).contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString())
+        .doesNotContain(hashMaven)
+        .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString())
+        .doesNotContain(hashAname).contains(hashUnknown);
   }
 
   @Test
@@ -592,13 +583,9 @@ public class PolicyAlertEmailerTest
     policyFacts
         .add(newPolicyFact(policy, ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "hash"));
 
-    try {
+    assertThatThrownBy(() -> {
       policyAlertEmailer.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), policyFacts, 0);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
-    }
+    }).isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {

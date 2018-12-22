@@ -114,7 +114,7 @@ public class PolicyEvaluatorTest
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
-    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
+    assertThat(logOutput).atErrorLevel().contains("The IQ Server is down for maintenance, please try again later.");
     assertThat(httpConfig.getValue().getServerUrl()).isEqualTo("http://localhost:8070/");
     assertThat(httpConfig.getValue().getProxyHost()).isEqualTo("localhost");
     assertThat(httpConfig.getValue().getProxyPort()).isEqualTo(8888);
@@ -128,7 +128,7 @@ public class PolicyEvaluatorTest
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
-    logOutput.assertError("The application ID the-app-id is invalid.");
+    assertThat(logOutput).atErrorLevel().contains("The application ID the-app-id is invalid.");
   }
 
   @Test
@@ -140,7 +140,7 @@ public class PolicyEvaluatorTest
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    assertThat(logOutput).atInfoLevel().contains("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 
   @Test
@@ -159,9 +159,9 @@ public class PolicyEvaluatorTest
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy Name) null");
+    assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning")
+        .contains("Summary of policy violations: 1 critical, 2 severe, 3 moderate").atWarnLevel()
+        .contains("The IQ Server reports policy warning due to \nPolicy(Policy Name) null");
   }
 
   @Test
@@ -187,11 +187,11 @@ public class PolicyEvaluatorTest
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     }).satisfies(e -> assertThat(e.getExitCode()).isOne());
-    logOutput.assertInfo("Policy Action: Failure");
-    logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
-    logOutput.assertError("The IQ Server reports policy failing due to \nPolicy(Policy 2) null");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 3) null");
+    assertThat(logOutput).atInfoLevel().contains("Policy Action: Failure")
+        .contains("Summary of policy violations: 1 critical, 2 severe, 3 moderate").atWarnLevel()
+        .contains("The IQ Server reports policy warning due to \nPolicy(Policy 1) null").atErrorLevel()
+        .contains("The IQ Server reports policy failing due to \nPolicy(Policy 2) null").atWarnLevel()
+        .contains("The IQ Server reports policy warning due to \nPolicy(Policy 3) null");
   }
 
   @Test
@@ -204,7 +204,7 @@ public class PolicyEvaluatorTest
       evaluator.run(params1);
     }).satisfies(e -> assertThat(e.getExitCode()).isOne());
 
-    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
+    assertThat(logOutput).atErrorLevel().contains("The IQ Server is down for maintenance, please try again later.");
 
     Parameters params2 = new Parameters(
         Stream.concat(Stream.of("-e", "true"), Stream.of(params1.getArgs())).toArray(String[]::new));
@@ -215,7 +215,7 @@ public class PolicyEvaluatorTest
       evaluator.run(params2);
     }).satisfies(e -> assertThat(e.getExitCode()).isZero());
 
-    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
+    assertThat(logOutput).atErrorLevel().contains("The IQ Server is down for maintenance, please try again later.");
   }
 
   @Test
@@ -328,8 +328,8 @@ public class PolicyEvaluatorTest
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
-    logOutput.assertError("Could not retrieve configuration for proprietary components from the IQ Server",
-        expectedException);
+    assertThat(logOutput).atErrorLevel()
+        .contains("Could not retrieve configuration for proprietary components from the IQ Server", expectedException);
   }
 
   @Test

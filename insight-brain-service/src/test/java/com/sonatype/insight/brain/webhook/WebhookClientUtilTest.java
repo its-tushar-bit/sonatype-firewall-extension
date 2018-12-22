@@ -33,9 +33,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookClientUtilTest
 {
@@ -85,9 +83,10 @@ public class WebhookClientUtilTest
   public void testPost_PopulatesHeaders() throws Exception {
     final Map<String, String> headers = getRequestHeaders();
     doWebhookClientUtilPost();
-    assertThat(headers.get(WebhookClientUtil.WEBHOOK_ID_HEADER), is(webhookId));
-    assertThat(headers.get(WebhookClientUtil.WEBHOOK_SIGNATURE_ALGORITHM_HEADER), is("HmacSHA1"));
-    assertThat(headers.get(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER), is("52b582138706ac0c597c315cfc1a1bf177408a4d"));
+    assertThat(headers.get(WebhookClientUtil.WEBHOOK_ID_HEADER)).isEqualTo(webhookId);
+    assertThat(headers.get(WebhookClientUtil.WEBHOOK_SIGNATURE_ALGORITHM_HEADER)).isEqualTo("HmacSHA1");
+    assertThat(headers.get(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER))
+        .isEqualTo("52b582138706ac0c597c315cfc1a1bf177408a4d");
   }
 
   @Test
@@ -96,7 +95,7 @@ public class WebhookClientUtilTest
     doWebhookClientUtilPost();
 
     String deliveryId = headers.get(WebhookClientUtil.WEBHOOK_DELIVERY_HEADER);
-    logOutput.assertDebug("Sending Webhook " + webhookId + " with delivery ID " + deliveryId);
+    assertThat(logOutput).atDebugLevel().contains("Sending Webhook " + webhookId + " with delivery ID " + deliveryId);
   }
 
   @Test
@@ -114,7 +113,7 @@ public class WebhookClientUtilTest
       }
     };
     doWebhookClientUtilPost();
-    assertThat(bodies, hasItem("{\"foo\":\"bar\"}"));
+    assertThat(bodies).contains("{\"foo\":\"bar\"}");
   }
 
   @Test
@@ -133,9 +132,8 @@ public class WebhookClientUtilTest
     };
 
     doWebhookClientUtilPost();
-    logOutput.assertError(
-        "Unable to perform HTTP request for Webhook " + webhookId + " with delivery ID " + deliveryIds.get(0) +
-            " due to Status Code: 400 Message: Bad Request");
+    assertThat(logOutput).atErrorLevel().contains("Unable to perform HTTP request for Webhook " + webhookId
+        + " with delivery ID " + deliveryIds.get(0) + " due to Status Code: 400 Message: Bad Request");
   }
 
   private Map<String, String> getRequestHeaders() {

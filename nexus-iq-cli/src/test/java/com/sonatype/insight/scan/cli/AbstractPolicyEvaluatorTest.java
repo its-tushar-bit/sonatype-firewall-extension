@@ -26,6 +26,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public abstract class AbstractPolicyEvaluatorTest
     extends InjectedTest
 {
@@ -123,17 +125,16 @@ public abstract class AbstractPolicyEvaluatorTest
   }
 
   protected void assertLogSummary(PolicyEvaluationResult expectedPolicyEvalutionResult) {
-    logOutput.assertInfo(String
-        .format("Number of components affected: %s critical, %s severe, %s moderate",
+    assertThat(logOutput).atInfoLevel()
+        .contains(String.format("Number of components affected: %s critical, %s severe, %s moderate",
             expectedPolicyEvalutionResult.getCriticalComponentCount(),
             expectedPolicyEvalutionResult.getSevereComponentCount(),
-            expectedPolicyEvalutionResult.getModerateComponentCount()));
-    logOutput.assertInfo(String
-        .format("Number of open policy violations: %s critical, %s severe, %s moderate",
+            expectedPolicyEvalutionResult.getModerateComponentCount()))
+        .contains(String.format("Number of open policy violations: %s critical, %s severe, %s moderate",
             expectedPolicyEvalutionResult.getCriticalPolicyViolationCount(),
             expectedPolicyEvalutionResult.getSeverePolicyViolationCount(),
-            expectedPolicyEvalutionResult.getModeratePolicyViolationCount()));
-    logOutput.assertInfo(String.format("Number of grandfathered policy violations: %s",
-        expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()));
+            expectedPolicyEvalutionResult.getModeratePolicyViolationCount()))
+        .contains(String.format("Number of grandfathered policy violations: %s",
+            expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()));
   }
 }

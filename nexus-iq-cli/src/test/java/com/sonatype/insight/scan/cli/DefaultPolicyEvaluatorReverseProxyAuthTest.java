@@ -110,7 +110,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
         "src/test/data/artifact.jar");
     if (anonymousAllowed) {
       evaluator.run(params);
-      logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+      assertThat(logOutput).atInfoLevel().contains("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
     }
     else {
       assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {

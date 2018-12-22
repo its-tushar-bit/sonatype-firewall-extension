@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,8 +59,9 @@ public class PolicyAlertNotifierTest
     results.allViolations = Arrays.asList();
 
     notifier.sendNotifications(app, results);
-    logOutput.assertDebug("Not sending notifications for application " + app.getPublicId() + " and scan "
-        + eval.getScanId() + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
+    assertThat(logOutput).atDebugLevel()
+        .contains("Not sending notifications for application " + app.getPublicId() + " and scan " + eval.getScanId()
+            + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
   }
 
   @Test

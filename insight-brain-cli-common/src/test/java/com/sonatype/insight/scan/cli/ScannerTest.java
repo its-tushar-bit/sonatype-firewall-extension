@@ -15,12 +15,11 @@ import javax.inject.Inject;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
 
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScannerTest
     extends InjectedTest
@@ -40,20 +39,7 @@ public class ScannerTest
 
     scanner.scan(tmpDir.newFile("scan-test.xml.gz"), targets, new Properties());
 
-    logOutput.assertInfo(regexMatch("Fingerprinting completed in \\d+ seconds for 4 archives, 60 total files"));
-  }
-
-  private Matcher<String> regexMatch(final String regex) {
-    return new TypeSafeMatcher<String>() {
-      @Override
-      protected boolean matchesSafely(final String item) {
-        return item.matches(regex);
-      }
-
-      @Override
-      public void describeTo(final Description description) {
-        description.appendText("No match for regular expression : " + regex );
-      }
-    };
+    assertThat(logOutput).atInfoLevel()
+        .containsPattern("Fingerprinting completed in \\d+ seconds for 4 archives, 60 total files");
   }
 }

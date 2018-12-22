@@ -27,15 +27,14 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 import com.sonatype.insight.test.LogOutput;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Rule;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 public abstract class AbstractAuditTest
@@ -105,20 +104,31 @@ public abstract class AbstractAuditTest
     if (username == null) {
       username = "unauthorized".equals(error) ? unauthorizedUser.getUsername() : User.ADMIN_USERNAME;
     }
-    assertThat(auditDTO.domain, is(auditEvent.getDomain()));
-    assertThat(auditDTO.type, is(auditEvent.getType()));
-    assertThat(auditDTO.error, is(error));
-    assertThat(auditDTO.timestamp, not(isEmptyOrNullString()));
-    assertThat(auditDTO.requestMethod, is(nullValue()));
-    assertThat(auditDTO.requestUri, is(nullValue()));
-    assertThat(auditDTO.remoteIpAddress, systemEvent ? nullValue() : not(isEmptyOrNullString()));
-    assertThat(auditDTO.forwarded, is(nullValue()));
-    assertThat(auditDTO.userAgent, systemEvent ? nullValue() : not(isEmptyOrNullString()));
-    assertThat(auditDTO.username, is(username));
+    assertThat(auditDTO.domain).isEqualTo(auditEvent.getDomain());
+    assertThat(auditDTO.type).isEqualTo(auditEvent.getType());
+    assertThat(auditDTO.error).isEqualTo(error);
+    assertThat(auditDTO.timestamp).isNotEmpty();
+    assertThat(auditDTO.requestMethod).isNull();
+    assertThat(auditDTO.requestUri).isNull();
+    assertThat(auditDTO.forwarded).isNull();
+    if (systemEvent) {
+      assertThat(auditDTO.remoteIpAddress).isNull();
+      assertThat(auditDTO.userAgent).isNull();
+    }
+    else {
+      assertThat(auditDTO.remoteIpAddress).isNotEmpty();
+      assertThat(auditDTO.userAgent).isNotEmpty();
+    }
+    assertThat(auditDTO.username).isEqualTo(username);
   }
 
   protected void assertCustomData(AuditDTO auditDTO, String key, Object value) {
-    assertThat(auditDTO.data, value == null ? not(hasKey(key)) : hasEntry(key, value));
+    if (value == null) {
+      assertThat(auditDTO.data).doesNotContainKey(key);
+    }
+    else {
+      assertThat(auditDTO.data).containsEntry(key, value);
+    }
   }
 
   protected void assertCustomObject(AuditDTO auditDTO, String key, Object pojo) {
@@ -164,11 +174,11 @@ public abstract class AbstractAuditTest
   }
 
   protected void assertRepositoryContainerData(AuditDTO auditDTO) {
-    assertThat(auditDTO.data, hasEntry("scope", "all-repositories"));
+    assertThat(auditDTO.data).containsEntry("scope", "all-repositories");
   }
 
   protected void assertGlobalData(AuditDTO auditDTO) {
-    assertThat(auditDTO.data, hasEntry("scope", "global"));
+    assertThat(auditDTO.data).containsEntry("scope", "global");
   }
 
   protected void assertEvaluationAuditLog(String error,
@@ -220,23 +230,19 @@ public abstract class AbstractAuditTest
 
   protected AuditDTO findFirstByDataKeyValue(Collection<AuditDTO> auditDTOs, String dataKey, Object dataValue) {
     AuditDTO auditDTO = auditDTOs.stream().filter(a -> a.data.get(dataKey).equals(dataValue)).findFirst().orElse(null);
-    assertThat("Failed to find an audit dto with " + dataKey + " equal to " + dataValue, auditDTO, notNullValue());
+    assertThat(auditDTO).as("Failed to find an audit dto with " + dataKey + " equal to " + dataValue).isNotNull();
     return auditDTO;
   }
 
   protected void assertSelectedApplications(AuditDTO auditDTO, ApplicationAuditDTO... expected) {
-    List<ApplicationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
-        new TypeReference<List<ApplicationAuditDTO>>()
-        {
-        });
-    assertThat(actuals, containsInAnyOrder(expected));
+    ApplicationAuditDTO[] actuals = objectMapper.convertValue(auditDTO.data.get("selectedApplications"),
+        ApplicationAuditDTO[].class);
+    assertThat(actuals).containsExactlyInAnyOrder(expected);
   }
 
   protected void assertSelectedOrganizations(AuditDTO auditDTO, OrganizationAuditDTO... expected) {
-    List<OrganizationAuditDTO> actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
-        new TypeReference<List<OrganizationAuditDTO>>()
-        {
-        });
-    assertThat(actuals, containsInAnyOrder(expected));
+    OrganizationAuditDTO[] actuals = objectMapper.convertValue(auditDTO.data.get("selectedOrganizations"),
+        OrganizationAuditDTO[].class);
+    assertThat(actuals).containsExactlyInAnyOrder(expected);
   }
 }

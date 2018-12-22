@@ -11,9 +11,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationSelectorTest
   extends AbstractSelectorTest
@@ -51,9 +49,9 @@ public class OrganizationSelectorTest
       DbUtilParameters params = new DbUtilParameters();
       Map<String, List<String>> selections = new OrganizationSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(1));
-      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY).size(), is(3));
-      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY), containsInAnyOrder("org1", "org2", "org3"));
+      assertThat(selections).hasSize(1);
+      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("org1", "org2",
+          "org3");
     }
   }
 
@@ -66,9 +64,8 @@ public class OrganizationSelectorTest
       DbUtilParameters params = new DbUtilParameters("-xbuild");
       Map<String, List<String>> selections = new OrganizationSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(1));
-      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY).size(), is(1));
-      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY), containsInAnyOrder("org3"));
+      assertThat(selections).hasSize(1);
+      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("org3");
     }
   }
 
@@ -81,9 +78,8 @@ public class OrganizationSelectorTest
       DbUtilParameters params = new DbUtilParameters("-max-org", "2");
       Map<String, List<String>> selections = new OrganizationSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(1));
-      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY).size(), is(2));
-      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY), containsInAnyOrder("org1", "org2"));
+      assertThat(selections).hasSize(1);
+      assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("org1", "org2");
     }
   }
 

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,10 +26,8 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,23 +66,16 @@ public class PingHdsClientTest
     };
     long start = System.currentTimeMillis();
 
-    try {
-      HttpServletRequest request = mock(HttpServletRequest.class);
-
-      when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
-      when(request.getMethod()).thenReturn("GET");
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getMethod()).thenReturn("GET");
+    assertThatThrownBy(() -> {
       client.relay(request, String.class, "/rest/test");
-      fail("Expected exception");
-    }
-    // SocketTimeoutException gets converted by HdsClient to BadGatewayException 
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The request to Sonatype Data Services failed, please retry in a bit."));
-      // make sure that the log recorded a Read timed out error (SocketTimeoutException)
-      List<String> logErrors = logOutput.getErrorMessages(null);
-      assertThat(logErrors.size(), is(1));
-      assertThat(logErrors.get(0), is("Read timed out"));
-      assertThat((System.currentTimeMillis() - start),
-          is(greaterThanOrEqualTo(Long.valueOf(PingHdsClient.SOCKET_TIMEOUT))));
-    }
+      // SocketTimeoutException gets converted by HdsClient to BadGatewayException
+    }).isInstanceOf(BadGatewayException.class)
+        .hasMessage("The request to Sonatype Data Services failed, please retry in a bit.");
+    // make sure that the log recorded a Read timed out error (SocketTimeoutException)
+    assertThat(logOutput).atErrorLevel().contains("Read timed out");
+    assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(PingHdsClient.SOCKET_TIMEOUT);
   }
 }

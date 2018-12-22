@@ -7,8 +7,7 @@ package com.sonatype.insight.brain.tools.metrics;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetricsResultTest
 {
@@ -34,20 +33,20 @@ public class MetricsResultTest
   @Test
   public void testGetLongGaugeValue() throws Exception {
     MetricsResult metricsResult = MetricsReader.getMetricsResult(METRICS_STRING);
-    assertThat(metricsResult.getGaugeValue(SQL_CALL_KEY, Long.class).get(), equalTo(Long.valueOf(SQL_CALL_VALUE)));
+    assertThat(metricsResult.getGaugeValue(SQL_CALL_KEY, Long.class).get()).isEqualTo(Long.valueOf(SQL_CALL_VALUE));
   }
 
   @Test
   public void testGetDoubleGaugeValue() throws Exception {
     MetricsResult metricsResult = MetricsReader.getMetricsResult(METRICS_STRING);
-    assertThat(metricsResult.getGaugeValue(FILE_DESCRIPTORS_USED_KEY, Double.class).get(),
-        equalTo(Double.valueOf(FILE_DESCRIPTORS_USED)));
+    assertThat(metricsResult.getGaugeValue(FILE_DESCRIPTORS_USED_KEY, Double.class).get())
+        .isEqualTo(Double.valueOf(FILE_DESCRIPTORS_USED));
   }
 
   @Test
   public void testGetIntegerGaugeValue() throws Exception {
     MetricsResult metricsResult = MetricsReader.getMetricsResult(METRICS_STRING);
-    assertThat(metricsResult.getGaugeValue(FREE_MEMORY_SIZE_KEY, Integer.class).get(),
-        equalTo(Integer.valueOf(FREE_MEMORY_SIZE)));
+    assertThat(metricsResult.getGaugeValue(FREE_MEMORY_SIZE_KEY, Integer.class).get())
+        .isEqualTo(Integer.valueOf(FREE_MEMORY_SIZE));
   }
 }

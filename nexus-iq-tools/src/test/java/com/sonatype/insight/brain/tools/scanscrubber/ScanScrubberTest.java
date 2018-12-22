@@ -24,9 +24,6 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,12 +33,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static com.sonatype.insight.brain.tools.scanscrubber.ScanScrubberTest.MatchesPattern.matchesPattern;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScanScrubberTest
 {
@@ -88,40 +80,39 @@ public class ScanScrubberTest
     assertMatchesAndChanged(map, "specs/dir11/specs", "specs/\\w+/specs");
 
     // version
-    assertThat(map.get("1.0.0"), is("1.0.0"));
+    assertThat(map).containsEntry("1.0.0", "1.0.0");
 
     // component separator? version
-    assertThat(map.get("component 1.0.0"), is("component 1.0.0"));
+    assertThat(map).containsEntry("component 1.0.0", "component 1.0.0");
     assertMatchesAndChanged(map, "dir10/component 1.0.0", "\\w+/component 1.0.0");
     assertMatchesAndChanged(map, "dir10/component 1.0.0/dir10/component-2.0.0",
         "\\w+/component 1.0.0/\\w+/component-2.0.0");
 
     // component/version
-    assertThat(map.get("dir3/1.0.0"), is("dir3/1.0.0"));
-    assertThat(map.get("dir3/dir3/1.0.0"), is("dir3/dir3/1.0.0"));
+    assertThat(map).containsEntry("dir3/1.0.0", "dir3/1.0.0").containsEntry("dir3/dir3/1.0.0", "dir3/dir3/1.0.0");
 
     // node_modules
-    assertThat(map.get("node_modules"), is("node_modules"));
+    assertThat(map).containsEntry("node_modules", "node_modules");
     assertMatchesAndChanged(map, "dir4/node_modules", "\\w+/node_modules");
     assertMatchesAndChanged(map, "node_modules/dir4/node_modules", "node_modules/\\w+/node_modules");
     assertMatchesAndChanged(map, "dir4/node_modules/dir4/node_modules", "\\w+/node_modules/\\w+/node_modules");
 
     // bower_components
-    assertThat(map.get("bower_components"), is("bower_components"));
+    assertThat(map).containsEntry("bower_components", "bower_components");
     assertMatchesAndChanged(map, "dir5/bower_components", "\\w+/bower_components");
 
     // package
-    assertThat(map.get("package"), is("package"));
+    assertThat(map).containsEntry("package", "package");
     assertMatchesAndChanged(map, "package/dir6/package", "package/\\w+/package");
     assertMatchesAndChanged(map, "dir6/package", "\\w+/package");
     assertMatchesAndChanged(map, "dir6/package/dir6/package", "\\w+/package/\\w+/package");
 
     // package.json
-    assertThat(map.get("package.json"), is("package.json"));
+    assertThat(map).containsEntry("package.json", "package.json");
     assertMatchesAndChanged(map, "dir7/package.json", "\\w+/package.json");
 
     // bower.json
-    assertThat(map.get("bower.json"), is("bower.json"));
+    assertThat(map).containsEntry("bower.json", "bower.json");
     assertMatchesAndChanged(map, "dir8/bower.json", "\\w+/bower.json");
 
     // @scoped
@@ -152,15 +143,15 @@ public class ScanScrubberTest
     ScanScrubber.write(document, scanScrubber.getOutputFile());
     Document sameDocument = ScanScrubber.read(scanScrubber.getOutputFile());
 
-    assertThat(document.isEqualNode(sameDocument), is(true));
+    assertThat(document.isEqualNode(sameDocument)).isTrue();
   }
 
   @Test
   public void testCreateTransformer() throws Exception {
     Transformer transformer = ScanScrubber.createTransformer();
 
-    assertThat(transformer.getOutputProperty(OutputKeys.OMIT_XML_DECLARATION), is("yes"));
-    assertThat(transformer.getOutputProperty(OutputKeys.INDENT), is("yes"));
+    assertThat(transformer.getOutputProperty(OutputKeys.OMIT_XML_DECLARATION)).isEqualTo("yes");
+    assertThat(transformer.getOutputProperty(OutputKeys.INDENT)).isEqualTo("yes");
   }
 
   @Test
@@ -175,9 +166,7 @@ public class ScanScrubberTest
     ScanScrubber scanScrubber = ScanScrubber
         .run("-inputFile", this.scanScrubber.getInputFile(), "-pathnameSuffixExcludes", excludes);
 
-    assertThat(
-        scanScrubber.getPathnameSuffixExcludesPatterns().stream().map(Pattern::pattern).collect(Collectors.toList()),
-        is(expected));
+    assertThat(scanScrubber.getPathnameSuffixExcludesPatterns()).extracting(Pattern::pattern).isEqualTo(expected);
   }
 
   private void compress(String source, String gzip) throws Exception {
@@ -193,11 +182,11 @@ public class ScanScrubberTest
   }
 
   private void assertMatchesAndChanged(Map<String, String> map, String pathname, String pattern) {
-    assertThat(map.get(pathname), allOf(matchesPattern(pattern), not(pathname)));
+    assertThat(map.get(pathname)).isNotEqualTo(pathname).matches(pattern);
   }
 
   private void assertNoIds(Node node) {
-    assertThat(node.getNodeName(), not(startsWith("id")));
+    assertThat(node.getNodeName()).doesNotStartWith("id");
     NodeList nodeList = node.getChildNodes();
     for (int childIndex = 0; childIndex < nodeList.getLength(); childIndex++) {
       assertNoIds(nodeList.item(childIndex));
@@ -207,14 +196,14 @@ public class ScanScrubberTest
   private void assertConsistentPathnames(Document document, Map<String, String> pathnamesToScrubbedPathnames) {
     for (String pathname : getPathnames(document.getDocumentElement(), "", new HashSet<>())) {
       String scrubbedPathname = pathnamesToScrubbedPathnames.get(pathname);
-      assertThat(StringUtils.countMatches(pathname, "/"), is(StringUtils.countMatches(scrubbedPathname, "/")));
+      assertThat(StringUtils.countMatches(pathname, "/")).isEqualTo(StringUtils.countMatches(scrubbedPathname, "/"));
       int pathnameForwardSlashIndex = pathname.lastIndexOf("/");
       int scrubbedPathnameForwardSlashIndex = scrubbedPathname.lastIndexOf("/");
       while (pathnameForwardSlashIndex != -1) {
         String pathnamePart = pathname.substring(0, pathnameForwardSlashIndex);
         String scrubbedPathnamePart = scrubbedPathname
             .substring(scrubbedPathnameForwardSlashIndex, scrubbedPathname.length());
-        assertThat(pathnamesToScrubbedPathnames.get(pathnamePart) + scrubbedPathnamePart, is(scrubbedPathname));
+        assertThat(pathnamesToScrubbedPathnames.get(pathnamePart) + scrubbedPathnamePart).isEqualTo(scrubbedPathname);
         pathnameForwardSlashIndex = pathname.lastIndexOf("/", pathnameForwardSlashIndex - 1);
         scrubbedPathnameForwardSlashIndex = scrubbedPathname.lastIndexOf("/", scrubbedPathnameForwardSlashIndex - 1);
       }
@@ -240,30 +229,6 @@ public class ScanScrubberTest
 
   private void assertEqualElements(Document documentOne, Document documentTwo, String elementName) {
     assertThat(documentOne.getElementsByTagName(elementName).item(0)
-        .isEqualNode(documentTwo.getElementsByTagName(elementName).item(0)), is(true));
-  }
-
-  static class MatchesPattern
-      extends TypeSafeMatcher<String>
-  {
-    private final Pattern pattern;
-
-    MatchesPattern(Pattern pattern) {
-      this.pattern = pattern;
-    }
-
-    @Override
-    protected boolean matchesSafely(String item) {
-      return pattern.matcher(item).matches();
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendText("a string matching the pattern '" + pattern + "'");
-    }
-
-    static Matcher<String> matchesPattern(String regex) {
-      return new MatchesPattern(Pattern.compile(regex));
-    }
+        .isEqualNode(documentTwo.getElementsByTagName(elementName).item(0))).isTrue();
   }
 }

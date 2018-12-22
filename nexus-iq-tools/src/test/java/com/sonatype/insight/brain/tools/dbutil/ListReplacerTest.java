@@ -13,9 +13,7 @@ import com.sonatype.insight.brain.tools.common.PerfTestConfig.TestUrl;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ListReplacerTest
 {
@@ -34,11 +32,11 @@ public class ListReplacerTest
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
     List<String> allPayloads = testUrls.stream().map(TestUrl::getPayload).collect(Collectors.toList());
 
-    assertThat(allPayloads, hasItem(BASE_PAYLOAD1 + BASE_PAYLOAD2));
-    assertThat(allPayloads, hasItem(BASE_PAYLOAD1 + buildReplacement(appList.subList(0, 1)) + BASE_PAYLOAD2));
-    assertThat(allPayloads, hasItem(BASE_PAYLOAD1 + buildReplacement(appList.subList(0, 3)) + BASE_PAYLOAD2));
-    assertThat(allPayloads, hasItem(BASE_PAYLOAD1 + buildReplacement(appList.subList(0, 4)) + BASE_PAYLOAD2));
-    assertThat(testUrls, hasSize(4));
+    assertThat(allPayloads).contains(BASE_PAYLOAD1 + BASE_PAYLOAD2,
+        BASE_PAYLOAD1 + buildReplacement(appList.subList(0, 1)) + BASE_PAYLOAD2,
+        BASE_PAYLOAD1 + buildReplacement(appList.subList(0, 3)) + BASE_PAYLOAD2,
+        BASE_PAYLOAD1 + buildReplacement(appList.subList(0, 4)) + BASE_PAYLOAD2);
+    assertThat(testUrls).hasSize(4);
   }
 
   @Test
@@ -49,8 +47,8 @@ public class ListReplacerTest
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
     List<String> allPayloads = testUrls.stream().map(TestUrl::getPayload).collect(Collectors.toList());
 
-    assertThat(testUrls, hasSize(4));
-    assertThat(allPayloads, hasItem(BASE_PAYLOAD1 + BASE_PAYLOAD2));
+    assertThat(testUrls).hasSize(4);
+    assertThat(allPayloads).contains(BASE_PAYLOAD1 + BASE_PAYLOAD2);
   }
 
   @Test
@@ -61,8 +59,8 @@ public class ListReplacerTest
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
     List<String> allPayloads = testUrls.stream().map(TestUrl::getPayload).collect(Collectors.toList());
 
-    assertThat(testUrls, hasSize(4));
-    assertThat(allPayloads, hasItem(BASE_PAYLOAD1 + BASE_PAYLOAD2));
+    assertThat(testUrls).hasSize(4);
+    assertThat(allPayloads).contains(BASE_PAYLOAD1 + BASE_PAYLOAD2);
   }
 
   @Test
@@ -71,7 +69,7 @@ public class ListReplacerTest
     ListReplacer replacer = new ListReplacer("{appIdList", appList, 4);
     TestUrl testUrl = getBasicTestUrl(payload);
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
-    assertThat(testUrls, hasSize(4));
+    assertThat(testUrls).hasSize(4);
   }
 
   @Test
@@ -80,7 +78,7 @@ public class ListReplacerTest
     ListReplacer replacer = new ListReplacer("{appIdList", appList, 4);
     TestUrl testUrl = getBasicTestUrl(payload);
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
-    assertThat(testUrls, hasSize(4));
+    assertThat(testUrls).hasSize(4);
   }
 
   @Test
@@ -90,7 +88,7 @@ public class ListReplacerTest
     TestUrl testUrl = getBasicTestUrl(payload);
     List<TestUrl> testUrls = replacer.generateUrls(testUrl);
 
-    assertThat(testUrls, hasSize(4));
+    assertThat(testUrls).hasSize(4);
   }
 
   private TestUrl getBasicTestUrl(String payload) {

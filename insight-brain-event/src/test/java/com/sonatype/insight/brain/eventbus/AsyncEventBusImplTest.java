@@ -68,7 +68,8 @@ public class AsyncEventBusImplTest
     underTest.post("foo");
     underTest.post("bar");
 
-    logOutput.assertError("Discarding event because the thread bounds and queue capacities are reached");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Discarding event because the thread bounds and queue capacities are reached");
     assertThat(longHandler.getLatch().await(2, TimeUnit.SECONDS)).isFalse();
     assertThat(longHandler.getLatch().getCount()).isEqualTo(1);
   }

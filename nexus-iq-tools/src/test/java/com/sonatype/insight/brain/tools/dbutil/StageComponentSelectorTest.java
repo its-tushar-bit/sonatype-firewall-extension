@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StageComponentSelectorTest
   extends AbstractSelectorTest
@@ -79,11 +77,9 @@ public class StageComponentSelectorTest
       DbUtilParameters params = new DbUtilParameters();
       Map<String, List<String>> selections = new StageComponentSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(2));
-      assertThat(selections.get(hKey).size(), is(6));
-      assertThat(selections.get(hKey), contains("h444", "h444", "h222", "h222", "h111", "h111"));
-      assertThat(selections.get(sKey).size(), is(6));
-      assertThat(selections.get(sKey), contains("build", "develop", "build", "develop", "build", "develop"));
+      assertThat(selections).hasSize(2);
+      assertThat(selections.get(hKey)).containsExactly("h444", "h444", "h222", "h222", "h111", "h111");
+      assertThat(selections.get(sKey)).containsExactly("build", "develop", "build", "develop", "build", "develop");
     }
   }
 
@@ -95,11 +91,9 @@ public class StageComponentSelectorTest
       DbUtilParameters params = new DbUtilParameters("-xbuild");
       Map<String, List<String>> selections = new StageComponentSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(2));
-      assertThat(selections.get(hKey).size(), is(1));
-      assertThat(selections.get(hKey), contains("h222"));
-      assertThat(selections.get(sKey).size(), is(1));
-      assertThat(selections.get(sKey), contains("develop"));
+      assertThat(selections).hasSize(2);
+      assertThat(selections.get(hKey)).containsExactly("h222");
+      assertThat(selections.get(sKey)).containsExactly("develop");
     }
   }
 
@@ -111,11 +105,9 @@ public class StageComponentSelectorTest
       DbUtilParameters params = new DbUtilParameters("-max-comp", "2");
       Map<String, List<String>> selections = new StageComponentSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(2));
-      assertThat(selections.get(hKey).size(), is(2));
-      assertThat(selections.get(hKey), contains("h444", "h444"));
-      assertThat(selections.get(sKey).size(), is(2));
-      assertThat(selections.get(sKey), contains("build", "develop"));
+      assertThat(selections).hasSize(2);
+      assertThat(selections.get(hKey)).containsExactly("h444", "h444");
+      assertThat(selections.get(sKey)).containsExactly("build", "develop");
     }
   }
 
@@ -127,11 +119,9 @@ public class StageComponentSelectorTest
       DbUtilParameters params = new DbUtilParameters("-xopen");
       Map<String, List<String>> selections = new StageComponentSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(2));
-      assertThat(selections.get(hKey).size(), is(4));
-      assertThat(selections.get(hKey), contains("h222", "h222", "h111", "h111"));
-      assertThat(selections.get(sKey).size(), is(4));
-      assertThat(selections.get(sKey), contains("build", "develop", "build", "develop"));
+      assertThat(selections).hasSize(2);
+      assertThat(selections.get(hKey)).containsExactly("h222", "h222", "h111", "h111");
+      assertThat(selections.get(sKey)).containsExactly("build", "develop", "build", "develop");
     }
   }
 }

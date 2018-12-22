@@ -11,9 +11,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicySelectorTest
   extends AbstractSelectorTest
@@ -54,10 +52,9 @@ public class PolicySelectorTest
       DbUtilParameters params = new DbUtilParameters();
       Map<String, List<String>> selections = new PolicySelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(1));
-      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY).size(), is(6));
-      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY),
-          containsInAnyOrder("p1", "p2", "p3", "p4", "p5", "p6"));
+      assertThat(selections).hasSize(1);
+      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("p1", "p2", "p3", "p4", "p5",
+          "p6");
     }
   }
 
@@ -70,9 +67,8 @@ public class PolicySelectorTest
       DbUtilParameters params = new DbUtilParameters("-xdevelop");
       Map<String, List<String>> selections = new PolicySelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(1));
-      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY).size(), is(2));
-      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY), containsInAnyOrder("p1", "p2"));
+      assertThat(selections).hasSize(1);
+      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("p1", "p2");
     }
   }
 
@@ -85,9 +81,8 @@ public class PolicySelectorTest
       DbUtilParameters params = new DbUtilParameters("-max-pol", "2");
       Map<String, List<String>> selections = new PolicySelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(1));
-      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY).size(), is(2));
-      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY), containsInAnyOrder("p1", "p2"));
+      assertThat(selections).hasSize(1);
+      assertThat(selections.get(PolicySelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("p1", "p2");
     }
   }
 
@@ -109,12 +104,15 @@ public class PolicySelectorTest
       String key = PolicySelector.REPLACEMENT_KEY;
       PolicySelector ps = new PolicySelector();
 
-      assertThat(ps.loadSelections(conn, excludeOpen).get(key), containsInAnyOrder("p5", "p6"));
-      assertThat(ps.loadSelections(conn, excludeWaived).get(key), containsInAnyOrder("p1", "p2", "p3", "p4", "p6"));
-      assertThat(ps.loadSelections(conn, excludeFixed).get(key), containsInAnyOrder("p1", "p2", "p3", "p4", "p5"));
-      assertThat(ps.loadSelections(conn, excludeOpenWaived).get(key), containsInAnyOrder("p6"));
-      assertThat(ps.loadSelections(conn, excludeOpenFixed).get(key), containsInAnyOrder("p5"));
-      assertThat(ps.loadSelections(conn, excludeWaivedFixed).get(key), containsInAnyOrder("p1", "p2", "p3", "p4"));
+      assertThat(ps.loadSelections(conn, excludeOpen).get(key)).containsExactlyInAnyOrder("p5", "p6");
+      assertThat(ps.loadSelections(conn, excludeWaived).get(key)).containsExactlyInAnyOrder("p1", "p2", "p3", "p4",
+          "p6");
+      assertThat(ps.loadSelections(conn, excludeFixed).get(key)).containsExactlyInAnyOrder("p1", "p2", "p3", "p4",
+          "p5");
+      assertThat(ps.loadSelections(conn, excludeOpenWaived).get(key)).containsExactlyInAnyOrder("p6");
+      assertThat(ps.loadSelections(conn, excludeOpenFixed).get(key)).containsExactlyInAnyOrder("p5");
+      assertThat(ps.loadSelections(conn, excludeWaivedFixed).get(key)).containsExactlyInAnyOrder("p1", "p2", "p3",
+          "p4");
     }
   }
 

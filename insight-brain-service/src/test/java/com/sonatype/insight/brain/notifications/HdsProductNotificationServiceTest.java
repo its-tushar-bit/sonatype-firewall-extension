@@ -27,8 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
@@ -113,7 +112,7 @@ public class HdsProductNotificationServiceTest
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
     List<UserViewedProductNotification> userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
-    assertThat(userViewedProductNotifications.size(), is(1));
+    assertThat(userViewedProductNotifications).hasSize(1);
 
     reset(hdsProductNotificationServiceSpy);
     reset(mockHdsClient);
@@ -134,7 +133,7 @@ public class HdsProductNotificationServiceTest
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
     // This should have been removed as part of the cache update
     userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
-    assertThat(userViewedProductNotifications.size(), is(0));
+    assertThat(userViewedProductNotifications).isEmpty();
   }
 
   @Test
@@ -159,7 +158,7 @@ public class HdsProductNotificationServiceTest
 
     retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
-    logOutput.assertError(expectedException.getMessage(), expectedException);
+    assertThat(logOutput).atErrorLevel().contains(expectedException.getMessage(), expectedException);
   }
 
   private ProductNotificationList createNotifications() {
@@ -190,14 +189,16 @@ public class HdsProductNotificationServiceTest
   private void assertNotifications(final List<ProductNotification> retrievedNotifications,
                                    final List<ProductNotification> expectedNotifications)
   {
-    assertThat(retrievedNotifications.size(), is(expectedNotifications.size()));
+    assertThat(retrievedNotifications).hasSameSizeAs(expectedNotifications);
     for (int i = 0; i < retrievedNotifications.size(); i++) {
-      assertThat(retrievedNotifications.get(i).getId(), is(expectedNotifications.get(i).getId()));
-      assertThat(retrievedNotifications.get(i).getSummaryText(), is(expectedNotifications.get(i).getSummaryText()));
-      assertThat(retrievedNotifications.get(i).getSummaryUrl(), is(expectedNotifications.get(i).getSummaryUrl()));
-      assertThat(retrievedNotifications.get(i).getDetailHtml(), is(expectedNotifications.get(i).getDetailHtml()));
-      assertThat(retrievedNotifications.get(i).getType(), is(expectedNotifications.get(i).getType()));
-      assertThat(retrievedNotifications.get(i).getDateCreated(), is(expectedNotifications.get(i).getDateCreated()));
+      assertThat(retrievedNotifications.get(i).getId()).isEqualTo(expectedNotifications.get(i).getId());
+      assertThat(retrievedNotifications.get(i).getSummaryText())
+          .isEqualTo(expectedNotifications.get(i).getSummaryText());
+      assertThat(retrievedNotifications.get(i).getSummaryUrl()).isEqualTo(expectedNotifications.get(i).getSummaryUrl());
+      assertThat(retrievedNotifications.get(i).getDetailHtml()).isEqualTo(expectedNotifications.get(i).getDetailHtml());
+      assertThat(retrievedNotifications.get(i).getType()).isEqualTo(expectedNotifications.get(i).getType());
+      assertThat(retrievedNotifications.get(i).getDateCreated())
+          .isEqualTo(expectedNotifications.get(i).getDateCreated());
     }
   }
 }

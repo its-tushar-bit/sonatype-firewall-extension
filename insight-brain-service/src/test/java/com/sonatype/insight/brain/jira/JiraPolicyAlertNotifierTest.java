@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -40,11 +41,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -113,13 +112,13 @@ public class JiraPolicyAlertNotifierTest
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT)).createIssue(createRequestArgumentCaptor.capture());
 
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
-    assertThat(jiraIssueCreateRequest.getFields().size(), is(4));
+    assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
     Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
-    assertThat(projectMeta.get("key"), is(projectKey));
+    assertThat(projectMeta).containsEntry("key", projectKey);
     Map<String, Long> issueMeta = jiraIssueCreateRequest.getField(JiraField.ISSUETYPE);
-    assertThat(issueMeta.get("id"), is(issueTypeId));
+    assertThat(issueMeta).containsEntry("id", issueTypeId);
     String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
-    assertThat(summary, is("Nexus IQ: Application " + application.getName() + "; BUILD stage; 1 Policy alerts"));
+    assertThat(summary).isEqualTo("Nexus IQ: Application " + application.getName() + "; BUILD stage; 1 Policy alerts");
   }
 
   @Test
@@ -150,9 +149,8 @@ public class JiraPolicyAlertNotifierTest
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT)).createIssue(createRequestArgumentCaptor.capture());
 
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
-    assertThat(jiraIssueCreateRequest.getField("description"), notNullValue());
-    assertThat((String) jiraIssueCreateRequest.getField("description"),
-        containsString(ComponentDisplayNameUtil.fromIdentifier(identifier).toString()));
+    assertThat((String) jiraIssueCreateRequest.getField("description"))
+        .contains(ComponentDisplayNameUtil.fromIdentifier(identifier).toString());
   }
 
   @Test
@@ -178,11 +176,12 @@ public class JiraPolicyAlertNotifierTest
     doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class));
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    logOutput.assertError(
-        "Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id " +
-            issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId +
-            " in stage " +
-            stage.getStageTypeId(), ex, NOTIFICATION_WAIT_TIMEOUT);
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atErrorLevel()
+          .contains("Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id "
+              + issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId
+              + " in stage " + stage.getStageTypeId(), ex);
+    });
   }
 
   @Test
@@ -205,11 +204,12 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    logOutput.assertDebug(
-        "Not sending JIRA notifications for application " + application.getPublicId() + " and scan " +
-            evaluation.getScanId()
-            + " in stage " + evaluation.getStageTypeId() + ", no JIRA projects configured for any violated policy",
-        NOTIFICATION_WAIT_TIMEOUT);
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel()
+          .contains("Not sending JIRA notifications for application " + application.getPublicId() + " and scan "
+              + evaluation.getScanId() + " in stage " + evaluation.getStageTypeId()
+              + ", no JIRA projects configured for any violated policy");
+    });
   }
 
   @Test
@@ -219,7 +219,7 @@ public class JiraPolicyAlertNotifierTest
     jiraPolicyAlertNotifier
         .sendNotifications(new Application(), "", new Stage(), Collections.<PolicyNotification>emptyList());
 
-    logOutput.assertDebug("JIRA integration is not enabled; skipping issue creation");
+    assertThat(logOutput).atDebugLevel().contains("JIRA integration is not enabled; skipping issue creation");
 
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any(JiraIssueCreateRequest.class));
   }
@@ -230,12 +230,8 @@ public class JiraPolicyAlertNotifierTest
 
     Application app = tempEntity.newApplicationWithParent();
 
-    try {
+    assertThatThrownBy(() -> {
       jiraPolicyAlertNotifier.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), null, null);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
-    }
+    }).isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 }

@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.tools.resultdiff;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 import com.sonatype.insight.brain.tools.urlrunner.Stats;
 import com.sonatype.insight.brain.tools.urlrunner.UrlRunnerCli;
@@ -29,11 +27,8 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.LoggerFactory;
 
 import static org.apache.http.HttpVersion.HTTP_1_1;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ResultDiffTest
 {
@@ -106,21 +101,21 @@ public class ResultDiffTest
     ResultDiff resultDiff = new ResultDiff();
     List<ResultDiff.DiffData> diffDefault2000 = resultDiff.compareResults(out1, out2);
 
-    assertThat(diffDefault2000, hasSize(1));
-    assertThat(diffDefault2000.get(0).min, is(1000L));
-    assertThat(diffDefault2000.get(0).max, is(4000L));
-    assertThat(diffDefault2000.get(0).results, hasSize(2));
+    assertThat(diffDefault2000).hasSize(1);
+    assertThat(diffDefault2000.get(0).min).isEqualTo(1000);
+    assertThat(diffDefault2000.get(0).max).isEqualTo(4000);
+    assertThat(diffDefault2000.get(0).results).hasSize(2);
 
     resultDiff.setMinDiff(500);
     List<ResultDiff.DiffData> diff500 = resultDiff.compareResults(out1, out2);
 
-    assertThat(diff500, hasSize(2));
-    assertThat(diff500.get(0).min, is(1000L));
-    assertThat(diff500.get(0).max, is(4000L));
-    assertThat(diff500.get(0).results, hasSize(2));
-    assertThat(diff500.get(1).min, is(1000L));
-    assertThat(diff500.get(1).max, is(2000L));
-    assertThat(diff500.get(1).results, hasSize(2));
+    assertThat(diff500).hasSize(2);
+    assertThat(diff500.get(0).min).isEqualTo(1000);
+    assertThat(diff500.get(0).max).isEqualTo(4000);
+    assertThat(diff500.get(0).results).hasSize(2);
+    assertThat(diff500.get(1).min).isEqualTo(1000);
+    assertThat(diff500.get(1).max).isEqualTo(2000);
+    assertThat(diff500.get(1).results).hasSize(2);
   }
 
   @Test
@@ -144,21 +139,21 @@ public class ResultDiffTest
     ResultDiff resultDiff = new ResultDiff();
     List<ResultDiff.DiffData> diffDefault2000 = resultDiff.compareResults(out1, out2, out3);
 
-    assertThat(diffDefault2000, hasSize(1));
-    assertThat(diffDefault2000.get(0).min, is(1000L));
-    assertThat(diffDefault2000.get(0).max, is(7000L));
-    assertThat(diffDefault2000.get(0).results, hasSize(3));
+    assertThat(diffDefault2000).hasSize(1);
+    assertThat(diffDefault2000.get(0).min).isEqualTo(1000);
+    assertThat(diffDefault2000.get(0).max).isEqualTo(7000);
+    assertThat(diffDefault2000.get(0).results).hasSize(3);
 
     resultDiff.setMinDiff(500);
     List<ResultDiff.DiffData> diff500 = resultDiff.compareResults(out1, out2, out3);
 
-    assertThat(diff500, hasSize(2));
-    assertThat(diff500.get(0).min, is(1000L));
-    assertThat(diff500.get(0).max, is(7000L));
-    assertThat(diff500.get(0).results, hasSize(3));
-    assertThat(diff500.get(1).min, is(500L));
-    assertThat(diff500.get(1).max, is(2000L));
-    assertThat(diff500.get(1).results, hasSize(3));
+    assertThat(diff500).hasSize(2);
+    assertThat(diff500.get(0).min).isEqualTo(1000);
+    assertThat(diff500.get(0).max).isEqualTo(7000);
+    assertThat(diff500.get(0).results).hasSize(3);
+    assertThat(diff500.get(1).min).isEqualTo(500);
+    assertThat(diff500.get(1).max).isEqualTo(2000);
+    assertThat(diff500.get(1).results).hasSize(3);
   }
 
   @Test
@@ -172,21 +167,13 @@ public class ResultDiffTest
     list_2.add(tempDir.newFile());
     list_2.add(tempDir.newFile());
 
-    try {
+    assertThatThrownBy(() -> {
       ResultDiff.validateFiles(list_0);
-      fail("Expected validation exception for minimum two files.");
-    }
-    catch (ParameterException paramException) {
-      assertThat(paramException.getMessage(), is(ResultDiff.ERROR_MIN_FILES));
-    }
+    }).isInstanceOf(ParameterException.class).hasMessage(ResultDiff.ERROR_MIN_FILES);
 
-    try {
+    assertThatThrownBy(() -> {
       ResultDiff.validateFiles(list_1);
-      fail("Expected validation exception for minimum two files.");
-    }
-    catch (ParameterException paramException) {
-      assertThat(paramException.getMessage(), is(ResultDiff.ERROR_MIN_FILES));
-    }
+    }).isInstanceOf(ParameterException.class).hasMessage(ResultDiff.ERROR_MIN_FILES);
 
     ResultDiff.validateFiles(list_2);
   }
@@ -200,16 +187,12 @@ public class ResultDiffTest
     list_2.add(valid);
     list_2.add(invalid);
 
-    assertTrue(valid.exists());
-    assertFalse(invalid.exists());
+    assertThat(valid).exists();
+    assertThat(invalid).doesNotExist();
 
-    try {
+    assertThatThrownBy(() -> {
       ResultDiff.validateFiles(list_2);
-      fail("Expected validation exception for invalid files.");
-    }
-    catch (ParameterException paramException) {
-      assertThat(paramException.getMessage(), startsWith(ResultDiff.ERROR_INVALID_FILE_PREFIX));
-    }
+    }).isInstanceOf(ParameterException.class).hasMessageStartingWith(ResultDiff.ERROR_INVALID_FILE_PREFIX);
   }
 
 }

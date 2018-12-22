@@ -11,9 +11,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationEvalSelectorTest
   extends AbstractSelectorTest
@@ -80,10 +78,9 @@ public class ApplicationEvalSelectorTest
       DbUtilParameters params = new DbUtilParameters();
       Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(4));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(3));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
-          containsInAnyOrder("app1", "app2", "app3"));
+      assertThat(selections).hasSize(4);
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY)).containsExactlyInAnyOrder("app1",
+          "app2", "app3");
     }
   }
 
@@ -96,9 +93,8 @@ public class ApplicationEvalSelectorTest
       DbUtilParameters params = new DbUtilParameters("-xbuild");
       Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(4));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(1));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY), containsInAnyOrder("app3"));
+      assertThat(selections).hasSize(4);
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY)).containsExactlyInAnyOrder("app3");
     }
   }
 
@@ -111,10 +107,9 @@ public class ApplicationEvalSelectorTest
       DbUtilParameters params = new DbUtilParameters("-max-eval", "2");
       Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(4));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(5));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
-          containsInAnyOrder("app1", "app1", "app2", "app2", "app3"));
+      assertThat(selections).hasSize(4);
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY)).containsExactlyInAnyOrder("app1",
+          "app1", "app2", "app2", "app3");
     }
   }
 
@@ -127,10 +122,9 @@ public class ApplicationEvalSelectorTest
       DbUtilParameters params = new DbUtilParameters("-max-app", "2");
       Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(4));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(2));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
-          containsInAnyOrder("app1", "app2"));
+      assertThat(selections).hasSize(4);
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY)).containsExactlyInAnyOrder("app1",
+          "app2");
     }
   }
 
@@ -143,10 +137,9 @@ public class ApplicationEvalSelectorTest
       DbUtilParameters params = new DbUtilParameters("-max-app", "2", "-max-eval", "2");
       Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
 
-      assertThat(selections.values().size(), is(4));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(4));
-      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
-                 containsInAnyOrder("app1", "app1", "app2", "app2"));
+      assertThat(selections).hasSize(4);
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY)).containsExactlyInAnyOrder("app1",
+          "app1", "app2", "app2");
     }
   }
 }

@@ -29,10 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class ReverseProxyAuthcTest
@@ -104,11 +101,11 @@ public class ReverseProxyAuthcTest
     initServer(null);
 
     ReverseProxyAuthenticationConfig reverseProxyAuthcConfig = new ReverseProxyAuthenticationConfig();
-    assertThat(reverseProxyAuthcConfig.isEnabled(), is(false));
-    assertThat(reverseProxyAuthcConfig.getUsernameHeader(), is("REMOTE_USER"));
+    assertThat(reverseProxyAuthcConfig.isEnabled()).isFalse();
+    assertThat(reverseProxyAuthcConfig.getUsernameHeader()).isEqualTo("REMOTE_USER");
     HttpResponse response = restRequest().path("rest/anything").header("REMOTE_USER", "testuser").anon().get();
     assertResponseStatus(401, response);
-    assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 
   @Test
@@ -118,15 +115,15 @@ public class ReverseProxyAuthcTest
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(notNullValue()));
+    assertThat(response.getSessionCookie()).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
-    assertThat(authStatus.isAuthenticated(), is(true));
-    assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is(displayName()));
+    assertThat(authStatus.isAuthenticated()).isTrue();
+    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
     response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
   }
 
   @Test
@@ -145,16 +142,16 @@ public class ReverseProxyAuthcTest
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
-    assertThat(authStatus.isAuthenticated(), is(true));
-    assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is(displayName()));
+    assertThat(authStatus.isAuthenticated()).isTrue();
+    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
         .delete();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
-    assertThat(response.getHeader("Location"), is(logoutUrl.toString()));
+    assertThat(response.getHeader("Location")).isEqualTo(logoutUrl.toString());
   }
 
   @Test
@@ -172,16 +169,16 @@ public class ReverseProxyAuthcTest
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
-    assertThat(authStatus.isAuthenticated(), is(true));
-    assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is(displayName()));
+    assertThat(authStatus.isAuthenticated()).isTrue();
+    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
         .delete();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
-    assertThat(response.getHeader("Location"), is(nullValue()));
+    assertThat(response.getHeader("Location")).isNull();
   }
 
   @Test
@@ -198,11 +195,11 @@ public class ReverseProxyAuthcTest
     HttpRequest request = restRequest().header("X-Remote-User", "testuser").anon();
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(notNullValue()));
+    assertThat(response.getSessionCookie()).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
-    assertThat(authStatus.isAuthenticated(), is(true));
-    assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is(displayName()));
+    assertThat(authStatus.isAuthenticated()).isTrue();
+    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
   }
 
   @Test
@@ -212,7 +209,7 @@ public class ReverseProxyAuthcTest
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
     HttpResponse response = request.subpath("rest/anything").get();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(notNullValue()));
+    assertThat(response.getSessionCookie()).isNotNull();
   }
 
   @Test
@@ -232,7 +229,9 @@ public class ReverseProxyAuthcTest
     HttpResponse mismatchResponse = mismatchRequest.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(200, mismatchResponse);
     AuthenticationStatus authenticationStatus = mismatchResponse.getBody(AuthenticationStatus.class);
-    assertThat(authenticationStatus.getUsername(), is("Beta"));
-    logOutput.assertInfo("Detected mismatch between user specified by reverse proxy authentication (Beta) and user specified by session cookie (testuser)");
+    assertThat(authenticationStatus.getUsername()).isEqualTo("Beta");
+    assertThat(logOutput).atInfoLevel()
+        .contains("Detected mismatch between user specified by reverse proxy authentication (Beta)"
+            + " and user specified by session cookie (testuser)");
   }
 }

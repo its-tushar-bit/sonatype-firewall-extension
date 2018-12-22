@@ -30,12 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -79,7 +74,7 @@ public class TelemetrySenderTest
 
     Date expectedMinCreateTime = new Date();
     telemetrySender.send(telemetryDataSend);
-    assertThat(TelemetrySender.RESOURCE_PATH, is(invocation[0].getArguments()[0]));
+    assertThat(TelemetrySender.RESOURCE_PATH).isEqualTo(invocation[0].getArguments()[0]);
     Date expectedMaxCreateTime = new Date();
 
     HttpEntity httpEntity = (HttpEntity) invocation[0].getArguments()[1];
@@ -87,35 +82,33 @@ public class TelemetrySenderTest
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
     BodyPart bodyPart = multipart.getBodyPart(0);
     String filename = bodyPart.getFileName();
-    assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
+    assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
 
     try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
       byte[] buffer = new byte[1024];
 
       ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
-      assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
+      assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
-      assertThat(telemetryHeaderReceived.getCreateTime(), greaterThanOrEqualTo(expectedMinCreateTime));
-      assertThat(telemetryHeaderReceived.getCreateTime(), lessThanOrEqualTo(expectedMaxCreateTime));
-      assertThat(telemetryHeaderReceived.getTelemetryId(), is(telemetryId.getId()));
-      assertThat(telemetryHeaderReceived.getProduct(),
-          is(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion()));
-      assertThat(telemetryHeaderReceived.getFormat(), is(TelemetrySender.FILE_FORMAT));
+      assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualsTo(expectedMinCreateTime)
+          .isBeforeOrEqualsTo(expectedMaxCreateTime);
+      assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
+      assertThat(telemetryHeaderReceived.getProduct())
+          .isEqualTo(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion());
+      assertThat(telemetryHeaderReceived.getFormat()).isEqualTo(TelemetrySender.FILE_FORMAT);
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
-      assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
+      assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
-      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG),
-          is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG),
-          is("0"));
-      assertThat(telemetryDataReceived.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG),
-          is("0"));
-      assertThat(telemetryDataReceived.getTimestamp(), is(telemetryDataSend.getTimestamp()));
+      assertThat(telemetryDataReceived.getAttributes())
+          .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
+          .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
+          .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
+          .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+          .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
+      assertThat(telemetryDataReceived.getTimestamp()).isEqualTo(telemetryDataSend.getTimestamp());
     }
   }
 
@@ -126,7 +119,7 @@ public class TelemetrySenderTest
 
     telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS));
 
-    logOutput.assertDebug(containsString("Failed to send telemetry."), exception);
+    assertThat(logOutput).atDebugLevel().contains("Failed to send telemetry.", exception);
   }
 
   @Test
@@ -139,6 +132,6 @@ public class TelemetrySenderTest
     telemetrySender.send(new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION), clientUserAgent);
 
     // If invocation[0] is not null, then the mock was called with the right client user agent value.
-    assertThat(invocation[0], is(notNullValue()));
+    assertThat(invocation[0]).isNotNull();
   }
 }

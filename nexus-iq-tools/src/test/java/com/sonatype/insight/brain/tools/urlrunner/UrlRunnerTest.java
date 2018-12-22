@@ -18,10 +18,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -65,8 +62,8 @@ public class UrlRunnerTest
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
     urlRunner.run(getObjectBasicGet(), serverUrl, "admin", "admin123", statsList::add, adminUrl, null);
-    assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getStatusLine().getStatusCode(), is(200));
+    assertThat(statsList).isNotEmpty();
+    assertThat(statsList.get(0).getStatusLine().getStatusCode()).isEqualTo(200);
   }
 
   @Test
@@ -74,8 +71,8 @@ public class UrlRunnerTest
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
     urlRunner.run(getObjectBadGetUrl(), serverUrl, "admin", "admin123", statsList::add, null, null);
-    assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getStatusLine().getStatusCode(), not(200));
+    assertThat(statsList).isNotEmpty();
+    assertThat(statsList.get(0).getStatusLine().getStatusCode()).isNotEqualTo(200);
   }
 
   @Test
@@ -83,8 +80,8 @@ public class UrlRunnerTest
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
     urlRunner.run(getObjectPostUrl(), serverUrl, "admin", "admin123", statsList::add, null, null);
-    assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getStatusLine().getStatusCode(), is(200));
+    assertThat(statsList).isNotEmpty();
+    assertThat(statsList.get(0).getStatusLine().getStatusCode()).isEqualTo(200);
   }
 
   @Test
@@ -92,8 +89,8 @@ public class UrlRunnerTest
     UrlRunner urlRunner = new UrlRunner();
     List<Stats> statsList = new ArrayList<>();
     urlRunner.run(getObjectPostBadUrl(), serverUrl, "admin", "admin123", statsList::add, null, null);
-    assertThat(statsList.size(), greaterThan(0));
-    assertThat(statsList.get(0).getStatusLine().getStatusCode(), not(200));
+    assertThat(statsList).isNotEmpty();
+    assertThat(statsList.get(0).getStatusLine().getStatusCode()).isNotEqualTo(200);
   }
 
   private PerfTestConfig getObjectGetRepeat() {

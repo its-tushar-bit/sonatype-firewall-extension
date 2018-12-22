@@ -16,9 +16,7 @@ import com.sonatype.insight.brain.tools.common.PerfTestConfig.TestUrl;
 import org.junit.Test;
 
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplacerTest
 {
@@ -36,7 +34,7 @@ public class ReplacerTest
   public void testGenerateUrls_DIRECT_URLS_WithoutReplacementKey() {
     List<TestUrl> safeUrls = makeUrls(new String[] { "some", "safe", "values" });
     int expected = safeUrls.size();
-    assertThat(Replacer.DIRECT_URLS.generateUrls(safeUrls).size(), is(expected));
+    assertThat(Replacer.DIRECT_URLS.generateUrls(safeUrls)).hasSize(expected);
   }
 
   @Test
@@ -50,7 +48,7 @@ public class ReplacerTest
     testUrls.addAll(unsafeUrls);
 
     int expected = safeUrls.size();
-    assertThat(Replacer.DIRECT_URLS.generateUrls(testUrls).size(), is(expected));
+    assertThat(Replacer.DIRECT_URLS.generateUrls(testUrls)).hasSize(expected);
   }
 
   @Test
@@ -60,7 +58,7 @@ public class ReplacerTest
 
     int expected = ZERO;
 
-    assertThat(Replacer.EMPTY.generateUrls(allUrls).size(), is(expected));
+    assertThat(Replacer.EMPTY.generateUrls(allUrls)).hasSize(expected);
   }
 
   private Replacer buildReplacer(String key1, String[] vals1, String key2, String[] vals2) {
@@ -98,10 +96,8 @@ public class ReplacerTest
     int expected = replacements.length;
 
     List<TestUrl> results = replacer.generateUrls(test);
-    List<String> resultUrls = results.stream().map(u -> u.getUrl()).collect(toList());
 
-    assertThat(results.size(), is(expected));
-    assertThat(resultUrls, hasItems(resultUrl1, resultUrl2));
+    assertThat(results).hasSize(expected).extracting(TestUrl::getUrl).contains(resultUrl1, resultUrl2);
   }
 
   @Test
@@ -117,7 +113,7 @@ public class ReplacerTest
 
     int expected = ZERO;
 
-    assertThat(replacer.generateUrls(test).size(), is(expected));
+    assertThat(replacer.generateUrls(test)).hasSize(expected);
   }
 
   @Test
@@ -143,10 +139,8 @@ public class ReplacerTest
     int expected = replacements1.length;
 
     List<TestUrl> results = replacer.generateUrls(test);
-    List<String> resultUrls = results.stream().map(u -> u.getUrl()).collect(toList());
 
-    assertThat(results.size(), is(expected));
-    assertThat(resultUrls, hasItems(resultUrl1, resultUrl2));
+    assertThat(results).hasSize(expected).extracting(TestUrl::getUrl).contains(resultUrl1, resultUrl2);
   }
 
   @Test
@@ -164,7 +158,7 @@ public class ReplacerTest
 
     int expected = ZERO;
 
-    assertThat(replacer.generateUrls(test).size(), is(expected));
+    assertThat(replacer.generateUrls(test)).hasSize(expected);
   }
 
   @Test
@@ -182,6 +176,6 @@ public class ReplacerTest
 
     int expected = ZERO;
 
-    assertThat(replacer.generateUrls(test).size(), is(expected));
+    assertThat(replacer.generateUrls(test)).hasSize(expected);
   }
 }

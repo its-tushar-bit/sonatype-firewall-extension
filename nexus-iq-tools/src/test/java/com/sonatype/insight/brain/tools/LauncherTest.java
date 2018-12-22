@@ -7,25 +7,25 @@ package com.sonatype.insight.brain.tools;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LauncherTest
 {
   @Test
   public void testLauncher_DbUtil() {
-    assertTrue(new Launcher("dbutil").runDbUtil);
-    assertTrue(new Launcher("-dbutil").runDbUtil);
+    assertThat(new Launcher("dbutil").runDbUtil).isTrue();
+    assertThat(new Launcher("-dbutil").runDbUtil).isTrue();
   }
 
   @Test
   public void testLauncher_UrlRunner() {
-    assertTrue(new Launcher("urlrunner").runUrlRunner);
-    assertTrue(new Launcher("-urlrunner").runUrlRunner);
+    assertThat(new Launcher("urlrunner").runUrlRunner).isTrue();
+    assertThat(new Launcher("-urlrunner").runUrlRunner).isTrue();
   }
 
   @Test
   public void testLauncher_ScanScrubber() {
-    assertTrue(new Launcher("scanscrubber").scanScrubber);
-    assertTrue(new Launcher("-scanscrubber").scanScrubber);
+    assertThat(new Launcher("scanscrubber").scanScrubber).isTrue();
+    assertThat(new Launcher("-scanscrubber").scanScrubber).isTrue();
   }
 }

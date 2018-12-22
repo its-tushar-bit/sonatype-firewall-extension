@@ -19,7 +19,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.core.StringContains.containsString;
 
 public class OperationalDataStoreProviderTest
     extends AbstractDatabaseProviderTest
@@ -84,8 +83,8 @@ public class OperationalDataStoreProviderTest
     assertThatThrownBy(() -> {
       OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
     }).isInstanceOf(UnsupportedOperationException.class).hasMessage("Consent to upgrade has not been given.");
-    logOutput.assertError(containsString("Upgrade requires consent to proceed"));
-    logOutput.assertError(containsString("https://links.sonatype.com/products/clm/doc/upgrade/1.45"));
+    assertThat(logOutput).atErrorLevel().contains("Upgrade requires consent to proceed")
+        .contains("https://links.sonatype.com/products/clm/doc/upgrade/1.45");
   }
 
   @Test

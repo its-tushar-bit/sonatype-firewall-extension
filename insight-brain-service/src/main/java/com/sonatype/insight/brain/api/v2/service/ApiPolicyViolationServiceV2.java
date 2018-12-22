@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.PolicyAuditDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -62,6 +64,9 @@ public class ApiPolicyViolationServiceV2
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
     List<Application> applications = applicationService.getApplications();
+
+    AuditData.get().setData("selectedPolicies", PolicyAuditDTO.transcribe(policyIds))
+        .setData("inspectedApplicationCount", applications.size());
 
     Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, null,
         true, violation -> policyIds.contains(violation.getPolicyId()));

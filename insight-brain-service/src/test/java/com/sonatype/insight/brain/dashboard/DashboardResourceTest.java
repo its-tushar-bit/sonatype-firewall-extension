@@ -209,8 +209,7 @@ public class DashboardResourceTest
 
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "-POLICY_NAME";
-    String filterJson = new String(JsonUtils.generate(filter));
-    HttpResponse response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    HttpResponse response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
     String[] lines = response.getBodyText().split("\r\n");
@@ -222,8 +221,7 @@ public class DashboardResourceTest
         is("5,build policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1)));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
-    filterJson = new String(JsonUtils.generate(filter));
-    response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
     lines = response.getBodyText().split("\r\n");
@@ -245,16 +243,14 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    String filterJson = JsonUtils.format(new RisksFilterDTO());
     HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_newest_risks_non_dirty-violations");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    filterJson = JsonUtils.format(new RisksFilterDTO());
     exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-violations");
   }
 
@@ -291,8 +287,7 @@ public class DashboardResourceTest
     createFirstOccurrencePolicyViolation(app2, buildPolicy2, BuildStageType.ID);
 
     RisksFilterDTO filter = new RisksFilterDTO();
-    String filterJson = new String(JsonUtils.generate(filter));
-    HttpResponse response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    HttpResponse response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filter).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-applications");
     String[] lines = response.getBodyText().split("\r\n");
@@ -302,8 +297,7 @@ public class DashboardResourceTest
     assertThat(lines[2], is("test organization 2,test application 2,5,0,5,0,0"));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
-    filterJson = new String(JsonUtils.generate(filter));
-    response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filter).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-applications");
     lines = response.getBodyText().split("\r\n");
@@ -335,16 +329,14 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    String filterJson = JsonUtils.format(new RisksFilterDTO());
     HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_application_risks_non_dirty-applications");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    filterJson = JsonUtils.format(new RisksFilterDTO());
     exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-applications");
   }
 
@@ -361,8 +353,8 @@ public class DashboardResourceTest
 
   @Test
   public void testGetComponentRisksExport_returnValidCsvHeadersWithoutAppSetup() throws Exception {
-    String filterJson = new String(JsonUtils.generate(new RisksFilterDTO()));
-    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO())
+        .post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-components");
     String[] lines = response.getBodyText().split("\r\n");
@@ -380,8 +372,7 @@ public class DashboardResourceTest
 
     RisksFilterDTO dto = new RisksFilterDTO();
     dto.orderBy = "-NAME";
-    String filterJson = new String(JsonUtils.generate(dto));
-    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", dto).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-components");
     String[] lines = response.getBodyText().split("\r\n");
@@ -403,16 +394,14 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    String filterJson = JsonUtils.format(new RisksFilterDTO());
     HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_component_risks_non_dirty-components");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    filterJson = JsonUtils.format(new RisksFilterDTO());
     exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-components");
   }
 

@@ -235,7 +235,7 @@ public class DashboardResourceAuditTest
   private void dashboardRequest(String restPath, RisksFilterDTO risksFilterDTO) throws Exception {
     HttpRequest request = restRequest().path(DashboardResource.RESOURCE_PATH).path(restPath);
     if (restPath.startsWith("export/")) {
-      request.part("filter", JsonUtils.format(risksFilterDTO)).post();
+      request.part("filter", risksFilterDTO).post();
     }
     else {
       request.body(risksFilterDTO).post();

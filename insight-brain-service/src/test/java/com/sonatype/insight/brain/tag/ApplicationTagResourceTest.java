@@ -47,13 +47,7 @@ public class ApplicationTagResourceTest
     assertResponseStatus(200, response);
     retrievedTags = response.getBody(Tag[].class);
     assertThat(retrievedTags).hasSize(2);
-    Arrays.sort(retrievedTags, new Comparator<Tag>()
-    {
-      @Override
-      public int compare(final Tag o1, final Tag o2) {
-        return o1.getName().compareTo(o2.getName());
-      }
-    });
+    Arrays.sort(retrievedTags, Comparator.comparing(Tag::getName));
     assertTag(tags.get(0), retrievedTags[0]);
     assertTag(tags.get(1), retrievedTags[1]);
 

@@ -22,9 +22,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,19 +56,19 @@ public class ApplicationEvaluationEventServiceTest
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
-    assertThat(event, is(notNullValue()));
-    assertThat(event.policyEvaluationId, is(policyEvaluation.getId()));
-    assertThat(event.stageTypeId, is(policyEvaluation.getStageTypeId()));
-    assertThat(event.ownerId, is(policyEvaluation.getApplicationId()));
-    assertThat(event.evaluationDate, is(time));
-    assertThat(event.affectedComponentCount, is(1));
-    assertThat(event.criticalComponentCount, is(3));
-    assertThat(event.severeComponentCount, is(5));
-    assertThat(event.moderateComponentCount, is(7));
-    assertThat(event.outcome, is(ApplicationEvaluationEvent.ACTION_ID_NONE));
-    assertThat(event.initiator, is(USERNAME));
+    assertThat(event).isNotNull();
+    assertThat(event.policyEvaluationId).isEqualTo(policyEvaluation.getId());
+    assertThat(event.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
+    assertThat(event.ownerId).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.evaluationDate).isEqualTo(time);
+    assertThat(event.affectedComponentCount).isEqualTo(1);
+    assertThat(event.criticalComponentCount).isEqualTo(3);
+    assertThat(event.severeComponentCount).isEqualTo(5);
+    assertThat(event.moderateComponentCount).isEqualTo(7);
+    assertThat(event.outcome).isEqualTo(ApplicationEvaluationEvent.ACTION_ID_NONE);
+    assertThat(event.initiator).isEqualTo(USERNAME);
 
     asyncEventBus.unregister(handler);
   }
@@ -85,9 +83,9 @@ public class ApplicationEvaluationEventServiceTest
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
-    assertThat(event.outcome, is(ApplicationEvaluationEvent.ACTION_ID_NONE));
+    assertThat(event.outcome).isEqualTo(ApplicationEvaluationEvent.ACTION_ID_NONE);
     asyncEventBus.unregister(handler);
   }
 
@@ -104,9 +102,9 @@ public class ApplicationEvaluationEventServiceTest
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
-    assertThat(event.outcome, is(Action.ID_WARN));
+    assertThat(event.outcome).isEqualTo(Action.ID_WARN);
     asyncEventBus.unregister(handler);
   }
 
@@ -124,9 +122,9 @@ public class ApplicationEvaluationEventServiceTest
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
-    assertThat(event.outcome, is(Action.ID_FAIL));
+    assertThat(event.outcome).isEqualTo(Action.ID_FAIL);
     asyncEventBus.unregister(handler);
   }
 

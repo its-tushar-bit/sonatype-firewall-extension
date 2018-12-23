@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserTelemetryResourceTest extends AbstractResourceTest
 {
@@ -31,8 +30,8 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is("some javascript"));
-    assertThat(response.getHeader("Content-Type"), is("application/javascript"));
+    assertThat(response.getBodyText()).isEqualTo("some javascript");
+    assertThat(response.getHeader("Content-Type")).isEqualTo("application/javascript");
   }
 
   @Test
@@ -43,7 +42,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is(""));
+    assertThat(response.getBodyText()).isEqualTo("");
   }
 
   @Test
@@ -55,7 +54,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     HttpResponse response = restRequest().path(url).get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is("some response"));
+    assertThat(response.getBodyText()).isEqualTo("some response");
   }
 
   @Test
@@ -63,7 +62,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     HttpResponse response = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events", "foo", "bar").get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is(""));
+    assertThat(response.getBodyText()).isEqualTo("");
   }
 
   @Test
@@ -75,7 +74,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     HttpResponse response = restRequest().path(url).body("Foo").post();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is("some response"));
+    assertThat(response.getBodyText()).isEqualTo("some response");
   }
 
   @Test
@@ -83,6 +82,6 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     HttpResponse response = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events", "foo", "bar").post();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is(""));
+    assertThat(response.getBodyText()).isEqualTo("");
   }
 }

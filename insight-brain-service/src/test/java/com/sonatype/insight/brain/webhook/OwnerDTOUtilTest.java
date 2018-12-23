@@ -22,10 +22,7 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload.OwnerDTO;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OwnerDTOUtilTest
     extends AbstractComponentTest
@@ -48,40 +45,40 @@ public class OwnerDTOUtilTest
     event.ownerId = organization.getId();
 
     OwnerDTO payload = ownerDTOUtil.buildOwnerDTO(event);
-    assertThat(payload.id, is(organization.getId()));
-    assertThat(payload.publicId, is(organization.getPublicId()));
-    assertThat(payload.type, is(organization.getType().name()));
-    assertThat(payload.name, is(organization.getName()));
-    assertThat(payload.parentOwnerId, is(organization.getParentOwnerId()));
+    assertThat(payload.id).isEqualTo(organization.getId());
+    assertThat(payload.publicId).isEqualTo(organization.getPublicId());
+    assertThat(payload.type).isEqualTo(organization.getType().name());
+    assertThat(payload.name).isEqualTo(organization.getName());
+    assertThat(payload.parentOwnerId).isEqualTo(organization.getParentOwnerId());
 
-    assertThat(payload.applicationCategories, hasSize(1));
-    assertThat(payload.applicationCategories.get(0).id, is(tag.getId()));
-    assertThat(payload.applicationCategories.get(0).name, is(tag.getName()));
-    assertThat(payload.applicationCategories.get(0).description, is(tag.getDescription()));
-    assertThat(payload.applicationCategories.get(0).color, is(tag.getColor().toValue()));
+    assertThat(payload.applicationCategories).hasSize(1);
+    assertThat(payload.applicationCategories.get(0).id).isEqualTo(tag.getId());
+    assertThat(payload.applicationCategories.get(0).name).isEqualTo(tag.getName());
+    assertThat(payload.applicationCategories.get(0).description).isEqualTo(tag.getDescription());
+    assertThat(payload.applicationCategories.get(0).color).isEqualTo(tag.getColor().toValue());
 
-    assertThat(payload.labels, hasSize(1));
-    assertThat(payload.labels.get(0).id, is(label.getId()));
-    assertThat(payload.labels.get(0).name, is(label.getLabel()));
-    assertThat(payload.labels.get(0).description, is(label.getDescription()));
-    assertThat(payload.labels.get(0).color, is(label.getColor().toValue()));
+    assertThat(payload.labels).hasSize(1);
+    assertThat(payload.labels.get(0).id).isEqualTo(label.getId());
+    assertThat(payload.labels.get(0).name).isEqualTo(label.getLabel());
+    assertThat(payload.labels.get(0).description).isEqualTo(label.getDescription());
+    assertThat(payload.labels.get(0).color).isEqualTo(label.getColor().toValue());
 
-    assertThat(payload.licenseThreatGroups, hasSize(1));
-    assertThat(payload.licenseThreatGroups.get(0).id, is(licenseThreatGroup.getId()));
-    assertThat(payload.licenseThreatGroups.get(0).name, is(licenseThreatGroup.getName()));
-    assertThat(payload.licenseThreatGroups.get(0).threatLevel, is(licenseThreatGroup.getThreatLevel()));
+    assertThat(payload.licenseThreatGroups).hasSize(1);
+    assertThat(payload.licenseThreatGroups.get(0).id).isEqualTo(licenseThreatGroup.getId());
+    assertThat(payload.licenseThreatGroups.get(0).name).isEqualTo(licenseThreatGroup.getName());
+    assertThat(payload.licenseThreatGroups.get(0).threatLevel).isEqualTo(licenseThreatGroup.getThreatLevel());
 
-    assertThat(payload.policies, hasSize(1));
-    assertThat(payload.policies.get(0).id, is(policy.getId()));
-    assertThat(payload.policies.get(0).name, is(policy.getName()));
-    assertThat(payload.policies.get(0).threatLevel, is(policy.getThreatLevel()));
+    assertThat(payload.policies).hasSize(1);
+    assertThat(payload.policies.get(0).id).isEqualTo(policy.getId());
+    assertThat(payload.policies.get(0).name).isEqualTo(policy.getName());
+    assertThat(payload.policies.get(0).threatLevel).isEqualTo(policy.getThreatLevel());
 
-    assertThat(payload.roles, hasSize(1));
-    assertThat(payload.roles.get(0).id, is(role.getId()));
-    assertThat(payload.roles.get(0).name, is(role.getName()));
-    assertThat(payload.roles.get(0).members, hasSize(1));
-    assertThat(payload.roles.get(0).members.get(0).name, is(member.getMemberName()));
-    assertThat(payload.roles.get(0).members.get(0).type, is(member.getMemberType().name()));
+    assertThat(payload.roles).hasSize(1);
+    assertThat(payload.roles.get(0).id).isEqualTo(role.getId());
+    assertThat(payload.roles.get(0).name).isEqualTo(role.getName());
+    assertThat(payload.roles.get(0).members).hasSize(1);
+    assertThat(payload.roles.get(0).members.get(0).name).isEqualTo(member.getMemberName());
+    assertThat(payload.roles.get(0).members.get(0).type).isEqualTo(member.getMemberType().name());
   }
 
   @Test
@@ -98,35 +95,35 @@ public class OwnerDTOUtilTest
     event.ownerId = application.getId();
 
     OwnerDTO payload = ownerDTOUtil.buildOwnerDTO(event);
-    assertThat(payload.id, is(application.getId()));
-    assertThat(payload.publicId, is(application.getPublicId()));
-    assertThat(payload.type, is(application.getType().name()));
-    assertThat(payload.name, is(application.getName()));
-    assertThat(payload.parentOwnerId, is(application.getParentOwnerId()));
+    assertThat(payload.id).isEqualTo(application.getId());
+    assertThat(payload.publicId).isEqualTo(application.getPublicId());
+    assertThat(payload.type).isEqualTo(application.getType().name());
+    assertThat(payload.name).isEqualTo(application.getName());
+    assertThat(payload.parentOwnerId).isEqualTo(application.getParentOwnerId());
 
-    assertThat(payload.applicationCategories, is(nullValue()));
+    assertThat(payload.applicationCategories).isNull();
 
-    assertThat(payload.labels, hasSize(1));
-    assertThat(payload.labels.get(0).id, is(label.getId()));
-    assertThat(payload.labels.get(0).name, is(label.getLabel()));
-    assertThat(payload.labels.get(0).description, is(label.getDescription()));
-    assertThat(payload.labels.get(0).color, is(label.getColor().toValue()));
+    assertThat(payload.labels).hasSize(1);
+    assertThat(payload.labels.get(0).id).isEqualTo(label.getId());
+    assertThat(payload.labels.get(0).name).isEqualTo(label.getLabel());
+    assertThat(payload.labels.get(0).description).isEqualTo(label.getDescription());
+    assertThat(payload.labels.get(0).color).isEqualTo(label.getColor().toValue());
 
-    assertThat(payload.licenseThreatGroups, hasSize(1));
-    assertThat(payload.licenseThreatGroups.get(0).id, is(licenseThreatGroup.getId()));
-    assertThat(payload.licenseThreatGroups.get(0).name, is(licenseThreatGroup.getName()));
-    assertThat(payload.licenseThreatGroups.get(0).threatLevel, is(licenseThreatGroup.getThreatLevel()));
+    assertThat(payload.licenseThreatGroups).hasSize(1);
+    assertThat(payload.licenseThreatGroups.get(0).id).isEqualTo(licenseThreatGroup.getId());
+    assertThat(payload.licenseThreatGroups.get(0).name).isEqualTo(licenseThreatGroup.getName());
+    assertThat(payload.licenseThreatGroups.get(0).threatLevel).isEqualTo(licenseThreatGroup.getThreatLevel());
 
-    assertThat(payload.policies, hasSize(1));
-    assertThat(payload.policies.get(0).id, is(policy.getId()));
-    assertThat(payload.policies.get(0).name, is(policy.getName()));
-    assertThat(payload.policies.get(0).threatLevel, is(policy.getThreatLevel()));
+    assertThat(payload.policies).hasSize(1);
+    assertThat(payload.policies.get(0).id).isEqualTo(policy.getId());
+    assertThat(payload.policies.get(0).name).isEqualTo(policy.getName());
+    assertThat(payload.policies.get(0).threatLevel).isEqualTo(policy.getThreatLevel());
 
-    assertThat(payload.roles, hasSize(1));
-    assertThat(payload.roles.get(0).id, is(role.getId()));
-    assertThat(payload.roles.get(0).name, is(role.getName()));
-    assertThat(payload.roles.get(0).members, hasSize(1));
-    assertThat(payload.roles.get(0).members.get(0).name, is(member.getMemberName()));
-    assertThat(payload.roles.get(0).members.get(0).type, is(member.getMemberType().name()));
+    assertThat(payload.roles).hasSize(1);
+    assertThat(payload.roles.get(0).id).isEqualTo(role.getId());
+    assertThat(payload.roles.get(0).name).isEqualTo(role.getName());
+    assertThat(payload.roles.get(0).members).hasSize(1);
+    assertThat(payload.roles.get(0).members.get(0).name).isEqualTo(member.getMemberName());
+    assertThat(payload.roles.get(0).members.get(0).type).isEqualTo(member.getMemberType().name());
   }
 }

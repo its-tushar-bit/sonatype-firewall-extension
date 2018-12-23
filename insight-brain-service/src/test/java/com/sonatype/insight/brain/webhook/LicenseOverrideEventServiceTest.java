@@ -16,8 +16,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,11 +38,11 @@ public class LicenseOverrideEventServiceTest
 
     licenseOverrideEventService.postEvent(EventAction.CREATED, override);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     LicenseOverrideEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.licenseOverride, is(override));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.licenseOverride).isEqualTo(override);
 
     asyncEventBus.unregister(handler);
   }

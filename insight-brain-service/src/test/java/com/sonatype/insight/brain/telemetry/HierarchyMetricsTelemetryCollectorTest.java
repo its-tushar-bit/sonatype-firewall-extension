@@ -14,10 +14,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HierarchyMetricsTelemetryCollectorTest
     extends AbstractComponentTest
@@ -28,7 +25,7 @@ public class HierarchyMetricsTelemetryCollectorTest
   @Test
   public void testCollectData_TelemetryPurpose() throws Exception {
     TelemetryData telemetryData = telemetryCollector.collectData();
-    assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.HIERARCHY_METRICS));
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HIERARCHY_METRICS);
   }
 
   @Test
@@ -36,13 +33,13 @@ public class HierarchyMetricsTelemetryCollectorTest
     long expectedMinTimestamp = System.currentTimeMillis();
     TelemetryData telemetryData = telemetryCollector.collectData();
     long expectedMaxTimestamp = System.currentTimeMillis();
-    assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
-    assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("0"));
+    assertThat(telemetryData.getTimestamp()).isBetween(expectedMinTimestamp, expectedMaxTimestamp);
+    assertThat(telemetryData.getAttributes()) //
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
   }
 
   @Test
@@ -51,13 +48,13 @@ public class HierarchyMetricsTelemetryCollectorTest
     long expectedMinTimestamp = System.currentTimeMillis();
     TelemetryData telemetryData = telemetryCollector.collectData();
     long expectedMaxTimestamp = System.currentTimeMillis();
-    assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
-    assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("2"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("1"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("1"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("1.0"));
+    assertThat(telemetryData.getTimestamp()).isBetween(expectedMinTimestamp, expectedMaxTimestamp);
+    assertThat(telemetryData.getAttributes()) //
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "2")
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "1")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "1")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "1.0");
   }
 
   @Test
@@ -66,13 +63,13 @@ public class HierarchyMetricsTelemetryCollectorTest
     long expectedMinTimestamp = System.currentTimeMillis();
     TelemetryData telemetryData = telemetryCollector.collectData();
     long expectedMaxTimestamp = System.currentTimeMillis();
-    assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
-    assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("11"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("55"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("10"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("9.8"));
+    assertThat(telemetryData.getTimestamp()).isBetween(expectedMinTimestamp, expectedMaxTimestamp);
+    assertThat(telemetryData.getAttributes()) //
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "11")
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "55")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "10")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "9.8");
   }
 
   @Test
@@ -81,13 +78,13 @@ public class HierarchyMetricsTelemetryCollectorTest
     long expectedMinTimestamp = System.currentTimeMillis();
     TelemetryData telemetryData = telemetryCollector.collectData();
     long expectedMaxTimestamp = System.currentTimeMillis();
-    assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
-    assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("21"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("210"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("20"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("0"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("18.8"));
+    assertThat(telemetryData.getTimestamp()).isBetween(expectedMinTimestamp, expectedMaxTimestamp);
+    assertThat(telemetryData.getAttributes()) //
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "21")
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "210")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "20")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+        .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "18.8");
   }
 
   @Test
@@ -97,13 +94,13 @@ public class HierarchyMetricsTelemetryCollectorTest
     long expectedMinTimestamp = System.currentTimeMillis();
     TelemetryData telemetryData = telemetryCollector.collectData();
     long expectedMaxTimestamp = System.currentTimeMillis();
-    assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(expectedMinTimestamp));
-    assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(expectedMaxTimestamp));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS), is("1"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS), is("1"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG), is("1"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG), is("1"));
-    assertThat(telemetryData.getAttributes().get(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG), is("1.0"));
+    assertThat(telemetryData.getTimestamp()).isBetween(expectedMinTimestamp, expectedMaxTimestamp);
+    assertThat(telemetryData.getAttributes()) //
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "1")
+        .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "1")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "1")
+        .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "1")
+        .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "1.0");
   }
 
   private void createAppsAndOrgs(int numberOfOrgs) {

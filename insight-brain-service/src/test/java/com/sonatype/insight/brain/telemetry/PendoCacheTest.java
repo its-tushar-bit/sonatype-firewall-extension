@@ -7,26 +7,20 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
-import org.apache.directory.api.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,12 +39,12 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testJsCache() throws IOException {
+  public void testJsCache() {
     when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     File file = pendoCache.getJs();
-    assertThat(FileUtils.readFileToString(file, Charset.defaultCharset()), is("test"));
+    assertThat(file).hasContent("test");
   }
 
   @Test
@@ -60,7 +54,7 @@ public class PendoCacheTest
     pendoCache.getCustomerTelemetryProperties();
 
     File file = pendoCache.getJs();
-    assertNull(file);
+    assertThat(file).isNull();
     verify(hdsClient, never()).get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH);
   }
 
@@ -68,7 +62,7 @@ public class PendoCacheTest
   public void testJsCache_error() {
     when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH)).thenThrow(new NotFoundException(""));
 
-    assertNull(pendoCache.getJs());
+    assertThat(pendoCache.getJs()).isNull();
   }
 
   @Test
@@ -76,7 +70,7 @@ public class PendoCacheTest
     CustomerTelemetryProperties properties = new CustomerTelemetryProperties(true);
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(properties);
 
-    assertThat(properties, is(pendoCache.getCustomerTelemetryProperties()));
+    assertThat(properties).isEqualTo(pendoCache.getCustomerTelemetryProperties());
   }
 
   @Test
@@ -85,7 +79,7 @@ public class PendoCacheTest
         .thenThrow(new BadGatewayException(""));
 
     CustomerTelemetryProperties properties = pendoCache.getCustomerTelemetryProperties();
-    assertNotNull(properties);
-    assertNull(properties.disabled);
+    assertThat(properties).isNotNull();
+    assertThat(properties.disabled).isNull();
   }
 }

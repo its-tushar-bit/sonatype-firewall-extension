@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePaylo
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 
 import com.google.inject.Binder;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,9 +49,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -114,24 +111,24 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     ApplicationEvaluationPayload webhookPayload = (ApplicationEvaluationPayload) webhookPayloadArgumentCaptor
         .getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.id, is("policyEvaluationId"));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.id).isEqualTo("policyEvaluationId");
 
     ApplicationEvaluationDTO applicationEvaluationDTO = webhookPayload.applicationEvaluation;
-    assertThat(applicationEvaluationDTO.policyEvaluationId, is("policyEvaluationId"));
-    assertThat(applicationEvaluationDTO.stage, is("stage"));
-    assertThat(applicationEvaluationDTO.ownerId, is("ownerId"));
-    assertThat(applicationEvaluationDTO.evaluationDate, is(date));
-    assertThat(applicationEvaluationDTO.affectedComponentCount, is(1));
-    assertThat(applicationEvaluationDTO.criticalComponentCount, is(3));
-    assertThat(applicationEvaluationDTO.severeComponentCount, is(5));
-    assertThat(applicationEvaluationDTO.moderateComponentCount, is(7));
-    assertThat(applicationEvaluationDTO.outcome, is("outcome"));
+    assertThat(applicationEvaluationDTO.policyEvaluationId).isEqualTo("policyEvaluationId");
+    assertThat(applicationEvaluationDTO.stage).isEqualTo("stage");
+    assertThat(applicationEvaluationDTO.ownerId).isEqualTo("ownerId");
+    assertThat(applicationEvaluationDTO.evaluationDate).isEqualTo(date);
+    assertThat(applicationEvaluationDTO.affectedComponentCount).isEqualTo(1);
+    assertThat(applicationEvaluationDTO.criticalComponentCount).isEqualTo(3);
+    assertThat(applicationEvaluationDTO.severeComponentCount).isEqualTo(5);
+    assertThat(applicationEvaluationDTO.moderateComponentCount).isEqualTo(7);
+    assertThat(applicationEvaluationDTO.outcome).isEqualTo("outcome");
   }
 
   @Test
@@ -153,15 +150,15 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     PolicyManagementPayload webhookPayload = (PolicyManagementPayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.CREATED));
-    assertThat(webhookPayload.id, is(organization.getId()));
-    assertThat(webhookPayload.type, is(PolicyManagementType.ORGANIZATION));
-    assertThat(webhookPayload.owner.id, is(organization.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.CREATED);
+    assertThat(webhookPayload.id).isEqualTo(organization.getId());
+    assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.ORGANIZATION);
+    assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
   }
 
   @Test
@@ -184,15 +181,15 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     PolicyManagementPayload webhookPayload = (PolicyManagementPayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.CREATED));
-    assertThat(webhookPayload.id, is(tag.getId()));
-    assertThat(webhookPayload.type, is(PolicyManagementType.APPLICATION_CATEGORY));
-    assertThat(webhookPayload.owner.id, is(organization.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.CREATED);
+    assertThat(webhookPayload.id).isEqualTo(tag.getId());
+    assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.APPLICATION_CATEGORY);
+    assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
   }
 
   @Test
@@ -215,15 +212,15 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     PolicyManagementPayload webhookPayload = (PolicyManagementPayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.CREATED));
-    assertThat(webhookPayload.id, is(label.getId()));
-    assertThat(webhookPayload.type, is(PolicyManagementType.LABEL));
-    assertThat(webhookPayload.owner.id, is(organization.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.CREATED);
+    assertThat(webhookPayload.id).isEqualTo(label.getId());
+    assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.LABEL);
+    assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
   }
 
   @Test
@@ -246,15 +243,15 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     PolicyManagementPayload webhookPayload = (PolicyManagementPayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.CREATED));
-    assertThat(webhookPayload.id, is(licenseThreatGroup.getId()));
-    assertThat(webhookPayload.type, is(PolicyManagementType.LICENSE_THREAT_GROUP));
-    assertThat(webhookPayload.owner.id, is(organization.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.CREATED);
+    assertThat(webhookPayload.id).isEqualTo(licenseThreatGroup.getId());
+    assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.LICENSE_THREAT_GROUP);
+    assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
   }
 
   @Test
@@ -277,15 +274,15 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     PolicyManagementPayload webhookPayload = (PolicyManagementPayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.CREATED));
-    assertThat(webhookPayload.id, is(policy.getId()));
-    assertThat(webhookPayload.type, is(PolicyManagementType.POLICY));
-    assertThat(webhookPayload.owner.id, is(organization.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.CREATED);
+    assertThat(webhookPayload.id).isEqualTo(policy.getId());
+    assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.POLICY);
+    assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
   }
 
   @Test
@@ -306,15 +303,15 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     PolicyManagementPayload webhookPayload = (PolicyManagementPayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.CREATED));
-    assertThat(webhookPayload.id, is(organization.getId()));
-    assertThat(webhookPayload.type, is(PolicyManagementType.ACCESS));
-    assertThat(webhookPayload.owner.id, is(organization.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.CREATED);
+    assertThat(webhookPayload.id).isEqualTo(organization.getId());
+    assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.ACCESS);
+    assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
   }
 
   @Test
@@ -367,17 +364,17 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     SecurityVulnerabilityOverridePayload webhookPayload = (SecurityVulnerabilityOverridePayload) webhookPayloadArgumentCaptor
         .getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.UPDATED));
-    assertThat(webhookPayload.id, is(override.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.UPDATED);
+    assertThat(webhookPayload.id).isEqualTo(override.getId());
 
     SecurityVulnerabilityOverrideDTO securityVulnerabilityOverrideDTO = webhookPayload.securityVulnerabilityOverride;
-    assertThat(securityVulnerabilityOverrideDTO.id, is(override.getId()));
+    assertThat(securityVulnerabilityOverrideDTO.id).isEqualTo(override.getId());
   }
 
   @Test
@@ -403,20 +400,20 @@ public class WebhookDispatcherTest
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl(), is("http://localhost"));
-    assertThat(webhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
     LicenseOverridePayload webhookPayload = (LicenseOverridePayload) webhookPayloadArgumentCaptor.getValue();
-    assertThat(webhookPayload.initiator, is("initiator"));
-    assertThat(webhookPayload.action, is(EventAction.UPDATED));
-    assertThat(webhookPayload.id, is(givenOverride.getId()));
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.action).isEqualTo(EventAction.UPDATED);
+    assertThat(webhookPayload.id).isEqualTo(givenOverride.getId());
     LicenseOverrideDTO actualOverride = webhookPayload.licenseOverride;
-    assertThat(actualOverride.id, is(givenOverride.getId()));
-    assertThat(actualOverride.comment, is("testing"));
-    assertThat(actualOverride.componentIdentifier, is(notNullValue()));
-    assertThat(actualOverride.componentIdentifier.getFormat(), is(mavenCoordinates.getFormat()));
-    assertThat(actualOverride.componentIdentifier.getCoordinates(), is(mavenCoordinates.getCoordinates()));
-    assertThat(actualOverride.licenseIds, is(Matchers.<String>empty()));
-    assertThat(actualOverride.ownerId, is(organization.getId()));
-    assertThat(actualOverride.status, is(LicenseOverrideStatus.ACKNOWLEDGED.name()));
+    assertThat(actualOverride.id).isEqualTo(givenOverride.getId());
+    assertThat(actualOverride.comment).isEqualTo("testing");
+    assertThat(actualOverride.componentIdentifier).isNotNull();
+    assertThat(actualOverride.componentIdentifier.getFormat()).isEqualTo(mavenCoordinates.getFormat());
+    assertThat(actualOverride.componentIdentifier.getCoordinates()).isEqualTo(mavenCoordinates.getCoordinates());
+    assertThat(actualOverride.licenseIds).isEmpty();
+    assertThat(actualOverride.ownerId).isEqualTo(organization.getId());
+    assertThat(actualOverride.status).isEqualTo(LicenseOverrideStatus.ACKNOWLEDGED.name());
   }
 }

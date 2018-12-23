@@ -23,9 +23,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TagServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -189,8 +187,7 @@ public class TagServiceAuthzTest
     tempEntity.newApplicationTag(application2.getId(), tag2.getId());
 
     List<Tag> allTags = tagService.getTagsUsedByApplications();
-    assertThat(allTags, hasSize(1));
-    assertThat(allTags.get(0).getId(), is(tag1.getId()));
+    assertThat(allTags).extracting(Tag::getId).containsExactly(tag1.getId());
   }
 
   @Test

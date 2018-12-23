@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class VersionResourceTest
     extends AbstractResourceTest
@@ -29,9 +28,9 @@ public class VersionResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     Properties versionInfo = response.getBody(Properties.class);
-    assertNotNull(versionInfo);
+    assertThat(versionInfo).isNotNull();
     for (String key : new String[] { "name", "version", "timestamp", "tag", "build" }) {
-      assertTrue("Testing: " + key + " of " + versionInfo, !versionInfo.getProperty(key, "").isEmpty());
+      assertThat(versionInfo.getProperty(key, "")).as("Testing: " + key + " of " + versionInfo).isNotEmpty();
     }
   }
 

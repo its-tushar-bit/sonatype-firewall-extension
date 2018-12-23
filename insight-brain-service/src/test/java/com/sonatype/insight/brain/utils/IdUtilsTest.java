@@ -16,9 +16,8 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class IdUtilsTest
 {
@@ -27,13 +26,9 @@ public class IdUtilsTest
 
   @Test
   public void testGetOwnerNotNull_Global() {
-    try {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       IdUtils.getOwnerNotNull(OwnerType.GLOBAL, null /* ownerId */);
-      fail("Should fail to get 'GLOBAL' owner object.");
-    }
-    catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is(IdUtils.MSG_PREFIX_NO_OWNER_INSTANCE + OwnerType.GLOBAL));
-    }
+    }).withMessage(IdUtils.MSG_PREFIX_NO_OWNER_INSTANCE + OwnerType.GLOBAL);
   }
 
   private void assertOwnerEqualPrivateId(final Owner expected) {
@@ -42,10 +37,10 @@ public class IdUtilsTest
   }
 
   private void assertOwnerEqual(final Owner expected, final Owner actual) {
-    assertThat(actual.getType(), is(expected.getType()));
-    assertThat(actual.getId(), is(expected.getId()));
-    assertThat(actual.getPublicId(), is(expected.getPublicId()));
-    assertThat(actual.getParentOwnerId(), is(expected.getParentOwnerId()));
+    assertThat(actual.getType()).isEqualTo(expected.getType());
+    assertThat(actual.getId()).isEqualTo(expected.getId());
+    assertThat(actual.getPublicId()).isEqualTo(expected.getPublicId());
+    assertThat(actual.getParentOwnerId()).isEqualTo(expected.getParentOwnerId());
   }
 
   @Test
@@ -65,19 +60,19 @@ public class IdUtilsTest
   @Test
   public void testGetInternalOwnerId_Global() {
     String id = IdUtils.getInternalOwnerId(OwnerType.GLOBAL, null /* ownerId */);
-    assertThat(id, is(MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(id).isEqualTo(MembershipMapping.GLOBAL_CONTEXT_ID);
   }
 
   @Test
   public void testGetInternalOwnerId_RepositoryContainer() {
     String id = IdUtils.getInternalOwnerId(OwnerType.REPOSITORY_CONTAINER, null /* ownerId */);
-    assertThat(id, is(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    assertThat(id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
   }
 
   @Test
   public void testGetInternalOwnerId_Repository() {
     Repository repository = tempEntity.newRepository();
     String id = IdUtils.getInternalOwnerId(OwnerType.REPOSITORY, repository.getId());
-    assertThat(id, is(repository.getId()));
+    assertThat(id).isEqualTo(repository.getId());
   }
 }

@@ -17,8 +17,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyStatusOverrideTelemetryCollectorTest
     extends AbstractComponentTest
@@ -31,15 +30,13 @@ public class PolicyStatusOverrideTelemetryCollectorTest
   @Test
   public void testCollectData_TelemetryPurpose() throws Exception {
     TelemetryData telemetryData = telemetryCollector.collectData();
-    assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.POLICY_STATUS_OVERRIDE));
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_STATUS_OVERRIDE);
   }
 
   @Test
   public void testCollectData_SecurityVulnerabilityOverrideCounts() throws Exception {
-    assertThat(
-        telemetryCollector.collectData().getAttributes()
-            .get(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT),
-        is("0"));
+    assertThat(telemetryCollector.collectData().getAttributes())
+        .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "0");
 
     tempEntity.newSecurityVulnerabilityOverride("ownerId1", "hash1", "source1", "referenceId1",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
@@ -48,16 +45,14 @@ public class PolicyStatusOverrideTelemetryCollectorTest
     tempEntity.newSecurityVulnerabilityOverride("ownerId3", "hash3", "source3", "referenceId3",
         SecurityVulnerabilityOverrideStatus.CONFIRMED);
 
-    assertThat(
-        telemetryCollector.collectData().getAttributes()
-            .get(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT),
-        is("3"));
+    assertThat(telemetryCollector.collectData().getAttributes())
+        .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "3");
   }
 
   @Test
   public void testCollectData_PolicyWaiverCount() throws Exception {
-    assertThat(telemetryCollector.collectData().getAttributes()
-        .get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT), is("0"));
+    assertThat(telemetryCollector.collectData().getAttributes())
+        .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "0");
     Organization organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     Application application = tempEntity
         .newApplication("PolicyWaiverCount-AppName", "PolicyWaiverCount-AppPublicId", organization.getId());
@@ -67,7 +62,7 @@ public class PolicyStatusOverrideTelemetryCollectorTest
     tempEntity.newWaiver(policy1.getId(), application.getId());
     tempEntity.newWaiver(policy2.getId(), application.getId());
     tempEntity.newWaiver(policy3.getId(), application.getId());
-    assertThat(telemetryCollector.collectData().getAttributes()
-        .get(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT), is("3"));
+    assertThat(telemetryCollector.collectData().getAttributes())
+        .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "3");
   }
 }

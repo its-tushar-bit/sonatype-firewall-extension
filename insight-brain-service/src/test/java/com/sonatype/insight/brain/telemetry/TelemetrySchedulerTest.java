@@ -18,8 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -55,8 +54,8 @@ public class TelemetrySchedulerTest
     ThreadFactory threadFactory = scheduledThreadPoolExecutor.getThreadFactory();
     Thread thread = threadFactory.newThread(() -> {
     });
-    assertThat(thread.getName(), is("TelemetryScheduler-0"));
-    assertThat(thread.isDaemon(), is(true));
+    assertThat(thread.getName()).isEqualTo("TelemetryScheduler-0");
+    assertThat(thread.isDaemon()).isTrue();
   }
 
   @Test

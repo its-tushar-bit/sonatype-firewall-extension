@@ -83,10 +83,9 @@ public class WebhookClientUtilTest
   public void testPost_PopulatesHeaders() throws Exception {
     final Map<String, String> headers = getRequestHeaders();
     doWebhookClientUtilPost();
-    assertThat(headers.get(WebhookClientUtil.WEBHOOK_ID_HEADER)).isEqualTo(webhookId);
-    assertThat(headers.get(WebhookClientUtil.WEBHOOK_SIGNATURE_ALGORITHM_HEADER)).isEqualTo("HmacSHA1");
-    assertThat(headers.get(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER))
-        .isEqualTo("52b582138706ac0c597c315cfc1a1bf177408a4d");
+    assertThat(headers).containsEntry(WebhookClientUtil.WEBHOOK_ID_HEADER, webhookId)
+        .containsEntry(WebhookClientUtil.WEBHOOK_SIGNATURE_ALGORITHM_HEADER, "HmacSHA1")
+        .containsEntry(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER, "52b582138706ac0c597c315cfc1a1bf177408a4d");
   }
 
   @Test

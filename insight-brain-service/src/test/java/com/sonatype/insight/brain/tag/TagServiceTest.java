@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.model.HasStringId;
 
 import org.junit.Test;
 
@@ -36,11 +38,8 @@ import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @since 1.9
@@ -54,6 +53,8 @@ public class TagServiceTest
   @Inject
   private AsyncEventBus eventBus;
 
+  private Comparator<HasStringId> byId = Comparator.comparing(HasStringId::getId);
+
   @Test
   public void testAddUpdateAndDeleteTagPostEvents() throws Exception {
     TestEventHandler<TagEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
@@ -64,29 +65,29 @@ public class TagServiceTest
 
     Tag created = tagService.addTag(organization.getId(), tag);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(CREATED));
-    assertThat(handler.getEvent().ownerId, is(organization.getId()));
-    assertThat(handler.getEvent().tag.getId(), is(tag.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().tag.getId()).isEqualTo(tag.getId());
 
     handler.setLatch(new CountDownLatch(1));
 
     created.setDescription("some new description");
     tagService.updateTag(organization.getId(), created);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(UPDATED));
-    assertThat(handler.getEvent().ownerId, is(organization.getId()));
-    assertThat(handler.getEvent().tag.getId(), is(tag.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().tag.getId()).isEqualTo(tag.getId());
 
     handler.setLatch(new CountDownLatch(1));
 
     tagService.deleteTag(organization.getId(), created.getId());
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(DELETED));
-    assertThat(handler.getEvent().ownerId, is(organization.getId()));
-    assertThat(handler.getEvent().tag.getId(), is(tag.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().tag.getId()).isEqualTo(tag.getId());
 
     eventBus.unregister(handler);
   }
@@ -98,17 +99,17 @@ public class TagServiceTest
 
     List<ApplicationTag> applicationTags = tagService.updateApplicationTags(app.getPublicId(),
         Collections.singletonList(tag));
-    assertThat(applicationTags, hasSize(1));
-    assertThat(applicationTags.get(0).getApplicationId(), is(app.getId()));
-    assertThat(applicationTags.get(0).getTagId(), is(tag.getId()));
+    assertThat(applicationTags).hasSize(1);
+    assertThat(applicationTags.get(0).getApplicationId()).isEqualTo(app.getId());
+    assertThat(applicationTags.get(0).getTagId()).isEqualTo(tag.getId());
 
     List<Tag> tags = tagService.getAppliedApplicationTags(app.getPublicId());
-    assertThat(tags, hasSize(1));
-    assertThat(tags.get(0).getName(), is(tag.getName()));
-    assertThat(tags.get(0).getId(), is(tag.getId()));
-    assertThat(tags.get(0).getDescription(), is(tag.getDescription()));
-    assertThat(tags.get(0).getColor(), is(tag.getColor()));
-    assertThat(tags.get(0).getOrganizationId(), is(tag.getOrganizationId()));
+    assertThat(tags).hasSize(1);
+    assertThat(tags.get(0).getName()).isEqualTo(tag.getName());
+    assertThat(tags.get(0).getId()).isEqualTo(tag.getId());
+    assertThat(tags.get(0).getDescription()).isEqualTo(tag.getDescription());
+    assertThat(tags.get(0).getColor()).isEqualTo(tag.getColor());
+    assertThat(tags.get(0).getOrganizationId()).isEqualTo(tag.getOrganizationId());
   }
 
   @Test
@@ -127,9 +128,7 @@ public class TagServiceTest
 
     updatedPolicyTags = tagService
         .updatePolicyTags(OwnerType.ORGANIZATION, organization.getId(), policy.getId(), updatedPolicyTags);
-    assertThat(updatedPolicyTags, hasSize(2));
-    assertTagInList(updatedPolicyTags, tagTwo);
-    assertTagInList(updatedPolicyTags, tagThree);
+    assertThat(updatedPolicyTags).usingElementComparator(byId).containsExactlyInAnyOrder(tagTwo, tagThree);
   }
 
   @Test
@@ -138,14 +137,9 @@ public class TagServiceTest
     Organization org2 = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(org2);
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       tagService.updatePolicyTags(OwnerType.ORGANIZATION, org1.getId(), policy.getId(), new ArrayList<>());
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(),
-          is("Cannot find a policy with id " + policy.getId() + " for owner id " + org1.getId()));
-    }
+    }).withMessage("Cannot find a policy with id " + policy.getId() + " for owner id " + org1.getId());
   }
 
   @Test
@@ -153,13 +147,9 @@ public class TagServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       tagService.updatePolicyTags(OwnerType.APPLICATION, app.getPublicId(), policy.getId(), new ArrayList<>());
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), containsString("policy owned by application"));
-    }
+    }).withMessageContaining("policy owned by application");
   }
 
   /**
@@ -172,15 +162,10 @@ public class TagServiceTest
     Organization organization2 = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(organization1.getId(), "Tag");
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       tagService.deleteTag(organization2.getId(), tag.getId());
-      fail("Should have thrown NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(),
-          is("Cannot find an application category with id " + tag.getId() + " for organization id "
-              + organization2.getId()));
-    }
+    }).withMessage(
+        "Cannot find an application category with id " + tag.getId() + " for organization id " + organization2.getId());
   }
 
   @Test
@@ -202,9 +187,7 @@ public class TagServiceTest
     tempEntity.newTag(organization2.getId(), "name4");
 
     List<Tag> allTags = tagService.getTagsUsedByApplications();
-    assertThat(allTags, hasSize(2));
-    assertTagInList(allTags, tag1);
-    assertTagInList(allTags, tag2);
+    assertThat(allTags).usingElementComparator(byId).containsExactlyInAnyOrder(tag1, tag2);
   }
 
   @Test
@@ -215,9 +198,7 @@ public class TagServiceTest
     Tag parentOrgTag = tempEntity.newTag(org.getParentOrganizationId(), "parentOrgTag");
 
     List<Tag> tags = tagService.getApplicableTagsByApplicationPublicId(app.getPublicId());
-    assertThat(tags, hasSize(2));
-    assertTagInList(tags, orgTag);
-    assertTagInList(tags, parentOrgTag);
+    assertThat(tags).usingElementComparator(byId).containsExactlyInAnyOrder(orgTag, parentOrgTag);
   }
 
   @Test
@@ -228,17 +209,15 @@ public class TagServiceTest
     Tag parentTag = tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
 
     ApplicableTags tags = tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
-    assertThat(tags.tagsByOwner, hasSize(2));
+    assertThat(tags.tagsByOwner).hasSize(2);
 
-    assertThat(tags.tagsByOwner.get(0).tags, hasSize(1));
-    assertThat(tags.tagsByOwner.get(0).ownerName, is(org.getName()));
-    assertThat(tags.tagsByOwner.get(0).ownerId, is(org.getId()));
-    assertTagInList(tags.tagsByOwner.get(0).tags, orgTag);
+    assertThat(tags.tagsByOwner.get(0).tags).usingElementComparator(byId).containsExactlyInAnyOrder(orgTag);
+    assertThat(tags.tagsByOwner.get(0).ownerName).isEqualTo(org.getName());
+    assertThat(tags.tagsByOwner.get(0).ownerId).isEqualTo(org.getId());
 
-    assertThat(tags.tagsByOwner.get(1).tags, hasSize(1));
-    assertThat(tags.tagsByOwner.get(1).ownerName, is(parentOrg.getName()));
-    assertThat(tags.tagsByOwner.get(1).ownerId, is(parentOrg.getId()));
-    assertTagInList(tags.tagsByOwner.get(1).tags, parentTag);
+    assertThat(tags.tagsByOwner.get(1).tags).usingElementComparator(byId).containsExactlyInAnyOrder(parentTag);
+    assertThat(tags.tagsByOwner.get(1).ownerName).isEqualTo(parentOrg.getName());
+    assertThat(tags.tagsByOwner.get(1).ownerId).isEqualTo(parentOrg.getId());
   }
 
   @Test
@@ -252,18 +231,17 @@ public class TagServiceTest
         tempEntity.newTag(org.getParentOrganizationId(), "Root Tag").getId());
 
     AppliedTags tags = tagService.getAppliedTags(org.getId());
-    assertThat(tags.applicationTagsByOwner, hasSize(2));
+    assertThat(tags.applicationTagsByOwner).hasSize(2);
 
-    assertThat(tags.applicationTagsByOwner.get(0).applicationTags, hasSize(1));
-    assertThat(tags.applicationTagsByOwner.get(0).ownerName, is(org.getName()));
-    assertThat(tags.applicationTagsByOwner.get(0).ownerId, is(org.getId()));
-    assertTagInList(tags.applicationTagsByOwner.get(0).applicationTags, orgTag);
+    assertThat(tags.applicationTagsByOwner.get(0).applicationTags).usingElementComparator(byId)
+        .containsExactlyInAnyOrder(orgTag);
+    assertThat(tags.applicationTagsByOwner.get(0).ownerName).isEqualTo(org.getName());
+    assertThat(tags.applicationTagsByOwner.get(0).ownerId).isEqualTo(org.getId());
 
-    assertThat(tags.applicationTagsByOwner.get(1).applicationTags, hasSize(1));
-
-    assertThat(tags.applicationTagsByOwner.get(1).ownerName, is(parentOrg.getName()));
-    assertThat(tags.applicationTagsByOwner.get(1).ownerId, is(parentOrg.getId()));
-    assertTagInList(tags.applicationTagsByOwner.get(1).applicationTags, parentTag);
+    assertThat(tags.applicationTagsByOwner.get(1).applicationTags).usingElementComparator(byId)
+        .containsExactlyInAnyOrder(parentTag);
+    assertThat(tags.applicationTagsByOwner.get(1).ownerName).isEqualTo(parentOrg.getName());
+    assertThat(tags.applicationTagsByOwner.get(1).ownerId).isEqualTo(parentOrg.getId());
   }
 
   @Test
@@ -277,8 +255,7 @@ public class TagServiceTest
         .getId());
 
     List<PolicyTag> tags = tagService.getAppliedPolicyTags(org.getId());
-    assertTagInList(tags, orgTag);
-    assertTagInList(tags, parentTag);
+    assertThat(tags).usingElementComparator(byId).containsExactlyInAnyOrder(orgTag, parentTag);
   }
 
   @Test
@@ -289,39 +266,9 @@ public class TagServiceTest
     Organization otherOrg = tempEntity.newOrganization();
     tag.setOrganizationId(otherOrg.getId());
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       tagService.updateTag(otherOrg.getId(), tag);
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(
-          "Cannot find an application category with id " + tag.getId() + " for organization id " + otherOrg.getId()));
-    }
-  }
-
-  private void assertTagInList(List<Tag> tags, Tag expectedTag) {
-    for (Tag tag : tags) {
-      if (tag.getId().equals(expectedTag.getId())) {
-        return;
-      }
-    }
-    fail("Expected a tag with name " + expectedTag.getName());
-  }
-
-  private static void assertTagInList(List<ApplicationTag> tags, ApplicationTag expectedTag) {
-    for (ApplicationTag tag : tags) {
-      if (tag.getId().equals(expectedTag.getId())) {
-        return;
-      }
-    }
-    fail("Unable to find matching application tag");
-  }
-
-  private static void assertTagInList(List<PolicyTag> tags, PolicyTag expectedTag) {
-    for (PolicyTag tag : tags) {
-      if (tag.getId().equals(expectedTag.getId())) {
-        return;
-      }
-    }
-    fail("Unable to find matching policy tag");
+    }).withMessage(
+        "Cannot find an application category with id " + tag.getId() + " for organization id " + otherOrg.getId());
   }
 }

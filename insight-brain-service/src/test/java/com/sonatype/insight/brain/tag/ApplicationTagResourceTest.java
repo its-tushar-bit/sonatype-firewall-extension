@@ -19,9 +19,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationTagResourceTest
     extends AbstractResourceTest
@@ -36,8 +34,7 @@ public class ApplicationTagResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     Tag[] retrievedTags = response.getBody(Tag[].class);
-    assertThat(retrievedTags, is(notNullValue()));
-    assertThat(retrievedTags.length, is(0));
+    assertThat(retrievedTags).isEmpty();
 
     // Update
     List<Tag> tags = new ArrayList<>();
@@ -49,8 +46,7 @@ public class ApplicationTagResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     retrievedTags = response.getBody(Tag[].class);
-    assertThat(retrievedTags, is(notNullValue()));
-    assertThat(retrievedTags.length, is(2));
+    assertThat(retrievedTags).hasSize(2);
     Arrays.sort(retrievedTags, new Comparator<Tag>()
     {
       @Override
@@ -69,7 +65,6 @@ public class ApplicationTagResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     retrievedTags = response.getBody(Tag[].class);
-    assertThat(retrievedTags, is(notNullValue()));
-    assertThat(retrievedTags.length, is(0));
+    assertThat(retrievedTags).isEmpty();
   }
 }

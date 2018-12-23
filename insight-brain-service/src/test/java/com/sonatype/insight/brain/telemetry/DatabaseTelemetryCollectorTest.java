@@ -18,11 +18,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatabaseTelemetryCollectorTest
     extends AbstractComponentTest
@@ -33,13 +29,13 @@ public class DatabaseTelemetryCollectorTest
   @Test
   public void testCollectData_TelemetryPurpose() throws Exception {
     TelemetryData telemetryData = telemetryCollector.collectData();
-    assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.DATABASE));
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.DATABASE);
   }
 
   @Test
   public void testCollectData_OdsSizeBytes_InMemory() throws Exception {
-    assertThat(telemetryCollector.collectData().getAttributes().get(DatabaseTelemetryCollector.ODS_SIZE_BYTES),
-        is(nullValue()));
+    assertThat(telemetryCollector.collectData().getAttributes().get(DatabaseTelemetryCollector.ODS_SIZE_BYTES))
+        .isNull();
   }
 
   @Test
@@ -52,8 +48,8 @@ public class DatabaseTelemetryCollectorTest
           false);
       String odsSizeBytes = (String) telemetryCollector.collectData().getAttributes()
           .get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
-      assertThat(odsSizeBytes, is(notNullValue()));
-      assertThat(Long.valueOf(odsSizeBytes), is(greaterThan(0L)));
+      assertThat(odsSizeBytes).isNotNull();
+      assertThat(Long.valueOf(odsSizeBytes)).isGreaterThan(0);
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

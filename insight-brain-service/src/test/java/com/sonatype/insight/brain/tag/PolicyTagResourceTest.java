@@ -19,9 +19,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyTagResourceTest
     extends AbstractResourceTest
@@ -41,7 +39,7 @@ public class PolicyTagResourceTest
     HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).get();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
-    assertThat(tags, is(arrayWithSize(1)));
+    assertThat(tags).hasSize(1);
     assertTag(tag1, tags[0]);
   }
 
@@ -56,7 +54,7 @@ public class PolicyTagResourceTest
     HttpResponse response = restRequest(policyId, OwnerType.APPLICATION, app.getPublicId()).get();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
-    assertThat(tags, is(arrayWithSize(1)));
+    assertThat(tags).hasSize(1);
     assertTag(tag1, tags[0]);
   }
 
@@ -69,10 +67,10 @@ public class PolicyTagResourceTest
     HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).body(Arrays.asList(tag)).put();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
-    assertThat(tags, is(arrayWithSize(1)));
+    assertThat(tags).hasSize(1);
     assertTag(tag, tags[0]);
     tags = new TagDAO().getByPolicyId(policyId).toArray(new Tag[0]);
-    assertThat(tags, is(arrayWithSize(1)));
+    assertThat(tags).hasSize(1);
     assertTag(tag, tags[0]);
   }
 }

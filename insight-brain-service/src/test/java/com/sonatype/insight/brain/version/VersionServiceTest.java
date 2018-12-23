@@ -10,10 +10,7 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class VersionServiceTest
 {
@@ -27,46 +24,46 @@ public class VersionServiceTest
 
   @Test
   public void testGetters() {
-    assertNotNull(versionService.getProperties());
-    assertNotNull(versionService.getName());
-    assertNotNull(versionService.getBuild());
-    assertNotNull(versionService.getTimestamp());
-    assertNotNull(versionService.getVersion());
-    assertNotNull(versionService.getTag());
-    assertNotNull(versionService.getLogDisplayVersion());
+    assertThat(versionService.getProperties()).isNotNull();
+    assertThat(versionService.getName()).isNotNull();
+    assertThat(versionService.getBuild()).isNotNull();
+    assertThat(versionService.getTimestamp()).isNotNull();
+    assertThat(versionService.getVersion()).isNotNull();
+    assertThat(versionService.getTag()).isNotNull();
+    assertThat(versionService.getLogDisplayVersion()).isNotNull();
 
     // Ensure that cleared properties return null.
     versionService = new VersionService(new Properties());
-    assertNull(versionService.getName());
-    assertNull(versionService.getBuild());
-    assertNull(versionService.getTimestamp());
-    assertNull(versionService.getVersion());
-    assertNull(versionService.getTag());
+    assertThat(versionService.getName()).isNull();
+    assertThat(versionService.getBuild()).isNull();
+    assertThat(versionService.getTimestamp()).isNull();
+    assertThat(versionService.getVersion()).isNull();
+    assertThat(versionService.getTag()).isNull();
 
     // Ensure that the default is returned when provided.
     String defaultValue = "default";
-    assertThat(versionService.getName(defaultValue), is(defaultValue));
-    assertThat(versionService.getBuild(defaultValue), is(defaultValue));
-    assertThat(versionService.getTimestamp(defaultValue), is(defaultValue));
-    assertThat(versionService.getVersion(defaultValue), is(defaultValue));
-    assertThat(versionService.getTag(defaultValue), is(defaultValue));
+    assertThat(versionService.getName(defaultValue)).isEqualTo(defaultValue);
+    assertThat(versionService.getBuild(defaultValue)).isEqualTo(defaultValue);
+    assertThat(versionService.getTimestamp(defaultValue)).isEqualTo(defaultValue);
+    assertThat(versionService.getVersion(defaultValue)).isEqualTo(defaultValue);
+    assertThat(versionService.getTag(defaultValue)).isEqualTo(defaultValue);
   }
 
   @Test
   public void testGetLogDisplayVersion() {
     versionService.setVersion("foo");
-    assertThat(versionService.getLogDisplayVersion(), is("foo"));
+    assertThat(versionService.getLogDisplayVersion()).isEqualTo("foo");
 
     versionService.setVersion("1.50.0-SNAPSHOT");
-    assertThat(versionService.getLogDisplayVersion(), is("50.0-SNAPSHOT"));
+    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.0-SNAPSHOT");
 
     versionService.setVersion("1.50.1-01");
-    assertThat(versionService.getLogDisplayVersion(), is("50.1-01"));
+    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.1-01");
 
     versionService.setVersion("50.0-SNAPSHOT");
-    assertThat(versionService.getLogDisplayVersion(), is("50.0-SNAPSHOT"));
+    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.0-SNAPSHOT");
 
     versionService.setVersion("50.1-01");
-    assertThat(versionService.getLogDisplayVersion(), is("50.1-01"));
+    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.1-01");
   }
 }

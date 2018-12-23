@@ -16,10 +16,7 @@ import com.sonatype.insight.brain.tag.TagResource.ApplicableTags;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TagResourceTest
     extends AbstractResourceTest
@@ -36,10 +33,10 @@ public class TagResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     ApplicableTags tags = response.getBody(ApplicableTags.class);
-    assertThat(tags, is(notNullValue()));
-    assertThat(tags.tagsByOwner, hasSize(2));
-    assertThat(tags.tagsByOwner.get(0).tags, hasSize(0));
-    assertThat(tags.tagsByOwner.get(1).tags, hasSize(1));
+    assertThat(tags).isNotNull();
+    assertThat(tags.tagsByOwner).hasSize(2);
+    assertThat(tags.tagsByOwner.get(0).tags).hasSize(0);
+    assertThat(tags.tagsByOwner.get(1).tags).hasSize(1);
 
     // Add
     Tag tag = new Tag(org.getId(), "Tag Name", "Tag description", Color.yellow);
@@ -51,8 +48,8 @@ public class TagResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     tags = response.getBody(ApplicableTags.class);
-    assertThat(tags.tagsByOwner, hasSize(2));
-    assertThat(tags.tagsByOwner.get(0).tags, hasSize(1));
+    assertThat(tags.tagsByOwner).hasSize(2);
+    assertThat(tags.tagsByOwner.get(0).tags).hasSize(1);
     assertTag(tag, tags.tagsByOwner.get(0).tags.get(0));
 
     // Update
@@ -66,9 +63,9 @@ public class TagResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     tags = response.getBody(ApplicableTags.class);
-    assertThat(tags, is(notNullValue()));
-    assertThat(tags.tagsByOwner, hasSize(2));
-    assertThat(tags.tagsByOwner.get(0).tags, hasSize(1));
+    assertThat(tags).isNotNull();
+    assertThat(tags.tagsByOwner).hasSize(2);
+    assertThat(tags.tagsByOwner.get(0).tags).hasSize(1);
     assertTag(tag, tags.tagsByOwner.get(0).tags.get(0));
 
     // Delete
@@ -79,8 +76,8 @@ public class TagResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     tags = response.getBody(ApplicableTags.class);
-    assertThat(tags, is(notNullValue()));
-    assertThat(tags.tagsByOwner, hasSize(2));
-    assertThat(tags.tagsByOwner.get(0).tags, hasSize(0));
+    assertThat(tags).isNotNull();
+    assertThat(tags.tagsByOwner).hasSize(2);
+    assertThat(tags.tagsByOwner.get(0).tags).hasSize(0);
   }
 }

@@ -20,10 +20,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,20 +70,20 @@ public class NgUploadResponseGeneratorTest
 
     Callable<Object> callable = new NgUploadResponseResult(stringResult);
     Response response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
-    assertThat(response.getStatus(), is(200));
-    assertThat((String) response.getEntity(), is(stringResult));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat((String) response.getEntity()).isEqualTo(stringResult);
 
     callable = new NgUploadResponseResult(pojoResult);
     response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
-    assertThat(response.getStatus(), is(200));
-    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.APPLICATION_JSON));
-    assertThat((PolicyImportResult) response.getEntity(), is(pojoResult));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getMetadata().getFirst("Content-Type").toString()).isEqualTo(MediaType.APPLICATION_JSON);
+    assertThat((PolicyImportResult) response.getEntity()).isEqualTo(pojoResult);
 
     callable = new NgUploadResponseResult(null);
     response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
-    assertThat(response.getStatus(), is(200));
-    assertThat(response.getMetadata().getFirst("Content-Type"), is(nullValue()));
-    assertThat(response.getEntity(), is(nullValue()));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getMetadata().getFirst("Content-Type")).isNull();
+    assertThat(response.getEntity()).isNull();
   }
 
   @Test
@@ -93,13 +91,9 @@ public class NgUploadResponseGeneratorTest
     final String exceptionMessage = "foo";
 
     Callable<Object> callable = new NgUploadResponseResult(new BadRequestException(exceptionMessage));
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
-      fail("Ajax request should bubble exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is(exceptionMessage));
-    }
+    }).withMessage(exceptionMessage);
   }
 
   @Test
@@ -110,15 +104,15 @@ public class NgUploadResponseGeneratorTest
 
     Callable<Object> callable = new NgUploadResponseResult(stringResult);
     Response response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
-    assertThat(response.getStatus(), is(200));
-    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.TEXT_PLAIN));
-    assertThat((String) response.getEntity(), is(JsonUtils.format(stringResult)));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getMetadata().getFirst("Content-Type").toString()).isEqualTo(MediaType.TEXT_PLAIN);
+    assertThat((String) response.getEntity()).isEqualTo(JsonUtils.format(stringResult));
 
     callable = new NgUploadResponseResult(pojoResult);
     response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
-    assertThat(response.getStatus(), is(200));
-    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.TEXT_PLAIN));
-    assertThat((String) response.getEntity(), is(JsonUtils.format(pojoResult)));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getMetadata().getFirst("Content-Type").toString()).isEqualTo(MediaType.TEXT_PLAIN);
+    assertThat((String) response.getEntity()).isEqualTo(JsonUtils.format(pojoResult));
   }
 
   @Test
@@ -127,9 +121,9 @@ public class NgUploadResponseGeneratorTest
 
     Callable<Object> callable = new NgUploadResponseResult(new BadRequestException(exceptionMessage));
     Response response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
-    assertThat(response.getStatus(), is(200));
-    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.TEXT_PLAIN));
-    assertThat((String) response.getEntity(), is(JsonUtils.format(exceptionMessage)));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getMetadata().getFirst("Content-Type").toString()).isEqualTo(MediaType.TEXT_PLAIN);
+    assertThat((String) response.getEntity()).isEqualTo(JsonUtils.format(exceptionMessage));
   }
 
   private static class NgUploadResponseResult

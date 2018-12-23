@@ -55,9 +55,7 @@ import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -268,10 +266,8 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) {
-    final int actualStatus = response.getStatusCode();
-    assertEquals(
-        "URI:" + response.getUrl() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
-            + response.getBodyText(), expectedStatus, actualStatus);
+    assertThat(response.getStatusCode()).as("URI:" + response.getUrl() + ", StatusText:" + response.getStatusText()
+        + ", ResponseBody:" + response.getBodyText()).isEqualTo(expectedStatus);
   }
 
   private String toJson(Object object) {
@@ -311,7 +307,7 @@ public abstract class AbstractBrainServiceTest
     HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(200, response);
 
-    assertTrue(licenseManager.isValid());
+    assertThat(licenseManager.isValid()).isTrue();
   }
 
   protected HttpRequest licenseRequest() {
@@ -331,7 +327,7 @@ public abstract class AbstractBrainServiceTest
     HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH).delete();
     productlicenseWasUninstalled = true;
 
-    assertFalse(licenseManager.isValid());
+    assertThat(licenseManager.isValid()).isFalse();
   }
 
   protected void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) throws Exception {

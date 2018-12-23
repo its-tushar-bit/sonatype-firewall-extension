@@ -11,10 +11,8 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
-public class UserTelemetryResourceAuthzTest extends AbstractResourceAuthzTest
+public class UserTelemetryResourceAuthzTest
+    extends AbstractResourceAuthzTest
 {
   @Before
   public void setup() {
@@ -24,9 +22,9 @@ public class UserTelemetryResourceAuthzTest extends AbstractResourceAuthzTest
   @Test
   public void testGetJavascript() throws Exception {
     getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "function foo() {}", 200);
-    HttpResponse request = restRequest()
+    HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
-    assertThat(request.getStatusCode(), is(200));
+    assertResponseStatus(200, response);
   }
 
   @Test

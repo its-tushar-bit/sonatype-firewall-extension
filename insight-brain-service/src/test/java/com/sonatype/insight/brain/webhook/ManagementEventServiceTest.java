@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -33,8 +32,7 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,12 +64,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, tag);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     TagEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(organization.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.tag, is(tag));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(organization.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.tag).isEqualTo(tag);
 
     asyncEventBus.unregister(handler);
   }
@@ -95,12 +93,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, label);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     LabelEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(organization.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.label, is(label));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(organization.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.label).isEqualTo(label);
 
     asyncEventBus.unregister(handler);
   }
@@ -124,12 +122,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     LicenseThreatGroupEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(organization.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.licenseThreatGroup, is(licenseThreatGroup));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(organization.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.licenseThreatGroup).isEqualTo(licenseThreatGroup);
 
     asyncEventBus.unregister(handler);
   }
@@ -153,12 +151,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, application);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     OwnerEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(application.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.owner, is((Owner) application));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(application.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.owner).isEqualTo(application);
 
     asyncEventBus.unregister(handler);
   }
@@ -179,12 +177,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, organization);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     OwnerEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(organization.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.owner, is((Owner) organization));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(organization.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.owner).isEqualTo(organization);
 
     asyncEventBus.unregister(handler);
   }
@@ -207,12 +205,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, roleIdToMemberMap, organization.getId());
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     RoleEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(organization.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.roleIdToMemberMap, is(roleIdToMemberMap));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(organization.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.roleIdToMemberMap).isEqualTo(roleIdToMemberMap);
 
     asyncEventBus.unregister(handler);
   }
@@ -236,12 +234,12 @@ public class ManagementEventServiceTest
 
     managementEventService.postEvent(EventAction.CREATED, policy);
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     PolicyEvent event = handler.getEvent();
-    assertThat(event.initiator, is(USERNAME));
-    assertThat(event.ownerId, is(organization.getId()));
-    assertThat(event.action, is(EventAction.CREATED));
-    assertThat(event.policy, is(policy));
+    assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.ownerId).isEqualTo(organization.getId());
+    assertThat(event.action).isEqualTo(EventAction.CREATED);
+    assertThat(event.policy).isEqualTo(policy);
 
     asyncEventBus.unregister(handler);
   }

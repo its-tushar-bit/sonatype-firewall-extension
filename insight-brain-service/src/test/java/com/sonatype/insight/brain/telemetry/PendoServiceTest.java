@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.Collections;
 
 import javax.inject.Inject;
@@ -26,18 +25,11 @@ import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
 import com.google.common.hash.Hashing;
 import com.google.inject.Binder;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -86,11 +78,10 @@ public class PendoServiceTest
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
 
     PendoConfig config = pendoService.getConfig();
-    assertThat(config.account, hasEntry("id", telemetryId.getId()));
-    assertThat(config.account, hasEntry("foo", "bar"));
-    assertThat(config.account, hasEntry("iq-server-version", versionService.getVersion()));
+    assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
+        .containsEntry("iq-server-version", versionService.getVersion());
 
-    assertThat(config.visitor, hasEntry("id", hashedVisitorId));
+    assertThat(config.visitor).containsEntry("id", hashedVisitorId);
   }
 
   @Test
@@ -99,8 +90,8 @@ public class PendoServiceTest
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
 
     PendoConfig config = pendoService.getConfig();
-    assertThat(config.account.keySet(), empty());
-    assertThat(config.visitor.keySet(), empty());
+    assertThat(config.account).isEmpty();
+    assertThat(config.visitor).isEmpty();
   }
 
   @Test
@@ -110,8 +101,8 @@ public class PendoServiceTest
 
     PendoConfig config = pendoService.getConfig();
 
-    assertThat(config.visitor, hasEntry("id", hashedVisitorId));
-    assertThat(config.account, hasEntry("id", telemetryId.getId()));
+    assertThat(config.visitor).containsEntry("id", hashedVisitorId);
+    assertThat(config.account).containsEntry("id", telemetryId.getId());
   }
 
   @Test
@@ -120,9 +111,7 @@ public class PendoServiceTest
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     File javascript = pendoService.getJavascript();
-    assertNotNull(javascript);
-    assertTrue(javascript.exists());
-    assertThat(FileUtils.readFileToString(javascript, Charset.defaultCharset()), is("test"));
+    assertThat(javascript).isFile().hasContent("test");
   }
 
   @Test
@@ -133,7 +122,7 @@ public class PendoServiceTest
     when(userTelemetryHdsClient.relay(eq(request), eq(InputStream.class),
         eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"))).thenReturn(result);
 
-    assertThat(pendoService.proxy(request, "foo/bar"), is(result));
+    assertThat(pendoService.proxy(request, "foo/bar")).isEqualTo(result);
     verify(userTelemetryHdsClient).relay(eq(request), eq(InputStream.class),
         eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"));
   }
@@ -146,8 +135,7 @@ public class PendoServiceTest
         eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"))).thenThrow(new IOException());
 
     try (InputStream in = pendoService.proxy(request, "foo/bar")) {
-      String result = IOUtils.toString(in, Charset.defaultCharset());
-      assertThat(result, is(""));
+      assertThat(in).hasContent("");
     }
   }
 }

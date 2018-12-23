@@ -16,12 +16,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.27
@@ -39,16 +34,15 @@ public class SupportResourceTest
     final HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     try (final InputStream inputStream = response.getBodyStream()) {
-      assertThat(inputStream, notNullValue());
+      assertThat(inputStream).isNotNull();
 
       try (final ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
         final ZipEntry zipEntry = zipInputStream.getNextEntry();
-        assertThat(zipEntry.getName(), startsWith("support-"));
-        assertThat(zipEntry.getName(),
-            endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml"));
+        assertThat(zipEntry.getName()).startsWith("support-")
+            .endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml");
 
         final String served = IOUtil.toString(zipInputStream, "UTF-8").replace("\r\n", "\n");
-        assertThat(served, containsString("logging:\n"));
+        assertThat(served).contains("logging:\n");
       }
     }
   }
@@ -58,7 +52,7 @@ public class SupportResourceTest
     final HttpResponse response = restRequest().query("includeDb", true).get();
     assertResponseStatus(200, response);
     try (final InputStream inputStream = response.getBodyStream()) {
-      assertThat(inputStream, notNullValue());
+      assertThat(inputStream).isNotNull();
 
       try (final ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
         boolean foundDbEntry = false;
@@ -69,7 +63,7 @@ public class SupportResourceTest
             break;
           }
         }
-        assertThat(foundDbEntry, is(true));
+        assertThat(foundDbEntry).isTrue();
       }
     }
   }

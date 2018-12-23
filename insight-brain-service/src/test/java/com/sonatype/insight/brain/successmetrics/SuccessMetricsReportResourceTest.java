@@ -35,12 +35,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 
 public class SuccessMetricsReportResourceTest
     extends AbstractResourceTest
@@ -66,22 +62,21 @@ public class SuccessMetricsReportResourceTest
     HttpResponse response = request.body(successMetricsDTO).post();
     assertResponseStatus(200, response);
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
-    assertThat(result, notNullValue());
-    assertThat(result.id, notNullValue());
-    assertThat(result.name, is(successMetricsDTO.name));
+    assertThat(result).isNotNull();
+    assertThat(result.id).isNotNull();
+    assertThat(result.name).isEqualTo(successMetricsDTO.name);
     
     // Get the SuccessMetricsReport
     response = request.get();
     assertResponseStatus(200, response);
     SuccessMetricsReportDTO[] results = response.getBody(SuccessMetricsReportDTO[].class);
-    assertThat(results.length, is(1));
-    assertThat(results[0].name, is(metricsName));
+    assertThat(results.length).isEqualTo(1);
+    assertThat(results[0].name).isEqualTo(metricsName);
 
     // Try to update (unsupported)
     response = restRequest().auth(tempUser.getUsername(), tempUser.getPassword()).body(results[0])
         .subpath("{successMetricsId}").parameter(results[0].id).put();
     assertResponseStatus(405, response);
-    assertThat(response.getStatusText(), is("Method Not Allowed"));
 
     // Delete
     response = restRequest().auth(tempUser.getUsername(), tempUser.getPassword()).subpath("{successMetricsId}")
@@ -92,7 +87,7 @@ public class SuccessMetricsReportResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     results = response.getBody(SuccessMetricsReportDTO[].class);
-    assertThat(results.length, is(0));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -138,8 +133,8 @@ public class SuccessMetricsReportResourceTest
     assertAveragesResponse(chartDto);
     assertApplicationCountsResponse(chartDto);
     Date updateTime = Ordering.natural().max(now.withDayOfMonth(1).toDate(), now.withDayOfWeek(1).toDate());
-    assertThat(chartDto.lastUpdated, is(updateTime));
-    assertThat(chartDto.monthCount, is(1));
+    assertThat(chartDto.lastUpdated).isEqualTo(updateTime);
+    assertThat(chartDto.monthCount).isEqualTo(1);
   }
 
   private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds, Set<String> applicationIds) {
@@ -153,37 +148,37 @@ public class SuccessMetricsReportResourceTest
   private void assertMttrResponse(SuccessMetricsChartDataDTO chartDto, String monthName) {
     List<MttrDTO> dtos = chartDto.mttrs;
 
-    assertThat(dtos, hasSize(1));
-    assertThat(dtos.get(0).timePeriodName, is(monthName));
-    assertThat(dtos.get(0).mttrInSeconds, is(1));
-    assertThat(dtos.get(0).criticalMttrInSeconds, is(nullValue()));
+    assertThat(dtos).hasSize(1);
+    assertThat(dtos.get(0).timePeriodName).isEqualTo(monthName);
+    assertThat(dtos.get(0).mttrInSeconds).isEqualTo(1);
+    assertThat(dtos.get(0).criticalMttrInSeconds).isNull();
   }
 
   private void assertAveragesResponse(SuccessMetricsChartDataDTO chartDto) {
     AverageDiscoveredPolicyViolationsDTO dto = chartDto.averages;
 
-    assertThat(dto, is(notNullValue()));
-    assertThat(dto.licenseViolations.averageDiscovered, closeTo(1.0, 0.0001));
-    assertThat(dto.licenseViolations.averageDiscoveredCritical, closeTo(0.0, 0.0001));
-    assertThat(dto.evaluationCount, closeTo(2.0, 0.0001));
+    assertThat(dto).isNotNull();
+    assertThat(dto.licenseViolations.averageDiscovered).isCloseTo(1.0, offset(0.0001));
+    assertThat(dto.licenseViolations.averageDiscoveredCritical).isCloseTo(0.0, offset(0.0001));
+    assertThat(dto.evaluationCount).isCloseTo(2.0, offset(0.0001));
   }
 
   private void assertApplicationCountsResponse(SuccessMetricsChartDataDTO chartDto) {
     ApplicationCountsDTO dto = chartDto.applicationCounts;
 
-    assertThat(dto, is(notNullValue()));
-    assertThat(dto.totalApplications, is(1));
-    assertThat(dto.activeApplications, is(1));
-    assertThat(dto.total.applicationsWithViolations, is(1));
-    assertThat(dto.total.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.security.applicationsWithViolations, is(0));
-    assertThat(dto.security.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.license.applicationsWithViolations, is(1));
-    assertThat(dto.license.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.quality.applicationsWithViolations, is(0));
-    assertThat(dto.quality.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.other.applicationsWithViolations, is(0));
-    assertThat(dto.other.applicationsWithCriticalViolations, is(0));
+    assertThat(dto).isNotNull();
+    assertThat(dto.totalApplications).isEqualTo(1);
+    assertThat(dto.activeApplications).isEqualTo(1);
+    assertThat(dto.total.applicationsWithViolations).isEqualTo(1);
+    assertThat(dto.total.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.license.applicationsWithViolations).isEqualTo(1);
+    assertThat(dto.license.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.quality.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.quality.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.other.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.other.applicationsWithCriticalViolations).isEqualTo(0);
   }
 
   @Test
@@ -218,15 +213,15 @@ public class SuccessMetricsReportResourceTest
   private void assertGetComponentCountResponse(HttpResponse response, ApplicationComponent expectedComponent) {
     ComponentCountsDTO componentCountsDTO = response.getBody(ComponentCountsDTO.class);
 
-    assertThat(componentCountsDTO, notNullValue());
-    assertThat(componentCountsDTO.componentsPerApplication, is(1));
-    assertThat(componentCountsDTO.componentsInTheMostApplications, hasSize(1));
-    assertThat(componentCountsDTO.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(componentCountsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.getComponentIdentifier()).toString()));
-    assertThat(componentCountsDTO.componentsWithTheMostViolations, hasSize(1));
-    assertThat(componentCountsDTO.componentsWithTheMostViolations.get(0).count, is(1));
-    assertThat(componentCountsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.getComponentIdentifier()).toString()));
+    assertThat(componentCountsDTO).isNotNull();
+    assertThat(componentCountsDTO.componentsPerApplication).isEqualTo(1);
+    assertThat(componentCountsDTO.componentsInTheMostApplications).hasSize(1);
+    assertThat(componentCountsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(componentCountsDTO.componentsInTheMostApplications.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.getComponentIdentifier()).toString());
+    assertThat(componentCountsDTO.componentsWithTheMostViolations).hasSize(1);
+    assertThat(componentCountsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
+    assertThat(componentCountsDTO.componentsWithTheMostViolations.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.getComponentIdentifier()).toString());
   }
 }

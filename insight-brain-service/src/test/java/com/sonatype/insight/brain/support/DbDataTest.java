@@ -17,10 +17,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DbDataTest
     extends AbstractComponentTest
@@ -30,7 +27,7 @@ public class DbDataTest
 
   private Webhook getWebhook() {
     @SuppressWarnings("unchecked") final List<Webhook> webhooks = (List<Webhook>) dbData.getWebhook().getValue();
-    assertThat(webhooks, hasSize(1));
+    assertThat(webhooks).hasSize(1);
     return webhooks.get(0);
   }
 
@@ -38,7 +35,7 @@ public class DbDataTest
   public void testGetWebhook_maskSecret() throws Exception {
     tempEntity.newWebhookWithSecret(Collections.singleton(POLICY_MANAGEMENT));
 
-    assertThat(getWebhook().getSecretKey(), is(SystemInfo.MASK));
+    assertThat(getWebhook().getSecretKey()).isEqualTo(SystemInfo.MASK);
   }
 
   @Test
@@ -47,13 +44,13 @@ public class DbDataTest
     tempWebhook.setSecretKey("");
     new WebhookDAO().update(tempWebhook);
 
-    assertThat(getWebhook().getSecretKey(), is(""));
+    assertThat(getWebhook().getSecretKey()).isEqualTo("");
   }
 
   @Test
   public void testGetWebhook_secretNull() throws Exception {
     tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
 
-    assertThat(getWebhook().getSecretKey(), is(nullValue()));
+    assertThat(getWebhook().getSecretKey()).isNull();
   }
 }

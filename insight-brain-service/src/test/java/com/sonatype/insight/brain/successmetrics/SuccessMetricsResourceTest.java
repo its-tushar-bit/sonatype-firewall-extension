@@ -12,8 +12,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SuccessMetricsResourceTest
     extends AbstractResourceTest
@@ -28,7 +27,7 @@ public class SuccessMetricsResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     SuccessMetricsConfigurationDTO configuration = response.getBody(SuccessMetricsConfigurationDTO.class);
-    assertThat(configuration.enabled, is(true));
+    assertThat(configuration.enabled).isTrue();
   }
 
   @Test
@@ -37,8 +36,8 @@ public class SuccessMetricsResourceTest
     HttpResponse response = restRequest().body(configuration).put();
     assertResponseStatus(200, response);
     configuration = response.getBody(SuccessMetricsConfigurationDTO.class);
-    assertThat(configuration.enabled, is(false));
-    assertThat(new SystemConfigurationPropertyDAO().getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue(),
-        is("false"));
+    assertThat(configuration.enabled).isFalse();
+    assertThat(new SystemConfigurationPropertyDAO().getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue())
+        .isEqualTo("false");
   }
 }

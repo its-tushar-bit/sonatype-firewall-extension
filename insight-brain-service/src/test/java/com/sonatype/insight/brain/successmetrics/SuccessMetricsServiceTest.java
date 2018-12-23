@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SuccessMetricsServiceTest
     extends AbstractComponentTest
@@ -29,22 +28,23 @@ public class SuccessMetricsServiceTest
   public void testGet() {
     systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SuccessMetricsService.PROPERTY_ENABLED, "false"));
-    assertThat(successMetricsService.get().enabled, is(false));
+    assertThat(successMetricsService.get().enabled).isFalse();
 
     systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SuccessMetricsService.PROPERTY_ENABLED, "true"));
-    assertThat(successMetricsService.get().enabled, is(true));
+    assertThat(successMetricsService.get().enabled).isTrue();
   }
 
   @Test
   public void testUpdate() {
     SuccessMetricsConfigurationDTO configuration = new SuccessMetricsConfigurationDTO();
-    assertThat(successMetricsService.update(configuration).enabled, is(false));
-    assertThat(systemConfigurationPropertyDAO.getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue(),
-        is("false"));
+    assertThat(successMetricsService.update(configuration).enabled).isFalse();
+    assertThat(systemConfigurationPropertyDAO.getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue())
+        .isEqualTo("false");
 
     configuration.enabled = true;
-    assertThat(successMetricsService.update(configuration).enabled, is(true));
-    assertThat(systemConfigurationPropertyDAO.getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue(), is("true"));
+    assertThat(successMetricsService.update(configuration).enabled).isTrue();
+    assertThat(systemConfigurationPropertyDAO.getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue())
+        .isEqualTo("true");
   }
 }

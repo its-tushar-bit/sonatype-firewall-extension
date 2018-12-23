@@ -15,9 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.27
@@ -49,9 +47,8 @@ public class DbDiagnosticsTest
     OperationalDataStoreProvider.init(databaseConfig, false);
 
     final String dbDiagnostics = DbDiagnostics.getDBFileInfo();
-    assertThat(dbDiagnostics, startsWith("-- Database Diagnostics --\n" +
-        "Database path: " + tempDir.getRoot().getCanonicalPath()));
-    assertThat(dbDiagnostics, containsString("Total database size: "));
-    assertThat(dbDiagnostics, containsString("Schema version: "));
+    assertThat(dbDiagnostics)
+        .startsWith("-- Database Diagnostics --\n" + "Database path: " + tempDir.getRoot().getCanonicalPath())
+        .contains("Total database size: ").contains("Schema version: ");
   }
 }

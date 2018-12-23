@@ -13,9 +13,6 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-
 /**
  * @since 1.27
  */
@@ -28,7 +25,7 @@ public class SupportServiceAuthzTest
   @Test
   public void testCreateSupportZip_Authorized() throws Exception {
     grantConfigureSystemPermission();
-    assertThat(supportService.createSupportZip(false, null, false), notNullValue());
+    supportService.createSupportZip(false, null, false);
   }
 
   @Test(expected = UnauthorizedException.class)

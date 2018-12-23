@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.successmetrics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -45,9 +45,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Ordering;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
@@ -63,14 +60,8 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsReportDataService.isReportDataOutOfDate;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.array;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 import static org.joda.time.DateTime.now;
 
 public class SuccessMetricsReportDataServiceTest
@@ -189,7 +180,7 @@ public class SuccessMetricsReportDataServiceTest
         Collections.singleton(application.getId()));
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;
 
-    assertThat(results.size(), is(0));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -596,17 +587,17 @@ public class SuccessMetricsReportDataServiceTest
         Collections.singleton(application.getId()));
     AverageDiscoveredPolicyViolationsDTO result = service.getChartData(successMetricsReport.getId()).averages;
 
-    assertThat(result.evaluationCount, is(0.0));
-    assertThat(result.totalViolations.averageDiscovered, is(0.0));
-    assertThat(result.totalViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(result.securityViolations.averageDiscovered, is(0.0));
-    assertThat(result.securityViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(result.licenseViolations.averageDiscovered, is(0.0));
-    assertThat(result.licenseViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(result.qualityViolations.averageDiscovered, is(0.0));
-    assertThat(result.qualityViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(result.otherViolations.averageDiscovered, is(0.0));
-    assertThat(result.otherViolations.averageDiscoveredCritical, is(0.0));
+    assertThat(result.evaluationCount).isEqualTo(0.0);
+    assertThat(result.totalViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(result.totalViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(result.securityViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(result.securityViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(result.licenseViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(result.licenseViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(result.qualityViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(result.qualityViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(result.otherViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(result.otherViolations.averageDiscoveredCritical).isEqualTo(0.0);
   }
 
   @Test
@@ -697,7 +688,7 @@ public class SuccessMetricsReportDataServiceTest
     // Make sure that without the flag we get nothing.
     int activeApplicationCount = service
         .getChartData(monthlySuccessMetricsReport.getId()).applicationCounts.activeApplications;
-    assertThat(activeApplicationCount, is(0));
+    assertThat(activeApplicationCount).isEqualTo(0);
 
     // Now roll over to the next month.
     fakeNow = setTimeTo(now().plusMonths(1).withDayOfMonth(1));
@@ -862,7 +853,7 @@ public class SuccessMetricsReportDataServiceTest
     Date result = service.getChartData(successMetricsReport.getId()).lastUpdated;
 
     int millisFromNow = (int) (new LocalDate().toDate().getTime() - result.getTime());
-    assertThat(millisFromNow, lessThan(5000));
+    assertThat(millisFromNow).isLessThan(5000);
   }
 
   @Test
@@ -875,7 +866,7 @@ public class SuccessMetricsReportDataServiceTest
 
     Date startOfThisMonth = new LocalDate().withDayOfMonth(1).toDate();
     Date startOfThisWeek = new LocalDate().withDayOfWeek(1).toDate();
-    assertThat(result, equalTo(Ordering.natural().max(startOfThisMonth, startOfThisWeek)));
+    assertThat(result).isEqualTo(Ordering.natural().max(startOfThisMonth, startOfThisWeek));
   }
 
   @Test
@@ -1008,19 +999,19 @@ public class SuccessMetricsReportDataServiceTest
     reportData.setIncludedApplicationIds(reportApplicationIds);
 
     // if the report data is null, true should always be returned
-    assertThat(isReportDataOutOfDate(null, false, reportLastUpdated, reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(null, true, reportLastUpdated.plusDays(1), Collections.singleton("1234")),
-        is(true));
+    assertThat(isReportDataOutOfDate(null, false, reportLastUpdated, reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(null, true, reportLastUpdated.plusDays(1), Collections.singleton("1234")))
+        .isTrue();
 
     // test differences in applicationIdsToInclude
 
     // the two application ids that are in the report, plus another one
     Set<String> moreApplicationIds = new HashSet<>(Arrays.asList("1234", "5678", "asdf"));
 
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, reportApplicationIds), is(false));
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.<String> emptySet()), is(true));
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.singleton("1234")), is(true));
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, moreApplicationIds), is(true));
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, reportApplicationIds)).isFalse();
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.<String> emptySet())).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.singleton("1234"))).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, moreApplicationIds)).isTrue();
 
     // test timeliness when includeLatestData is false
     DateTime lastInstantOfReportMonth = reportLastUpdated.dayOfMonth().withMaximumValue().millisOfDay()
@@ -1030,22 +1021,21 @@ public class SuccessMetricsReportDataServiceTest
     DateTime firstInstantOfNextMonth = reportLastUpdated.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
     DateTime firstInstantOfNextWeek = reportLastUpdated.plusWeeks(1).withDayOfWeek(1).withTimeAtStartOfDay();
 
-    assertThat(isReportDataOutOfDate(reportData, false, reportLastUpdated.plusDays(1), reportApplicationIds),
-        is(false));
+    assertThat(isReportDataOutOfDate(reportData, false, reportLastUpdated.plusDays(1), reportApplicationIds)).isFalse();
     // end of this month is in the same week
-    assertThat(isReportDataOutOfDate(reportData, false, lastInstantOfReportMonth, reportApplicationIds), is(false));
+    assertThat(isReportDataOutOfDate(reportData, false, lastInstantOfReportMonth, reportApplicationIds)).isFalse();
     // end of this week is the next month
-    assertThat(isReportDataOutOfDate(reportData, false, lastInstantOfReportWeek, reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(reportData, false, firstInstantOfNextMonth, reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(reportData, false, firstInstantOfNextWeek, reportApplicationIds), is(true));
+    assertThat(isReportDataOutOfDate(reportData, false, lastInstantOfReportWeek, reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, false, firstInstantOfNextMonth, reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, false, firstInstantOfNextWeek, reportApplicationIds)).isTrue();
 
     // test timeliness when includeLatestData is true
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, reportApplicationIds), is(false));
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated.plusDays(1), reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(reportData, true, lastInstantOfReportMonth, reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(reportData, true, lastInstantOfReportWeek, reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(reportData, true, firstInstantOfNextMonth, reportApplicationIds), is(true));
-    assertThat(isReportDataOutOfDate(reportData, true, firstInstantOfNextWeek, reportApplicationIds), is(true));
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, reportApplicationIds)).isFalse();
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated.plusDays(1), reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, lastInstantOfReportMonth, reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, lastInstantOfReportWeek, reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, firstInstantOfNextMonth, reportApplicationIds)).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, firstInstantOfNextWeek, reportApplicationIds)).isTrue();
   }
 
   @Test
@@ -1124,7 +1114,7 @@ public class SuccessMetricsReportDataServiceTest
         Collections.singleton(application.getId()));
     List<ViolationCountsDTO> result = service.getChartData(successMetricsReport.getId()).violationCounts;
 
-    assertThat(result, hasSize(0));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -1260,7 +1250,7 @@ public class SuccessMetricsReportDataServiceTest
         Collections.singleton(application.getId()));
     List<ViolationsByCategoryDTO> result = service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks;
 
-    assertThat(result, hasSize(0));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -1272,7 +1262,7 @@ public class SuccessMetricsReportDataServiceTest
         Collections.singleton(application.getId()), "latest", true);
     List<ViolationsByCategoryDTO> result = service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks;
 
-    assertThat(result, hasSize(0));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -1428,7 +1418,7 @@ public class SuccessMetricsReportDataServiceTest
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     
     // Since we don't have a full week, no data is returned
-    assertThat(service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks, hasSize(0));
+    assertThat(service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks).isEmpty();
 
     // Sanity check for monthly data
     ApplicationCountsDTO expected = new ApplicationCountsDTO();
@@ -1699,7 +1689,7 @@ public class SuccessMetricsReportDataServiceTest
             fixed().security(1, 1, 0, 0).license(0, 0, 0, 0).quality(2, 2, 1, 1).other(0, 0, 0, 0).asMap(),
             waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(1, 1, 1, 1).other(0, 0, 0, 0).asMap())
         );
-    assertThat(actualDTOs, hasSize(expectedDTOs.size()));
+    assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
       assertViolationCountsDTO(expectedDTOs.get(i), actualDTOs.get(i));
     }
@@ -1744,17 +1734,18 @@ public class SuccessMetricsReportDataServiceTest
             fixed().security(1, 1, 0, 0).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap(),
             waived().security(0, 0, 1, 1).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap())
     );
-    assertThat(actualDTOs, hasSize(expectedDTOs.size()));
+    assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
       assertViolationCountsDTO(expectedDTOs.get(i), actualDTOs.get(i));
     }
   }
 
   private void assertViolationCountsDTO(ViolationCountsDTO expectedDTO, ViolationCountsDTO actualDTO) {
-    assertThat(actualDTO.timePeriodName, is(expectedDTO.timePeriodName));
-    assertThat(actualDTO.timePeriodName + " discovered", actualDTO.discoveredCounts, is(expectedDTO.discoveredCounts));
-    assertThat(actualDTO.timePeriodName + " fixed", actualDTO.fixedCounts, is(expectedDTO.fixedCounts));
-    assertThat(actualDTO.timePeriodName + " waived", actualDTO.waivedCounts, is(expectedDTO.waivedCounts));
+    assertThat(actualDTO.timePeriodName).isEqualTo(expectedDTO.timePeriodName);
+    assertThat(actualDTO.discoveredCounts).as(actualDTO.timePeriodName + " discovered")
+        .isEqualTo(expectedDTO.discoveredCounts);
+    assertThat(actualDTO.fixedCounts).as(actualDTO.timePeriodName + " fixed").isEqualTo(expectedDTO.fixedCounts);
+    assertThat(actualDTO.waivedCounts).as(actualDTO.timePeriodName + " waived").isEqualTo(expectedDTO.waivedCounts);
   }
 
   private void assertAggregationViolationTotalsByCategoryHistory(List<ViolationsByCategoryDTO> actualDTOs) {
@@ -1813,7 +1804,7 @@ public class SuccessMetricsReportDataServiceTest
 
   private void assertAggregationViolationTotalsByCategoryHistory(List<ViolationsByCategoryDTO> actualDTOs,
                                                                  List<ViolationsByCategoryDTO> expectedDTOs) {
-    assertThat(actualDTOs, hasSize(expectedDTOs.size()));
+    assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
       assertViolationTotalsByCategoryDTO(expectedDTOs.get(i), actualDTOs.get(i));
     }
@@ -1822,99 +1813,70 @@ public class SuccessMetricsReportDataServiceTest
   private void assertViolationTotalsByCategoryDTO(ViolationsByCategoryDTO expectedDTO,
                                                   ViolationsByCategoryDTO actualDTO)
   {
-    assertThat("Time Period Name", actualDTO.timePeriodName, is(expectedDTO.timePeriodName));
-    assertThat("Security", actualDTO.security, is(expectedDTO.security));
-    assertThat("License", actualDTO.license, is(expectedDTO.license));
-    assertThat("Quality", actualDTO.quality, is(expectedDTO.quality));
-    assertThat("Other", actualDTO.other, is(expectedDTO.other));
-  }
-
-  private static class MttrDTOMatcher
-      extends BaseMatcher<MttrDTO>
-  {
-    private final MttrDTO expected;
-
-    public MttrDTOMatcher(MttrDTO expected) {
-      this.expected = expected;
-    }
-
-    @Override
-    public boolean matches(Object actual) {
-      if (actual instanceof MttrDTO) {
-        MttrDTO actualDTO = (MttrDTO) actual;
-
-        return Objects.equals(actualDTO.timePeriodName, expected.timePeriodName)
-            && Objects.equals(actualDTO.mttrInSeconds, expected.mttrInSeconds)
-            && Objects.equals(actualDTO.criticalMttrInSeconds, expected.criticalMttrInSeconds);
-      }
-      else {
-        return false;
-      }
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendValue(expected);
-    }
+    assertThat(actualDTO.timePeriodName).as("Time Period Name").isEqualTo(expectedDTO.timePeriodName);
+    assertThat(actualDTO.security).as("Security").isEqualTo(expectedDTO.security);
+    assertThat(actualDTO.license).as("License").isEqualTo(expectedDTO.license);
+    assertThat(actualDTO.quality).as("Quality").isEqualTo(expectedDTO.quality);
+    assertThat(actualDTO.other).as("Other").isEqualTo(expectedDTO.other);
   }
 
   private void assertApplicationCountsDTO(ApplicationCountsDTO actual, ApplicationCountsDTO expected) {
-    assertThat(actual.totalApplications, is(expected.totalApplications));
-    assertThat(actual.activeApplications, is(expected.activeApplications));
-    assertThat(actual.total.applicationsWithViolations, is(expected.total.applicationsWithViolations));
-    assertThat(actual.total.applicationsWithCriticalViolations, is(expected.total.applicationsWithCriticalViolations));
-    assertThat(actual.security.applicationsWithViolations, is(expected.security.applicationsWithViolations));
-    assertThat(actual.security.applicationsWithCriticalViolations,
-        is(expected.security.applicationsWithCriticalViolations));
-    assertThat(actual.license.applicationsWithViolations, is(expected.license.applicationsWithViolations));
-    assertThat(actual.license.applicationsWithCriticalViolations,
-        is(expected.license.applicationsWithCriticalViolations));
-    assertThat(actual.quality.applicationsWithViolations, is(expected.quality.applicationsWithViolations));
-    assertThat(actual.quality.applicationsWithCriticalViolations,
-        is(expected.quality.applicationsWithCriticalViolations));
-    assertThat(actual.other.applicationsWithViolations, is(expected.other.applicationsWithViolations));
-    assertThat(actual.other.applicationsWithCriticalViolations, is(expected.other.applicationsWithCriticalViolations));
+    assertThat(actual.totalApplications).isEqualTo(expected.totalApplications);
+    assertThat(actual.activeApplications).isEqualTo(expected.activeApplications);
+    assertThat(actual.total.applicationsWithViolations).isEqualTo(expected.total.applicationsWithViolations);
+    assertThat(actual.total.applicationsWithCriticalViolations)
+        .isEqualTo(expected.total.applicationsWithCriticalViolations);
+    assertThat(actual.security.applicationsWithViolations).isEqualTo(expected.security.applicationsWithViolations);
+    assertThat(actual.security.applicationsWithCriticalViolations)
+        .isEqualTo(expected.security.applicationsWithCriticalViolations);
+    assertThat(actual.license.applicationsWithViolations).isEqualTo(expected.license.applicationsWithViolations);
+    assertThat(actual.license.applicationsWithCriticalViolations)
+        .isEqualTo(expected.license.applicationsWithCriticalViolations);
+    assertThat(actual.quality.applicationsWithViolations).isEqualTo(expected.quality.applicationsWithViolations);
+    assertThat(actual.quality.applicationsWithCriticalViolations)
+        .isEqualTo(expected.quality.applicationsWithCriticalViolations);
+    assertThat(actual.other.applicationsWithViolations).isEqualTo(expected.other.applicationsWithViolations);
+    assertThat(actual.other.applicationsWithCriticalViolations)
+        .isEqualTo(expected.other.applicationsWithCriticalViolations);
   }
 
-  @SuppressWarnings({ "unchecked" }) // to use the array() method with a parameterized type
   private void assertMttrDTOs(List<MttrDTO> actual, List<MttrDTO> expected) {
-    List<Matcher<MttrDTO>> matchers = new ArrayList<>(expected.size());
-    for (MttrDTO dto : expected) {
-      matchers.add(new MttrDTOMatcher(dto));
-    }
-
-    assertThat(actual.toArray(new MttrDTO[0]), is(array(matchers.toArray(new Matcher[0]))));
+    Comparator<MttrDTO> mttrDTOComparator = Comparator
+        .<MttrDTO, String> comparing(dto -> dto.timePeriodName, Comparator.nullsFirst(Comparator.naturalOrder()))
+        .thenComparing(dto -> dto.mttrInSeconds, Comparator.nullsFirst(Comparator.naturalOrder()))
+        .thenComparing(dto -> dto.criticalMttrInSeconds, Comparator.nullsFirst(Comparator.naturalOrder()));
+    assertThat(actual).usingElementComparator(mttrDTOComparator).isEqualTo(expected);
   }
 
   private void assertAverageDTO(AverageDiscoveredPolicyViolationsDTO actualDTO,
                                 AverageDiscoveredPolicyViolationsDTO expectedDTO)
   {
-    assertThat(actualDTO.evaluationCount, closeTo(expectedDTO.evaluationCount, TOLERANCE));
+    assertThat(actualDTO.evaluationCount).isCloseTo(expectedDTO.evaluationCount, offset(TOLERANCE));
 
-    assertThat(actualDTO.securityViolations.averageDiscoveredCritical,
-        closeTo(expectedDTO.securityViolations.averageDiscoveredCritical, TOLERANCE));
-    assertThat(actualDTO.securityViolations.averageDiscovered,
-        closeTo(expectedDTO.securityViolations.averageDiscovered, TOLERANCE));
+    assertThat(actualDTO.securityViolations.averageDiscoveredCritical)
+        .isCloseTo(expectedDTO.securityViolations.averageDiscoveredCritical, offset(TOLERANCE));
+    assertThat(actualDTO.securityViolations.averageDiscovered)
+        .isCloseTo(expectedDTO.securityViolations.averageDiscovered, offset(TOLERANCE));
 
-    assertThat(actualDTO.licenseViolations.averageDiscoveredCritical,
-        closeTo(expectedDTO.licenseViolations.averageDiscoveredCritical, TOLERANCE));
-    assertThat(actualDTO.licenseViolations.averageDiscovered,
-        closeTo(expectedDTO.licenseViolations.averageDiscovered, TOLERANCE));
+    assertThat(actualDTO.licenseViolations.averageDiscoveredCritical)
+        .isCloseTo(expectedDTO.licenseViolations.averageDiscoveredCritical, offset(TOLERANCE));
+    assertThat(actualDTO.licenseViolations.averageDiscovered).isCloseTo(expectedDTO.licenseViolations.averageDiscovered,
+        offset(TOLERANCE));
 
-    assertThat(actualDTO.qualityViolations.averageDiscoveredCritical,
-        closeTo(expectedDTO.qualityViolations.averageDiscoveredCritical, TOLERANCE));
-    assertThat(actualDTO.qualityViolations.averageDiscovered,
-        closeTo(expectedDTO.qualityViolations.averageDiscovered, TOLERANCE));
+    assertThat(actualDTO.qualityViolations.averageDiscoveredCritical)
+        .isCloseTo(expectedDTO.qualityViolations.averageDiscoveredCritical, offset(TOLERANCE));
+    assertThat(actualDTO.qualityViolations.averageDiscovered).isCloseTo(expectedDTO.qualityViolations.averageDiscovered,
+        offset(TOLERANCE));
 
-    assertThat(actualDTO.otherViolations.averageDiscoveredCritical,
-        closeTo(expectedDTO.otherViolations.averageDiscoveredCritical, TOLERANCE));
-    assertThat(actualDTO.otherViolations.averageDiscovered,
-        closeTo(expectedDTO.otherViolations.averageDiscovered, TOLERANCE));
+    assertThat(actualDTO.otherViolations.averageDiscoveredCritical)
+        .isCloseTo(expectedDTO.otherViolations.averageDiscoveredCritical, offset(TOLERANCE));
+    assertThat(actualDTO.otherViolations.averageDiscovered).isCloseTo(expectedDTO.otherViolations.averageDiscovered,
+        offset(TOLERANCE));
 
-    assertThat(actualDTO.totalViolations.averageDiscoveredCritical,
-        closeTo(expectedDTO.totalViolations.averageDiscoveredCritical, TOLERANCE));
-    assertThat(actualDTO.totalViolations.averageDiscovered,
-        closeTo(expectedDTO.totalViolations.averageDiscovered, TOLERANCE));
+    assertThat(actualDTO.totalViolations.averageDiscoveredCritical)
+        .isCloseTo(expectedDTO.totalViolations.averageDiscoveredCritical, offset(TOLERANCE));
+    assertThat(actualDTO.totalViolations.averageDiscovered).isCloseTo(expectedDTO.totalViolations.averageDiscovered,
+        offset(TOLERANCE));
   }
 
   private Date toDate(LocalDate localDate) {
@@ -1956,31 +1918,31 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newApplicationWithParent("app3");
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
     //app1=2 components, app2=1 component, app3=0 components
-    assertThat(componentDetailsDTO.componentsPerApplication, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(2));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(2));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName, is("Unknown"));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(2);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(2);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName).isEqualTo("Unknown");
 
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(2));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(2);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString());
   }
 
   @Test
   public void testGetComponentCounts_NoComponents() {
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsPerApplication, is(0));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(0));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(0));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(0);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).isEmpty();
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).isEmpty();
   }
 
   @Test
@@ -2002,18 +1964,18 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId1", "artifactId1", "version1", hash2, "reason2");
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsPerApplication, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString());
 
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString());
   }
 
   @Test
@@ -2044,21 +2006,21 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId1", "artifactId1", "version1", hash2, "reason2");
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsPerApplication, is(2));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(2));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(waivedComponentId).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(unwaivedComponentId).toString()));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(2);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(2);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(waivedComponentId).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(unwaivedComponentId).toString());
 
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(unwaivedComponentId).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(unwaivedComponentId).toString());
   }
 
   @Test
@@ -2088,30 +2050,30 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId3", "artifactId3", "version3", hash3, "reason3");
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsPerApplication, is(3));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(3));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(3);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(3);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString());
 
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(3));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(3);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString());
   }
 
   @Test
@@ -2135,20 +2097,20 @@ public class SuccessMetricsReportDataServiceTest
     }
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsPerApplication, is(6));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(5));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(5));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(6);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(5);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(5);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
 
     for (int i = 0; i < 5; i++) {
-      assertThat(componentDetailsDTO.componentsInTheMostApplications.get(i).count, is(1));
-      assertThat(componentDetailsDTO.componentsInTheMostApplications.get(i).componentDisplayName,
-          is(ComponentDisplayNameUtil.fromIdentifier(components.get(i).getComponentIdentifier()).toString()));
-      assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(i).count, is(1));
-      assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(i).componentDisplayName,
-          is(ComponentDisplayNameUtil.fromIdentifier(components.get(i).getComponentIdentifier()).toString()));
+      assertThat(componentDetailsDTO.componentsInTheMostApplications.get(i).count).isEqualTo(1);
+      assertThat(componentDetailsDTO.componentsInTheMostApplications.get(i).componentDisplayName)
+          .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(components.get(i).getComponentIdentifier()).toString());
+      assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(i).count).isEqualTo(1);
+      assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(i).componentDisplayName)
+          .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(components.get(i).getComponentIdentifier()).toString());
     }
   }
 
@@ -2201,27 +2163,27 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation4, policy2, "groupId3", "artifactId3", "version3", hash3, "reason3");
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsPerApplication, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(3));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(3);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString());
 
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(2));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(2));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(2);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(2);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString());
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString());
   }
 
   @Test
@@ -2289,28 +2251,28 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation3, policy, nullComponentIdentifier, hash3, "reason3");
 
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
-    assertThat(componentDetailsDTO, notNullValue());
+    assertThat(componentDetailsDTO).isNotNull();
 
-    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(4));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName, is("b.jar"));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(3));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName, is("foo"));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(2));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(componentId1).toString()));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).componentDisplayName, is("Unknown"));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(4);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName).isEqualTo("b.jar");
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(3);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName).isEqualTo("foo");
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count).isEqualTo(2);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentId1).toString());
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).componentDisplayName).isEqualTo("Unknown");
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).count).isEqualTo(1);
 
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(4));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName, is("foo"));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(3));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName, is("foo"));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(2));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(componentId1).toString()));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count, is(1));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).componentDisplayName, is("Unknown"));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations).hasSize(4);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName).isEqualTo("foo");
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count).isEqualTo(3);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName).isEqualTo("foo");
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count).isEqualTo(2);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).componentDisplayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentId1).toString());
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count).isEqualTo(1);
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).componentDisplayName).isEqualTo("Unknown");
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).count).isEqualTo(1);
   }
 }

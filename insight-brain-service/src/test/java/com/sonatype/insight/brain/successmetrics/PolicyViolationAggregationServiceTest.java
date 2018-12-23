@@ -33,10 +33,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationAggregationServiceTest
     extends AbstractComponentTest
@@ -129,30 +126,30 @@ public class PolicyViolationAggregationServiceTest
 
   private void assertAllResoloved(DateTime now, PolicyViolationAggregation aggregation) {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getFixedAsTable());
-    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
     assertAllCountsZero(aggregation.getWaivedAsTable());
 
     assertAllCountsZero(aggregation.getOpenAsTable());
 
-    assertThat(aggregation.getResolvedCountCriticalThreat(), is(1));
-    assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
-    assertThat(aggregation.getResolvedCountModerateThreat(), is(0));
-    assertThat(aggregation.getResolvedCountLowThreat(), is(0));
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(1);
+    assertThat(aggregation.getResolvedCountSevereThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountModerateThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountLowThreat()).isEqualTo(0);
 
-    assertThat(aggregation.getMttrCriticalThreat(), is(TimeUnit.HOURS.toMillis(48)));
-    assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrCriticalThreat()).isEqualTo(TimeUnit.HOURS.toMillis(48));
+    assertThat(aggregation.getMttrSevereThreat()).isNull();
+    assertThat(aggregation.getMttrModerateThreat()).isNull();
+    assertThat(aggregation.getMttrLowThreat()).isNull();
 
     LocalDate expectedTimePeriodStart =
         aggregation.getTimePeriod() == MONTH ? new LocalDate(now.withDayOfMonth(1)) : new LocalDate(
             now.withDayOfWeek(1));
-    assertThat(aggregation.getTimePeriodStart(), is(expectedTimePeriodStart.toDate()));
-    assertThat(aggregation.getTimePeriodEnd(), is(now.toDate()));
+    assertThat(aggregation.getTimePeriodStart()).isEqualTo(expectedTimePeriodStart.toDate());
+    assertThat(aggregation.getTimePeriodEnd()).isEqualTo(now.toDate());
   }
 
   @Test
@@ -224,29 +221,29 @@ public class PolicyViolationAggregationServiceTest
 
   private void assertSomeResolved(DateTime now, PolicyViolationAggregation aggregation) {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
     assertAllCountsZero(aggregation.getFixedAsTable());
     assertAllCountsZero(aggregation.getWaivedAsTable());
 
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getOpenAsTable());
-    assertThat(aggregation.getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
-    assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
-    assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
-    assertThat(aggregation.getResolvedCountModerateThreat(), is(0));
-    assertThat(aggregation.getResolvedCountLowThreat(), is(0));
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountSevereThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountModerateThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountLowThreat()).isEqualTo(0);
 
-    assertThat(aggregation.getMttrCriticalThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrCriticalThreat()).isNull();
+    assertThat(aggregation.getMttrSevereThreat()).isNull();
+    assertThat(aggregation.getMttrModerateThreat()).isNull();
+    assertThat(aggregation.getMttrLowThreat()).isNull();
 
     LocalDate expectedTimePeriodStart =
         aggregation.getTimePeriod() == MONTH ? new LocalDate(now.withDayOfMonth(1)) : new LocalDate(
             now.withDayOfWeek(1));
-    assertThat(aggregation.getTimePeriodStart(), is(expectedTimePeriodStart.toDate()));
-    assertThat(aggregation.getTimePeriodEnd(), is(now.toDate()));
+    assertThat(aggregation.getTimePeriodStart()).isEqualTo(expectedTimePeriodStart.toDate());
+    assertThat(aggregation.getTimePeriodEnd()).isEqualTo(now.toDate());
   }
 
   @Test
@@ -264,23 +261,23 @@ public class PolicyViolationAggregationServiceTest
 
     // If now starts on monday we will have an extra week since we're able to get a full week's worth of data
     // for the first week (there are 52 complete weeks in a year, leaving one extra day).
-    assertThat(weekAggregations.size(), is(now.getDayOfWeek() == 1 ? 53 : 52));
-    assertThat(monthAggregations.size(), is(12));
+    assertThat(weekAggregations).hasSize(now.getDayOfWeek() == 1 ? 53 : 52);
+    assertThat(monthAggregations).hasSize(12);
     DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
 
     for(int i = 0; i < weekAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = weekAggregations.get(i);
-      assertThat(aggregation.getTimePeriod(), is(WEEK));
-      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusWeeks(i).toDate()));
-      assertThat(aggregation.getTimePeriodEnd(), is(nullValue()));
+      assertThat(aggregation.getTimePeriod()).isEqualTo(WEEK);
+      assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusWeeks(i).toDate());
+      assertThat(aggregation.getTimePeriodEnd()).isNull();
     }
 
     aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
     for(int i = 0; i < monthAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = monthAggregations.get(i);
-      assertThat(aggregation.getTimePeriod(), is(MONTH));
-      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusMonths(i).toDate()));
-      assertThat(aggregation.getTimePeriodEnd(), is(nullValue()));
+      assertThat(aggregation.getTimePeriod()).isEqualTo(MONTH);
+      assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusMonths(i).toDate());
+      assertThat(aggregation.getTimePeriodEnd()).isNull();
     }
   }
 
@@ -299,24 +296,24 @@ public class PolicyViolationAggregationServiceTest
 
     // If now starts on monday we will have an extra week since we're able to get a full week's worth of data
     // for the first week (there are 52 complete weeks in a year, leaving one extra day).
-    assertThat(weekAggregations.size(), is(now.getDayOfWeek() == 1 ? 54 : 53));
-    assertThat(monthAggregations.size(), is(13));
+    assertThat(weekAggregations).hasSize(now.getDayOfWeek() == 1 ? 54 : 53);
+    assertThat(monthAggregations).hasSize(13);
 
     DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
 
     for(int i = 0; i < weekAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = weekAggregations.get(i);
-      assertThat(aggregation.getTimePeriod(), is(WEEK));
-      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusWeeks(i).toDate()));
-      assertThat(aggregation.getTimePeriodEnd(), is(i < weekAggregations.size() - 1 ? null : now.toDate()));
+      assertThat(aggregation.getTimePeriod()).isEqualTo(WEEK);
+      assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusWeeks(i).toDate());
+      assertThat(aggregation.getTimePeriodEnd()).isEqualTo(i < weekAggregations.size() - 1 ? null : now.toDate());
     }
     
     aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
     for(int i = 0; i < monthAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = monthAggregations.get(i);
-      assertThat(aggregation.getTimePeriod(), is(MONTH));
-      assertThat(aggregation.getTimePeriodStart(), is(aggregationStart.plusMonths(i).toDate()));
-      assertThat(aggregation.getTimePeriodEnd(), is(i < monthAggregations.size() - 1 ? null : now.toDate()));
+      assertThat(aggregation.getTimePeriod()).isEqualTo(MONTH);
+      assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusMonths(i).toDate());
+      assertThat(aggregation.getTimePeriodEnd()).isEqualTo(i < monthAggregations.size() - 1 ? null : now.toDate());
     }
   }
 
@@ -354,25 +351,25 @@ public class PolicyViolationAggregationServiceTest
   
   private void assertViolationsWithHash(PolicyViolationAggregation aggregation) {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(2);
 
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getFixedAsTable());
-    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getFixedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getWaivedAsTable());
-    assertThat(aggregation.getWaivedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getWaivedCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
     assertAllCountsZero(aggregation.getOpenAsTable());
 
-    assertThat(aggregation.getResolvedCountCriticalThreat(), is(2));
-    assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
-    assertThat(aggregation.getResolvedCountModerateThreat(), is(0));
-    assertThat(aggregation.getResolvedCountLowThreat(), is(0));
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(2);
+    assertThat(aggregation.getResolvedCountSevereThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountModerateThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountLowThreat()).isEqualTo(0);
 
-    assertThat(aggregation.getMttrCriticalThreat(), is(TimeUnit.HOURS.toMillis(24)));
-    assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrCriticalThreat()).isEqualTo(TimeUnit.HOURS.toMillis(24));
+    assertThat(aggregation.getMttrSevereThreat()).isNull();
+    assertThat(aggregation.getMttrModerateThreat()).isNull();
+    assertThat(aggregation.getMttrLowThreat()).isNull();
   }
 
   @Test
@@ -392,12 +389,12 @@ public class PolicyViolationAggregationServiceTest
 
     List<PolicyViolationAggregation> aggregations = aggregationDAO.getByTimePeriod(MONTH);
 
-    assertThat(aggregations.size(), is(1));
+    assertThat(aggregations).hasSize(1);
     assertViolationOneWeekAgoFromMidMonth(aggregations.get(0), true);
 
     aggregations = aggregationDAO.getByTimePeriod(WEEK);
 
-    assertThat(aggregations.size(), is(greaterThan(1)));
+    assertThat(aggregations).size().isGreaterThan(1);
     for (int i = 0; i < aggregations.size(); i++) {
       // only last weeks aggregation should expect a violation
       assertViolationOneWeekAgoFromMidMonth(aggregations.get(i), i == aggregations.size() - 2);
@@ -407,24 +404,24 @@ public class PolicyViolationAggregationServiceTest
   private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation, boolean violationExpected)
   {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
-    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL),
-        is(violationExpected ? 1 : 0));
+    assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
+        .isEqualTo(violationExpected ? 1 : 0);
 
     assertAllCountsZero(aggregation.getFixedAsTable());
     assertAllCountsZero(aggregation.getWaivedAsTable());
 
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getOpenAsTable());
-    assertThat(aggregation.getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(1));
+    assertThat(aggregation.getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(1);
 
-    assertThat(aggregation.getResolvedCountCriticalThreat(), is(0));
-    assertThat(aggregation.getResolvedCountSevereThreat(), is(0));
-    assertThat(aggregation.getResolvedCountModerateThreat(), is(0));
-    assertThat(aggregation.getResolvedCountLowThreat(), is(0));
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountSevereThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountModerateThreat()).isEqualTo(0);
+    assertThat(aggregation.getResolvedCountLowThreat()).isEqualTo(0);
 
-    assertThat(aggregation.getMttrCriticalThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrSevereThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrModerateThreat(), is(nullValue()));
-    assertThat(aggregation.getMttrLowThreat(), is(nullValue()));
+    assertThat(aggregation.getMttrCriticalThreat()).isNull();
+    assertThat(aggregation.getMttrSevereThreat()).isNull();
+    assertThat(aggregation.getMttrModerateThreat()).isNull();
+    assertThat(aggregation.getMttrLowThreat()).isNull();
   }
 
   @Test
@@ -455,26 +452,30 @@ public class PolicyViolationAggregationServiceTest
 
     List<PolicyViolationAggregation> aggregations = aggregationDAO.getByTimePeriod(MONTH);
 
-    assertThat(aggregations.size(), is(1));
+    assertThat(aggregations.size()).isEqualTo(1);
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
         aggregations.get(0).getOpenAsTable());
-    assertThat(aggregations.get(0).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
+    assertThat(aggregations.get(0).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
+        .isEqualTo(2);
 
     aggregations = aggregationDAO.getByTimePeriod(WEEK);
 
-    assertThat(aggregations.size(), is(3));
+    assertThat(aggregations).hasSize(3);
     // 2 weeks ago
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
         aggregations.get(0).getOpenAsTable());
-    assertThat(aggregations.get(0).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
+    assertThat(aggregations.get(0).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
+        .isEqualTo(2);
     // 1 week ago
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
         aggregations.get(1).getOpenAsTable());
-    assertThat(aggregations.get(1).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(3));
+    assertThat(aggregations.get(1).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
+        .isEqualTo(3);
     // this week
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL,
         aggregations.get(2).getOpenAsTable());
-    assertThat(aggregations.get(2).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL), is(2));
+    assertThat(aggregations.get(2).getOpenAsTable().get(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
+        .isEqualTo(2);
   }
 
   private void assertAllCountsZero(Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable) {
@@ -486,7 +487,7 @@ public class PolicyViolationAggregationServiceTest
                                          Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable) {
     for (Cell<PolicyThreatCategory, ThreatLevel, Integer> cell : countsAsTable.cellSet()) {
       if (!(cell.getRowKey().equals(category) && cell.getColumnKey().equals(level))) {
-        assertThat(cell.getValue(), is(0));
+        assertThat(cell.getValue()).isEqualTo(0);
       }
     }
   }

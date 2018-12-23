@@ -12,9 +12,7 @@ import javax.inject.Inject;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JmxInfoTest
     extends InjectedTest
@@ -25,11 +23,11 @@ public class JmxInfoTest
   @Test
   public void testGetJmxInfo() throws Exception {
     final SortedMap<String, Object> entries = jmxInfo.getJmxInfo();
-    assertThat(entries.size(), greaterThan(1));
+    assertThat(entries.size()).isGreaterThan(1);
 
     @SuppressWarnings("unchecked")
     final SortedMap<String, Object> mapOS = (SortedMap<String, Object>) entries.get("java.lang:type=OperatingSystem");
-    assertThat(mapOS.get("TotalPhysicalMemorySize"), notNullValue());
-    assertThat(mapOS.get("FreePhysicalMemorySize"), notNullValue());
+    assertThat(mapOS.get("TotalPhysicalMemorySize")).isNotNull();
+    assertThat(mapOS.get("FreePhysicalMemorySize")).isNotNull();
   }
 }

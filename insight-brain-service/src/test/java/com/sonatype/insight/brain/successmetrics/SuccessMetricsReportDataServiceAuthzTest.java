@@ -37,14 +37,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.ONE_HOUR;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class SuccessMetricsReportDataServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -83,14 +77,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getChartData(successMetricsReport.getId());
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
       // can't look up SuccessMetricsReport if the user isn't logged in
-      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
-    }
+    }).withMessageContaining("Cannot find a success metrics report");
   }
 
   @Test
@@ -106,14 +96,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getChartData(successMetricsReport.getId());
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
       // can't look up SuccessMetricsReport if the user isn't logged in
-      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
-    }
+    }).withMessageContaining("Cannot find a success metrics report");
   }
 
   @Test
@@ -169,14 +155,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     createPolicyViolation(app, today, ONE_HOUR);
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getChartData(successMetricsReport.getId());
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
       // can't look up SuccessMetricsReport if the user isn't logged in
-      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
-    }
+    }).withMessageContaining("Cannot find a success metrics report");
   }
 
   @Test
@@ -351,32 +333,32 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   private void assertMttrResults(List<MttrDTO> mttrDTOs, LocalDate today) {
-    assertThat(mttrDTOs, hasSize(1));
+    assertThat(mttrDTOs).hasSize(1);
 
     MttrDTO dto = mttrDTOs.get(0);
-    assertThat(dto.timePeriodName, is(today.minusMonths(1).monthOfYear().getAsShortText(Locale.US)));
-    assertThat(dto.mttrInSeconds, is((int) ONE_HOUR / 1000));
-    assertThat(dto.criticalMttrInSeconds, is(nullValue()));
+    assertThat(dto.timePeriodName).isEqualTo(today.minusMonths(1).monthOfYear().getAsShortText(Locale.US));
+    assertThat(dto.mttrInSeconds).isEqualTo((int) ONE_HOUR / 1000);
+    assertThat(dto.criticalMttrInSeconds).isNull();
   }
 
   private void assertAveragesResults(AverageDiscoveredPolicyViolationsDTO dto) {
-    assertThat(dto.licenseViolations.averageDiscovered, is(1.0));
-    assertThat(dto.evaluationCount, is(2.0));
+    assertThat(dto.licenseViolations.averageDiscovered).isEqualTo(1.0);
+    assertThat(dto.evaluationCount).isEqualTo(2.0);
   }
 
   private void assertApplicationCountsResult(ApplicationCountsDTO dto) {
-    assertThat(dto.totalApplications, is(1));
-    assertThat(dto.activeApplications, is(1));
-    assertThat(dto.total.applicationsWithViolations, is(1));
-    assertThat(dto.total.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.security.applicationsWithViolations, is(0));
-    assertThat(dto.security.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.license.applicationsWithViolations, is(1));
-    assertThat(dto.license.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.quality.applicationsWithViolations, is(0));
-    assertThat(dto.quality.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.other.applicationsWithViolations, is(0));
-    assertThat(dto.other.applicationsWithCriticalViolations, is(0));
+    assertThat(dto.totalApplications).isEqualTo(1);
+    assertThat(dto.activeApplications).isEqualTo(1);
+    assertThat(dto.total.applicationsWithViolations).isEqualTo(1);
+    assertThat(dto.total.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.license.applicationsWithViolations).isEqualTo(1);
+    assertThat(dto.license.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.quality.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.quality.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.other.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.other.applicationsWithCriticalViolations).isEqualTo(0);
   }
 
   private void assertEmptyResults(SuccessMetricsChartDataDTO chartDataDTO) {
@@ -386,49 +368,45 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   private void assertEmptyResults(AverageDiscoveredPolicyViolationsDTO dto) {
-    assertThat(dto.evaluationCount, is(0.0));
-    assertThat(dto.totalViolations.averageDiscovered, is(0.0));
-    assertThat(dto.totalViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(dto.securityViolations.averageDiscovered, is(0.0));
-    assertThat(dto.securityViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(dto.licenseViolations.averageDiscovered, is(0.0));
-    assertThat(dto.licenseViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(dto.qualityViolations.averageDiscovered, is(0.0));
-    assertThat(dto.qualityViolations.averageDiscoveredCritical, is(0.0));
-    assertThat(dto.otherViolations.averageDiscovered, is(0.0));
-    assertThat(dto.otherViolations.averageDiscoveredCritical, is(0.0));
+    assertThat(dto.evaluationCount).isEqualTo(0.0);
+    assertThat(dto.totalViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(dto.totalViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(dto.securityViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(dto.securityViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(dto.licenseViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(dto.licenseViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(dto.qualityViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(dto.qualityViolations.averageDiscoveredCritical).isEqualTo(0.0);
+    assertThat(dto.otherViolations.averageDiscovered).isEqualTo(0.0);
+    assertThat(dto.otherViolations.averageDiscoveredCritical).isEqualTo(0.0);
   }
 
   private void assertEmptyResults(ApplicationCountsDTO dto) {
-    assertThat(dto.totalApplications, is(0));
-    assertThat(dto.activeApplications, is(0));
-    assertThat(dto.total.applicationsWithViolations, is(0));
-    assertThat(dto.total.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.security.applicationsWithViolations, is(0));
-    assertThat(dto.security.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.license.applicationsWithViolations, is(0));
-    assertThat(dto.license.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.quality.applicationsWithViolations, is(0));
-    assertThat(dto.quality.applicationsWithCriticalViolations, is(0));
-    assertThat(dto.other.applicationsWithViolations, is(0));
-    assertThat(dto.other.applicationsWithCriticalViolations, is(0));
+    assertThat(dto.totalApplications).isEqualTo(0);
+    assertThat(dto.activeApplications).isEqualTo(0);
+    assertThat(dto.total.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.total.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.license.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.license.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.quality.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.quality.applicationsWithCriticalViolations).isEqualTo(0);
+    assertThat(dto.other.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.other.applicationsWithCriticalViolations).isEqualTo(0);
   }
 
   private void assertEmptyResults(List<?> dtos) {
-    assertThat(dtos, is(empty()));
+    assertThat(dtos).isEmpty();
   }
 
   @Test
   public void testGetComponentCounts_Organization_Unauthenticated() throws Exception {
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getComponentCounts(report.getId());
-      fail("Expected exception");
-    }
-    catch (NotFoundException e) {
       // can't look up SuccessMetricsReport if the user isn't logged in
-      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
-    }
+    }).withMessageContaining("Cannot find a success metrics report");
   }
 
   @Test
@@ -436,10 +414,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     login();
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
-    assertThat(result, notNullValue());
-    assertThat(result.componentsPerApplication, is(0));
-    assertThat(result.componentsInTheMostApplications, hasSize(0));
-    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+    assertThat(result).isNotNull();
+    assertThat(result.componentsPerApplication).isEqualTo(0);
+    assertThat(result.componentsInTheMostApplications).hasSize(0);
+    assertThat(result.componentsWithTheMostViolations).hasSize(0);
   }
 
   @Test
@@ -447,23 +425,19 @@ public class SuccessMetricsReportDataServiceAuthzTest
     grantReadPermission(app.getId());
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
-    assertThat(result, notNullValue());
-    assertThat(result.componentsPerApplication, is(1));
-    assertThat(result.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(result.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentsPerApplication).isEqualTo(1);
+    assertThat(result.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(result.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
   }
 
   @Test
   public void testGetComponentCounts_Application_Unauthenticated() throws Exception {
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getComponentCounts(report.getId());
-      fail("Expected exception");
-    }
-    catch (NotFoundException e) {
       // can't look up SuccessMetricsReport if the user isn't logged in
-      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
-    }
+    }).withMessageContaining("Cannot find a success metrics report");
   }
 
   @Test
@@ -471,10 +445,10 @@ public class SuccessMetricsReportDataServiceAuthzTest
     login();
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
-    assertThat(result, notNullValue());
-    assertThat(result.componentsPerApplication, is(0));
-    assertThat(result.componentsInTheMostApplications, hasSize(0));
-    assertThat(result.componentsWithTheMostViolations, hasSize(0));
+    assertThat(result).isNotNull();
+    assertThat(result.componentsPerApplication).isEqualTo(0);
+    assertThat(result.componentsInTheMostApplications).hasSize(0);
+    assertThat(result.componentsWithTheMostViolations).hasSize(0);
   }
 
   @Test
@@ -482,9 +456,9 @@ public class SuccessMetricsReportDataServiceAuthzTest
     grantReadPermission(app.getId());
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
-    assertThat(result, notNullValue());
-    assertThat(result.componentsPerApplication, is(1));
-    assertThat(result.componentsInTheMostApplications.get(0).count, is(1));
-    assertThat(result.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentsPerApplication).isEqualTo(1);
+    assertThat(result.componentsInTheMostApplications.get(0).count).isEqualTo(1);
+    assertThat(result.componentsWithTheMostViolations.get(0).count).isEqualTo(1);
   }
 }

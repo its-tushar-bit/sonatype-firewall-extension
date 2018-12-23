@@ -25,13 +25,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class SuccessMetricsReportServiceTest
     extends AbstractComponentTest
@@ -86,13 +81,9 @@ public class SuccessMetricsReportServiceTest
   public void testCreateSuccessMetricsReportForCurrentUser_NullScope() throws Exception {
     SuccessMetricsReportScopeDTO scopeDTO = null;
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       successMetricsReportService.createSuccessMetricsReportForCurrentUser(dto);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Scope cannot be null or missing.", expected.getMessage());
-    }
+    }).withMessage("Scope cannot be null or missing.");
   }
 
   @Test
@@ -128,7 +119,7 @@ public class SuccessMetricsReportServiceTest
 
     List<SuccessMetricsReportDTO> actual = successMetricsReportService.getSuccessMetricsReportsForCurrentUser();
 
-    assertThat(actual, hasSize(2));
+    assertThat(actual).hasSize(2);
     assertSuccessMetricsReportDTO(actual.get(0), metricsName1, scopeDTO1);
     assertSuccessMetricsReportDTO(actual.get(1), metricsName2, scopeDTO2);
   }
@@ -143,7 +134,7 @@ public class SuccessMetricsReportServiceTest
 
     List<SuccessMetricsReportDTO> actual = successMetricsReportService.getSuccessMetricsReportsForCurrentUser();
 
-    assertThat(actual, hasSize(1));
+    assertThat(actual).hasSize(1);
     assertSuccessMetricsReportDTO(actual.get(0), metricsName1, scopeDTO1);
   }
 
@@ -158,7 +149,7 @@ public class SuccessMetricsReportServiceTest
 
     List<SuccessMetricsReportDTO> actual = successMetricsReportService.getSuccessMetricsReportsForCurrentUser();
 
-    assertThat(actual, hasSize(1));
+    assertThat(actual).hasSize(1);
     assertSuccessMetricsReportDTO(actual.get(0), metricsName1, scopeDTO1);
   }
 
@@ -173,7 +164,7 @@ public class SuccessMetricsReportServiceTest
 
     List<SuccessMetricsReportDTO> actual = successMetricsReportService.getSuccessMetricsReportsForCurrentUser();
 
-    assertThat(actual, hasSize(1));
+    assertThat(actual).hasSize(1);
     assertSuccessMetricsReportDTO(actual.get(0), metricsName1, scopeDTO1);
   }
 
@@ -188,7 +179,7 @@ public class SuccessMetricsReportServiceTest
 
     List<SuccessMetricsReportDTO> actual = successMetricsReportService.getSuccessMetricsReportsForCurrentUser();
 
-    assertThat(actual, hasSize(1));
+    assertThat(actual).hasSize(1);
     assertSuccessMetricsReportDTO(actual.get(0), metricsName1, scopeDTO1);
   }
 
@@ -212,7 +203,7 @@ public class SuccessMetricsReportServiceTest
 
     List<SuccessMetricsReport> actual = successMetricsReportDAO.getByUsername(USERNAME);
 
-    assertThat(actual, hasSize(1));
+    assertThat(actual).hasSize(1);
     assertSuccessMetrics(actual.get(0), USERNAME, metricsName1, "metrics1", scopeDTO1);
   }
 
@@ -230,26 +221,17 @@ public class SuccessMetricsReportServiceTest
         JsonUtils.format(dto1.scope));
 
     // try to delete other user's record
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportService.deleteSuccessMetricsReportForCurrentUser(metrics1.getId());
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("Cannot find a success metrics report with id " + metrics1.getId() + " for user id " + USERNAME + ".",
-          expected.getMessage());
-    }
+    }).withMessage(
+        "Cannot find a success metrics report with id " + metrics1.getId() + " for user id " + USERNAME + ".");
   }
 
   @Test
   public void testDeleteSuccessMetricsReportForCurrentUser_NotFound() {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportService.deleteSuccessMetricsReportForCurrentUser("not_found");
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertEquals("Cannot find a success metrics report with id not_found for user id " + USERNAME + ".",
-          expected.getMessage());
-    }
+    }).withMessage("Cannot find a success metrics report with id not_found for user id " + USERNAME + ".");
   }
 
   private void assertSuccessMetrics(SuccessMetricsReport actual,
@@ -258,32 +240,30 @@ public class SuccessMetricsReportServiceTest
                                     String nameLowercaseNoWhitespace,
                                     SuccessMetricsReportScopeDTO scopeDTO)
   {
-    assertThat(actual.getId(), is(notNullValue()));
-    assertThat(actual.getUsername(), is(username));
-    assertThat(actual.getName(), is(name));
-    assertThat(actual.getNameLowercaseNoWhitespace(), is(nameLowercaseNoWhitespace));
-    assertThat(actual.getScopeJson(), is(JsonUtils.format(scopeDTO)));
+    assertThat(actual.getId()).isNotNull();
+    assertThat(actual.getUsername()).isEqualTo(username);
+    assertThat(actual.getName()).isEqualTo(name);
+    assertThat(actual.getNameLowercaseNoWhitespace()).isEqualTo(nameLowercaseNoWhitespace);
+    assertThat(actual.getScopeJson()).isEqualTo(JsonUtils.format(scopeDTO));
   }
 
   private void assertSuccessMetricsReportDTO(SuccessMetricsReportDTO actual,
                                              String name,
                                              SuccessMetricsReportScopeDTO scopeDTO)
   {
-    assertThat(actual.id, is(notNullValue()));
-    assertThat(actual.name, is(name));
+    assertThat(actual.id).isNotNull();
+    assertThat(actual.name).isEqualTo(name);
     if (actual.scope.applicationIds != null) {
-      assertThat(actual.scope.applicationIds,
-          containsInAnyOrder(scopeDTO.applicationIds.toArray(new String[scopeDTO.applicationIds.size()])));
+      assertThat(actual.scope.applicationIds).containsExactlyInAnyOrderElementsOf(scopeDTO.applicationIds);
     }
     else {
-      assertThat(actual.scope.applicationIds, is(scopeDTO.applicationIds));
+      assertThat(actual.scope.applicationIds).isEqualTo(scopeDTO.applicationIds);
     }
     if (actual.scope.organizationIds != null) {
-      assertThat(actual.scope.organizationIds,
-          containsInAnyOrder(scopeDTO.organizationIds.toArray(new String[scopeDTO.organizationIds.size()])));
+      assertThat(actual.scope.organizationIds).containsExactlyInAnyOrderElementsOf(scopeDTO.organizationIds);
     }
     else {
-      assertThat(actual.scope.organizationIds, is(scopeDTO.organizationIds));
+      assertThat(actual.scope.organizationIds).isEqualTo(scopeDTO.organizationIds);
     }
   }
 }

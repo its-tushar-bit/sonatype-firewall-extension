@@ -12,9 +12,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.27
@@ -35,7 +33,7 @@ public class LimitedFileInputStreamTest
   @Before
   public void setUp() throws Exception {
     configYml = new File(LimitedFileInputStream.class.getResource(CONFIG_YML).getFile());
-    assertThat(configYml.exists(), is(true));
+    assertThat(configYml).isFile();
   }
 
   @After
@@ -48,55 +46,55 @@ public class LimitedFileInputStreamTest
   @Test
   public void testReadLimit_ExceededWhenZero() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 0);
-    assertThat(limitedInputStream.isReadLimitMet(), is(true));
+    assertThat(limitedInputStream.isReadLimitMet()).isTrue();
   }
 
   @Test
   public void testReadLimit_Read_ExceededWhenZero() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 0);
-    assertThat(limitedInputStream.read(), is(-1));
+    assertThat(limitedInputStream.read()).isEqualTo(-1);
   }
 
   @Test
   public void testReadLimit_Read_ExceededWhenOne() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 1);
-    assertThat(limitedInputStream.isReadLimitMet(), is(false));
-    assertThat(limitedInputStream.read(), not(is(-1)));
-    assertThat(limitedInputStream.isReadLimitMet(), is(true));
-    assertThat(limitedInputStream.read(), is(-1));
+    assertThat(limitedInputStream.isReadLimitMet()).isFalse();
+    assertThat(limitedInputStream.read()).isNotEqualTo(-1);
+    assertThat(limitedInputStream.isReadLimitMet()).isTrue();
+    assertThat(limitedInputStream.read()).isEqualTo(-1);
   }
 
   @Test
   public void testReadLimit_ReadArray_ExceededWhenZero() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 0);
-    assertThat(limitedInputStream.read(buff), is(-1));
+    assertThat(limitedInputStream.read(buff)).isEqualTo(-1);
   }
 
   @Test
   public void testReadLimit_ReadArray_ExceededWhenFive() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 5);
-    assertThat(limitedInputStream.isReadLimitMet(), is(false));
-    assertThat(limitedInputStream.read(buff), not(is(-1)));
-    assertThat(limitedInputStream.isReadLimitMet(), is(true));
-    assertThat(limitedInputStream.read(buff), is(-1));
+    assertThat(limitedInputStream.isReadLimitMet()).isFalse();
+    assertThat(limitedInputStream.read(buff)).isNotEqualTo(-1);
+    assertThat(limitedInputStream.isReadLimitMet()).isTrue();
+    assertThat(limitedInputStream.read(buff)).isEqualTo(-1);
   }
 
 
   @Test
   public void testReadLimit_ReadOffset_ExceededWhenZero() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 0);
-    assertThat(limitedInputStream.read(buff, 1, 2), is(-1));
+    assertThat(limitedInputStream.read(buff, 1, 2)).isEqualTo(-1);
   }
 
   @Test
   public void testReadLimit_ReadOffset_ExceededWhenFive() throws Exception {
     limitedInputStream = new LimitedFileInputStream(configYml, 5);
-    assertThat(limitedInputStream.isReadLimitMet(), is(false));
-    assertThat(limitedInputStream.read(buff, 0, 4), is(4));
-    assertThat(limitedInputStream.isReadLimitMet(), is(false));
-    assertThat(limitedInputStream.read(buff, 0, 4), is(1));
-    assertThat(limitedInputStream.isReadLimitMet(), is(true));
-    assertThat(limitedInputStream.read(buff, 0, 4), is(-1));
+    assertThat(limitedInputStream.isReadLimitMet()).isFalse();
+    assertThat(limitedInputStream.read(buff, 0, 4)).isEqualTo(4);
+    assertThat(limitedInputStream.isReadLimitMet()).isFalse();
+    assertThat(limitedInputStream.read(buff, 0, 4)).isEqualTo(1);
+    assertThat(limitedInputStream.isReadLimitMet()).isTrue();
+    assertThat(limitedInputStream.read(buff, 0, 4)).isEqualTo(-1);
   }
 
   @Test
@@ -109,7 +107,7 @@ public class LimitedFileInputStreamTest
 
   private void verifyIsToBeTruncated(final long readLimit, boolean expectedIsToBeTruncated) throws IOException {
     try (final LimitedFileInputStream limitedStream = new LimitedFileInputStream(configYml, readLimit)) {
-      assertThat(limitedStream.isToBeTruncated(), is(expectedIsToBeTruncated));
+      assertThat(limitedStream.isToBeTruncated()).isEqualTo(expectedIsToBeTruncated);
     }
   }
 
@@ -119,10 +117,10 @@ public class LimitedFileInputStreamTest
     limitedInputStream = new LimitedFileInputStream(configYml, readLimit);
 
     final byte[] buf = new byte[readLimit];
-    assertThat(limitedInputStream.read(buf), is(readLimit));
-    assertThat(limitedInputStream.isReadLimitMet(), is(true));
+    assertThat(limitedInputStream.read(buf)).isEqualTo(readLimit);
+    assertThat(limitedInputStream.isReadLimitMet()).isTrue();
     String expected = "son_seq-passwords: [3, 2, 1, \"takeoff\"]" + System.lineSeparator();
     expected = expected.substring(expected.length() - readLimit);
-    assertThat(new String(buf, "UTF-8"), is(expected));
+    assertThat(new String(buf, "UTF-8")).isEqualTo(expected);
   }
 }

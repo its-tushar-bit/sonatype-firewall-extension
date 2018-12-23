@@ -34,13 +34,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML;
 import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML_FILENAME;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.27
@@ -72,7 +66,7 @@ public class SupportServiceTest
 
   @Test
   public void testCreateSupportZip() throws Exception {
-    assertThat(supportService.createSupportZip(false, null, false), notNullValue());
+    assertThat(supportService.createSupportZip(false, null, false)).isNotNull();
   }
 
   @Test
@@ -82,19 +76,18 @@ public class SupportServiceTest
 
     final File firstZip = supportService.createSupportZip(false, null, false);
     final String firstFilename = firstZip.getName();
-    assertThat(firstFilename, startsWith("support-" + nowPrefix));
+    assertThat(firstFilename).startsWith("support-" + nowPrefix);
     final int zipIndex = firstFilename.indexOf(".zip");
     final int counterValue = Integer.parseInt(firstFilename.substring(zipIndex - 1, zipIndex));
 
     final File secondZip = supportService.createSupportZip(false, null, false);
-    assertThat(secondZip.getName(), startsWith("support-" + nowPrefix));
-    assertThat(secondZip.getName(), endsWith(("-" + (counterValue + 1) + ".zip")));
+    assertThat(secondZip.getName()).startsWith("support-" + nowPrefix).endsWith(("-" + (counterValue + 1) + ".zip"));
   }
 
   @Test
   public void testCreateSupportZip_UsesSubDir() throws Exception {
     supportService.createSupportZip(false, null, false);
-    assertThat(supportService.getWorkDir().exists(), is(true));
+    assertThat(supportService.getWorkDir()).isDirectory();
   }
 
   @Test
@@ -103,7 +96,7 @@ public class SupportServiceTest
     InsightBrainService.setConfigFile(configYml);
     supportService.createSupportZip(false, null, false);
     final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
-    assertThat(filteredConfigYml.exists(), is(false));
+    assertThat(filteredConfigYml.exists()).isFalse();
   }
 
   @Test
@@ -117,14 +110,13 @@ public class SupportServiceTest
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
       final ZipEntry zipEntry = entries.nextElement();
-      assertThat(zipEntry.getName(),
-          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
-              CONFIG_YML_FILENAME));
+      assertThat(zipEntry.getName()).isEqualTo(getZipFileBasename(supportZip) + "/"
+          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME);
       try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
         try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
           IOUtil.copy(zipEntryStream, zipEntryContent);
         }
-        assertThat(zipEntryContent.toString("UTF-8"), startsWith(SupportService.TRUNCATED_TOKEN));
+        assertThat(zipEntryContent.toString("UTF-8")).startsWith(SupportService.TRUNCATED_TOKEN);
       }
     }
   }
@@ -139,31 +131,30 @@ public class SupportServiceTest
     // read zip and assert truncated entry
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      assertThat(entries.nextElement().getName(),
-          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
-              CONFIG_YML_FILENAME));
+      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/"
+          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME);
       verifyRequiredEntries(supportZip, entries);
-      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/" + "truncated"));
+      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/" + "truncated");
     }
   }
 
   private static void verifyRequiredEntries(final File supportZipFile, final Enumeration<? extends ZipEntry> entries) {
     final String zipFileBasename = getZipFileBasename(supportZipFile);
 
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json"));
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-version.json"));
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-license.json"));
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/threads.txt"));
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/jmx.json"));
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/ldap.json"));
-    assertThat(entries.nextElement().getName(),
-        is(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt"));
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-version.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/product-license.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/threads.txt");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/jmx.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/ldap.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt");
   }
 
   private static String getZipFileBasename(final File supportZipFile) {
@@ -179,7 +170,7 @@ public class SupportServiceTest
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
       verifyRequiredEntries(supportZip, entries);
-      assertThat(entries.hasMoreElements(), is(false));
+      assertThat(entries.hasMoreElements()).isFalse();
     }
   }
 
@@ -189,10 +180,10 @@ public class SupportServiceTest
     final File supportZip = supportService.createSupportZip(false, null, false);
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/"
-          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME));
+      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/"
+          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME);
       verifyRequiredEntries(supportZip, entries);
-      assertThat(entries.hasMoreElements(), is(false));
+      assertThat(entries.hasMoreElements()).isFalse();
     }
   }
 
@@ -202,27 +193,27 @@ public class SupportServiceTest
     final File supportZip = supportService.createSupportZip(false, null, false);
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/"
-          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME));
-      assertThat(entries.nextElement().getName(),
-          is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json"));
+      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/"
+          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME);
+      assertThat(entries.nextElement().getName())
+          .isEqualTo(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json");
 
       final ZipEntry zipEntry = entries.nextElement();
-      assertThat(zipEntry.getName(),
-          is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/product-version.json"));
+      assertThat(zipEntry.getName()).isEqualTo(
+          getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/product-version.json");
       try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
         try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
           IOUtil.copy(zipEntryStream, zipEntryContent);
           final JsonNode result = JsonUtils.parse(zipEntryContent.toString("UTF-8"));
-          assertThat(result.size(), is(1));
+          assertThat(result.size()).isEqualTo(1);
           final JsonNode parentNode = result.get("product-version");
           final Iterator<String> children = parentNode.fieldNames();
-          assertThat(children.next(), is("build"));
-          assertThat(children.next(), is("name"));
-          assertThat(children.next(), is("tag"));
-          assertThat(children.next(), is("timestamp"));
-          assertThat(children.next(), is("version"));
-          assertThat(parentNode.size(), is(5));
+          assertThat(children.next()).isEqualTo("build");
+          assertThat(children.next()).isEqualTo("name");
+          assertThat(children.next()).isEqualTo("tag");
+          assertThat(children.next()).isEqualTo("timestamp");
+          assertThat(children.next()).isEqualTo("version");
+          assertThat(parentNode.size()).isEqualTo(5);
         }
       }
     }
@@ -261,7 +252,7 @@ public class SupportServiceTest
         "policyMonitoring"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
-    assertThat(workDir.listFiles(), arrayContainingInAnyOrder(expectedFiles));
+    assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);
   }
 
   private File[] createExpectedFiles(final File workDir, final String[] basenames) {
@@ -278,7 +269,7 @@ public class SupportServiceTest
     final String prefix = "prefix";
     final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
 
-    assertThat(fileToAdd.length(), greaterThan(insightConfig.getSupportConfig().getReadLimitBytes()));
+    assertThat(fileToAdd.length()).isGreaterThan(insightConfig.getSupportConfig().getReadLimitBytes());
     final List<SupportFile> filesToZip = new ArrayList<>();
     filesToZip.add(new SupportFile(SupportFileType.CONFIG, fileToAdd, false));
 
@@ -295,16 +286,15 @@ public class SupportServiceTest
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
       final ZipEntry firstEntry = entries.nextElement();
-      assertThat(firstEntry.getName(),
-          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME));
-      assertThat(firstEntry.getSize(),
+      assertThat(firstEntry.getName()).isEqualTo(
+          getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME);
+      assertThat(firstEntry.getSize()).isEqualTo(
           // expected size includes the limit size, plus the appended "Truncated" message, plus a newline
-          is(insightConfig.getSupportConfig().getReadLimitBytes()
-              + (SupportService.TRUNCATED_TOKEN + "\n").length()));
+          insightConfig.getSupportConfig().getReadLimitBytes() + (SupportService.TRUNCATED_TOKEN + "\n").length());
 
-      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/truncated"));
+      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/truncated");
 
-      assertThat(entries.hasMoreElements(), is(false));
+      assertThat(entries.hasMoreElements()).isFalse();
     }
   }
 
@@ -317,11 +307,11 @@ public class SupportServiceTest
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
       final ZipEntry firstEntry = entries.nextElement();
-      assertThat(firstEntry.getName(),
-          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME));
-      assertThat(firstEntry.getSize(), is(fileToAdd.length()));
+      assertThat(firstEntry.getName()).isEqualTo(
+          getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME);
+      assertThat(firstEntry.getSize()).isEqualTo(fileToAdd.length());
 
-      assertThat(entries.hasMoreElements(), is(false));
+      assertThat(entries.hasMoreElements()).isFalse();
     }
   }
 }

@@ -12,51 +12,47 @@ import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.validation.ConstraintViolations;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class InsightConfigTest
 {
   @Test
   public void testBaseUrl() {
     InsightConfig config = new InsightConfig();
-    assertEquals(null, config.getBaseUrl());
-    assertEquals(true, config.isValidBaseUrl());
+    assertThat(config.getBaseUrl()).isNull();
+    assertThat(config.isValidBaseUrl()).isTrue();
 
     config.setBaseUrl("https://clm.sonatype.com/");
-    assertEquals("https://clm.sonatype.com/", config.getBaseUrl());
-    assertEquals(true, config.isValidBaseUrl());
+    assertThat(config.getBaseUrl()).isEqualTo("https://clm.sonatype.com/");
+    assertThat(config.isValidBaseUrl()).isTrue();
 
     config.setBaseUrl("https://clm.sonatype.com");
-    assertEquals("https://clm.sonatype.com/", config.getBaseUrl());
-    assertEquals(true, config.isValidBaseUrl());
+    assertThat(config.getBaseUrl()).isEqualTo("https://clm.sonatype.com/");
+    assertThat(config.isValidBaseUrl()).isTrue();
 
     config.setBaseUrl("invalid");
-    assertEquals(false, config.isValidBaseUrl());
+    assertThat(config.isValidBaseUrl()).isFalse();
   }
 
   @Test
   public void testCdnUrl() {
     InsightConfig config = new InsightConfig();
-    assertEquals("http://cdn.sonatype.com/", config.getCdnUrl());
-    assertEquals(true, config.isValidCdnUrl());
+    assertThat(config.getCdnUrl()).isEqualTo("http://cdn.sonatype.com/");
+    assertThat(config.isValidCdnUrl()).isTrue();
 
     config.setCdnUrl("https://clm.sonatype.com/");
-    assertEquals("https://clm.sonatype.com/", config.getCdnUrl());
-    assertEquals(true, config.isValidCdnUrl());
+    assertThat(config.getCdnUrl()).isEqualTo("https://clm.sonatype.com/");
+    assertThat(config.isValidCdnUrl()).isTrue();
 
     config.setCdnUrl("https://clm.sonatype.com");
-    assertEquals("https://clm.sonatype.com/", config.getCdnUrl());
-    assertEquals(true, config.isValidCdnUrl());
+    assertThat(config.getCdnUrl()).isEqualTo("https://clm.sonatype.com/");
+    assertThat(config.isValidCdnUrl()).isTrue();
 
     config.setCdnUrl("invalid");
-    assertEquals(false, config.isValidCdnUrl());
+    assertThat(config.isValidCdnUrl()).isFalse();
 
     config.setCdnUrl(null);
-    assertEquals(false, config.isValidCdnUrl());
+    assertThat(config.isValidCdnUrl()).isFalse();
   }
 
   @Test
@@ -64,38 +60,38 @@ public class InsightConfigTest
     InsightConfig config = new InsightConfig();
     config.setUserAgentSuffix("\nInjected-Header: Value");
     List<String> errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
-    assertThat(errors, hasSize(1));
-    assertThat(errors.get(0), containsString("userAgentSuffix")); // validator messages are localized...
+    assertThat(errors).hasSize(1);
+    assertThat(errors.get(0)).contains("userAgentSuffix"); // validator messages are localized...
     config.setUserAgentSuffix("Valid User Agent Suffix (Custom/1.0, Bla)");
     errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
-    assertThat(errors, hasSize(0));
+    assertThat(errors).isEmpty();
   }
 
   @Test
   public void testGetDbBackupDir() {
     InsightConfig config = new InsightConfig();
-    assertThat(config.getDbBackupDir(), is(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR)));
+    assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR));
 
     config.setDbBackupDir("");
-    assertThat(config.getDbBackupDir(), is(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR)));
+    assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR));
 
     String relativePath = "abc";
-    assertThat(new File(relativePath).isAbsolute(), is(false));
+    assertThat(new File(relativePath).isAbsolute()).isFalse();
     config.setDbBackupDir(relativePath);
-    assertThat(config.getDbBackupDir(), is(new File(config.getSonatypeWork(), relativePath)));
+    assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), relativePath));
 
     String absolutePath = new File("abc").getAbsolutePath();
-    assertThat(new File(absolutePath).isAbsolute(), is(true));
+    assertThat(new File(absolutePath).isAbsolute()).isTrue();
     config.setDbBackupDir(absolutePath);
-    assertThat(config.getDbBackupDir(), is(new File(absolutePath)));
+    assertThat(config.getDbBackupDir()).isEqualTo(new File(absolutePath));
   }
 
   @Test
   public void testSupport() {
     InsightConfig config = new InsightConfig();
-    assertThat(config.getSupportConfig().getReadLimitBytes(), is(SupportConfig.DEFAULT_READ_LIMIT_30MB));
+    assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(SupportConfig.DEFAULT_READ_LIMIT_30MB);
 
     config.getSupportConfig().setReadLimitBytes(-1);
-    assertThat(config.getSupportConfig().getReadLimitBytes(), is(-1L));
+    assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(-1);
   }
 }

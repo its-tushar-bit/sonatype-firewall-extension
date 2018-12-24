@@ -37,12 +37,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class InsightConfigurationFactoryTest
 {
@@ -216,17 +211,17 @@ public class InsightConfigurationFactoryTest
     JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
     LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
         .treeToValue(auditLogger, LoggerConfiguration.class);
-    assertThat(loggerConfiguration.getLevel(), is(Level.INFO.toString()));
-    assertThat(loggerConfiguration.isAdditive(), is(false));
-    assertThat(loggerConfiguration.getAppenders(), hasSize(1));
-    assertThat(loggerConfiguration.getAppenders().get(0), is(instanceOf(FileAppenderFactory.class)));
+    assertThat(loggerConfiguration.getLevel()).isEqualTo(Level.INFO.toString());
+    assertThat(loggerConfiguration.isAdditive()).isFalse();
+    assertThat(loggerConfiguration.getAppenders()).hasSize(1);
+    assertThat(loggerConfiguration.getAppenders().get(0)).isInstanceOf(FileAppenderFactory.class);
     FileAppenderFactory<ILoggingEvent> auditLogAppenderFactory =
         (FileAppenderFactory<ILoggingEvent>) loggerConfiguration.getAppenders().get(0);
-    assertThat(auditLogAppenderFactory.getCurrentLogFilename(), is("./log/audit.log"));
-    assertThat(auditLogAppenderFactory.getLogFormat(), is("%message%n"));
-    assertThat(auditLogAppenderFactory.getDiscardingThreshold(), is(0));
-    assertThat(auditLogAppenderFactory.getArchivedLogFilenamePattern(), is("./log/audit-%d.log.gz"));
-    assertThat(auditLogAppenderFactory.getArchivedFileCount(), is(50));
+    assertThat(auditLogAppenderFactory.getCurrentLogFilename()).isEqualTo("./log/audit.log");
+    assertThat(auditLogAppenderFactory.getLogFormat()).isEqualTo("%message%n");
+    assertThat(auditLogAppenderFactory.getDiscardingThreshold()).isEqualTo(0);
+    assertThat(auditLogAppenderFactory.getArchivedLogFilenamePattern()).isEqualTo("./log/audit-%d.log.gz");
+    assertThat(auditLogAppenderFactory.getArchivedFileCount()).isEqualTo(50);
   }
 
   @Test
@@ -267,14 +262,14 @@ public class InsightConfigurationFactoryTest
     JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
     LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
         .treeToValue(auditLogger, LoggerConfiguration.class);
-    assertThat(loggerConfiguration.isAdditive(), is(false));
-    assertThat(loggerConfiguration.getAppenders(), hasSize(3));
+    assertThat(loggerConfiguration.isAdditive()).isFalse();
+    assertThat(loggerConfiguration.getAppenders()).hasSize(3);
     for (AppenderFactory<ILoggingEvent> appenderFactory : loggerConfiguration.getAppenders()) {
-      assertThat(appenderFactory, is(instanceOf(AbstractAppenderFactory.class)));
+      assertThat(appenderFactory).isInstanceOf(AbstractAppenderFactory.class);
       AbstractAppenderFactory<ILoggingEvent> abstractAppenderFactory =
           (AbstractAppenderFactory<ILoggingEvent>) appenderFactory;
-      assertThat(abstractAppenderFactory.getDiscardingThreshold(), is(0));
-      assertThat(abstractAppenderFactory.getLogFormat(), is("%message%n"));
+      assertThat(abstractAppenderFactory.getDiscardingThreshold()).isEqualTo(0);
+      assertThat(abstractAppenderFactory.getLogFormat()).isEqualTo("%message%n");
     }
   }
 
@@ -286,14 +281,14 @@ public class InsightConfigurationFactoryTest
     JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
     LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
         .treeToValue(auditLogger, LoggerConfiguration.class);
-    assertThat(loggerConfiguration.isAdditive(), is(true));
-    assertThat(loggerConfiguration.getAppenders(), hasSize(3));
+    assertThat(loggerConfiguration.isAdditive()).isTrue();
+    assertThat(loggerConfiguration.getAppenders()).hasSize(3);
     for (AppenderFactory<ILoggingEvent> appenderFactory : loggerConfiguration.getAppenders()) {
-      assertThat(appenderFactory, is(instanceOf(AbstractAppenderFactory.class)));
+      assertThat(appenderFactory).isInstanceOf(AbstractAppenderFactory.class);
       AbstractAppenderFactory<ILoggingEvent> abstractAppenderFactory =
           (AbstractAppenderFactory<ILoggingEvent>) appenderFactory;
-      assertThat(abstractAppenderFactory.getDiscardingThreshold(), is(0));
-      assertThat(abstractAppenderFactory.getLogFormat(), is("logFormat"));
+      assertThat(abstractAppenderFactory.getDiscardingThreshold()).isEqualTo(0);
+      assertThat(abstractAppenderFactory.getLogFormat()).isEqualTo("logFormat");
     }
   }
 
@@ -323,14 +318,15 @@ public class InsightConfigurationFactoryTest
                                        List<String> formats)
   {
     for (int index = 0; index < appenderFactories.size(); index++) {
-      assertThat(appenderFactories.get(index), instanceOf(appenderFactoryClasses.get(index)));
-      assertThat(((AbstractAppenderFactory<?>) appenderFactories.get(index)).getLogFormat(), is(formats.get(index)));
+      assertThat(appenderFactories.get(index)).isInstanceOf(appenderFactoryClasses.get(index));
+      assertThat(((AbstractAppenderFactory<?>) appenderFactories.get(index)).getLogFormat())
+          .isEqualTo(formats.get(index));
     }
   }
 
   private DefaultServerFactory assertDefaultServerFactory(InsightConfig insightConfig) {
     ServerFactory serverFactory = insightConfig.getServerFactory();
-    assertThat(serverFactory, is(instanceOf(DefaultServerFactory.class)));
+    assertThat(serverFactory).isInstanceOf(DefaultServerFactory.class);
     return (DefaultServerFactory) serverFactory;
   }
 
@@ -339,12 +335,11 @@ public class InsightConfigurationFactoryTest
                                int port,
                                Duration idleTimeout)
   {
-    assertThat(connectors, is(notNullValue()));
-    assertThat(connectors, hasSize(1));
-    assertThat(connectors.get(0), is(instanceOf(cls)));
+    assertThat(connectors).hasSize(1);
+    assertThat(connectors.get(0)).isInstanceOf(cls);
     HttpConnectorFactory connector = (HttpConnectorFactory) connectors.get(0);
-    assertThat(connector.getPort(), is(port));
-    assertThat(connector.getIdleTimeout(), is(idleTimeout));
+    assertThat(connector.getPort()).isEqualTo(port);
+    assertThat(connector.getIdleTimeout()).isEqualTo(idleTimeout);
   }
 
   /**
@@ -355,8 +350,7 @@ public class InsightConfigurationFactoryTest
   {
     for (AppenderFactory<?> appenderFac : requestLogFactory.getAppenders()) {
       AbstractAppenderFactory<?> appenderFactory = (AbstractAppenderFactory<?>) appenderFac;
-
-      assertThat(appenderFactory.getFilterFactories(), hasItem(instanceOf(filterFactoryClass)));
+      assertThat(appenderFactory.getFilterFactories()).hasAtLeastOneElementOfType(filterFactoryClass);
     }
   }
 
@@ -366,6 +360,6 @@ public class InsightConfigurationFactoryTest
     String levelString = jsonNode.asText();
     Level level = Level.valueOf(levelString);
 
-    assertThat(level, is(expected));
+    assertThat(level).isEqualTo(expected);
   }
 }

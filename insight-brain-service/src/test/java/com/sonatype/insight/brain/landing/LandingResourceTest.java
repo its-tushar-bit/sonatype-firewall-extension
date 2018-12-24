@@ -19,9 +19,7 @@ import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LandingResourceTest
     extends AbstractResourceTest
@@ -32,7 +30,7 @@ public class LandingResourceTest
   public void testHome() throws Exception {
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
+    assertThat(response.getHeader("Location")).startsWith(restRequest().getUrl());
   }
 
   @Test
@@ -41,11 +39,11 @@ public class LandingResourceTest
     initServer(config -> {
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext");
     });
-    assertThat(restRequest().getUrl(), containsString("/testContext/"));
+    assertThat(restRequest().getUrl()).contains("/testContext/");
 
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
+    assertThat(response.getHeader("Location")).startsWith(restRequest().getUrl());
   }
 
   @Test
@@ -55,7 +53,7 @@ public class LandingResourceTest
 
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -65,7 +63,7 @@ public class LandingResourceTest
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
+    assertThat(response.getHeader("Location")).startsWith(restRequest().getUrl());
   }
 
   @Test
@@ -75,7 +73,7 @@ public class LandingResourceTest
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -85,7 +83,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Proto", xForwardedProto);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(xForwardedProto));
+    assertThat(response.getHeader("Location")).startsWith(xForwardedProto);
   }
 
   @Test
@@ -98,7 +96,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Proto", xForwardedProto);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -111,7 +109,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Proto", xForwardedProto);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(xForwardedProto));
+    assertThat(response.getHeader("Location")).startsWith(xForwardedProto);
   }
 
   @Test
@@ -124,7 +122,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Proto", xForwardedProto);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -134,7 +132,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith("http://" + xForwardedHost));
+    assertThat(response.getHeader("Location")).startsWith("http://" + xForwardedHost);
   }
 
   @Test
@@ -147,7 +145,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -160,7 +158,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith("https://" + xForwardedHost));
+    assertThat(response.getHeader("Location")).startsWith("https://" + xForwardedHost);
   }
 
   @Test
@@ -173,7 +171,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -185,7 +183,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(xForwardedProto + "://" + xForwardedHost));
+    assertThat(response.getHeader("Location")).startsWith(xForwardedProto + "://" + xForwardedHost);
   }
 
   @Test
@@ -200,7 +198,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   @Test
@@ -215,7 +213,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(xForwardedProto + "://" + xForwardedHost));
+    assertThat(response.getHeader("Location")).startsWith(xForwardedProto + "://" + xForwardedHost);
   }
 
   @Test
@@ -230,7 +228,7 @@ public class LandingResourceTest
     httpRequest.header("X-Forwarded-Host", xForwardedHost);
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+    assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
   private void initServerForcingBaseUrl() throws Exception {

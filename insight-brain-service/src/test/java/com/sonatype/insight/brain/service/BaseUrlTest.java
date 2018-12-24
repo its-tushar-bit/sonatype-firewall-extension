@@ -16,10 +16,8 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 
 import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -39,13 +37,9 @@ public class BaseUrlTest
     final InsightConfig appConfig = new InsightConfig();
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
-    try {
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.get();
-      fail("un set baseUrl should fail");
-    }
-    catch (IllegalStateException e) {
-      assertEquals(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED, e.getMessage());
-    }
+    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test
@@ -57,11 +51,11 @@ public class BaseUrlTest
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
-    assertEquals("http://clm.sonatype.com:8080/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://clm.sonatype.com:8080/");
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
-    assertEquals("http://clm.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://clm.sonatype.com/");
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/contextRoot/")));
-    assertEquals("http://clm.sonatype.com/contextRoot/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://clm.sonatype.com/contextRoot/");
   }
 
   @Test
@@ -75,11 +69,11 @@ public class BaseUrlTest
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, httpHeaders);
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
-    assertEquals("https://clm.sonatype.com:8080/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com:8080/");
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
-    assertEquals("https://clm.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com/");
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/contextRoot/")));
-    assertEquals("https://clm.sonatype.com/contextRoot/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com/contextRoot/");
   }
 
   @Test
@@ -93,9 +87,9 @@ public class BaseUrlTest
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, httpHeaders);
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
-    assertEquals("https://clm.sonatype.com:8080/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com:8080/");
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
-    assertEquals("https://clm.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com/");
   }
 
   @Test
@@ -112,9 +106,9 @@ public class BaseUrlTest
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
     appConfig.setBaseUrl("http://test.sonatype.com");
-    assertEquals("http://test.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
     appConfig.setBaseUrl("http://test.sonatype.com/");
-    assertEquals("http://test.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
   }
 
   @Test
@@ -132,9 +126,9 @@ public class BaseUrlTest
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
     appConfig.setBaseUrl("http://test.sonatype.com");
-    assertEquals("http://test.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
     appConfig.setBaseUrl("http://test.sonatype.com/");
-    assertEquals("http://test.sonatype.com/", baseUrl.get());
+    assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
   }
 
   @Test
@@ -146,10 +140,10 @@ public class BaseUrlTest
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
     when(uriInfo.getRequestUri()).thenReturn(URI.create("http://clm.sonatype.com:8080/foo"));
-    assertEquals("http://clm.sonatype.com:8080/dst", baseUrl.redirect().path("dst").build().toString());
+    assertThat(baseUrl.redirect().path("dst").build().toString()).isEqualTo("http://clm.sonatype.com:8080/dst");
     when(uriInfo.getRequestUri()).thenReturn(URI.create("http://clm.sonatype.com:8080/foo?x=y&a=b"));
-    assertEquals("http://clm.sonatype.com:8080/dst/index.html?x=y&a=b", baseUrl.redirect().path("dst/index.html")
-        .build().toString());
+    assertThat(baseUrl.redirect().path("dst/index.html").build().toString())
+        .isEqualTo("http://clm.sonatype.com:8080/dst/index.html?x=y&a=b");
   }
 
   @Test
@@ -165,8 +159,8 @@ public class BaseUrlTest
 
     when(httpHeaders.getRequestHeader(X_FORWARDED_PROTO)).thenReturn(Collections.singletonList("https"));
     when(uriInfo.getRequestUri()).thenReturn(URI.create("http://clm.sonatype.com:8080/foo?x=y&a=b"));
-    assertEquals("https://clm.sonatype.com:8080/dst/index.html?x=y&a=b", baseUrl.redirect().path("dst/index.html")
-        .build().toString());
+    assertThat(baseUrl.redirect().path("dst/index.html").build().toString())
+        .isEqualTo("https://clm.sonatype.com:8080/dst/index.html?x=y&a=b");
   }
 
   @Test
@@ -176,7 +170,7 @@ public class BaseUrlTest
     insightConfig.setBaseUrl(configuredBaseUrl);
 
     BaseUrl baseUrl = new BaseUrl(insightConfig, null, null);
-    assertThat(baseUrl.getConfigured(), is(configuredBaseUrl));
+    assertThat(baseUrl.getConfigured()).isEqualTo(configuredBaseUrl);
   }
 
   @Test
@@ -184,12 +178,8 @@ public class BaseUrlTest
     InsightConfig insightConfig = new InsightConfig();
     BaseUrl baseUrl = new BaseUrl(insightConfig, null, null);
 
-    try {
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.getConfigured();
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
-    }
+    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 }

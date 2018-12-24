@@ -10,15 +10,14 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
 {
   private void assertRedirect(HttpResponse response, String expected) throws Exception {
     assertResponseStatus(307, response);
-    assertThat(response.getHeader("Location"), is(getRestBaseUrl() + expected));
+    assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl() + expected);
   }
 
   private HttpResponse get(String path, Object... params) throws Exception {
@@ -39,24 +38,24 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   public void testLinkToReport() throws Exception {
-    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"),
-        is(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id"));
+    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
     HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/reports/app%20id/scan%20id");
   }
 
   @Test
   public void testLinkToEmbeddableReport() throws Exception {
-    assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"),
-        is(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable"));
+    assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable");
     HttpResponse response = get(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "rest/report/app%20id/scan%20id/browseReport/index.html");
   }
 
   @Test
   public void testLinkToPdf() throws Exception {
-    assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"), is(UserInterfaceLinksResource.RESOURCE_PATH
-        + "/application/app%20id/report/scan%20id/pdf"));
+    assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/pdf");
     HttpResponse response = get(UserInterfaceLinksResource.PDF_PATH, "app id", "scan id");
     assertRedirect(response, "rest/report/app%20id/scan%20id/printReport");
   }
@@ -64,7 +63,7 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToRepositoryReport() throws Exception {
     String url = UserInterfaceLinksResource.getRepositoryReportUrl("repo id");
-    assertThat(url, is(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/result"));
+    assertThat(url).isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/result");
     HttpResponse response = get(UserInterfaceLinksResource.REPO_RESULT_PATH, "repo id");
     assertRedirect(response, "assets/index.html#/repository/repo%20id/result");
   }

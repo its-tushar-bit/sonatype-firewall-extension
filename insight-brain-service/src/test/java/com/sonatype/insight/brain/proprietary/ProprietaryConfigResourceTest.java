@@ -23,11 +23,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertProprietaryConfig;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConfigResourceTest
     extends AbstractResourceTest
@@ -45,13 +41,11 @@ public class ProprietaryConfigResourceTest
     assertResponseStatus(200, response);
 
     ProprietaryConfig proprietaryConfig = response.getBody(ProprietaryConfig.class);
-    assertThat(proprietaryConfig, is(notNullValue()));
-    assertThat(proprietaryConfig.getId(), is(notNullValue()));
-    assertThat(proprietaryConfig.getPackages(), hasSize(1));
-    assertThat(proprietaryConfig.getPackages().get(0), is("package1"));
-    assertThat(proprietaryConfig.getRegexes(), hasSize(1));
-    assertThat(proprietaryConfig.getRegexes().get(0), is("regex1"));
-    assertThat(proprietaryConfig.getOwnerId(), is(org.getId()));
+    assertThat(proprietaryConfig).isNotNull();
+    assertThat(proprietaryConfig.getId()).isNotNull();
+    assertThat(proprietaryConfig.getPackages()).containsExactly("package1");
+    assertThat(proprietaryConfig.getRegexes()).containsExactly("regex1");
+    assertThat(proprietaryConfig.getOwnerId()).isEqualTo(org.getId());
   }
 
   @Test
@@ -74,28 +68,28 @@ public class ProprietaryConfigResourceTest
     assertResponseStatus(200, response);
 
     ProprietaryConfigHierarchy proprietaryConfigHierarchy = response.getBody(ProprietaryConfigHierarchy.class);
-    assertThat(proprietaryConfigHierarchy, is(notNullValue()));
-    assertThat(proprietaryConfigHierarchy.proprietaryConfigByOwners, hasSize(3)); // App -> Org -> Root Org
+    assertThat(proprietaryConfigHierarchy).isNotNull();
+    assertThat(proprietaryConfigHierarchy.proprietaryConfigByOwners).hasSize(3); // App -> Org -> Root Org
 
     // Assert App Data is Correct
     ProprietaryConfigByOwner proprietaryConfigByOwner = proprietaryConfigHierarchy.proprietaryConfigByOwners.get(0);
-    assertThat(proprietaryConfigByOwner.ownerId, is(app.getId()));
-    assertThat(proprietaryConfigByOwner.ownerName, is(app.getName()));
-    assertThat(proprietaryConfigByOwner.ownerType, is(app.getType()));
+    assertThat(proprietaryConfigByOwner.ownerId).isEqualTo(app.getId());
+    assertThat(proprietaryConfigByOwner.ownerName).isEqualTo(app.getName());
+    assertThat(proprietaryConfigByOwner.ownerType).isEqualTo(app.getType());
     assertProprietaryConfig(appConfig, proprietaryConfigByOwner.proprietaryConfig);
 
     // Assert Org Data is Correct
     proprietaryConfigByOwner = proprietaryConfigHierarchy.proprietaryConfigByOwners.get(1);
-    assertThat(proprietaryConfigByOwner.ownerId, is(org.getId()));
-    assertThat(proprietaryConfigByOwner.ownerName, is(org.getName()));
-    assertThat(proprietaryConfigByOwner.ownerType, is(org.getType()));
+    assertThat(proprietaryConfigByOwner.ownerId).isEqualTo(org.getId());
+    assertThat(proprietaryConfigByOwner.ownerName).isEqualTo(org.getName());
+    assertThat(proprietaryConfigByOwner.ownerType).isEqualTo(org.getType());
     assertProprietaryConfig(orgConfig, proprietaryConfigByOwner.proprietaryConfig);
 
     // Assert Root Org Data is Correct
     proprietaryConfigByOwner = proprietaryConfigHierarchy.proprietaryConfigByOwners.get(2);
-    assertThat(proprietaryConfigByOwner.ownerId, is(Organization.ROOT_ORGANIZATION_ID));
-    assertThat(proprietaryConfigByOwner.ownerName, equalToIgnoringCase("root organization"));
-    assertThat(proprietaryConfigByOwner.ownerType, is(OwnerType.ORGANIZATION));
+    assertThat(proprietaryConfigByOwner.ownerId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(proprietaryConfigByOwner.ownerName).isEqualToIgnoringCase("root organization");
+    assertThat(proprietaryConfigByOwner.ownerType).isEqualTo(OwnerType.ORGANIZATION);
     assertProprietaryConfig(rootOrgConfig, proprietaryConfigByOwner.proprietaryConfig);
   }
 
@@ -116,11 +110,7 @@ public class ProprietaryConfigResourceTest
     assertResponseStatus(200, response);
 
     ProprietaryConfig proprietaryConfig = response.getBody(ProprietaryConfig.class);
-    assertThat(proprietaryConfig.getRegexes(), hasSize(5));
-    assertThat(proprietaryConfig.getRegexes().get(0), is("regex1"));
-    assertThat(proprietaryConfig.getRegexes().get(1), is(Pattern.quote("path1")));
-    assertThat(proprietaryConfig.getRegexes().get(2), is(Pattern.quote("path2")));
-    assertThat(proprietaryConfig.getRegexes().get(3), is(Pattern.quote("path3")));
-    assertThat(proprietaryConfig.getRegexes().get(4), is("regex2"));
+    assertThat(proprietaryConfig.getRegexes()).containsExactly("regex1", Pattern.quote("path1"), Pattern.quote("path2"),
+        Pattern.quote("path3"), "regex2");
   }
 }

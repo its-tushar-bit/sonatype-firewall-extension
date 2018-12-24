@@ -18,11 +18,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ErrorResponseGeneratorTest
 {
@@ -32,70 +28,70 @@ public class ErrorResponseGeneratorTest
 
   @Test
   public void testGetStatusCode_HandleShiroExceptions() {
-    assertThat(generator.mapExceptionAndLog(new UnauthorizedException()).getStatusCode(), is(403));
-    assertThat(generator.mapExceptionAndLog(new UnauthenticatedException()).getStatusCode(), is(401));
+    assertThat(generator.mapExceptionAndLog(new UnauthorizedException()).getStatusCode()).isEqualTo(403);
+    assertThat(generator.mapExceptionAndLog(new UnauthenticatedException()).getStatusCode()).isEqualTo(401);
   }
 
   @Test
   public void testBuildErrorResponseCallsSuperWhenUnhandled() {
     final ErrorResponse errorResponse = generator.mapExceptionAndLog(new Exception());
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
-    assertThat(errorResponse.getMessageBody(),
-        allOf(startsWith(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase() + ID_PREFIX), endsWith(")")));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    assertThat(errorResponse.getMessageBody())
+        .startsWith(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase() + ID_PREFIX).endsWith(")");
   }
 
   @Test
   public void testBuildErrorResponseWithUnauthenticatedException() {
     final ErrorResponse errorResponse = generator.mapExceptionAndLog(new UnauthenticatedException());
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_UNAUTHORIZED));
-    assertThat(errorResponse.getMessageBody(), is(Response.Status.UNAUTHORIZED.getReasonPhrase()));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(Response.Status.UNAUTHORIZED.getReasonPhrase());
   }
 
   @Test
   public void testBuildErrorResponseWithUnauthorizedException() {
     final ErrorResponse errorResponse = generator.mapExceptionAndLog(new UnauthorizedException());
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_FORBIDDEN));
-    assertThat(errorResponse.getMessageBody(), is(Status.FORBIDDEN.getReasonPhrase()));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_FORBIDDEN);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(Status.FORBIDDEN.getReasonPhrase());
   }
 
   @Test
   public void testBuildErrorResponseWithAuthenticationExceptionAndNullCause() {
     final ErrorResponse errorResponse = generator.mapExceptionAndLog(new AuthenticationException());
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_UNAUTHORIZED));
-    assertThat(errorResponse.getMessageBody(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 
   @Test
   public void testBuildErrorResponseWithAuthcCauseNamingException() {
     final ErrorResponse errorResponse = generator
         .mapExceptionAndLog(new AuthenticationException(new NamingException()));
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
-    assertThat(errorResponse.getMessageBody(),
-        allOf(startsWith(ErrorResponseGenerator.MSG_LDAP_FAILURE + ID_PREFIX), endsWith(")")));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    assertThat(errorResponse.getMessageBody()).startsWith(ErrorResponseGenerator.MSG_LDAP_FAILURE + ID_PREFIX)
+        .endsWith(")");
   }
 
   @Test
   public void testBuildErrorResponseWithAuthcCauseNamingExceptionTimeout() {
     final ErrorResponse errorResponse = generator
         .mapExceptionAndLog(new AuthenticationException(new NamingException("timeout")));
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
-    assertThat(errorResponse.getMessageBody(),
-        allOf(startsWith(ErrorResponseGenerator.MSG_LDAP_TIMEOUT + ID_PREFIX), endsWith((")"))));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    assertThat(errorResponse.getMessageBody()).startsWith(ErrorResponseGenerator.MSG_LDAP_TIMEOUT + ID_PREFIX)
+        .endsWith((")"));
   }
 
   @Test
   public void testBuildErrorResponseWithAuthcCauseNameNotFoundException() {
     final ErrorResponse errorResponse = generator
         .mapExceptionAndLog(new AuthenticationException(new NameNotFoundException()));
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_UNAUTHORIZED));
-    assertThat(errorResponse.getMessageBody(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 
   @Test
   public void testBuildErrorResponseWithAuthcCauseJavaxAuthenticationException() {
     final ErrorResponse errorResponse = generator
         .mapExceptionAndLog(new AuthenticationException(new javax.naming.AuthenticationException()));
-    assertThat(errorResponse.getStatusCode(), is(HttpServletResponse.SC_UNAUTHORIZED));
-    assertThat(errorResponse.getMessageBody(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 }

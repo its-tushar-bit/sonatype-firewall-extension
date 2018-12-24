@@ -99,7 +99,7 @@ public class InsightBrainServiceTest
     }, 204);
     getCLMServer().stop();
     getCLMServer().start();
-    await().atMost(5, SECONDS).until(() -> responses.size() == 3);
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(3));
     Date expectedMaxCreateTime = new Date();
 
     List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();

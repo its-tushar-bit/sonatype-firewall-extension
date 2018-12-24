@@ -17,9 +17,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.google.inject.Binder;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +42,7 @@ public class LandingServiceTest
   @Test
   public void testGetDestination() {
     URI dst = landingService.getDestination();
-    assertThat(dst, is(notNullValue()));
-    assertThat(dst.toString(), is(BASE_URL + InsightBrainService.BRAIN_ASSET_PATH + "index.html"));
+    assertThat(dst).isNotNull();
+    assertThat(dst.toString()).isEqualTo(BASE_URL + InsightBrainService.BRAIN_ASSET_PATH + "index.html");
   }
 }

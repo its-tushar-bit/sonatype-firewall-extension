@@ -9,8 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaRuntimeCheckerTest
 {
@@ -22,20 +21,20 @@ public class JavaRuntimeCheckerTest
 
   @Test
   public void testIsSupportedJre() {
-    assertThat(JavaRuntimeChecker.isSupportedJre("Oracle Corporation"), is(true));
-    assertThat(JavaRuntimeChecker.isSupportedJre("IBM Corporation"), is(false));
-    assertThat(JavaRuntimeChecker.isSupportedJre("Sun Microsystems Inc."), is(false));
-    assertThat(JavaRuntimeChecker.isSupportedJre(null), is(false));
-    assertThat(JavaRuntimeChecker.isSupportedJre(""), is(false));
+    assertThat(JavaRuntimeChecker.isSupportedJre("Oracle Corporation")).isTrue();
+    assertThat(JavaRuntimeChecker.isSupportedJre("IBM Corporation")).isFalse();
+    assertThat(JavaRuntimeChecker.isSupportedJre("Sun Microsystems Inc.")).isFalse();
+    assertThat(JavaRuntimeChecker.isSupportedJre(null)).isFalse();
+    assertThat(JavaRuntimeChecker.isSupportedJre("")).isFalse();
   }
 
   @Test
   public void testDisableCheck() {
     System.setProperty(JavaRuntimeChecker.PROP_DISABLE, "true");
-    assertThat(JavaRuntimeChecker.isSupportedJre("Oracle Corporation"), is(true));
-    assertThat(JavaRuntimeChecker.isSupportedJre("IBM Corporation"), is(true));
-    assertThat(JavaRuntimeChecker.isSupportedJre("Sun Microsystems Inc."), is(true));
-    assertThat(JavaRuntimeChecker.isSupportedJre(null), is(true));
-    assertThat(JavaRuntimeChecker.isSupportedJre(""), is(true));
+    assertThat(JavaRuntimeChecker.isSupportedJre("Oracle Corporation")).isTrue();
+    assertThat(JavaRuntimeChecker.isSupportedJre("IBM Corporation")).isTrue();
+    assertThat(JavaRuntimeChecker.isSupportedJre("Sun Microsystems Inc.")).isTrue();
+    assertThat(JavaRuntimeChecker.isSupportedJre(null)).isTrue();
+    assertThat(JavaRuntimeChecker.isSupportedJre("")).isTrue();
   }
 }

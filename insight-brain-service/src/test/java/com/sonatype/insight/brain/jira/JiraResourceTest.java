@@ -17,10 +17,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 public class JiraResourceTest
@@ -62,16 +59,15 @@ public class JiraResourceTest
     assertResponseStatus(200, response);
     JiraProject[] jiraProjects = response.getBody(JiraProject[].class);
 
-    assertNotNull(jiraProjects);
-    assertEquals(jiraProjects.length, 1);
+    assertThat(jiraProjects).hasSize(1);
 
     JiraProject jiraProject = jiraProjects[0];
-    assertEquals(jiraProject.getKey(), "key");
-    assertEquals(jiraProject.getName(), "projectName");
-    assertThat(jiraProject.getIssueTypes(), hasSize(1));
+    assertThat(jiraProject.getKey()).isEqualTo("key");
+    assertThat(jiraProject.getName()).isEqualTo("projectName");
+    assertThat(jiraProject.getIssueTypes()).hasSize(1);
 
     JiraIssueType issueType = jiraProject.getIssueTypes().get(0);
-    assertEquals(issueType.getId(), 1);
-    assertEquals(issueType.getName(), "issueName");
+    assertThat(issueType.getId()).isEqualTo(1);
+    assertThat(issueType.getName()).isEqualTo("issueName");
   }
 }

@@ -35,7 +35,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.*;
 
 public abstract class AbstractAuditTest
     extends AbstractResourceTest
@@ -61,11 +60,14 @@ public abstract class AbstractAuditTest
   }
 
   protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {
-    String loggerName = AuditRecorder.toLoggerName(auditEvent.getDomain());
-    return await("Expect audit event " + auditEvent.getDomain()).atMost(5, SECONDS).until(
-        () -> logOutput.getInfoMessages(loggerName).stream().map(AbstractAuditTest::parseAuditLog)
-            .filter(dto -> auditEvent.getType().equals(dto.type)).collect(toList()),
-        hasSize(greaterThanOrEqualTo(count)));
+    await("Expect audit event " + auditEvent).atMost(5, SECONDS)
+        .untilAsserted(() -> assertThat(getLogEntries(auditEvent)).size().isGreaterThanOrEqualTo(count));
+    return getLogEntries(auditEvent);
+  }
+
+  private List<AuditDTO> getLogEntries(AuditEvent auditEvent) {
+    return logOutput.getInfoMessages(AuditRecorder.toLoggerName(auditEvent.getDomain())).stream()
+        .map(AbstractAuditTest::parseAuditLog).filter(dto -> auditEvent.getType().equals(dto.type)).collect(toList());
   }
 
   private static AuditDTO parseAuditLog(String auditLogEntry) {

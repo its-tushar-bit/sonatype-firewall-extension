@@ -22,8 +22,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GzipTest
     extends AbstractResourceTest
@@ -55,6 +54,6 @@ public class GzipTest
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_VERSIONS_PATH_V2).body(gzip(request)).post();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyList(), contains("1.0"));
+    assertThat(response.getBodyList()).containsExactly("1.0");
   }
 }

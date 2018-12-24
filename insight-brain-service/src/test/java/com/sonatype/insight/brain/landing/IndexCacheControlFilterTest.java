@@ -12,8 +12,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class IndexCacheControlFilterTest
     extends AbstractResourceTest
@@ -23,7 +22,8 @@ public class IndexCacheControlFilterTest
   public void testCacheBustingForIndexPage() throws Exception {
     HttpResponse response = restRequest().followRedirects().anon().get();
     assertResponseStatus(200, response);
-    assertThat(response.getHeader(HttpHeaders.CACHE_CONTROL), is("no-cache, no-store, max-age=0, must-revalidate"));
+    assertThat(response.getHeader(HttpHeaders.CACHE_CONTROL))
+        .isEqualTo("no-cache, no-store, max-age=0, must-revalidate");
   }
 
 }

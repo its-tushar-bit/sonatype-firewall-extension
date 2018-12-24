@@ -7,14 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import io.dropwizard.configuration.ConfigurationParsingException;
 import io.dropwizard.setup.Bootstrap;
-import org.hamcrest.Matcher;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ConfigurationCheckerTest
 {
@@ -65,28 +61,18 @@ public class ConfigurationCheckerTest
   }
 
   private void assertSuggestsUpdateConfig(String configFileName) {
-    assertConfigException(configFileName, RuntimeException.class,
-        is(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
+      new ConfigurationChecker().check(new String[]{"server", getAbsolutePath(configFileName)},
+          new Bootstrap<>(new InsightBrainService()));
+    }).withMessage(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
   }
 
   private void assertDoesNotSuggestUpdateConfig(String configFileName) {
-    assertConfigException(configFileName, ConfigurationParsingException.class,
-        not(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
-  }
-
-  private void assertConfigException(String configFileName,
-                                     Class<? extends Throwable> exceptionType,
-                                     Matcher<String> matcher)
-  {
-    try {
-      new ConfigurationChecker()
-          .check(new String[]{"server", getAbsolutePath(configFileName)}, new Bootstrap<>(new InsightBrainService()));
-      fail("Expected exception");
-    }
-    catch (Exception ex) {
-      assertThat(ex, instanceOf(exceptionType));
-      assertThat(ex.getMessage(), matcher);
-    }
+    assertThatExceptionOfType(ConfigurationParsingException.class).isThrownBy(() -> {
+      new ConfigurationChecker().check(new String[]{"server", getAbsolutePath(configFileName)},
+          new Bootstrap<>(new InsightBrainService()));
+    }).satisfies(
+        e -> assertThat(e.getMessage()).isNotEqualTo(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
   }
 
   private String getAbsolutePath(String fileName) {

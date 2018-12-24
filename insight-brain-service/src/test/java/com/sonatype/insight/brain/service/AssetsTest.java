@@ -15,11 +15,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AssetsTest
     extends AbstractResourceTest
@@ -42,26 +38,26 @@ public class AssetsTest
         failingCssPaths.add(cssPath);
       }
     }
-    assertThat(failingCssPaths, is(empty()));
+    assertThat(failingCssPaths).isEmpty();
   }
 
   @Test
   public void testMimeTypes() throws Exception {
     HttpResponse response = restRequest().path("index.html").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalToIgnoringCase("text/html;charset=UTF-8")));
+    assertThat(response.getContentType()).isEqualToIgnoringCase("text/html;charset=UTF-8");
 
     response = restRequest().path("style-1.css").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalToIgnoringCase("text/css;charset=UTF-8")));
+    assertThat(response.getContentType()).isEqualToIgnoringCase("text/css;charset=UTF-8");
 
     response = restRequest().path("bundle.js").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalToIgnoringCase("application/javascript")));
+    assertThat(response.getContentType()).isEqualToIgnoringCase("application/javascript");
 
     response = restRequest().path("fonts/glyphicons-regular.woff").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalToIgnoringCase("application/font-woff")));
+    assertThat(response.getContentType()).isEqualToIgnoringCase("application/font-woff");
   }
 
   @Test
@@ -70,7 +66,7 @@ public class AssetsTest
     initServer(config -> {
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext");
     });
-    assertThat(restRequest().getUrl(), containsString("/testContext/"));
+    assertThat(restRequest().getUrl()).contains("/testContext/");
 
     HttpResponse response = restRequest().path("index.html").get();
     assertResponseStatus(200, response);

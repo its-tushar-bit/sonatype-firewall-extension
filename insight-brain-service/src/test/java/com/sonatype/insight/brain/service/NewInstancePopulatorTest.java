@@ -36,13 +36,7 @@ import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import org.junit.After;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NewInstancePopulatorTest
     extends AbstractBrainServiceTest
@@ -208,17 +202,17 @@ public class NewInstancePopulatorTest
     List<Application> applications = applicationDAO.getAll();
 
     if (shouldHaveBeenCreated) {
-      assertThat(organizationNames, containsInAnyOrder(SampleDataCreator.SAMPLE_ORGANIZATION_NAME));
+      assertThat(organizationNames).containsExactlyInAnyOrder(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
 
-      assertThat(applications, hasSize(1));
+      assertThat(applications).hasSize(1);
       Application sampleApplication = applications.get(0);
-      assertThat(sampleApplication.getName(), is(SampleDataCreator.SAMPLE_APPLICATION_NAME));
-      assertThat(sampleApplication.getParentOwnerId(), is(organizations.get(0).getId()));
-      assertThat(sampleApplication.getPublicId(), is(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID));
+      assertThat(sampleApplication.getName()).isEqualTo(SampleDataCreator.SAMPLE_APPLICATION_NAME);
+      assertThat(sampleApplication.getParentOwnerId()).isEqualTo(organizations.get(0).getId());
+      assertThat(sampleApplication.getPublicId()).isEqualTo(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID);
     }
     else {
-      assertThat(organizationNames, not(hasItem(SampleDataCreator.SAMPLE_ORGANIZATION_NAME)));
-      assertThat(applications, is(empty()));
+      assertThat(organizationNames).doesNotContain(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
+      assertThat(applications).isEmpty();
     }
   }
 
@@ -230,17 +224,13 @@ public class NewInstancePopulatorTest
     Set<String> tagNames = getUniqueStrings(tagDAO.getAll(), Tag::getName);
 
     if (shouldHaveBeenImported) {
-      assertThat(policyNames, hasSize(2));
-      assertThat(policyNames, containsInAnyOrder("policy1", "policy2"));
+      assertThat(policyNames).containsExactlyInAnyOrder("policy1", "policy2");
 
-      assertThat(labels, hasSize(3));
-      assertThat(labels, containsInAnyOrder("label1", "label2", "label3"));
+      assertThat(labels).containsExactlyInAnyOrder("label1", "label2", "label3");
 
-      assertThat(ltgNames, hasSize(2));
-      assertThat(ltgNames, containsInAnyOrder("ltg1", "ltg2"));
+      assertThat(ltgNames).containsExactlyInAnyOrder("ltg1", "ltg2");
 
-      assertThat(tagNames, hasSize(2));
-      assertThat(tagNames, containsInAnyOrder("tag1", "tag2"));
+      assertThat(tagNames).containsExactlyInAnyOrder("tag1", "tag2");
 
       String ltg1Name = licenseThreatGroupDAO.getByName("ltg1").get(0).getId();
       String ltg2Name = licenseThreatGroupDAO.getByName("ltg2").get(0).getId();
@@ -250,11 +240,9 @@ public class NewInstancePopulatorTest
       Set<String> licenseIdsForLtg2 = getUniqueStrings(licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(ltg2Name),
           LicenseThreatGroupLicense::getLicenseId);
 
-      assertThat(licenseIdsForLtg1, hasSize(2));
-      assertThat(licenseIdsForLtg1, containsInAnyOrder("Apache-2.0", "GPL-3.0"));
+      assertThat(licenseIdsForLtg1).containsExactlyInAnyOrder("Apache-2.0", "GPL-3.0");
 
-      assertThat(licenseIdsForLtg2, hasSize(1));
-      assertThat(licenseIdsForLtg2, containsInAnyOrder("MIT"));
+      assertThat(licenseIdsForLtg2).containsExactlyInAnyOrder("MIT");
 
       String policy1Id = policyDAO.getByName("policy1").get(0).getId();
       String policy2Id = policyDAO.getByName("policy2").get(0).getId();
@@ -264,17 +252,16 @@ public class NewInstancePopulatorTest
       Set<String> tagsForPolicy1 = getUniqueStrings(policyTagDAO.getByPolicyId(policy1Id), PolicyTag::getTagId);
       Set<String> tagsForPolicy2 = getUniqueStrings(policyTagDAO.getByPolicyId(policy2Id), PolicyTag::getTagId);
 
-      assertThat(tagsForPolicy1, hasSize(2));
-      assertThat(tagsForPolicy1, containsInAnyOrder(tag1Id, tag2Id));
+      assertThat(tagsForPolicy1).containsExactlyInAnyOrder(tag1Id, tag2Id);
 
-      assertThat(tagsForPolicy2, is(empty()));
+      assertThat(tagsForPolicy2).isEmpty();
     }
     else {
       // might not be empty because some tests add their own pre-existing policy
-      assertThat(policyNames, not(hasItem("policy1")));
-      assertThat(labels, is(empty()));
-      assertThat(ltgNames, is(empty()));
-      assertThat(tagNames, is(empty()));
+      assertThat(policyNames).doesNotContain("policy1");
+      assertThat(labels).isEmpty();
+      assertThat(ltgNames).isEmpty();
+      assertThat(tagNames).isEmpty();
     }
   }
 

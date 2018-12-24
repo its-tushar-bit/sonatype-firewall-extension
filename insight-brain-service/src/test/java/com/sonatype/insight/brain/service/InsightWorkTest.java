@@ -13,10 +13,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class InsightWorkTest
     extends AbstractComponentTest
@@ -31,198 +29,150 @@ public class InsightWorkTest
   @Test
   public void testGetScanDir() {
     File file = work.getScanDir(VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testGetScanDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getScanDir(invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetScanFile() {
     File file = work.getScanFile(VALID_ID, VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testGetScanFile_InvalidAppIdValidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getScanFile(invalidValue, VALID_ID);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetScanFile_ValidAppIdInvalidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getScanFile(VALID_ID, invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetAuditDir() {
     File file = work.getAuditDir(VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testGetAuditDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getAuditDir(invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportDir() {
     File file = work.getReportDir(VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testGetReportDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getReportDir(invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportDir_InvalidAppIdValidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getReportDir(invalidValue, VALID_ID);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportDir_ValidAppIdInvalidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getReportDir(VALID_ID, invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportFile() {
     File file = work.getReportFile(VALID_ID, VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testGetReportFile_InvalidAppIdValidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getReportFile(invalidValue, VALID_ID);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportFile_ValidAppIdInvalidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getReportFile(VALID_ID, invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testComponentDetailsDir() {
     File file = work.getComponentDetailsDir(VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testComponentDetailsDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getComponentDetailsDir(invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testComponentDetailsFile() {
     File file = work.getComponentDetailsFile(VALID_ID, VALID_ID);
-    assertThat(file, notNullValue());
+    assertThat(file).isNotNull();
   }
 
   @Test
   public void testComponentDetailsFile_InvalidAppIdValidResultsId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getComponentDetailsFile(invalidValue, VALID_ID);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testComponentDetailsFile_ValidAppIdInvalidResultsId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         work.getComponentDetailsFile(VALID_ID, invalidValue);
-        fail("Expected BadRequestException");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Invalid value: " + invalidValue));
-      }
+      }).withMessage("Invalid value: " + invalidValue);
     }
   }
 }

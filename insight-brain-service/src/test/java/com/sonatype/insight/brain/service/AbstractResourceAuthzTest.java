@@ -17,11 +17,7 @@ import com.sonatype.insight.brain.model.security.User;
 
 import org.junit.Before;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Provides boilerplate fixture for authorization tests.
@@ -83,10 +79,10 @@ public abstract class AbstractResourceAuthzTest
 
   private void assertStatus(HttpResponse response, Integer status) {
     if (status == null) {
-      assertThat(response.getStatusCode(), is(allOf(greaterThanOrEqualTo(200), lessThan(400))));
+      assertThat(response.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(400);
     }
     else {
-      assertThat(response.getStatusCode(), is(status));
+      assertThat(response.getStatusCode()).isEqualTo(status);
     }
   }
 

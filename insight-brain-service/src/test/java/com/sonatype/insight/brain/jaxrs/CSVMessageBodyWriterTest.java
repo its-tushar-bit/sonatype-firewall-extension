@@ -17,8 +17,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CSVMessageBodyWriterTest
 {
@@ -50,9 +49,9 @@ public class CSVMessageBodyWriterTest
 
   @Test
   public void testIsWriteable() {
-    assertThat(writer.isWriteable(null, null, null, new MediaType("text", "csv")), is(true));
-    assertThat(writer.isWriteable(null, null, null, MediaType.TEXT_PLAIN_TYPE), is(false));
-    assertThat(writer.isWriteable(null, null, null, MediaType.APPLICATION_JSON_TYPE), is(false));
+    assertThat(writer.isWriteable(null, null, null, new MediaType("text", "csv"))).isTrue();
+    assertThat(writer.isWriteable(null, null, null, MediaType.TEXT_PLAIN_TYPE)).isFalse();
+    assertThat(writer.isWriteable(null, null, null, MediaType.APPLICATION_JSON_TYPE)).isFalse();
   }
 
   @Test
@@ -65,7 +64,7 @@ public class CSVMessageBodyWriterTest
     String writtenOutput = outputStream.toString();
 
     // double quotes in quoted strings are represented as two double quotes in succession
-    assertThat(writtenOutput, is("bar,foo\n\"asdf qwerty\"\"'\"\"\",4\n"));
+    assertThat(writtenOutput).isEqualTo("bar,foo\n\"asdf qwerty\"\"'\"\"\",4\n");
   }
 
   @Test
@@ -80,8 +79,8 @@ public class CSVMessageBodyWriterTest
 
     writer.writeTo(toSerialize, ArrayList.class, genericType, null, null, null, outputStream);
 
-    String writtenOutput = outputStream.toString();
+    String writtenOutput = outputStream.toString("UTF-8");
 
-    assertThat(writtenOutput, is("bar,foo\nasdf,1\n,-500\n,0\n"));
+    assertThat(writtenOutput).isEqualTo("bar,foo\nasdf,1\n,-500\n,0\n");
   }
 }

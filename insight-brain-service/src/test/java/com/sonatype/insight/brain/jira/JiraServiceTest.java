@@ -27,10 +27,7 @@ import static com.sonatype.insight.brain.jira.JiraField.ISSUETYPE;
 import static com.sonatype.insight.brain.jira.JiraField.PROJECT;
 import static com.sonatype.insight.brain.jira.JiraField.REPORTER;
 import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -72,19 +69,19 @@ public class JiraServiceTest
     // default null configuration should NOT be enabled
     when(insightConfig.getJiraConfig()).thenReturn(null);
 
-    assertThat(underTest.isEnabled(), is(false));
+    assertThat(underTest.isEnabled()).isFalse();
 
     // install configuration and it should be enabled
     when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
 
-    assertThat(underTest.isEnabled(), is(true));
+    assertThat(underTest.isEnabled()).isTrue();
   }
 
   @Test
   public void testIsAcceptableIssueType_IsAcceptable() {
     JiraIssueType issueType = createIssueType();
 
-    assertThat(underTest.isAcceptableIssueType(issueType), is(true));
+    assertThat(underTest.isAcceptableIssueType(issueType)).isTrue();
   }
 
   @Test
@@ -92,7 +89,7 @@ public class JiraServiceTest
     JiraIssueType issueType = createIssueType();
     issueType.setSubtask(true);
 
-    assertThat(underTest.isAcceptableIssueType(issueType), is(false));
+    assertThat(underTest.isAcceptableIssueType(issueType)).isFalse();
   }
 
   /**
@@ -106,7 +103,7 @@ public class JiraServiceTest
     field.setRequired(true);
     issueType.getFields().put("custom", field);
 
-    assertThat(underTest.isAcceptableIssueType(issueType), is(false));
+    assertThat(underTest.isAcceptableIssueType(issueType)).isFalse();
   }
 
   /**
@@ -120,7 +117,7 @@ public class JiraServiceTest
     field.setRequired(false);
     issueType.getFields().put("custom", field);
 
-    assertThat(underTest.isAcceptableIssueType(issueType), is(true));
+    assertThat(underTest.isAcceptableIssueType(issueType)).isTrue();
   }
 
   @Test
@@ -162,11 +159,10 @@ public class JiraServiceTest
     JiraService underTest = new JiraService(insightConfig, jiraClientFactory);
     jiraProjectList = underTest.getProjectsWithAcceptableIssueTypes();
 
-    assertThat(jiraProjectList, hasSize(1));
+    assertThat(jiraProjectList).hasSize(1);
     jiraProject = jiraProjectList.get(0);
-    assertEquals(jiraProject.getKey(), "key1");
-    assertThat(jiraProject.getIssueTypes(), hasSize(1));
-    assertEquals(jiraProject.getIssueTypes().get(0).getId(), 1);
+    assertThat(jiraProject.getKey()).isEqualTo("key1");
+    assertThat(jiraProject.getIssueTypes()).extracting(JiraIssueType::getId).containsExactly(1L);
   }
 
   private JiraIssueType createIssueType() {

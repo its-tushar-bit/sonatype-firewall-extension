@@ -29,9 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * This class tests that the actual, current reference policy document can be imported successfully into IQ.
@@ -120,18 +118,18 @@ public class ReferencePolicyImportIntegrationTest
     int tagCount = importData.tags.size();
     int policyTagCount = importData.policyTags.size();
 
-    assertThat(policyCount, is(greaterThan(0)));
-    assertThat(ltgCount, is(greaterThan(0)));
-    assertThat(ltgLicenseCount, is(greaterThan(0)));
-    assertThat(labelCount, is(greaterThan(0)));
-    assertThat(tagCount, is(greaterThan(0)));
-    assertThat(policyTagCount, is(greaterThan(0)));
+    assertThat(policyCount).isGreaterThan(0);
+    assertThat(ltgCount).isGreaterThan(0);
+    assertThat(ltgLicenseCount).isGreaterThan(0);
+    assertThat(labelCount).isGreaterThan(0);
+    assertThat(tagCount).isGreaterThan(0);
+    assertThat(policyTagCount).isGreaterThan(0);
 
-    assertThat(policyDAO.getAll().size(), is(policyCount));
-    assertThat(licenseThreatGroupDAO.getAll().size(), is(ltgCount));
-    assertThat(licenseThreatGroupLicenseDAO.getAll().size(), is(ltgLicenseCount));
-    assertThat(labelDAO.getAll().size(), is(labelCount));
-    assertThat(tagDAO.getAll().size(), is(tagCount));
-    assertThat(policyTagDAO.getAll().size(), is(policyTagCount));
+    assertThat(policyDAO.getAll()).hasSize(policyCount);
+    assertThat(licenseThreatGroupDAO.getAll()).hasSize(ltgCount);
+    assertThat(licenseThreatGroupLicenseDAO.getAll()).hasSize(ltgLicenseCount);
+    assertThat(labelDAO.getAll()).hasSize(labelCount);
+    assertThat(tagDAO.getAll()).hasSize(tagCount);
+    assertThat(policyTagDAO.getAll()).hasSize(policyTagCount);
   }
 }

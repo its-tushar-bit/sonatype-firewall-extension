@@ -14,8 +14,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +55,6 @@ public class DatabaseConfigProviderTest
         .getDatabaseConfig(DatabaseName.ods);
     Matcher matcher = Pattern.compile("CACHE_SIZE=(\\d*)").matcher(databaseConfig.getUrl());
     matcher.find();
-    assertThat(Long.valueOf(matcher.group(1)), is(expectedCacheSizeInKilobytes));
+    assertThat(Long.valueOf(matcher.group(1))).isEqualTo(expectedCacheSizeInKilobytes);
   }
 }

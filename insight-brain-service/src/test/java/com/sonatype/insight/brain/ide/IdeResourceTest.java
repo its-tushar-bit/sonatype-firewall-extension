@@ -17,9 +17,7 @@ import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -27,10 +25,8 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -39,7 +35,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -58,17 +53,6 @@ import static org.junit.Assert.assertTrue;
 public class IdeResourceTest
     extends AbstractResourceTest
 {
-
-  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("g1", "a1",
-      "v1", null, "jar");
-
-  private void addPolicy(String applicationPublicId, Policy policy) throws Exception {
-    String appId = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId).getId();
-    policy.setOwnerId(appId);
-    PolicyDAO policyDAO = new PolicyDAO();
-    policyDAO.insert(policy);
-  }
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(IdeResource.RESOURCE_PATH);
@@ -111,16 +95,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Simple() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -142,16 +120,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Simple_ByComponentIdentifier() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("componentIdentifer",
@@ -174,15 +146,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Enhanced() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
@@ -211,15 +178,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Enhanced_ByComponentIdentifier() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
     HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab").query("componentIdentifer",
@@ -251,14 +213,8 @@ public class IdeResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
+    tempEntity.newPolicy(application, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -276,8 +232,8 @@ public class IdeResourceTest
     assertEquals(0, policyAlerts.size());
 
     // Override the license and evaluate the policy again
-
-    tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
         null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
@@ -298,16 +254,9 @@ public class IdeResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-
-    Condition condition1 = new Condition(LicenseStatusConditionType.ID, "is",
-        LicenseOverrideStatus.OVERRIDDEN.toString());
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition =
+        new Condition(LicenseStatusConditionType.ID, "is", LicenseOverrideStatus.OVERRIDDEN.toString());
+    tempEntity.newPolicy(application, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -325,8 +274,8 @@ public class IdeResourceTest
     assertEquals(0, policyAlerts.size());
 
     // Override the license and evaluate the policy again
-
-    tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
         null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
@@ -347,15 +296,9 @@ public class IdeResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
+    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getId());
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    tempEntity.newPolicy(application, 8, LogicalOperator.AND, condition);
 
     // There should be no policy alerts when none of the security vulnerabilities was overridden
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
@@ -410,16 +353,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Age() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(AgeInDaysConditionType.ID, "older than", "365");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "365");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -441,16 +378,10 @@ public class IdeResourceTest
   public void testDoScan_unknown_simple() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "unknown");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab.json");
@@ -464,16 +395,10 @@ public class IdeResourceTest
   public void testDoScan_unknown_simple_enhancedResponse() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "unknown");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
@@ -505,16 +430,10 @@ public class IdeResourceTest
   public void testDoScan_unknown_enhanced() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "unknown");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = enhancedScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
@@ -545,15 +464,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Proprietary() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(ProprietaryConditionType.ID, "is true"));
-    Policy policy1 = new Policy("PolicyId1", "Policy1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(ProprietaryConditionType.ID, "is true");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("proprietary", true);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -604,25 +518,17 @@ public class IdeResourceTest
   @Test
   public void testDoScan_ManuallyIdentifiedComponent() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
-    constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "younger than", "30"));
-    Policy policy1 = new Policy("PolicyId1", "Policy1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "exact");
+    Condition condition2 = new Condition(AgeInDaysConditionType.ID, "younger than", "30");
+    Policy policy1 = tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition1, condition2);
 
     // This policy verifies that the SVs are wiped out from manually identified components. If they are not wiped out,
     // then there will be a policy violation for this policy and the assert on the policy violations at the end of the
     // test will fail.
-    Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    Policy policy2 = new Policy("PolicyId2", "Policy2");
-    policy2.addConstraint(constraint2);
-    addPolicy(applicationPublicId, policy2);
+    Condition condition3 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition3);
 
     String hash = "abababa1234babababab";
     String groupId = "g1";
@@ -653,7 +559,7 @@ public class IdeResourceTest
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     assertNotNull(policyAlerts);
     assertEquals(1, policyAlerts.size());
-    assertThat(policyAlerts.get(0).getTrigger().getPolicyName(), is("Policy1"));
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName(), is(policy1.getName()));
   }
 
   @Test
@@ -678,13 +584,8 @@ public class IdeResourceTest
     Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
     tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label.getId(), hash);
 
-    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");

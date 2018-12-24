@@ -251,6 +251,12 @@ public class InsightConfig
   @JsonProperty
   private boolean cspEnabled = true;
 
+  /**
+   * Should be removed after CLM-11573 is done
+   */
+  @JsonProperty
+  private boolean lifecycleLight = false;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -658,5 +664,13 @@ public class InsightConfig
 
   public void setCspEnabled(final boolean cspEnabled) {
     this.cspEnabled = cspEnabled;
+  }
+
+  public boolean isLifecycleLight() {
+    return lifecycleLight;
+  }
+
+  public void setLifecycleLight(final boolean lifecycleLight) {
+    this.lifecycleLight = lifecycleLight;
   }
 }

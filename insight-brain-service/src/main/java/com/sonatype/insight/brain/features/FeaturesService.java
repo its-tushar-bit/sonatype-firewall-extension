@@ -70,8 +70,8 @@ public class FeaturesService
 
   private void addVersionSpecificFeatures(Set<Feature> features) {
     // Changes to this list should be replicated in brain.client.js
-    Collections.addAll(features, Feature.POLICY, Feature.LABELS, Feature.RELEASE_GRAPH, Feature.POLICY_VIOLATIONS,
-        Feature.NOTIFICATIONS, Feature.REEVALUATE_POLICY);
+    Collections.addAll(features, Feature.POLICY, Feature.LABELS, Feature.RELEASE_GRAPH, Feature.POLICY_VIOLATIONS, 
+         Feature.REEVALUATE_POLICY);
   }
 
   private void addLicenseSpecificFeatures(Set<Feature> features) {
@@ -81,6 +81,21 @@ public class FeaturesService
 
     if (licenseManager.hasDashboard()) {
       features.add(Feature.DASHBOARD);
+    }
+    
+    if (licenseManager.hasRepositoryFirewall()) {
+      features.add(Feature.FIREWALL);
+    }
+    
+    if (insightConfig.isLifecycleLight()) { // to be replaced once new license has been created
+      // line 78 should prevent this from getting added once license is properly configured
+      features.remove(Feature.POLICY_MONITORING);
+    }
+    else {
+      features.add(Feature.ENFORCEMENT);
+      features.add(Feature.NOTIFICATIONS);
+      features.add(Feature.POLICY_GRANDFATHERING);
+      features.add(Feature.WEBHOOKS);
     }
   }
 }

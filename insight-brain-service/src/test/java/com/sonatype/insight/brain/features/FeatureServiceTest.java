@@ -64,7 +64,8 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
+            Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
   }
 
   @Test
@@ -72,6 +73,7 @@ public class FeatureServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasRepositoryFirewall()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.DASHBOARD);
@@ -88,7 +90,8 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
+            Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
   }
 
   @Test
@@ -96,6 +99,7 @@ public class FeatureServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasDashboard()).thenReturn(true);
+    when(licenseManager.hasRepositoryFirewall()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.POLICY_MONITORING);
@@ -141,7 +145,8 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.WEBHOOKS, 
+            Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
   }
 
   @Test
@@ -151,9 +156,61 @@ public class FeatureServiceTest
 
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
+    expectedFeatures.remove(Feature.FIREWALL);
     expectedFeatures.remove(Feature.POLICY_MONITORING);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
     expectedFeatures.remove(Feature.DASHBOARD);
+    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+  }
+
+  @Test
+  public void testGetFeatures_WithoutLifecycleLight() {
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(licenseManager.isValid()).thenReturn(true);
+    when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasRepositoryFirewall()).thenReturn(true);
+    Set<Feature> features = featuresService.getFeatures();
+    EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
+    expectedFeatures.remove(Feature.DASHBOARD);
+    expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
+    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+  }
+
+  @Test
+  public void testGetFeatures_WithLifecycleLight() {
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(licenseManager.isValid()).thenReturn(true);
+    insightConfig.setLifecycleLight(true);
+    
+    Set<Feature> features = featuresService.getFeatures();
+    assertThat(
+        features,
+        containsInAnyOrder(Feature.LABELS, Feature.POLICY, Feature.POLICY_VIOLATIONS, Feature.REEVALUATE_POLICY, 
+            Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS));
+  }
+
+  @Test
+  public void testGetFeatures_WithoutFirewall() {
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(licenseManager.isValid()).thenReturn(true);
+    Set<Feature> features = featuresService.getFeatures();
+    assertThat(
+        features,
+        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
+            Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
+  }
+
+  @Test
+  public void testGetFeatures_WithFirewall() {
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(licenseManager.isValid()).thenReturn(true);
+    when(licenseManager.hasRepositoryFirewall()).thenReturn(true);
+    Set<Feature> features = featuresService.getFeatures();
+    EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
+    expectedFeatures.remove(Feature.POLICY_MONITORING);
+    expectedFeatures.remove(Feature.DASHBOARD);
+    expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 }

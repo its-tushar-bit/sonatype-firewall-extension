@@ -55,10 +55,11 @@ class AuthzFilterMethodInterceptor
     if (result != null) {
       AuthzFilter anno = getAnnotation(mi);
       if (anno != null) {
+        Iterable<?> entities = (Iterable<?>) result;
         Object principal = getSubject().getPrincipal();
         UserPrincipal user = (UserPrincipal) ((principal != null) ? principal : null);
         if (!isAnonymous(user, anno)) {
-          result = authzChecker.filterByPermission(user, anno.permission(), result, anno.context());
+          result = authzChecker.filterByPermission(user, anno.permission(), entities, anno.context());
         }
       }
     }

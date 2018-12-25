@@ -83,28 +83,25 @@ public class AuthorizationChecker
    * permission.
    */
   @SuppressWarnings("unchecked")
-  public Collection<?> filterByPermission(UserPrincipal user,
-                                          Permission permission,
-                                          Object entities,
-                                          Context contextEntity)
+  public <T> Collection<T> filterByPermission(UserPrincipal user,
+                                              Permission permission,
+                                              Iterable<T> entities,
+                                              Context contextEntity)
   {
-    Collection<Object> filtered = newCollection(entities);
-    if (user != null) {
-      switch (contextEntity) {
-        case APPLICATION:
-          filter(filtered, user, permission, (Iterable<Application>) entities, contextResolver.APPLICATION);
-          break;
-        case ORGANIZATION:
-          filter(filtered, user, permission, (Iterable<Organization>) entities, contextResolver.ORGANIZATION);
-          break;
-        case REPOSITORY:
-          filter(filtered, user, permission, (Iterable<Repository>) entities, contextResolver.REPOSITORY);
-          break;
-        default:
-          throw new IllegalStateException("Cannot check authorization in unknown context " + contextEntity);
-      }
+    if (user == null) {
+      return newCollection(entities);
     }
-    return filtered;
+    switch (contextEntity) {
+      case APPLICATION:
+        return (Collection<T>) filter(user, permission, (Iterable<Application>) entities, contextResolver.APPLICATION);
+      case ORGANIZATION:
+        return (Collection<T>) filter(user, permission, (Iterable<Organization>) entities,
+            contextResolver.ORGANIZATION);
+      case REPOSITORY:
+        return (Collection<T>) filter(user, permission, (Iterable<Repository>) entities, contextResolver.REPOSITORY);
+      default:
+        throw new IllegalStateException("Cannot check authorization in unknown context " + contextEntity);
+    }
   }
 
   private static <T> Collection<T> newCollection(Object prototype) {
@@ -116,12 +113,12 @@ public class AuthorizationChecker
     }
   }
 
-  private <T> void filter(Collection<Object> filtered,
-                          UserPrincipal user,
-                          Permission permission,
-                          Iterable<? extends T> entities,
-                          ContextIdResolver<T> resolver)
+  private <T> Collection<T> filter(UserPrincipal user,
+                                   Permission permission,
+                                   Iterable<T> entities,
+                                   ContextIdResolver<? super T> resolver)
   {
+    Collection<T> filtered = newCollection(entities);
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
     Map<String, Boolean> permitsByContextId = new HashMap<>(256);
     for (T entity : entities) {
@@ -130,6 +127,7 @@ public class AuthorizationChecker
         filtered.add(entity);
       }
     }
+    return filtered;
   }
 
   private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user,

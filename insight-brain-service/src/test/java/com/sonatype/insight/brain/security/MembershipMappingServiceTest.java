@@ -32,9 +32,8 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class MembershipMappingServiceTest
     extends AbstractComponentTest
@@ -47,26 +46,18 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
           null /* memberAttributeResolver */, null /* roles */, null/* membersByRoleByRoleId */);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The 'global' context is not allowed."));
-    }
+    }).withMessage("The 'global' context is not allowed.");
   }
 
   @Test
   public void testSetMembershipMappingsForNonGlobalContext_GlobalContext() {
-    try {
-      membershipMappingService
-          .setMembershipMappingsForNonGlobalContext(OwnerType.GLOBAL, "ownerId", null /* roleToMembers */);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The 'global' context is not allowed."));
-    }
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      membershipMappingService.setMembershipMappingsForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
+          null /* roleToMembers */);
+    }).withMessage("The 'global' context is not allowed.");
   }
 
   @Test
@@ -81,8 +72,8 @@ public class MembershipMappingServiceTest
     Map<String, List<Member>> roleToMembers = Collections.singletonMap(role.getId(), Arrays.asList(member));
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID, roleToMembers);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(UPDATED));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
 
     eventBus.unregister(handler);
   }
@@ -95,7 +86,7 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings actual = membershipMappingService
         .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
 
-    assertThat(actual.groupSearchEnabled, is(true));
+    assertThat(actual.groupSearchEnabled).isTrue();
   }
 
   @Test
@@ -106,7 +97,7 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings actual = membershipMappingService
         .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
 
-    assertThat(actual.groupSearchEnabled, is(false));
+    assertThat(actual.groupSearchEnabled).isFalse();
   }
 
   @Test
@@ -118,7 +109,7 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings actual = membershipMappingService
         .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
 
-    assertThat(actual.groupSearchEnabled, is(false));
+    assertThat(actual.groupSearchEnabled).isFalse();
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

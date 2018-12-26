@@ -31,13 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class UserServiceTest
     extends AbstractComponentTest
@@ -74,15 +69,15 @@ public class UserServiceTest
     // Create an application with the user as the contact
     Application application = createApplication(user);
     // Check to see that the contact is the userName
-    assertThat(application.getContactInternalName(), is(clmUserName));
+    assertThat(application.getContactInternalName()).isEqualTo(clmUserName);
 
     // Delete the user
     userService.deleteUser(user.getId());
 
     // Check to see if the contact has also been deleted
     application = applicationDao.getById(application.getId());
-    assertThat(application, notNullValue());
-    assertThat(application.getContactInternalName(), is(nullValue()));
+    assertThat(application).isNotNull();
+    assertThat(application.getContactInternalName()).isNull();
   }
 
   @Test
@@ -99,9 +94,7 @@ public class UserServiceTest
     // Make sure the clm user is not in LDAP
     final FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, clmUserName, false /* groupsEnabled */);
-    final List<Member> dtoMembers = findMembersDTO.getMembers();
-    final Member[] members = dtoMembers.toArray(new Member[dtoMembers.size()]);
-    assertThat(members, emptyArray());
+    assertThat(findMembersDTO.getMembers()).isEmpty();
 
     // Add the user to CLM
     final User user = tempEntity.newUser(clmUserName);
@@ -109,15 +102,15 @@ public class UserServiceTest
     // Create an application with the user as the contact
     Application application = createApplication(user);
     // Check to see that the contact is the userName
-    assertThat(application.getContactInternalName(), is(clmUserName));
+    assertThat(application.getContactInternalName()).isEqualTo(clmUserName);
 
     // Delete the user
     userService.deleteUser(user.getId());
 
     // Check to see if the application contact has also been deleted
     application = applicationDao.getById(application.getId());
-    assertThat(application, notNullValue());
-    assertThat(application.getContactInternalName(), is(nullValue()));
+    assertThat(application).isNotNull();
+    assertThat(application.getContactInternalName()).isNull();
   }
 
   @Test
@@ -142,15 +135,15 @@ public class UserServiceTest
     // Create an application with the user as the contact
     Application application = createApplication(user);
     // Check to see that the contact is the userName
-    assertThat(application.getContactInternalName(), is(clmAndLdapUserName));
+    assertThat(application.getContactInternalName()).isEqualTo(clmAndLdapUserName);
 
     // Delete the user
     userService.deleteUser(user.getId());
 
     // Check to see if the application contact has not been deleted
     application = applicationDao.getById(application.getId());
-    assertThat(application, notNullValue());
-    assertThat(application.getContactInternalName(), is(clmAndLdapUserName));
+    assertThat(application).isNotNull();
+    assertThat(application.getContactInternalName()).isEqualTo(clmAndLdapUserName);
   }
 
   private Application createApplication(User contactUser) {
@@ -165,8 +158,8 @@ public class UserServiceTest
     user.setPassword("testResetPasswordPassword");
 
     ChangePasswordDTO dto = userService.resetPassword(user.getId());
-    assertThat(dto.newPassword.length(), is(12));
-    assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
+    assertThat(dto.newPassword).hasSize(12);
+    assertThat(StringUtils.isAlphanumeric(dto.newPassword)).isTrue();
   }
 
   @Test
@@ -196,13 +189,9 @@ public class UserServiceTest
     User updatedUser = userDAO.getByIdNotNull(user.getId());
     updatedUser.setPassword("PasswordUpdated");
 
-    try {
-      updatedUser = userService.updateUser(updatedUser);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Cannot change user password."));
-    }
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      userService.updateUser(updatedUser);
+    }).withMessage("Cannot change user password.");
 
     assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
         "TestFirstName", "TestLastName", "TestEmail@example.com");
@@ -217,13 +206,9 @@ public class UserServiceTest
     updatedUser.setPassword(UserService.FAKE_PASSWORD);
     updatedUser.setUsername("TestUsernameUpdated");
 
-    try {
-      updatedUser = userService.updateUser(updatedUser);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Cannot change username."));
-    }
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      userService.updateUser(updatedUser);
+    }).withMessage("Cannot change username.");
 
     assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
         "TestFirstName", "TestLastName", "TestEmail@example.com");
@@ -237,33 +222,27 @@ public class UserServiceTest
                                   String lastName,
                                   String email)
   {
-    assertThat(actualUser.getId(), is(id));
-    assertThat(actualUser.getUsername(), is(username));
-    assertThat(actualUser.getPassword(), is(password));
-    assertThat(actualUser.getFirstName(), is(firstName));
-    assertThat(actualUser.getLastName(), is(lastName));
-    assertThat(actualUser.getEmail(), is(email));
+    assertThat(actualUser.getId()).isEqualTo(id);
+    assertThat(actualUser.getUsername()).isEqualTo(username);
+    assertThat(actualUser.getPassword()).isEqualTo(password);
+    assertThat(actualUser.getFirstName()).isEqualTo(firstName);
+    assertThat(actualUser.getLastName()).isEqualTo(lastName);
+    assertThat(actualUser.getEmail()).isEqualTo(email);
   }
 
   @Test
   public void testFindMembersForGlobalRoles_EmptyQuery() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       userService.findMembersForRoles(OwnerType.GLOBAL, null, "" /* query */, false /* groupsEnabled */);
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("No search term specified."));
-    }
+    }).withMessage("No search term specified.");
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles_EmptyQuery() {
     Organization org = tempEntity.newOrganization();
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */, false /* groupsEnabled */);
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("No search term specified."));
-    }
+    }).withMessage("No search term specified.");
   }
 
   @Test
@@ -280,9 +259,8 @@ public class UserServiceTest
 
     findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, "nobody-has-such-a-name-really*", false /* groupsEnabled */);
-    assertThat(findMembersDTO.getError(), nullValue());
-    assertThat(findMembersDTO.getMembers(), is(notNullValue()));
-    assertThat(findMembersDTO.getMembers(), hasSize(0));
+    assertThat(findMembersDTO.getError()).isNull();
+    assertThat(findMembersDTO.getMembers()).isEmpty();
   }
 
   @Test
@@ -331,8 +309,7 @@ public class UserServiceTest
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, "Beta", true /* groupsEnabled */);
     List<Member> members = findMembersDTO.getMembers();
-    assertThat(members, is(notNullValue()));
-    assertThat("Found members:" + members, members, hasSize(2));
+    assertThat(members).hasSize(2);
 
     assertMember(members.get(0), MemberType.USER, "Beta", "Beta", "beta.user@company.com", "LDAP");
     assertMember(members.get(1), MemberType.GROUP, "Beta", "Beta", null, "LDAP");
@@ -359,42 +336,42 @@ public class UserServiceTest
 
   @Test
   public void testShouldDisplayDefaultPasswordWarning() {
-    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+    assertThat(userService.shouldDisplayDefaultPasswordWarning()).isTrue();
 
     User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
     String originalAdminPassword = admin.getPassword();
     try {
       admin.setPassword("foo");
       userDAO.update(admin);
-      assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
+      assertThat(userService.shouldDisplayDefaultPasswordWarning()).isFalse();
     }
     finally {
       admin.setPassword(originalAdminPassword);
       userDAO.update(admin);
     }
 
-    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+    assertThat(userService.shouldDisplayDefaultPasswordWarning()).isTrue();
   }
 
   @Test
   public void testShouldDisplayDefaultPasswordWarning_DisabledByConfig() {
-    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+    assertThat(userService.shouldDisplayDefaultPasswordWarning()).isTrue();
 
     insightConfig.setEnableDefaultPasswordWarning(false);
 
-    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
+    assertThat(userService.shouldDisplayDefaultPasswordWarning()).isFalse();
   }
 
   @Test
   public void testShouldDisplayDefaultPasswordWarning_NoAdminUser() {
-    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+    assertThat(userService.shouldDisplayDefaultPasswordWarning()).isTrue();
 
     User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
     admin.setUsername("admin2");
     userDAO.update(admin);
 
     try {
-      assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
+      assertThat(userService.shouldDisplayDefaultPasswordWarning()).isFalse();
     }
     finally {
       admin.setUsername(User.ADMIN_USERNAME);
@@ -410,16 +387,10 @@ public class UserServiceTest
                             String email,
                             String realm)
   {
-    if (!StringUtils.isBlank(error)) {
-      assertThat(findMembersDTO.getError(), is(error));
-    }
-    else {
-      assertThat(findMembersDTO.getError(), nullValue());
-    }
+    assertThat(findMembersDTO.getError()).isEqualTo(error);
 
     Member[] members = findMembersDTO.getMembers().toArray(new Member[0]);
-    assertThat(members, is(notNullValue()));
-    assertThat(members.length, is(1));
+    assertThat(members).hasSize(1);
     assertMember(members[0], type, name, displayName, email, realm);
   }
 
@@ -430,10 +401,10 @@ public class UserServiceTest
                             final String email,
                             final String realm)
   {
-    assertThat(member.getType(), is(type));
-    assertThat(member.getInternalName(), is(name));
-    assertThat(member.getDisplayName(), is(displayName));
-    assertThat(member.getEmail(), is(email));
-    assertThat(member.getRealm(), is(realm));
+    assertThat(member.getType()).isEqualTo(type);
+    assertThat(member.getInternalName()).isEqualTo(name);
+    assertThat(member.getDisplayName()).isEqualTo(displayName);
+    assertThat(member.getEmail()).isEqualTo(email);
+    assertThat(member.getRealm()).isEqualTo(realm);
   }
 }

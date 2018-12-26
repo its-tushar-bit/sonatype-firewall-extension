@@ -29,13 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserResourceTest
     extends AbstractResourceTest
@@ -67,9 +61,8 @@ public class UserResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     List<User> users = fromResponse(response);
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(1));
-    assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
+    assertThat(users).hasSize(1);
+    assertThat(users.get(0).getUsername()).isEqualTo(User.ADMIN_USERNAME);
 
     // Add
     User user = new User("testCRUD", "testCRUDPassword", "testCRUDFirstName", "testCRUDLastName",
@@ -78,26 +71,25 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
     tempEntity.register(user);
-    assertThat(user.getId(), notNullValue());
+    assertThat(user.getId()).isNotNull();
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
     UserDAO dao = new UserDAO();
     User expectedUser = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(expectedUser.getPassword()), notNullValue());
-    assertThat(String.valueOf(expectedUser.getPassword()), is(not(UserService.FAKE_PASSWORD)));
-    assertThat(String.valueOf(expectedUser.getPassword()), is(not("testCRUDPassword")));
+    assertThat(String.valueOf(expectedUser.getPassword())).isNotNull();
+    assertThat(String.valueOf(expectedUser.getPassword())).isNotEqualTo(UserService.FAKE_PASSWORD);
+    assertThat(String.valueOf(expectedUser.getPassword())).isNotEqualTo("testCRUDPassword");
 
     // Get all
     response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(2));
-    assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
+    assertThat(users).hasSize(2);
+    assertThat(users.get(0).getUsername()).isEqualTo(User.ADMIN_USERNAME);
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
+    assertThat(String.valueOf(users.get(1).getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
 
     // Update, no password change
     user.setFirstName("testCRUDFirstNameUpdated");
@@ -105,23 +97,22 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
     expectedUser = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(expectedUser.getPassword()), notNullValue());
-    assertThat(String.valueOf(expectedUser.getPassword()), is(not(UserService.FAKE_PASSWORD)));
-    assertThat(String.valueOf(expectedUser.getPassword()), is(not("testCRUDPassword")));
+    assertThat(String.valueOf(expectedUser.getPassword())).isNotNull();
+    assertThat(String.valueOf(expectedUser.getPassword())).isNotEqualTo(UserService.FAKE_PASSWORD);
+    assertThat(String.valueOf(expectedUser.getPassword())).isNotEqualTo("testCRUDPassword");
 
     // Get all
     response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(2));
-    assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
+    assertThat(users).hasSize(2);
+    assertThat(users.get(0).getUsername()).isEqualTo(User.ADMIN_USERNAME);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
+    assertThat(String.valueOf(users.get(1).getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
 
     // Delete
     response = restRequest().path("{userId}").parameter(user.getId()).delete();
@@ -131,10 +122,9 @@ public class UserResourceTest
     response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
-    assertThat(users, notNullValue());
-    assertThat(users, hasSize(1));
-    assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(users).hasSize(1);
+    assertThat(users.get(0).getUsername()).isEqualTo(User.ADMIN_USERNAME);
+    assertThat(String.valueOf(users.get(0).getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
   }
 
   @Test
@@ -145,19 +135,19 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
     tempEntity.register(user);
-    assertThat(user.getId(), is(notNullValue()));
+    assertThat(user.getId()).isNotNull();
 
     // log the admin in
     response = sessionRequest().auth().post();
     assertResponseStatus(204, response);
     HttpCookie adminCookie = response.getSessionCookie();
-    assertThat(adminCookie, is(notNullValue()));
+    assertThat(adminCookie).isNotNull();
 
     // log the user in
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
     HttpCookie userCookie = response.getSessionCookie();
-    assertThat(userCookie, is(notNullValue()));
+    assertThat(userCookie).isNotNull();
 
     // delete the user
     response = restRequest().path("{userId}").parameter(user.getId()).delete();
@@ -171,7 +161,7 @@ public class UserResourceTest
     response = sessionRequest().cookie(adminCookie).get();
     assertResponseStatus(200, response);
     AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
-    assertThat(status.isAuthenticated(), is(true));
+    assertThat(status.isAuthenticated()).isTrue();
   }
 
   @Test
@@ -182,7 +172,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
     tempEntity.register(user);
-    assertThat(user.getId(), is(notNullValue()));
+    assertThat(user.getId()).isNotNull();
 
     // create another user
     User user2 = new User("test-user-two", "test-password-two", "testFirstNameTwo", "testLastNameTwo",
@@ -191,7 +181,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user2 = response.getBody(User.class);
     tempEntity.register(user2);
-    assertThat(user2.getId(), is(notNullValue()));
+    assertThat(user2.getId()).isNotNull();
 
     // log the first user in to create a session
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
@@ -201,7 +191,7 @@ public class UserResourceTest
     response = sessionRequest().auth(user2.getUsername(), "test-password-two").post();
     assertResponseStatus(204, response);
     HttpCookie userCookie = response.getSessionCookie();
-    assertThat(userCookie, is(notNullValue()));
+    assertThat(userCookie).isNotNull();
     response = sessionRequest().path(UserSessionResource.LOGOUT_PATH).cookie(userCookie).delete();
     assertResponseStatus(204, response);
 
@@ -234,12 +224,12 @@ public class UserResourceTest
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
     HttpCookie userCookie = response.getSessionCookie();
-    assertThat(userCookie, is(notNullValue()));
+    assertThat(userCookie).isNotNull();
 
     // try to delete the user using the same user's session/cookie
     response = restRequest().path("{userId}").parameter(user.getId()).cookie(userCookie).anon().delete();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Cannot delete the currently logged in user."));
+    assertThat(response.getBodyText()).isEqualTo("Cannot delete the currently logged in user.");
   }
 
   @Test
@@ -262,7 +252,7 @@ public class UserResourceTest
 
     response = request.body(dto).put();
     assertResponseStatus(400, response);
-    assertEquals("Current password is wrong.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Current password is wrong.");
 
     // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword";
@@ -281,8 +271,8 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     ChangePasswordDTO dto = response.getBody(ChangePasswordDTO.class);
-    assertThat(dto.newPassword.length(), is(12));
-    assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
+    assertThat(dto.newPassword).hasSize(12);
+    assertThat(StringUtils.isAlphanumeric(dto.newPassword)).isTrue();
   }
 
   @Test
@@ -303,14 +293,14 @@ public class UserResourceTest
     HttpRequest request = restRequest();
     HttpResponse response = request.path(UserResource.SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getBodyText(), is("true"));
+    assertThat(response.getBodyText()).isEqualTo("true");
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {
-    assertThat(actual.getUsername(), is(username));
-    assertThat(actual.getFirstName(), is(firstName));
-    assertThat(actual.getLastName(), is(lastName));
-    assertThat(actual.getEmail(), is(email));
+    assertThat(actual.getUsername()).isEqualTo(username);
+    assertThat(actual.getFirstName()).isEqualTo(firstName);
+    assertThat(actual.getLastName()).isEqualTo(lastName);
+    assertThat(actual.getEmail()).isEqualTo(email);
   }
 
   private void assertMember(HttpResponse response,
@@ -325,16 +315,10 @@ public class UserResourceTest
 
     FindMembersDTO dto = response.getBody(FindMembersDTO.class);
 
-    if (!StringUtils.isBlank(error)) {
-      assertThat(dto.getError(), is(error));
-    }
-    else {
-      assertThat(dto.getError(), nullValue());
-    }
+    assertThat(dto.getError()).isEqualTo(error);
 
     Member[] members = dto.getMembers().toArray(new Member[0]);
-    assertThat(members, is(notNullValue()));
-    assertThat(members.length, is(1));
+    assertThat(members).hasSize(1);
     assertMember(members[0], type, name, displayName, email, realm);
   }
 
@@ -345,10 +329,10 @@ public class UserResourceTest
                             final String email,
                             final String realm)
   {
-    assertThat(member.getType(), is(type));
-    assertThat(member.getInternalName(), is(name));
-    assertThat(member.getDisplayName(), is(displayName));
-    assertThat(member.getEmail(), is(email));
-    assertThat(member.getRealm(), is(realm));
+    assertThat(member.getType()).isEqualTo(type);
+    assertThat(member.getInternalName()).isEqualTo(name);
+    assertThat(member.getDisplayName()).isEqualTo(displayName);
+    assertThat(member.getEmail()).isEqualTo(email);
+    assertThat(member.getRealm()).isEqualTo(realm);
   }
 }

@@ -28,9 +28,7 @@ import com.google.common.collect.Sets;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthorizationCheckerTest
 {
@@ -67,7 +65,7 @@ public class AuthorizationCheckerTest
     Collection<String> contextIds = Arrays.asList("app", "org", MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal admin = newPrincipal(user);
-    assertThat(checker.isPermitted(admin, Permission.CONFIGURE_SYSTEM, contextIds), is(true));
+    assertThat(checker.isPermitted(admin, Permission.CONFIGURE_SYSTEM, contextIds)).isTrue();
   }
 
   @Test
@@ -77,10 +75,10 @@ public class AuthorizationCheckerTest
     Collection<String> contextIds = Arrays.asList("app", "org", MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal admin = newPrincipal(user);
-    assertThat(checker.isPermitted(admin, Permission.READ, contextIds), is(true));
-    assertThat(checker.isPermitted(admin, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(admin, Permission.EVALUATE_APPLICATION, contextIds), is(true));
-    assertThat(checker.isPermitted(admin, Permission.EVALUATE_COMPONENT, contextIds), is(true));
+    assertThat(checker.isPermitted(admin, Permission.READ, contextIds)).isTrue();
+    assertThat(checker.isPermitted(admin, Permission.WRITE, contextIds)).isTrue();
+    assertThat(checker.isPermitted(admin, Permission.EVALUATE_APPLICATION, contextIds)).isTrue();
+    assertThat(checker.isPermitted(admin, Permission.EVALUATE_COMPONENT, contextIds)).isTrue();
   }
 
   @Test
@@ -92,9 +90,9 @@ public class AuthorizationCheckerTest
     Collection<String> contextIds = Arrays.asList(app.getId());
 
     UserPrincipal owner = newPrincipal(user);
-    assertThat(checker.isPermitted(owner, Permission.READ, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
+    assertThat(checker.isPermitted(owner, Permission.READ, contextIds)).isTrue();
+    assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds)).isTrue();
+    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds)).isFalse();
   }
 
   @Test
@@ -106,9 +104,9 @@ public class AuthorizationCheckerTest
     Collection<String> contextIds = Arrays.asList(app.getId());
 
     UserPrincipal developer = newPrincipal(user);
-    assertThat(checker.isPermitted(developer, Permission.READ, contextIds), is(true));
-    assertThat(checker.isPermitted(developer, Permission.WRITE, contextIds), is(false));
-    assertThat(checker.isPermitted(developer, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
+    assertThat(checker.isPermitted(developer, Permission.READ, contextIds)).isTrue();
+    assertThat(checker.isPermitted(developer, Permission.WRITE, contextIds)).isFalse();
+    assertThat(checker.isPermitted(developer, Permission.CONFIGURE_SYSTEM, contextIds)).isFalse();
   }
 
   @Test
@@ -120,7 +118,7 @@ public class AuthorizationCheckerTest
 
     UserPrincipal userPrincipal = newPrincipal(user);
     for (Permission perm : Permission.values()) {
-      assertThat(perm.toString(), checker.isPermitted(userPrincipal, perm, contextIds), is(false));
+      assertThat(checker.isPermitted(userPrincipal, perm, contextIds)).as(perm.toString()).isFalse();
     }
   }
 
@@ -131,7 +129,7 @@ public class AuthorizationCheckerTest
     Collection<String> contextIds = Arrays.asList(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID);
 
     for (Permission perm : Permission.values()) {
-      assertThat(perm.toString(), checker.isPermitted(null, perm, contextIds), is(false));
+      assertThat(checker.isPermitted(null, perm, contextIds)).as(perm.toString()).isFalse();
     }
   }
 
@@ -141,21 +139,21 @@ public class AuthorizationCheckerTest
     Application app = tempEntity.newApplication(org.getId());
     User user = tempEntity.newUser();
     Permission globalPermission = Permission.CONFIGURE_SYSTEM;
-    assertThat(globalPermission.isGlobal(), is(true));
+    assertThat(globalPermission.isGlobal()).isTrue();
     Permission nonGlobalPermission = Permission.READ;
-    assertThat(nonGlobalPermission.isGlobal(), is(false));
+    assertThat(nonGlobalPermission.isGlobal()).isFalse();
     Role role = tempEntity.newRole(false /* global */, globalPermission, nonGlobalPermission);
     String groupName = "group";
     newGroupMapping(groupName, app.getId(), role.getId());
     Collection<String> contextIds = Arrays.asList(app.getId());
 
     UserPrincipal userPrincipalNoGroups = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipalNoGroups, globalPermission, contextIds), is(false));
-    assertThat(checker.isPermitted(userPrincipalNoGroups, nonGlobalPermission, contextIds), is(false));
+    assertThat(checker.isPermitted(userPrincipalNoGroups, globalPermission, contextIds)).isFalse();
+    assertThat(checker.isPermitted(userPrincipalNoGroups, nonGlobalPermission, contextIds)).isFalse();
 
     UserPrincipal userPrincipalWithGroup = newPrincipal(user, groupName);
-    assertThat(checker.isPermitted(userPrincipalWithGroup, globalPermission, contextIds), is(true));
-    assertThat(checker.isPermitted(userPrincipalWithGroup, nonGlobalPermission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipalWithGroup, globalPermission, contextIds)).isTrue();
+    assertThat(checker.isPermitted(userPrincipalWithGroup, nonGlobalPermission, contextIds)).isTrue();
   }
 
   @Test
@@ -167,9 +165,9 @@ public class AuthorizationCheckerTest
     Collection<String> contextIds = Arrays.asList(app.getId(), org.getId());
 
     UserPrincipal owner = newPrincipal(user);
-    assertThat(checker.isPermitted(owner, Permission.READ, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
+    assertThat(checker.isPermitted(owner, Permission.READ, contextIds)).isTrue();
+    assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds)).isTrue();
+    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds)).isFalse();
   }
 
   @Test
@@ -180,8 +178,8 @@ public class AuthorizationCheckerTest
     newMembershipMapping(user, entities.get(0).getId(), role.getId());
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION),
-        is((Object) Arrays.asList(entities.get(0))));
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION))
+        .containsExactly(entities.get(0));
   }
 
   @Test
@@ -194,8 +192,8 @@ public class AuthorizationCheckerTest
     newMembershipMapping(user, entities.get(1).getId(), role.getId());
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.APPLICATION),
-        is((Object) Arrays.asList(entities.get(1))));
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.APPLICATION))
+        .containsExactly(entities.get(1));
   }
 
   @Test
@@ -206,8 +204,8 @@ public class AuthorizationCheckerTest
     newMembershipMapping(user, entities.get(0).getId(), role.getId());
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.REPOSITORY),
-        is((Object) Arrays.asList(entities.get(0))));
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.REPOSITORY))
+        .containsExactly(entities.get(0));
   }
 
   @Test
@@ -218,8 +216,8 @@ public class AuthorizationCheckerTest
     newGroupMapping("group", entities.get(0).getId(), role.getId());
 
     UserPrincipal userPrincipal = newPrincipal(user, "group");
-    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION),
-        is((Object) Arrays.asList(entities.get(0))));
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION))
+        .containsExactly(entities.get(0));
   }
 
   @Test
@@ -229,8 +227,8 @@ public class AuthorizationCheckerTest
     UserPrincipal userPrincipal = newPrincipal(user);
 
     for (Permission perm : Permission.values()) {
-      assertThat(perm.toString(),
-          checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION), is(empty()));
+      assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION))
+          .as(perm.toString()).isEmpty();
     }
   }
 
@@ -238,8 +236,8 @@ public class AuthorizationCheckerTest
   public void testFilter_AnonymousHasNoAccess() {
     Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
     for (Permission perm : Permission.values()) {
-      assertThat(perm.toString(), checker.filterByPermission(null, Permission.READ, entities, Context.ORGANIZATION),
-          is(empty()));
+      assertThat(checker.filterByPermission(null, Permission.READ, entities, Context.ORGANIZATION)).as(perm.toString())
+          .isEmpty();
     }
   }
 
@@ -257,8 +255,8 @@ public class AuthorizationCheckerTest
     newMembershipMapping(user, entities.get(0).getId(), role.getId());
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.APPLICATION),
-        is((Object) Arrays.asList(entities.get(0))));
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.APPLICATION))
+        .containsExactly(entities.get(0));
   }
 
   @Test
@@ -266,18 +264,18 @@ public class AuthorizationCheckerTest
     // The user has a global permission granted via a role in global context.
     User user = tempEntity.newUser("AliBaba");
     Permission permission = Permission.CONFIGURE_SYSTEM;
-    assertThat(permission.isGlobal(), is(true));
+    assertThat(permission.isGlobal()).isTrue();
     Role role = tempEntity.newRole(true /* global */, permission);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
     Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds)).isTrue();
 
     // Verify the user name is checked case insensitive
     user.setUsername("aLIbABA");
     userPrincipal = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds)).isTrue();
   }
 
   @Test
@@ -287,18 +285,18 @@ public class AuthorizationCheckerTest
     Organization org = tempEntity.newOrganization();
     User user = tempEntity.newUser("AliBaba");
     Permission permission = Permission.CONFIGURE_SYSTEM;
-    assertThat(permission.isGlobal(), is(true));
+    assertThat(permission.isGlobal()).isTrue();
     Role role = tempEntity.newRole(false /* global */, permission);
     tempEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername());
     Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds)).isTrue();
 
     // Verify the user name is checked case insensitive
     user.setUsername("aLIbABA");
     userPrincipal = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds)).isTrue();
   }
 
   @Test
@@ -306,13 +304,13 @@ public class AuthorizationCheckerTest
     // The user has a non-global permission granted via a role in global context.
     User user = tempEntity.newUser();
     Permission permission = Permission.EVALUATE_APPLICATION;
-    assertThat(permission.isGlobal(), is(false));
+    assertThat(permission.isGlobal()).isFalse();
     Role role = tempEntity.newRole(true /* global */, permission);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
     Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds)).isTrue();
   }
 
   @Test
@@ -322,12 +320,12 @@ public class AuthorizationCheckerTest
     Organization org = tempEntity.newOrganization();
     User user = tempEntity.newUser();
     Permission permission = Permission.EVALUATE_APPLICATION;
-    assertThat(permission.isGlobal(), is(false));
+    assertThat(permission.isGlobal()).isFalse();
     Role role = tempEntity.newRole(false /* global */, permission);
     tempEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername());
     Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal userPrincipal = newPrincipal(user);
-    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(false));
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds)).isFalse();
   }
 }

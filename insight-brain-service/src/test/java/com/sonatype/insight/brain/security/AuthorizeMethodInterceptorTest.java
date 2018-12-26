@@ -19,11 +19,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -77,7 +74,7 @@ public class AuthorizeMethodInterceptorTest
   public void testGetContextParameters_None() throws Exception {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     Map<AuthzContext.Key, Object> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
-    assertThat(params.entrySet(), is(empty()));
+    assertThat(params).isEmpty();
   }
 
   @Test
@@ -86,9 +83,8 @@ public class AuthorizeMethodInterceptorTest
         getClass().getMethod("stubSomeContext", String.class, String.class, String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "app", "dev", "foo" });
     Map<AuthzContext.Key, Object> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
-    assertThat(params.keySet(), containsInAnyOrder(AuthzContext.Key.TYPE, AuthzContext.Key.ID));
-    assertThat(params.get(AuthzContext.Key.TYPE), is((Object) "app"));
-    assertThat(params.get(AuthzContext.Key.ID), is((Object) "dev"));
+    assertThat(params).containsOnlyKeys(AuthzContext.Key.TYPE, AuthzContext.Key.ID)
+        .containsEntry(AuthzContext.Key.TYPE, "app").containsEntry(AuthzContext.Key.ID, "dev");
   }
 
   @Test
@@ -98,7 +94,7 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.proceed()).thenReturn("test");
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMap())).thenReturn(true);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
-    assertThat(interceptor.invoke(invoc), is((Object) "test"));
+    assertThat(interceptor.invoke(invoc)).isEqualTo("test");
   }
 
   @Test
@@ -106,7 +102,7 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContextAnonymousAllowed", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    assertThat(interceptor.invoke(invoc), is((Object) "test"));
+    assertThat(interceptor.invoke(invoc)).isEqualTo("test");
   }
 
   @Test
@@ -116,13 +112,9 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.proceed()).thenReturn("test");
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
-    try {
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
       interceptor.invoke(invoc);
-      fail("Should have thrown UnauthorizedException");
-    }
-    catch (UnauthorizedException e) {
-      assertThat(e.getMessage(), is("Insufficient permissions"));
-    }
+    }).withMessage("Insufficient permissions");
   }
 
   @Test
@@ -130,13 +122,9 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(true);
-    try {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
       interceptor.invoke(invoc);
-      fail("Should have thrown UnauthenticatedException");
-    }
-    catch (UnauthenticatedException e) {
-      assertThat(e.getMessage(), is("Anonymous access forbidden"));
-    }
+    }).withMessage("Anonymous access forbidden");
   }
 
   private UserPrincipal adminPrincipal() {

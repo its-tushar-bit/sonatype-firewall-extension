@@ -16,16 +16,12 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MemberAttributeResolverTest
     extends InjectedTest
@@ -132,8 +128,8 @@ public class MemberAttributeResolverTest
     tempEntity.newLdapConnection(ldapServer2.getId(), embeddedLdapServer2.getPort());
     tempEntity.newLdapUserMapping(ldapServer2.getId());
 
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer1), is(false));
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer2), is(true));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer1)).isFalse();
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer2)).isTrue();
 
     final Member groupMember1 = new Member();
     groupMember1.setType(MemberType.GROUP);
@@ -147,7 +143,7 @@ public class MemberAttributeResolverTest
     
     memberAttributeResolver.resolve(members);
 
-    assertThat(members, hasSize(2));
+    assertThat(members).hasSize(2);
     assertMember(groupMember1, MemberType.GROUP, "Alpha1", null, null, null);
     assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2");
   }
@@ -202,15 +198,10 @@ public class MemberAttributeResolverTest
                             String email,
                             String realm)
   {
-    assertThat(member.getType(), is(type));
-    assertThat(member.getInternalName(), is(internalName));
-    assertThat(member.getDisplayName(), is(displayName));
-    if (StringUtils.isNotEmpty(email)) {
-      assertThat(member.getEmail(), is(email));
-    }
-    else {
-      assertThat(member.getEmail(), is(nullValue()));
-    }
-    assertThat(member.getRealm(), is(realm));
+    assertThat(member.getType()).isEqualTo(type);
+    assertThat(member.getInternalName()).isEqualTo(internalName);
+    assertThat(member.getDisplayName()).isEqualTo(displayName);
+    assertThat(member.getEmail()).isEqualTo(email);
+    assertThat(member.getRealm()).isEqualTo(realm);
   }
 }

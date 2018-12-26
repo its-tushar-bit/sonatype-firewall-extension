@@ -17,8 +17,7 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import org.apache.shiro.authc.AuthenticationException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -38,8 +37,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
 
     final AuthenticationException authException = new AuthenticationException();
 
-    assertThat(userFriendlyBasicHttpAuthenticationFilter.onLoginFailure(null, authException, null, response),
-        is(false));
+    assertThat(userFriendlyBasicHttpAuthenticationFilter.onLoginFailure(null, authException, null, response)).isFalse();
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verify(response).setContentType(ErrorResponse.CONTENT_TYPE);
@@ -56,7 +54,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
     final ServletResponse response = mock(ServletResponse.class);
     when(response.isCommitted()).thenReturn(true);
 
-    assertThat(userFriendlyBasicHttpAuthenticationFilter.sendChallenge(null, response), is(false));
+    assertThat(userFriendlyBasicHttpAuthenticationFilter.sendChallenge(null, response)).isFalse();
 
     verify(response).isCommitted();
     verifyNoMoreInteractions(response);
@@ -67,7 +65,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
     final HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.isCommitted()).thenReturn(false);
 
-    assertThat(userFriendlyBasicHttpAuthenticationFilter.sendChallenge(null, response), is(false));
+    assertThat(userFriendlyBasicHttpAuthenticationFilter.sendChallenge(null, response)).isFalse();
 
     verify(response).isCommitted();
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -15,10 +15,7 @@ import com.sonatype.insight.brain.security.MemberDTO.UserMemberDTO;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MemberDTOTest
 {
@@ -27,9 +24,9 @@ public class MemberDTOTest
     Member userMember = member(MemberType.USER);
     MemberDTO memberDTO = MemberDTO.transcribe(userMember);
 
-    assertThat(memberDTO, instanceOf(UserMemberDTO.class));
+    assertThat(memberDTO).isInstanceOf(UserMemberDTO.class);
     UserMemberDTO userMemberDTO = (UserMemberDTO) memberDTO;
-    assertThat(userMemberDTO.username, is(userMember.getInternalName()));
+    assertThat(userMemberDTO.username).isEqualTo(userMember.getInternalName());
   }
 
   @Test
@@ -37,9 +34,9 @@ public class MemberDTOTest
     Member groupMember = member(MemberType.GROUP);
     MemberDTO memberDTO = MemberDTO.transcribe(groupMember);
 
-    assertThat(memberDTO, instanceOf(GroupMemberDTO.class));
+    assertThat(memberDTO).isInstanceOf(GroupMemberDTO.class);
     GroupMemberDTO groupMemberDTO = (GroupMemberDTO) memberDTO;
-    assertThat(groupMemberDTO.groupName, is(groupMember.getInternalName()));
+    assertThat(groupMemberDTO.groupName).isEqualTo(groupMember.getInternalName());
   }
 
   @Test
@@ -47,7 +44,7 @@ public class MemberDTOTest
     Set<MemberDTO> memberDTOs = MemberDTO
         .transcribe(Stream.of(MemberType.values()).map(this::member).collect(Collectors.toList()));
 
-    assertThat(memberDTOs, hasSize(MemberType.values().length));
+    assertThat(memberDTOs).hasSameSizeAs(MemberType.values());
   }
 
   private Member member(MemberType memberType) {

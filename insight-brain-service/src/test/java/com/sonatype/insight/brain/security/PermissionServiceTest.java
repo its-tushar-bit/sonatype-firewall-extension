@@ -16,8 +16,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PermissionServiceTest
     extends AbstractServiceAuthzTest
@@ -28,8 +27,8 @@ public class PermissionServiceTest
   private static final Permission[] NONE = {};
 
   private void assertPermissions(OwnerType ownerType, String ownerId, Permission... expected) {
-    assertThat(service.hasPermissions(subject, ownerType, ownerId, EnumSet.allOf(Permission.class)),
-        containsInAnyOrder(expected));
+    assertThat(service.hasPermissions(subject, ownerType, ownerId, EnumSet.allOf(Permission.class)))
+        .containsExactlyInAnyOrder(expected);
   }
 
   @Test

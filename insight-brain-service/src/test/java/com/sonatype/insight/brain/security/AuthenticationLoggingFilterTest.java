@@ -24,10 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,13 +43,13 @@ public class AuthenticationLoggingFilterTest
   @Before
   public void setup() {
     MDC.remove(MDCUsernameScope.USERNAME);
-    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
   @After
   public void cleanup() {
     MDC.remove(MDCUsernameScope.USERNAME);
-    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
   @Test
@@ -64,7 +61,7 @@ public class AuthenticationLoggingFilterTest
 
     filter.doFilter(request, response, chain);
 
-    assertThat(chain.mdcUsername, is(username));
+    assertThat(chain.mdcUsername).isEqualTo(username);
     assertJettyRequestAuthentication(username);
   }
 
@@ -75,7 +72,7 @@ public class AuthenticationLoggingFilterTest
 
     filter.doFilter(request, response, chain);
 
-    assertThat(chain.mdcUsername, is(MDCUsernameScope.ANONYMOUS));
+    assertThat(chain.mdcUsername).isEqualTo(MDCUsernameScope.ANONYMOUS);
     assertJettyRequestAuthentication(null);
   }
 
@@ -87,7 +84,7 @@ public class AuthenticationLoggingFilterTest
     filter.doFilter(request, response, mock(FilterChain.class));
 
     Map<String, String> contextMap = MDC.getCopyOfContextMap();
-    assertThat(contextMap == null || contextMap.isEmpty(), is(true));
+    assertThat(contextMap).isNullOrEmpty();
   }
 
   @Test
@@ -102,18 +99,19 @@ public class AuthenticationLoggingFilterTest
 
     filter.doFilter(request, response, chain);
 
-    assertThat(chain.mdcUsername, is(username));
+    assertThat(chain.mdcUsername).isEqualTo(username);
     assertJettyRequestAuthentication(username);
   }
 
   private void assertJettyRequestAuthentication(String username) {
     Authentication authentication = jettyRequest.getAuthentication();
     if (username == null) {
-      assertThat(authentication, nullValue());
+      assertThat(authentication).isNull();
     }
     else {
-      assertThat(authentication, instanceOf(UserAuthentication.class));
-      assertThat(((UserAuthentication) authentication).getUserIdentity().getUserPrincipal().getName(), is(username));
+      assertThat(authentication).isInstanceOf(UserAuthentication.class);
+      assertThat(((UserAuthentication) authentication).getUserIdentity().getUserPrincipal().getName())
+          .isEqualTo(username);
     }
   }
 

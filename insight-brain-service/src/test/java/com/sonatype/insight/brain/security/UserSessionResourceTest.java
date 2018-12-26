@@ -16,12 +16,7 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserSessionResourceTest
     extends AbstractResourceTest
@@ -61,20 +56,20 @@ public class UserSessionResourceTest
     HttpResponse response = login("admin2", "admin");
     assertResponseStatus(401, response);
     // see: com.sonatype.insight.brain.security.UserFriendlyBasicHttpAuthenticationFilter.sendChallenge()
-    assertEquals(response.getHeader("WWW-Authenticate"), null);
-    assertEquals(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT, response.getBodyText());
+    assertThat(response.getHeader("WWW-Authenticate")).isNull();
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
 
     // now run the test with bad password
     response = login(User.ADMIN_USERNAME, "wrong password");
     assertResponseStatus(401, response);
-    assertEquals(response.getHeader("WWW-Authenticate"), null);
-    assertEquals(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT, response.getBodyText());
+    assertThat(response.getHeader("WWW-Authenticate")).isNull();
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
 
     // now run the test with no header, validate failure
     response = login();
     assertResponseStatus(401, response);
-    assertEquals(response.getHeader("WWW-Authenticate"), null);
-    assertEquals(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT, response.getBodyText());
+    assertThat(response.getHeader("WWW-Authenticate")).isNull();
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
 
     // now run with valid data
     response = login(User.ADMIN_USERNAME, "admin123");
@@ -82,8 +77,8 @@ public class UserSessionResourceTest
 
     // validate cookie is present
     HttpCookie loggedInSessionCookie = response.getSessionCookie();
-    assertThat(loggedInSessionCookie, is(notNullValue()));
-    assertFalse(loggedInSessionCookie.getValue().equals("deleteMe"));
+    assertThat(loggedInSessionCookie).isNotNull();
+    assertThat(loggedInSessionCookie.getValue()).isNotEqualTo("deleteMe");
 
     // logout is successful
     response = logout(loggedInSessionCookie);
@@ -91,8 +86,8 @@ public class UserSessionResourceTest
 
     // logout removes session id
     HttpCookie logoutSessionCookie = response.getSessionCookie();
-    assertThat(logoutSessionCookie, is(notNullValue()));
-    assertTrue(logoutSessionCookie.getValue().equals("deleteMe"));
+    assertThat(logoutSessionCookie).isNotNull();
+    assertThat(logoutSessionCookie.getValue()).isEqualTo("deleteMe");
   }
 
   @Test
@@ -109,13 +104,13 @@ public class UserSessionResourceTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     response = status(sessionCookie);
     assertResponseStatus(200, response);
     AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
-    assertTrue(status.isAuthenticated());
-    assertEquals(User.ADMIN_USERNAME, status.getUsername());
+    assertThat(status.isAuthenticated()).isTrue();
+    assertThat(status.getUsername()).isEqualTo(User.ADMIN_USERNAME);
 
     response = logout(sessionCookie);
     assertResponseStatus(204, response);
@@ -138,8 +133,8 @@ public class UserSessionResourceTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
-    assertThat(sessionCookie.getSecure(), is(false));
+    assertThat(sessionCookie).isNotNull();
+    assertThat(sessionCookie.getSecure()).isFalse();
   }
 
   @Test
@@ -148,7 +143,7 @@ public class UserSessionResourceTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
-    assertThat(sessionCookie.getSecure(), is(true));
+    assertThat(sessionCookie).isNotNull();
+    assertThat(sessionCookie.getSecure()).isTrue();
   }
 }

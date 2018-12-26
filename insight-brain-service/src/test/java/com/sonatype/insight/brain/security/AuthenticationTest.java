@@ -23,9 +23,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -82,14 +81,11 @@ public class AuthenticationTest
     Error error = new Error("Test");
     when(mockRealm.supports(any(AuthenticationToken.class))).thenThrow(new RuntimeException(error));
 
-    try {
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
       subject.login(new UsernamePasswordToken("username", "password"));
-      fail("Expected exception");
-    }
-    catch (AuthenticationException expected) {
-      // The java.lang.Error must get to the handler for Errors,
-      // which in a real system will (probably) terminate the JVM.
-      assertThat(javaLangErrorHandler.getLastFatalError(), is(error));
-    }
+    });
+    // The java.lang.Error must get to the handler for Errors,
+    // which in a real system will (probably) terminate the JVM.
+    assertThat(javaLangErrorHandler.getLastFatalError()).isEqualTo(error);
   }
 }

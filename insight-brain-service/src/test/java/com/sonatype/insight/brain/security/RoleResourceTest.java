@@ -18,14 +18,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RoleResourceTest
     extends AbstractResourceTest
@@ -44,7 +37,7 @@ public class RoleResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     RoleDTO[] roles = response.getBody(RoleDTO[].class);
-    assertThat(roles, not(emptyArray()));
+    assertThat(roles).isNotEmpty();
   }
 
   @Test
@@ -53,8 +46,8 @@ public class RoleResourceTest
     HttpResponse response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).get();
     assertResponseStatus(200, response);
     RoleDTO roleDTO = response.getBody(RoleDTO.class);
-    assertThat(roleDTO, notNullValue());
-    assertThat(roleDTO.id, is(role.getId()));
+    assertThat(roleDTO).isNotNull();
+    assertThat(roleDTO.id).isEqualTo(role.getId());
   }
 
   @Test
@@ -62,8 +55,8 @@ public class RoleResourceTest
     HttpResponse response = restRequest().path(RoleResource.NEW_PATH).get();
     assertResponseStatus(200, response);
     RoleDTO role = response.getBody(RoleDTO.class);
-    assertThat(role, notNullValue());
-    assertThat(role.permissionCategories, hasSize(2));
+    assertThat(role).isNotNull();
+    assertThat(role.permissionCategories).hasSize(2);
   }
 
   @Test
@@ -78,7 +71,7 @@ public class RoleResourceTest
     HttpResponse response = restRequest().body(roleDTO).post();
     assertResponseStatus(200, response);
     RoleDTO newRoleDTO = response.getBody(RoleDTO.class);
-    assertThat(newRoleDTO.id, is(notNullValue()));
+    assertThat(newRoleDTO.id).isNotNull();
     tempEntity.register(roleDAO.getByIdNotNull(newRoleDTO.id));
 
     assertRoleDTO(newRoleDTO, roleDTO, categoryDisplayName);
@@ -98,7 +91,7 @@ public class RoleResourceTest
     HttpResponse response = restRequest().body(roleDTO).put();
     assertResponseStatus(200, response);
     RoleDTO updatedRoleDTO = response.getBody(RoleDTO.class);
-    assertThat(updatedRoleDTO.id, is(roleDTO.id));
+    assertThat(updatedRoleDTO.id).isEqualTo(roleDTO.id);
 
     assertRoleDTO(updatedRoleDTO, roleDTO, categoryDisplayName);
     assertRole(roleDTO, Permission.READ, Permission.WRITE);
@@ -109,7 +102,7 @@ public class RoleResourceTest
     Role role = tempEntity.newRole(false);
     HttpResponse response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).delete();
     assertResponseStatus(204, response);
-    assertThat(new RoleDAO().getById(role.getId()), is(nullValue()));
+    assertThat(new RoleDAO().getById(role.getId())).isNull();
   }
 
   private PermissionCategoryDTO createPermissionCategoryDTO(final String categoryDisplayName) {
@@ -124,27 +117,22 @@ public class RoleResourceTest
                              final RoleDTO expectedRole,
                              final String expectedPermissionCategoryName)
   {
-    assertThat(actualRole.name, is(expectedRole.name));
-    assertThat(actualRole.description, is(expectedRole.description));
-    assertThat(actualRole.permissionCategories, hasSize(1));
+    assertThat(actualRole.name).isEqualTo(expectedRole.name);
+    assertThat(actualRole.description).isEqualTo(expectedRole.description);
+    assertThat(actualRole.permissionCategories).hasSize(1);
 
     PermissionCategoryDTO actualPermissionCategoryDTO = actualRole.permissionCategories.get(0);
-    assertThat(actualPermissionCategoryDTO.displayName, is(expectedPermissionCategoryName));
-    assertThat(actualPermissionCategoryDTO.permissions, hasSize(2));
-    actualPermissionCategoryDTO.permissions.sort((o1, o2) -> {
-      return o1.id.compareTo(o2.id);
-    });
-
-    assertThat(actualPermissionCategoryDTO.permissions.get(0).id, is(Permission.WRITE));
-    assertThat(actualPermissionCategoryDTO.permissions.get(1).id, is(Permission.READ));
+    assertThat(actualPermissionCategoryDTO.displayName).isEqualTo(expectedPermissionCategoryName);
+    assertThat(actualPermissionCategoryDTO.permissions).extracting(dto -> dto.id)
+        .containsExactlyInAnyOrder(Permission.WRITE, Permission.READ);
   }
 
   private void assertRole(final RoleDTO expected, final Permission... expectedPermissions) {
     Role updatedRole = roleDAO.getByIdNotNull(expected.id);
-    assertThat(updatedRole.getId(), is(expected.id));
-    assertThat(updatedRole.getName(), is(expected.name));
-    assertThat(updatedRole.getDescription(), is(expected.description));
+    assertThat(updatedRole.getId()).isEqualTo(expected.id);
+    assertThat(updatedRole.getName()).isEqualTo(expected.name);
+    assertThat(updatedRole.getDescription()).isEqualTo(expected.description);
     Set<Permission> updatedPermissions = rolePermissionDAO.getPermissionsForRole(expected.id);
-    assertThat(updatedPermissions, containsInAnyOrder(expectedPermissions));
+    assertThat(updatedPermissions).containsExactlyInAnyOrder(expectedPermissions);
   }
 }

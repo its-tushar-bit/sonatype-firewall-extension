@@ -17,9 +17,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.eclipse.jetty.server.Response;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -37,13 +35,9 @@ public class LoginErrorResponseHandlerTest
 
     errorResponse = new ErrorResponse(HttpServletResponse.SC_ACCEPTED, null);
 
-    try {
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       LoginErrorResponseHandler.sendError(response, errorResponse);
-      fail("Expected exception");
-    }
-    catch (RuntimeException e) {
-      assertThat(e.getCause(), is((Throwable) ioException));
-    }
+    }).withCause(ioException);
   }
 
   @Test

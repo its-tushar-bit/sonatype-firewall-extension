@@ -21,11 +21,7 @@ import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -45,7 +41,7 @@ public class UserServiceAuthzTest
   @Test
   public void testGetAll_Authorized() throws Exception {
     grantConfigureSystemPermission();
-    assertThat(userService.getAll(), is(not(empty())));
+    assertThat(userService.getAll()).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -64,8 +60,8 @@ public class UserServiceAuthzTest
     grantConfigureSystemPermission();
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, "*", false /* groupsEnabled */);
-    assertThat(findMembersDTO.getError(), is(nullValue()));
-    assertThat(findMembersDTO.getMembers(), is(not(empty())));
+    assertThat(findMembersDTO.getError()).isNull();
+    assertThat(findMembersDTO.getMembers()).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -84,8 +80,8 @@ public class UserServiceAuthzTest
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.REPOSITORY_CONTAINER, null, "*", false /* groupsEnabled */);
-    assertThat(findMembersDTO.getError(), is(nullValue()));
-    assertThat(findMembersDTO.getMembers(), is(not(empty())));
+    assertThat(findMembersDTO.getError()).isNull();
+    assertThat(findMembersDTO.getMembers()).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -104,8 +100,8 @@ public class UserServiceAuthzTest
     grantWritePermission(app.getId());
     FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.APPLICATION, app.getPublicId(), "*",
         false /* groupsEnabled */);
-    assertThat(findMembersDTO.getError(), is(nullValue()));
-    assertThat(findMembersDTO.getMembers(), is(not(empty())));
+    assertThat(findMembersDTO.getError()).isNull();
+    assertThat(findMembersDTO.getMembers()).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -124,8 +120,8 @@ public class UserServiceAuthzTest
     grantWritePermission(org.getId());
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
-    assertThat(findMembersDTO.getError(), is(nullValue()));
-    assertThat(findMembersDTO.getMembers(), is(not(empty())));
+    assertThat(findMembersDTO.getError()).isNull();
+    assertThat(findMembersDTO.getMembers()).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)

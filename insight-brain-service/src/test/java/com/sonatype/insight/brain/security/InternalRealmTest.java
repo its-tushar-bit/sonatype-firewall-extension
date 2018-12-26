@@ -20,17 +20,8 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @since 1.7
@@ -56,16 +47,14 @@ public class InternalRealmTest
         "admin123".toCharArray());
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertNotNull(principalCollection);
-    assertFalse(principalCollection.isEmpty());
+    assertThat(principalCollection).isNotEmpty();
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true), principal);
-    assertFalse(principalIterator.hasNext());
-    assertThat(principalCollection.getRealmNames(), hasSize(1));
-    assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
-    assertThat((String) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM="));
+    assertThat(principal).isEqualTo(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials())
+        .isEqualTo("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=");
   }
 
   /**
@@ -76,7 +65,7 @@ public class InternalRealmTest
   public void testDoGetAuthenticationInfo_UnknownUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("Yeti", "admin123".toCharArray());
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
-    assertThat(authenticationInfo, nullValue());
+    assertThat(authenticationInfo).isNull();
   }
 
   /**
@@ -95,17 +84,15 @@ public class InternalRealmTest
         "Oops! Wrong password!".toCharArray());
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertNotNull(principalCollection);
-    assertFalse(principalCollection.isEmpty());
+    assertThat(principalCollection).isNotEmpty();
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true), principal);
-    assertFalse(principalIterator.hasNext());
-    assertThat(principalCollection.getRealmNames(), hasSize(1));
-    assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
+    assertThat(principal).isEqualTo(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     // The credentials must be the hashed password from the db, not the (wrong) password or its hash passed in as param.
-    assertThat((String) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM="));
+    assertThat(authenticationInfo.getCredentials())
+        .isEqualTo("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=");
   }
 
   /**
@@ -115,13 +102,9 @@ public class InternalRealmTest
   @Test
   public void testDoGetAuthenticationInfo_NullUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(null /* username */, (char[]) null);
-    try {
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
       realm.doGetAuthenticationInfo(usernamePasswordToken);
-      fail("Expected AuthenticationException");
-    }
-    catch (AuthenticationException expected) {
-      assertThat(expected.getMessage(), is("The username is required"));
-    }
+    }).withMessage("The username is required");
   }
 
   /**
@@ -131,13 +114,9 @@ public class InternalRealmTest
   @Test
   public void testDoGetAuthenticationInfo_EmptyUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(" " /* username */, (char[]) null);
-    try {
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
       realm.doGetAuthenticationInfo(usernamePasswordToken);
-      fail("Expected AuthenticationException");
-    }
-    catch (AuthenticationException expected) {
-      assertThat(expected.getMessage(), is("The username is required"));
-    }
+    }).withMessage("The username is required");
   }
 
   /**
@@ -152,16 +131,14 @@ public class InternalRealmTest
         "admin123".toCharArray());
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertNotNull(principalCollection);
-    assertFalse(principalCollection.isEmpty());
+    assertThat(principalCollection).isNotEmpty();
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true), principal);
-    assertFalse(principalIterator.hasNext());
-    assertThat(principalCollection.getRealmNames(), hasSize(1));
-    assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
-    assertThat((String) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM="));
+    assertThat(principal).isEqualTo(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials())
+        .isEqualTo("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=");
   }
 
   /**
@@ -173,26 +150,22 @@ public class InternalRealmTest
   public void testGetAuthenticationInfo_WrongPassword() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "Oops! Wrong password!".toCharArray());
-    try {
+    assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(() -> {
       realm.getAuthenticationInfo(usernamePasswordToken);
-      fail("Expected IncorrectCredentialsException");
-    }
-    catch (IncorrectCredentialsException expected) {
-    }
+    });
   }
 
   @Test
   public void testEncryptPassword() {
     String password = "admin123";
     String encrypted = realm.encryptPassword(password);
-    assertThat(encrypted, notNullValue());
-    assertThat(encrypted, startsWith("$shiro1$"));
-    assertThat(encrypted.length(), greaterThan(8));
+    assertThat(encrypted).startsWith("$shiro1$");
+    assertThat(encrypted.length()).isGreaterThan(8);
   }
 
   @Test
   public void testEncryptPassword_Null() {
     String encrypted = realm.encryptPassword(null);
-    assertThat(encrypted, nullValue());
+    assertThat(encrypted).isNull();
   }
 }

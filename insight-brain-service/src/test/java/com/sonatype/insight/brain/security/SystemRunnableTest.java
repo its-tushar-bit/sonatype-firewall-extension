@@ -14,9 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SystemRunnableTest
 {
@@ -29,19 +27,19 @@ public class SystemRunnableTest
   @Before
   public void setup() {
     MDC.remove(MDCUsernameScope.USERNAME);
-    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
   @After
   public void cleanup() {
     MDC.remove(MDCUsernameScope.USERNAME);
-    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
   @Test
   public void addsSystemUsernameToMDC() throws InterruptedException {
     testSystemUsernameToMDC();
-    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
   @Test
@@ -49,7 +47,7 @@ public class SystemRunnableTest
     final String username = "foo";
     MDC.put(MDCUsernameScope.USERNAME, username);
     testSystemUsernameToMDC();
-    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(username));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(username);
   }
 
   private void testSystemUsernameToMDC() throws InterruptedException {
@@ -58,8 +56,8 @@ public class SystemRunnableTest
     threadPoolExecutor.shutdown();
     boolean terminated = threadPoolExecutor.awaitTermination(1, TimeUnit.SECONDS);
 
-    assertThat(terminated, is(true));
-    assertThat(runnableStub.username, is(MDCUsernameScope.SYSTEM));
+    assertThat(terminated).isTrue();
+    assertThat(runnableStub.username).isEqualTo(MDCUsernameScope.SYSTEM);
   }
 
   private class RunnableStub

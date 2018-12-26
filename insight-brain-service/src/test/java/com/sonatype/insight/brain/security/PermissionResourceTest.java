@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -20,8 +19,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PermissionResourceTest
     extends AbstractResourceTest
@@ -53,7 +51,7 @@ public class PermissionResourceTest
     HttpResponse response = validateRequest(OwnerType.GLOBAL, "global").body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
-    assertThat(Arrays.asList(response.getBody(Permission[].class)), containsInAnyOrder(Permission.READ));
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }
 
   @Test
@@ -61,7 +59,7 @@ public class PermissionResourceTest
     HttpResponse response = validateRequest(OwnerType.REPOSITORY_CONTAINER).body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
-    assertThat(Arrays.asList(response.getBody(Permission[].class)), containsInAnyOrder(Permission.READ));
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }
 
   @Test
@@ -70,6 +68,6 @@ public class PermissionResourceTest
     HttpResponse response = validateRequest(OwnerType.REPOSITORY_CONTAINER).body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
-    assertThat(Arrays.asList(response.getBody(Permission[].class)), containsInAnyOrder(Permission.READ));
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }
 }

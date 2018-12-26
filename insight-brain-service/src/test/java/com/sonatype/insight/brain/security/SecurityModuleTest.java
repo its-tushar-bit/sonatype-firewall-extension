@@ -15,9 +15,7 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SecurityModuleTest
     extends InjectedTest
@@ -33,6 +31,6 @@ public class SecurityModuleTest
   @Test
   public void testRememberMeManagerIsNullToAvoidDeserializationVuln() {
     // CLM-6473
-    assertThat(((DefaultWebSecurityManager) securityManager).getRememberMeManager(), is(nullValue()));
+    assertThat(((DefaultWebSecurityManager) securityManager).getRememberMeManager()).isNull();
   }
 }

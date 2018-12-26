@@ -17,10 +17,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RoleServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -32,8 +29,7 @@ public class RoleServiceAuthzTest
   public void testGetAllRoles_Authorized() {
     grantGlobalPermission(Permission.VIEW_ROLES);
     List<RoleDTO> roles = roleService.getAllRoles();
-    assertThat(roles, notNullValue());
-    assertThat(roles, not(empty()));
+    assertThat(roles).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -51,7 +47,7 @@ public class RoleServiceAuthzTest
   public void testGetRoleById_Authorized() {
     grantGlobalPermission(Permission.VIEW_ROLES);
     RoleDTO roleDTO = roleService.getRoleById(Role.POLICY_ADMIN_ROLE_ID);
-    assertThat(roleDTO, notNullValue());
+    assertThat(roleDTO).isNotNull();
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -69,7 +65,7 @@ public class RoleServiceAuthzTest
   public void testGetTemplateForNewRole_Authorized() {
     grantGlobalPermission(Permission.EDIT_ROLES);
     RoleDTO roleDTO = roleService.getTemplateForNewRole();
-    assertThat(roleDTO, notNullValue());
+    assertThat(roleDTO).isNotNull();
   }
 
   @Test(expected = UnauthorizedException.class)

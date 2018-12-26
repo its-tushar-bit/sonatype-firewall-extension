@@ -23,10 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -76,7 +73,7 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(null);
     when(subject.getPrincipal()).thenReturn("admin");
-    assertThat(interceptor.invoke(invoc), is(nullValue()));
+    assertThat(interceptor.invoke(invoc)).isNull();
   }
 
   @Test
@@ -91,7 +88,7 @@ public class AuthzFilterMethodInterceptorTest
     when(
         authzChecker.filterByPermission(eq(principal), eq(Permission.READ), eq(entities),
             eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
-    assertThat((Collection<?>) interceptor.invoke(invoc), is(empty()));
+    assertThat((Collection<?>) interceptor.invoke(invoc)).isEmpty();
   }
 
   @Test
@@ -103,7 +100,7 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.proceed()).thenReturn(entities);
     when(authzChecker.filterByPermission(isNull(), eq(Permission.READ), eq(entities),
         eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
-    assertThat((Collection<?>) interceptor.invoke(invoc), is(empty()));
+    assertThat((Collection<?>) interceptor.invoke(invoc)).isEmpty();
   }
 
   @Test
@@ -114,7 +111,6 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);
     Collection<Organization> returnedEntities = (Collection<Organization>) interceptor.invoke(invoc);
-    assertThat(returnedEntities.size(), is(1));
-    assertThat(returnedEntities.iterator().next(), is(entities.iterator().next()));
+    assertThat(returnedEntities).containsExactlyElementsOf(entities);
   }
 }

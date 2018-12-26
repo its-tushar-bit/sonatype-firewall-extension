@@ -17,10 +17,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.realm.Realm;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,13 +39,9 @@ public class FirstSuccessfulRealmAuthenticatorTest
 
     final Collection<Realm> realms = Collections.singletonList(realm);
 
-    try {
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, token);
-      fail("Expected exception");
-    }
-    catch (RuntimeException e) {
-      assertThat(e, is(cause));
-    }
+    }).isEqualTo(cause);
   }
 
   @Test
@@ -57,12 +50,8 @@ public class FirstSuccessfulRealmAuthenticatorTest
     final Realm realm = mock(Realm.class);
     final Collection<Realm> realms = Collections.singletonList(realm);
 
-    try {
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
       firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, mock(AuthenticationToken.class));
-      fail("Expected exception");
-    }
-    catch (AuthenticationException e) {
-      assertThat(e.getMessage(), startsWith("Authentication token of type ["));
-    }
+    }).withMessageStartingWith("Authentication token of type [");
   }
 }

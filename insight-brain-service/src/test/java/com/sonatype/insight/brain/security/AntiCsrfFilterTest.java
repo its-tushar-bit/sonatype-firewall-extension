@@ -20,9 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class AntiCsrfFilterTest
@@ -133,8 +131,8 @@ public class AntiCsrfFilterTest
         .get();
 
     HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
-    assertThat(csrfCookie, notNullValue());
-    assertThat(csrfCookie.getValue(), notNullValue());
+    assertThat(csrfCookie).isNotNull();
+    assertThat(csrfCookie.getValue()).isNotNull();
   }
 
   @Test
@@ -156,17 +154,17 @@ public class AntiCsrfFilterTest
   private void assertAccessIsAllowed(HttpResponse response) {
     // since we aren't providing a proper app id, we will get an error message back from the DAO, which means the
     // request filter passed and endpoint mapping worked.
-    assertThat(response.getBodyText(), is("Could not find an application with public ID testApp."));
+    assertThat(response.getBodyText()).isEqualTo("Could not find an application with public ID testApp.");
     assertResponseStatus(404, response);  // 404 since we are providing an app id that can't be found.
   }
 
   private void assertCrossSiteRequestForgery(HttpResponse response) {
-    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+    assertThat(response.getBodyText()).isEqualTo("Invalid cross-site request forgery token");
     assertResponseStatus(401, response);
   }
 
   private void assertLoginFailure(final HttpResponse response) {
-    assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
     assertResponseStatus(401, response);
   }
 }

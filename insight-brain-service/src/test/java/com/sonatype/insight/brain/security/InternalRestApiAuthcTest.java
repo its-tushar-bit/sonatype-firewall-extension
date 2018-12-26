@@ -27,10 +27,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests authentication aspects of the internal REST API in general.
@@ -48,7 +45,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     HttpRequest request = restRequest().path("rest/any/thing").anon().noCsrfToken().cookie(sessionCookie);
     response = request.get();
@@ -61,7 +58,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     HttpRequest request = restRequest().path("rest/any/thing").anon().noCsrfToken().cookie(sessionCookie);
     response = request.put();
@@ -89,7 +86,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     HttpRequest request = restRequest().path("rest/any/thing").anon().noCsrfToken().cookie(sessionCookie);
     response = request.get();
@@ -115,7 +112,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     HttpRequest request = restRequest().path("rest/any/thing").anon().csrfToken("nonce", null).cookie(sessionCookie);
     response = request.put();
@@ -134,7 +131,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     HttpRequest request = restRequest().path("rest/any/thing").anon().csrfToken(null, "nonce").cookie(sessionCookie);
     response = request.put();
@@ -174,62 +171,62 @@ public class InternalRestApiAuthcTest
     HttpResponse response = request.subpath(PolicyEvaluationSummaryResource.RESOURCE_PATH)
         .parameter("appId", "stageId").get();
     assertResponseStatus(400, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(IdeResource.RESOURCE_PATH, "scan/simple/appId/hash").get();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(IdeResource.RESOURCE_PATH, "scan/enhanced/appId/hash").post();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(ReportResource.RESOURCE_PATH, ReportResource.DOWNLOAD_BUNDLE_PATH)
         .parameter("appId", "scanId").get();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(ApplicationSummaryResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(RepositoryResource.RESOURCE_PATH, RepositoryResource.ENABLE_PATH)
         .parameter(tempEntity.newRepositoryManager().getInstanceId(), "repo", "true").post();
     assertResponseStatus(204, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(ApplicationResource.RESOURCE_PATH, ApplicationResource.GET_APPLICATION_NAMES).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(ApplicationResource.RESOURCE_PATH, ApplicationResource.VALIDATE_PATH).parameter("appId")
         .get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(PolicyEvaluateResource.RESOURCE_PATH).parameter("appId").body("").post();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter("appId").put();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(CLIResource.RESOURCE_PATH, CLIResource.SCAN_PATH).parameter("appId").put();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(RepoManResource.RESOURCE_PATH, RepoManResource.SCAN_PATH).parameter("appId").put();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(ProprietaryConfigResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(LicensedStagesResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
   }
 
   @Test
@@ -237,6 +234,6 @@ public class InternalRestApiAuthcTest
     HttpRequest request = restRequest().path("rest/any/thing").auth().noCsrfToken();
     HttpResponse response = request.get();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
   }
 }

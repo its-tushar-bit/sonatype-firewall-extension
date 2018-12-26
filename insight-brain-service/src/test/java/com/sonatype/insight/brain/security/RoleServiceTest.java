@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -19,12 +17,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RoleServiceTest
     extends AbstractComponentTest
@@ -35,7 +28,7 @@ public class RoleServiceTest
   @Test
   public void testGetAllRoles() {
     List<RoleDTO> roles = roleService.getAllRoles();
-    assertThat(roles.size(), greaterThan(0));
+    assertThat(roles).isNotEmpty();
   }
 
   @Test
@@ -54,16 +47,16 @@ public class RoleServiceTest
   public void testGetRoleById_Builtin() {
     RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
 
-    assertThat(roleDTO.id, is(Role.SYSTEM_ADMIN_ROLE_ID));
-    assertThat(roleDTO.permissionCategories, hasSize(2));
+    assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
+    assertThat(roleDTO.permissionCategories).hasSize(2);
     assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
-    assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
+    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
     assertListedPermissions(category, Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES);
 
     category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
+    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
@@ -74,19 +67,19 @@ public class RoleServiceTest
     Role expectedRole = tempEntity.newRole(false, Permission.WRITE);
 
     RoleDTO roleDTO = roleService.getRoleById(expectedRole.getId());
-    assertThat(roleDTO.id, is(expectedRole.getId()));
-    assertThat(roleDTO.name, is(expectedRole.getName()));
-    assertThat(roleDTO.description, is(expectedRole.getDescription()));
+    assertThat(roleDTO.id).isEqualTo(expectedRole.getId());
+    assertThat(roleDTO.name).isEqualTo(expectedRole.getName());
+    assertThat(roleDTO.description).isEqualTo(expectedRole.getDescription());
 
-    assertThat(roleDTO.permissionCategories, hasSize(2));
+    assertThat(roleDTO.permissionCategories).hasSize(2);
     assertAllowedPermissions(roleDTO, Permission.WRITE);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
-    assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
+    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
     assertListedPermissions(category, Permission.VIEW_ROLES);
 
     category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
+    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
@@ -95,19 +88,19 @@ public class RoleServiceTest
   @Test
   public void testGetTemplateForNewRole() {
     RoleDTO roleDTO = roleService.getTemplateForNewRole();
-    assertThat(roleDTO.id, nullValue());
-    assertThat(roleDTO.name, nullValue());
-    assertThat(roleDTO.description, nullValue());
+    assertThat(roleDTO.id).isNull();
+    assertThat(roleDTO.name).isNull();
+    assertThat(roleDTO.description).isNull();
 
-    assertThat(roleDTO.permissionCategories, hasSize(2));
+    assertThat(roleDTO.permissionCategories).hasSize(2);
     assertAllowedPermissions(roleDTO);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
-    assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
+    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
     assertListedPermissions(category, Permission.VIEW_ROLES);
 
     category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
+    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
@@ -124,23 +117,17 @@ public class RoleServiceTest
   }
 
   private void assertListedPermissions(final PermissionCategoryDTO actual, final Permission... permissions) {
-    assertThat(actual.permissions, hasSize(permissions.length));
+    assertThat(actual.permissions).hasSameSizeAs(permissions);
     for (int i = 0; i < permissions.length; i++) {
-      assertThat(actual.permissions.get(i).id, is(permissions[i]));
-      assertThat(actual.permissions.get(i).displayName, is(permissions[i].getDisplayName()));
-      assertThat(actual.permissions.get(i).description, is(permissions[i].getDescription()));
+      assertThat(actual.permissions.get(i).id).isEqualTo(permissions[i]);
+      assertThat(actual.permissions.get(i).displayName).isEqualTo(permissions[i].getDisplayName());
+      assertThat(actual.permissions.get(i).description).isEqualTo(permissions[i].getDescription());
     }
   }
 
   private void assertAllowedPermissions(final RoleDTO actual, final Permission... permissions) {
-    Set<Permission> allowed = EnumSet.noneOf(Permission.class);
-    for (PermissionCategoryDTO category : actual.permissionCategories) {
-      for (PermissionDTO permission : category.permissions) {
-        if (permission.allowed) {
-          allowed.add(permission.id);
-        }
-      }
-    }
-    assertThat(allowed, containsInAnyOrder(permissions));
+    assertThat(actual.permissionCategories).flatExtracting(category -> category.permissions)
+        .filteredOn(permission -> permission.allowed).extracting(permission -> permission.id)
+        .containsExactlyInAnyOrder(permissions);
   }
 }

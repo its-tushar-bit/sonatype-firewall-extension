@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,21 +40,11 @@ import org.junit.rules.RuleChain;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -63,7 +52,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 public class UserDirectoryTest
     extends AbstractComponentTest
@@ -111,41 +99,29 @@ public class UserDirectoryTest
     Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1", "Alpha2");
     List<Member> members = userDirectory.getUsersByName(names).get();
 
-    assertThat(members, hasSize(2));
-    assertThat(names, hasItems(members.get(0).getInternalName(), members.get(1).getInternalName()));
+    assertThat(members).hasSize(2).extracting(Member::getInternalName).isSubsetOf(names);
 
     // Get both groups and users.
     members = userDirectory
         .getMembersByName(Sets.newHashSet(createUser("clmbob"), createUser("testuser1"), createGroup("Alpha1"), 
             createGroup("Alpha2"))).get();
 
-    assertThat(members, hasSize(4));
-    assertThat(
-        names,
-        containsInAnyOrder(members.get(0).getInternalName(), members.get(1).getInternalName(), members.get(2)
-            .getInternalName(), members.get(3).getInternalName()));
+    assertThat(members).hasSize(4).extracting(Member::getInternalName).containsExactlyInAnyOrderElementsOf(names);
 
     // Get users only, case insensitive.
     names = Sets.newHashSet("CLMBOB", "TESTUSER1", "ALPHA1", "ALPHA2");
     members = userDirectory.getUsersByName(names).get();
 
-    assertThat(members, hasSize(2));
-    assertThat(
-        names,
-        hasItems(members.get(0).getInternalName().toUpperCase(Locale.ENGLISH), members.get(1).getInternalName()
-            .toUpperCase(Locale.ENGLISH)));
+    assertThat(members).hasSize(2).extracting(Member::getInternalName)
+        .usingElementComparator(String.CASE_INSENSITIVE_ORDER).isSubsetOf(names);
 
     // Get users and groups, case insensitive.
     members = userDirectory
         .getMembersByName(Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER1"), createGroup("ALPHA1"), 
             createGroup("ALPHA2"))).get();
 
-    assertThat(members, hasSize(4));
-    assertThat(
-        names,
-        containsInAnyOrder(members.get(0).getInternalName().toUpperCase(Locale.ENGLISH), members.get(1)
-            .getInternalName().toUpperCase(Locale.ENGLISH), members.get(2).getInternalName()
-            .toUpperCase(Locale.ENGLISH), members.get(3).getInternalName().toUpperCase(Locale.ENGLISH)));
+    assertThat(members).hasSize(4).extracting(Member::getInternalName)
+        .usingElementComparator(String.CASE_INSENSITIVE_ORDER).containsExactlyInAnyOrderElementsOf(names);
   }
 
   @Test
@@ -165,17 +141,17 @@ public class UserDirectoryTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
     
-    assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(false));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 
     QueryResult result = userDirectory.getMembersByQuery("testUsers", true);
-    assertThat(result.get(), hasSize(0));
+    assertThat(result.get()).isEmpty();
 
     result = userDirectory.getMembersByName(Collections.singleton(createGroup("testUsers")));
-    assertEquals(1, result.get().size());
+    assertThat(result.get()).hasSize(1);
     Member member = result.get().get(0);
-    assertEquals(MemberType.GROUP, member.getType());
-    assertEquals("testUsers", member.getInternalName());
-    assertEquals(null, member.getRealm());
+    assertThat(member.getType()).isEqualTo(MemberType.GROUP);
+    assertThat(member.getInternalName()).isEqualTo("testUsers");
+    assertThat(member.getRealm()).isNull();
   }
 
   @Test
@@ -198,11 +174,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user has been returned.
-    assertThat(members, hasSize(1));
-    assertThat(names, hasItems(members.get(0).getInternalName()));
-    assertThat(result.getException(), instanceOf(NamingException.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], instanceOf(NamingException.class));
+    assertThat(members).hasSize(1).extracting(Member::getInternalName).isSubsetOf(names);
+    assertThat(result.getException()).isInstanceOf(NamingException.class);
+    assertThat(result.getException().getSuppressed()).hasSize(1).hasOnlyElementsOfType(NamingException.class);
   }
 
   @Test
@@ -225,11 +199,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user has been returned.
-    assertThat(members, hasSize(1));
-    assertThat(names, hasItems(members.get(0).getInternalName()));
-    assertThat(result.getException(), instanceOf(Exception.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], instanceOf(Exception.class));
+    assertThat(members).hasSize(1).extracting(Member::getInternalName).isSubsetOf(names);
+    assertThat(result.getException()).isInstanceOf(Exception.class);
+    assertThat(result.getException().getSuppressed()).hasSize(1).hasOnlyElementsOfType(Exception.class);
   }
 
   @Test
@@ -252,11 +224,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user has been returned.
-    assertThat(members, hasSize(1));
-    assertThat(names, hasItems(members.get(0).getInternalName()));
-    assertThat(result.getException(), instanceOf(NamingException.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], is(namingException));
+    assertThat(members).hasSize(1).extracting(Member::getInternalName).isSubsetOf(names);
+    assertThat(result.getException()).isInstanceOf(NamingException.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(namingException);
   }
 
   @Test
@@ -279,11 +249,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user and testuser1 have been returned.
-    assertThat(members, hasSize(1));
-    assertThat(names, hasItems(members.get(0).getInternalName()));
-    assertThat(result.getException(), instanceOf(Exception.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], is(exception));
+    assertThat(members).hasSize(1).extracting(Member::getInternalName).isSubsetOf(names);
+    assertThat(result.getException()).isInstanceOf(Exception.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(exception);
   }
 
   @Test
@@ -295,7 +263,7 @@ public class UserDirectoryTest
 
     UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<Member>());
 
-    assertThat(result.get(), hasSize(0));
+    assertThat(result.get()).isEmpty();
     verify(mockLdapService, never()).getUsersByName(any(LdapServer.class), any(String[].class));
     verify(mockLdapService, never()).getGroupsByName(any(LdapServer.class), any(String[].class));
   }
@@ -306,17 +274,17 @@ public class UserDirectoryTest
 
     List<Member> members = userDirectory.getMembersByName(new HashSet<Member>()).get();
 
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     members = userDirectory.getMembersByName(null).get();
 
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     Member nullUser = new Member(MemberType.USER, null, null);
     Member nullGroup = new Member(MemberType.GROUP, null, null);
     members = userDirectory.getMembersByName(Sets.newHashSet(nullUser, nullGroup)).get();
 
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
   }
 
   @Test
@@ -331,50 +299,32 @@ public class UserDirectoryTest
     // Get internal user.
     List<Member> members = userDirectory.getMembersByQuery("clm bob", false).get();
 
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("clmbob");
 
     // Get internal user case insensitive.
     members = userDirectory.getMembersByQuery("CLM BOB", false).get();
 
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("clmbob");
 
     // Get users.
     members = userDirectory.getMembersByQuery("John Doe", true).get();
 
-    assertThat(members, hasSize(2));
-    assertThat(members.get(0).getInternalName(), is("testuser1"));
-    assertThat(members.get(1).getInternalName(), is("testuser2"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testuser1", "testuser2");
 
     // Get users, case insensitive.
     members = userDirectory.getMembersByQuery("JOHN DOE", true).get();
 
-    assertThat(members, hasSize(2));
-    assertThat(members.get(0).getInternalName(), is("testuser1"));
-    assertThat(members.get(1).getInternalName(), is("testuser2"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testuser1", "testuser2");
 
     // Add a new internal user.
     tempEntity.newUser("alphabob", "alphaclm", "bob", "alphaclmbob@bob");
     // Get both groups and users, case insensitive.
     members = userDirectory.getMembersByQuery("ALPHA*", true).get();
 
-    assertThat(members, hasSize(4));
-    assertTrue(containsInternalName(members, "alphabob"));
-    assertTrue(containsInternalName(members, "Alpha"));
-    assertTrue(containsInternalName(members, "Alpha1"));
-    assertTrue(containsInternalName(members, "Alpha2"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("alphabob", "Alpha", "Alpha1",
+        "Alpha2");
   }
 
-  private boolean containsInternalName(Collection<Member> members, String internalName) {
-    for (Member member : members) {
-      if (member != null && member.getInternalName().equals(internalName)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  
   @Test
   public void testGetMembersByQuery_WithWildcards() throws Exception {
     // Configure LDAP.
@@ -385,24 +335,21 @@ public class UserDirectoryTest
 
     // Prefix wildcard
     List<Member> members = userDirectory.getMembersByQuery("*bob", false).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("clmbob");
     members = userDirectory.getMembersByQuery("*bo", false).get();
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     // Suffix wildcard
     members = userDirectory.getMembersByQuery("clm*", false).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("clmbob");
     members = userDirectory.getMembersByQuery("lm*", false).get();
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     // Prefix and suffix wildcards
     members = userDirectory.getMembersByQuery("*lm bo*", false).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("clmbob");
     members = userDirectory.getMembersByQuery("*lmbo*", false).get();
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
   }
 
   @Test
@@ -423,11 +370,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user has been returned.
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("testclmuser"));
-    assertThat(result.getException(), instanceOf(NamingException.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], is(namingException));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testclmuser");
+    assertThat(result.getException()).isInstanceOf(NamingException.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(namingException);
   }
 
   @Test
@@ -445,10 +390,9 @@ public class UserDirectoryTest
     UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
     List<Member> members = result.get();
 
-    assertThat(members, hasSize(0));
-    assertThat(result.getException(), instanceOf(NamingException.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], is(namingException));
+    assertThat(members).isEmpty();
+    assertThat(result.getException()).isInstanceOf(NamingException.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(namingException);
   }
 
   @Test
@@ -469,11 +413,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user has been returned.
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("testclmuser"));
-    assertThat(result.getException(), instanceOf(Exception.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], is(exception));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testclmuser");
+    assertThat(result.getException()).isInstanceOf(Exception.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(exception);
   }
 
   @Test
@@ -491,10 +433,9 @@ public class UserDirectoryTest
     UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
     List<Member> members = result.get();
 
-    assertThat(members, hasSize(0));
-    assertThat(result.getException(), instanceOf(Exception.class));
-    assertThat(result.getException().getSuppressed().length, is(1));
-    assertThat(result.getException().getSuppressed()[0], is(exception));
+    assertThat(members).isEmpty();
+    assertThat(result.getException()).isInstanceOf(Exception.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(exception);
   }
 
   @Test
@@ -527,13 +468,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the internal user and the LDAP user have been returned.
-    assertThat(members, hasSize(2));
-    assertThat(members.get(0).getInternalName(), is("testclmuser"));
-    assertThat(members.get(1).getInternalName(), is("testldapuser"));
-    assertThat(result.getException(), instanceOf(Exception.class));
-    assertThat(result.getException().getSuppressed().length, is(2));
-    assertThat(result.getException().getSuppressed()[0], is(namingException));
-    assertThat(result.getException().getSuppressed()[1], is(exception));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testclmuser", "testldapuser");
+    assertThat(result.getException()).isInstanceOf(Exception.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(namingException, exception);
   }
 
   @Test
@@ -566,13 +503,10 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that the LDAP group have been returned.
-    assertThat(members, hasSize(1));
-    //assertThat(members.get(0).getInternalName(), is("testclmuser"));
-    assertThat(members.get(0).getDisplayName(), is("testldapgroup"));
-    assertThat(result.getException(), instanceOf(Exception.class));
-    assertThat(result.getException().getSuppressed().length, is(2));
-    assertThat(result.getException().getSuppressed()[0], is(namingException));
-    assertThat(result.getException().getSuppressed()[1], is(exception));
+    assertThat(members).hasSize(1);
+    assertThat(members.get(0).getDisplayName()).isEqualTo("testldapgroup");
+    assertThat(result.getException()).isInstanceOf(Exception.class);
+    assertThat(result.getException().getSuppressed()).containsExactly(namingException, exception);
   }
 
   @Test
@@ -583,7 +517,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     List<LdapUser> emptyLdapUsers = new ArrayList<>();
     String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
-    when(mockLdapService.getUsersByName(any(LdapServer.class), argThat(is(equalTo(expectedArgument)))))
+    when(mockLdapService.getUsersByName(any(LdapServer.class), eq(expectedArgument)))
         .thenReturn(emptyLdapUsers);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
@@ -596,10 +530,9 @@ public class UserDirectoryTest
     List<Member> members = result.get();
 
     // Verify that only the internal user has been returned.
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("testclmuser"));
+    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testclmuser");
     // That 'John' was removed from the user names to search.
-    verify(mockLdapService).getUsersByName(any(LdapServer.class), argThat(is(equalTo(expectedArgument))));
+    verify(mockLdapService).getUsersByName(any(LdapServer.class), eq(expectedArgument));
 
     // Test that the get users method isn't called when only internal users are provided.
     userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr"));
@@ -615,17 +548,17 @@ public class UserDirectoryTest
 
     // Get one user
     List<Member> members = userDirectory.getUsersByName(Sets.newHashSet("testuser1")).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("testuser1"));
-    assertThat(members.get(0).getRealm(), is("LDAP1"));
+    assertThat(members).hasSize(1);
+    assertThat(members.get(0).getInternalName()).isEqualTo("testuser1");
+    assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
 
     // Get users from both server 1 and server 2
     members = userDirectory.getUsersByName(Sets.newHashSet("testuser1", "testuser2")).get();
-    assertThat(members, hasSize(2));
-    assertThat(members.get(0).getInternalName(), is("testuser1"));
-    assertThat(members.get(0).getRealm(), is("LDAP1"));
-    assertThat(members.get(1).getInternalName(), is("testuser2"));
-    assertThat(members.get(1).getRealm(), is("LDAP2"));
+    assertThat(members).hasSize(2);
+    assertThat(members.get(0).getInternalName()).isEqualTo("testuser1");
+    assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
+    assertThat(members.get(1).getInternalName()).isEqualTo("testuser2");
+    assertThat(members.get(1).getRealm()).isEqualTo("LDAP2");
   }
 
   @Test
@@ -634,24 +567,24 @@ public class UserDirectoryTest
 
     List<Member> members = userDirectory.getMembersByQuery(null, false).get();
 
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     members = userDirectory.getMembersByQuery("", true).get();
 
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
   }
 
   @Test
   public void testValidateUsers_NullSet() {
     Set<String> invalidUsers = userDirectory.validateUsers(null);
-    assertThat(invalidUsers, hasSize(0));
+    assertThat(invalidUsers).isEmpty();
   }
 
   @Test
   public void testValidateUsers_EmptySet() {
     Set<String> users = Collections.emptySet();
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(0));
+    assertThat(invalidUsers).isEmpty();
   }
 
   @Test
@@ -660,7 +593,7 @@ public class UserDirectoryTest
 
     Set<String> users = Collections.singleton(testUser.getUsername());
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(0));
+    assertThat(invalidUsers).isEmpty();
   }
 
   @Test
@@ -670,15 +603,15 @@ public class UserDirectoryTest
     // Test with a found user.
     Set<String> users = Collections.singleton(testUser.getUsername().toLowerCase(Locale.ENGLISH));
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(0));
+    assertThat(invalidUsers).isEmpty();
 
     // Test with invalid users.
     users = Sets.newHashSet("Bob", "Sue", "Mary");
     invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(3));
+    assertThat(invalidUsers).hasSize(3);
 
     // Ensure that the names returned match the users input.
-    assertEquals(users, invalidUsers);
+    assertThat(invalidUsers).isEqualTo(users);
   }
 
   @Test
@@ -687,15 +620,14 @@ public class UserDirectoryTest
 
     Set<String> users = Sets.newHashSet("testuser1");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(0));
+    assertThat(invalidUsers).isEmpty();
   }
 
   @Test
   public void testValidateUsers_InternalUserNotFound_LdapNotConfigured() {
     Set<String> users = Sets.newHashSet("invaliduser");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(1));
-    assertThat(invalidUsers, contains("invaliduser"));
+    assertThat(invalidUsers).containsExactlyInAnyOrder("invaliduser");
   }
 
   @Test
@@ -704,8 +636,7 @@ public class UserDirectoryTest
 
     Set<String> users = Sets.newHashSet("invaliduser");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(1));
-    assertThat(invalidUsers, contains("invaliduser"));
+    assertThat(invalidUsers).containsExactlyInAnyOrder("invaliduser");
   }
 
   @Test
@@ -720,8 +651,7 @@ public class UserDirectoryTest
 
     Set<String> users = Sets.newHashSet("invaliduser");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
-    assertThat(invalidUsers, hasSize(1));
-    assertThat(invalidUsers, contains("invaliduser"));
+    assertThat(invalidUsers).containsExactlyInAnyOrder("invaliduser");
   }
 
   @Test
@@ -729,9 +659,9 @@ public class UserDirectoryTest
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
-    assertTrue(userDirectory.isLdapUser(new User("testuser1", null, null, null, null)));
-    assertTrue(userDirectory.isLdapUser(new User("testuser2", null, null, null, null)));
-    assertFalse(userDirectory.isLdapUser(new User("not-a-real-user", null, null, null, null)));
+    assertThat(userDirectory.isLdapUser(new User("testuser1", null, null, null, null))).isTrue();
+    assertThat(userDirectory.isLdapUser(new User("testuser2", null, null, null, null))).isTrue();
+    assertThat(userDirectory.isLdapUser(new User("not-a-real-user", null, null, null, null))).isFalse();
   }
 
   private static Member createUser(String name) {
@@ -745,51 +675,52 @@ public class UserDirectoryTest
   @Test
   public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsDisabled() throws Exception {
     List<Member> members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, false).get();
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME + "*", false).get();
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
   }
 
   @Test
   public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsEnabled() throws Exception {
     // Exact name
     List<Member> members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, true).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
 
     // With wild card
     members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME + "*", true).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
     members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.substring(0, 5) + "*", true)
         .get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
 
     // With wild card and special regex chars - should not throw an exception because the regex pattern is incorrect.
     members = userDirectory
         .getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.substring(0, 5) + "(*", true).get();
-    assertThat(members, hasSize(0));
+    assertThat(members).isEmpty();
 
     // Case insensitive
     members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.toLowerCase(Locale.ENGLISH),
         true).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
     members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.toUpperCase(Locale.ENGLISH),
         true).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
   }
 
   private void assertIsAuthenticatedUsersGroup(Member member) {
-    assertThat(member.getType(), is(MemberType.GROUP));
-    assertThat(member.getDisplayName(), is(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
-    assertThat(member.getInternalName(), is(Group.AUTHENTICATED_USERS_GROUP_ID));
-    assertThat(member.getInternalNameLowerCase(), is(Group.AUTHENTICATED_USERS_GROUP_ID.toLowerCase(Locale.ENGLISH)));
-    assertThat(member.getEmail(), is(nullValue()));
-    assertThat(member.getRealm(), is(InternalRealm.DISPLAY_NAME));
+    assertThat(member.getType()).isEqualTo(MemberType.GROUP);
+    assertThat(member.getDisplayName()).isEqualTo(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME);
+    assertThat(member.getInternalName()).isEqualTo(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(member.getInternalNameLowerCase())
+        .isEqualTo(Group.AUTHENTICATED_USERS_GROUP_ID.toLowerCase(Locale.ENGLISH));
+    assertThat(member.getEmail()).isNull();
+    assertThat(member.getRealm()).isEqualTo(InternalRealm.DISPLAY_NAME);
   }
 
   @Test
@@ -797,17 +728,17 @@ public class UserDirectoryTest
     // Exact name
     List<Member> members = userDirectory.getMembersByName(
         Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID))).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
 
     // Case insensitive
     members = userDirectory.getMembersByName(
         Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID.toLowerCase(Locale.ENGLISH)))).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
     members = userDirectory.getMembersByName(
         Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID.toUpperCase(Locale.ENGLISH)))).get();
-    assertThat(members, hasSize(1));
+    assertThat(members).hasSize(1);
     assertIsAuthenticatedUsersGroup(members.get(0));
   }
 
@@ -817,23 +748,23 @@ public class UserDirectoryTest
 
     // Should get back only the user from testLdapServer1.
     List<Member> members = userDirectory.getMembersByQuery("Beta User", false).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getDisplayName(), is("Beta User"));
-    assertThat(members.get(0).getRealm(), is("LDAP1"));
+    assertThat(members).hasSize(1);
+    assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
+    assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
 
     // Start testLdapServer2. Should still get back only the user from testLdapServer1 since it is higher priority.
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
     members = userDirectory.getMembersByQuery("Beta User", false).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getDisplayName(), is("Beta User"));
-    assertThat(members.get(0).getRealm(), is("LDAP1"));
+    assertThat(members).hasSize(1);
+    assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
+    assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
   
     // Add a new IQ user. Should get back only the IQ user.
     tempEntity.newUser("beta", "Beta", "User", "betauser@example.com");
     members = userDirectory.getMembersByQuery("Beta User", false).get();
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getDisplayName(), is("Beta User"));
-    assertThat(members.get(0).getRealm(), is("IQ Server"));
+    assertThat(members).hasSize(1);
+    assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
+    assertThat(members.get(0).getRealm()).isEqualTo("IQ Server");
   }
 
   @Test
@@ -843,19 +774,7 @@ public class UserDirectoryTest
 
     // Should return all groups from all realms. When same group occurs in both realms a single occurrence is retrieved.
     List<Member> members = userDirectory.getMembersByQuery("Alpha*", true).get();
-    assertThat(members, hasSize(3));
-    assertTrue(containsDisplayName(members, "Alpha"));
-    assertTrue(containsDisplayName(members, "Alpha1"));
-    assertTrue(containsDisplayName(members, "Alpha2"));
-  }
-
-  private boolean containsDisplayName(Collection<Member> members, String displayName) {
-    for (Member member : members) {
-      if (member != null && member.getDisplayName().equals(displayName)) {
-        return true;
-      }
-    }
-    return false;
+    assertThat(members).extracting(Member::getDisplayName).containsExactlyInAnyOrder("Alpha", "Alpha1", "Alpha2");
   }
   
   private static class SameId

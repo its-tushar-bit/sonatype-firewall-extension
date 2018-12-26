@@ -12,8 +12,7 @@ import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.21
@@ -37,7 +36,7 @@ public class HttpHeaderValidatorFilterChainTest
     HttpResponse response = restRequest().header("X-Forwarded-Proto", "http\"><script>alert(document.domain)</script>")
         .post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Illegal header value detected in 'X-Forwarded-Proto'"));
+    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'X-Forwarded-Proto'");
   }
 
   @Test
@@ -45,7 +44,7 @@ public class HttpHeaderValidatorFilterChainTest
     HttpResponse response = restRequest().header("X-Forwarded-Host", "\"><script>alert(document.domain)</script>")
         .post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Illegal header value detected in 'Host'"));
+    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'Host'");
   }
 
   @Test
@@ -53,13 +52,13 @@ public class HttpHeaderValidatorFilterChainTest
     HttpResponse response = restRequest().header("Forwarded", "proto=http\"><script>alert(document.domain)</script>")
         .post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Illegal header value detected in 'Forwarded'"));
+    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'Forwarded'");
   }
 
   @Test
   public void testInvalidHeader_ForwardedHost() throws Exception {
     HttpResponse response = restRequest().header("Forwarded", "host=\"><script>alert(document.domain)</script>").post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Illegal header value detected in 'Forwarded'"));
+    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'Forwarded'");
   }
 }

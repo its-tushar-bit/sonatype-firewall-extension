@@ -22,8 +22,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MembershipMappingResourceAuditTest
     extends AbstractMembershipMappingAuditTest
@@ -122,7 +121,7 @@ public class MembershipMappingResourceAuditTest
         Collections.singletonList(member(null))).put();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, 1, "bad-request");
-    assertThat(auditDTOs, hasSize(1));
+    assertThat(auditDTOs).hasSize(1);
     assertGlobalData(auditDTOs.get(0));
   }
 

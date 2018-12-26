@@ -18,10 +18,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests authentication aspects of the public REST API in general.
@@ -44,7 +41,7 @@ public class PublicRestApiAuthcTest
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie, is(notNullValue()));
+    assertThat(sessionCookie).isNotNull();
 
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
     response = request.get();
@@ -102,19 +99,19 @@ public class PublicRestApiAuthcTest
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
     HttpResponse response = request.get();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.put();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.post();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.delete();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     initServer(REVERSE_PROXY_ENABLED);
     request = restRequest().header("REMOTE_USER", "admin").anon();
@@ -122,19 +119,19 @@ public class PublicRestApiAuthcTest
     request.path(PublicApiPaths.BASE_PATH, "any/thing");
     response = request.get();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.put();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.post();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
 
     response = request.delete();
     assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie(), is(nullValue()));
+    assertThat(response.getSessionCookie()).isNull();
   }
 
   @Test
@@ -166,8 +163,8 @@ public class PublicRestApiAuthcTest
 
   private void assertResponse401(HttpResponse response, String expectedMessage) {
     assertResponseStatus(401, response);
-    assertThat(response.getBodyText(), is(expectedMessage));
-    assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE), is(nullValue()));
+    assertThat(response.getBodyText()).isEqualTo(expectedMessage);
+    assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).isNull();
   }
 
   private void assertResponses(HttpRequest request, int status) throws Exception  {

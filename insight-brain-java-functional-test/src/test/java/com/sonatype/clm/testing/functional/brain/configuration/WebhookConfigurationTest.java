@@ -175,8 +175,10 @@ public class WebhookConfigurationTest
     webhookEditPage.form().shouldNot(appear);
     
     webhookEditPage.errorAlert().should(appear);
+    // Re-trying a bad webhook ID won't change the page.
     webhookEditPage.errorAlert().retryButton().should(appear)
-        .shouldHave(text("Retry"));
+        .shouldHave(text("Retry")).click();
+
     webhookEditPage.errorAlert()
         .shouldHave(text("An error occurred loading data. Could not find an webhook with ID BAD_ID."));
 

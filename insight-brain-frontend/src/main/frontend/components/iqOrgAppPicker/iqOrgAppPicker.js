@@ -58,6 +58,11 @@ function IqOrgAppPickerController() {
   }
 
   function selectApplications(selectedOrganizations, toggledOrg) {
+    // if All Orgs were deselected using the all/none btn - no apps selected
+    if (selectedOrganizations.size === 0 && toggledOrg == null) {
+      return new Set();
+    }
+
     return groupAppsByOrgId(vm.applications)
         .map(getSelectedApps(selectedOrganizations, toggledOrg))
         .reduce((allApps, apps) => [...allApps, ...apps], []) // flatten array of arrays

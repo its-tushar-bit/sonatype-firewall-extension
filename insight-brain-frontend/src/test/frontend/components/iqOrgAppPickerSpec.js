@@ -60,6 +60,43 @@ describe('iqOrgAppPicker', function() {
   });
 
   describe('onSelectedOrganizationsChange()', function() {
+    describe('when all orgs are selected (all)', function() {
+      it('selects all apps', function() {
+        //starts with nothing selected.
+        var selectedOrganizations = new Set();
+        var selectedApplications = new Set();
+
+        var vm = getVm(selectedOrganizations, selectedApplications);
+        // selects all Orgs
+        var newSelectedOrganizations = new Set(['fooOrg', 'barOrg', 'bazOrg']);
+        //expect all Apps to be selected.
+        var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
+
+        vm.onSelectedOrganizationsChange(newSelectedOrganizations);
+        expect(onChange).toHaveBeenCalledWith({
+          selectedOrganizations: newSelectedOrganizations,
+          selectedApplications: expectedSelectedApplications
+        });
+      });
+    });
+
+    describe('when all orgs are deselected (none)', function() {
+      it('deselects all apps', function() {
+        var selectedOrganizations = new Set(['fooOrg', 'barOrg', 'bazOrg']);
+        var selectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
+
+        var vm = getVm(selectedOrganizations, selectedApplications);
+        var newSelectedOrganizations = new Set();
+        var expectedSelectedApplications = new Set();
+
+        vm.onSelectedOrganizationsChange(newSelectedOrganizations);
+        expect(onChange).toHaveBeenCalledWith({
+          selectedOrganizations: newSelectedOrganizations,
+          selectedApplications: expectedSelectedApplications
+        });
+      });
+    });
+
     describe('when an org is selected', function() {
       it('selects related apps', function() {
         var selectedOrganizations = new Set();

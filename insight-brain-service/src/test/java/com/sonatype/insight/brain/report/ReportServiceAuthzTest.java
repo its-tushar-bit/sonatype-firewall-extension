@@ -15,9 +15,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ReportServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -29,13 +27,9 @@ public class ReportServiceAuthzTest
   public void testGetReportMetadata_Authorized() throws Exception {
     grantReadPermission(app.getId());
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.getReportMetadata(app.getPublicId(), "12345678");
-      fail("Expected exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not download the report for scan ID 12345678"));
-    }
+    }).withMessage("Could not download the report for scan ID 12345678");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -53,13 +47,9 @@ public class ReportServiceAuthzTest
   public void testPrepareExpandedCoverageReport_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.prepareExpandedCoverageReport(app.getPublicId(), "12345678");
-      fail("Expected exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not download the report for scan ID 12345678"));
-    }
+    }).withMessage("Could not download the report for scan ID 12345678");
   }
 
   @Test(expected = UnauthenticatedException.class)

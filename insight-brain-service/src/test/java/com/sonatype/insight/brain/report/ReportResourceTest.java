@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -82,22 +81,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ReportResourceTest
     extends AbstractResourceTest
@@ -143,60 +134,50 @@ public class ReportResourceTest
       String bomJsonHash = bomJsonNode.get("hash").asText();
       JsonNode identificationSource = bomJsonNode.get("identificationSource");
       if (hash.equals(bomJsonHash)) {
-        assertEquals(IdentificationSource.MANUAL.getId(), identificationSource.asText());
-        assertEquals(groupId, bomJsonNode.get("groupId").asText());
-        assertEquals(artifactId, bomJsonNode.get("artifactId").asText());
-        assertEquals(version, bomJsonNode.get("version").asText());
-        assertEquals(extension, bomJsonNode.get("extension").asText());
-        assertEquals(classifier, bomJsonNode.get("classifier").asText());
-        assertEquals(componentIdentifier, ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode));
-        assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
-        assertEquals(createTime.getTime(), bomJsonNode.get("createTime").asLong());
-        assertEquals(0F, bomJsonNode.get("relativePopularity").asDouble(), 0F);
-        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
-            + "testClaimedComponent_C : testClaimedComponent_V",
-            JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString());
+        assertThat(identificationSource.asText()).isEqualTo(IdentificationSource.MANUAL.getId());
+        assertThat(bomJsonNode.get("groupId").asText()).isEqualTo(groupId);
+        assertThat(bomJsonNode.get("artifactId").asText()).isEqualTo(artifactId);
+        assertThat(bomJsonNode.get("version").asText()).isEqualTo(version);
+        assertThat(bomJsonNode.get("extension").asText()).isEqualTo(extension);
+        assertThat(bomJsonNode.get("classifier").asText()).isEqualTo(classifier);
+        assertThat(ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode)).isEqualTo(componentIdentifier);
+        assertThat(bomJsonNode.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
+        assertThat(bomJsonNode.get("createTime").asLong()).isEqualTo(createTime.getTime());
+        assertThat(bomJsonNode.get("relativePopularity").asDouble()).isEqualTo(0F);
+        assertThat(JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString())
+            .isEqualTo("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
+                + "testClaimedComponent_C : testClaimedComponent_V");
         foundClaimedComponent = true;
       }
       else {
-        assertNull(identificationSource);
+        assertThat(identificationSource).isNull();
       }
     }
-    assertTrue(foundClaimedComponent);
+    assertThat(foundClaimedComponent).isTrue();
 
     response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getBodyText();
-    assertNotNull(licensesJsonData);
-    assertFalse(StringUtils.isEmpty(licensesJsonData));
-    assertFalse(licensesJsonData.contains(hash));
-    assertFalse(licensesJsonData.contains("commons-httpclient"));
+    assertThat(licensesJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
 
     response = request.subpath("security.json").get();
     assertResponseStatus(200, response);
     String securityJsonData = response.getBodyText();
-    assertNotNull(securityJsonData);
-    assertFalse(StringUtils.isEmpty(securityJsonData));
-    assertFalse(securityJsonData.contains(hash));
-    assertFalse(securityJsonData.contains("commons-httpclient"));
+    assertThat(securityJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
 
     response = request.subpath("partialmatched.json").get();
     assertResponseStatus(200, response);
     String partialmatched = response.getBodyText();
-    assertNotNull(partialmatched);
-    assertFalse(StringUtils.isEmpty(partialmatched));
-    assertFalse(partialmatched.contains(hash));
-    assertFalse(partialmatched.contains("commons-httpclient"));
-    assertTrue(partialmatched.contains("c32df577f739535648b0"));
-    assertTrue(partialmatched.contains("org.slf4j.api_1.6.1.v20100831-0715.jar"));
+    assertThat(partialmatched).isNotBlank().doesNotContain(hash, "commons-httpclient").contains("c32df577f739535648b0",
+        "org.slf4j.api_1.6.1.v20100831-0715.jar");
 
     response = request.subpath("data.json").get();
     assertResponseStatus(200, response);
     String jsonData = response.getBodyText();
     JsonNode actual = JsonUtils.parse(jsonData);
-    assertEquals(1, actual.get("partiallyMatchedComponentCount").asInt());
-    assertEquals(27, actual.get("exactlyMatchedComponentCount").asInt());
-    assertEquals(28, actual.get("knownArtifactCount").asInt());
+    assertThat(actual.get("partiallyMatchedComponentCount").asInt()).isEqualTo(1);
+    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(27);
+    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(28);
   }
 
   @Test
@@ -226,14 +207,14 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     String jsonData = response.getBodyText();
     JsonNode actual = JsonUtils.parse(jsonData);
-    assertEquals(2, actual.get("partiallyMatchedComponentCount").asInt());
-    assertEquals(27, actual.get("exactlyMatchedComponentCount").asInt());
-    assertEquals(29, actual.get("knownArtifactCount").asInt());
+    assertThat(actual.get("partiallyMatchedComponentCount").asInt()).isEqualTo(2);
+    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(27);
+    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(29);
 
     response = request.subpath("summary.json").get();
     String summaryData = response.getBodyText();
     actual = JsonUtils.parse(summaryData);
-    assertEquals(29, actual.get("knownArtifactCount").asInt());
+    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(29);
   }
 
   @Test
@@ -265,11 +246,7 @@ public class ReportResourceTest
     HttpResponse response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getBodyText();
-    assertNotNull(licensesJsonData);
-    assertFalse(StringUtils.isEmpty(licensesJsonData));
-    assertTrue(licensesJsonData.contains(hash));
-    assertTrue(licensesJsonData.contains(artifactId));
-    assertFalse(licensesJsonData.contains("commons-httpclient"));
+    assertThat(licensesJsonData).isNotBlank().contains(hash, artifactId).doesNotContain("commons-httpclient");
   }
 
   @Test
@@ -306,48 +283,39 @@ public class ReportResourceTest
       String bomJsonHash = bomJsonNode.get("hash").asText();
       JsonNode identificationSource = bomJsonNode.get("identificationSource");
       if (hash.equals(bomJsonHash)) {
-        assertEquals(IdentificationSource.MANUAL.getId(), identificationSource.asText());
-        assertEquals(groupId, bomJsonNode.get("groupId").asText());
-        assertEquals(artifactId, bomJsonNode.get("artifactId").asText());
-        assertEquals(version, bomJsonNode.get("version").asText());
-        assertEquals(extension, bomJsonNode.get("extension").asText());
-        assertEquals(classifier, bomJsonNode.get("classifier").asText());
-        assertEquals(componentIdentifier, ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode));
-        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
-            + "testClaimedComponent_C : testClaimedComponent_V",
-            JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString());
-        assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
+        assertThat(identificationSource.asText()).isEqualTo(IdentificationSource.MANUAL.getId());
+        assertThat(bomJsonNode.get("groupId").asText()).isEqualTo(groupId);
+        assertThat(bomJsonNode.get("artifactId").asText()).isEqualTo(artifactId);
+        assertThat(bomJsonNode.get("version").asText()).isEqualTo(version);
+        assertThat(bomJsonNode.get("extension").asText()).isEqualTo(extension);
+        assertThat(bomJsonNode.get("classifier").asText()).isEqualTo(classifier);
+        assertThat(ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode)).isEqualTo(componentIdentifier);
+        assertThat(JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString())
+            .isEqualTo("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
+                + "testClaimedComponent_C : testClaimedComponent_V");
+        assertThat(bomJsonNode.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
         foundClaimedComponent = true;
       }
       else {
-        assertNull(identificationSource);
+        assertThat(identificationSource).isNull();
       }
     }
-    assertTrue(foundClaimedComponent);
+    assertThat(foundClaimedComponent).isTrue();
 
     response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getBodyText();
-    assertNotNull(licensesJsonData);
-    assertFalse(StringUtils.isEmpty(licensesJsonData));
-    assertFalse(licensesJsonData.contains(hash));
-    assertFalse(licensesJsonData.contains("commons-httpclient"));
+    assertThat(licensesJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
 
     response = request.subpath("security.json").get();
     assertResponseStatus(200, response);
     String securityJsonData = response.getBodyText();
-    assertNotNull(securityJsonData);
-    assertFalse(StringUtils.isEmpty(securityJsonData));
-    assertFalse(securityJsonData.contains(hash));
-    assertFalse(securityJsonData.contains("commons-httpclient"));
+    assertThat(securityJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
 
     response = request.subpath("partialmatched.json").get();
     assertResponseStatus(200, response);
     String partialmatched = response.getBodyText();
-    assertNotNull(partialmatched);
-    assertFalse(StringUtils.isEmpty(partialmatched));
-    assertFalse(partialmatched.contains(hash));
-    assertFalse(partialmatched.contains("commons-httpclient"));
+    assertThat(partialmatched).isNotBlank().doesNotContain(hash, "commons-httpclient");
   }
 
   @Test
@@ -367,26 +335,26 @@ public class ReportResourceTest
     HttpResponse response = request.subpath("insight.js").get();
     assertResponseStatus(200, response);
     String expiresHeader = response.getHeader("Expires");
-    assertNotNull(expiresHeader);
+    assertThat(expiresHeader).isNotNull();
     Date expires = expirationHeaderFormat.parse(expiresHeader);
-    assertTrue("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime(),
-        Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
+    assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
+        .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
     response = request.subpath("data.json").get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
-    assertTrue("data.json expires immediately: " + expires + " vs " + calendar.getTime(),
-        Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
+    assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
+        .as("data.json expires immediately: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
     response = request.subpath("index.html").get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
-    assertTrue("index.html expires immediately: " + expires + " vs " + calendar.getTime(),
-        Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
+    assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
+        .as("index.html expires immediately: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
     String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar
@@ -446,16 +414,16 @@ public class ReportResourceTest
 
       final String contentType = response.getContentType().replace(" ", "");
       if (entry.endsWith(".html")) {
-        assertThat(contentType, is(equalToIgnoringCase("text/html;charset=UTF-8")));
+        assertThat(contentType).isEqualToIgnoringCase("text/html;charset=UTF-8");
       }
       else if (entry.endsWith(".css")) {
-        assertThat(contentType, is(equalToIgnoringCase("text/css;charset=UTF-8")));
+        assertThat(contentType).isEqualToIgnoringCase("text/css;charset=UTF-8");
       }
       else if (entry.endsWith(".json")) {
-        assertThat(contentType, is(equalToIgnoringCase("application/json")));
+        assertThat(contentType).isEqualToIgnoringCase("application/json");
       }
       else if (entry.endsWith(".png")) {
-        assertThat(contentType, is(equalToIgnoringCase("image/png")));
+        assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
       if ("data.json".equals(entry)) {
@@ -485,26 +453,25 @@ public class ReportResourceTest
           ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
           ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
         }
-        assertThat(actual, is(expected));
+        assertThat(actual).isEqualTo(expected);
       }
       else if ("index.html".equals(entry)) {
         String actual = response.getBodyText();
-        assertTrue("The app public id was not included in the report",
-            actual.contains("applicationId = '" + app.getPublicId() + "'"));
+        assertThat(actual).contains("applicationId = '" + app.getPublicId() + "'");
       }
       else if ("bom.json".equals(entry)) {
         String actual = response.getBodyText();
         testJsonApplyComponentChanges(actual);
       }
       else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-        assertThat(response.getBodyText(), equalToIgnoringWhiteSpace(FileUtils.fileRead(file, "UTF-8")));
+        assertThat(response.getBodyText()).isEqualToIgnoringWhitespace(FileUtils.fileRead(file, "UTF-8"));
       }
       else {
-        assertThat("Unexpected content for " + entry, response.getBodyBytes(),
-            equalTo(org.apache.commons.io.FileUtils.readFileToByteArray(file)));
+        assertThat(response.getBodyBytes()).as("Unexpected content for " + entry)
+            .isEqualTo(org.apache.commons.io.FileUtils.readFileToByteArray(file));
       }
     }
-    assertThat(verifiedFileCount, is(110));
+    assertThat(verifiedFileCount).isEqualTo(110);
 
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
   }
@@ -536,11 +503,11 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     String content = response.getBodyText();
-    assertTrue(content.contains(restRequest()
-        .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-        .parameter(app.getPublicId(), scanId).getUrl()));
-    assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
-    assertThat(response.getContentType().replace(" ", ""), is(equalToIgnoringCase("text/html;charset=UTF-8")));
+    assertThat(content)
+        .contains(restRequest().path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+            .parameter(app.getPublicId(), scanId).getUrl());
+    assertThat(response.getHeader("Expires")).isEqualTo("Thu, 01 Jan 1970 00:00:00 GMT");
+    assertThat(response.getContentType().replace(" ", "")).isEqualToIgnoringCase("text/html;charset=UTF-8");
   }
 
   @Test
@@ -568,10 +535,10 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     String content = response.getBodyText();
-    assertTrue(content.contains(restRequest()
-        .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-        .parameter(appPublicId, scanId).getUrl()));
-    assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
+    assertThat(content)
+        .contains(restRequest().path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+            .parameter(appPublicId, scanId).getUrl());
+    assertThat(response.getHeader("Expires")).isEqualTo("Thu, 01 Jan 1970 00:00:00 GMT");
   }
 
   @Test
@@ -580,7 +547,7 @@ public class ReportResourceTest
     HttpResponse response = restRequest(app.getPublicId(), scanId)
         .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).get();
     assertResponseStatus(404, response);
-    assertEquals("Reports have been moved.  Clear cache and reload.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Reports have been moved.  Clear cache and reload.");
   }
 
   @Test
@@ -608,7 +575,7 @@ public class ReportResourceTest
     HttpResponse response = restRequest(appPublicId, scanId)
         .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
     assertResponseStatus(404, response);
-    assertEquals("Reports have been moved.  Clear cache and reload.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Reports have been moved.  Clear cache and reload.");
   }
 
   @Test
@@ -620,16 +587,16 @@ public class ReportResourceTest
     try {
       response = restRequest(app.getPublicId(), scanId).path("printReport").get();
       assertResponseStatus(200, response);
-      assertThat(response.getHeader("Content-Disposition"),
-          stringContainsInOrder(Arrays.asList("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"")));
+      assertThat(response.getHeader("Content-Disposition"))
+          .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
     }
     finally {
       Pdf.destroy();
     }
 
     // validate content type and check the actual content is really a PDF
-    assertThat(response.getContentType(), equalTo("application/pdf"));
-    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII"), containsString("%PDF-"));
+    assertThat(response.getContentType()).isEqualTo("application/pdf");
+    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
   }
 
   @Test
@@ -646,23 +613,23 @@ public class ReportResourceTest
 
       // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
       File pdfFile = new File(getCLMServer().getReportDir(app.getId(), scanId), "report.pdf");
-      assertTrue(pdfFile.getPath(), pdfFile.isFile());
+      assertThat(pdfFile).isFile();
       new FileOutputStream(pdfFile).close();
 
       // printing again after fixing the mem setting should produce a proper PDF
       response = request.get();
       assertResponseStatus(200, response);
-      assertThat(response.getHeader("Content-Disposition"),
-          stringContainsInOrder(Arrays.asList("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"")));
-      assertThat(Long.parseLong(response.getHeader("Content-Length")), greaterThan(0L));
+      assertThat(response.getHeader("Content-Disposition"))
+          .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
+      assertThat(Long.parseLong(response.getHeader("Content-Length"))).isGreaterThan(0);
     }
     finally {
       Pdf.destroy();
     }
 
     // validate content type and check the actual content is really a PDF
-    assertThat(response.getContentType(), equalTo("application/pdf"));
-    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII"), containsString("%PDF-"));
+    assertThat(response.getContentType()).isEqualTo("application/pdf");
+    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
   }
 
   @Test
@@ -676,17 +643,17 @@ public class ReportResourceTest
     try {
       response = restRequest(app.getPublicId(), scanId).path("printReport").get();
       assertResponseStatus(500, response);
-      assertThat(pdfFile.exists(), is(false));
+      assertThat(pdfFile).doesNotExist();
 
       // until the missing JSON file gets fixed, the PDF should remain unprintable
       response = restRequest(app.getPublicId(), scanId).path("printReport").get();
       assertResponseStatus(500, response);
-      assertThat(pdfFile.exists(), is(false));
+      assertThat(pdfFile).doesNotExist();
 
       FileUtils.fileWrite(new File(cacheDir, "policyalerts.json"), "UTF-8", "{\"aaData\":[]}");
       response = restRequest(app.getPublicId(), scanId).path("printReport").get();
       assertResponseStatus(200, response);
-      assertThat(pdfFile.exists(), is(true));
+      assertThat(pdfFile).isFile();
     }
     finally {
       Pdf.destroy();
@@ -701,7 +668,7 @@ public class ReportResourceTest
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
         .getLastByApplicationIdAndScanId(app.getId(), scanId);
-    assertNull(policyEvaluation);
+    assertThat(policyEvaluation).isNull();
 
     final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
     final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
@@ -723,11 +690,11 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
-    assertNotNull(policyEvaluation);
-    assertEquals(scanId, policyEvaluation.getScanId());
-    assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
-    assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
-    assertFalse(policyEvaluation.isReevaluation());
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(System.currentTimeMillis() - policyEvaluation.getTime().getTime()).isLessThan(60 * 1000);
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     assertNotifications(notifications, 1, 5000);
     notifications.clear();
@@ -742,11 +709,11 @@ public class ReportResourceTest
 
     PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
         scanId);
-    assertNotNull(policyReEvaluation);
-    assertEquals(scanId, policyReEvaluation.getScanId());
-    assertEquals(Stage.ID_BUILD, policyReEvaluation.getStageTypeId());
-    assertTrue(policyReEvaluation.getTime().getTime() > policyEvaluation.getTime().getTime());
-    assertTrue(policyReEvaluation.isReevaluation());
+    assertThat(policyReEvaluation).isNotNull();
+    assertThat(policyReEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyReEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(policyReEvaluation.getTime().getTime()).isGreaterThan(policyEvaluation.getTime().getTime());
+    assertThat(policyReEvaluation.isReevaluation()).isTrue();
 
     assertNotifications(notifications, 0, 5000);
 
@@ -759,11 +726,11 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
-    assertNotNull(policyEvaluation);
-    assertEquals(scanId, policyEvaluation.getScanId());
-    assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
-    assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
-    assertFalse(policyEvaluation.isReevaluation());
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(System.currentTimeMillis() - policyEvaluation.getTime().getTime()).isLessThan(60 * 1000);
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     assertNotifications(notifications, 1, 5000);
   }
@@ -786,11 +753,11 @@ public class ReportResourceTest
     for (JsonNode licenseJsonNode : licenseJsonData) {
       if (componentIdentifier
           .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
-        assertNull(licenseJsonNode.get("overriddenLicenses"));
+        assertThat(licenseJsonNode.get("overriddenLicenses")).isNull();
         found++;
       }
     }
-    assertEquals("Did not find expected license", 1, found);
+    assertThat(found).as("Did not find expected license").isEqualTo(1);
 
     // Override the license at organization level
     LicenseOverride orgLicenseOverride = new LicenseOverride(app.getOrganizationId(), componentIdentifier,
@@ -809,19 +776,19 @@ public class ReportResourceTest
       if (componentIdentifier
           .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
+        assertThat(overridenLicenseNamesStr).isEqualTo("[\"GPL-3.0\"]");
         int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        assertEquals(9, effectiveLicenseThreat);
+        assertThat(effectiveLicenseThreat).isEqualTo(9);
         int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        assertEquals(9, overriddenLicenseThreat);
+        assertThat(overriddenLicenseThreat).isEqualTo(9);
         String status = licenseJsonNode.get("status").asText();
-        assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        assertThat(status).isEqualTo(LicenseOverrideStatus.OVERRIDDEN.getName());
         String comment = licenseJsonNode.get("comment").asText();
-        assertEquals("My org license override", comment);
+        assertThat(comment).isEqualTo("My org license override");
         found++;
       }
     }
-    assertEquals("Did not find expected overridden license", 1, found);
+    assertThat(found).as("Did not find expected overridden license").isEqualTo(1);
 
     // Override the license at application level
     LicenseOverride appLicenseOverride = new LicenseOverride(app.getId(), componentIdentifier,
@@ -840,19 +807,19 @@ public class ReportResourceTest
       if (componentIdentifier
           .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        assertEquals("[\"GPL-2.0\"]", overridenLicenseNamesStr);
+        assertThat(overridenLicenseNamesStr).isEqualTo("[\"GPL-2.0\"]");
         int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        assertEquals(9, effectiveLicenseThreat);
+        assertThat(effectiveLicenseThreat).isEqualTo(9);
         int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        assertEquals(9, overriddenLicenseThreat);
+        assertThat(overriddenLicenseThreat).isEqualTo(9);
         String status = licenseJsonNode.get("status").asText();
-        assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        assertThat(status).isEqualTo(LicenseOverrideStatus.OVERRIDDEN.getName());
         String comment = licenseJsonNode.get("comment").asText();
-        assertEquals("My app license override", comment);
+        assertThat(comment).isEqualTo("My app license override");
         found++;
       }
     }
-    assertEquals("Did not find expected overridden license", 1, found);
+    assertThat(found).as("Did not find expected overridden license").isEqualTo(1);
   }
 
   @Test
@@ -868,10 +835,10 @@ public class ReportResourceTest
     int found = 0;
     String svJsonString = response.getBodyText();
     JsonNode svJsonData = JsonUtils.parse(svJsonString).get("aaData");
-    assertThat(svJsonData.size(), greaterThan(0));
+    assertThat(svJsonData.size()).isGreaterThan(0);
     for (JsonNode svJsonNode : svJsonData) {
-      assertNull(svJsonNode.get("status"));
-      assertNull(svJsonNode.get("comment"));
+      assertThat(svJsonNode.get("status")).isNull();
+      assertThat(svJsonNode.get("comment")).isNull();
     }
 
     // Override a security vulnerability
@@ -894,12 +861,12 @@ public class ReportResourceTest
     for (JsonNode svJsonNode : svJsonData) {
       if (hash.equals(svJsonNode.get("hash").asText()) && source.equals(svJsonNode.get("source").asText())
           && referenceId.equals(svJsonNode.get("reference").asText())) {
-        assertThat(svJsonNode.get("status").asText(), is(SecurityVulnerabilityOverrideStatus.CONFIRMED.getName()));
-        assertThat(svJsonNode.get("comment").asText(), is(comment));
+        assertThat(svJsonNode.get("status").asText()).isEqualTo(SecurityVulnerabilityOverrideStatus.CONFIRMED.getName());
+        assertThat(svJsonNode.get("comment").asText()).isEqualTo(comment);
         found++;
       }
     }
-    assertThat("Did not find expected overridden security vulnerability", found, is(1));
+    assertThat(found).as("Did not find expected overridden security vulnerability").isEqualTo(1);
   }
 
   @Test
@@ -907,7 +874,7 @@ public class ReportResourceTest
     String path = "index.html?x=y&a=b";
     HttpResponse response = restRequest("appId", "scanId").path("brain", "index.html").query("x=y&a=b").get();
     assertResponseStatus(307, response);
-    assertEquals(getRestBaseUrl() + path, response.getHeader("Location"));
+    assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl() + path);
   }
 
   @Test
@@ -933,71 +900,71 @@ public class ReportResourceTest
 
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is("application/zip"));
-    assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
+    assertThat(response.getContentType()).isEqualTo("application/zip");
+    assertThat(response.getHeader("Content-Disposition")).contains("filename=");
     try (InputStream actual = response.getBodyStream()) {
       File temp = tempDir.newFile();
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
-        assertNotNull(zip.getEntry("data/report.pdf"));
-        assertNull(zip.getEntry("detail.rptdesign"));
-        assertNull(zip.getEntry("data/index.html"));
-        assertNotNull(zip.getEntry("data/components.json"));
-        assertNotNull(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png"));
-        assertNotNull(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME));
+        assertThat(zip.getEntry("data/report.pdf")).isNotNull();
+        assertThat(zip.getEntry("detail.rptdesign")).isNull();
+        assertThat(zip.getEntry("data/index.html")).isNull();
+        assertThat(zip.getEntry("data/components.json")).isNotNull();
+        assertThat(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png")).isNotNull();
+        assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
-        assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
+        assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
         ComponentDetails details = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
-        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getMatchState()).isEqualTo("exact");
         assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
-        assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
-        assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
-        assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds()
-            .iterator().next()));
-        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
-        assertThat(details.getLicenseThreatLevel(), is(9));
-        assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
-        assertThat(details.getIdentificationSourceComment(), is(claimedComponent.getComment()));
+        assertThat(details.getComponentIdentifier()).isEqualTo(claimedComponent.getComponentIdentifier());
+        assertThat(details.getCatalogDate()).isEqualTo(claimedComponent.getCreateTimeLong());
+        assertThat(details.getOverriddenLicenses()).hasSize(1);
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId())
+            .isEqualTo(licenseOverride.getLicenseIds().iterator().next());
+        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
+        assertThat(details.getLicenseThreatLevel()).isEqualTo(9);
+        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+        assertThat(details.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
         ComponentDetailsList list = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/list/"
                 + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/"
                 + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/"
                 + componentIdentifier.get(ComponentIdentifier.VERSION) + ".json")), ComponentDetailsList.class);
-        assertThat(list.getList(), hasSize(0));
+        assertThat(list.getList()).isEmpty();
 
         details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
             ComponentDetails.class);
-        assertThat(details.getMatchState(), is("exact"));
-        assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
-        assertThat(details.getIdentificationSourceComment(), is(nullValue()));
-        assertThat(details.getPolicyAlerts(), hasSize(4));
+        assertThat(details.getMatchState()).isEqualTo("exact");
+        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+        assertThat(details.getIdentificationSourceComment()).isNull();
+        assertThat(details.getPolicyAlerts()).hasSize(4);
         for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
-          assertThat(policyAlert.getTrigger().getPolicyId(), is(policy.getId()));
-          assertThat(policyAlert.getTrigger().getComponentFacts(), hasSize(1));
+          assertThat(policyAlert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+          assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
         }
 
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
             ComponentDetailsList.class);
         details = findDetailsForComponent(list,
             ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
-        assertThat(details, is(notNullValue()));
-        assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride2
-            .getLicenseIds().iterator().next()));
-        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
-        assertThat(details.getLicenseThreatLevel(), is(2));
+        assertThat(details).isNotNull();
+        assertThat(details.getOverriddenLicenses()).hasSize(1);
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
+            .getLicenseIds().iterator().next());
+        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
+        assertThat(details.getLicenseThreatLevel()).isEqualTo(2);
       }
     }
   }
 
   @SuppressWarnings("deprecation")
   private void assertComponentIdentifier(ComponentDetails actual, ComponentIdentifier expected) {
-    assertThat(actual.getComponentIdentifier(), is(expected));
-    assertThat(actual.getGroupId(), is(expected.get(ComponentIdentifier.MAVEN_GROUP_ID)));
-    assertThat(actual.getArtifactId(), is(expected.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
-    assertThat(actual.getVersion(), is(expected.get(ComponentIdentifier.VERSION)));
+    assertThat(actual.getComponentIdentifier()).isEqualTo(expected);
+    assertThat(actual.getGroupId()).isEqualTo(expected.get(ComponentIdentifier.MAVEN_GROUP_ID));
+    assertThat(actual.getArtifactId()).isEqualTo(expected.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+    assertThat(actual.getVersion()).isEqualTo(expected.get(ComponentIdentifier.VERSION));
   }
 
   @Test
@@ -1022,43 +989,45 @@ public class ReportResourceTest
 
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is("application/zip"));
-    assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
+    assertThat(response.getContentType()).isEqualTo("application/zip");
+    assertThat(response.getHeader("Content-Disposition")).contains("filename=");
     try (InputStream actual = response.getBodyStream()) {
       File temp = tempDir.newFile();
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
-        assertNotNull(zip.getEntry("data/report.pdf"));
-        assertNull(zip.getEntry("detail.rptdesign"));
-        assertNull(zip.getEntry("data/index.html"));
+        assertThat(zip.getEntry("data/report.pdf")).isNotNull();
+        assertThat(zip.getEntry("detail.rptdesign")).isNull();
+        assertThat(zip.getEntry("data/index.html")).isNull();
 
         ZipEntry componentEntry = zip.getEntry("data/components.json");
-        assertNotNull(componentEntry);
+        assertThat(componentEntry).isNotNull();
         ApiReportDataDTOV2 components = JsonUtils.parse(zip.getInputStream(componentEntry), ApiReportDataDTOV2.class);
 
-        assertEquals(5, components.matchSummary.knownComponentCount);
-        assertEquals(29, components.matchSummary.totalComponentCount);
+        assertThat(components.matchSummary.knownComponentCount).isEqualTo(5);
+        assertThat(components.matchSummary.totalComponentCount).isEqualTo(29);
         assertComponent("tomcat", "tomcat-util", "5.5.23", "Weak Copyleft", 2, components.components);
 
-        assertNotNull(zip.getEntry("data/release-graph/maven/"
-            + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"));
-        assertNotNull(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME));
+        assertThat(zip.getEntry("data/release-graph/maven/"
+            + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"))
+                .isNotNull();
+        assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
-        assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
+        assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
         TestNamedComponentDetails details = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")),
             TestNamedComponentDetails.class);
-        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getMatchState()).isEqualTo("exact");
         assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
-        assertThat(details.getDisplayName().toString(), is("commons-httpclient : commons-httpclient : 3.1.SONATYPE"));
-        assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
-        assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds()
-            .iterator().next()));
-        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
-        assertThat(details.getLicenseThreatLevel(), is(9));
-        assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
-        assertThat(details.getIdentificationSourceComment(), is(claimedComponent.getComment()));
+        assertThat(details.getDisplayName().toString())
+            .isEqualTo("commons-httpclient : commons-httpclient : 3.1.SONATYPE");
+        assertThat(details.getCatalogDate()).isEqualTo(claimedComponent.getCreateTimeLong());
+        assertThat(details.getOverriddenLicenses()).hasSize(1);
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId())
+            .isEqualTo(licenseOverride.getLicenseIds().iterator().next());
+        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
+        assertThat(details.getLicenseThreatLevel()).isEqualTo(9);
+        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+        assertThat(details.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
         ComponentDetailsList list = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/list/maven/artifactId="
                 + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/classifier="
@@ -1066,17 +1035,17 @@ public class ReportResourceTest
                 + componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION) + "/groupId="
                 + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/version="
                 + componentIdentifier.get(ComponentIdentifier.VERSION) + "/list.json")), ComponentDetailsList.class);
-        assertThat(list.getList(), hasSize(0));
+        assertThat(list.getList()).isEmpty();
 
         details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
             TestNamedComponentDetails.class);
-        assertThat(details.getMatchState(), is("exact"));
-        assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
-        assertThat(details.getIdentificationSourceComment(), is(nullValue()));
-        assertThat(details.getPolicyAlerts(), hasSize(4));
+        assertThat(details.getMatchState()).isEqualTo("exact");
+        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+        assertThat(details.getIdentificationSourceComment()).isNull();
+        assertThat(details.getPolicyAlerts()).hasSize(4);
         for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
-          assertThat(policyAlert.getTrigger().getPolicyId(), is(policy.getId()));
-          assertThat(policyAlert.getTrigger().getComponentFacts(), hasSize(1));
+          assertThat(policyAlert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+          assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
         }
 
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
@@ -1084,12 +1053,12 @@ public class ReportResourceTest
             ComponentDetailsList.class);
         ComponentDetails detailsFromList = findDetailsForComponent(list,
             ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
-        assertThat(detailsFromList, is(notNullValue()));
-        assertThat(detailsFromList.getOverriddenLicenses(), hasSize(1));
-        assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride2
-            .getLicenseIds().iterator().next()));
-        assertThat(detailsFromList.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
-        assertThat(detailsFromList.getLicenseThreatLevel(), is(2));
+        assertThat(detailsFromList).isNotNull();
+        assertThat(detailsFromList.getOverriddenLicenses()).hasSize(1);
+        assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
+            .getLicenseIds().iterator().next());
+        assertThat(detailsFromList.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
+        assertThat(detailsFromList.getLicenseThreatLevel()).isEqualTo(2);
       }
     }
   }
@@ -1109,51 +1078,53 @@ public class ReportResourceTest
 
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is("application/zip"));
-    assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
+    assertThat(response.getContentType()).isEqualTo("application/zip");
+    assertThat(response.getHeader("Content-Disposition")).contains("filename=");
     try (InputStream actual = response.getBodyStream()) {
       File temp = tempDir.newFile();
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
-        assertNotNull(zip.getEntry("data/report.pdf"));
-        assertNull(zip.getEntry("detail.rptdesign"));
-        assertNull(zip.getEntry("data/index.html"));
+        assertThat(zip.getEntry("data/report.pdf")).isNotNull();
+        assertThat(zip.getEntry("detail.rptdesign")).isNull();
+        assertThat(zip.getEntry("data/index.html")).isNull();
 
         ZipEntry componentEntry = zip.getEntry("data/components.json");
-        assertNotNull(componentEntry);
+        assertThat(componentEntry).isNotNull();
         ApiReportDataDTOV2 components = JsonUtils.parse(zip.getInputStream(componentEntry), ApiReportDataDTOV2.class);
 
-        assertEquals(1, components.matchSummary.knownComponentCount);
-        assertEquals(481, components.matchSummary.totalComponentCount); // Jar has a lot of JS in it
+        assertThat(components.matchSummary.knownComponentCount).isEqualTo(1);
+        assertThat(components.matchSummary.totalComponentCount).isEqualTo(481); // Jar has a lot of JS in it
         assertComponent("org.webjars.npm", "reactivex:rxjs", "5.0.0-alpha.7", "Sonatype Special Licenses", 5,
             components.components);
 
-        assertNotNull(zip.getEntry("data/sv/maven/"
-            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/9276b9bfccfcd3614dc2.cve.CVE-2013-1624.json"));
-        assertNotNull(zip.getEntry("data/release-graph/maven/"
-            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/releases.png"));
-        assertNotNull(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME));
+        assertThat(zip.getEntry("data/sv/maven/"
+            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
+            + "9276b9bfccfcd3614dc2.cve.CVE-2013-1624.json")).isNotNull();
+        assertThat(zip.getEntry("data/release-graph/maven/"
+            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
+            + "releases.png")).isNotNull();
+        assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
-        assertNull(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json"));
+        assertThat(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json")).isNull();
         TestNamedComponentDetails details = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/details/9276b9bfccfcd3614dc2.json")),
             TestNamedComponentDetails.class);
-        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getMatchState()).isEqualTo("exact");
         assertComponentIdentifier(details, componentIdentifier);
-        assertThat(details.getDisplayName().toString(), is("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7"));
-        assertThat(details.getCatalogDate(), is(1447958674000L));
-        assertThat(details.getOverriddenLicenses(), hasSize(0));
-        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Sonatype Special Licenses"));
-        assertThat(details.getLicenseThreatLevel(), is(5));
-        assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
-        assertThat(details.getPolicyAlerts(), hasSize(1));
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
+        assertThat(details.getDisplayName().toString()).isEqualTo("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7");
+        assertThat(details.getCatalogDate()).isEqualTo(1447958674000L);
+        assertThat(details.getOverriddenLicenses()).isEmpty();;
+        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Sonatype Special Licenses");
+        assertThat(details.getLicenseThreatLevel()).isEqualTo(5);
+        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+        assertThat(details.getPolicyAlerts()).hasSize(1);
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId()).isEqualTo(policy.getId());
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts()).hasSize(1);
 
         ComponentDetailsList list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
             + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7"
             + "/list.json")), ComponentDetailsList.class);
-        assertThat(list.getList(), hasSize(1));
+        assertThat(list.getList()).hasSize(1);
       }
     }
   }
@@ -1161,22 +1132,22 @@ public class ReportResourceTest
   @Test
   public void testToDataPathV3_invalidCharacters() {
     for (char c = 0; c < 16; c++) {
-      assertThat(ReportResource.toDataPathV3(identifier(c)), is("bb/x=%0" + Integer.toHexString(c)));
+      assertThat(ReportResource.toDataPathV3(identifier(c))).isEqualTo("bb/x=%0" + Integer.toHexString(c));
     }
 
     for (char c = 16; c < 31; c++) {
-      assertThat(ReportResource.toDataPathV3(identifier(c)), is("bb/x=%" + Integer.toHexString(c)));
+      assertThat(ReportResource.toDataPathV3(identifier(c))).isEqualTo("bb/x=%" + Integer.toHexString(c));
     }
 
-    assertThat(ReportResource.toDataPathV3(identifier('*')), is("bb/x=%2a"));
-    assertThat(ReportResource.toDataPathV3(identifier('\\')), is("bb/x=%5c"));
-    assertThat(ReportResource.toDataPathV3(identifier('/')), is("bb/x=%2f"));
-    assertThat(ReportResource.toDataPathV3(identifier('?')), is("bb/x=%3f"));
-    assertThat(ReportResource.toDataPathV3(identifier(':')), is("bb/x=%3a"));
-    assertThat(ReportResource.toDataPathV3(identifier('|')), is("bb/x=%7c"));
-    assertThat(ReportResource.toDataPathV3(identifier('"')), is("bb/x=%22"));
-    assertThat(ReportResource.toDataPathV3(identifier('<')), is("bb/x=%3c"));
-    assertThat(ReportResource.toDataPathV3(identifier('>')), is("bb/x=%3e"));
+    assertThat(ReportResource.toDataPathV3(identifier('*'))).isEqualTo("bb/x=%2a");
+    assertThat(ReportResource.toDataPathV3(identifier('\\'))).isEqualTo("bb/x=%5c");
+    assertThat(ReportResource.toDataPathV3(identifier('/'))).isEqualTo("bb/x=%2f");
+    assertThat(ReportResource.toDataPathV3(identifier('?'))).isEqualTo("bb/x=%3f");
+    assertThat(ReportResource.toDataPathV3(identifier(':'))).isEqualTo("bb/x=%3a");
+    assertThat(ReportResource.toDataPathV3(identifier('|'))).isEqualTo("bb/x=%7c");
+    assertThat(ReportResource.toDataPathV3(identifier('"'))).isEqualTo("bb/x=%22");
+    assertThat(ReportResource.toDataPathV3(identifier('<'))).isEqualTo("bb/x=%3c");
+    assertThat(ReportResource.toDataPathV3(identifier('>'))).isEqualTo("bb/x=%3e");
   }
 
   @Test
@@ -1192,14 +1163,14 @@ public class ReportResourceTest
     HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(200, response);
     ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
-    assertThat(metadata.getApplication().getId(), is(app.getId()));
-    assertThat(metadata.getReportTitle(), is("Build Report"));
-    assertThat(metadata.getReportTime(), is(eval.getTime()));
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval.getTime());
 
     // Unknown scan id
     response = restRequest(app.getPublicId(), "12345678").path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Could not download the report for scan ID 12345678"));
+    assertThat(response.getBodyText()).isEqualTo("Could not download the report for scan ID 12345678");
   }
 
   @Test
@@ -1211,9 +1182,9 @@ public class ReportResourceTest
     HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(200, response);
     ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
-    assertThat(metadata.getApplication().getId(), is(app.getId()));
-    assertThat(metadata.getReportTitle(), is("Expanded Coverage Report"));
-    assertThat(metadata.getReportTime().getTime(), is(1503511338632l));
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Expanded Coverage Report");
+    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632l);
   }
 
   private static ComponentIdentifier identifier(Character c) {
@@ -1235,19 +1206,19 @@ public class ReportResourceTest
           && artifactId.equals(coordinates.get("artifactId")) && version.equals(coordinates.get("version"))) {
         for (ApiLicenseThreatDTOV2 effectiveLicense : candidate.licenseData.effectiveLicenseThreats) {
           if (threatGroup.equals(effectiveLicense.licenseThreatGroupName)) {
-            assertThat(effectiveLicense.licenseThreatGroupLevel, is(threatLevel));
+            assertThat(effectiveLicense.licenseThreatGroupLevel).isEqualTo(threatLevel);
 
             if (threatLevel > 7) {
-              assertThat(effectiveLicense.licenseThreatGroupCategory, is("critical"));
+              assertThat(effectiveLicense.licenseThreatGroupCategory).isEqualTo("critical");
             }
             else if (threatLevel > 3) {
-              assertThat(effectiveLicense.licenseThreatGroupCategory, is("severe"));
+              assertThat(effectiveLicense.licenseThreatGroupCategory).isEqualTo("severe");
             }
             else if (threatLevel > 0) {
-              assertThat(effectiveLicense.licenseThreatGroupCategory, is("moderate"));
+              assertThat(effectiveLicense.licenseThreatGroupCategory).isEqualTo("moderate");
             }
             else {
-              assertThat(effectiveLicense.licenseThreatGroupCategory, is("no-threat"));
+              assertThat(effectiveLicense.licenseThreatGroupCategory).isEqualTo("no-threat");
             }
             return;
           }
@@ -1270,26 +1241,26 @@ public class ReportResourceTest
   private void testDataJsonApplyChanges(String json) throws IOException {
     final ContainerNode<?> data = JsonUtils.parse(json);
 
-    assertEquals(2, data.get("weakcopyleftLicenseCount").asInt());
-    assertEquals(2, data.get("nonStandardLicenseCount").asInt());
-    assertEquals(3, data.get("copyleftLicenseCount").asInt());
-    assertEquals(21, data.get("liberalLicenseCount").asInt());
-    assertEquals(1, data.get("notProvidedLicenseCount").asInt());
-    assertEquals("[11,0,1,0,0,11,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
+    assertThat(data.get("weakcopyleftLicenseCount").asInt()).isEqualTo(2);
+    assertThat(data.get("nonStandardLicenseCount").asInt()).isEqualTo(2);
+    assertThat(data.get("copyleftLicenseCount").asInt()).isEqualTo(3);
+    assertThat(data.get("liberalLicenseCount").asInt()).isEqualTo(21);
+    assertThat(data.get("notProvidedLicenseCount").asInt()).isEqualTo(1);
+    assertThat(data.get("effectiveLicenseCounts").toString()).isEqualTo("[11,0,1,0,0,11,2,0,0,4,0]");
 
-    assertEquals(8, data.get("insecureArtifactCount").asInt());
-    assertEquals("[0,4,0,0,2,13,15,2,0,1]", data.get("securityCounts").toString());
+    assertThat(data.get("insecureArtifactCount").asInt()).isEqualTo(8);
+    assertThat(data.get("securityCounts").toString()).isEqualTo("[0,4,0,0,2,13,15,2,0,1]");
 
-    assertEquals("[0,0,0,0,0,2,0,0,0,0,0]", data.get("policyCounts").toString());
-    assertEquals(2, data.get("policyComponentCount").asInt());
-    assertEquals(2, data.get("grandfatheredPolicyViolationCount").asInt());
+    assertThat(data.get("policyCounts").toString()).isEqualTo("[0,0,0,0,0,2,0,0,0,0,0]");
+    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
+    assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(2);
 
-    assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
-    assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
+    assertThat(data.get("securityPunchCard").toString()).isEqualTo("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]");
+    assertThat(data.get("licensePunchCard").toString()).isEqualTo("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]");
 
-    assertEquals(26, data.get("exactlyMatchedComponentCount").asInt());
-    assertEquals(28, data.get("knownArtifactCount").asInt());
-    assertEquals(2, data.get("partiallyMatchedComponentCount").asInt());
+    assertThat(data.get("exactlyMatchedComponentCount").asInt()).isEqualTo(26);
+    assertThat(data.get("knownArtifactCount").asInt()).isEqualTo(28);
+    assertThat(data.get("partiallyMatchedComponentCount").asInt()).isEqualTo(2);
   }
 
   private void testLicensesJsonApplyChanges(String json) throws IOException {
@@ -1298,14 +1269,14 @@ public class ReportResourceTest
     int countNotZero = 0;
     for (JsonNode license : aaData) {
       JsonNode effectiveLicenseThreat = license.get("effectiveLicenseThreat");
-      assertNotNull(effectiveLicenseThreat);
+      assertThat(effectiveLicenseThreat).isNotNull();
       int threat = effectiveLicenseThreat.asInt();
-      assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
+      assertThat(threat).isBetween(0,  10);
       if (threat > 0) {
         countNotZero++;
       }
     }
-    assertTrue(countNotZero > 0);
+    assertThat(countNotZero).isPositive();
   }
 
   private void testJsonApplyComponentChanges(String json) throws IOException {
@@ -1321,7 +1292,7 @@ public class ReportResourceTest
     final ContainerNode<?> licenseThreats = JsonUtils.parse(json);
     final JsonNode aaData = licenseThreats.get("aaData");
     int countNotZero = testLicenseThreatsApplyChanges(aaData);
-    assertTrue(countNotZero > 0);
+    assertThat(countNotZero).isPositive();
   }
 
   private void testPartialMatchedJsonApplyChanges(String json) throws IOException {
@@ -1329,7 +1300,7 @@ public class ReportResourceTest
     final JsonNode aaNode = partialMatched.get("aaData");
     for (JsonNode license : aaNode) {
       final JsonNode matchedComponentNodes = license.get("matchDetails");
-      assertTrue(matchedComponentNodes.size() > 0);
+      assertThat(matchedComponentNodes).isNotEmpty();
       testLicenseThreatsApplyChanges(matchedComponentNodes);
 
       for (JsonNode matchDetail : matchedComponentNodes) {
@@ -1342,30 +1313,30 @@ public class ReportResourceTest
     ComponentIdentifier componentIdentifier = JsonUtils.asPojo(jsonNode.get("componentIdentifier"),
         ComponentIdentifier.class);
     ArrayNode displayNameNode = (ArrayNode) jsonNode.get("displayName").get("parts");
-    assertThat(displayNameNode, is(notNullValue()));
+    assertThat(displayNameNode).isNotNull();
     switch (componentIdentifier.getFormat()) {
       case ComponentIdentifier.FORMAT_MAVEN:
-        assertThat(displayNameNode.size(), is(5));
-        assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
-        assertThat(displayNameNode.get(0).get("value").textValue(), is(jsonNode.get("groupId").textValue()));
-        assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
-        assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
-        assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
-        assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("artifactId").textValue()));
-        assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
-        assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
-        assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
-        assertThat(displayNameNode.get(4).get("value").textValue(), is(jsonNode.get("version").textValue()));
+        assertThat(displayNameNode).hasSize(5);
+        assertThat(displayNameNode.get(0).get("field").textValue()).isEqualTo("Group");
+        assertThat(displayNameNode.get(0).get("value").textValue()).isEqualTo(jsonNode.get("groupId").textValue());
+        assertThat(displayNameNode.get(1).get("field")).isNull();
+        assertThat(displayNameNode.get(1).get("value").textValue()).isEqualTo(" : ");
+        assertThat(displayNameNode.get(2).get("field").textValue()).isEqualTo("Artifact");
+        assertThat(displayNameNode.get(2).get("value").textValue()).isEqualTo(jsonNode.get("artifactId").textValue());
+        assertThat(displayNameNode.get(3).get("field")).isNull();
+        assertThat(displayNameNode.get(3).get("value").textValue()).isEqualTo(" : ");
+        assertThat(displayNameNode.get(4).get("field").textValue()).isEqualTo("Version");
+        assertThat(displayNameNode.get(4).get("value").textValue()).isEqualTo(jsonNode.get("version").textValue());
         break;
       case ComponentIdentifier.FORMAT_ANAME:
-        assertThat(displayNameNode.size(), is(3));
-        assertThat(displayNameNode.get(0).get("field").textValue(), is("Name"));
-        assertThat(displayNameNode.get(0).get("value").textValue(),
-            is(componentIdentifier.get(ComponentIdentifier.ANAME_NAME)));
-        assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
-        assertThat(displayNameNode.get(1).get("value").textValue(), is(" "));
-        assertThat(displayNameNode.get(2).get("field").textValue(), is("Version"));
-        assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("version").textValue()));
+        assertThat(displayNameNode).hasSize(3);
+        assertThat(displayNameNode.get(0).get("field").textValue()).isEqualTo("Name");
+        assertThat(displayNameNode.get(0).get("value").textValue())
+            .isEqualTo(componentIdentifier.get(ComponentIdentifier.ANAME_NAME));
+        assertThat(displayNameNode.get(1).get("field")).isNull();
+        assertThat(displayNameNode.get(1).get("value").textValue()).isEqualTo(" ");
+        assertThat(displayNameNode.get(2).get("field").textValue()).isEqualTo("Version");
+        assertThat(displayNameNode.get(2).get("value").textValue()).isEqualTo(jsonNode.get("version").textValue());
         break;
       default:
         fail("Unexpected format " + componentIdentifier.getFormat());
@@ -1378,18 +1349,18 @@ public class ReportResourceTest
     mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
 
     File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
-    assertThat(reportFile.exists(), is(false));
+    assertThat(reportFile).doesNotExist();
 
     HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.PREPARE_PATH).post();
     assertResponseStatus(204, response);
-    assertThat(reportFile.isFile(), is(true));
+    assertThat(reportFile).isFile();
   }
 
   private int testLicenseThreatsApplyChanges(JsonNode licenses) {
     int countNotZero = 0;
     for (JsonNode licenseThreat : licenses) {
       int threat = licenseThreat.asInt();
-      assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
+      assertThat(threat).isBetween(0, 10);
       if (threat > 0) {
         countNotZero++;
       }

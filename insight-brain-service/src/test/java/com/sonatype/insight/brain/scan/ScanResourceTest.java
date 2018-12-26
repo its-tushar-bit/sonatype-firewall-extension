@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.scan;
 
+import java.util.concurrent.TimeUnit;
+
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -14,11 +16,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class ScanResourceTest
     extends AbstractResourceTest
@@ -46,8 +45,8 @@ public class ScanResourceTest
     HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "app01.zip").post();
     assertResponseStatus(200, response);
     ScanTicket result = response.getBody(ScanTicket.class);
-    assertThat(result, is(notNullValue()));
-    assertThat(result.ticketId, is(notNullValue()));
+    assertThat(result).isNotNull();
+    assertThat(result.ticketId).isNotNull();
     waitForScanTaskToBeProcessed(app.getPublicId(), result.ticketId);
   }
 
@@ -55,8 +54,8 @@ public class ScanResourceTest
   public void testUploadBinary_IeErrorHandling() throws Exception {
     HttpResponse response = uploadRequest("bad-app-id", Stage.ID_BUILD, "app01.zip").query("noFormData", "true").post();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), startsWith("text/plain"));
-    assertThat(response.getBodyText(), is("Could not find an application with public ID bad-app-id."));
+    assertThat(response.getContentType()).startsWith("text/plain");
+    assertThat(response.getBodyText()).isEqualTo("Could not find an application with public ID bad-app-id.");
   }
 
   @Test
@@ -65,29 +64,21 @@ public class ScanResourceTest
 
     HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
     assertResponseStatus(200, response);
-    assertThat(response.getBody(ScanTicket.class), is(notNullValue()));
+    assertThat(response.getBody(ScanTicket.class)).isNotNull();
 
     response = request.query("noFormData", "true").noCsrfToken().post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+    assertThat(response.getBodyText()).isEqualTo("Invalid cross-site request forgery token");
   }
 
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {
-    // Allow 10 seconds for the scan task to be processed
     HttpRequest request = restRequest().path("{ticketId}").parameter(appPublicId, scanTicketId);
-    long start = System.currentTimeMillis();
-    while (System.currentTimeMillis() - start <= 10000) {
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       HttpResponse response = request.get();
       assertResponseStatus(200, response);
       ScanTicket scanTicket = response.getBody(ScanTicket.class);
-      if (scanTicket.currentStep >= scanTicket.totalSteps) {
-        System.out.println("Scan task " + scanTicketId + " for appPublicId " + appPublicId + " was finished after "
-            + (System.currentTimeMillis() - start) + " ms");
-        return;
-      }
-      Thread.sleep(10);
-    }
-    fail("Scan task " + scanTicketId + " for appPublicId " + appPublicId + " was not finished after "
-        + (System.currentTimeMillis() - start) + " ms");
+      assertThat(scanTicket.currentStep).as("Scan task %s for application %s", scanTicketId, appPublicId)
+          .isGreaterThanOrEqualTo(scanTicket.totalSteps);
+    });
   }
 }

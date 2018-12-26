@@ -50,11 +50,8 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -141,19 +138,19 @@ public class RepositoryPolicyAlertEmailerTest
     }
 
     Map<String, Object> model = emailer.createPolicyMailModel(repository, policyFacts);
-    assertNotNull(model);
-    assertEquals(policyFacts, model.get("policyFacts"));
-    assertEquals("http://cdnUrl", model.get("cdnUrl"));
-    assertEquals(baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()),
-        model.get("detailedReportUrl"));
-    assertEquals(2, model.get("policyThreatRedCount"));
-    assertEquals(4, model.get("policyThreatOrangeCount"));
-    assertEquals(2, model.get("policyThreatYellowCount"));
-    assertEquals(1, model.get("policyThreatBlueCount"));
-    assertEquals("Proxy", model.get("policyThreatStage"));
-    assertEquals(repository.getPublicId(), model.get("policyThreatApp"));
-    assertNotNull(model.get("policyThreatTime"));
-    assertEquals("REPO ID", model.get("ownerIdLabel"));
+    assertThat(model).isNotNull();
+    assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
+    assertThat(model.get("cdnUrl")).isEqualTo("http://cdnUrl");
+    assertThat(model.get("detailedReportUrl"))
+        .isEqualTo(baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
+    assertThat(model.get("policyThreatRedCount")).isEqualTo(2);
+    assertThat(model.get("policyThreatOrangeCount")).isEqualTo(4);
+    assertThat(model.get("policyThreatYellowCount")).isEqualTo(2);
+    assertThat(model.get("policyThreatBlueCount")).isEqualTo(1);
+    assertThat(model.get("policyThreatStage")).isEqualTo("Proxy");
+    assertThat(model.get("policyThreatApp")).isEqualTo(repository.getPublicId());
+    assertThat(model.get("policyThreatTime")).isNotNull();
+    assertThat(model.get("ownerIdLabel")).isEqualTo("REPO ID");
   }
 
   @Test
@@ -172,13 +169,9 @@ public class RepositoryPolicyAlertEmailerTest
     List<PolicyFact> policyFacts = new ArrayList<>();
     policyFacts.add(createPolicyFact(policy, component));
 
-    try {
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       emailer.createPolicyMailModel(repository, policyFacts);
-      fail("Expected exception");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED));
-    }
+    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private Policy createPolicy(User user) {

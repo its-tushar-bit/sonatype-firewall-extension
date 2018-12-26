@@ -16,9 +16,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReleaseGraphResourceTest
     extends AbstractResourceTest
@@ -60,7 +58,7 @@ public class ReleaseGraphResourceTest
   public void testGetImage_NeitherIdentifierNorGav() throws Exception {
     HttpResponse response = getRequest(appId, scanId).get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid component identifier"));
+    assertThat(response.getBodyText()).isEqualTo("Invalid component identifier");
   }
 
   @Test
@@ -72,7 +70,7 @@ public class ReleaseGraphResourceTest
         "ignored", "ignored").get();
     assertResponseStatus(200, response);
     byte[] image = response.getBodyBytes();
-    assertThat(image.length, is(greaterThan(0)));
+    assertThat(image).isNotEmpty();
   }
 
   @Test
@@ -81,6 +79,6 @@ public class ReleaseGraphResourceTest
     HttpResponse response = addCoords(getRequest(appId, scanId), "tomcat", "tomcat-util", "5.5.23").get();
     assertResponseStatus(200, response);
     byte[] image = response.getBodyBytes();
-    assertThat(image.length, is(greaterThan(0)));
+    assertThat(image).isNotEmpty();
   }
 }

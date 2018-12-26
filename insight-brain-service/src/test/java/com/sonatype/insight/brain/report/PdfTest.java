@@ -13,8 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PdfTest
 {
@@ -45,10 +44,10 @@ public class PdfTest
     String email = summary.get("applicationContactEmail").asText();
     String displayName = summary.get("applicationContactName").asText();
 
-    assertEquals(projectName, summaryApplicationName);
-    assertEquals(stageName, summaryStageName);
-    assertEquals("email", email);
-    assertEquals("displayName", displayName);
+    assertThat(summaryApplicationName).isEqualTo(projectName);
+    assertThat(summaryStageName).isEqualTo(stageName);
+    assertThat(email).isEqualTo("email");
+    assertThat(displayName).isEqualTo("displayName");
   }
 
   /*
@@ -61,8 +60,8 @@ public class PdfTest
     String summaryProjectName = summary.get("projectName").asText();
     String summaryBuildName = summary.get("buildNumber").asText();
 
-    assertEquals(projectName, summaryProjectName);
-    assertEquals(stageName, summaryBuildName);
+    assertThat(summaryProjectName).isEqualTo(projectName);
+    assertThat(summaryBuildName).isEqualTo(stageName);
   }
 
   @Test
@@ -73,11 +72,11 @@ public class PdfTest
     String summaryBuildName = summary.get("buildNumber").asText();
     String summaryStageName = summary.get("stageName").asText();
 
-    assertEquals(projectName, summaryApplicationName);
-    assertEquals(stageName, summaryBuildName);
-    assertEquals(stageName, summaryStageName);
-    assertNull(summary.get("applicationContactEmail"));
-    assertNull(summary.get("applicationContactName"));
+    assertThat(summaryApplicationName).isEqualTo(projectName);
+    assertThat(summaryBuildName).isEqualTo(stageName);
+    assertThat(summaryStageName).isEqualTo(stageName);
+    assertThat(summary.get("applicationContactEmail")).isNull();
+    assertThat(summary.get("applicationContactName")).isNull();
   }
 
   @Test
@@ -89,10 +88,10 @@ public class PdfTest
     String summaryBuildName = summary.get("buildNumber").asText();
     String displayName = summary.get("applicationContactName").asText();
 
-    assertEquals(projectName, summaryApplicationName);
-    assertEquals(stageName, summaryBuildName);
-    assertNull(summary.get("applicationContactEmail"));
-    assertEquals("displayName", displayName);
+    assertThat(summaryApplicationName).isEqualTo(projectName);
+    assertThat(summaryBuildName).isEqualTo(stageName);
+    assertThat(summary.get("applicationContactEmail")).isNull();
+    assertThat(displayName).isEqualTo("displayName");
   }
 
   @Test
@@ -104,10 +103,10 @@ public class PdfTest
     String summaryBuildName = summary.get("buildNumber").asText();
     String email = summary.get("applicationContactEmail").asText();
 
-    assertEquals(projectName, summaryApplicationName);
-    assertEquals(stageName, summaryBuildName);
-    assertEquals("email", email);
-    assertNull(summary.get("applicationContactName"));
+    assertThat(summaryApplicationName).isEqualTo(projectName);
+    assertThat(summaryBuildName).isEqualTo(stageName);
+    assertThat(email).isEqualTo("email");
+    assertThat(summary.get("applicationContactName")).isNull();
   }
 
 }

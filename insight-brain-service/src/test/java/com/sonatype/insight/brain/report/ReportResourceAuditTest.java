@@ -24,8 +24,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.report.ReportResource.PRINT_PATH;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportResourceAuditTest
     extends AbstractAuditTest
@@ -176,7 +175,7 @@ public class ReportResourceAuditTest
 
     restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, subpath).get();
 
-    assertThat(awaitLogEntries(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, 0)).isEmpty();
   }
 
   private void createReportFile(String appId, String scanId) throws IOException {

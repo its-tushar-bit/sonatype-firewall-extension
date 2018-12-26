@@ -11,11 +11,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,18 +33,14 @@ public class ScanTaskRepositoryTest
 
     ScanTask task = repo.getByIdNotNull("stub-id");
 
-    assertThat(task.getId(), is(notNullValue()));
+    assertThat(task.getId()).isNotNull();
   }
 
   @Test
   public void getUnknownTicketThrowsException() {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repo.getByIdNotNull("unknown-task");
-      fail("Exception should have been thrown");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), containsString("unknown-task"));
-    }
+    }).withMessageContaining("unknown-task");
   }
 
   @Test
@@ -60,12 +53,9 @@ public class ScanTaskRepositoryTest
 
     repo.remove(task.getId());
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repo.getByIdNotNull(task.getId());
-      fail("Task should have been removed from storage");
-    }
-    catch (NotFoundException expected) {
-    }
+    });
   }
 
   @Test
@@ -81,12 +71,9 @@ public class ScanTaskRepositoryTest
     when(task.getId()).thenReturn("task-1");
     repo.newScanTask(null, null, null, null, false);
 
-    assertThat(repo.getByIdNotNull("task-1"), is(notNullValue()));
-    try {
+    assertThat(repo.getByIdNotNull("task-1")).isNotNull();
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repo.getByIdNotNull("task-0");
-      fail("Task should have been purged from storage");
-    }
-    catch (NotFoundException expected) {
-    }
+    });
   }
 }

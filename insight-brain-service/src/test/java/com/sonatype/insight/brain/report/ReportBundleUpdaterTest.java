@@ -23,10 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportBundleUpdaterTest
 {
@@ -69,8 +66,8 @@ public class ReportBundleUpdaterTest
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.add("added.pdf", tmpDir.newFile());
     }
-    assertThat(read(updatedFile).keySet(), containsInAnyOrder("one.txt", "two.html", "added.pdf"));
-    assertThat(read(updatedFile).get("added.pdf"), is(""));
+    assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("one.txt", "two.html", "added.pdf");
+    assertThat(read(updatedFile).get("added.pdf")).isEqualTo("");
   }
 
   @Test
@@ -78,8 +75,8 @@ public class ReportBundleUpdaterTest
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.add("added.pdf", "added".getBytes("UTF-8"));
     }
-    assertThat(read(updatedFile).keySet(), containsInAnyOrder("one.txt", "two.html", "added.pdf"));
-    assertThat(read(updatedFile).get("added.pdf"), is("added"));
+    assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("one.txt", "two.html", "added.pdf");
+    assertThat(read(updatedFile).get("added.pdf")).isEqualTo("added");
   }
 
   @Test
@@ -87,16 +84,16 @@ public class ReportBundleUpdaterTest
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.add("added.pdf", true);
     }
-    assertThat(read(updatedFile).keySet(), containsInAnyOrder("one.txt", "two.html", "added.pdf"));
-    assertThat(read(updatedFile).get("added.pdf"), is("true"));
+    assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("one.txt", "two.html", "added.pdf");
+    assertThat(read(updatedFile).get("added.pdf")).isEqualTo("true");
   }
 
   @Test
   public void testContains() throws Exception {
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
-      assertThat(updater.contains("added.pdf"), is(false));
+      assertThat(updater.contains("added.pdf")).isFalse();
       updater.add("added.pdf", tmpDir.newFile());
-      assertThat(updater.contains("added.pdf"), is(true));
+      assertThat(updater.contains("added.pdf")).isTrue();
     }
   }
 
@@ -105,7 +102,7 @@ public class ReportBundleUpdaterTest
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.add("one.txt", tmpDir.newFile());
     }
-    assertThat(read(updatedFile).get("one.txt"), is(""));
+    assertThat(read(updatedFile).get("one.txt")).isEqualTo("");
   }
 
   @Test
@@ -114,8 +111,8 @@ public class ReportBundleUpdaterTest
         ".*\\.txt", "data/$0"))) {
       updater.add("data/one.txt", tmpDir.newFile());
     }
-    assertThat(read(updatedFile).get("data/one.txt"), is(""));
-    assertThat(read(updatedFile).get("one.txt"), is(nullValue()));
+    assertThat(read(updatedFile).get("data/one.txt")).isEqualTo("");
+    assertThat(read(updatedFile).get("one.txt")).isNull();
   }
 
   @Test
@@ -123,7 +120,7 @@ public class ReportBundleUpdaterTest
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.remove("one.txt");
     }
-    assertThat(read(updatedFile).keySet(), containsInAnyOrder("two.html"));
+    assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("two.html");
   }
 
   @Test
@@ -132,6 +129,6 @@ public class ReportBundleUpdaterTest
         ".*\\.txt", "data/$0"))) {
       updater.remove("data/one.txt");
     }
-    assertThat(read(updatedFile).keySet(), containsInAnyOrder("two.html"));
+    assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("two.html");
   }
 }

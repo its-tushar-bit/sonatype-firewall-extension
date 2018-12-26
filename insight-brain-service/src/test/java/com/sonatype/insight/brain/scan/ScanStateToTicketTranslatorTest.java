@@ -9,8 +9,7 @@ import com.sonatype.insight.brain.scan.ScanTask.State;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test the translation from {@link ScanTask.State} to {@link ScanTicket} steps.
@@ -23,23 +22,23 @@ public class ScanStateToTicketTranslatorTest
   public void totalStepsAreCalculated() {
     State.SCANNING_COMPONENTS.provideStepInfo(updatableTicket);
 
-    assertThat(updatableTicket.totalSteps, equalTo(5));
+    assertThat(updatableTicket.totalSteps).isEqualTo(5);
   }
 
   @Test
   public void pendingStateIsStepZero() {
     State.PENDING.provideStepInfo(updatableTicket);
 
-    assertThat(updatableTicket.currentStep, equalTo(0));
-    assertThat(updatableTicket.currentStepName, equalTo("Queued"));
+    assertThat(updatableTicket.currentStep).isEqualTo(0);
+    assertThat(updatableTicket.currentStepName).isEqualTo("Queued");
   }
 
   @Test
   public void firstStepExtractedFromState() {
     State.SCANNING_COMPONENTS.provideStepInfo(updatableTicket);
 
-    assertThat(updatableTicket.currentStep, equalTo(1));
-    assertThat(updatableTicket.currentStepName, equalTo("Fingerprinting components"));
+    assertThat(updatableTicket.currentStep).isEqualTo(1);
+    assertThat(updatableTicket.currentStepName).isEqualTo("Fingerprinting components");
   }
 
   /**
@@ -49,7 +48,7 @@ public class ScanStateToTicketTranslatorTest
   public void lastStepExtractedFromState() {
     State.DONE.provideStepInfo(updatableTicket);
 
-    assertThat(updatableTicket.currentStep, equalTo(updatableTicket.totalSteps));
-    assertThat(updatableTicket.currentStepName, equalTo("Done"));
+    assertThat(updatableTicket.currentStep).isEqualTo(updatableTicket.totalSteps);
+    assertThat(updatableTicket.currentStepName).isEqualTo("Done");
   }
 }

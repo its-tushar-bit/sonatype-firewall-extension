@@ -27,13 +27,8 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -90,15 +85,15 @@ public class ScanServiceTest
     InputStream appBundle = getBundle("app01.zip");
     ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD),
         false);
-    assertThat(ticket, is(notNullValue()));
-    assertThat(ticket.ticketId, is(notNullValue()));
+    assertThat(ticket).isNotNull();
+    assertThat(ticket.ticketId).isNotNull();
   }
 
   @Test
   public void testSaveBinary_KeepsOriginalFileExtensionForArchiveDetectionPurposes() throws Exception {
     File file = scanService.saveBinary(getBundle("app01.zip"), "app.tar.gz");
     file.delete();
-    assertThat(file.getName(), endsWith(".tar.gz"));
+    assertThat(file.getName()).endsWith(".tar.gz");
   }
 
   @Test
@@ -108,7 +103,7 @@ public class ScanServiceTest
         Stage.ID_BUILD), false);
 
     ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
-    assertThat(statusTicket.ticketId, is(originalTicket.ticketId));
+    assertThat(statusTicket.ticketId).isEqualTo(originalTicket.ticketId);
   }
 
   /**
@@ -126,19 +121,15 @@ public class ScanServiceTest
       statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
     }
 
-    assertThat(statusTicket, is(notNullValue()));
-    assertThat(statusTicket.error, is(nullValue()));
+    assertThat(statusTicket).isNotNull();
+    assertThat(statusTicket.error).isNull();
   }
 
   @Test
   public void testFailEarlyOnInvalidStage() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false);
-      fail("Should have reject invalid stage");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), containsString("invalid-stage-id"));
-    }
+    }).withMessageContaining("invalid-stage-id");
   }
 }

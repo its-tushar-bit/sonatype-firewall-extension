@@ -23,25 +23,19 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 /**
  * Also see {@link ScanTaskStateTest} and {@link ScanStateToTicketTranslatorTest}.
@@ -86,28 +80,8 @@ public class ScanTaskTest
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(tmpScanFile);
   }
 
-  private static class StageMatcher
-      extends BaseMatcher<Stage>
-  {
-    private final Stage stage;
-
-    public StageMatcher(Stage stage) {
-      this.stage = stage;
-    }
-
-    @Override
-    public boolean matches(Object item) {
-      return item != null && stage.getStageTypeId().equals(((Stage) item).getStageTypeId());
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendText(stage.getStageTypeId());
-    }
-  }
-
   private static Stage match(Stage stage) {
-    return argThat(new StageMatcher(stage));
+    return argThat(argument -> argument != null && stage.getStageTypeId().equals(argument.getStageTypeId()));
   }
 
   private Application newApp(String publicId) {
@@ -118,23 +92,23 @@ public class ScanTaskTest
 
   @Test
   public void stateForScheduledTaskIsPending() {
-    assertThat("New task state", task.getState(), equalTo(State.PENDING));
+    assertThat(task.getState()).as("New task state").isEqualTo(State.PENDING);
 
     task.init(newApp("any"), new File("any"), "any", new Stage(Stage.ID_BUILD), false);
-    assertThat("Initialized task state", task.getState(), equalTo(State.PENDING));
+    assertThat(task.getState()).as("Initialized task state").isEqualTo(State.PENDING);
   }
 
   @Test
   public void savedApplicationBinaryIsScanned() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false);
 
-    assertThat(tmpScanFile.isFile(), is(true));
-    assertThat(scanFile.isFile(), is(false));
+    assertThat(tmpScanFile).isFile();
+    assertThat(scanFile).doesNotExist();
     task.run();
 
     verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null));
-    assertThat(tmpScanFile.isFile(), is(false));
-    assertThat(scanFile.isFile(), is(true));
+    assertThat(tmpScanFile).doesNotExist();
+    assertThat(scanFile).isFile();
   }
 
   /**
@@ -153,11 +127,11 @@ public class ScanTaskTest
     assertThatTaskCompletedSuccessfully(task);
 
     ScanTicket ticket = task.getTicket();
-    assertThat("Ticket has no error", ticket.error, is(nullValue()));
-    assertThat("Ticket has public app id", ticket.applicationPublicId, is(app.getPublicId()));
-    assertThat("Ticket has scan id", ticket.scanId, is(scanReceipt.getScanId()));
-    assertThat("Final ticket step", ticket.currentStep, is(ticket.totalSteps));
-    assertThat("Final ticket step text", ticket.currentStepName, is("Done"));
+    assertThat(ticket.error).isNull();
+    assertThat(ticket.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(ticket.scanId).isEqualTo(scanReceipt.getScanId());
+    assertThat(ticket.currentStep).isEqualTo(ticket.totalSteps);
+    assertThat(ticket.currentStepName).isEqualTo("Done");
   }
 
   @Test
@@ -173,10 +147,10 @@ public class ScanTaskTest
     assertThatTaskCompletedUnsuccessfully(task);
 
     ScanTicket ticket = task.getTicket();
-    assertThat("Ticket has error", ticket.error, is(notNullValue()));
-    assertThat("Ticket has no scan id", ticket.scanId, is(nullValue()));
-    assertThat("Final ticket step", ticket.currentStep, is(ticket.totalSteps));
-    assertThat("Final ticket step text", ticket.currentStepName, is("Done"));
+    assertThat(ticket.error).isNotNull();
+    assertThat(ticket.scanId).isNull();
+    assertThat(ticket.currentStep).isEqualTo(ticket.totalSteps);
+    assertThat(ticket.currentStepName).isEqualTo("Done");
   }
 
   @Test
@@ -219,12 +193,12 @@ public class ScanTaskTest
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {
-    assertThat(task.getState(), is(State.DONE));
-    assertThat(task.getError(), nullValue());
+    assertThat(task.getState()).isEqualTo(State.DONE);
+    assertThat(task.getError()).isNull();
   }
 
   private void assertThatTaskCompletedUnsuccessfully(ScanTask task) {
-    assertThat(task.getState(), is(State.DONE));
-    assertThat(task.getError(), notNullValue());
+    assertThat(task.getState()).isEqualTo(State.DONE);
+    assertThat(task.getError()).isNotNull();
   }
 }

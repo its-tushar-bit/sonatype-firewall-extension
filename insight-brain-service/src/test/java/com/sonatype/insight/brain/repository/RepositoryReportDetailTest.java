@@ -14,10 +14,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryReportDetailTest
 {
@@ -26,14 +23,14 @@ public class RepositoryReportDetailTest
   @Test
   public void testBuildComponentDisplayText_NullSafe() {
     RepositoryComponent component = new RepositoryComponent();
-    assertEquals(null, RepositoryReportDetail.buildComponentDisplayText(component));
+    assertThat(RepositoryReportDetail.buildComponentDisplayText(component)).isNull();
   }
 
   @Test
   public void testBuildComponentDisplayText_UseIdentifierWhenAvailable() {
     RepositoryComponent component = new RepositoryComponent();
     component.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    assertEquals("g : a : v", RepositoryReportDetail.buildComponentDisplayText(component));
+    assertThat(RepositoryReportDetail.buildComponentDisplayText(component)).isEqualTo("g : a : v");
   }
 
   @Test
@@ -41,21 +38,23 @@ public class RepositoryReportDetailTest
     RepositoryComponent component = new RepositoryComponent();
     component.setPathname("some/dir/test-1.2.zip");
     component.setComponentIdentifier(new ComponentIdentifier());
-    assertEquals("test-1.2.zip (some/dir/test-1.2.zip)", RepositoryReportDetail.buildComponentDisplayText(component));
+    assertThat(RepositoryReportDetail.buildComponentDisplayText(component))
+        .isEqualTo("test-1.2.zip (some/dir/test-1.2.zip)");
   }
 
   @Test
   public void testBuildComponentDisplayText_UsePathnameWhenNoIdentifierAvailable() {
     RepositoryComponent component = new RepositoryComponent();
     component.setPathname("some/dir/test-1.2.zip");
-    assertEquals("test-1.2.zip (some/dir/test-1.2.zip)", RepositoryReportDetail.buildComponentDisplayText(component));
+    assertThat(RepositoryReportDetail.buildComponentDisplayText(component))
+        .isEqualTo("test-1.2.zip (some/dir/test-1.2.zip)");
   }
 
   @Test
   public void testBuildComponentDisplayText_UsePathnameWhenNoIdentifierAvailable_NoParentDir() {
     RepositoryComponent component = new RepositoryComponent();
     component.setPathname("test-1.2.zip");
-    assertEquals("test-1.2.zip (test-1.2.zip)", RepositoryReportDetail.buildComponentDisplayText(component));
+    assertThat(RepositoryReportDetail.buildComponentDisplayText(component)).isEqualTo("test-1.2.zip (test-1.2.zip)");
   }
 
   @Test
@@ -79,16 +78,16 @@ public class RepositoryReportDetailTest
 
     repositoryReportDetail = RepositoryReportDetail.create(component, violation, false);
 
-    assertEquals(componentId, repositoryReportDetail.getComponentIdentifier());
-    assertEquals("g : a : v", repositoryReportDetail.getComponentDisplayText());
-    assertEquals(pathname, repositoryReportDetail.getPathname());
-    assertEquals(hash, repositoryReportDetail.getHash());
-    assertEquals(matchStateId, repositoryReportDetail.getMatchState());
-    assertTrue(repositoryReportDetail.isQuarantined());
-    assertTrue(repositoryReportDetail.isWaived());
-    assertEquals(threatLevel, repositoryReportDetail.getThreatLevel());
-    assertFalse(repositoryReportDetail.isHighestThreatLevel());
-    assertEquals(policyName, repositoryReportDetail.getPolicyName());
+    assertThat(repositoryReportDetail.getComponentIdentifier()).isEqualByComparingTo(componentId);
+    assertThat(repositoryReportDetail.getComponentDisplayText()).isEqualTo("g : a : v");
+    assertThat(repositoryReportDetail.getPathname()).isEqualTo(pathname);
+    assertThat(repositoryReportDetail.getHash()).isEqualTo(hash);
+    assertThat(repositoryReportDetail.getMatchState()).isEqualTo(matchStateId);
+    assertThat(repositoryReportDetail.isQuarantined()).isTrue();
+    assertThat(repositoryReportDetail.isWaived()).isTrue();
+    assertThat(repositoryReportDetail.getThreatLevel()).isEqualTo(threatLevel);
+    assertThat(repositoryReportDetail.isHighestThreatLevel()).isFalse();
+    assertThat(repositoryReportDetail.getPolicyName()).isEqualTo(policyName);
   }
 
   @Test
@@ -105,15 +104,15 @@ public class RepositoryReportDetailTest
 
     repositoryReportDetail = RepositoryReportDetail.create(component);
 
-    assertEquals(componentId, repositoryReportDetail.getComponentIdentifier());
-    assertEquals("g : a : v", repositoryReportDetail.getComponentDisplayText());
-    assertEquals(pathname, repositoryReportDetail.getPathname());
-    assertEquals(hash, repositoryReportDetail.getHash());
-    assertEquals(matchStateId, repositoryReportDetail.getMatchState());
-    assertTrue(repositoryReportDetail.isQuarantined());
-    assertFalse(repositoryReportDetail.isWaived());
-    assertEquals(0, repositoryReportDetail.getThreatLevel());
-    assertTrue(repositoryReportDetail.isHighestThreatLevel());
-    assertNull(null, repositoryReportDetail.getPolicyName());
+    assertThat(repositoryReportDetail.getComponentIdentifier()).isEqualTo(componentId);
+    assertThat(repositoryReportDetail.getComponentDisplayText()).isEqualTo("g : a : v");
+    assertThat(repositoryReportDetail.getPathname()).isEqualTo(pathname);
+    assertThat(repositoryReportDetail.getHash()).isEqualTo(hash);
+    assertThat(repositoryReportDetail.getMatchState()).isEqualTo(matchStateId);
+    assertThat(repositoryReportDetail.isQuarantined()).isTrue();
+    assertThat(repositoryReportDetail.isWaived()).isFalse();
+    assertThat(repositoryReportDetail.getThreatLevel()).isEqualTo(0);
+    assertThat(repositoryReportDetail.isHighestThreatLevel()).isTrue();
+    assertThat(repositoryReportDetail.getPolicyName()).isNull();
   }
 }

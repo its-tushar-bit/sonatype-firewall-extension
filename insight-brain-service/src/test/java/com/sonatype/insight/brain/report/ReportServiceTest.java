@@ -36,12 +36,8 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -82,9 +78,9 @@ public class ReportServiceTest
     ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
         applicationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
-    assertThat(report, notNullValue());
-    assertThat(report.exists(), is(true));
-    assertThat(report.getName(), is("report.zip"));
+    assertThat(report).isNotNull();
+    assertThat(report).isFile();
+    assertThat(report.getName()).isEqualTo("report.zip");
   }
 
   @Test
@@ -93,14 +89,9 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
     ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
         applicationDAO);
-    try {
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
-      fail("IllegalStateException expected but not thrown");
-    }
-    catch (IllegalStateException e) {
-      assertThat(e.getMessage(),
-          equalTo("The report file does not exist for application ID " + app.getId() + " and scan ID " + scanId + "."));
-    }
+    }).withMessage("The report file does not exist for application ID " + app.getId() + " and scan ID " + scanId + ".");
   }
 
   @Test
@@ -111,9 +102,9 @@ public class ReportServiceTest
     ReportService reportService = new ReportService(insightWork, mockReportDownloader.getMock(), policyEvaluationDAO,
         insightConfig, applicationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
-    assertThat(report, notNullValue());
-    assertThat(report.exists(), is(true));
-    assertThat(report.getName(), is("report.zip"));
+    assertThat(report).isNotNull();
+    assertThat(report).isFile();
+    assertThat(report.getName()).isEqualTo("report.zip");
     verify(mockReportDownloader.getMock()).downloadReport(eq(scanId), any(File.class), eq(900), eq(5));
   }
 
@@ -125,9 +116,9 @@ public class ReportServiceTest
     ReportService reportService = new ReportService(insightWork, mockReportDownloader.getMock(), policyEvaluationDAO,
         insightConfig, applicationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, false /* waitForReport */);
-    assertThat(report, notNullValue());
-    assertThat(report.exists(), is(true));
-    assertThat(report.getName(), is("report.zip"));
+    assertThat(report).isNotNull();
+    assertThat(report).isFile();
+    assertThat(report.getName()).isEqualTo("report.zip");
     verify(mockReportDownloader.getMock()).downloadReport(eq(scanId), any(File.class), eq(0), eq(5));
   }
 
@@ -138,9 +129,9 @@ public class ReportServiceTest
     ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
         applicationDAO);
     File report = reportService.getReport(insightWork, app.getId(), scanId);
-    assertThat(report, notNullValue());
-    assertThat(report.exists(), is(true));
-    assertThat(report.getName(), is("report.zip"));
+    assertThat(report).isNotNull();
+    assertThat(report).isFile();
+    assertThat(report.getName()).isEqualTo("report.zip");
   }
 
   @Test
@@ -149,7 +140,7 @@ public class ReportServiceTest
     ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
         applicationDAO);
     File report = reportService.getReport(insightWork, app.getId(), scanId);
-    assertThat(report, nullValue());
+    assertThat(report).isNull();
   }
 
   @Test
@@ -177,24 +168,20 @@ public class ReportServiceTest
 
     // Verify Response for scan 1
     ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId1);
-    assertThat(metadata.getApplication().getId(), is(app.getId()));
-    assertThat(metadata.getReportTitle(), is("Build Report"));
-    assertThat(metadata.getReportTime(), is(eval1.getTime()));
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
-    assertThat(metadata.getApplication().getId(), is(app.getId()));
-    assertThat(metadata.getReportTitle(), is("Release Report"));
-    assertThat(metadata.getReportTime(), is(eval2.getTime()));
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
 
     // Unknown scan id
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.getReportMetadata(app.getPublicId(), "12345678");
-      fail("Expected NotFoundException to be thrown");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not download the report for scan ID 12345678"));
-    }
+    }).withMessage("Could not download the report for scan ID 12345678");
   }
 
   @Test
@@ -206,10 +193,10 @@ public class ReportServiceTest
 
     // Verify Response for scan
     ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId);
-    assertThat(metadata, is(notNullValue()));
-    assertThat(metadata.getApplication().getId(), is(app.getId()));
-    assertThat(metadata.getReportTitle(), is("Expanded Coverage Report"));
-    assertThat(metadata.getReportTime().getTime(), is(1503511338632l));
+    assertThat(metadata).isNotNull();
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Expanded Coverage Report");
+    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632l);
   }
 
   @Test
@@ -227,11 +214,11 @@ public class ReportServiceTest
         applicationDAO);
 
     File reportFile = insightWork.getReportFile(app.getId(), scanId);
-    assertThat(reportFile.exists(), is(false));
+    assertThat(reportFile).doesNotExist();
 
     reportService.prepareExpandedCoverageReport(app.getPublicId(), scanId);
     
-    assertThat(reportFile.isFile(), is(true));
+    assertThat(reportFile).isFile();
   }
 
   private void createReportFile() throws IOException {

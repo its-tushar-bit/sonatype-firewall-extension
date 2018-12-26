@@ -46,11 +46,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -140,7 +137,7 @@ public class RepositoryReevaluationTaskTest
     executorService.awaitTermination(1, TimeUnit.MINUTES);
 
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(components, hasSize(2));
+    assertThat(components).hasSize(2);
     assertHasComponent(components, component.getPathname(), MatchState.EXACT, IdentificationSource.MANUAL.getId(),
         claimedIdentifier, true, timeBeforeReevaluation);
     assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT,
@@ -149,7 +146,7 @@ public class RepositoryReevaluationTaskTest
     try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
       List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
           repository.getId());
-      assertThat(violations, hasSize(2));
+      assertThat(violations).hasSize(2);
       assertHasViolation(violations, component.getPathname(), policy.getName(), policy.getThreatLevel(),
           claimedIdentifier, false);
       assertHasViolation(violations, unknownComponent.getPathname(), policy.getName(), policy.getThreatLevel(),
@@ -166,14 +163,13 @@ public class RepositoryReevaluationTaskTest
   {
     for (RepositoryPolicyViolation violation : violations) {
       if (violation.getPathname().equals(pathname) && violation.getPolicyName().equals(policyName)) {
-        assertThat(violation.getThreatLevel(), is(threatLevel));
-        assertThat(violation.getComponentIdentifier(), is(componentIdentifier));
-        assertThat(violation.isWaived(), is(waived));
+        assertThat(violation.getThreatLevel()).isEqualTo(threatLevel);
+        assertThat(violation.getComponentIdentifier()).isEqualTo(componentIdentifier);
+        assertThat(violation.isWaived()).isEqualTo(waived);
         return;
       }
     }
     fail("Failed to locate component " + pathname);
-
   }
 
   private static void assertHasComponent(List<RepositoryComponent> components,
@@ -186,11 +182,11 @@ public class RepositoryReevaluationTaskTest
   {
     for (RepositoryComponent component : components) {
       if (component.getPathname().equals(pathname)) {
-        assertThat(component.getMatchStateId(), is(matchState.getId()));
-        assertThat(component.getIdentificationSourceId(), is(identificationSource));
-        assertThat(component.getComponentIdentifier(), is(componentIdentifier));
-        assertThat(component.isQuarantined(), is(quarantined));
-        assertThat(component.getLastEvaluationTime(), is(greaterThanOrEqualTo(timeBeforeReevaluation)));
+        assertThat(component.getMatchStateId()).isEqualTo(matchState.getId());
+        assertThat(component.getIdentificationSourceId()).isEqualTo(identificationSource);
+        assertThat(component.getComponentIdentifier()).isEqualTo(componentIdentifier);
+        assertThat(component.isQuarantined()).isEqualTo(quarantined);
+        assertThat(component.getLastEvaluationTime()).isAfterOrEqualsTo(timeBeforeReevaluation);
         return;
       }
     }

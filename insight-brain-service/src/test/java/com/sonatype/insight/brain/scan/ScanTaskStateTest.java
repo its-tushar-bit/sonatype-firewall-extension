@@ -25,8 +25,7 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -62,8 +61,8 @@ public class ScanTaskStateTest
 
   @Test
   public void notStarted() {
-    assertThat("ScanTask state when not started", task.getState(), equalTo(ScanTask.State.PENDING));
-    assertThat(task.getTicket().currentStep, equalTo(0));
+    assertThat(task.getState()).as("ScanTask state when not started").isEqualTo(ScanTask.State.PENDING);
+    assertThat(task.getTicket().currentStep).isEqualTo(0);
   }
 
   @Test
@@ -73,7 +72,7 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat("ScanTask state when scanning", captureState.getState(), equalTo(ScanTask.State.SCANNING_COMPONENTS));
+    assertThat(captureState.getState()).as("ScanTask state when scanning").isEqualTo(ScanTask.State.SCANNING_COMPONENTS);
   }
 
   @Test
@@ -82,7 +81,7 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat("ScanTask state when uploading", captureState.getState(), equalTo(ScanTask.State.UPLOADING_SCAN));
+    assertThat(captureState.getState()).as("ScanTask state when uploading").isEqualTo(ScanTask.State.UPLOADING_SCAN);
   }
 
   @Test
@@ -94,7 +93,7 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat("ScanTask state when waiting", captureState.getState(), equalTo(ScanTask.State.WAITING_FOR_REPORT));
+    assertThat(captureState.getState()).as("ScanTask state when waiting").isEqualTo(ScanTask.State.WAITING_FOR_REPORT);
   }
 
   @Test
@@ -106,14 +105,14 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat("ScanTask state when evaluating", captureState.getState(), equalTo(ScanTask.State.EVALUATING_POLICY));
+    assertThat(captureState.getState()).as("ScanTask state when evaluating").isEqualTo(ScanTask.State.EVALUATING_POLICY);
   }
 
   @Test
   public void done() {
     task.run();
 
-    assertThat("ScanTask state when done", task.getState(), equalTo(ScanTask.State.DONE));
+    assertThat(task.getState()).as("ScanTask state when done").isEqualTo(ScanTask.State.DONE);
   }
 
   @Test
@@ -123,7 +122,7 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat("ScanTask state when in error", task.getState(), equalTo(ScanTask.State.DONE));
+    assertThat(task.getState()).as("ScanTask state when in error").isEqualTo(ScanTask.State.DONE);
   }
 
   /**

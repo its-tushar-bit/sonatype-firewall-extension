@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -21,12 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportTest
 {
@@ -40,16 +36,14 @@ public class ReportTest
   @Test
   public void testParseDependencyDepths_PreferNewStructure() throws Exception {
     JsonNode dependenciesJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
-    assertThat(dependenciesJson.path("gavDepths").isObject(), is(true));
+    assertThat(dependenciesJson.path("gavDepths").isObject()).isTrue();
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = Report.parseDependencyDepths(dependenciesJson);
-    assertThat(depthsByIdentifier,
-        hasEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9", "", "jar"), depths(1)));
-    assertThat(
-        depthsByIdentifier,
-        hasEntry(ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.6", "", "jar"),
-            depths(1, 2, 3)));
-    assertThat(depthsByIdentifier.entrySet(), hasSize(2));
+    assertThat(depthsByIdentifier)
+        .containsEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9", "", "jar"), depths(1));
+    assertThat(depthsByIdentifier).containsEntry(
+        ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.6", "", "jar"), depths(1, 2, 3));
+    assertThat(depthsByIdentifier).hasSize(2);
   }
 
   @Test
@@ -58,11 +52,11 @@ public class ReportTest
     ((ObjectNode) dependenciesJson).remove("componentDepths");
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = Report.parseDependencyDepths(dependenciesJson);
-    assertThat(depthsByIdentifier,
-        hasEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9"), depths(1)));
-    assertThat(depthsByIdentifier,
-        hasEntry(ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.6"), depths(1, 2, 3)));
-    assertThat(depthsByIdentifier.entrySet(), hasSize(2));
+    assertThat(depthsByIdentifier).containsEntry(ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.9"),
+        depths(1));
+    assertThat(depthsByIdentifier)
+        .containsEntry(ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.6"), depths(1, 2, 3));
+    assertThat(depthsByIdentifier).hasSize(2);
   }
 
   @Test
@@ -75,7 +69,7 @@ public class ReportTest
     ReportEntry entry = new ReportEntry("index.html", System.currentTimeMillis(), indexContent.getBytes("UTF-8"));
     entry = Report.appendCacheBustingParams(entry, "1.0");
 
-    assertThat(entry.buf, is(expectedIndexContent.getBytes("UTF-8")));
+    assertThat(entry.buf).isEqualTo(expectedIndexContent.getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -85,9 +79,9 @@ public class ReportTest
     JsonNode bomJsonAugmented = bomJson.deepCopy();
     Report.augmentModified(new HashSet<>(), bomJsonAugmented);
 
-    assertThat(bomJson, is(equalTo(bomJsonAugmented)));
-    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified"), is(false));
-    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified"), is(false));
+    assertThat(bomJson).isEqualTo(bomJsonAugmented);
+    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
+    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isFalse();
   }
 
   @Test
@@ -99,9 +93,9 @@ public class ReportTest
     JsonNode bomJsonAugmented = bomJson.deepCopy();
     Report.augmentModified(Sets.newHashSet(anameHawk111), bomJsonAugmented);
 
-    assertThat(bomJson, is(not(equalTo(bomJsonAugmented))));
-    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified"), is(true));
-    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified"), is(false));
+    assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
+    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isTrue();
+    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isFalse();
   }
 
   @Test
@@ -114,8 +108,8 @@ public class ReportTest
     JsonNode bomJsonAugmented = bomJson.deepCopy();
     Report.augmentModified(Sets.newHashSet(npmHawk111), bomJsonAugmented);
 
-    assertThat(bomJson, is(not(equalTo(bomJsonAugmented))));
-    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified"), is(false));
-    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified"), is(true));
+    assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
+    assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
+    assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isTrue();
   }
 }

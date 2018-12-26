@@ -24,11 +24,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryResourceTest
     extends AbstractResourceTest
@@ -46,8 +42,8 @@ public class RepositoryResourceTest
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
         .parameter(repo.getId(), path).post();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find a component with path " + path + " in repository with ID "
-        + repo.getId() + "."));
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find a component with path " + path + " in repository with ID " + repo.getId() + ".");
   }
 
   @Test
@@ -56,13 +52,12 @@ public class RepositoryResourceTest
     assertResponseStatus(200, response);
     RepositoriesDTO actual = response.getBody(RepositoriesDTO.class);
 
-    assertNotNull(actual.repositories);
-    assertThat(actual.repositories, hasSize(1));
+    assertThat(actual.repositories).hasSize(1);
     RepositoryDTO actualRepo = actual.repositories.get(0);
-    assertThat(actualRepo.repository.getId(), is(repo.getId()));
-    assertThat(actualRepo.repository.getPublicId(), is(repo.getPublicId()));
-    assertThat(actualRepo.managerInstanceId, is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId())
-        .getInstanceId()));
+    assertThat(actualRepo.repository.getId()).isEqualTo(repo.getId());
+    assertThat(actualRepo.repository.getPublicId()).isEqualTo(repo.getPublicId());
+    assertThat(actualRepo.managerInstanceId)
+        .isEqualTo(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId());
   }
 
   @Test
@@ -72,11 +67,11 @@ public class RepositoryResourceTest
     assertResponseStatus(200, response);
     RepositoryDTO actual = response.getBody(RepositoryDTO.class);
 
-    assertNotNull(actual.repository);
-    assertThat(actual.repository.getId(), is(repo.getId()));
-    assertThat(actual.repository.getPublicId(), is(repo.getPublicId()));
-    assertThat(actual.managerInstanceId, is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId())
-        .getInstanceId()));
+    assertThat(actual.repository).isNotNull();
+    assertThat(actual.repository.getId()).isEqualTo(repo.getId());
+    assertThat(actual.repository.getPublicId()).isEqualTo(repo.getPublicId());
+    assertThat(actual.managerInstanceId)
+        .isEqualTo(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId());
   }
 
   @Test
@@ -91,7 +86,7 @@ public class RepositoryResourceTest
     HttpResponse deleteResponse = restRequest()
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH).parameter(repo.getId()).delete();
     assertResponseStatus(204, deleteResponse);
-    assertNull(new RepositoryDAO().getById(repo.getId()));
+    assertThat(new RepositoryDAO().getById(repo.getId())).isNull();
   }
 
   @Test

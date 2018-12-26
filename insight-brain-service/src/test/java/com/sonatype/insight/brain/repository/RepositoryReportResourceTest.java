@@ -16,10 +16,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryReportResourceTest
     extends AbstractResourceTest
@@ -63,7 +60,7 @@ public class RepositoryReportResourceTest
 
     assertResponseStatus(200, response);
     RepositoryReportSummary policyEvaluationSummary = response.getBody(RepositoryReportSummary.class);
-    assertThat(policyEvaluationSummary, notNullValue());
+    assertThat(policyEvaluationSummary).isNotNull();
   }
 
   @Test
@@ -73,7 +70,7 @@ public class RepositoryReportResourceTest
     HttpResponse response = restRequestSummary().parameter(repositoryId).get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is(getErrorMessage(repositoryId)));
+    assertThat(response.getBodyText()).isEqualTo(getErrorMessage(repositoryId));
   }
 
   @Test
@@ -84,7 +81,7 @@ public class RepositoryReportResourceTest
 
     assertResponseStatus(200, response);
     RepositoryReportSummary policyEvaluationSummary = response.getBody(RepositoryReportSummary.class);
-    assertThat(policyEvaluationSummary, notNullValue());
+    assertThat(policyEvaluationSummary).isNotNull();
   }
 
   @Test
@@ -94,7 +91,7 @@ public class RepositoryReportResourceTest
     final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repository.getId(), 200);
 
     final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
-    assertThat(policyEvaluationDetail, notNullValue());
+    assertThat(policyEvaluationDetail).isNotNull();
   }
 
   @Test
@@ -103,7 +100,7 @@ public class RepositoryReportResourceTest
 
     final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repositoryId, 404);
 
-    assertThat(response.getBodyText(), is(getErrorMessage(repositoryId)));
+    assertThat(response.getBodyText()).isEqualTo(getErrorMessage(repositoryId));
   }
 
   @Test
@@ -113,7 +110,7 @@ public class RepositoryReportResourceTest
     final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repository.getId(), 200);
 
     final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
-    assertThat(policyEvaluationDetail, notNullValue());
+    assertThat(policyEvaluationDetail).isNotNull();
   }
 
   @Test
@@ -126,7 +123,7 @@ public class RepositoryReportResourceTest
     HttpResponse response = restPolicyThreatRequest(repository.getId(), repositoryComponent.getPathname()).get();
     assertResponseStatus(200, response);
     RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = response.getBody(RepositoryPolicyThreatDTO.class);
-    assertThat(repositoryPolicyThreatDTO.activePolicyViolations, hasSize(1));
+    assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);
   }
 
   private String getErrorMessage(String repositoryId) {

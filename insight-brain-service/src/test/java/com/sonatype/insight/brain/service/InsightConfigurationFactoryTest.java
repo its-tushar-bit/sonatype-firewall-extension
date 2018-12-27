@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import io.dropwizard.server.ServerFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +47,12 @@ public class InsightConfigurationFactoryTest
       .asList(ConsoleAppenderFactory.class, FileAppenderFactory.class, SyslogAppenderFactory.class);
   
   private static final int DROPWIZARD_HTTPS_PORT = new HttpsConnectorFactory().getPort();
+
+  @AfterClass
+  public static void resetLogging() throws Exception {
+    build("/config-test.yml");
+    new File("log/audit.log").delete();
+  }
 
   @Test
   public void testBuild_ConfigRequestLogFilterFactories_UsesUserTelemetryRequestLoggingFilter() throws Exception {
@@ -292,14 +300,17 @@ public class InsightConfigurationFactoryTest
     }
   }
 
-  private InsightConfig build(String filename) throws Exception {
+  private static InsightConfig build(String filename) throws Exception {
+    String configResource = filename;
+    if (!configResource.startsWith("/")) {
+      configResource = "/InsightConfigurationFactoryTest/" + configResource;
+    }
     InsightBrainService insightBrainService = new InsightBrainService();
     Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(insightBrainService);
     insightBrainService.initialize(bootstrap);
     ConfigurationFactory<InsightConfig> configurationFactory = bootstrap.getConfigurationFactoryFactory()
         .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(), "dw");
-    InsightConfig insightConfig = configurationFactory
-        .build(new ResourceConfigurationSourceProvider(), "/InsightConfigurationFactoryTest/" + filename);
+    InsightConfig insightConfig = configurationFactory.build(new ResourceConfigurationSourceProvider(), configResource);
     insightConfig.getServerFactory().build(
         new Environment(bootstrap.getApplication().getName(), bootstrap.getObjectMapper(),
             bootstrap.getValidatorFactory().getValidator(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),

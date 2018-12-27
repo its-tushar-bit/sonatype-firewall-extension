@@ -25,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.owasp.dependencycheck.Engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,7 +41,7 @@ public abstract class AbstractPolicyEvaluatorTest
   protected static TestCLMServer testInsightServer;
 
   @Rule
-  public LogOutput logOutput = new LogOutput();
+  public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class, Engine.class);
 
   @Inject
   protected DefaultPolicyEvaluator evaluator;

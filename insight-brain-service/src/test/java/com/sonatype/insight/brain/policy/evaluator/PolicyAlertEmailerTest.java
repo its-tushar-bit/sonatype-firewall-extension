@@ -86,7 +86,7 @@ public class PolicyAlertEmailerTest
   private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
 
   @Rule
-  public LogOutput logOutput = new LogOutput(AbstractPolicyAlertEmailer.class.getPackage().getName());
+  public LogOutput logOutput = new LogOutput(1, PolicyAlertEmailer.class);
 
   @Inject
   private InsightConfig config;

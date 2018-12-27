@@ -60,7 +60,7 @@ public class PolicyEvaluatorTest
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Rule
-  public LogOutput logOutput = new LogOutput();
+  public LogOutput logOutput = new LogOutput(1, PolicyEvaluator.class);
 
   @Inject
   private PolicyEvaluator evaluator;

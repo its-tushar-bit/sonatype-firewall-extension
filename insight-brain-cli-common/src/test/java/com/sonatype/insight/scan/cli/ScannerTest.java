@@ -28,7 +28,7 @@ public class ScannerTest
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Rule
-  public LogOutput logOutput = new LogOutput();
+  public LogOutput logOutput = new LogOutput(Scanner.class);
 
   @Inject
   private Scanner scanner;

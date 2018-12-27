@@ -57,7 +57,7 @@ public class InsightBrainServiceTest
     extends AbstractBrainServiceTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput();
+  public LogOutput logOutput = new LogOutput(InsightBrainService.class);
 
   @Test
   @ManualServerInit

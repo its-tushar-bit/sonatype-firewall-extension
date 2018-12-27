@@ -24,7 +24,7 @@ public class OperationalDataStoreProviderTest
     extends AbstractDatabaseProviderTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput();
+  public LogOutput logOutput = new LogOutput(OperationalDataStoreProvider.class);
 
   @Override
   protected DatabaseConfig getDatabaseConfig() {

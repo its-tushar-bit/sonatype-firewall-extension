@@ -57,7 +57,7 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
     },
 
     reloadReportAndHandleError() {
-      return vm.reloadReport().catch(vm.dismiss);
+      return vm.reloadReport().catch(() => vm.dismiss());
     }
   });
 

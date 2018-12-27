@@ -25,11 +25,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyAlertUtilTest
 {
@@ -44,11 +40,11 @@ public class PolicyAlertUtilTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
         policyEval.getStageTypeId(), policyEval.isForMonitoring());
-    assertThat(alerts, hasSize(1));
+    assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
-    assertThat(alert.getTrigger().getPolicyId(), is(policy.getId()));
-    assertThat(alert.getTrigger().getPolicyName(), is(policy.getName()));
-    assertThat(alert.getActions(), empty());
+    assertThat(alert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+    assertThat(alert.getTrigger().getPolicyName()).isEqualTo(policy.getName());
+    assertThat(alert.getActions()).isEmpty();
   }
 
   @Test
@@ -71,22 +67,22 @@ public class PolicyAlertUtilTest
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
         policyEval.getStageTypeId(), policyEval.isForMonitoring());
 
-    assertThat(alerts, hasSize(1));
+    assertThat(alerts).hasSize(1);
 
     PolicyAlert alert = alerts.get(0);
     List<ComponentFact> componentFacts = alert.getTrigger().getComponentFacts();
-    assertThat(componentFacts, hasSize(1));
+    assertThat(componentFacts).hasSize(1);
 
     List<ConstraintFact> constraintFacts = componentFacts.get(0).getConstraintFacts();
-    assertThat(constraintFacts, hasSize(1));
+    assertThat(constraintFacts).hasSize(1);
     constraintFact = constraintFacts.get(0);
 
     List<ConditionFact> conditionFacts = constraintFact.getConditionFacts();
-    assertThat(conditionFacts, hasSize(2));
+    assertThat(conditionFacts).hasSize(2);
     // The condition index and triggers should not be populated in policy alerts.
     for (ConditionFact conditionFact : conditionFacts) {
-      assertThat(conditionFact.getConditionIndex(), is(0));
-      assertThat(conditionFact.getTriggerJson(), is(nullValue()));
+      assertThat(conditionFact.getConditionIndex()).isEqualTo(0);
+      assertThat(conditionFact.getTriggerJson()).isNull();
     }
   }
 
@@ -107,20 +103,20 @@ public class PolicyAlertUtilTest
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation1, policyViolation2),
         policyEval.getStageTypeId(), policyEval.isForMonitoring());
 
-    assertThat(alerts, hasSize(2));
+    assertThat(alerts).hasSize(2);
 
     PolicyAlert alert1 = alerts.get(0);
-    assertThat(alert1.getTrigger().getPolicyId(), is(policy.getId()));
-    assertThat(alert1.getTrigger().getPolicyName(), is(policy.getName()));
+    assertThat(alert1.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+    assertThat(alert1.getTrigger().getPolicyName()).isEqualTo(policy.getName());
     assertThat(alert1.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
-        .getReason(), is(reason1));
-    assertThat(alert1.getActions(), empty());
+        .getReason()).isEqualTo(reason1);
+    assertThat(alert1.getActions()).isEmpty();
 
     PolicyAlert alert2 = alerts.get(1);
-    assertThat(alert2.getTrigger().getPolicyId(), is(policy.getId()));
-    assertThat(alert2.getTrigger().getPolicyName(), is(policy.getName()));
+    assertThat(alert2.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+    assertThat(alert2.getTrigger().getPolicyName()).isEqualTo(policy.getName());
     assertThat(alert2.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
-        .getReason(), is(reason2));
-    assertThat(alert2.getActions(), empty());
+        .getReason()).isEqualTo(reason2);
+    assertThat(alert2.getActions()).isEmpty();
   }
 }

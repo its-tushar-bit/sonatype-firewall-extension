@@ -42,11 +42,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyResourceAuditTest
     extends AbstractPolicyImportAuditTest
@@ -119,8 +115,8 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
-    assertThat(awaitLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 0), empty());
-    assertThat(new LicenseThreatGroupDAO().getById(ltg.getId()), is(notNullValue()));
+    assertThat(awaitLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 0)).isEmpty();
+    assertThat(new LicenseThreatGroupDAO().getById(ltg.getId())).isNotNull();
   }
 
   @Test
@@ -155,8 +151,8 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, null);
-    assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0), empty());
-    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0)).isEmpty();
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, 0)).isEmpty();
   }
 
   @Test
@@ -169,8 +165,8 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
-    assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0), empty());
-    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_LICENSE_THREAT_GROUP, 0)).isEmpty();
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, 0)).isEmpty();
   }
 
   @Test
@@ -208,8 +204,8 @@ public class PolicyResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, 1, 1, 0, 0);
-    assertThat(new PolicyWaiverDAO().getById(policyWaiver.getId()), is(notNullValue()));
-    assertThat(awaitLogEntries(AuditEvent.DELETE_WAIVER, 0), empty());
+    assertThat(new PolicyWaiverDAO().getById(policyWaiver.getId())).isNotNull();
+    assertThat(awaitLogEntries(AuditEvent.DELETE_WAIVER, 0)).isEmpty();
   }
 
   @Test
@@ -252,7 +248,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, organization);
-    assertThat(awaitLogEntries(AuditEvent.IMPORT_LABEL, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_LABEL, 0)).isEmpty();
   }
 
   private HttpRequest policyResourceRequest(Owner owner) {
@@ -285,8 +281,8 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, organization);
-    assertThat(new TagDAO().getByOrganizationId(organization.getId()), empty());
-    assertThat(awaitLogEntries(AuditEvent.IMPORT_APPLICATION_CATEGORY, 0), empty());
+    assertThat(new TagDAO().getByOrganizationId(organization.getId())).isEmpty();
+    assertThat(awaitLogEntries(AuditEvent.IMPORT_APPLICATION_CATEGORY, 0)).isEmpty();
   }
 
   @Test
@@ -442,8 +438,8 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
-    assertThat(awaitLogEntries(AuditEvent.DELETE_POLICY, 0), empty());
-    assertThat(new PolicyDAO().getById(policy.getId()), is(notNullValue()));
+    assertThat(awaitLogEntries(AuditEvent.DELETE_POLICY, 0)).isEmpty();
+    assertThat(new PolicyDAO().getById(policy.getId())).isNotNull();
   }
 
   @Test
@@ -491,7 +487,7 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
-    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_POLICY_INHERITANCE, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_POLICY_INHERITANCE, 0)).isEmpty();
   }
 
   private void assertAuditedTags(final AuditDTO auditDTO, final List<Tag> tags) {
@@ -500,10 +496,10 @@ public class PolicyResourceAuditTest
             .map(p -> objectMapper.convertValue(p, ApplicationCategoryAuditDTO.class)).collect(Collectors.toList());
     TagDAO tagDAO = new TagDAO();
 
-    assertThat(auditedTags, hasSize(tags.size()));
+    assertThat(auditedTags).hasSameSizeAs(tags);
     for (int i = 0; i < tags.size(); i++) {
-      assertThat(tagDAO.getById(auditedTags.get(i).applicationCategoryId), notNullValue());
-      assertThat(auditedTags.get(i).applicationCategoryName, is(tags.get(i).getName()));
+      assertThat(tagDAO.getById(auditedTags.get(i).applicationCategoryId)).isNotNull();
+      assertThat(auditedTags.get(i).applicationCategoryName).isEqualTo(tags.get(i).getName());
     }
   }
 
@@ -512,7 +508,7 @@ public class PolicyResourceAuditTest
                                         final String inheritanceScope)
   {
     PolicyDAO policyDAO = new PolicyDAO();
-    assertThat(policyDAO.getById((String) auditDTO.data.get("policyId")), notNullValue());
+    assertThat(policyDAO.getById((String) auditDTO.data.get("policyId"))).isNotNull();
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "inheritanceScope", inheritanceScope);
   }
@@ -558,8 +554,7 @@ public class PolicyResourceAuditTest
       assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
     }
     else {
-      assertThat(new LicenseThreatGroupDAO().getById((String) auditDTO.data.get("licenseThreatGroupId")),
-          is(notNullValue()));
+      assertThat(new LicenseThreatGroupDAO().getById((String) auditDTO.data.get("licenseThreatGroupId"))).isNotNull();
     }
     assertCustomData(auditDTO, "licenseThreatGroupName", ltg.getName());
     if (licenseNames == null) {
@@ -588,7 +583,7 @@ public class PolicyResourceAuditTest
   private void assertLabelData(final AuditDTO auditDTO, final Label label) {
     LabelDAO labelDAO = new LabelDAO();
     String labelId = (String) auditDTO.data.get("labelId");
-    assertThat(labelDAO.getById(labelId), is(notNullValue()));
+    assertThat(labelDAO.getById(labelId)).isNotNull();
     assertCustomData(auditDTO, "labelName", label.getLabel());
     assertCustomData(auditDTO, "labelDescription", label.getDescription());
     assertCustomData(auditDTO, "labelColor", label.getColor().toValue());
@@ -596,10 +591,10 @@ public class PolicyResourceAuditTest
 
   private void assertTagData(AuditDTO auditDTO, Tag tag) {
     Tag savedTag = new TagDAO().getById((String) auditDTO.data.get("applicationCategoryId"));
-    assertThat(savedTag, notNullValue());
-    assertThat(savedTag.getName(), is(tag.getName()));
-    assertThat(savedTag.getDescription(), is(tag.getDescription()));
-    assertThat(savedTag.getColor(), is(tag.getColor()));
+    assertThat(savedTag).isNotNull();
+    assertThat(savedTag.getName()).isEqualTo(tag.getName());
+    assertThat(savedTag.getDescription()).isEqualTo(tag.getDescription());
+    assertThat(savedTag.getColor()).isEqualTo(tag.getColor());
     assertCustomData(auditDTO, "applicationCategoryName", savedTag.getName());
     assertCustomData(auditDTO, "applicationCategoryDescription", savedTag.getDescription());
     assertCustomData(auditDTO, "applicationCategoryColor", savedTag.getColor().toValue());

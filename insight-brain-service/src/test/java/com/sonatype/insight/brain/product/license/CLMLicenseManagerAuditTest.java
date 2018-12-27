@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class CLMLicenseManagerAuditTest
     extends AbstractAuditTest
@@ -38,13 +38,10 @@ public class CLMLicenseManagerAuditTest
   public void testInstallLicenseIfUnlicensed_ServerError() throws Exception {
     uninstallLicense();
 
-    try {
+    assertThatExceptionOfType(Exception.class).isThrownBy(() -> {
       getCLMServer().getInjector().getInstance(CLMLicenseManager.class).installLicenseIfUnlicensed("doesNotExist");
-      fail("Expected exception");
-    }
-    catch (Throwable t) {
-      assertAuditLog(AuditEvent.INSTALL_LICENSE, "server-error", SYSTEM_USER);
-    }
+    });
+    assertAuditLog(AuditEvent.INSTALL_LICENSE, "server-error", SYSTEM_USER);
   }
 
   private void assertLicenseData(AuditDTO auditDTO, String filename) {

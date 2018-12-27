@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.Permission;
 import java.util.Collection;
@@ -56,21 +57,14 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyMonitorTest
     extends AbstractBrainServiceTest
@@ -144,7 +138,13 @@ public class PolicyMonitorTest
     for (StageType stageType : stageTypes) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());
       Date val = lastRun.get(stageType);
-      assertThat((val == null && eval == null) || (val != null && eval != null && val.equals(eval.getTime())), is(true));
+      if (val == null) {
+        assertThat(eval).isNull();
+      }
+      else {
+        assertThat(eval).isNotNull();
+        assertThat(eval.getTime()).isEqualTo(val);
+      }
     }
   }
 
@@ -180,7 +180,7 @@ public class PolicyMonitorTest
 
     PolicyEvaluation policyEvaluationAfter = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluationAfter.getId(), is(not(policyEvaluationBefore.getId())));
+    assertThat(policyEvaluationAfter.getId()).isNotEqualTo(policyEvaluationBefore.getId());
   }
 
   @Test
@@ -205,8 +205,9 @@ public class PolicyMonitorTest
     // There should be no new policy evaluations
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId())
-          .getTime(), is(policyEvaluations.get(stageType).getTime()));
+      assertThat(
+          policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId()).getTime())
+              .isEqualTo(policyEvaluations.get(stageType).getTime());
     }
   }
 
@@ -221,7 +222,7 @@ public class PolicyMonitorTest
     // There should be no policy evaluations
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId()), is(nullValue()));
+      assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId())).isNull();
     }
   }
 
@@ -263,10 +264,10 @@ public class PolicyMonitorTest
     mockScanReceiptAndReport(scanId);
     policyMonitor.run();
 
-    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
-    assertThat(event, is(notNullValue()));
-    assertThat(event.initiator, is("system"));
+    assertThat(event).isNotNull();
+    assertThat(event.initiator).isEqualTo("system");
   }
 
   private void testMonitored(OwnerType monitorOwnerType) throws Exception {
@@ -333,9 +334,9 @@ public class PolicyMonitorTest
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
-      assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+      assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
     }
-    assertThat(scanFile1.exists(), is(true));
+    assertThat(scanFile1).isFile();
 
     // Run the policy monitor. There should be a new policy evaluation, but no notifications because nothing changed.
     String scanId2 = "PolicyMonitorTest_scanId2";
@@ -343,20 +344,20 @@ public class PolicyMonitorTest
     policyMonitor.run();
     PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluation2.getId(), not(is(policyEvaluation1.getId())));
-    assertThat(policyEvaluation2.getScanId(), is(scanId2));
-    assertThat(policyEvaluation2.getTime(), is(greaterThan(policyEvaluation1.getTime())));
+    assertThat(policyEvaluation2.getId()).isNotEqualTo(policyEvaluation1.getId());
+    assertThat(policyEvaluation2.getScanId()).isEqualTo(scanId2);
+    assertThat(policyEvaluation2.getTime()).isAfter(policyEvaluation1.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
-      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
-    assertThat(scanFile1.exists(), is(false));
+    assertThat(scanFile1).doesNotExist();
     File scanFile2 = insightWork.getScanFile(app.getId(), scanId2);
-    assertThat(scanFile2.exists(), is(true));
+    assertThat(scanFile2.exists()).isTrue();
 
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
@@ -367,20 +368,20 @@ public class PolicyMonitorTest
     policyMonitor.run();
     PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluation3.getId(), not(is(policyEvaluation2.getId())));
-    assertThat(policyEvaluation3.getScanId(), is(scanId3));
-    assertThat(policyEvaluation3.getTime(), is(greaterThan(policyEvaluation2.getTime())));
+    assertThat(policyEvaluation3.getId()).isNotEqualTo(policyEvaluation2.getId());
+    assertThat(policyEvaluation3.getScanId()).isEqualTo(scanId3);
+    assertThat(policyEvaluation3.getTime()).isAfter(policyEvaluation2.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
-      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
-    assertThat(scanFile2.exists(), is(false));
+    assertThat(scanFile2).doesNotExist();
     File scanFile3 = insightWork.getScanFile(app.getId(), scanId3);
-    assertThat(scanFile3.exists(), is(true));
+    assertThat(scanFile3.exists()).isTrue();
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
     policy1.setThreatLevel(policy1.getThreatLevel() - 1);
@@ -390,21 +391,21 @@ public class PolicyMonitorTest
     policyMonitor.run();
     PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluation4.getId(), not(is(policyEvaluation3.getId())));
-    assertThat(policyEvaluation4.getScanId(), is(scanId4));
-    assertThat(policyEvaluation4.getTime(), is(greaterThan(policyEvaluation3.getTime())));
+    assertThat(policyEvaluation4.getId()).isNotEqualTo(policyEvaluation3.getId());
+    assertThat(policyEvaluation4.getScanId()).isEqualTo(scanId4);
+    assertThat(policyEvaluation4.getTime()).isAfter(policyEvaluation3.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
-      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
     assertNotifications(notificationsMonitor1, 1, 0);
     notificationsMonitor1.clear();
-    assertThat(scanFile3.exists(), is(false));
+    assertThat(scanFile3).doesNotExist();
     File scanFile4 = insightWork.getScanFile(app.getId(), scanId4);
-    assertThat(scanFile4.exists(), is(true));
+    assertThat(scanFile4.exists()).isTrue();
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setThreatLevel(policy2.getThreatLevel() - 1);
@@ -414,21 +415,21 @@ public class PolicyMonitorTest
     policyMonitor.run();
     PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluation5.getId(), not(is(policyEvaluation4.getId())));
-    assertThat(policyEvaluation5.getScanId(), is(scanId5));
-    assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
+    assertThat(policyEvaluation5.getId()).isNotEqualTo(policyEvaluation4.getId());
+    assertThat(policyEvaluation5.getScanId()).isEqualTo(scanId5);
+    assertThat(policyEvaluation5.getTime()).isAfter(policyEvaluation4.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
-      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 1, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
     notificationsMonitor2.clear();
-    assertThat(scanFile4.exists(), is(false));
+    assertThat(scanFile4).doesNotExist();
     File scanFile5 = insightWork.getScanFile(app.getId(), scanId5);
-    assertThat(scanFile5.exists(), is(true));
+    assertThat(scanFile5.exists()).isTrue();
 
     // Modify policy4 and run the monitor again. Only the forth monitor email should receive a notification
     policy4.setThreatLevel(policy4.getThreatLevel() - 1);
@@ -438,21 +439,21 @@ public class PolicyMonitorTest
     policyMonitor.run();
     PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluation6.getId(), not(is(policyEvaluation5.getId())));
-    assertThat(policyEvaluation6.getScanId(), is(scanId6));
-    assertThat(policyEvaluation6.getTime(), is(greaterThan(policyEvaluation5.getTime())));
+    assertThat(policyEvaluation6.getId()).isNotEqualTo(policyEvaluation5.getId());
+    assertThat(policyEvaluation6.getScanId()).isEqualTo(scanId6);
+    assertThat(policyEvaluation6.getTime()).isAfter(policyEvaluation5.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
-      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 1, 0);
     notificationsMonitor3.clear();
-    assertThat(scanFile5.exists(), is(false));
+    assertThat(scanFile5).doesNotExist();
     File scanFile6 = insightWork.getScanFile(app.getId(), scanId6);
-    assertThat(scanFile6.exists(), is(true));
+    assertThat(scanFile6.exists()).isTrue();
   }
 
   private Policy createPolicy(String ownerId,
@@ -489,7 +490,7 @@ public class PolicyMonitorTest
     }
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    assertThat(policyEval, is(notNullValue()));
+    assertThat(policyEval).isNotNull();
     return policyEval;
   }
 
@@ -514,14 +515,10 @@ public class PolicyMonitorTest
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
     // The scan file does not exist, which will cause an IOException in the policy monitoring.
-    try {
+    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
       policyMonitor.evaluate(app, policyMonitoring);
-      fail("Expected exception");
-    }
-    catch (IOException expected) {
-      File scanFile = insightWork.getScanFile(app.getId(), scanId);
-      assertThat(expected.getMessage(), containsString(scanFile.getName()));
-    }
+    }).withMessageContaining(scanFile.getName());
   }
 
   @Test
@@ -580,10 +577,10 @@ public class PolicyMonitorTest
     // Verify that the latest policy evaluation is for monitoring and it used the second scan file.
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    assertThat(policyEvaluation.isForMonitoring(), is(true));
-    assertThat(policyEvaluation.getScanId(), is(scanId3));
+    assertThat(policyEvaluation.isForMonitoring()).isTrue();
+    assertThat(policyEvaluation.getScanId()).isEqualTo(scanId3);
     File scanFile3 = insightWork.getScanFile(app.getId(), scanId3);
-    assertThat(FileUtils.readFileToString(scanFile3, "UTF-8"), is("test2"));
+    assertThat(scanFile3).usingCharset(StandardCharsets.UTF_8).hasContent("test2");
   }
 
   @Test
@@ -607,11 +604,11 @@ public class PolicyMonitorTest
     policyMonitor.evaluate(app, policyMonitoring);
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
-    assertThat(reportFile.isFile(), is(true));
+    assertThat(reportFile).isFile();
     File reportCacheDir = new File(reportFile.getParentFile(), "report.cache");
-    assertThat(reportCacheDir.isDirectory(), is(true));
+    assertThat(reportCacheDir).isDirectory();
     File policyAlertsFile = new File(reportCacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
-    assertThat(policyAlertsFile.isFile(), is(true));
+    assertThat(policyAlertsFile).isFile();
   }
 
   private File createScanFile(Application app, String scanId) {

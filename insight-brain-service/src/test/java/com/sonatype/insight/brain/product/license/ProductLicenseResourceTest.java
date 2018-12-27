@@ -13,10 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProductLicenseResourceTest
     extends AbstractResourceTest
@@ -34,8 +31,9 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(400, response);
 
-    assertEquals("The provided license file sonatype.lic is invalid. Please verify you selected the correct file."
-        + " If the problem persists, please contact our support team.", response.getBodyText());
+    assertThat(response.getBodyText())
+        .isEqualTo("The provided license file sonatype.lic is invalid. Please verify you selected the correct file."
+            + " If the problem persists, please contact our support team.");
   }
 
   @Test
@@ -46,8 +44,9 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest().query("noFormData", true));
     assertResponseStatus(200, response);
 
-    assertEquals("\"The provided license file sonatype.lic is invalid. Please verify you selected the correct file."
-        + " If the problem persists, please contact our support team.\"", response.getBodyText());
+    assertThat(response.getBodyText())
+        .isEqualTo("\"The provided license file sonatype.lic is invalid. Please verify you selected the correct file."
+            + " If the problem persists, please contact our support team.\"");
   }
 
   @Test
@@ -57,10 +56,9 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(400, response);
 
-    assertEquals(
-        "The license file sonatype.lic was unable to install. Please ensure server has access to "
-            + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.",
-        response.getBodyText());
+    assertThat(response.getBodyText())
+        .isEqualTo("The license file sonatype.lic was unable to install. Please ensure server has access to "
+            + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.");
   }
 
   @Test
@@ -71,7 +69,7 @@ public class ProductLicenseResourceTest
     response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce").query("noFormData",
         true));
     assertResponseStatus(200, response);
-    assertEquals("\"Invalid cross-site request forgery token\"", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("\"Invalid cross-site request forgery token\"");
   }
 
   @Test
@@ -81,7 +79,7 @@ public class ProductLicenseResourceTest
         ProductLicenseResource.VALIDATE_PATH).get();
     assertResponseStatus(200, response);
     LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
-    assertThat(licenseSummary.productEdition, is(notNullValue()));
+    assertThat(licenseSummary.productEdition).isNotNull();
   }
 
   @Test
@@ -90,6 +88,6 @@ public class ProductLicenseResourceTest
     HttpResponse response = restRequest().path(ProductLicenseResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     LicenseInfo licenseInfo = response.getBody(LicenseInfo.class);
-    assertThat(licenseInfo.fingerprint, is(notNullValue()));
+    assertThat(licenseInfo.fingerprint).isNotNull();
   }
 }

@@ -38,9 +38,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.After;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyImportAuditTest
     extends AbstractAuditTest
@@ -133,12 +131,12 @@ public abstract class AbstractPolicyImportAuditTest
                                   List<ConstraintDTO> constraints)
   {
     String auditedPolicyId = (String) auditDTO.data.get("policyId");
-    assertThat(auditedPolicyId, is(notNullValue()));
+    assertThat(auditedPolicyId).isNotNull();
     if (!policyDeleted) {
-      assertThat(new PolicyDAO().getById(auditedPolicyId), is(notNullValue()));
+      assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
     }
     else {
-      assertThat(auditedPolicyId, is(policy.getId()));
+      assertThat(auditedPolicyId).isEqualTo(policy.getId());
     }
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());

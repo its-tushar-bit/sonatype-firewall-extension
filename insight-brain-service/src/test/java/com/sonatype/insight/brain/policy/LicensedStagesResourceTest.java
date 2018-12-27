@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicensedStagesResourceTest
     extends AbstractResourceTest
@@ -39,10 +38,10 @@ public class LicensedStagesResourceTest
   }
 
   private void assertStages(final Stage[] actualStages, final StageType... expectedStages) {
-    assertThat(actualStages.length, is(expectedStages.length));
+    assertThat(actualStages).hasSameSizeAs(expectedStages);
     for (int i = 0; i < expectedStages.length; i++) {
-      assertThat(actualStages[i].getStageTypeId(), is(expectedStages[i].getId()));
-      assertThat(actualStages[i].getStageName(), is(expectedStages[i].getName()));
+      assertThat(actualStages[i].getStageTypeId()).isEqualTo(expectedStages[i].getId());
+      assertThat(actualStages[i].getStageName()).isEqualTo(expectedStages[i].getName());
     }
   }
 }

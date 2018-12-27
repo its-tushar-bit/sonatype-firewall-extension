@@ -31,12 +31,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyWaiverResourceTest
     extends AbstractResourceTest
@@ -79,7 +74,7 @@ public class PolicyWaiverResourceTest
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
     HttpResponse response = restRequest(OwnerType.APPLICATION, application.getPublicId()).body(policyWaiver).post();
     assertResponseStatus(400, response);
-    assertEquals("Policy waiver must have constraint facts.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Policy waiver must have constraint facts.");
   }
 
   private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
@@ -94,16 +89,16 @@ public class PolicyWaiverResourceTest
     assertResponseStatus(200, response);
     policyWaiver = response.getBody(PolicyWaiver.class);
     assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
-    assertEquals(constraintFactsJson, new PolicyWaiverDAO().getById(policyWaiver.getId()).getConstraintFactsJson());
+    assertThat(new PolicyWaiverDAO().getById(policyWaiver.getId()).getConstraintFactsJson())
+        .isEqualTo(constraintFactsJson);
 
     // Get
     response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
     assertResponseStatus(200, response);
     AppliedWaivers policyWaivers = response.getBody(AppliedWaivers.class);
-    assertNotNull(policyWaivers);
-    assertNotNull(policyWaivers.waiversByOwner);
-    assertEquals(1, policyWaivers.waiversByOwner.size());
-    assertEquals(1, policyWaivers.waiversByOwner.get(0).waivers.size());
+    assertThat(policyWaivers).isNotNull();
+    assertThat(policyWaivers.waiversByOwner).hasSize(1);
+    assertThat(policyWaivers.waiversByOwner.get(0).waivers).hasSize(1);
     assertPolicyWaiver(policyId, ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
 
     // Delete
@@ -114,9 +109,8 @@ public class PolicyWaiverResourceTest
     response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
     assertResponseStatus(200, response);
     policyWaivers = response.getBody(AppliedWaivers.class);
-    assertNotNull(policyWaivers);
-    assertNotNull(policyWaivers.waiversByOwner);
-    assertEquals(0, policyWaivers.waiversByOwner.size());
+    assertThat(policyWaivers).isNotNull();
+    assertThat(policyWaivers.waiversByOwner).isEmpty();
   }
 
   @Test
@@ -148,10 +142,10 @@ public class PolicyWaiverResourceTest
 
   private void assertWaiversByOwner(Owner owner, String policyId, String waiverComment, WaiversByOwner actual) {
     String expectedOwnerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
-    assertThat(actual.ownerId, is(expectedOwnerId));
-    assertThat(actual.ownerName, is(owner.getName()));
-    assertThat(actual.ownerType, is(owner.getType()));
-    assertThat(actual.waivers, hasSize(1));
+    assertThat(actual.ownerId).isEqualTo(expectedOwnerId);
+    assertThat(actual.ownerName).isEqualTo(owner.getName());
+    assertThat(actual.ownerType).isEqualTo(owner.getType());
+    assertThat(actual.waivers).hasSize(1);
     assertPolicyWaiver(policyId, expectedOwnerId, waiverComment, actual.waivers.get(0));
   }
 
@@ -180,54 +174,54 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest(owner.getType(), restId).path("component", hash).get();
     assertResponseStatus(200, response);
     AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(1));
+    assertThat(waivers.waiversByOwner).hasSize(1);
     assertWaiversByOwner(owner, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(0));
+    assertThat(waivers.waiversByOwner).hasSize(0);
     response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(0));
+    assertThat(waivers.waiversByOwner).hasSize(0);
 
     // Verify parent owner level
     tempEntity.newWaiver(hash, policy.getId(), parent.getId(), "My comment");
     response = restRequest(owner.getType(), restId).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(2));
+    assertThat(waivers.waiversByOwner).hasSize(2);
     assertWaiversByOwner(owner, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     assertWaiversByOwner(parent, policy.getId(), "My comment", waivers.waiversByOwner.get(1));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(1));
+    assertThat(waivers.waiversByOwner).hasSize(1);
     assertWaiversByOwner(parent, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(0));
+    assertThat(waivers.waiversByOwner).hasSize(0);
 
     // Verify grandparent organization level
     tempEntity.newWaiver(hash, policy.getId(), grandparent.getId(), "My comment");
     response = restRequest(owner.getType(), restId).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(3));
+    assertThat(waivers.waiversByOwner).hasSize(3);
     assertWaiversByOwner(owner, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     assertWaiversByOwner(parent, policy.getId(), "My comment", waivers.waiversByOwner.get(1));
     assertWaiversByOwner(grandparent, policy.getId(), "My comment", waivers.waiversByOwner.get(2));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(2));
+    assertThat(waivers.waiversByOwner).hasSize(2);
     assertWaiversByOwner(parent, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     assertWaiversByOwner(grandparent, policy.getId(), "My comment", waivers.waiversByOwner.get(1));
     response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
-    assertThat(waivers.waiversByOwner, hasSize(1));
+    assertThat(waivers.waiversByOwner).hasSize(1);
     assertWaiversByOwner(grandparent, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
   }
 
@@ -246,12 +240,12 @@ public class PolicyWaiverResourceTest
 
     response = restRequest(ownerType, ownerPublicId2).path(policyWaiver.getId()).delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID "
-        + ownerPublicId2, response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo(
+        "Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID " + ownerPublicId2);
     // Verify that the policy waiver was not deleted
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(ownerId1);
-    assertEquals(1, policyWaivers.size());
+    assertThat(policyWaivers).hasSize(1);
     assertPolicyWaiver(policyId, ownerId1, "My comment", policyWaivers.get(0));
   }
 
@@ -262,7 +256,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
   }
 
   @Test
@@ -271,7 +265,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
   }
 
   @Test
@@ -280,7 +274,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
   }
 
   @Test
@@ -288,13 +282,13 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.SINGLETON.getId()).path(
         "YettiId").delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
   }
 
   private void assertPolicyWaiver(String policyId, String ownerId, String comment, PolicyWaiver actual) {
-    assertEquals(policyId, actual.getPolicyId());
-    assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(comment, actual.getComment());
+    assertThat(actual.getPolicyId()).isEqualTo(policyId);
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getComment()).isEqualTo(comment);
   }
 
   @Test
@@ -311,7 +305,7 @@ public class PolicyWaiverResourceTest
     assertResponseStatus(200, response);
     ApplicableContext result = response.getBody(ApplicableContext.class);
     assertApplicableContext(app, result);
-    assertThat(result.getChildren(), is(nullValue()));
+    assertThat(result.getChildren()).isNull();
 
     // Verify organization level
     policy = tempEntity.newPolicy(org);
@@ -319,10 +313,10 @@ public class PolicyWaiverResourceTest
     assertResponseStatus(200, response);
     result = response.getBody(ApplicableContext.class);
     assertApplicableContext(org, result);
-    assertThat(result.getChildren(), hasSize(1));
+    assertThat(result.getChildren()).hasSize(1);
     ApplicableContext childContext = result.getChildren().get(0);
     assertApplicableContext(app, childContext);
-    assertThat(childContext.getChildren(), is(nullValue()));
+    assertThat(childContext.getChildren()).isNull();
 
     // Verify parent organization level
     policy = tempEntity.newPolicy(parentOrg);
@@ -330,13 +324,13 @@ public class PolicyWaiverResourceTest
     assertResponseStatus(200, response);
     result = response.getBody(ApplicableContext.class);
     assertApplicableContext(parentOrg, result);
-    assertThat(result.getChildren(), hasSize(1));
+    assertThat(result.getChildren()).hasSize(1);
     childContext = result.getChildren().get(0);
     assertApplicableContext(org, childContext);
-    assertThat(childContext.getChildren(), hasSize(1));
+    assertThat(childContext.getChildren()).hasSize(1);
     childContext = childContext.getChildren().get(0);
     assertApplicableContext(app, childContext);
-    assertThat(childContext.getChildren(), is(nullValue()));
+    assertThat(childContext.getChildren()).isNull();
   }
 
   @Test
@@ -359,10 +353,10 @@ public class PolicyWaiverResourceTest
       Owner context = ownerHierarchy.pop();
       assertApplicableContext(context, childContext);
       if (ownerHierarchy.isEmpty()) {
-        assertThat(childContext.getChildren(), is(nullValue()));
+        assertThat(childContext.getChildren()).isNull();
       }
       else {
-        assertThat(childContext.getChildren(), hasSize(1));
+        assertThat(childContext.getChildren()).hasSize(1);
         childContext = childContext.getChildren().get(0);
       }
     }
@@ -378,8 +372,8 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId())
         .get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find a policy with ID " + policy.getId()
-        + " for application public ID " + appPublicId));
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy with ID " + policy.getId()
+        + " for application public ID " + appPublicId);
   }
 
   @Test
@@ -391,15 +385,16 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("applicable/context",
         policy.getId()).get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find a policy with ID " + policy.getId()
-        + " for repository public ID " + repository.getPublicId()));
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy with ID " + policy.getId()
+        + " for repository public ID " + repository.getPublicId());
   }
 
   private void assertApplicableContext(Owner owner, ApplicableContext actual) {
-    assertNotNull(actual);
-    assertEquals(OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId(), actual.getId());
-    assertEquals(owner.getName(), actual.getName());
-    assertEquals(owner.getType(), actual.getType());
+    assertThat(actual).isNotNull();
+    assertThat(actual.getId())
+        .isEqualTo(OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId());
+    assertThat(actual.getName()).isEqualTo(owner.getName());
+    assertThat(actual.getType()).isEqualTo(owner.getType());
   }
 
   // not all owner types are valid for policy creation

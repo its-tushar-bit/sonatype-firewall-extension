@@ -26,12 +26,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyResourceTest
     extends AbstractResourceTest
@@ -57,7 +52,7 @@ public class PolicyResourceTest
         .part("file", "file", createImportBody()).post();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find organization with ID " + orgId + "."));
+    assertThat(response.getBodyText()).isEqualTo("Cannot find organization with ID " + orgId + ".");
   }
 
   @Test
@@ -86,8 +81,8 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, otherOrg.getId()).body(policy).put();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(),
-        is("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId()));
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId());
   }
 
   private void testCRUD(OwnerType ownerType, String ownerId) throws Exception {
@@ -101,17 +96,16 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(ownerType, ownerId).body(policy).post();
     assertResponseStatus(200, response);
     final Policy policy1 = response.getBody(Policy.class);
-    assertNotNull(policy1.getId());
-    assertEquals("PolicyResourceTest new policy", policy1.getName());
+    assertThat(policy1.getId()).isNotNull();
+    assertThat(policy1.getName()).isEqualTo("PolicyResourceTest new policy");
 
     // Get all policies
     response = restRequest(ownerType, ownerId).get();
     assertResponseStatus(200, response);
     Policy[] policies = response.getBody(Policy[].class);
-    assertNotNull(policies);
-    assertEquals(1, policies.length);
-    assertEquals(policy1.getId(), policies[0].getId());
-    assertEquals(policy1.getName(), policies[0].getName());
+    assertThat(policies).hasSize(1);
+    assertThat(policies[0].getId()).isEqualTo(policy1.getId());
+    assertThat(policies[0].getName()).isEqualTo(policy1.getName());
 
     // Update a policy
     policy = policies[0];
@@ -119,16 +113,15 @@ public class PolicyResourceTest
     response = restRequest(ownerType, ownerId).body(policy).put();
     assertResponseStatus(200, response);
     final Policy policy2 = response.getBody(Policy.class);
-    assertEquals("PolicyResourceTest updated policy", policy2.getName());
+    assertThat(policy2.getName()).isEqualTo("PolicyResourceTest updated policy");
 
     // Get all policies
     response = restRequest(ownerType, ownerId).get();
     assertResponseStatus(200, response);
     policies = response.getBody(Policy[].class);
-    assertNotNull(policies);
-    assertEquals(1, policies.length);
-    assertEquals(policy2.getId(), policies[0].getId());
-    assertEquals(policy2.getName(), policies[0].getName());
+    assertThat(policies).hasSize(1);
+    assertThat(policies[0].getId()).isEqualTo(policy2.getId());
+    assertThat(policies[0].getName()).isEqualTo(policy2.getName());
 
     // Delete a policy
     policy = policies[0];
@@ -139,8 +132,7 @@ public class PolicyResourceTest
     response = restRequest(ownerType, ownerId).get();
     assertResponseStatus(200, response);
     policies = response.getBody(Policy[].class);
-    assertNotNull(policies);
-    assertEquals(0, policies.length);
+    assertThat(policies).isEmpty();
   }
 
   @Test
@@ -165,7 +157,7 @@ public class PolicyResourceTest
     policy.addConstraint(constraint);
     HttpResponse response = restRequest(ownerType, ownerId).body(policy).post();
     assertResponseStatus(400, response);
-    assertEquals("The policy name is required.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("The policy name is required.");
   }
 
   @Test
@@ -198,7 +190,7 @@ public class PolicyResourceTest
     policy.setName(null);
     HttpResponse response = restRequest(ownerType, publicOwnerid).body(policy).put();
     assertResponseStatus(400, response);
-    assertEquals("The policy name is required.", response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("The policy name is required.");
   }
 
   private void assertPoliciesByOwner(String ownerId,
@@ -207,10 +199,10 @@ public class PolicyResourceTest
                                      int policyCount,
                                      PoliciesByOwner actual)
   {
-    assertEquals(ownerId, actual.ownerId);
-    assertEquals(ownerName, actual.ownerName);
-    assertEquals(ownerType, actual.ownerType);
-    assertEquals(policyCount, actual.policies.size());
+    assertThat(actual.ownerId).isEqualTo(ownerId);
+    assertThat(actual.ownerName).isEqualTo(ownerName);
+    assertThat(actual.ownerType).isEqualTo(ownerType);
+    assertThat(actual.policies).hasSize(policyCount);
   }
 
   @Test
@@ -231,8 +223,8 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(3, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
     assertPoliciesByOwner(appId, appName, OwnerType.APPLICATION, 0, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicablePolicies.policiesByOwner.get(1));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
@@ -242,8 +234,8 @@ public class PolicyResourceTest
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(2, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(1));
@@ -252,8 +244,8 @@ public class PolicyResourceTest
     response = restRequest(OwnerType.ORGANIZATION, parentOrgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(1);
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(0));
 
@@ -264,20 +256,20 @@ public class PolicyResourceTest
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(3, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
     assertPoliciesByOwner(appId, appName, OwnerType.APPLICATION, 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicablePolicies.policiesByOwner.get(1));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(2));
-    assertEquals(appPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(appPolicy.getId());
 
     // Verify the applicable policies for the organization
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(2, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(1));
@@ -286,8 +278,8 @@ public class PolicyResourceTest
     response = restRequest(OwnerType.ORGANIZATION, parentOrgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(1);
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(0));
 
@@ -298,32 +290,32 @@ public class PolicyResourceTest
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(3, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
     assertPoliciesByOwner(appId, appName, OwnerType.APPLICATION, 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicablePolicies.policiesByOwner.get(1));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(2));
-    assertEquals(appPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
-    assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(appPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId()).isEqualTo(orgPolicy.getId());
 
     // Verify the applicable policies for the organization
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(2, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(1));
-    assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(orgPolicy.getId());
 
     // Verify the applicable policies for the parent organization
     response = restRequest(OwnerType.ORGANIZATION, parentOrgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(1);
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 0,
         applicablePolicies.policiesByOwner.get(0));
 
@@ -334,37 +326,37 @@ public class PolicyResourceTest
     response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(3, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
     assertPoliciesByOwner(appId, appName, OwnerType.APPLICATION, 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicablePolicies.policiesByOwner.get(1));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 1,
         applicablePolicies.policiesByOwner.get(2));
-    assertEquals(appPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
-    assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
-    assertEquals(parentOrgPolicy.getId(), applicablePolicies.policiesByOwner.get(2).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(appPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId()).isEqualTo(orgPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(2).policies.get(0).getId()).isEqualTo(parentOrgPolicy.getId());
 
     // Verify the applicable policies for the organization
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(2, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
     assertPoliciesByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 1,
         applicablePolicies.policiesByOwner.get(1));
-    assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
-    assertEquals(parentOrgPolicy.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(orgPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId()).isEqualTo(parentOrgPolicy.getId());
 
     // Verify the applicable policies for the parent organization
     response = restRequest(OwnerType.ORGANIZATION, parentOrgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(1);
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 1,
         applicablePolicies.policiesByOwner.get(0));
-    assertEquals(parentOrgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(parentOrgPolicy.getId());
   }
 
   @Test
@@ -398,16 +390,16 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("applicable").get();
     assertResponseStatus(200, response);
     ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
-    assertNotNull(applicablePolicies);
-    assertEquals(3, applicablePolicies.policiesByOwner.size());
+    assertThat(applicablePolicies).isNotNull();
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
     assertPoliciesByOwner(app.getId(), app.getName(), OwnerType.APPLICATION, 0,
         applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(org.getId(), org.getName(), OwnerType.ORGANIZATION, 1,
         applicablePolicies.policiesByOwner.get(1));
     assertPoliciesByOwner(parentOrg.getId(), parentOrg.getName(), OwnerType.ORGANIZATION, 1,
         applicablePolicies.policiesByOwner.get(2));
-    assertEquals(orgPolicy2.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
-    assertEquals(parentOrgPolicy2.getId(), applicablePolicies.policiesByOwner.get(2).policies.get(0).getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId()).isEqualTo(orgPolicy2.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(2).policies.get(0).getId()).isEqualTo(parentOrgPolicy2.getId());
   }
 
   @Test
@@ -416,8 +408,8 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
         .part("file", "garbage.png", "garbage").post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain "
-        + "it is a properly formatted policy import json file?"));
+    assertThat(response.getBodyText()).isEqualTo("The file you selected failed to upload correctly, are you certain "
+        + "it is a properly formatted policy import json file?");
   }
 
   @Test
@@ -426,8 +418,8 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
         .part("file", "badPolicy.json", "{\"badJson\":\"noClosingBraces\"").post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain "
-        + "it is a properly formatted policy import json file?"));
+    assertThat(response.getBodyText()).isEqualTo("The file you selected failed to upload correctly, are you certain "
+        + "it is a properly formatted policy import json file?");
   }
 
   @Test
@@ -441,10 +433,10 @@ public class PolicyResourceTest
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId2).path(policy.getId()).delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a policy with ID " + policy.getId() + " for application ID " + appPublicId2,
-        response.getBodyText());
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find a policy with ID " + policy.getId() + " for application ID " + appPublicId2);
     // Verify that the policy was not deleted
-    assertThat(new PolicyDAO().getById(policy.getId()), notNullValue());
+    assertThat(new PolicyDAO().getById(policy.getId())).isNotNull();
   }
 
   @Test
@@ -456,9 +448,9 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, fromOrg.getId()).path("export").get();
     assertResponseStatus(200, response);
     PolicyExportResult policyExportResult = response.getBody(PolicyExportResult.class);
-    assertThat(policyExportResult, is(notNullValue()));
-    assertThat(policyExportResult.policies, hasSize(1));
-    assertThat(policyExportResult.policies.get(0).getName(), is(policy.getName()));
+    assertThat(policyExportResult).isNotNull();
+    assertThat(policyExportResult.policies).hasSize(1);
+    assertThat(policyExportResult.policies.get(0).getName()).isEqualTo(policy.getName());
 
     new OrganizationDAO().delete(fromOrg);
 
@@ -468,12 +460,12 @@ public class PolicyResourceTest
         .part("file", "policyExportResult.json", policyExportResult).post();
     assertResponseStatus(200, response);
     PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
-    assertThat(policyImportResult, is(notNullValue()));
-    assertThat(policyImportResult.ownerName, is(toOrg.getName()));
+    assertThat(policyImportResult).isNotNull();
+    assertThat(policyImportResult.ownerName).isEqualTo(toOrg.getName());
 
     List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());
-    assertThat(policies, hasSize(1));
-    assertThat(policies.get(0).getName(), is(policy.getName()));
+    assertThat(policies).hasSize(1);
+    assertThat(policies.get(0).getName()).isEqualTo(policy.getName());
   }
 
   @Test
@@ -483,7 +475,7 @@ public class PolicyResourceTest
 
     // policy import to applications is no longer supported
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Importing policies into an application is no longer supported."));
+    assertThat(response.getBodyText()).isEqualTo("Importing policies into an application is no longer supported.");
   }
 
   @Test
@@ -494,8 +486,8 @@ public class PolicyResourceTest
         .part("file", "file", policyExportResult).post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(),
-        is("The file you selected failed to upload correctly, the policy file needs to have at least one " +
-            "policy defined."));
+    assertThat(response.getBodyText())
+        .isEqualTo("The file you selected failed to upload correctly, the policy file needs to have at least one "
+            + "policy defined.");
   }
 }

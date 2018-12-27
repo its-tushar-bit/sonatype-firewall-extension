@@ -22,12 +22,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationDigesterTest
 {
@@ -39,10 +34,10 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results, notNullValue());
-    assertThat(results.getAppeared(), empty());
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().isEmpty(), is(true));
+    assertThat(results).isNotNull();
+    assertThat(results.getAppeared()).isEmpty();
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).isEmpty();
   }
 
   @Test
@@ -53,9 +48,9 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), contains(newViolations.get(0)));
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().isEmpty(), is(true));
+    assertThat(results.getAppeared()).containsExactly(newViolations.get(0));
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).isEmpty();
   }
 
   @Test
@@ -66,11 +61,11 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results, notNullValue());
-    assertThat(results.getAppeared(), empty());
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
+    assertThat(results).isNotNull();
+    assertThat(results.getAppeared()).isEmpty();
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(0));
   }
 
   @Test
@@ -81,9 +76,9 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), empty());
-    assertThat(results.getCleared(), contains(oldViolations.get(0)));
-    assertThat(results.getSame().isEmpty(), is(true));
+    assertThat(results.getAppeared()).isEmpty();
+    assertThat(results.getCleared()).containsExactly(oldViolations.get(0));
+    assertThat(results.getSame()).isEmpty();
   }
 
   @Test
@@ -96,10 +91,10 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), contains(newViolations.get(0)));
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(1)));
+    assertThat(results.getAppeared()).containsExactly(newViolations.get(0));
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(1));
   }
 
   @Test
@@ -112,10 +107,10 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), contains(newViolations.get(1)));
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
+    assertThat(results.getAppeared()).containsExactly(newViolations.get(1));
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(0));
   }
 
   @Test
@@ -129,10 +124,10 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), contains(newViolations.get(0), newViolations.get(2)));
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(1)));
+    assertThat(results.getAppeared()).containsExactly(newViolations.get(0), newViolations.get(2));
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(1));
   }
 
   @Test
@@ -146,9 +141,9 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), contains(newViolations.get(0), newViolations.get(1)));
-    assertThat(results.getCleared(), contains(oldViolations.get(0)));
-    assertThat(results.getSame().isEmpty(), is(true));
+    assertThat(results.getAppeared()).containsExactly(newViolations.get(0), newViolations.get(1));
+    assertThat(results.getCleared()).containsExactly(oldViolations.get(0));
+    assertThat(results.getSame()).isEmpty();
   }
 
   @Test
@@ -162,11 +157,11 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), hasSize(1));
-    assertThat(results.getAppeared().get(0).getHash(), is("1H"));
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(1)));
+    assertThat(results.getAppeared()).hasSize(1);
+    assertThat(results.getAppeared().get(0).getHash()).isEqualTo("1H");
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(1));
   }
 
   @Test
@@ -180,11 +175,11 @@ public class PolicyViolationDigesterTest
     final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), hasSize(1));
-    assertThat(results.getAppeared().get(0).getHash(), is("H1"));
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
+    assertThat(results.getAppeared()).hasSize(1);
+    assertThat(results.getAppeared().get(0).getHash()).isEqualTo("H1");
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(0));
   }
 
   @Test
@@ -197,11 +192,11 @@ public class PolicyViolationDigesterTest
     PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results, notNullValue());
-    assertThat(results.getAppeared(), empty());
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
+    assertThat(results).isNotNull();
+    assertThat(results.getAppeared()).isEmpty();
+    assertThat(results.getCleared()).isEmpty();
+    assertThat(results.getSame()).hasSize(1);
+    assertThat(results.getSame().get(oldViolations.get(0))).isEqualTo(newViolations.get(0));
   }
 
   @Test
@@ -214,11 +209,11 @@ public class PolicyViolationDigesterTest
     PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), hasSize(1));
-    assertThat(results.getAppeared().get(0).getThreatLevel(), is(10));
-    assertThat(results.getCleared(), hasSize(1));
-    assertThat(results.getCleared().get(0).getThreatLevel(), is(0));
-    assertThat(results.getSame().isEmpty(), is(true));
+    assertThat(results.getAppeared()).hasSize(1);
+    assertThat(results.getAppeared().get(0).getThreatLevel()).isEqualTo(10);
+    assertThat(results.getCleared()).hasSize(1);
+    assertThat(results.getCleared().get(0).getThreatLevel()).isEqualTo(0);
+    assertThat(results.getSame()).isEmpty();
   }
 
   private static List<PolicyViolation> defaultPolicyViolations() {

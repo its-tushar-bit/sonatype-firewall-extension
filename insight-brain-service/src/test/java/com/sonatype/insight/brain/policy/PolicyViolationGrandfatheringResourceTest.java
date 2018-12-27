@@ -23,9 +23,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationGrandfatheringResourceTest
     extends AbstractResourceTest
@@ -46,7 +44,7 @@ public class PolicyViolationGrandfatheringResourceTest
         .parameter(application.getPublicId()).put();
     assertResponseStatus(204, response);
     policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
-    assertThat(policyViolation.isGrandfathered(), is(false));
+    assertThat(policyViolation.isGrandfathered()).isFalse();
   }
 
   @Test
@@ -64,7 +62,7 @@ public class PolicyViolationGrandfatheringResourceTest
         .parameter(application.getPublicId()).put();
     assertResponseStatus(204, response);
     policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
-    assertThat(policyViolation.isGrandfathered(), is(true));
+    assertThat(policyViolation.isGrandfathered()).isTrue();
   }
 
   @Test
@@ -82,10 +80,10 @@ public class PolicyViolationGrandfatheringResourceTest
 
     PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = response
         .getBody(PolicyViolationGrandfatheringDTO.class);
-    assertThat(policyViolationGrandfatheringDTO.enabled, is(true));
-    assertThat(policyViolationGrandfatheringDTO.inheritedFromOrganizationName, is(nullValue()));
-    assertThat(policyViolationGrandfatheringDTO.allowOverride, is(false));
-    assertThat(policyViolationGrandfatheringDTO.allowChange, is(true));
+    assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
+    assertThat(policyViolationGrandfatheringDTO.inheritedFromOrganizationName).isNull();
+    assertThat(policyViolationGrandfatheringDTO.allowOverride).isFalse();
+    assertThat(policyViolationGrandfatheringDTO.allowChange).isTrue();
   }
 
   @Test
@@ -101,10 +99,10 @@ public class PolicyViolationGrandfatheringResourceTest
 
     PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = response
         .getBody(PolicyViolationGrandfatheringDTO.class);
-    assertThat(policyViolationGrandfatheringDTO.enabled, is(true));
-    assertThat(policyViolationGrandfatheringDTO.inheritedFromOrganizationName, is(nullValue()));
-    assertThat(policyViolationGrandfatheringDTO.allowOverride, is(false));
-    assertThat(policyViolationGrandfatheringDTO.allowChange, is(true));
+    assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
+    assertThat(policyViolationGrandfatheringDTO.inheritedFromOrganizationName).isNull();
+    assertThat(policyViolationGrandfatheringDTO.allowOverride).isFalse();
+    assertThat(policyViolationGrandfatheringDTO.allowChange).isTrue();
   }
 
   @Test
@@ -119,9 +117,9 @@ public class PolicyViolationGrandfatheringResourceTest
         .parameter(OwnerType.APPLICATION, app.getPublicId()).body(policyViolationGrandfatheringDTO).put();
     assertResponseStatus(200, response);
 
-    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled(), is(true));
+    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled()).isTrue();
     policyViolationGrandfatheringDTO = response.getBody(PolicyViolationGrandfatheringDTO.class);
-    assertThat(policyViolationGrandfatheringDTO.enabled, is(true));
+    assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
   }
 
   @Test
@@ -139,10 +137,10 @@ public class PolicyViolationGrandfatheringResourceTest
     assertResponseStatus(200, response);
 
     org = new OrganizationDAO().getById(org.getId());
-    assertThat(org.isPolicyViolationGrandfatheringEnabled(), is(true));
-    assertThat(org.isAllowPolicyViolationGrandfatheringOverride(), is(true));
+    assertThat(org.isPolicyViolationGrandfatheringEnabled()).isTrue();
+    assertThat(org.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
     policyViolationGrandfatheringDTO = response.getBody(PolicyViolationGrandfatheringDTO.class);
-    assertThat(policyViolationGrandfatheringDTO.enabled, is(true));
-    assertThat(policyViolationGrandfatheringDTO.allowOverride, is(true));
+    assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
+    assertThat(policyViolationGrandfatheringDTO.allowOverride).isTrue();
   }
 }

@@ -27,12 +27,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class PolicyViolationGrandfatheringServiceTest
     extends AbstractComponentTest
@@ -59,9 +55,9 @@ public class PolicyViolationGrandfatheringServiceTest
 
     policyViolationGrandfatheringService.revokeGrandfathering(app1.getPublicId());
 
-    assertThat(policyViolationDAO.getById(fixedGrandfatheredPolicyViolation.getId()).isGrandfathered(), is(true));
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).isGrandfathered(), is(false));
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered(), is(true));
+    assertThat(policyViolationDAO.getById(fixedGrandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered()).isTrue();
   }
 
   private void testGrandfather(Application app, boolean grandfatheringAllowed) throws Exception {
@@ -102,27 +98,26 @@ public class PolicyViolationGrandfatheringServiceTest
       if (grandfatheringAllowed) {
         throw e;
       }
-      assertThat(e.getMessage(),
-          is("Policy violation grandfathering is not enabled for application '" + app.getName() + "'."));
+      assertThat(e.getMessage())
+          .isEqualTo("Policy violation grandfathering is not enabled for application '" + app.getName() + "'.");
     }
     Date after = new Date();
 
-    assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isGrandfathered(), is(false));
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).getGrandfatherTime(),
-        is(inThePast));
+    assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).getGrandfatherTime()).isEqualTo(inThePast);
     if (grandfatheringAllowed) {
       assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1, before, after);
       assertPolicyViolationGrandfatherTime(waivedPolicyViolation1, before, after);
       assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
     }
     else {
-      assertThat(policyViolationDAO.getById(unfixedPolicyViolation1.getId()).isGrandfathered(), is(false));
-      assertThat(policyViolationDAO.getById(waivedPolicyViolation1.getId()).isGrandfathered(), is(false));
-      assertThat(policyViolationDAO.getById(unfixedPolicyViolation1PolicyDoesNotExist.getId()).isGrandfathered(),
-          is(false));
+      assertThat(policyViolationDAO.getById(unfixedPolicyViolation1.getId()).isGrandfathered()).isFalse();
+      assertThat(policyViolationDAO.getById(waivedPolicyViolation1.getId()).isGrandfathered()).isFalse();
+      assertThat(policyViolationDAO.getById(unfixedPolicyViolation1PolicyDoesNotExist.getId()).isGrandfathered())
+          .isFalse();
     }
 
-    assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isGrandfathered(), is(false));
+    assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isGrandfathered()).isFalse();
   }
 
   @Test
@@ -219,8 +214,8 @@ public class PolicyViolationGrandfatheringServiceTest
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    assertThat(policyViolationDAO.getById(policyViolation.getId()).getGrandfatherTime(), greaterThanOrEqualTo(before));
-    assertThat(policyViolationDAO.getById(policyViolation.getId()).getGrandfatherTime(), lessThanOrEqualTo(after));
+    assertThat(policyViolationDAO.getById(policyViolation.getId()).getGrandfatherTime()).isAfterOrEqualsTo(before);
+    assertThat(policyViolationDAO.getById(policyViolation.getId()).getGrandfatherTime()).isBeforeOrEqualsTo(after);
   }
 
   @Test
@@ -322,11 +317,11 @@ public class PolicyViolationGrandfatheringServiceTest
                                                       boolean expectedAllowOverride,
                                                       boolean expectedAllowChange)
   {
-    assertThat("enabled", actual.enabled, is(expectedEnabled));
-    assertThat("inheritedFromOrganizationName", actual.inheritedFromOrganizationName,
-        is(expectedInheritedFromOrganizationName));
-    assertThat("allowOverride", actual.allowOverride, is(expectedAllowOverride));
-    assertThat("allowChange", actual.allowChange, is(expectedAllowChange));
+    assertThat(actual.enabled).as("enabled").isEqualTo(expectedEnabled);
+    assertThat(actual.inheritedFromOrganizationName).as("inheritedFromOrganizationName")
+        .isEqualTo(expectedInheritedFromOrganizationName);
+    assertThat(actual.allowOverride).as("allowOverride").isEqualTo(expectedAllowOverride);
+    assertThat(actual.allowChange).as("allowChange").isEqualTo(expectedAllowChange);
   }
 
   @Test
@@ -341,14 +336,14 @@ public class PolicyViolationGrandfatheringServiceTest
     policyViolationGrandfatheringService.setGrandfathering(OwnerType.APPLICATION, app.getPublicId(),
         policyViolationGrandfatheringDTO);
 
-    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled(), is(true));
+    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled()).isTrue();
 
     // Set to null value
     policyViolationGrandfatheringDTO.enabled = null;
     policyViolationGrandfatheringService.setGrandfathering(OwnerType.APPLICATION, app.getPublicId(),
         policyViolationGrandfatheringDTO);
 
-    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled(), is(nullValue()));
+    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled()).isNull();
   }
 
   @Test
@@ -366,8 +361,8 @@ public class PolicyViolationGrandfatheringServiceTest
         policyViolationGrandfatheringDTO);
 
     org = new OrganizationDAO().getById(org.getId());
-    assertThat(org.isPolicyViolationGrandfatheringEnabled(), is(true));
-    assertThat(org.isAllowPolicyViolationGrandfatheringOverride(), is(true));
+    assertThat(org.isPolicyViolationGrandfatheringEnabled()).isTrue();
+    assertThat(org.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
 
     // Set to null value
     policyViolationGrandfatheringDTO.enabled = null;
@@ -375,7 +370,7 @@ public class PolicyViolationGrandfatheringServiceTest
         policyViolationGrandfatheringDTO);
 
     org = new OrganizationDAO().getById(org.getId());
-    assertThat(org.isPolicyViolationGrandfatheringEnabled(), is(nullValue()));
-    assertThat(org.isAllowPolicyViolationGrandfatheringOverride(), is(true));
+    assertThat(org.isPolicyViolationGrandfatheringEnabled()).isNull();
+    assertThat(org.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
   }
 }

@@ -53,17 +53,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.7
@@ -144,24 +134,24 @@ public class PolicyImportExportTest
     }
 
     List<Label> labels = labelDAO.getByOwnerId(toOrg.getId());
-    assertThat(labels, hasSize(3));
+    assertThat(labels).hasSize(3);
 
     Label keptLabel = labels.get(0);
-    assertThat(keptLabel.getColor(), is(Color.dark_red));
-    assertThat(keptLabel.getLabel(), is("keepMe"));
+    assertThat(keptLabel.getColor()).isEqualTo(Color.dark_red);
+    assertThat(keptLabel.getLabel()).isEqualTo("keepMe");
 
     Label updatedLabel = labels.get(1);
-    assertThat(updatedLabel.getColor(), is(Color.dark_purple)); // updated
-    assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
-    assertThat(updatedLabel.getId(), is(oldLabelToUpdate.getId())); // id remains the same
-    assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
+    assertThat(updatedLabel.getColor()).isEqualTo(Color.dark_purple); // updated
+    assertThat(updatedLabel.getLabel()).isEqualTo("LABEL1"); // updated from the lowercase version
+    assertThat(updatedLabel.getId()).isEqualTo(oldLabelToUpdate.getId()); // id remains the same
+    assertThat(updatedLabel.getDescription()).isNull(); // existing description is removed
 
     Label importedLabel = labels.get(2);
-    assertThat(importedLabel.getColor(), is(Color.dark_blue));
-    assertThat(importedLabel.getLabel(), is("LABEL2"));
+    assertThat(importedLabel.getColor()).isEqualTo(Color.dark_blue);
+    assertThat(importedLabel.getLabel()).isEqualTo("LABEL2");
 
-    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(oldLabelToUpdate.getId()));
+    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(oldLabelToUpdate.getId());
   }
 
   @Test
@@ -177,8 +167,8 @@ public class PolicyImportExportTest
     // only interested in the deletion so import an empty DTO
     policyImportExport.importOrganization(toOrg, new PolicyExportResult());
 
-    assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));
-    assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
+    assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId())).isEmpty();
+    assertThat(policyWaiverDAO.getByOwnerId(toApp.getId())).isEmpty();
   }
 
   @Test
@@ -203,7 +193,7 @@ public class PolicyImportExportTest
     }
 
     assertTag(fromTag, tagDAO.getById(toTag.getId()));
-    assertThat(exportDTO.policyTags.get(0).getTagId(), is(toTag.getId()));
+    assertThat(exportDTO.policyTags.get(0).getTagId()).isEqualTo(toTag.getId());
   }
 
   @Test
@@ -225,10 +215,10 @@ public class PolicyImportExportTest
     }
 
     List<Tag> tags = tagDAO.getByOrganizationId(toOrg.getId());
-    assertThat(tags, hasSize(1));
+    assertThat(tags).hasSize(1);
     assertTag(tag, tags.get(0));
-    assertThat(tags.get(0).getId(), is(not(tag.getId())));
-    assertThat(exportDTO.policyTags.get(0).getTagId(), is(tags.get(0).getId()));
+    assertThat(tags.get(0).getId()).isNotEqualTo(tag.getId());
+    assertThat(exportDTO.policyTags.get(0).getTagId()).isEqualTo(tags.get(0).getId());
   }
 
   @Test
@@ -250,16 +240,16 @@ public class PolicyImportExportTest
     policyImportExport.importOrganization(toOrg, exportDTO);
 
     List<Policy> importedPolicies = policyDAO.getByOwnerId(toOrg.getId());
-    assertThat(importedPolicies, hasSize(1));
+    assertThat(importedPolicies).hasSize(1);
     policy = importedPolicies.get(0);
     List<Constraint> constraints = policy.getConstraints();
-    assertThat(constraints, hasSize(1));
+    assertThat(constraints).hasSize(1);
     List<Condition> conditions = constraints.get(0).getConditions();
-    assertThat(conditions, hasSize(1));
+    assertThat(conditions).hasSize(1);
     Condition condition = conditions.get(0);
-    assertThat(condition.getConditionTypeId(), is(LicenseThreatGroupConditionType.ID));
-    assertThat(condition.getOperator(), is("is"));
-    assertThat(condition.getValue(), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID));
+    assertThat(condition.getConditionTypeId()).isEqualTo(LicenseThreatGroupConditionType.ID);
+    assertThat(condition.getOperator()).isEqualTo("is");
+    assertThat(condition.getValue()).isEqualTo(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID);
   }
 
   @Test
@@ -303,18 +293,18 @@ public class PolicyImportExportTest
 
     policyImportExport.importOrganization(rootOrganization, new PolicyExportResult());
 
-    assertThat(policyDAO.getAll(), is(empty()));
-    assertThat(policyWaiverDAO.getById(rootOrganizationPolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(organizationOnePolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(organizationTwoPolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(applicationOnePolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(applicationTwoPolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(repositoryPolicyWaiver.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(rootOrganizationLicenseThreatGroup.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(organizationOneLicenseThreatGroup.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(organizationTwoLicenseThreatGroup.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(applicationOneLicenseThreatGroup.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(applicationTwoLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(policyDAO.getAll()).isEmpty();
+    assertThat(policyWaiverDAO.getById(rootOrganizationPolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(organizationOnePolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(organizationTwoPolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(applicationOnePolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(applicationTwoPolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(repositoryPolicyWaiver.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(rootOrganizationLicenseThreatGroup.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(organizationOneLicenseThreatGroup.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(organizationTwoLicenseThreatGroup.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(applicationOneLicenseThreatGroup.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(applicationTwoLicenseThreatGroup.getId())).isNull();
   }
 
   @Test
@@ -358,22 +348,22 @@ public class PolicyImportExportTest
 
     policyImportExport.importOrganization(organizationOne, new PolicyExportResult());
 
-    assertThat(policyDAO.getById(rootOrganizationPolicy.getId()), is(notNullValue()));
-    assertThat(policyDAO.getById(organizationOnePolicy.getId()), is(nullValue()));
-    assertThat(policyDAO.getById(organizationTwoPolicy.getId()), is(notNullValue()));
-    assertThat(policyDAO.getById(applicationOnePolicy.getId()), is(nullValue()));
-    assertThat(policyDAO.getById(applicationTwoPolicy.getId()), is(notNullValue()));
-    assertThat(policyWaiverDAO.getById(rootOrganizationPolicyWaiver.getId()), is(notNullValue()));
-    assertThat(policyWaiverDAO.getById(organizationOnePolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(organizationTwoPolicyWaiver.getId()), is(notNullValue()));
-    assertThat(policyWaiverDAO.getById(applicationOnePolicyWaiver.getId()), is(nullValue()));
-    assertThat(policyWaiverDAO.getById(applicationTwoPolicyWaiver.getId()), is(notNullValue()));
-    assertThat(policyWaiverDAO.getById(repositoryPolicyWaiver.getId()), is(notNullValue()));
-    assertThat(licenseThreatGroupDAO.getById(rootOrganizationLicenseThreatGroup.getId()), is(notNullValue()));
-    assertThat(licenseThreatGroupDAO.getById(organizationOneLicenseThreatGroup.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(organizationTwoLicenseThreatGroup.getId()), is(notNullValue()));
-    assertThat(licenseThreatGroupDAO.getById(applicationOneLicenseThreatGroup.getId()), is(nullValue()));
-    assertThat(licenseThreatGroupDAO.getById(applicationTwoLicenseThreatGroup.getId()), is(notNullValue()));
+    assertThat(policyDAO.getById(rootOrganizationPolicy.getId())).isNotNull();
+    assertThat(policyDAO.getById(organizationOnePolicy.getId())).isNull();
+    assertThat(policyDAO.getById(organizationTwoPolicy.getId())).isNotNull();
+    assertThat(policyDAO.getById(applicationOnePolicy.getId())).isNull();
+    assertThat(policyDAO.getById(applicationTwoPolicy.getId())).isNotNull();
+    assertThat(policyWaiverDAO.getById(rootOrganizationPolicyWaiver.getId())).isNotNull();
+    assertThat(policyWaiverDAO.getById(organizationOnePolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(organizationTwoPolicyWaiver.getId())).isNotNull();
+    assertThat(policyWaiverDAO.getById(applicationOnePolicyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(applicationTwoPolicyWaiver.getId())).isNotNull();
+    assertThat(policyWaiverDAO.getById(repositoryPolicyWaiver.getId())).isNotNull();
+    assertThat(licenseThreatGroupDAO.getById(rootOrganizationLicenseThreatGroup.getId())).isNotNull();
+    assertThat(licenseThreatGroupDAO.getById(organizationOneLicenseThreatGroup.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(organizationTwoLicenseThreatGroup.getId())).isNotNull();
+    assertThat(licenseThreatGroupDAO.getById(applicationOneLicenseThreatGroup.getId())).isNull();
+    assertThat(licenseThreatGroupDAO.getById(applicationTwoLicenseThreatGroup.getId())).isNotNull();
   }
 
   /**
@@ -402,10 +392,10 @@ public class PolicyImportExportTest
   }
 
   public static void assertTag(Tag expected, Tag actual) {
-    assertThat(actual.getName(), is(expected.getName()));
-    assertThat(actual.getNameLowercaseNoWhitespace(), is(expected.getNameLowercaseNoWhitespace()));
-    assertThat(actual.getDescription(), is(expected.getDescription()));
-    assertThat(actual.getColor(), is(expected.getColor()));
+    assertThat(actual.getName()).isEqualTo(expected.getName());
+    assertThat(actual.getNameLowercaseNoWhitespace()).isEqualTo(expected.getNameLowercaseNoWhitespace());
+    assertThat(actual.getDescription()).isEqualTo(expected.getDescription());
+    assertThat(actual.getColor()).isEqualTo(expected.getColor());
   }
 
   @Test
@@ -436,11 +426,11 @@ public class PolicyImportExportTest
 
     // Export
     PolicyExportResult policyExportResult = policyImportExport.exportOrganization(org);
-    assertNotNull(policyExportResult);
-    assertTrue(!policyExportResult.policies.isEmpty());
-    assertTrue(!policyExportResult.labels.isEmpty());
-    assertTrue(!policyExportResult.licenseThreatGroups.isEmpty());
-    assertTrue(!policyExportResult.licenseThreatGroupLicenses.isEmpty());
+    assertThat(policyExportResult).isNotNull();
+    assertThat(policyExportResult.policies).isNotEmpty();
+    assertThat(policyExportResult.labels).isNotEmpty();
+    assertThat(policyExportResult.licenseThreatGroups).isNotEmpty();
+    assertThat(policyExportResult.licenseThreatGroupLicenses).isNotEmpty();
 
     // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
     labelDAO.delete(label1);
@@ -458,31 +448,31 @@ public class PolicyImportExportTest
     policyExportResult.policyTags = Collections.emptyList();
     policyExportResult = detachObjects(policyExportResult);
     PolicyImportResult policyImportResult = policyImportExport.importOrganization(org, policyExportResult);
-    assertNotNull(policyImportResult);
-    assertEquals(org.getName(), policyImportResult.ownerName);
+    assertThat(policyImportResult).isNotNull();
+    assertThat(policyImportResult.ownerName).isEqualTo(org.getName());
     List<Label> labels = labelDAO.getByOwnerId(orgId);
     // All labels retained.
-    assertEquals(3, labels.size());
-    assertEquals(label1.getId(), labels.get(0).getId());
-    assertEquals("label1", labels.get(0).getLabel());
-    assertEquals(Color.dark_blue, labels.get(0).getColor());
-    assertNotEquals(label2.getId(), labels.get(1).getId());
-    assertEquals(label2.getLabel(), labels.get(1).getLabel());
-    assertEquals(label2.getColor(), labels.get(1).getColor());
+    assertThat(labels).hasSize(3);
+    assertThat(labels.get(0).getId()).isEqualTo(label1.getId());
+    assertThat(labels.get(0).getLabel()).isEqualTo("label1");
+    assertThat(labels.get(0).getColor()).isEqualTo(Color.dark_blue);
+    assertThat(labels.get(1).getId()).isNotEqualTo(label2.getId());
+    assertThat(labels.get(1).getLabel()).isEqualTo(label2.getLabel());
+    assertThat(labels.get(1).getColor()).isEqualTo(label2.getColor());
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(orgId);
-    assertEquals(1, licenseThreatGroups.size());
-    assertEquals(licenseThreatGroup.getName(), licenseThreatGroups.get(0).getName());
-    assertNotEquals(licenseThreatGroup.getId(), licenseThreatGroups.get(0).getId());
+    assertThat(licenseThreatGroups).hasSize(1);
+    assertThat(licenseThreatGroups.get(0).getName()).isEqualTo(licenseThreatGroup.getName());
+    assertThat(licenseThreatGroups.get(0).getId()).isNotEqualTo(licenseThreatGroup.getId());
     List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(orgId);
-    assertEquals(1, licenseThreatGroupLicenses.size());
-    assertEquals(licenseThreatGroupLicense.getLicenseId(), licenseThreatGroupLicenses.get(0).getLicenseId());
-    assertNotEquals(licenseThreatGroupLicense.getId(), licenseThreatGroupLicenses.get(0).getId());
+    assertThat(licenseThreatGroupLicenses).hasSize(1);
+    assertThat(licenseThreatGroupLicenses.get(0).getLicenseId()).isEqualTo(licenseThreatGroupLicense.getLicenseId());
+    assertThat(licenseThreatGroupLicenses.get(0).getId()).isNotEqualTo(licenseThreatGroupLicense.getId());
     List<Policy> policies = policyDAO.getByOwnerId(orgId);
-    assertEquals(1, policies.size());
-    assertEquals(policy.getName(), policies.get(0).getName());
-    assertNotEquals(policy.getId(), policies.get(0).getId());
+    assertThat(policies).hasSize(1);
+    assertThat(policies.get(0).getName()).isEqualTo(policy.getName());
+    assertThat(policies.get(0).getId()).isNotEqualTo(policy.getId());
     ValidationResult policyValidationResult = policies.get(0).validate(null, orgId);
-    assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
+    assertThat(policyValidationResult.isValid()).as(policyValidationResult.toMessageString()).isTrue();
   }
 
   @Test
@@ -502,11 +492,9 @@ public class PolicyImportExportTest
 
     // Export
     PolicyExportResult policyExportResult = policyImportExport.exportOrganization(fromOrg);
-    assertThat(policyExportResult, notNullValue());
-    assertThat(policyExportResult.tags, notNullValue());
-    assertThat(policyExportResult.tags, hasSize(3));
-    assertThat(policyExportResult.policyTags, notNullValue());
-    assertThat(policyExportResult.policyTags, hasSize(4));
+    assertThat(policyExportResult).isNotNull();
+    assertThat(policyExportResult.tags).hasSize(3);
+    assertThat(policyExportResult.policyTags).hasSize(4);
   }
 
   @Test
@@ -525,22 +513,22 @@ public class PolicyImportExportTest
     policyImportExport.importOrganization(fromOrg, new PolicyExportResult());
 
     // verify that we delete all data from the org
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromOrg.getId()), is(empty()));
-    assertThat(licenseThreatGroupDAO.getByOwnerId(fromOrg.getId()), is(empty()));
-    assertThat(policyDAO.getByOwnerId(fromOrg.getId()), is(empty()));
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromOrg.getId())).isEmpty();
+    assertThat(licenseThreatGroupDAO.getByOwnerId(fromOrg.getId())).isEmpty();
+    assertThat(policyDAO.getByOwnerId(fromOrg.getId())).isEmpty();
 
     // verify that org label data is preserved.
-    assertThat(labelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
-    assertThat(componentLabelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
+    assertThat(labelDAO.getByOwnerId(fromOrg.getId())).hasSize(1);
+    assertThat(componentLabelDAO.getByOwnerId(fromOrg.getId())).hasSize(1);
 
     // verify that we delete all data from the app
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromApp.getId()), is(empty()));
-    assertThat(licenseThreatGroupDAO.getByOwnerId(fromApp.getId()), is(empty()));
-    assertThat(policyDAO.getByOwnerId(fromApp.getId()), is(empty()));
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromApp.getId())).isEmpty();
+    assertThat(licenseThreatGroupDAO.getByOwnerId(fromApp.getId())).isEmpty();
+    assertThat(policyDAO.getByOwnerId(fromApp.getId())).isEmpty();
 
     // verify that the app label data is preserved.
-    assertThat(componentLabelDAO.getByOwnerId(fromApp.getId()), hasSize(1));
-    assertThat(labelDAO.getByOwnerId(fromApp.getId()), hasSize(1));
+    assertThat(componentLabelDAO.getByOwnerId(fromApp.getId())).hasSize(1);
+    assertThat(labelDAO.getByOwnerId(fromApp.getId())).hasSize(1);
   }
 
   @Test
@@ -584,41 +572,41 @@ public class PolicyImportExportTest
 
     // verify that org data is as expected
     List<LicenseThreatGroupLicense> ltgls = licenseThreatGroupLicenseDAO.getByOwnerId(toOrg.getId());
-    assertThat(ltgls, hasSize(1));
-    assertThat(ltgls.get(0).getId(), is(not(toOrgLtgl.getId())));
+    assertThat(ltgls).hasSize(1);
+    assertThat(ltgls.get(0).getId()).isNotEqualTo(toOrgLtgl.getId());
     List<LicenseThreatGroup> ltgs = licenseThreatGroupDAO.getByOwnerId(toOrg.getId());
-    assertThat(ltgs, hasSize(1));
-    assertThat(ltgs.get(0).getId(), is(not(toOrgLtg.getId())));
-    assertThat(ltgs.get(0).getName(), is(fromOrgLtg.getName()));
+    assertThat(ltgs).hasSize(1);
+    assertThat(ltgs.get(0).getId()).isNotEqualTo(toOrgLtg.getId());
+    assertThat(ltgs.get(0).getName()).isEqualTo(fromOrgLtg.getName());
     List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());
-    assertThat(policies, hasSize(1));
-    assertThat(policies.get(0).getId(), is(not(toOrgPolicy.getId())));
-    assertThat(policies.get(0).getName(), is(fromOrgPolicy.getName()));
+    assertThat(policies).hasSize(1);
+    assertThat(policies.get(0).getId()).isNotEqualTo(toOrgPolicy.getId());
+    assertThat(policies.get(0).getName()).isEqualTo(fromOrgPolicy.getName());
     List<Label> labels = labelDAO.getByOwnerId(toOrg.getId());
-    assertThat(labels, hasSize(2));
+    assertThat(labels).hasSize(2);
     Label newLabel = findLabel(labels, fromOrgLabel.getLabel());
-    assertThat(newLabel.getId(), is(not(toOrgLabel.getId())));
-    assertThat(newLabel.getColor(), is(fromOrgLabel.getColor()));
+    assertThat(newLabel.getId()).isNotEqualTo(toOrgLabel.getId());
+    assertThat(newLabel.getColor()).isEqualTo(fromOrgLabel.getColor());
     // preserved by import of labels
-    assertThat(componentLabelDAO.getByOwnerId(toOrg.getId()), hasSize(1));
+    assertThat(componentLabelDAO.getByOwnerId(toOrg.getId())).hasSize(1);
     List<Tag> tags = tagDAO.getByOrganizationId(toOrg.getId());
-    assertThat(tags, hasSize(1));
-    assertThat(tags.get(0).getId(), is(not(fromOrgTag.getId())));
-    assertThat(tags.get(0).getName(), is(fromOrgTag.getName()));
-    assertThat(tags.get(0).getDescription(), is(fromOrgTag.getDescription()));
-    assertThat(tags.get(0).getColor(), is(fromOrgTag.getColor()));
+    assertThat(tags).hasSize(1);
+    assertThat(tags.get(0).getId()).isNotEqualTo(fromOrgTag.getId());
+    assertThat(tags.get(0).getName()).isEqualTo(fromOrgTag.getName());
+    assertThat(tags.get(0).getDescription()).isEqualTo(fromOrgTag.getDescription());
+    assertThat(tags.get(0).getColor()).isEqualTo(fromOrgTag.getColor());
     List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(policies.get(0).getId());
-    assertThat(policyTags, hasSize(1));
-    assertThat(policyTags.get(0).getTagId(), is(tags.get(0).getId()));
+    assertThat(policyTags).hasSize(1);
+    assertThat(policyTags.get(0).getTagId()).isEqualTo(tags.get(0).getId());
 
     // verify that we delete all data from the app
-    assertThat(licenseThreatGroupDAO.getByOwnerId(toApp.getId()), is(empty()));
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(toApp.getId()), is(empty()));
-    assertThat(policyDAO.getByOwnerId(toApp.getId()), is(empty()));
+    assertThat(licenseThreatGroupDAO.getByOwnerId(toApp.getId())).isEmpty();
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(toApp.getId())).isEmpty();
+    assertThat(policyDAO.getByOwnerId(toApp.getId())).isEmpty();
 
     // verify that app label data was preserved during import.
-    assertThat(componentLabelDAO.getByOwnerId(toApp.getId()), hasSize(1));
-    assertThat(labelDAO.getByOwnerId(toApp.getId()), hasSize(1));
+    assertThat(componentLabelDAO.getByOwnerId(toApp.getId())).hasSize(1);
+    assertThat(labelDAO.getByOwnerId(toApp.getId())).hasSize(1);
   }
 
   @Test
@@ -663,27 +651,27 @@ public class PolicyImportExportTest
     policyExportResult.policies.add(policy);
 
     PolicyImportResult policyImportResult = policyImportExport.importOrganization(toOrg, policyExportResult);
-    assertThat(policyImportResult.ownerName, is(toOrg.getName()));
+    assertThat(policyImportResult.ownerName).isEqualTo(toOrg.getName());
 
     // must be null as the value in the parent should be used
-    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), parentLTG.getName()), nullValue());
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(toOrg.getId()), empty());
+    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), parentLTG.getName())).isNull();
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(toOrg.getId())).isEmpty();
 
     List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());
-    assertThat(policies, hasSize(1));
+    assertThat(policies).hasSize(1);
     Policy retrievedPolicy = policies.get(0);
-    assertThat(retrievedPolicy.getName(), is("DummyPolicy"));
+    assertThat(retrievedPolicy.getName()).isEqualTo("DummyPolicy");
     List<Constraint> retrievedConstraints = retrievedPolicy.getConstraints();
-    assertThat(retrievedConstraints, hasSize(1));
+    assertThat(retrievedConstraints).hasSize(1);
     Constraint retrievedConstraint = retrievedConstraints.get(0);
-    assertThat(retrievedConstraint.getName(), is("DummyConstraint"));
+    assertThat(retrievedConstraint.getName()).isEqualTo("DummyConstraint");
     List<Condition> retrievedConditions = retrievedConstraint.getConditions();
-    assertThat(retrievedConditions, hasSize(1));
+    assertThat(retrievedConditions).hasSize(1);
     Condition retrievedCondition = retrievedConditions.get(0);
-    assertThat(retrievedCondition.getConditionTypeId(), is("License Threat Group"));
-    assertThat(retrievedCondition.getOperator(), is("is"));
+    assertThat(retrievedCondition.getConditionTypeId()).isEqualTo("License Threat Group");
+    assertThat(retrievedCondition.getOperator()).isEqualTo("is");
     // must use the parent ltg
-    assertThat(retrievedCondition.getValue(), is(parentLTG.getId()));
+    assertThat(retrievedCondition.getValue()).isEqualTo(parentLTG.getId());
   }
 
   private Label findLabel(List<Label> labels, String name) {
@@ -703,6 +691,6 @@ public class PolicyImportExportTest
     policyExportResult.licenseThreatGroups = Arrays.asList(emptyLTG);
 
     policyImportExport.importOrganization(toOrg, policyExportResult);
-    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), emptyLTG.getName()), is(notNullValue()));
+    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), emptyLTG.getName())).isNotNull();
   }
 }

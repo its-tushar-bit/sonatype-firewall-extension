@@ -20,12 +20,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyMonitoringResourceTest
     extends AbstractResourceTest
@@ -90,7 +85,8 @@ public class PolicyMonitoringResourceTest
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
+    assertThat(response.getBodyText())
+        .isEqualTo("Policy monitoring was not set for owner ID " + organization.getId() + ".");
   }
 
   @Test
@@ -99,7 +95,8 @@ public class PolicyMonitoringResourceTest
     Application application = tempEntity.newApplicationWithParent(appPublicId);
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
+    assertThat(response.getBodyText())
+        .isEqualTo("Policy monitoring was not set for owner ID " + application.getId() + ".");
   }
 
   @Test
@@ -114,7 +111,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     ApplicablePolicyMonitors applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(3));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(3);
     assertEmptyPolicyMonitoringByOwner(application, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertEmptyPolicyMonitoringByOwner(organization, applicablePolicyMonitors.policyMonitoringByOwner.get(1));
     assertEmptyPolicyMonitoringByOwner(organizationParent, applicablePolicyMonitors.policyMonitoringByOwner.get(2));
@@ -123,7 +120,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(2));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(2);
     assertEmptyPolicyMonitoringByOwner(organization, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertEmptyPolicyMonitoringByOwner(organizationParent, applicablePolicyMonitors.policyMonitoringByOwner.get(1));
 
@@ -131,7 +128,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(1));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(1);
     assertEmptyPolicyMonitoringByOwner(organizationParent, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
     // Root Org only Policy Monitoring set
@@ -140,7 +137,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(1));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(1);
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
@@ -148,7 +145,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(2));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(2);
     assertEmptyPolicyMonitoringByOwner(organization, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
@@ -157,7 +154,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(3));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(3);
     assertEmptyPolicyMonitoringByOwner(application, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertEmptyPolicyMonitoringByOwner(organization, applicablePolicyMonitors.policyMonitoringByOwner.get(1));
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
@@ -169,7 +166,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(1));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(1);
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
@@ -177,7 +174,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(2));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(2);
     assertPolicyMonitoringByOwner(organization, Stage.ID_STAGE_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
@@ -187,7 +184,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(3));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(3);
     assertEmptyPolicyMonitoringByOwner(application, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertPolicyMonitoringByOwner(organization, Stage.ID_STAGE_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
@@ -200,7 +197,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(1));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(1);
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
@@ -208,7 +205,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(2));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(2);
     assertPolicyMonitoringByOwner(organization, Stage.ID_STAGE_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
@@ -218,7 +215,7 @@ public class PolicyMonitoringResourceTest
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(3));
+    assertThat(applicablePolicyMonitors.policyMonitoringByOwner).hasSize(3);
     assertPolicyMonitoringByOwner(application, Stage.ID_BUILD, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertPolicyMonitoringByOwner(organization, Stage.ID_STAGE_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
@@ -227,21 +224,21 @@ public class PolicyMonitoringResourceTest
   }
 
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {
-    assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(stageTypeId, actual.getStageTypeId());
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
   }
 
   private void assertEmptyPolicyMonitoringByOwner(Owner owner, PolicyMonitoringByOwner policyMonitoringByOwner) {
-    assertEquals(owner.getName(), policyMonitoringByOwner.ownerName);
-    assertThat(policyMonitoringByOwner.policyMonitoring, nullValue());
+    assertThat(policyMonitoringByOwner.ownerName).isEqualTo(owner.getName());
+    assertThat(policyMonitoringByOwner.policyMonitoring).isNull();
   }
 
   private void assertPolicyMonitoringByOwner(Owner owner,
                                              String stageTypeId,
                                              PolicyMonitoringByOwner policyMonitoringByOwner)
   {
-    assertEquals(owner.getName(), policyMonitoringByOwner.ownerName);
-    assertThat(policyMonitoringByOwner.policyMonitoring, notNullValue());
+    assertThat(policyMonitoringByOwner.ownerName).isEqualTo(owner.getName());
+    assertThat(policyMonitoringByOwner.policyMonitoring).isNotNull();
     assertPolicyMonitoring(owner.getId(), stageTypeId, policyMonitoringByOwner.policyMonitoring);
   }
 }

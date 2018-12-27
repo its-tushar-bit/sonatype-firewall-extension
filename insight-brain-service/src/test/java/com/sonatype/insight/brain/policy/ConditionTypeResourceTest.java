@@ -13,12 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConditionTypeResourceTest
     extends AbstractResourceTest
@@ -29,15 +24,10 @@ public class ConditionTypeResourceTest
     final HttpResponse response = restRequest().path(ConditionTypeResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] conditionTypes = response.getBody(Object[].class);
-    assertNotNull(conditionTypes);
-    assertTrue(conditionTypes.length > 0);
-
-    for (Object conditionTypeObject : conditionTypes) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> conditionType = (Map<String, Object>) conditionTypeObject;
-      String conditionTypeId = (String) conditionType.get("id");
-      assertThat(conditionTypeId, is(notNullValue()));
-      assertThat(conditionTypeId, is(not(DeprecatedSecurityVulnerabilityConditionType.ID)));
-    }
+    assertThat(conditionTypes).isNotEmpty().allSatisfy(conditionType -> {
+      assertThat(conditionType).isInstanceOf(Map.class);
+      assertThat(((Map<?, ?>) conditionType).get("id")).isNotNull()
+          .isNotEqualTo(DeprecatedSecurityVulnerabilityConditionType.ID);
+    });
   }
 }

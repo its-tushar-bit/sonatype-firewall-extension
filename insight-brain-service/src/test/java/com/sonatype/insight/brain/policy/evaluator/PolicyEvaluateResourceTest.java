@@ -19,8 +19,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
@@ -47,18 +46,18 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(200, response);
 
     PolicyEvaluationResult policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
-    assertEquals(7, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(7, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(36, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(36);
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
 
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
-    assertFalse(policyEvaluation.isReevaluation());
-    assertFalse(policyEvaluation.isForObsoleteScan());
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 }

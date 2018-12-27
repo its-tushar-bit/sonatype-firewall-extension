@@ -10,8 +10,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ActionTypeResourceTest
     extends AbstractResourceTest
@@ -21,7 +20,6 @@ public class ActionTypeResourceTest
     final HttpResponse response = restRequest().path(ActionTypeResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] actionTypes = response.getBody(Object[].class);
-    assertNotNull(actionTypes);
-    assertTrue(actionTypes.length > 0);
+    assertThat(actionTypes).isNotEmpty();
   }
 }

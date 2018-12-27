@@ -62,14 +62,7 @@ import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -119,8 +112,8 @@ public class PolicyEvaluateServiceTest
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndScanId(applicationId, scanId);
-    assertEquals(isReevaluation, policyEvaluation.isReevaluation());
-    assertEquals(isForObsoleteScan, policyEvaluation.isForObsoleteScan());
+    assertThat(policyEvaluation.isReevaluation()).isEqualTo(isReevaluation);
+    assertThat(policyEvaluation.isForObsoleteScan()).isEqualTo(isForObsoleteScan);
   }
 
   @Test
@@ -158,16 +151,16 @@ public class PolicyEvaluateServiceTest
     messagesB.clear();
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()), is(empty()));
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     // evaluate policy
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertEquals(7, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(7, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(0, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(72, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(72);
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -176,10 +169,10 @@ public class PolicyEvaluateServiceTest
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
-        assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+        assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
       }
       else {
-        assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+        assertThat(policyViolation.getActionTypeId()).isNull();
       }
     }
 
@@ -188,25 +181,25 @@ public class PolicyEvaluateServiceTest
     File reportFile = insightWork.getReportFile(app.getId(), scanId);
     ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
-    assertTrue(policyThreats.size() > 0);
-    assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
+    assertThat(policyThreats).isNotEmpty();
+    assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);
 
     // check components are associated with the application and stage
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()), hasSize(28));
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
 
     // notification message should also have been sent
     assertNotifications(messagesA, 1, 5000);
-    assertTrue(messagesA.get(0).getSubject().contains("Policy"));
+    assertThat(messagesA.get(0).getSubject()).contains("Policy");
     assertNotifications(messagesB, 1, 5000);
-    assertTrue(messagesB.get(0).getSubject().contains("Policy"));
+    assertThat(messagesB.get(0).getSubject()).contains("Policy");
 
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
     verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
-    assertThat(jiraIssueCreateRequest.getFields().size(), is(4));
+    assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
     Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
-    assertThat(projectMeta.get("key"), is("projectKey1"));
+    assertThat(projectMeta).containsEntry("key", "projectKey1");
 
     messagesA.clear();
     messagesB.clear();
@@ -216,7 +209,7 @@ public class PolicyEvaluateServiceTest
     // evaluate policy again
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
     policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(72, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(72);
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
@@ -224,10 +217,10 @@ public class PolicyEvaluateServiceTest
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
-        assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+        assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
       }
       else {
-        assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+        assertThat(policyViolation.getActionTypeId()).isNull();
       }
     }
 
@@ -250,14 +243,14 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
     // Threat Level 1 Should not show up in any counts
-    assertEquals(0, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(0, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalPolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getSeverePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getModeratePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getGrandfatheredPolicyViolationCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
 
     policy.setThreatLevel(2);
     policyDAO.update(policy);
@@ -265,14 +258,14 @@ public class PolicyEvaluateServiceTest
 
     // Threat Level 2 should show up as moderate
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertEquals(7, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(0, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(7, policyEvaluationResult.getModerateComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalPolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getSeverePolicyViolationCount());
-    assertEquals(36, policyEvaluationResult.getModeratePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getGrandfatheredPolicyViolationCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(36);
+    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
 
     policy.setThreatLevel(4);
     policyDAO.update(policy);
@@ -280,14 +273,14 @@ public class PolicyEvaluateServiceTest
 
     // Threat Level 4 should show up as severe
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertEquals(7, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(7, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    assertEquals(0, policyEvaluationResult.getCriticalPolicyViolationCount());
-    assertEquals(36, policyEvaluationResult.getSeverePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getModeratePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getGrandfatheredPolicyViolationCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(36);
+    assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
 
     policy.setThreatLevel(8);
     policyDAO.update(policy);
@@ -295,14 +288,14 @@ public class PolicyEvaluateServiceTest
 
     // Threat Level 8 should show up as severe
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertEquals(7, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(7, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(0, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    assertEquals(36, policyEvaluationResult.getCriticalPolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getSeverePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getModeratePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getGrandfatheredPolicyViolationCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(36);
+    assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
 
     // Grandfather one violation
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
@@ -312,14 +305,14 @@ public class PolicyEvaluateServiceTest
     policyViolationDAO.update(policyViolation);
     scanId = simulateReportIsAvailable("report.zip");
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertEquals(7, policyEvaluationResult.getAffectedComponentCount());
-    assertEquals(7, policyEvaluationResult.getCriticalComponentCount());
-    assertEquals(0, policyEvaluationResult.getSevereComponentCount());
-    assertEquals(0, policyEvaluationResult.getModerateComponentCount());
-    assertEquals(35, policyEvaluationResult.getCriticalPolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getSeverePolicyViolationCount());
-    assertEquals(0, policyEvaluationResult.getModeratePolicyViolationCount());
-    assertEquals(1, policyEvaluationResult.getGrandfatheredPolicyViolationCount());
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(35);
+    assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(1);
   }
 
   @Test
@@ -352,21 +345,21 @@ public class PolicyEvaluateServiceTest
     String serverUrl = "http://localhost/";
     lookup(InsightConfig.class).setBaseUrl(serverUrl);
     Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, stage, policyFacts, 8);
-    assertEquals(policyFacts, model.get("policyFacts"));
-    assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
-    assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId),
-        model.get("detailedReportUrl"));
-    assertEquals(18, model.get("policyThreatRedCount"));
-    assertEquals(3, model.get("policyThreatOrangeCount"));
-    assertEquals(13, model.get("policyThreatYellowCount"));
-    assertEquals(18, model.get("policyThreatBlueCount"));
-    assertEquals("Build", model.get("policyThreatStage"));
-    assertEquals(app.getPublicId(), model.get("policyThreatApp"));
-    assertEquals("Admin BuiltIn", model.get("applicationContactName"));
-    assertEquals("admin@localhost", model.get("applicationContactEmail"));
-    assertNotNull(model.get("policyThreatTime"));
-    assertEquals("APP ID", model.get("ownerIdLabel"));
-    assertEquals(8, model.get("grandfatheredPolicyViolationCount"));
+    assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
+    assertThat(model.get("cdnUrl")).isEqualTo("http://cdn.sonatype.com/");
+    assertThat(model.get("detailedReportUrl"))
+        .isEqualTo(serverUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+    assertThat(model.get("policyThreatRedCount")).isEqualTo(18);
+    assertThat(model.get("policyThreatOrangeCount")).isEqualTo(3);
+    assertThat(model.get("policyThreatYellowCount")).isEqualTo(13);
+    assertThat(model.get("policyThreatBlueCount")).isEqualTo(18);
+    assertThat(model.get("policyThreatStage")).isEqualTo("Build");
+    assertThat(model.get("policyThreatApp")).isEqualTo(app.getPublicId());
+    assertThat(model.get("applicationContactName")).isEqualTo("Admin BuiltIn");
+    assertThat(model.get("applicationContactEmail")).isEqualTo("admin@localhost");
+    assertThat(model.get("policyThreatTime")).isNotNull();
+    assertThat(model.get("ownerIdLabel")).isEqualTo("APP ID");
+    assertThat(model.get("grandfatheredPolicyViolationCount")).isEqualTo(8);
   }
 
   @Test
@@ -388,7 +381,7 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertEquals(36, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(36);
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // Notification message should have been sent
@@ -401,7 +394,7 @@ public class PolicyEvaluateServiceTest
 
     // Evaluate policy again for the same scan
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertEquals(36, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(36);
     assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation

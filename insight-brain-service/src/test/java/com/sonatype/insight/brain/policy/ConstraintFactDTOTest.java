@@ -10,10 +10,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstraintFactDTOTest
 {
@@ -23,15 +20,15 @@ public class ConstraintFactDTOTest
         constraintFact("constraintName", conditionFact("summary1", "reason1"), conditionFact("summary2", "reason1"),
             conditionFact("summary3", "reason2")));
 
-    assertThat(constraintFactDTO, is(notNullValue()));
-    assertThat(constraintFactDTO.constraintName, is("constraintName"));
-    assertThat(constraintFactDTO.satisfiedConditions, hasSize(3));
-    assertThat(constraintFactDTO.satisfiedConditions.get(0).summary, is("summary1"));
-    assertThat(constraintFactDTO.satisfiedConditions.get(0).reason, is("reason1"));
-    assertThat(constraintFactDTO.satisfiedConditions.get(1).summary, is("summary2"));
-    assertThat(constraintFactDTO.satisfiedConditions.get(1).reason, is("reason1"));
-    assertThat(constraintFactDTO.satisfiedConditions.get(2).summary, is("summary3"));
-    assertThat(constraintFactDTO.satisfiedConditions.get(2).reason, is("reason2"));
+    assertThat(constraintFactDTO).isNotNull();
+    assertThat(constraintFactDTO.constraintName).isEqualTo("constraintName");
+    assertThat(constraintFactDTO.satisfiedConditions).hasSize(3);
+    assertThat(constraintFactDTO.satisfiedConditions.get(0).summary).isEqualTo("summary1");
+    assertThat(constraintFactDTO.satisfiedConditions.get(0).reason).isEqualTo("reason1");
+    assertThat(constraintFactDTO.satisfiedConditions.get(1).summary).isEqualTo("summary2");
+    assertThat(constraintFactDTO.satisfiedConditions.get(1).reason).isEqualTo("reason1");
+    assertThat(constraintFactDTO.satisfiedConditions.get(2).summary).isEqualTo("summary3");
+    assertThat(constraintFactDTO.satisfiedConditions.get(2).reason).isEqualTo("reason2");
   }
 
   private ConstraintFact constraintFact(String constraintName, ConditionFact... conditionFacts) {

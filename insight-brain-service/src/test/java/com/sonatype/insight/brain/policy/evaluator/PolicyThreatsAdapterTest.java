@@ -22,11 +22,8 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class PolicyThreatsAdapterTest
 {
@@ -73,20 +70,20 @@ public class PolicyThreatsAdapterTest
     PolicyViolation largestNuGetPolicyViolation = getLargestThreatViolation("hash2", violations);
 
     // Make sure we have 2 components.
-    assertThat(threats.aaData, hasSize(2));
+    assertThat(threats.aaData).hasSize(2);
 
     // Make sure the largest policy violations are set on the component.
     for (PolicyThreats.Component component : threats.aaData) {
       // hash1 == maven component.
       if (component.hash.equals("hash1")) {
-        assertThat(component.policyId, is(largestMavenPolicyViolation.getPolicyId()));
-        assertThat(component.policyName, is(largestMavenPolicyViolation.getPolicyName()));
-        assertThat(component.policyThreatLevel, is(largestMavenPolicyViolation.getThreatLevel()));
+        assertThat(component.policyId).isEqualTo(largestMavenPolicyViolation.getPolicyId());
+        assertThat(component.policyName).isEqualTo(largestMavenPolicyViolation.getPolicyName());
+        assertThat(component.policyThreatLevel).isEqualTo(largestMavenPolicyViolation.getThreatLevel());
       }
       else {
-        assertThat(component.policyId, is(largestNuGetPolicyViolation.getPolicyId()));
-        assertThat(component.policyName, is(largestNuGetPolicyViolation.getPolicyName()));
-        assertThat(component.policyThreatLevel, is(largestNuGetPolicyViolation.getThreatLevel()));
+        assertThat(component.policyId).isEqualTo(largestNuGetPolicyViolation.getPolicyId());
+        assertThat(component.policyName).isEqualTo(largestNuGetPolicyViolation.getPolicyName());
+        assertThat(component.policyThreatLevel).isEqualTo(largestNuGetPolicyViolation.getThreatLevel());
       }
     }
   }
@@ -107,7 +104,7 @@ public class PolicyThreatsAdapterTest
 
     // Make sure each component has a waived policy.
     for (PolicyThreats.Component component : threats.aaData) {
-      assertThat(component.waivedViolations, hasSize(1));
+      assertThat(component.waivedViolations).hasSize(1);
     }
 
     assertPolicyThreats(threats, violations);
@@ -128,7 +125,7 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
 
     for (PolicyThreats.Component component : threats.aaData) {
-      assertThat(component.allViolations, hasSize(1));
+      assertThat(component.allViolations).hasSize(1);
     }
 
     assertPolicyThreats(threats, violations);
@@ -152,7 +149,7 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
 
     for (PolicyThreats.Component component : threats.aaData) {
-      assertThat(component.allViolations, hasSize(1));
+      assertThat(component.allViolations).hasSize(1);
     }
 
     assertPolicyThreats(threats, violations);
@@ -174,10 +171,10 @@ public class PolicyThreatsAdapterTest
 
     // Make sure each component has a 'top violation' even though all violations are waived.
     for (PolicyThreats.Component component : threats.aaData) {
-      assertThat(component.waivedViolations, hasSize(1));
-      assertNull(component.policyId);
-      assertThat(component.policyName, is("None"));
-      assertThat(component.policyThreatLevel, is(0));
+      assertThat(component.waivedViolations).hasSize(1);
+      assertThat(component.policyId).isNull();
+      assertThat(component.policyName).isEqualTo("None");
+      assertThat(component.policyThreatLevel).isEqualTo(0);
     }
 
     assertPolicyThreats(threats, violations);
@@ -198,15 +195,15 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
 
     // Make sure we have two components.
-    assertThat(threats.aaData, hasSize(2));
+    assertThat(threats.aaData).hasSize(2);
 
     // Each component has a fail action
     for (PolicyThreats.Component component : threats.aaData) {
-      assertThat(component.activeViolations, hasSize(1));
-      assertThat(component.activeViolations.get(0).actions, hasSize(1));
+      assertThat(component.activeViolations).hasSize(1);
+      assertThat(component.activeViolations.get(0).actions).hasSize(1);
       List<PolicyThreats.PolicyAction> actions = component.activeViolations.get(0).actions;
-      assertThat(actions.get(0).actionType, is(Action.ID_FAIL));
-      assertThat(actions.get(0).actionSummary, is(ActionTypes.getById(Action.ID_FAIL).getSummary()));
+      assertThat(actions.get(0).actionType).isEqualTo(Action.ID_FAIL);
+      assertThat(actions.get(0).actionSummary).isEqualTo(ActionTypes.getById(Action.ID_FAIL).getSummary());
     }
   }
 
@@ -214,8 +211,8 @@ public class PolicyThreatsAdapterTest
   public void testCreatePolicyThreats_NullPolicyViolations() {
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(null);
 
-    assertThat(threats.aaData, hasSize(0));
-    assertThat(threats.version, is(3));
+    assertThat(threats.aaData).isEmpty();
+    assertThat(threats.version).isEqualTo(3);
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,
@@ -286,12 +283,12 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsComponent(PolicyThreats.Component component, PolicyViolation violation) {
-    assertThat(component.hash, is(violation.getHash()));
-    assertThat(component.componentIdentifier, is(violation.getComponentIdentifier()));
+    assertThat(component.hash).isEqualTo(violation.getHash());
+    assertThat(component.componentIdentifier).isEqualTo(violation.getComponentIdentifier());
     if (!violation.isWaived()) {
-      assertThat(component.policyId, is(violation.getPolicyId()));
-      assertThat(component.policyName, is(violation.getPolicyName()));
-      assertThat(component.policyThreatLevel, is(violation.getThreatLevel()));
+      assertThat(component.policyId).isEqualTo(violation.getPolicyId());
+      assertThat(component.policyName).isEqualTo(violation.getPolicyName());
+      assertThat(component.policyThreatLevel).isEqualTo(violation.getThreatLevel());
     }
   }
 
@@ -320,15 +317,15 @@ public class PolicyThreatsAdapterTest
   private void assertPolicyThreatsPolicyViolations(PolicyThreats.PolicyViolation policyViolation,
                                                    PolicyViolation violation)
   {
-    assertThat(policyViolation.policyId, is(violation.getPolicyId()));
-    assertThat(policyViolation.policyName, is(violation.getPolicyName()));
-    assertThat(policyViolation.waived, is(violation.isWaived()));
-    assertThat(policyViolation.grandfathered, is(violation.isGrandfathered()));
-    assertThat(policyViolation.constraintFactsJson, is(violation.getConstraintFactsJson()));
+    assertThat(policyViolation.policyId).isEqualTo(violation.getPolicyId());
+    assertThat(policyViolation.policyName).isEqualTo(violation.getPolicyName());
+    assertThat(policyViolation.waived).isEqualTo(violation.isWaived());
+    assertThat(policyViolation.grandfathered).isEqualTo(violation.isGrandfathered());
+    assertThat(policyViolation.constraintFactsJson).isEqualTo(violation.getConstraintFactsJson());
 
     for (PolicyThreats.PolicyAction action : policyViolation.actions) {
-      assertThat(action.actionType, is(violation.getActionTypeId()));
-      assertThat(action.actionSummary, is(ActionTypes.getById(violation.getActionTypeId()).getSummary()));
+      assertThat(action.actionType).isEqualTo(violation.getActionTypeId());
+      assertThat(action.actionSummary).isEqualTo(ActionTypes.getById(violation.getActionTypeId()).getSummary());
     }
 
     assertPolicyThreatsPolicyConstraints(policyViolation.constraints, violation.getConstraintFacts());
@@ -356,9 +353,9 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyConstraints(PolicyThreats.PolicyConstraint constraint, ConstraintFact fact) {
-    assertThat(constraint.constraintId, is(fact.getConstraintId()));
-    assertThat(constraint.constraintName, is(fact.getConstraintName()));
-    assertThat(constraint.constraintOperator, is(fact.getOperatorName()));
+    assertThat(constraint.constraintId).isEqualTo(fact.getConstraintId());
+    assertThat(constraint.constraintName).isEqualTo(fact.getConstraintName());
+    assertThat(constraint.constraintOperator).isEqualTo(fact.getOperatorName());
 
     assertPolicyThreatsPolicyConditions(constraint.conditions, fact.getConditionFacts());
   }

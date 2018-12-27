@@ -22,8 +22,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationComparatorTest
 {
@@ -43,9 +42,7 @@ public class PolicyViolationComparatorTest
     sorted.sort(comparator);
 
     // should sort in order of policy id, threat level, hash, component
-    List<PolicyViolation> expected = Lists.newArrayList(v4, v3, v2, v1);
-
-    assertThat(sorted, is(expected));
+    assertThat(sorted).containsExactly(v4, v3, v2, v1);
   }
 
   @Test
@@ -72,9 +69,7 @@ public class PolicyViolationComparatorTest
     List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3);
     sorted.sort(comparator);
 
-    List<PolicyViolation> expected = Lists.newArrayList(v3, v2, v1);
-
-    assertThat(sorted, is(expected));
+    assertThat(sorted).containsExactly(v3, v2, v1);
   }
 
   @Test
@@ -452,10 +447,10 @@ public class PolicyViolationComparatorTest
   private void compareAndAssert(PolicyViolation v1, PolicyViolation v2, int expectedResult) {
     int result = comparator.compare(v1, v2);
     result = (int) Math.signum(result);
-    assertThat(result, is(expectedResult));
+    assertThat(result).isEqualTo(expectedResult);
 
     result = comparator.compare(v2, v1);
     result = (int) Math.signum(result);
-    assertThat(result, is(-expectedResult));
+    assertThat(result).isEqualTo(-expectedResult);
   }
 }

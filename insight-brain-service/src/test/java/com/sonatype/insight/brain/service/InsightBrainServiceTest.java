@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,7 +90,7 @@ public class InsightBrainServiceTest
 
   @Test
   public void testRun_TelemetryIsCalled() throws Exception {
-    final Map<ByteArrayDataSource, Integer> responses = new LinkedHashMap<>();
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
     VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
     TelemetryId telemetryId = getCLMServer().getInjector().getInstance(TelemetryId.class);
 

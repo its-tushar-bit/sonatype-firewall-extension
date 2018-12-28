@@ -13,8 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RootOrganizationConfigMigrationUtilsTest
     extends AbstractComponentTest
@@ -34,30 +33,30 @@ public class RootOrganizationConfigMigrationUtilsTest
 
   @Test
   public void testIsMigrated() throws Exception {
-    assertThat(migrationUtils.isMigrated(), is(false));
+    assertThat(migrationUtils.isMigrated()).isFalse();
 
     migrationUtils.setMigrated();
-    assertThat(migrationUtils.isMigrated(), is(true));
+    assertThat(migrationUtils.isMigrated()).isTrue();
 
     migrationUtils.clean();
-    assertThat(migrationUtils.isMigrationScheduled(), is(false));
+    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
   }
 
   @Test
   public void testSetMigrated_RemovesMigrationFile() throws Exception {
-    assertThat(migrationUtils.isMigrated(), is(false));
+    assertThat(migrationUtils.isMigrated()).isFalse();
 
     migrationUtils.setSourceOrganizationId("bla");
     migrationUtils.setMigrated();
-    assertThat(migrationUtils.isMigrated(), is(true));
-    assertThat(migrationUtils.isMigrationScheduled(), is(false));
+    assertThat(migrationUtils.isMigrated()).isTrue();
+    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
   }
 
   @Test
   public void testIsMigrationScheduled() throws Exception {
-    assertThat(migrationUtils.isMigrationScheduled(), is(false));
+    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
 
     migrationUtils.setSourceOrganizationId("bla");
-    assertThat(migrationUtils.isMigrationScheduled(), is(true));
+    assertThat(migrationUtils.isMigrationScheduled()).isTrue();
   }
 }

@@ -18,9 +18,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SidebarServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -52,7 +50,7 @@ public class SidebarServiceAuthzTest
     Application application = tempEntity.newApplication(organization.getId());
 
     OwnerListDTO ownerListDTO = sidebarService.getOwnerList();
-    assertThat(ownerListDTO.organizations, hasSize(0));
+    assertThat(ownerListDTO.organizations).isEmpty();
 
     grantReadPermission(application.getId());
     ownerListDTO = sidebarService.getOwnerList();
@@ -68,14 +66,14 @@ public class SidebarServiceAuthzTest
                                          boolean synthetic,
                                          Application application)
   {
-    assertThat(ownerListDTO.organizations, hasSize(1));
+    assertThat(ownerListDTO.organizations).hasSize(1);
 
     SidebarOrganizationDTO organizationDTO = ownerListDTO.organizations.get(0);
-    assertThat(organizationDTO.id, is(organization.getId()));
-    assertThat(organizationDTO.synthetic, is(synthetic));
-    assertThat(organizationDTO.applications, hasSize(1));
+    assertThat(organizationDTO.id).isEqualTo(organization.getId());
+    assertThat(organizationDTO.synthetic).isEqualTo(synthetic);
+    assertThat(organizationDTO.applications).hasSize(1);
 
     SidebarApplicationDTO applicationDTO = organizationDTO.applications.get(0);
-    assertThat(applicationDTO.id, is(application.getId()));
+    assertThat(applicationDTO.id).isEqualTo(application.getId());
   }
 }

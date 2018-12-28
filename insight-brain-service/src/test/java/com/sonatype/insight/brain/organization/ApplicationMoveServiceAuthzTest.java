@@ -16,9 +16,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationMoveServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -50,12 +48,11 @@ public class ApplicationMoveServiceAuthzTest
     grantWritePermission(app.getId());
 
     List<Organization> orgs = applicationMoveService.getDestinationOrganizations(app.getId());
-    assertThat(orgs, hasSize(0));
+    assertThat(orgs).isEmpty();
 
     grantAddApplicationPermission(org2.getId());
     orgs = applicationMoveService.getDestinationOrganizations(app.getId());
-    assertThat(orgs, hasSize(1));
-    assertThat(orgs.get(0).getId(), is(org2.getId()));
+    assertThat(orgs).extracting(Organization::getId).containsExactly(org2.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)

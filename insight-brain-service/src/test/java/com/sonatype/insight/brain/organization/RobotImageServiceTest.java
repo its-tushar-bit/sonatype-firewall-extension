@@ -10,9 +10,7 @@ import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RobotImageServiceTest
 {
@@ -22,12 +20,12 @@ public class RobotImageServiceTest
     RobotImageService robotImageService = new RobotImageService();
     for (int i = 0; i <= RobotImageService.IMAGE_NUMBER_MAX; i++) {
       String hash = new String(new char[]{(char) i});
-      assertThat(hash.hashCode(), is(i));
+      assertThat(hash.hashCode()).isEqualTo(i);
       int expectedFileIndex = (i == 0 || i == RobotImageService.IMAGE_NUMBER_MAX) ? 1 : i + 1;
       byte[] expectedFileBytes = IOUtils.toByteArray(getClass()
           .getResourceAsStream("/com/sonatype/insight/brain/robot/images/robot_" + expectedFileIndex + ".png"));
       byte[] actualFileBytes = robotImageService.getImage(hash);
-      assertArrayEquals(expectedFileBytes, actualFileBytes);
+      assertThat(actualFileBytes).isEqualTo(expectedFileBytes);
     }
   }
 }

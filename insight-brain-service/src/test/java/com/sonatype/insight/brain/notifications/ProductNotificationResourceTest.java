@@ -21,11 +21,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -56,8 +52,8 @@ public class ProductNotificationResourceTest
     HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = response.getBody(ProductNotificationListDTO.class);
-    assertThat(notificationListDTO, not(nullValue()));
-    assertThat(notificationListDTO.notifications.size(), is(2));
+    assertThat(notificationListDTO).isNotNull();
+    assertThat(notificationListDTO.notifications).hasSize(2);
     assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), false);
     assertNotification(notificationListDTO.notifications.get(1), notifications.get(1), false);
 
@@ -65,8 +61,8 @@ public class ProductNotificationResourceTest
     response = listRequest(pageSize, 2).get();
     assertResponseStatus(200, response);
     notificationListDTO = response.getBody(ProductNotificationListDTO.class);
-    assertThat(notificationListDTO, not(nullValue()));
-    assertThat(notificationListDTO.notifications.size(), is(0));
+    assertThat(notificationListDTO).isNotNull();
+    assertThat(notificationListDTO.notifications).isEmpty();
   }
 
   @Test
@@ -78,8 +74,8 @@ public class ProductNotificationResourceTest
     HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = response.getBody(ProductNotificationListDTO.class);
-    assertThat(notificationListDTO, not(nullValue()));
-    assertThat(notificationListDTO.notifications.size(), is(1));
+    assertThat(notificationListDTO).isNotNull();
+    assertThat(notificationListDTO.notifications).hasSize(1);
     // test that the notification is what is expected with viewed = false
     assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), false);
 
@@ -91,16 +87,16 @@ public class ProductNotificationResourceTest
 
     // test the returned value has viewed flag set
     ProductNotificationDTO returnedValue = response.getBody(ProductNotificationDTO.class);
-    assertThat(returnedValue, notNullValue());
-    assertThat(returnedValue.id, is(notificationDTO.id));
-    assertThat(returnedValue.viewed, is(true));
+    assertThat(returnedValue).isNotNull();
+    assertThat(returnedValue.id).isEqualTo(notificationDTO.id);
+    assertThat(returnedValue.viewed).isTrue();
 
     // Get the notifications again
     response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     notificationListDTO = response.getBody(ProductNotificationListDTO.class);
-    assertThat(notificationListDTO, not(nullValue()));
-    assertThat(notificationListDTO.notifications.size(), is(1));
+    assertThat(notificationListDTO).isNotNull();
+    assertThat(notificationListDTO.notifications).hasSize(1);
     // test that the notification is what is expected with viewed = true
     assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), true);
   }
@@ -124,12 +120,12 @@ public class ProductNotificationResourceTest
                                   final ProductNotification notification,
                                   final boolean viewed)
   {
-    assertThat(notificationDTO.id, is(notification.getId()));
-    assertThat(notificationDTO.summaryText, is(notification.getSummaryText()));
-    assertThat(notificationDTO.summaryUrl, is(notification.getSummaryUrl()));
-    assertThat(notificationDTO.detailHtml, is(notification.getDetailHtml()));
-    assertThat(notificationDTO.type, is(notification.getType()));
-    assertThat(notificationDTO.dateCreated, is(notification.getDateCreated()));
-    assertThat(notificationDTO.viewed, is(viewed));
+    assertThat(notificationDTO.id).isEqualTo(notification.getId());
+    assertThat(notificationDTO.summaryText).isEqualTo(notification.getSummaryText());
+    assertThat(notificationDTO.summaryUrl).isEqualTo(notification.getSummaryUrl());
+    assertThat(notificationDTO.detailHtml).isEqualTo(notification.getDetailHtml());
+    assertThat(notificationDTO.type).isEqualTo(notification.getType());
+    assertThat(notificationDTO.dateCreated).isEqualTo(notification.getDateCreated());
+    assertThat(notificationDTO.viewed).isEqualTo(viewed);
   }
 }

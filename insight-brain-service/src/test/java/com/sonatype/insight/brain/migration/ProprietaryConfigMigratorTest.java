@@ -22,10 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConfigMigratorTest
 {
@@ -71,12 +68,12 @@ public class ProprietaryConfigMigratorTest
 
     // assert
     File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
     ProprietaryConfig migratedConfig = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(migratedConfig, is(notNullValue()));
-    assertThat(migratedConfig.getPackages(), is(obsoleteConfig.getPackages()));
-    assertThat(migratedConfig.getRegexes(), is(obsoleteConfig.getRegexes()));
-    assertThat(migratedConfig.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
+    assertThat(migratedConfig).isNotNull();
+    assertThat(migratedConfig.getPackages()).isEqualTo(obsoleteConfig.getPackages());
+    assertThat(migratedConfig.getRegexes()).isEqualTo(obsoleteConfig.getRegexes());
+    assertThat(migratedConfig.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -86,10 +83,10 @@ public class ProprietaryConfigMigratorTest
 
     // assert
     File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
     com.sonatype.insight.brain.model.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
         .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(migratedConfig, is(nullValue()));
+    assertThat(migratedConfig).isNull();
   }
 
   @Test
@@ -105,10 +102,10 @@ public class ProprietaryConfigMigratorTest
 
     // assert
     File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
     com.sonatype.insight.brain.model.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
         .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(migratedConfig, is(nullValue()));
+    assertThat(migratedConfig).isNull();
   }
 
   @Test
@@ -126,10 +123,10 @@ public class ProprietaryConfigMigratorTest
     migrator.migrate();
 
     // assert
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
     com.sonatype.insight.brain.model.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
         .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(migratedConfig, is(nullValue()));
+    assertThat(migratedConfig).isNull();
   }
 
   private void writeProprietaryConfigFile(com.sonatype.clm.dto.model.ProprietaryConfig config) throws IOException {

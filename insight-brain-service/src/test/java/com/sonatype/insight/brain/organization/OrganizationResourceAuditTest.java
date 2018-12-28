@@ -19,8 +19,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationResourceAuditTest
     extends AbstractAuditTest
@@ -74,7 +73,7 @@ public class OrganizationResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_ORGANIZATION, null);
     assertOrganizationData(auditDTO, organization);
 
-    assertThat(assertAuditLogs(AuditEvent.DELETE_APPLICATION, 0, null), empty());
+    assertThat(assertAuditLogs(AuditEvent.DELETE_APPLICATION, 0, null)).isEmpty();
   }
 
   @Test

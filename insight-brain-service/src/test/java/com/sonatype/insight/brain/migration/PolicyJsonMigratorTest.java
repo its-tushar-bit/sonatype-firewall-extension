@@ -27,11 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyJsonMigratorTest
     extends AbstractComponentTest
@@ -75,23 +71,25 @@ public class PolicyJsonMigratorTest
 
     migrator.migrate();
 
-    assertThat(schemaInfoDAO.get().getPolicyJsonVersion(), is(PolicyJsonMigrator.POLICY_JSON_VERSION));
+    assertThat(schemaInfoDAO.get().getPolicyJsonVersion()).isEqualTo(PolicyJsonMigrator.POLICY_JSON_VERSION);
 
     Policy policy = policyDAO.getById(policyId);
-    assertThat(policy.getConstraints(), hasSize(1));
-    assertThat(policy.getActions().keySet(), containsInAnyOrder(Stage.ID_BUILD, Stage.ID_DEVELOP));
-    assertThat(policy.getActions().get(Stage.ID_BUILD), is(Action.ID_FAIL));
-    assertThat(policy.getActions().get(Stage.ID_DEVELOP), is(Action.ID_WARN));
+    assertThat(policy.getConstraints()).hasSize(1);
+    assertThat(policy.getActions()).containsOnlyKeys(Stage.ID_BUILD, Stage.ID_DEVELOP);
+    assertThat(policy.getActions().get(Stage.ID_BUILD)).isEqualTo(Action.ID_FAIL);
+    assertThat(policy.getActions().get(Stage.ID_DEVELOP)).isEqualTo(Action.ID_WARN);
 
-    assertThat(policy.getNotifications().getUserNotifications(), hasSize(1));
+    assertThat(policy.getNotifications().getUserNotifications()).hasSize(1);
     UserNotification userNotification = policy.getNotifications().getUserNotifications().get(0);
-    assertThat(userNotification.getEmailAddress(), is("nobody@sonatype.com"));
-    assertThat(userNotification.getStageIds(), containsInAnyOrder(Notification.CONTINUOUS_MONITORING, Stage.ID_BUILD));
+    assertThat(userNotification.getEmailAddress()).isEqualTo("nobody@sonatype.com");
+    assertThat(userNotification.getStageIds()).containsExactlyInAnyOrder(Notification.CONTINUOUS_MONITORING,
+        Stage.ID_BUILD);
 
-    assertThat(policy.getNotifications().getRoleNotifications(), hasSize(1));
+    assertThat(policy.getNotifications().getRoleNotifications()).hasSize(1);
     RoleNotification roleNotification = policy.getNotifications().getRoleNotifications().get(0);
-    assertThat(roleNotification.getRoleId(), is(Role.OWNER_ROLE_ID));
-    assertThat(roleNotification.getStageIds(), containsInAnyOrder(Notification.CONTINUOUS_MONITORING, Stage.ID_BUILD));
+    assertThat(roleNotification.getRoleId()).isEqualTo(Role.OWNER_ROLE_ID);
+    assertThat(roleNotification.getStageIds()).containsExactlyInAnyOrder(Notification.CONTINUOUS_MONITORING,
+        Stage.ID_BUILD);
   }
 
   @Test
@@ -105,12 +103,12 @@ public class PolicyJsonMigratorTest
 
     migrator.migrate();
 
-    assertThat(schemaInfoDAO.get().getPolicyJsonVersion(), is(PolicyJsonMigrator.POLICY_JSON_VERSION));
+    assertThat(schemaInfoDAO.get().getPolicyJsonVersion()).isEqualTo(PolicyJsonMigrator.POLICY_JSON_VERSION);
 
     Policy policy = policyDAO.getById(policyId);
     Condition deprecatedCondition = policy.getConstraints().get(0).getConditions().get(0);
-    assertThat(deprecatedCondition.getConditionTypeId(), is("SecurityVulnerability"));
-    assertThat(deprecatedCondition.getOperator(), is("present"));
-    assertThat(deprecatedCondition.getValue(), is(nullValue()));
+    assertThat(deprecatedCondition.getConditionTypeId()).isEqualTo("SecurityVulnerability");
+    assertThat(deprecatedCondition.getOperator()).isEqualTo("present");
+    assertThat(deprecatedCondition.getValue()).isNull();
   }
 }

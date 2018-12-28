@@ -26,10 +26,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyDroolsCodeMigratorTest
     extends AbstractComponentTest
@@ -56,13 +53,13 @@ public class PolicyDroolsCodeMigratorTest
 
     new LicenseThreatGroupDAO().delete(ltg);
     ValidationResult validationResult = policy.validate(null, policy.getOwnerId());
-    assertThat(validationResult.isValid(), is(false));
+    assertThat(validationResult.isValid()).isFalse();
 
     fakeDroolsCodeVersion(2);
 
     migrator.migrate();
 
-    assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
+    assertThat(schemaInfoDAO.get().getDroolsCodeVersion()).isEqualTo(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION);
   }
 
   @Test
@@ -80,9 +77,9 @@ public class PolicyDroolsCodeMigratorTest
     migrator.migrate();
     Policy policy = policyDAO.getById(policyId);
     Condition deprecatedCondition = policy.getConstraints().get(0).getConditions().get(0);
-    assertThat(deprecatedCondition.getConditionTypeId(), is("SecurityVulnerability"));
-    assertThat(deprecatedCondition.getOperator(), is("present"));
-    assertThat(deprecatedCondition.getValue(), is(nullValue()));
+    assertThat(deprecatedCondition.getConditionTypeId()).isEqualTo("SecurityVulnerability");
+    assertThat(deprecatedCondition.getOperator()).isEqualTo("present");
+    assertThat(deprecatedCondition.getValue()).isNull();
   }
 
   @Test
@@ -93,15 +90,15 @@ public class PolicyDroolsCodeMigratorTest
     policyInternal.setDroolsCode("");
     policyInternalDAO.update(policyInternal);
     Policy policy = policyDAO.getById(policyId);
-    assertThat(policy.getDroolsCode(), is(""));
+    assertThat(policy.getDroolsCode()).isEqualTo("");
 
     fakeDroolsCodeVersion(3);
 
     migrator.migrate();
     policy = policyDAO.getById(policyId);
-    assertThat(policy.getDroolsCode(), containsString("$conditionTriggers"));
+    assertThat(policy.getDroolsCode()).contains("$conditionTriggers");
 
-    assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
+    assertThat(schemaInfoDAO.get().getDroolsCodeVersion()).isEqualTo(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION);
   }
 
   private String getPolicyContent(String filename) throws Exception {

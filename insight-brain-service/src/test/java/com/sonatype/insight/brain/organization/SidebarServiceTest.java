@@ -23,10 +23,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.google.inject.Binder;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,19 +52,19 @@ public class SidebarServiceTest
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(organization.getId());
 
     OwnerDetailsDTO ownerDetailsDTO = sidebarService.getOwnerDetails(OwnerType.ORGANIZATION, organization.getId());
-    assertThat(ownerDetailsDTO.tags, hasSize(1));
-    assertThat(ownerDetailsDTO.tags.get(0).getId(), is(tag.getId()));
+    assertThat(ownerDetailsDTO.tags).hasSize(1);
+    assertThat(ownerDetailsDTO.tags.get(0).getId()).isEqualTo(tag.getId());
 
-    assertThat(ownerDetailsDTO.policies, hasSize(1));
-    assertThat(ownerDetailsDTO.policies.get(0).getId(), is(policy.getId()));
+    assertThat(ownerDetailsDTO.policies).hasSize(1);
+    assertThat(ownerDetailsDTO.policies.get(0).getId()).isEqualTo(policy.getId());
 
-    assertThat(ownerDetailsDTO.labels, hasSize(1));
-    assertThat(ownerDetailsDTO.labels.get(0).getId(), is(label.getId()));
+    assertThat(ownerDetailsDTO.labels).hasSize(1);
+    assertThat(ownerDetailsDTO.labels.get(0).getId()).isEqualTo(label.getId());
 
-    assertThat(ownerDetailsDTO.licenseThreatGroups, hasSize(1));
-    assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId(), is(licenseThreatGroup.getId()));
+    assertThat(ownerDetailsDTO.licenseThreatGroups).hasSize(1);
+    assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId()).isEqualTo(licenseThreatGroup.getId());
 
-    assertThat(ownerDetailsDTO.roles.membersByRole, hasSize(new RoleDAO().getApplicationRoles().size()));
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
   }
 
   @Test
@@ -78,18 +76,18 @@ public class SidebarServiceTest
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(application.getId());
 
     OwnerDetailsDTO ownerDetailsDTO = sidebarService.getOwnerDetails(OwnerType.APPLICATION, application.getId());
-    assertThat(ownerDetailsDTO.tags, hasSize(0));
+    assertThat(ownerDetailsDTO.tags).isEmpty();
 
-    assertThat(ownerDetailsDTO.policies, hasSize(1));
-    assertThat(ownerDetailsDTO.policies.get(0).getId(), is(policy.getId()));
+    assertThat(ownerDetailsDTO.policies).hasSize(1);
+    assertThat(ownerDetailsDTO.policies.get(0).getId()).isEqualTo(policy.getId());
 
-    assertThat(ownerDetailsDTO.labels, hasSize(1));
-    assertThat(ownerDetailsDTO.labels.get(0).getId(), is(label.getId()));
+    assertThat(ownerDetailsDTO.labels).hasSize(1);
+    assertThat(ownerDetailsDTO.labels.get(0).getId()).isEqualTo(label.getId());
 
-    assertThat(ownerDetailsDTO.licenseThreatGroups, hasSize(1));
-    assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId(), is(licenseThreatGroup.getId()));
+    assertThat(ownerDetailsDTO.licenseThreatGroups).hasSize(1);
+    assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId()).isEqualTo(licenseThreatGroup.getId());
 
-    assertThat(ownerDetailsDTO.roles.membersByRole, hasSize(new RoleDAO().getApplicationRoles().size()));
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
   }
 
   @Test
@@ -126,23 +124,23 @@ public class SidebarServiceTest
                                   Application appThree,
                                   boolean withRootOrganization)
   {
-    assertThat(ownerListDTO.organizations, hasSize(withRootOrganization ? 3 : 2));
+    assertThat(ownerListDTO.organizations).hasSize(withRootOrganization ? 3 : 2);
     for (SidebarOrganizationDTO organization : ownerListDTO.organizations) {
       if (organization.id.equals(orgOne.getId())) {
-        assertThat(organization.name, is(orgOne.getName()));
-        assertThat(organization.applications, hasSize(2));
+        assertThat(organization.name).isEqualTo(orgOne.getName());
+        assertThat(organization.applications).hasSize(2);
 
         for (SidebarApplicationDTO application : organization.applications) {
           if (application.id.equals(appOne.getId())) {
-            assertThat(application.publicId, is(appOne.getPublicId()));
-            assertThat(application.organizationId, is(appOne.getOrganizationId()));
-            assertThat(application.name, is(appOne.getName()));
+            assertThat(application.publicId).isEqualTo(appOne.getPublicId());
+            assertThat(application.organizationId).isEqualTo(appOne.getOrganizationId());
+            assertThat(application.name).isEqualTo(appOne.getName());
           }
           else if (application.id.equals(appTwo.getId())) {
             if (application.id.equals(appTwo.getId())) {
-              assertThat(application.publicId, is(appTwo.getPublicId()));
-              assertThat(application.organizationId, is(appTwo.getOrganizationId()));
-              assertThat(application.name, is(appTwo.getName()));
+              assertThat(application.publicId).isEqualTo(appTwo.getPublicId());
+              assertThat(application.organizationId).isEqualTo(appTwo.getOrganizationId());
+              assertThat(application.name).isEqualTo(appTwo.getName());
             }
             else {
               fail("Unexpected application ID " + application.id);
@@ -151,17 +149,17 @@ public class SidebarServiceTest
         }
       }
       else if (organization.id.equals(orgTwo.getId())) {
-        assertThat(organization.name, is(orgTwo.getName()));
-        assertThat(organization.applications, hasSize(1));
+        assertThat(organization.name).isEqualTo(orgTwo.getName());
+        assertThat(organization.applications).hasSize(1);
 
         SidebarApplicationDTO application = organization.applications.get(0);
-        assertThat(application.id, is(appThree.getId()));
-        assertThat(application.publicId, is(appThree.getPublicId()));
-        assertThat(application.organizationId, is(appThree.getOrganizationId()));
-        assertThat(application.name, is(appThree.getName()));
+        assertThat(application.id).isEqualTo(appThree.getId());
+        assertThat(application.publicId).isEqualTo(appThree.getPublicId());
+        assertThat(application.organizationId).isEqualTo(appThree.getOrganizationId());
+        assertThat(application.name).isEqualTo(appThree.getName());
       }
       else if (withRootOrganization && organization.id.equals(Organization.ROOT_ORGANIZATION_ID)) {
-        assertThat(organization.applications, hasSize(0));
+        assertThat(organization.applications).isEmpty();
       }
       else {
         fail("Unexpected organization ID " + organization.id);

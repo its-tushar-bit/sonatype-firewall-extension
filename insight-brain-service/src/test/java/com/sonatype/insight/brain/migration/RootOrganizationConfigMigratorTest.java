@@ -59,13 +59,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class RootOrganizationConfigMigratorTest
 {
@@ -122,40 +117,40 @@ public class RootOrganizationConfigMigratorTest
   public void testMigrate_AlreadyMigrated() throws Exception {
     migrationUtils.setMigrated();
 
-    assertThat(migrator.migrate(), is(false));
+    assertThat(migrator.migrate()).isFalse();
   }
 
   @Test
   public void testMigrate_RootOrgIsVisible() throws Exception {
     config.setShowRootOrganization(true);
 
-    assertThat(migrator.migrate(), is(false));
+    assertThat(migrator.migrate()).isFalse();
 
     // Hide root org, should not do any migration.
     config.setShowRootOrganization(false);
-    assertThat(migrator.migrate(), is(false));
-    assertThat(migrationUtils.isMigrated(), is(true));
+    assertThat(migrator.migrate()).isFalse();
+    assertThat(migrationUtils.isMigrated()).isTrue();
   }
 
   @Test
   public void testMigrate_FreshInstall() throws Exception {
-    assertThat(migrationUtils.isMigrated(), is(false));
+    assertThat(migrationUtils.isMigrated()).isFalse();
 
-    assertThat(migrator.migrate(), is(false));
-    assertThat(migrationUtils.isMigrated(), is(true));
+    assertThat(migrator.migrate()).isFalse();
+    assertThat(migrationUtils.isMigrated()).isTrue();
   }
 
   @Test
   public void testMigrate_MigrationConfigFileDoesNotExist() throws Exception {
-    assertThat(migrator.migrate(), is(false));
+    assertThat(migrator.migrate()).isFalse();
   }
 
   @Test
   public void testMigrate() throws Exception {
     createSourceOrg();
-    assertThat(migrator.migrate(), is(true));
+    assertThat(migrator.migrate()).isTrue();
     // Migration should not happen again
-    assertThat(migrator.migrate(), is(false));
+    assertThat(migrator.migrate()).isFalse();
   }
 
   @Test
@@ -192,32 +187,32 @@ public class RootOrganizationConfigMigratorTest
     addEmailNotification(otherPolicy2, BuildStageType.ID);
     addMonitoringEmailNotification(otherPolicy2);
 
-    assertThat(migrator.migrate(), is(true));
+    assertThat(migrator.migrate()).isTrue();
     // sourcePolicy was moved
     sourcePolicy = policyDAO.getById(sourcePolicy.getId());
-    assertThat(sourcePolicy.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
+    assertThat(sourcePolicy.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
     sourcePolicyWithoutNotifications = policyDAO.getById(sourcePolicyWithoutNotifications.getId());
-    assertThat(sourcePolicyWithoutNotifications.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
+    assertThat(sourcePolicyWithoutNotifications.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
     // email notifications were removed from sourcePolicy, all other actions were preserved
-    assertThat(sourcePolicy.getActions().keySet(), hasSize(1));
-    assertThat(sourcePolicy.getNotifications().getRoleNotifications(), hasSize(2));
-    assertThat(sourcePolicy.getNotifications().getUserNotifications(), hasSize(0));
+    assertThat(sourcePolicy.getActions().keySet()).hasSize(1);
+    assertThat(sourcePolicy.getNotifications().getRoleNotifications()).hasSize(2);
+    assertThat(sourcePolicy.getNotifications().getUserNotifications()).hasSize(0);
     // sourcePolicyViolation was not changed
     sourcePolicyViolation = policyViolationDAO.getById(sourcePolicyViolation.getId());
-    assertThat(sourcePolicyViolation.getPolicyId(), is(sourcePolicy.getId()));
+    assertThat(sourcePolicyViolation.getPolicyId()).isEqualTo(sourcePolicy.getId());
     // otherPolicy1 was deleted and its waiver and its policy violation were moved to sourcePolicy
-    assertThat(policyDAO.getById(otherPolicy1.getId()), is(nullValue()));
+    assertThat(policyDAO.getById(otherPolicy1.getId())).isNull();
     policyWaiver1 = policyWaiverDAO.getById(policyWaiver1.getId());
-    assertThat(policyWaiverDAO.getById(policyWaiver1.getId()).getPolicyId(), is(sourcePolicy.getId()));
+    assertThat(policyWaiverDAO.getById(policyWaiver1.getId()).getPolicyId()).isEqualTo(sourcePolicy.getId());
     policyViolation1 = policyViolationDAO.getById(policyViolation1.getId());
-    assertThat(policyViolation1.getPolicyId(), is(sourcePolicy.getId()));
+    assertThat(policyViolation1.getPolicyId()).isEqualTo(sourcePolicy.getId());
     // otherPolicy2, its waiver and its policy violation are unchanged
     otherPolicy2 = policyDAO.getById(otherPolicy2.getId());
-    assertThat(otherPolicy2.getOwnerId(), is(otherOrg.getId()));
-    assertThat(policyWaiverDAO.getById(policyWaiver2.getId()).getPolicyId(), is(otherPolicy2.getId()));
-    assertThat(otherPolicy2.getNotifications().getUserNotifications(), hasSize(2));
+    assertThat(otherPolicy2.getOwnerId()).isEqualTo(otherOrg.getId());
+    assertThat(policyWaiverDAO.getById(policyWaiver2.getId()).getPolicyId()).isEqualTo(otherPolicy2.getId());
+    assertThat(otherPolicy2.getNotifications().getUserNotifications()).hasSize(2);
     policyViolation2 = policyViolationDAO.getById(policyViolation2.getId());
-    assertThat(policyViolation2.getPolicyId(), is(otherPolicy2.getId()));
+    assertThat(policyViolation2.getPolicyId()).isEqualTo(otherPolicy2.getId());
   }
 
   private PolicyViolation newPolicyViolation(Organization org, Policy policy) {
@@ -236,16 +231,16 @@ public class RootOrganizationConfigMigratorTest
     Organization otherOrg2 = tempEntity.newOrganization("otherOrg2");
     PolicyMonitoring otherPolicyMonitoring2 = tempEntity.newPolicyMonitoring(otherOrg2.getId(), ReleaseStageType.ID);
 
-    assertThat(migrator.migrate(), is(true));
+    assertThat(migrator.migrate()).isTrue();
 
     // sourcePolicyMonitoring was moved
-    assertThat(policyMonitoringDAO.getById(sourcePolicyMonitoring.getId()).getOwnerId(),
-        is(Organization.ROOT_ORGANIZATION_ID));
+    assertThat(policyMonitoringDAO.getById(sourcePolicyMonitoring.getId()).getOwnerId())
+        .isEqualTo(Organization.ROOT_ORGANIZATION_ID);
     // otherPolicyMonitoring1 was removed because it monitored the same stage as sourcePolicyMonitoring
-    assertThat(policyMonitoringDAO.getById(otherPolicyMonitoring1.getId()), is(nullValue()));
-    assertThat(policyMonitoringDAO.getByOwnerId(otherOrg1.getId()), is(nullValue()));
+    assertThat(policyMonitoringDAO.getById(otherPolicyMonitoring1.getId())).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(otherOrg1.getId())).isNull();
     // otherPolicyMonitoring2 was not removed
-    assertThat(policyMonitoringDAO.getById(otherPolicyMonitoring2.getId()), is(notNullValue()));
+    assertThat(policyMonitoringDAO.getById(otherPolicyMonitoring2.getId())).isNotNull();
   }
 
   @Test
@@ -266,28 +261,28 @@ public class RootOrganizationConfigMigratorTest
     Policy orgPolicy2 = newPolicyForLabel(otherOrg, otherLabel2);
     Policy appPolicy2 = newPolicyForLabel(app, otherLabel2);
 
-    assertThat(migrator.migrate(), is(true));
+    assertThat(migrator.migrate()).isTrue();
     // sourceLabel was moved
     sourceLabel = labelDAO.getById(sourceLabel.getId());
-    assertThat(sourceLabel.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
-    assertThat(sourceLabel.getLabel(), is(labelName));
+    assertThat(sourceLabel.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(sourceLabel.getLabel()).isEqualTo(labelName);
     // otherLabel1 was deleted and componentLabel1 was moved to sourceLabel
-    assertThat(labelDAO.getById(otherLabel1.getId()), is(nullValue()));
-    assertThat(componentLabelDAO.getById(componentLabel1.getId()).getLabelId(), is(sourceLabel.getId()));
+    assertThat(labelDAO.getById(otherLabel1.getId())).isNull();
+    assertThat(componentLabelDAO.getById(componentLabel1.getId()).getLabelId()).isEqualTo(sourceLabel.getId());
     // orgPolicy1 and appPolicy1 were updated to use sourceLabel
-    assertThat(policyDAO.getById(orgPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(sourceLabel.getId()));
-    assertThat(policyDAO.getById(appPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(sourceLabel.getId()));
+    assertThat(policyDAO.getById(orgPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(sourceLabel.getId());
+    assertThat(policyDAO.getById(appPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(sourceLabel.getId());
     // otherLabel2 and componentLabel2 are unchanged
     otherLabel2 = labelDAO.getById(otherLabel2.getId());
-    assertThat(otherLabel2.getOwnerId(), is(otherOrg.getId()));
-    assertThat(componentLabelDAO.getById(componentLabel2.getId()).getLabelId(), is(otherLabel2.getId()));
+    assertThat(otherLabel2.getOwnerId()).isEqualTo(otherOrg.getId());
+    assertThat(componentLabelDAO.getById(componentLabel2.getId()).getLabelId()).isEqualTo(otherLabel2.getId());
     // orgPolicy2 and appPolicy2 are unchanged
-    assertThat(policyDAO.getById(orgPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(otherLabel2.getId()));
-    assertThat(policyDAO.getById(appPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(otherLabel2.getId()));
+    assertThat(policyDAO.getById(orgPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(otherLabel2.getId());
+    assertThat(policyDAO.getById(appPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(otherLabel2.getId());
   }
 
   @Test
@@ -310,29 +305,29 @@ public class RootOrganizationConfigMigratorTest
     Policy orgPolicy2 = newPolicyForLTG(otherOrg, otherLTG2);
     Policy appPolicy2 = newPolicyForLTG(app, otherLTG2);
 
-    assertThat(migrator.migrate(), is(true));
+    assertThat(migrator.migrate()).isTrue();
 
     // sourceLTG and sourceLTGL were moved
     sourceLTG = ltgDAO.getById(sourceLTG.getId());
-    assertThat(sourceLTG.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
-    assertThat(sourceLTG.getName(), is(ltgName));
-    assertThat(ltglDAO.getById(sourceLTGL.getId()).getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
+    assertThat(sourceLTG.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(sourceLTG.getName()).isEqualTo(ltgName);
+    assertThat(ltglDAO.getById(sourceLTGL.getId()).getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
     // otherLTG1 and otherLTGL1 were deleted
-    assertThat(ltgDAO.getById(otherLTG1.getId()), is(nullValue()));
-    assertThat(ltglDAO.getById(otherLTGL1.getId()), is(nullValue()));
+    assertThat(ltgDAO.getById(otherLTG1.getId())).isNull();
+    assertThat(ltglDAO.getById(otherLTGL1.getId())).isNull();
     // orgPolicy1 and appPolicy1 were updated to use sourceLTG
-    assertThat(policyDAO.getById(orgPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(sourceLTG.getId()));
-    assertThat(policyDAO.getById(appPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(sourceLTG.getId()));
+    assertThat(policyDAO.getById(orgPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(sourceLTG.getId());
+    assertThat(policyDAO.getById(appPolicy1.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(sourceLTG.getId());
     // otherLabel2 and otherLTGL2 are unchanged
-    assertThat(ltgDAO.getById(otherLTG2.getId()).getOwnerId(), is(otherOrg.getId()));
-    assertThat(ltglDAO.getById(otherLTGL2.getId()).getOwnerId(), is(otherOrg.getId()));
+    assertThat(ltgDAO.getById(otherLTG2.getId()).getOwnerId()).isEqualTo(otherOrg.getId());
+    assertThat(ltglDAO.getById(otherLTGL2.getId()).getOwnerId()).isEqualTo(otherOrg.getId());
     // orgPolicy2 and appPolicy2 are unchanged
-    assertThat(policyDAO.getById(orgPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(otherLTG2.getId()));
-    assertThat(policyDAO.getById(appPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(otherLTG2.getId()));
+    assertThat(policyDAO.getById(orgPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(otherLTG2.getId());
+    assertThat(policyDAO.getById(appPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue())
+        .isEqualTo(otherLTG2.getId());
   }
 
   @Test
@@ -351,24 +346,24 @@ public class RootOrganizationConfigMigratorTest
     tempEntity.newApplicationTag(app.getId(), otherTag2.getId());
     tempEntity.newPolicyTag(policy.getId(), otherTag2.getId());
 
-    assertThat(migrator.migrate(), is(true));
+    assertThat(migrator.migrate()).isTrue();
 
     // sourceTag was moved
     sourceTag = tagDAO.getById(sourceTag.getId());
-    assertThat(sourceTag.getOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
-    assertThat(sourceTag.getName(), is(tagName));
+    assertThat(sourceTag.getOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(sourceTag.getName()).isEqualTo(tagName);
     // otherTag1 was deleted
-    assertThat(tagDAO.getById(otherTag1.getId()), is(nullValue()));
+    assertThat(tagDAO.getById(otherTag1.getId())).isNull();
     // otherTag2 is unchanged
-    assertThat(tagDAO.getById(otherTag2.getId()).getOrganizationId(), is(otherOrg.getId()));
+    assertThat(tagDAO.getById(otherTag2.getId()).getOrganizationId()).isEqualTo(otherOrg.getId());
     // The app tag for otherTag1 was moved to sourceTag and the app tag for otherTag2 was not changed
-    assertThat(appTagDAO.getByApplicationId(app.getId()), hasSize(2));
-    assertThat(appTagDAO.getByApplicationIdAndTagId(app.getId(), sourceTag.getId()), is(notNullValue()));
-    assertThat(appTagDAO.getByApplicationIdAndTagId(app.getId(), otherTag2.getId()), is(notNullValue()));
+    assertThat(appTagDAO.getByApplicationId(app.getId())).hasSize(2);
+    assertThat(appTagDAO.getByApplicationIdAndTagId(app.getId(), sourceTag.getId())).isNotNull();
+    assertThat(appTagDAO.getByApplicationIdAndTagId(app.getId(), otherTag2.getId())).isNotNull();
     // The policy tag for otherTag1 was moved to sourceTag and the policy tag for otherTag2 was not changed
-    assertThat(policyTagDAO.getByPolicyId(policy.getId()), hasSize(2));
-    assertThat(policyTagDAO.getByPolicyIdAndTagId(policy.getId(), sourceTag.getId()), is(notNullValue()));
-    assertThat(policyTagDAO.getByPolicyIdAndTagId(policy.getId(), otherTag2.getId()), is(notNullValue()));
+    assertThat(policyTagDAO.getByPolicyId(policy.getId())).hasSize(2);
+    assertThat(policyTagDAO.getByPolicyIdAndTagId(policy.getId(), sourceTag.getId())).isNotNull();
+    assertThat(policyTagDAO.getByPolicyIdAndTagId(policy.getId(), otherTag2.getId())).isNotNull();
   }
 
   private void addFailAction(Policy policy, String stageTypeId) {
@@ -433,14 +428,9 @@ public class RootOrganizationConfigMigratorTest
     createSourceOrg();
     tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
-    try {
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       migrator.migrate();
-      fail("Expected exception");
-    }
-    catch (RuntimeException expected) {
-      assertThat(expected.getMessage(),
-          is(String.format(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "policies")));
-    }
+    }).withMessage(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "policies");
   }
 
   @Test
@@ -448,14 +438,9 @@ public class RootOrganizationConfigMigratorTest
     createSourceOrg();
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
 
-    try {
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       migrator.migrate();
-      fail("Expected exception");
-    }
-    catch (RuntimeException expected) {
-      assertThat(expected.getMessage(),
-          is(String.format(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "application categories")));
-    }
+    }).withMessage(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "application categories");
   }
 
   @Test
@@ -463,14 +448,9 @@ public class RootOrganizationConfigMigratorTest
     createSourceOrg();
     tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID);
 
-    try {
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       migrator.migrate();
-      fail("Expected exception");
-    }
-    catch (RuntimeException expected) {
-      assertThat(expected.getMessage(),
-          is(String.format(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "policy monitoring")));
-    }
+    }).withMessage(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "policy monitoring");
   }
 
   @Test
@@ -478,14 +458,9 @@ public class RootOrganizationConfigMigratorTest
     createSourceOrg();
     tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
 
-    try {
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       migrator.migrate();
-      fail("Expected exception");
-    }
-    catch (RuntimeException expected) {
-      assertThat(expected.getMessage(),
-          is(String.format(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "labels")));
-    }
+    }).withMessage(RootOrganizationConfigMigrator.ROOT_ORG_NOT_EMPTY_MESSAGE, "labels");
   }
 
   @Test
@@ -520,31 +495,23 @@ public class RootOrganizationConfigMigratorTest
       // Verify that a backup was created.
       File backupDir = migrator.getDbBackupDir();
       migrationUtils.setSourceOrganizationId("Not a valid org id");
-      try {
+      assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
         migrator.migrate();
-        fail("Expected exception");
-      }
-      catch (NotFoundException expected) {
-        assertThat(backupDir.isDirectory(), is(true));
-        assertThat(new File(backupDir, "ods-db-backup.zip").isFile(), is(true));
-      }
+      });
+      assertThat(backupDir).isDirectory();
+      assertThat(new File(backupDir, "ods-db-backup.zip")).isFile();
 
       // Running the migration again should fail because a backup already exists (i.e. the previous migration failed).
-      try {
+      assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
         migrator.migrate();
-        fail("Expected exception");
-      }
-      catch (IllegalStateException expected) {
-        assertThat(expected.getMessage(),
-            startsWith("Cannot migrate config for root organization. The backup directory "));
-      }
+      }).withMessageStartingWith("Cannot migrate config for root organization. The backup directory ");
 
       // Delete the backup dir, fix the source org id and try again.
       // Migration should succeed and there should be no backup left on disk.
       new FileCleaner().delete(backupDir);
       createSourceOrg();
       migrator.migrate();
-      assertThat(backupDir.exists(), is(false));
+      assertThat(backupDir).doesNotExist();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

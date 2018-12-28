@@ -14,10 +14,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationMoveResourceTest
     extends AbstractResourceTest
@@ -35,9 +32,9 @@ public class ApplicationMoveResourceTest
     HttpResponse response = restRequest().path(ApplicationMoveResource.DESTINATIONS_PATH).parameter(app.getId()).get();
     assertResponseStatus(200, response);
     Organization[] orgs = response.getBody(Organization[].class);
-    assertThat(orgs, is(arrayWithSize(1)));
-    assertThat(orgs[0].getId(), is(org.getId()));
-    assertThat(orgs[0].getName(), is(org.getName()));
+    assertThat(orgs).hasSize(1);
+    assertThat(orgs[0].getId()).isEqualTo(org.getId());
+    assertThat(orgs[0].getName()).isEqualTo(org.getName());
   }
 
   @Test
@@ -49,8 +46,8 @@ public class ApplicationMoveResourceTest
         .parameter(app.getId(), org.getId()).post();
     assertResponseStatus(200, response);
     String[] warnings = response.getBody(String[].class);
-    assertThat(warnings, is(arrayWithSize(0)));
-    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId(), is(org.getId()));
+    assertThat(warnings).isEmpty();
+    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(org.getId());
   }
 
   @Test
@@ -64,8 +61,8 @@ public class ApplicationMoveResourceTest
         .parameter(app.getId(), org1.getId()).post();
     assertResponseStatus(409, response);
     String[] issues = response.getBody(String[].class);
-    assertThat(issues,
-        is(arrayContaining(String.format(ApplicationMoveService.POLICY_MISSING_MSG, "Missing Policy", org2.getName()))));
-    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId(), is(app.getOrganizationId()));
+    assertThat(issues)
+        .containsExactly(String.format(ApplicationMoveService.POLICY_MISSING_MSG, "Missing Policy", org2.getName()));
+    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(app.getOrganizationId());
   }
 }

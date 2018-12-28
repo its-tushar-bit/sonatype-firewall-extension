@@ -18,9 +18,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import org.junit.After;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SampleDataCreatorTest
     extends AbstractComponentTest
@@ -51,17 +49,17 @@ public class SampleDataCreatorTest
     sampleDataCreator.createSampleData();
 
     List<Organization> organizations = organizationDAO.getAll();
-    assertThat(organizations, hasSize(2));
+    assertThat(organizations).hasSize(2);
 
     // The last organization should be the Sandbox Organization
     Organization sampleOrganization = organizations.get(1);
-    assertThat(sampleOrganization.getName(), is(SampleDataCreator.SAMPLE_ORGANIZATION_NAME));
+    assertThat(sampleOrganization.getName()).isEqualTo(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
 
     List<Application> applications = applicationDAO.getAll();
-    assertThat(applications, hasSize(1));
+    assertThat(applications).hasSize(1);
     Application sampleApplication = applications.get(0);
-    assertThat(sampleApplication.getName(), is(SampleDataCreator.SAMPLE_APPLICATION_NAME));
-    assertThat(sampleApplication.getParentOwnerId(), is(sampleOrganization.getId()));
-    assertThat(sampleApplication.getPublicId(), is(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID));
+    assertThat(sampleApplication.getName()).isEqualTo(SampleDataCreator.SAMPLE_APPLICATION_NAME);
+    assertThat(sampleApplication.getParentOwnerId()).isEqualTo(sampleOrganization.getId());
+    assertThat(sampleApplication.getPublicId()).isEqualTo(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID);
   }
 }

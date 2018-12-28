@@ -11,9 +11,7 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationResourceAuthzTest
     extends AbstractResourceAuthzTest
@@ -31,13 +29,12 @@ public class ApplicationResourceAuthzTest
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] entities = response.getBody(ApplicationManagementSummaryDTO[].class);
-    assertThat(entities, is(emptyArray()));
+    assertThat(entities).isEmpty();
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(200, response);
     entities = response.getBody(ApplicationManagementSummaryDTO[].class);
-    assertThat(entities.length, is(1));
-    assertThat(entities[0].getId(), is(app.getId()));
+    assertThat(entities).extracting(ApplicationManagementSummaryDTO::getId).containsExactly(app.getId());
   }
 
   @Test

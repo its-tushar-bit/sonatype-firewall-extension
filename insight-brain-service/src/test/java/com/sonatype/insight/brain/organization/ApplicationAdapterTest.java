@@ -27,9 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -445,41 +443,41 @@ public class ApplicationAdapterTest
   private void assertApplicationDTOs(List<ApplicationDTO> actualApplicationDTOs,
                                      List<ApplicationDTO> expectedApplicationDTOs)
   {
-    assertThat(actualApplicationDTOs.size(), is(expectedApplicationDTOs.size()));
+    assertThat(actualApplicationDTOs).hasSameSizeAs(expectedApplicationDTOs);
     for (int i = 0; i < actualApplicationDTOs.size(); i++) {
       assertApplicationDTO(actualApplicationDTOs.get(i), expectedApplicationDTOs.get(i));
     }
   }
 
   private void assertApplicationDTO(ApplicationDTO actualApplicationDTO, ApplicationDTO expectedApplicationDTO) {
-    assertNotNull(actualApplicationDTO);
-    assertNotNull(expectedApplicationDTO);
-    assertThat(actualApplicationDTO.getId(), is(expectedApplicationDTO.getId()));
-    assertThat(actualApplicationDTO.getName(), is(expectedApplicationDTO.getName()));
-    assertThat(actualApplicationDTO.getOrganizationId(), is(expectedApplicationDTO.getOrganizationId()));
-    assertThat(actualApplicationDTO.getOrganizationName(), is(expectedApplicationDTO.getOrganizationName()));
-    assertThat(actualApplicationDTO.getPublicId(), is(expectedApplicationDTO.getPublicId()));
+    assertThat(actualApplicationDTO).isNotNull();
+    assertThat(expectedApplicationDTO).isNotNull();
+    assertThat(actualApplicationDTO.getId()).isEqualTo(expectedApplicationDTO.getId());
+    assertThat(actualApplicationDTO.getName()).isEqualTo(expectedApplicationDTO.getName());
+    assertThat(actualApplicationDTO.getOrganizationId()).isEqualTo(expectedApplicationDTO.getOrganizationId());
+    assertThat(actualApplicationDTO.getOrganizationName()).isEqualTo(expectedApplicationDTO.getOrganizationName());
+    assertThat(actualApplicationDTO.getPublicId()).isEqualTo(expectedApplicationDTO.getPublicId());
 
     assertContactDTO(actualApplicationDTO.getContact(), expectedApplicationDTO.getContact());
   }
 
   private void assertContactDTO(ContactDTO actualContact, ContactDTO expectedContact) {
     if (actualContact == null || expectedContact == null) {
-      assertThat(actualContact, is(expectedContact));
+      assertThat(actualContact).isEqualTo(expectedContact);
       return;
     }
 
-    assertThat(actualContact.getInternalName(), is(expectedContact.getInternalName()));
-    assertThat(actualContact.getDisplayName(), is(expectedContact.getDisplayName()));
-    assertThat(actualContact.getEmail(), is(expectedContact.getEmail()));
-    assertThat(actualContact.getRealm(), is(expectedContact.getRealm()));
-    assertThat(actualContact.getError(), is(expectedContact.getError()));
+    assertThat(actualContact.getInternalName()).isEqualTo(expectedContact.getInternalName());
+    assertThat(actualContact.getDisplayName()).isEqualTo(expectedContact.getDisplayName());
+    assertThat(actualContact.getEmail()).isEqualTo(expectedContact.getEmail());
+    assertThat(actualContact.getRealm()).isEqualTo(expectedContact.getRealm());
+    assertThat(actualContact.getError()).isEqualTo(expectedContact.getError());
   }
 
   private void assertApplicationManagementSummaryDTOs(List<ApplicationManagementSummaryDTO> actualList,
                                                       List<ApplicationManagementSummaryDTO> expectedList)
   {
-    assertThat(actualList.size(), is(expectedList.size()));
+    assertThat(actualList).hasSameSizeAs(expectedList);
 
     for (int i = 0; i < actualList.size(); i++) {
       ApplicationManagementSummaryDTO actual = actualList.get(i);
@@ -492,11 +490,11 @@ public class ApplicationAdapterTest
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
                                                      ApplicationManagementSummaryDTO expected)
   {
-    assertThat(actual.getId(), is(expected.getId()));
-    assertThat(actual.getName(), is(expected.getName()));
-    assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
-    assertThat(actual.getOrganizationName(), is(expected.getOrganizationName()));
-    assertThat(actual.getPublicId(), is(expected.getPublicId()));
+    assertThat(actual.getId()).isEqualTo(expected.getId());
+    assertThat(actual.getName()).isEqualTo(expected.getName());
+    assertThat(actual.getOrganizationId()).isEqualTo(expected.getOrganizationId());
+    assertThat(actual.getOrganizationName()).isEqualTo(expected.getOrganizationName());
+    assertThat(actual.getPublicId()).isEqualTo(expected.getPublicId());
 
     assertContactDTO(actual.getContact(), expected.getContact());
   }

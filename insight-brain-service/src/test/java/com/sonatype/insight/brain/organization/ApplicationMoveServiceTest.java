@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -53,14 +52,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApplicationMoveServiceTest
     extends AbstractComponentTest
@@ -122,18 +115,15 @@ public class ApplicationMoveServiceTest
     Organization orgB = tempEntity.newOrganization("Org B");
     Organization orgD = tempEntity.newOrganization("Org D");
 
-    List<String> orgNames = new ArrayList<>();
-    for (Organization org : applicationMoveService.getDestinationOrganizations(app.getId())) {
-      orgNames.add(org.getName());
-    }
-    assertThat(orgNames,
-        contains(newOrg.getName(), orgA.getName(), orgB.getName(), orgC.getName(), orgD.getName(), orgE.getName()));
+    assertThat(applicationMoveService.getDestinationOrganizations(app.getId())).extracting(Organization::getName)
+        .containsExactly(newOrg.getName(), orgA.getName(), orgB.getName(), orgC.getName(), orgD.getName(),
+            orgE.getName());
   }
 
   private void assertIssues(ApplicationMoveException e, String... issues) {
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    List<String> actual = (List) e.getResponse().getEntity();
-    assertThat(actual, containsInAnyOrder(issues));
+    @SuppressWarnings({ "unchecked" })
+    List<String> actual = (List<String>) e.getResponse().getEntity();
+    assertThat(actual).containsExactlyInAnyOrder(issues);
   }
 
   private String tagIssue(String format, Tag tag, Owner owner) {
@@ -174,13 +164,9 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_RootOrganizationAsDestination() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       applicationMoveService.moveApplication(app.getId(), Organization.ROOT_ORGANIZATION_ID);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Applications cannot be moved to the root organization."));
-    }
+    }).withMessage("Applications cannot be moved to the root organization.");
   }
 
   @Test
@@ -188,21 +174,17 @@ public class ApplicationMoveServiceTest
     Tag tag = tempEntity.newTag(oldOrg.getId());
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
-    try {
+    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
       applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-      fail("Expected exception");
-    }
-    catch (ApplicationMoveException e) {
-      assertIssues(e, tagIssue(ApplicationMoveService.TAG_MISSING_MSG, tag, oldOrg));
-    }
+    }).satisfies(e -> assertIssues(e, tagIssue(ApplicationMoveService.TAG_MISSING_MSG, tag, oldOrg)));
   }
 
   @Test
   public void testMoveApplication_TagNotAppliedToApplicationUnmatchedInNewParentOrg() {
     tempEntity.newTag(oldOrg.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
   }
 
   @Test
@@ -217,14 +199,10 @@ public class ApplicationMoveServiceTest
     Policy policy3 = tempEntity.newPolicy(newOrg.getId(), "taggedpolicy");
     tempEntity.newPolicyTag(policy3.getId(), otherTag.getId());
 
-    try {
+    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
       applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-      fail("Expected exception");
-    }
-    catch (ApplicationMoveException e) {
-      assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, inheritedPolicy, oldOrg),
-          policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, taggedPolicy, oldOrg));
-    }
+    }).satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, inheritedPolicy, oldOrg),
+        policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, taggedPolicy, oldOrg)));
   }
 
   @Test
@@ -232,8 +210,8 @@ public class ApplicationMoveServiceTest
     Policy inheritedPolicy = tempEntity.newPolicy(oldOrg);
     tempEntity.newPolicyTag(inheritedPolicy.getId(), tempEntity.newTag(oldOrg.getId()).getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
   }
 
   @Test
@@ -246,10 +224,10 @@ public class ApplicationMoveServiceTest
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), "matchedpolicy");
     tempEntity.newPolicyTag(newPolicy.getId(), newTag.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     appTag = applicationTagDAO.getById(appTag.getId());
-    assertThat(appTag.getTagId(), is(newTag.getId()));
+    assertThat(appTag.getTagId()).isEqualTo(newTag.getId());
   }
 
   @Test
@@ -257,12 +235,12 @@ public class ApplicationMoveServiceTest
     Policy oldPolicy = tempEntity.newPolicy(oldOrg.getId(), "Matched Policy");
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), "matchedpolicy");
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldPolicy = policyDAO.getById(oldPolicy.getId());
-    assertThat(oldPolicy.getOwnerId(), is(oldOrg.getId()));
+    assertThat(oldPolicy.getOwnerId()).isEqualTo(oldOrg.getId());
     newPolicy = policyDAO.getById(newPolicy.getId());
-    assertThat(newPolicy.getOwnerId(), is(newOrg.getId()));
+    assertThat(newPolicy.getOwnerId()).isEqualTo(newOrg.getId());
   }
 
   @Test
@@ -270,22 +248,22 @@ public class ApplicationMoveServiceTest
     Policy oldPolicy = tempEntity.newPolicy(app.getId(), "Matched Policy");
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), "matchedpolicy");
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldPolicy = policyDAO.getById(oldPolicy.getId());
-    assertThat(oldPolicy, is(nullValue()));
+    assertThat(oldPolicy).isNull();
     newPolicy = policyDAO.getById(newPolicy.getId());
-    assertThat(newPolicy.getOwnerId(), is(newOrg.getId()));
+    assertThat(newPolicy.getOwnerId()).isEqualTo(newOrg.getId());
   }
 
   @Test
   public void testMoveApplication_OldAppPolicyUnmatchedByNewOrgPolicy() {
     Policy oldPolicy = tempEntity.newPolicy(app);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldPolicy = policyDAO.getById(oldPolicy.getId());
-    assertThat(oldPolicy, is(notNullValue()));
+    assertThat(oldPolicy).isNotNull();
   }
 
   @Test
@@ -294,13 +272,9 @@ public class ApplicationMoveServiceTest
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     tempEntity.newPolicyTag(newPolicy.getId(), tempEntity.newTag(newOrg.getId()).getId());
 
-    try {
+    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
       applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-      fail("Expected exception");
-    }
-    catch (ApplicationMoveException e) {
-      assertIssues(e, policyIssue(ApplicationMoveService.TAG_MISMATCH_2_MSG, oldPolicy, app));
-    }
+    }).satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.TAG_MISMATCH_2_MSG, oldPolicy, app)));
   }
 
   @Test
@@ -310,10 +284,10 @@ public class ApplicationMoveServiceTest
     PolicyEvaluation appEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
     PolicyViolation appViolation = tempEntity.newPolicyViolation(appEval, oldPolicy);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     appViolation = policyViolationDAO.getById(appViolation.getId());
-    assertThat(appViolation.getPolicyId(), is(newPolicy.getId()));
+    assertThat(appViolation.getPolicyId()).isEqualTo(newPolicy.getId());
   }
 
   @Test
@@ -322,10 +296,10 @@ public class ApplicationMoveServiceTest
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     PolicyWaiver waiver = tempEntity.newWaiver(oldPolicy.getId(), app.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     waiver = policyWaiverDAO.getById(waiver.getId());
-    assertThat(waiver.getPolicyId(), is(newPolicy.getId()));
+    assertThat(waiver.getPolicyId()).isEqualTo(newPolicy.getId());
   }
 
   @Test
@@ -335,11 +309,11 @@ public class ApplicationMoveServiceTest
     PolicyWaiver oldWaiver = tempEntity.newWaiver("hash", oldPolicy.getId(), oldOrg.getId());
     tempEntity.newWaiver(newPolicy.getId(), newOrg.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldWaiver = policyWaiverDAO.getById(oldWaiver.getId());
-    assertThat(oldWaiver.getPolicyId(), is(oldPolicy.getId()));
-    assertThat(policyWaiverDAO.getByOwnerId(app.getId()), hasSize(0));
+    assertThat(oldWaiver.getPolicyId()).isEqualTo(oldPolicy.getId());
+    assertThat(policyWaiverDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -349,12 +323,12 @@ public class ApplicationMoveServiceTest
     PolicyWaiver oldWaiver = tempEntity.newWaiver("hash", oldPolicy.getId(), oldOrg.getId());
     tempEntity.newWaiver("other-hash", newPolicy.getId(), newOrg.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()),
-        containsInAnyOrder(String.format(ApplicationMoveService.POLICY_WAIVERS_LOST_MSG, 1)));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .containsExactlyInAnyOrder(String.format(ApplicationMoveService.POLICY_WAIVERS_LOST_MSG, 1));
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldWaiver = policyWaiverDAO.getById(oldWaiver.getId());
-    assertThat(oldWaiver.getPolicyId(), is(oldPolicy.getId()));
-    assertThat(policyWaiverDAO.getByOwnerId(app.getId()), hasSize(0));
+    assertThat(oldWaiver.getPolicyId()).isEqualTo(oldPolicy.getId());
+    assertThat(policyWaiverDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -362,10 +336,10 @@ public class ApplicationMoveServiceTest
     tempEntity.newPolicyMonitoring(oldOrg.getId(), Stage.ID_RELEASE);
     tempEntity.newPolicyMonitoring(newOrg.getId(), Stage.ID_RELEASE);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerId(app.getId());
-    assertThat(appMonitoring, is(nullValue()));
+    assertThat(appMonitoring).isNull();
   }
 
   @Test
@@ -373,51 +347,51 @@ public class ApplicationMoveServiceTest
     tempEntity.newPolicyMonitoring(oldOrg.getId(), Stage.ID_RELEASE);
     tempEntity.newPolicyMonitoring(newOrg.getId(), Stage.ID_OPERATE);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()),
-        containsInAnyOrder(ApplicationMoveService.POLICY_MONITORING_DIFFERENT_MSG));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .containsExactlyInAnyOrder(ApplicationMoveService.POLICY_MONITORING_DIFFERENT_MSG);
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerId(app.getId());
-    assertThat(appMonitoring, is(nullValue()));
+    assertThat(appMonitoring).isNull();
   }
 
   @Test
   public void testMoveApplication_InheritedPolicyMonitoringMissingInNewParent() {
     tempEntity.newPolicyMonitoring(oldOrg.getId(), Stage.ID_RELEASE);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()),
-        containsInAnyOrder(ApplicationMoveService.POLICY_MONITORING_MISSING_MSG));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .containsExactlyInAnyOrder(ApplicationMoveService.POLICY_MONITORING_MISSING_MSG);
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerId(app.getId());
-    assertThat(appMonitoring, is(nullValue()));
+    assertThat(appMonitoring).isNull();
   }
 
   @Test
   public void testMoveApplication_OwnerRoleAlreadyAssignedToApp() {
     membershipMappingDAO.insert(new MembershipMapping(app.getId(), Role.OWNER_ROLE_ID, USERNAME, MemberType.USER));
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
-    assertThat(membershipMappingDAO.getByContextId(app.getId()), hasSize(1));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
+    assertThat(membershipMappingDAO.getByContextId(app.getId())).hasSize(1);
   }
 
   @Test
   public void testMoveApplication_OwnerRoleAlreadyInheritedFromNewParent() {
     membershipMappingDAO.insert(new MembershipMapping(newOrg.getId(), Role.OWNER_ROLE_ID, USERNAME, MemberType.USER));
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
-    assertThat(membershipMappingDAO.getByContextId(app.getId()), hasSize(0));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
+    assertThat(membershipMappingDAO.getByContextId(app.getId())).isEmpty();
   }
 
   @Test
   public void testMoveApplication_OwnerRoleNotAlreadyInheritedFromNewParent() {
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
-    assertThat(membershipMappingDAO.getByContextId(app.getId()), hasSize(1));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
+    assertThat(membershipMappingDAO.getByContextId(app.getId())).hasSize(1);
     MembershipMapping membershipMapping = membershipMappingDAO.getByContextId(app.getId()).get(0);
-    assertThat(membershipMapping.getRoleId(), is(Role.OWNER_ROLE_ID));
-    assertThat(membershipMapping.getMemberName(), is(USERNAME));
-    assertThat(membershipMapping.getMemberType(), is(MemberType.USER));
+    assertThat(membershipMapping.getRoleId()).isEqualTo(Role.OWNER_ROLE_ID);
+    assertThat(membershipMapping.getMemberName()).isEqualTo(USERNAME);
+    assertThat(membershipMapping.getMemberType()).isEqualTo(MemberType.USER);
   }
 
   @Test
@@ -425,21 +399,17 @@ public class ApplicationMoveServiceTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(oldOrg.getId());
     newPolicy(app, ltg);
 
-    try {
+    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
       applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-      fail("Expected exception");
-    }
-    catch (ApplicationMoveException e) {
-      assertIssues(e, ltgIssue(ApplicationMoveService.LTG_MISSING_MSG, ltg, oldOrg));
-    }
+    }).satisfies(e -> assertIssues(e, ltgIssue(ApplicationMoveService.LTG_MISSING_MSG, ltg, oldOrg)));
   }
 
   @Test
   public void testMoveApplication_UnusedOrgLtgMissingInNewParentOrg() {
     tempEntity.newLicenseThreatGroup(oldOrg.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
   }
 
   @Test
@@ -448,10 +418,10 @@ public class ApplicationMoveServiceTest
     Policy policy = newPolicy(app, oldLtg);
     LicenseThreatGroup newLtg = tempEntity.newLicenseThreatGroup(newOrg.getId(), "matchedltg", 4);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue(), is(newLtg.getId()));
+    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue()).isEqualTo(newLtg.getId());
   }
 
   @Test
@@ -460,12 +430,12 @@ public class ApplicationMoveServiceTest
     Policy policy = newPolicy(app, oldLtg);
     LicenseThreatGroup newLtg = tempEntity.newLicenseThreatGroup(newOrg.getId(), "matchedltg", 4);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue(), is(newLtg.getId()));
+    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue()).isEqualTo(newLtg.getId());
     oldLtg = ltgDAO.getById(oldLtg.getId());
-    assertThat(oldLtg, is(nullValue()));
+    assertThat(oldLtg).isNull();
   }
 
   @Test
@@ -473,12 +443,12 @@ public class ApplicationMoveServiceTest
     LicenseThreatGroup oldLtg = tempEntity.newLicenseThreatGroup(app.getId());
     Policy policy = newPolicy(app, oldLtg);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue(), is(oldLtg.getId()));
+    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue()).isEqualTo(oldLtg.getId());
     oldLtg = ltgDAO.getById(oldLtg.getId());
-    assertThat(oldLtg, is(notNullValue()));
+    assertThat(oldLtg).isNotNull();
   }
 
   @Test
@@ -488,22 +458,18 @@ public class ApplicationMoveServiceTest
     Label labelUsedByComponentLabel = tempEntity.newLabel(oldOrg.getId(), "used-by-component-label");
     tempEntity.newComponentLabel(app.getId(), labelUsedByComponentLabel.getId());
 
-    try {
+    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
       applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-      fail("Expected exception");
-    }
-    catch (ApplicationMoveException e) {
-      assertIssues(e, labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByPolicy, oldOrg),
-          labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByComponentLabel, oldOrg));
-    }
+    }).satisfies(e -> assertIssues(e, labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByPolicy, oldOrg),
+        labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByComponentLabel, oldOrg)));
   }
 
   @Test
   public void testMoveApplication_UnusedOrgLabelMissingInNewParentOrg() {
     tempEntity.newLabel(oldOrg.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
   }
 
   @Test
@@ -512,10 +478,10 @@ public class ApplicationMoveServiceTest
     Policy policy = newPolicy(app, oldLabel);
     Label newLabel = tempEntity.newLabel(newOrg.getId(), "matched label");
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue(), is(newLabel.getId()));
+    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue()).isEqualTo(newLabel.getId());
   }
 
   @Test
@@ -524,12 +490,12 @@ public class ApplicationMoveServiceTest
     Policy policy = newPolicy(app, oldLabel);
     Label newLabel = tempEntity.newLabel(newOrg.getId(), "matched label");
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue(), is(newLabel.getId()));
+    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue()).isEqualTo(newLabel.getId());
     oldLabel = labelDAO.getById(oldLabel.getId());
-    assertThat(oldLabel, is(nullValue()));
+    assertThat(oldLabel).isNull();
   }
 
   @Test
@@ -537,12 +503,12 @@ public class ApplicationMoveServiceTest
     Label oldLabel = tempEntity.newLabel(app.getId());
     Policy policy = newPolicy(app, oldLabel);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue(), is(oldLabel.getId()));
+    assertThat(policy.getConstraints().get(0).getConditions().get(0).getValue()).isEqualTo(oldLabel.getId());
     oldLabel = labelDAO.getById(oldLabel.getId());
-    assertThat(oldLabel, is(notNullValue()));
+    assertThat(oldLabel).isNotNull();
   }
 
   @Test
@@ -551,10 +517,10 @@ public class ApplicationMoveServiceTest
     Label newLabel = tempEntity.newLabel(newOrg.getId(), oldLabel.getLabel());
     ComponentLabel componentLabel = tempEntity.newComponentLabel(app.getId(), oldLabel.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     componentLabel = componentLabelDAO.getById(componentLabel.getId());
-    assertThat(componentLabel.getLabelId(), is(newLabel.getId()));
+    assertThat(componentLabel.getLabelId()).isEqualTo(newLabel.getId());
   }
 
   @Test
@@ -564,11 +530,11 @@ public class ApplicationMoveServiceTest
     ComponentLabel oldComponentLabel = tempEntity.newComponentLabel(oldOrg.getId(), oldLabel.getId());
     tempEntity.newComponentLabel(newOrg.getId(), newLabel.getId(), oldComponentLabel.getHash());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldComponentLabel = componentLabelDAO.getById(oldComponentLabel.getId());
-    assertThat(oldComponentLabel.getLabelId(), is(oldLabel.getId()));
-    assertThat(componentLabelDAO.getByOwnerId(app.getId()), hasSize(0));
+    assertThat(oldComponentLabel.getLabelId()).isEqualTo(oldLabel.getId());
+    assertThat(componentLabelDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -577,12 +543,12 @@ public class ApplicationMoveServiceTest
     tempEntity.newLabel(newOrg.getId(), oldLabel.getLabel());
     ComponentLabel oldComponentLabel = tempEntity.newComponentLabel(oldOrg.getId(), oldLabel.getId());
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()),
-        containsInAnyOrder(String.format(ApplicationMoveService.COMPONENT_LABELS_LOST_MSG, 1)));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .containsExactlyInAnyOrder(String.format(ApplicationMoveService.COMPONENT_LABELS_LOST_MSG, 1));
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldComponentLabel = componentLabelDAO.getById(oldComponentLabel.getId());
-    assertThat(oldComponentLabel.getLabelId(), is(oldLabel.getId()));
-    assertThat(componentLabelDAO.getByOwnerId(app.getId()), hasSize(0));
+    assertThat(oldComponentLabel.getLabelId()).isEqualTo(oldLabel.getId());
+    assertThat(componentLabelDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -596,9 +562,9 @@ public class ApplicationMoveServiceTest
     tempEntity.newLicenseOverride(newOrg.getId(), ComponentIdentifier.createMavenCoordinates("g", "a", "2"),
         LicenseOverrideStatus.ACKNOWLEDGED, (String) null);
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()), hasSize(0));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
-    assertThat(licenseOverrideDAO.getByOwnerId(app.getId()), hasSize(0));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId())).isEmpty();
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
+    assertThat(licenseOverrideDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -616,9 +582,9 @@ public class ApplicationMoveServiceTest
     tempEntity.newLicenseOverride(newOrg.getId(), oldOverride3.getComponentIdentifier(), oldOverride3.getStatus(),
         "GPL-2.0", "license-mismatch");
 
-    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()),
-        containsInAnyOrder(String.format(ApplicationMoveService.LICENSE_OVERRIDES_LOST_MSG, 3)));
-    assertThat(applicationDAO.getById(app.getId()).getOrganizationId(), is(newOrg.getId()));
-    assertThat(licenseOverrideDAO.getByOwnerId(app.getId()), hasSize(0));
+    assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .containsExactlyInAnyOrder(String.format(ApplicationMoveService.LICENSE_OVERRIDES_LOST_MSG, 3));
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
+    assertThat(licenseOverrideDAO.getByOwnerId(app.getId())).isEmpty();
   }
 }

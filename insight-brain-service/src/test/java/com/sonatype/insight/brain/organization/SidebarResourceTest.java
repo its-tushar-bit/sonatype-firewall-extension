@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SidebarResourceTest
     extends AbstractResourceTest
@@ -28,9 +28,8 @@ public class SidebarResourceTest
     HttpResponse response = restRequest().get();
 
     assertResponseStatus(200, response);
-    assertNotNull(response.getBodyBytes());
     OwnerListDTO ownerListDTO = response.getBody(OwnerListDTO.class);
-    assertNotNull(ownerListDTO);
+    assertThat(ownerListDTO).isNotNull();
   }
 
   @Test
@@ -62,8 +61,7 @@ public class SidebarResourceTest
 
   private void assertValidOwnerDetailsDTO(HttpResponse response) {
     assertResponseStatus(200, response);
-    assertNotNull(response.getBodyBytes());
     OwnerDetailsDTO ownerDetailsDTO = response.getBody(OwnerDetailsDTO.class);
-    assertNotNull(ownerDetailsDTO);
+    assertThat(ownerDetailsDTO).isNotNull();
   }
 }

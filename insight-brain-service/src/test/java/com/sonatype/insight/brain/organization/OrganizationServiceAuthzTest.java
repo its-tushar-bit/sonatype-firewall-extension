@@ -15,10 +15,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -31,16 +28,16 @@ public class OrganizationServiceAuthzTest
     grantReadPermission(org.getId());
 
     final List<Organization> organizations = organizationService.getAll();
-    assertThat(organizations, hasSize(1));
+    assertThat(organizations).hasSize(1);
     final Organization organization = organizations.get(0);
-    assertThat(organization.getId(), is(org.getId()));
-    assertThat(organization.getName(), is(org.getName()));
+    assertThat(organization.getId()).isEqualTo(org.getId());
+    assertThat(organization.getName()).isEqualTo(org.getName());
   }
 
   @Test
   public void testGetAllWith_Unauthorized() throws Exception {
     final List<Organization> organizations = organizationService.getAll();
-    assertThat(organizations, hasSize(0));
+    assertThat(organizations).isEmpty();
   }
 
   @Test
@@ -51,22 +48,16 @@ public class OrganizationServiceAuthzTest
     orgToAdd.setName("MyOrg");
     final Organization addedOrg = organizationService.addOrganization(orgToAdd);
     tempEntity.register(addedOrg);
-    assertThat(addedOrg.getId(), is(orgToAdd.getId()));
-    assertThat(addedOrg.getName(), is(orgToAdd.getName()));
+    assertThat(addedOrg.getId()).isEqualTo(orgToAdd.getId());
+    assertThat(addedOrg.getName()).isEqualTo(orgToAdd.getName());
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testAddOrganization_Unauthenticated() throws Exception {
     final Organization orgToAdd = new Organization();
     orgToAdd.setName("MyOrg");
 
-    try {
-      organizationService.addOrganization(orgToAdd);
-      fail("Expected UnauthenticatedException");
-    }
-    catch (UnauthenticatedException ignore) {
-      // Properly thrown exception
-    }
+    organizationService.addOrganization(orgToAdd);
   }
 
   @Test
@@ -78,23 +69,17 @@ public class OrganizationServiceAuthzTest
     orgToUpdate.setName("MyOrg");
 
     final Organization updateOrganization = organizationService.updateOrganization(orgToUpdate);
-    assertThat(updateOrganization.getId(), is(orgToUpdate.getId()));
-    assertThat(updateOrganization.getName(), is(orgToUpdate.getName()));
+    assertThat(updateOrganization.getId()).isEqualTo(orgToUpdate.getId());
+    assertThat(updateOrganization.getName()).isEqualTo(orgToUpdate.getName());
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testUpdateOrganization_Unauthenticated() throws Exception {
     final Organization orgToUpdate = new Organization();
     orgToUpdate.setName("MyOrg");
     orgToUpdate.setId(org.getId());
 
-    try {
-      organizationService.addOrganization(orgToUpdate);
-      fail("Expected UnauthenticatedException");
-    }
-    catch (UnauthenticatedException ignore) {
-      // Properly thrown exception
-    }
+    organizationService.addOrganization(orgToUpdate);
   }
 
   @Test
@@ -104,14 +89,8 @@ public class OrganizationServiceAuthzTest
     organizationService.deleteOrganization(org.getId());
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testDeleteOrganization_Unauthenticated() throws Exception {
-    try {
-      organizationService.deleteOrganization(org.getId());
-      fail("Expected UnauthenticatedException");
-    }
-    catch (UnauthenticatedException ignore) {
-      // Properly thrown exception
-    }
+    organizationService.deleteOrganization(org.getId());
   }
 }

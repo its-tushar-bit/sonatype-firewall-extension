@@ -19,12 +19,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationResourceTest
     extends AbstractResourceTest
@@ -42,48 +39,45 @@ public class OrganizationResourceTest
     HttpResponse response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
     organization = response.getBody(Organization.class);
-    assertNotNull(organization);
-    assertNotNull(organization.getId());
+    assertThat(organization).isNotNull();
+    assertThat(organization.getId()).isNotNull();
     tempEntity.register(organization);
-    assertEquals("OrganizationResourceTest", organization.getName());
+    assertThat(organization.getName()).isEqualTo("OrganizationResourceTest");
     String organizationId = organization.getId();
 
     // Get
     response = restRequest().get();
     assertResponseStatus(200, response);
     Organization[] organizations = response.getBody(Organization[].class);
-    assertNotNull(organizations);
     // One that was saved and one for the root org
-    assertEquals(2, organizations.length);
+    assertThat(organizations).hasSize(2);
     organization = organizations[0];
-    assertNotNull(organization);
+    assertThat(organization).isNotNull();
     if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
       organization = organizations[1];
     }
-    assertEquals(organizationId, organization.getId());
-    assertEquals("OrganizationResourceTest", organization.getName());
+    assertThat(organization.getId()).isEqualTo(organizationId);
+    assertThat(organization.getName()).isEqualTo("OrganizationResourceTest");
 
     // Add invalid icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
     response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
         .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert
-        .assertEquals(
-            "defaulticon_organization.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
-            response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo(
+        "defaulticon_organization.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.");
 
     // Get icon (default icon)
     HttpResponse iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
         .parameter(organizationId).get();
     assertResponseStatus(307, iconResponse);
-    assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png", iconResponse.getHeader("Location"));
+    assertThat(iconResponse.getHeader("Location")).isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_organization.png");
 
     // Get icon (default Root Org icon)
     iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
         .parameter(Organization.ROOT_ORGANIZATION_ID).get();
     assertResponseStatus(307, iconResponse);
-    assertEquals(getRestBaseUrl() + "assets/img/defaulticon_root_org.png", iconResponse.getHeader("Location"));
+    assertThat(iconResponse.getHeader("Location")).isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_root_org.png");
 
     // Add icon
     defaultIconByteArray = loadDefaultIcon();
@@ -94,22 +88,22 @@ public class OrganizationResourceTest
     // Get icon
     iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(200, iconResponse);
-    BufferedImage icon = null;
+    BufferedImage icon;
     try (InputStream iconStream = iconResponse.getBodyStream()) {
       icon = ImageIO.read(iconStream);
     }
-    assertNotNull(icon);
-    assertEquals(420, icon.getHeight());
-    assertEquals(420, icon.getWidth());
+    assertThat(icon).isNotNull();
+    assertThat(icon.getHeight()).isEqualTo(420);
+    assertThat(icon.getWidth()).isEqualTo(420);
 
     // Update
     organization.setName("OrganizationResourceTest updated");
     response = restRequest().body(organization).put();
     assertResponseStatus(200, response);
     organization = response.getBody(Organization.class);
-    assertNotNull(organization);
-    assertEquals(organizationId, organizationId);
-    assertEquals("OrganizationResourceTest updated", organization.getName());
+    assertThat(organization).isNotNull();
+    assertThat(organization.getId()).isEqualTo(organizationId);
+    assertThat(organization.getName()).isEqualTo("OrganizationResourceTest updated");
 
     // Update icon
     response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
@@ -126,11 +120,11 @@ public class OrganizationResourceTest
     // Delete
     response = restRequest().path(organizationId).delete();
     assertResponseStatus(204, response);
-    assertNull(new OrganizationDAO().getById(organizationId));
+    assertThat(new OrganizationDAO().getById(organizationId)).isNull();
     iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
-    assertNull(applicationDAO.getById(application.getId()));
+    assertThat(applicationDAO.getById(application.getId())).isNull();
   }
 
   @Test
@@ -162,7 +156,7 @@ public class OrganizationResourceTest
   public void testGenerateIcon() throws Exception {
     HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter("hash").get();
     assertResponseStatus(200, response);
-    assertNotNull(response.getBodyBytes());
+    assertThat(response.getBodyBytes()).isNotNull();
   }
 
   private byte[] loadDefaultIcon() throws IOException {

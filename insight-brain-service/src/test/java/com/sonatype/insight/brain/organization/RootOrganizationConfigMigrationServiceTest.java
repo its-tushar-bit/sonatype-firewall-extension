@@ -21,12 +21,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class RootOrganizationConfigMigrationServiceTest
     extends AbstractComponentTest
@@ -52,76 +48,56 @@ public class RootOrganizationConfigMigrationServiceTest
     Organization org = tempEntity.newOrganization();
     service.setRootOrganizationTemplate(org.getId());
 
-    assertTrue(migrationUtils.isMigrationScheduled());
-    assertThat(migrationUtils.getSourceOrganizationId(), is(org.getId()));
+    assertThat(migrationUtils.isMigrationScheduled()).isTrue();
+    assertThat(migrationUtils.getSourceOrganizationId()).isEqualTo(org.getId());
   }
 
   @Test
   public void testSetRootOrganizationTemplate_previouslyScheduled() throws IOException {
     migrationUtils.setSourceOrganizationId("bla");
     Organization org = tempEntity.newOrganization();
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.setRootOrganizationTemplate(org.getId());
-      fail("Did not throw exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Migration has previously been scheduled or performed."));
-    }
-    assertThat(migrationUtils.getSourceOrganizationId(), not(is(org.getId())));
+    }).withMessageContaining("has previously been scheduled or performed");
+    assertThat(migrationUtils.getSourceOrganizationId()).isNotEqualTo(org.getId());
   }
 
   @Test
   public void testSetRootOrganizationTemplate_previouslyMigrated() throws IOException {
     migrationUtils.setMigrated();
     Organization org = tempEntity.newOrganization();
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.setRootOrganizationTemplate(org.getId());
-      fail("Did not throw exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Migration has previously been scheduled or performed."));
-    }
+    }).withMessageContaining("has previously been scheduled or performed");
   }
 
   @Test
-  public void testSetRootOrganizationTemplate_missingOrg() throws IOException {
-    try {
+  public void testSetRootOrganizationTemplate_missingOrg() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       service.setRootOrganizationTemplate("missing-org");
-      fail("Did not throw exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find organization with ID missing-org."));
-    }
+    }).withMessageContaining("not find organization with ID missing-org");
   }
 
   @Test
   public void testSetRootOrganizationEmptyTemplate() throws IOException {
     service.setRootOrganizationEmptyTemplate();
-    assertTrue(migrationUtils.isMigrated());
+    assertThat(migrationUtils.isMigrated()).isTrue();
   }
 
   @Test
   public void testSetRootOrganizationEmptyTemplate_alreadyScheduled() throws IOException {
     migrationUtils.setSourceOrganizationId("bla");
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.setRootOrganizationEmptyTemplate();
-      fail("Did not throw exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Migration has previously been scheduled or performed."));
-    }
-    assertFalse(migrationUtils.isMigrated());
+    }).withMessageContaining("has previously been scheduled or performed");
+    assertThat(migrationUtils.isMigrated()).isFalse();
   }
 
   @Test
   public void testSetRootOrganizationEmptyTemplate_alreadyMigrated() throws IOException {
     migrationUtils.setMigrated();
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.setRootOrganizationEmptyTemplate();
-      fail("Did not throw exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Migration has previously been scheduled or performed."));
-    }
+    }).withMessageContaining("has previously been scheduled or performed");
   }
 }

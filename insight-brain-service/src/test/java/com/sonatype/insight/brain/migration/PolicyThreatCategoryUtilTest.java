@@ -20,8 +20,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyThreatCategoryUtilTest
 {
@@ -29,7 +28,7 @@ public class PolicyThreatCategoryUtilTest
   public void testDeterminePolicyThreatCategory_NoConstraintFacts() {
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     PolicyThreatCategory category = PolicyThreatCategoryUtil.determinePolicyThreatCategory(constraintFacts);
-    assertThat(category, is(PolicyThreatCategory.OTHER));
+    assertThat(category).isEqualTo(PolicyThreatCategory.OTHER);
   }
 
   @Test
@@ -47,7 +46,7 @@ public class PolicyThreatCategoryUtilTest
             "summary", "reason"));
     List<ConstraintFact> constraintFacts = Arrays.asList(constraintFact1, constraintFact2);
     PolicyThreatCategory category = PolicyThreatCategoryUtil.determinePolicyThreatCategory(constraintFacts);
-    assertThat(category, is(PolicyThreatCategory.SECURITY));
+    assertThat(category).isEqualTo(PolicyThreatCategory.SECURITY);
   }
 
   @Test
@@ -57,6 +56,6 @@ public class PolicyThreatCategoryUtilTest
         .addConditionFact(new ConditionFact("Invalid condition type id", 0 /* conditionIndex */, "summary", "reason"));
     List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
     PolicyThreatCategory category = PolicyThreatCategoryUtil.determinePolicyThreatCategory(constraintFacts);
-    assertThat(category, is(PolicyThreatCategory.OTHER));
+    assertThat(category).isEqualTo(PolicyThreatCategory.OTHER);
   }
 }

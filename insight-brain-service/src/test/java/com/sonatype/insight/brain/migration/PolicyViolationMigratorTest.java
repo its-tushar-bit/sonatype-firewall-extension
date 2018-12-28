@@ -28,10 +28,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyViolationMigratorTest
 {
@@ -182,30 +180,30 @@ public class PolicyViolationMigratorTest
                                boolean seenByPrimaryEvaluation,
                                boolean seenByMonitoringEvaluation)
   {
-    assertThat(violation.applicationId, is(applicationId));
-    assertThat(violation.stageTypeId, is(stageTypeId));
-    assertThat(violation.policyId, is(policyId));
-    assertThat(violation.policyName, is(policyName));
-    assertThat(violation.threatLevel, is(threatLevel));
-    assertThat(violation.threatCategory, is(threatCategory));
-    assertThat(violation.hash, is(hash));
-    assertThat(violation.componentIdentifer, is(componentIdentifer));
-    assertThat(violation.filename, is(filename));
-    assertThat(violation.actionTypeId, is(actionTypeId));
-    assertThat(violation.constraintFacts, is(constraintFacts));
-    assertThat(violation.policyWaiverId, is(policyWaiverId));
-    assertThat(violation.policyWaiverComment, is(policyWaiverComment));
-    assertThat(violation.openTime, is(parseTimestamp(openTime)));
-    assertThat(violation.waiveTime, is(parseTimestamp(waiveTime)));
-    assertThat(violation.fixTime, is(parseTimestamp(fixTime)));
-    assertThat(violation.seenByPrimaryEvaluation, is(seenByPrimaryEvaluation));
-    assertThat(violation.seenByMonitoringEvaluation, is(seenByMonitoringEvaluation));
+    assertThat(violation.applicationId).isEqualTo(applicationId);
+    assertThat(violation.stageTypeId).isEqualTo(stageTypeId);
+    assertThat(violation.policyId).isEqualTo(policyId);
+    assertThat(violation.policyName).isEqualTo(policyName);
+    assertThat(violation.threatLevel).isEqualTo(threatLevel);
+    assertThat(violation.threatCategory).isEqualTo(threatCategory);
+    assertThat(violation.hash).isEqualTo(hash);
+    assertThat(violation.componentIdentifer).isEqualTo(componentIdentifer);
+    assertThat(violation.filename).isEqualTo(filename);
+    assertThat(violation.actionTypeId).isEqualTo(actionTypeId);
+    assertThat(violation.constraintFacts).isEqualTo(constraintFacts);
+    assertThat(violation.policyWaiverId).isEqualTo(policyWaiverId);
+    assertThat(violation.policyWaiverComment).isEqualTo(policyWaiverComment);
+    assertThat(violation.openTime).isEqualTo(parseTimestamp(openTime));
+    assertThat(violation.waiveTime).isEqualTo(parseTimestamp(waiveTime));
+    assertThat(violation.fixTime).isEqualTo(parseTimestamp(fixTime));
+    assertThat(violation.seenByPrimaryEvaluation).isEqualTo(seenByPrimaryEvaluation);
+    assertThat(violation.seenByMonitoringEvaluation).isEqualTo(seenByMonitoringEvaluation);
   }
 
   @Test
   public void testMigrate_Basics() throws Exception {
     List<PolicyViolation> violations = migrate("basics");
-    assertThat(violations, hasSize(3));
+    assertThat(violations).hasSize(3);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", null, null,
         "2018-02-01 01:23:45", null, null, true, false);
@@ -219,7 +217,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_OpenToWaived() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived");
-    assertThat(violations, hasSize(1));
+    assertThat(violations).hasSize(1);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", "waiver-0",
         "waiver-0-comment", "2018-02-01 01:23:45", "2018-02-02 01:23:45", null, false, false);
@@ -228,7 +226,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_OpenToWaivedToFixed() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived-to-fixed");
-    assertThat(violations, hasSize(1));
+    assertThat(violations).hasSize(1);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", "waiver-0",
         "waiver-0-comment", "2018-02-01 01:23:45", "2018-02-02 01:23:45", "2018-02-03 01:23:45", false, false);
@@ -237,7 +235,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_OpenToWaivedToOpen() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived-to-open");
-    assertThat(violations, hasSize(2));
+    assertThat(violations).hasSize(2);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", "waiver-0",
         "waiver-0-comment", "2018-02-01 01:23:45", "2018-02-02 01:23:45", "2018-02-03 01:23:45", false, false);
@@ -249,7 +247,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_OpenToFixed() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-fixed");
-    assertThat(violations, hasSize(1));
+    assertThat(violations).hasSize(1);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", null, null,
         "2018-02-01 01:23:45", null, "2018-02-02 01:23:45", true, false);
@@ -258,7 +256,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_OpenToFixedToOpen() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-fixed-to-open");
-    assertThat(violations, hasSize(2));
+    assertThat(violations).hasSize(2);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", null, null,
         "2018-02-01 01:23:45", null, "2018-02-02 01:23:45", true, false);
@@ -270,7 +268,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_LatestViolationState() throws Exception {
     List<PolicyViolation> violations = migrate("latest-violation-state");
-    assertThat(violations, hasSize(1));
+    assertThat(violations).hasSize(1);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "other", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "new-1.0.tgz", "warn", "constraints-1", null, null,
         "2018-02-01 01:23:45", null, null, true, false);
@@ -279,7 +277,7 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_InitialWaiverInfo() throws Exception {
     List<PolicyViolation> violations = migrate("initial-waiver-info");
-    assertThat(violations, hasSize(1));
+    assertThat(violations).hasSize(1);
     assertViolation(violations.get(0), "app-0", "build", "policy-0", "Policy 0", 5, "security", "hash-0",
         ComponentIdentifier.createNpmCoordinates("test", "1.0"), "test-1.0.tgz", "fail", "constraints-0", "waiver-0",
         "waiver-0-comment", "2018-02-01 01:23:45", "2018-02-01 01:23:45", null, false, false);
@@ -288,16 +286,13 @@ public class PolicyViolationMigratorTest
   @Test
   public void testMigrate_ObsoleteReevaluation() throws Exception {
     List<PolicyViolation> violations = migrate("obsolete-reevaluation");
-    assertThat(violations, hasSize(0));
+    assertThat(violations).isEmpty();
   }
 
   @Test
   public void testMigrate_BrokenViolation() throws Exception {
-    try {
+    assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() -> {
       migrate("broken-violation");
-    }
-    catch (UncheckedIOException e) {
-      assertThat(e.getMessage(), containsString("eval-0-vio-0"));
-    }
+    }).withMessageContaining("eval-0-vio-0");
   }
 }

@@ -28,11 +28,8 @@ import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class OrganizationServiceTest
     extends AbstractComponentTest
@@ -54,22 +51,18 @@ public class OrganizationServiceTest
   @Test
   public void testDeleteOrganization_RootOrgCannotBeDeleted() throws Exception {
     File iconDir = new File(work.getOrganizationIconDir(), Organization.ROOT_ORGANIZATION_ID);
-    assertThat(iconDir.mkdirs(), is(true));
+    assertThat(iconDir.mkdirs()).isTrue();
     File iconFile = new File(iconDir, "icon.png");
-    assertThat(iconFile.createNewFile(), is(true));
+    assertThat(iconFile.createNewFile()).isTrue();
 
     Organization childOrg = tempEntity.newOrganization();
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       organizationService.deleteOrganization(Organization.ROOT_ORGANIZATION_ID);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(new OrganizationDAO().getById(childOrg.getId()), is(notNullValue()));
-      assertThat(iconFile.isFile(), is(true));
-      assertThat(iconDir.isDirectory(), is(true));
-      assertThat(e.getMessage(), is("The root organization cannot be deleted."));
-    }
+    }).withMessageContaining("root organization cannot be deleted");
+    assertThat(new OrganizationDAO().getById(childOrg.getId())).isNotNull();
+    assertThat(iconFile).isFile();
+    assertThat(iconDir).isDirectory();
   }
 
   @Test
@@ -80,14 +73,14 @@ public class OrganizationServiceTest
 
     List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(),
         rootOrganizationConfigMigrationUtils, null).getAll();
-    assertThat(orgs, hasSize(0));
+    assertThat(orgs).isEmpty();
 
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(),
         rootOrganizationConfigMigrationUtils, null);
 
     orgs = organizationService.getAll();
-    assertThat(orgs, hasSize(1));
+    assertThat(orgs).hasSize(1);
   }
 
 
@@ -100,29 +93,29 @@ public class OrganizationServiceTest
     Organization created = organizationService.addOrganization(org);
     final String organizationId = created.getId();
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(CREATED));
-    assertThat(handler.getEvent().ownerId, is(organizationId));
-    assertThat(handler.getEvent().owner.getId(), is(organizationId));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organizationId);
+    assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
 
     handler.setLatch(new CountDownLatch(1));
 
     created.setName("new appId");
     created = organizationService.updateOrganization(created);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(UPDATED));
-    assertThat(handler.getEvent().ownerId, is(organizationId));
-    assertThat(handler.getEvent().owner.getId(), is(organizationId));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organizationId);
+    assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
 
     handler.setLatch(new CountDownLatch(1));
 
     organizationService.deleteOrganization(created.getId());
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(DELETED));
-    assertThat(handler.getEvent().ownerId, is(organizationId));
-    assertThat(handler.getEvent().owner.getId(), is(organizationId));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organizationId);
+    assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
 
     eventBus.unregister(handler);
   }

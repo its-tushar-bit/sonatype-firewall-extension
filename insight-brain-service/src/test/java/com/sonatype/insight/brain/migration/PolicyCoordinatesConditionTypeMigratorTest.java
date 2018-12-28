@@ -32,9 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,11 +79,11 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     Policy coordPolicy = policyDAO.getById(originalCoordPolicyId);
     Policy vulnPolicy = policyDAO.getById(originalVulnPolicy.getId());
 
-    assertThat(getFirstConditionValue(coordPolicy), is(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:*:*"));
-    assertThat(getFirstConditionValue(vulnPolicy), is(getFirstConditionValue(originalVulnPolicy)));
+    assertThat(getFirstConditionValue(coordPolicy)).isEqualTo(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:*:*");
+    assertThat(getFirstConditionValue(vulnPolicy)).isEqualTo(getFirstConditionValue(originalVulnPolicy));
 
     File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
   }
 
   @Test
@@ -94,10 +92,10 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     migrator.migrate();
 
     // assert
-    assertThat(policyDAO.getAll(), is(empty()));
+    assertThat(policyDAO.getAll()).isEmpty();
 
     File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
   }
 
   /**
@@ -136,9 +134,9 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     migrator.migrate();
 
     // assert
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
     Policy coordPolicy = policyDAO.getById(originalCoordPolicy.getId());
-    assertThat(getFirstConditionValue(coordPolicy), is(getFirstConditionValue(originalCoordPolicy)));
+    assertThat(getFirstConditionValue(coordPolicy)).isEqualTo(getFirstConditionValue(originalCoordPolicy));
   }
 
   private Policy newPolicy(String name, String conditionTypeId, String operator, String conditionValue) {
@@ -192,9 +190,9 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     migrator.migrate();
 
     Policy migratedPolicy = policyDAO.getById(policyId);
-    assertThat(getFirstConditionValue(migratedPolicy), is(expectedConditionValue));
+    assertThat(getFirstConditionValue(migratedPolicy)).isEqualTo(expectedConditionValue);
 
     File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile.exists(), is(true));
+    assertThat(markerFile).isFile();
   }
 }

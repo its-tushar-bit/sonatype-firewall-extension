@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -20,13 +18,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -42,12 +34,11 @@ public class ApplicationServiceAuthzTest
 
     List<Application> applications = applicationService.getApplications();
 
-    assertThat(applications, hasSize(1));
-    assertThat(app.getId(), equalTo(applications.get(0).getId()));
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
 
     grantReadPermission(newApp.getId());
     applications = applicationService.getApplications();
-    assertThat(applications, hasSize(2));
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId(), newApp.getId());
   }
 
   @Test
@@ -63,16 +54,10 @@ public class ApplicationServiceAuthzTest
     applicationService.addApplication(application);
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testAddApplication_Unauthenticated() {
     final Application application = new Application();
-    try {
-      applicationService.addApplication(application);
-      fail("Expected UnauthenticatedException");
-    }
-    catch (UnauthenticatedException ignore) {
-      // Properly thrown exception.
-    }
+    applicationService.addApplication(application);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -96,16 +81,13 @@ public class ApplicationServiceAuthzTest
   public void testGetAllApplications_Authorized() throws Exception {
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getApplications();
-    assertThat(applications, hasSize(1));
-    final Application application = applications.get(0);
-    assertThat(application.getId(), is(app.getId()));
-    assertThat(application.getName(), is(app.getName()));
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
   }
 
   @Test
   public void testGetAllApplications_Unauthenticated() throws Exception {
     List<Application> applications = applicationService.getApplications();
-    assertThat(applications, hasSize(0));
+    assertThat(applications).isEmpty();
   }
 
   @Test
@@ -114,22 +96,21 @@ public class ApplicationServiceAuthzTest
 
     grantEvaluateComponentPermission(app.getId());
     Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
-    assertThat(applicationNames.size(), is(1));
-    assertThat(applicationNames.get(app.getPublicId()), is(app.getName()));
+    assertThat(applicationNames).hasSize(1).containsEntry(app.getPublicId(), app.getName());
   }
 
   @Test
   public void testGetApplicationNamesForEvaluateComponent_Unauthorized() throws Exception {
     login();
     Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
-    assertThat(applicationNames.size(), is(0));
+    assertThat(applicationNames).isEmpty();
   }
 
   @Test
   public void testValidateApplicationPublicId_Authorized() throws Exception {
     grantWritePermission(app.getId());
     String value = applicationService.validateApplicationPublicId(app.getPublicId());
-    assertThat(value, is("OK"));
+    assertThat(value).isEqualTo("OK");
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -182,7 +163,7 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null,
         Sets.newHashSet(app.getId()), null);
-    assertThat(applications, hasSize(1));
+    assertThat(applications).hasSize(1);
   }
 
   @Test
@@ -190,15 +171,14 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
         Sets.newHashSet(app.getParentOwnerId()), null, null);
-    assertThat(applications, hasSize(1));
+    assertThat(applications).hasSize(1);
   }
 
   @Test
   public void testGetApplicationsByIdsAndOrganizationsAndTagIds_FilteredAuthorized() throws Exception {
     grantReadPermission(app.getId());
     List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
-    assertThat(applications, hasSize(1));
-    assertThat(applications.get(0).getId(), is(app.getId()));
+    assertThat(applications).hasSize(1).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
   }
 
   @Test()
@@ -209,7 +189,7 @@ public class ApplicationServiceAuthzTest
 
     final List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
         null, Sets.newHashSet(app.getId(), app2.getId()), null);
-    assertThat(applications, hasSize(2));
+    assertThat(applications).hasSize(2);
   }
 
   @Test
@@ -220,14 +200,14 @@ public class ApplicationServiceAuthzTest
 
     final List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(Sets.newHashSet(app.getParentOwnerId()), null, null);
-    assertThat(applications, hasSize(2));
+    assertThat(applications).hasSize(2);
   }
 
   @Test
   public void testGetApplicationsByIdsAndOrganizationsAndTagIds_Unauthenticated() throws Exception {
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Sets.newHashSet(app.getId()), null);
-    assertThat(applications, hasSize(0));
+    assertThat(applications).isEmpty();
   }
 
   @Test
@@ -235,7 +215,7 @@ public class ApplicationServiceAuthzTest
     login();
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Sets.newHashSet(app.getId()), null);
-    assertThat(applications, hasSize(0));
+    assertThat(applications).isEmpty();
   }
 
   @Test
@@ -243,7 +223,7 @@ public class ApplicationServiceAuthzTest
     login();
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(Sets.newHashSet(app.getParentOwnerId()), null, null);
-    assertThat(applications, hasSize(0));
+    assertThat(applications).isEmpty();
   }
 
   @Test
@@ -252,8 +232,7 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app.getId());
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Sets.newHashSet(app.getId(), app2.getId()), null);
-    assertThat(applications, hasSize(1));
-    assertThat(applications.get(0).getId(), equalTo(app.getId()));
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
   }
 
   @Test()
@@ -263,17 +242,11 @@ public class ApplicationServiceAuthzTest
 
     // request with nothing specified, should only see app1
     List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
-    assertThat(applications, hasSize(1));
-    assertEquals(app.getId(), applications.get(0).getId());
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
 
     // now app2 permission and it should show up
     grantReadPermission(app2.getId());
     applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
-    assertThat(applications, hasSize(2));
-    Set<String> ids = new HashSet<>();
-    for (Application a : applications) {
-      ids.add(a.getId());
-    }
-    assertThat(ids, containsInAnyOrder(app.getId(), app2.getId()));
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId(), app2.getId());
   }
 }

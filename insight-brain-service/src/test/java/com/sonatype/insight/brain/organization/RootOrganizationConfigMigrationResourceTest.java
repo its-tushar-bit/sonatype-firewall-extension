@@ -17,7 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RootOrganizationConfigMigrationResourceTest
     extends AbstractResourceTest
@@ -45,13 +45,13 @@ public class RootOrganizationConfigMigrationResourceTest
     HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH, org.getId())
         .post();
     assertResponseStatus(204, response);
-    assertTrue(migrationUtils.isMigrationScheduled());
+    assertThat(migrationUtils.isMigrationScheduled()).isTrue();
   }
 
   @Test
   public void testSetRootOrganizationEmptyTemplate() throws Exception {
     HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH).post();
     assertResponseStatus(204, response);
-    assertTrue(migrationUtils.isMigrated());
+    assertThat(migrationUtils.isMigrated()).isTrue();
   }
 }

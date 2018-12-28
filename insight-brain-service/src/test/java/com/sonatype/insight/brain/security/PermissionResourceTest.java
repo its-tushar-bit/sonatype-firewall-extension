@@ -28,7 +28,7 @@ public class PermissionResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PermissionResource.RESOURCE_PATH).auth(user.getUsername(), user.getPassword());
+    return super.restRequest().path(PermissionResource.RESOURCE_PATH).auth(user);
   }
 
   private HttpRequest validateRequest(OwnerType ownerType, String ownerId) {

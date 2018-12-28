@@ -58,7 +58,7 @@ public class SuccessMetricsReportResourceTest
     SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(metricsName, successMetricsScopeDTO);
     
     // Create
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword());
+    HttpRequest request = restRequest().auth(tempUser);
     HttpResponse response = request.body(successMetricsDTO).post();
     assertResponseStatus(200, response);
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
@@ -74,13 +74,11 @@ public class SuccessMetricsReportResourceTest
     assertThat(results[0].name).isEqualTo(metricsName);
 
     // Try to update (unsupported)
-    response = restRequest().auth(tempUser.getUsername(), tempUser.getPassword()).body(results[0])
-        .subpath("{successMetricsId}").parameter(results[0].id).put();
+    response = request.subpath("{successMetricsId}").parameter(results[0].id).body(results[0]).put();
     assertResponseStatus(405, response);
 
     // Delete
-    response = restRequest().auth(tempUser.getUsername(), tempUser.getPassword()).subpath("{successMetricsId}")
-        .parameter(results[0].id).delete();
+    response = request.subpath("{successMetricsId}").parameter(results[0].id).delete();
     assertResponseStatus(204, response);
 
     // Get the SuccessMetricsReport

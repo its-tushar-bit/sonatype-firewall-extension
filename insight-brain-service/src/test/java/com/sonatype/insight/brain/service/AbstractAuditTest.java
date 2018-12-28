@@ -55,7 +55,7 @@ public abstract class AbstractAuditTest
   }
 
   protected Consumer<HttpRequest> unauthorizedUser() {
-    return httpRequest -> httpRequest.auth(unauthorizedUser.getUsername(), unauthorizedUser.getPassword());
+    return httpRequest -> httpRequest.auth(unauthorizedUser);
   }
 
   protected List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {

@@ -91,10 +91,10 @@ public abstract class AbstractResourceAuthzTest
   }
 
   protected HttpResponse testAuthzGet(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
+    HttpResponse response = request.auth(unauthorized).get();
     assertStatus(response, 403);
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
+    response = request.auth(authorized).get();
     assertStatus(response, expectedSuccessStatus);
     return response;
   }
@@ -104,7 +104,7 @@ public abstract class AbstractResourceAuthzTest
     HttpResponse response = request.anon().get();
     assertStatus(response, 401);
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
+    response = request.auth(authorized).get();
     assertStatus(response, null);
     return response;
   }
@@ -114,10 +114,10 @@ public abstract class AbstractResourceAuthzTest
   }
 
   protected HttpResponse testAuthzPut(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).put();
+    HttpResponse response = request.auth(unauthorized).put();
     assertStatus(response, 403);
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).put();
+    response = request.auth(authorized).put();
     assertStatus(response, expectedSuccessStatus);
     return response;
   }
@@ -127,10 +127,10 @@ public abstract class AbstractResourceAuthzTest
   }
 
   protected HttpResponse testAuthzPost(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
+    HttpResponse response = request.auth(unauthorized).post();
     assertStatus(response, 403);
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
+    response = request.auth(authorized).post();
     assertStatus(response, expectedSuccessStatus);
     return response;
   }
@@ -140,16 +140,16 @@ public abstract class AbstractResourceAuthzTest
     HttpResponse response = request.anon().post();
     assertStatus(response, 401);
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
+    response = request.auth(authorized).post();
     assertStatus(response, null);
     return response;
   }
 
   protected HttpResponse testAuthzDelete(HttpRequest request) throws Exception {
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).delete();
+    HttpResponse response = request.auth(unauthorized).delete();
     assertStatus(response, 403);
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).delete();
+    response = request.auth(authorized).delete();
     assertStatus(response, null);
 
     return response;

@@ -88,8 +88,7 @@ public class UserResourceAuditTest
     ChangePasswordDTO passwordDTO = new ChangePasswordDTO();
     passwordDTO.oldPassword = TemporaryEntity.USER_PASSWORD_CLEAR;
     passwordDTO.newPassword = "still-secret";
-    restRequest().auth(user.getUsername(), user.getPassword()).path(UserResource.MY_PASSWORD_PATH).body(passwordDTO)
-        .put();
+    restRequest().auth(user).path(UserResource.MY_PASSWORD_PATH).body(passwordDTO).put();
 
     assertAuditLog(AuditEvent.UPDATE_USER_PASSWORD, null, user.getUsername());
   }

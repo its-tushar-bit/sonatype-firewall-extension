@@ -47,13 +47,13 @@ public class ApiSearchResourceV2AuthzTest
 
     HttpRequest request = restRequest().path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2).query("stageId", Stage.ID_BUILD)
         .query("hash", "1249e25aebb15358bedd");
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
+    HttpResponse response = request.auth(unauthorized).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(empty()));
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
+    response = request.auth(authorized).get();
     assertResponseStatus(200, response);
     results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));

@@ -26,12 +26,12 @@ public class ApplicationResourceAuthzTest
     grantReadPermission(app.getId());
 
     HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
+    HttpResponse response = request.auth(unauthorized).get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] entities = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(entities).isEmpty();
 
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
+    response = request.auth(authorized).get();
     assertResponseStatus(200, response);
     entities = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(entities).extracting(ApplicationManagementSummaryDTO::getId).containsExactly(app.getId());

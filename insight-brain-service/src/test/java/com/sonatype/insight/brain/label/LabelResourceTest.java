@@ -516,8 +516,7 @@ public class LabelResourceTest
     Role writeRole = tempEntity.newRole(false /* global */, Permission.WRITE);
     tempEntity.newMembershipMapping(app.getId(), writeRole.getId(), applicationUser.getUsername());
 
-    response = request.parameter(orgLabel.getId()).auth(applicationUser.getUsername(), applicationUser.getPassword())
-        .get();
+    response = request.parameter(orgLabel.getId()).auth(applicationUser).get();
     assertResponseStatus(200, response);
     context = response.getBody(ApplicableContext.class);
     assertThat(context, is(notNullValue()));

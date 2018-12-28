@@ -48,7 +48,10 @@ public class HttpRequest
   }
 
   public HttpRequest auth() {
-    auth(User.ADMIN_USERNAME, "admin123");
-    return this;
+    return auth(User.ADMIN_USERNAME, "admin123");
+  }
+
+  public HttpRequest auth(User user) {
+    return auth(user.getUsername(), user.getPassword());
   }
 }

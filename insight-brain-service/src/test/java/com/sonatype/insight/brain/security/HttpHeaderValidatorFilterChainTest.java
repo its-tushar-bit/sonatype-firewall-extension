@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
 import org.junit.Test;
@@ -23,7 +22,7 @@ public class HttpHeaderValidatorFilterChainTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(UserSessionResource.RESOURCE_PATH).auth(User.ADMIN_USERNAME, "admin123");
+    return super.restRequest().path(UserSessionResource.RESOURCE_PATH);
   }
 
   @Test

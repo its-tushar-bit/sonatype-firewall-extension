@@ -100,8 +100,7 @@ public class DashboardResourceTest
     // creating a new filter
     DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
     tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(dashboardFilterDTO));
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(DashboardResource.FILTERS_PATH);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
@@ -120,8 +119,7 @@ public class DashboardResourceTest
     // creating a new filter
     NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
     // Test the create
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(DashboardResource.FILTERS_PATH);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
@@ -146,8 +144,7 @@ public class DashboardResourceTest
     // updating the new filter
     dashboardFilterDTO.filter.minPolicyThreatLevel = 4;
     dashboardFilterDTO.filter.maxPolicyThreatLevel = 9;
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(DashboardResource.FILTERS_PATH);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
@@ -243,14 +240,14 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_NEWEST_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_newest_risks_non_dirty-violations");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser).path(GET_NEWEST_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-violations");
   }
 
@@ -329,14 +326,14 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_APPLICATION_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_application_risks_non_dirty-applications");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser).path(GET_APPLICATION_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-applications");
   }
 
@@ -394,22 +391,21 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_COMPONENT_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_component_risks_non_dirty-components");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser).path(GET_COMPONENT_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-components");
   }
 
   private void createNamedFilterForUserAndAssertResponseOk(NamedDashboardFilterDTO namedDashboardFilterDTO, User user)
       throws Exception
   {
-    HttpRequest request = restRequest().auth(user.getUsername(), user.getPassword())
-        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpRequest request = restRequest().auth(user).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.body(namedDashboardFilterDTO).put();
     assertResponseStatus(200, response);
   }
@@ -420,8 +416,7 @@ public class DashboardResourceTest
     namedDashboardFilterDTO.basedOnFilterName = namedDashboardFilterDTO.name;
     namedDashboardFilterDTO.name = null;
     namedDashboardFilterDTO.filter.maxPolicyThreatLevel -= 1;
-    HttpRequest request = restRequest().auth(user.getUsername(), user.getPassword())
-        .path(DashboardResource.FILTERS_PATH);
+    HttpRequest request = restRequest().auth(user).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.body(namedDashboardFilterDTO).put();
     assertResponseStatus(200, response);
   }
@@ -472,8 +467,7 @@ public class DashboardResourceTest
     namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
 
     //creating a new filter
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.body(namedDashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
@@ -505,8 +499,7 @@ public class DashboardResourceTest
     // creating a new active filter (without a name)
     tempEntity.newDashboardFilter(tempUser.getUsername(), "", JsonUtils.format(namedDashboardFilterDTO.filter));
     
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
@@ -536,8 +529,7 @@ public class DashboardResourceTest
     // updating the new filter
     namedDashboardFilterDTO.filter.minPolicyThreatLevel = 3;
     namedDashboardFilterDTO.filter.maxPolicyThreatLevel = 7;
-    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
-        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.body(namedDashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
@@ -567,8 +559,8 @@ public class DashboardResourceTest
 
     List<String> filterNames = Arrays.asList(filterName1, filterName2);
 
-    HttpRequest request = restRequest().auth(username, tempUser.getPassword())
-        .path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(filterNames);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.DELETE_NAMED_FILTERS_PATH)
+        .body(filterNames);
     HttpResponse response = request.parameter(filterName1).post();
     assertResponseStatus(204, response);
     // verify that both filters above got deleted
@@ -588,8 +580,8 @@ public class DashboardResourceTest
 
     List<String> filterNames = Arrays.asList(filterName, "NotFoundFilter");
 
-    HttpRequest request = restRequest().auth(username, tempUser.getPassword())
-        .path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(filterNames);
+    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.DELETE_NAMED_FILTERS_PATH)
+        .body(filterNames);
     HttpResponse response = request.parameter(filterName).post();
     assertResponseStatus(404, response);
     DashboardFilterErrorResponseDTO[] errorResponseDTOs = response.getBody(DashboardFilterErrorResponseDTO[].class);

@@ -97,6 +97,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testDisabledByDefault() throws Exception {
     initServer(null);
 
@@ -109,6 +110,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testEnabled_DefaultHeader() throws Exception {
     initServer(ENABLED);
 
@@ -127,6 +129,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testLogout_reverseProxyIsEnabledWithLogoutUrl() throws Exception {
     final URI logoutUrl = new URI("http://localhost/logout");
     initServer(new Configurator()
@@ -155,6 +158,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testLogout_reverseProxyIsEnabledWithoutLogoutUrl() throws Exception {
     initServer(new Configurator()
     {
@@ -182,6 +186,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testEnabled_CustomHeader() throws Exception {
     initServer(new Configurator()
     {
@@ -203,6 +208,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testEnabled_SessionCreatedForAnyRequest() throws Exception {
     initServer(ENABLED);
 
@@ -213,6 +219,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testEnabled_HeaderWithValidUserDoesNotMatchSession() throws Exception {
     initServer(ENABLED);
 

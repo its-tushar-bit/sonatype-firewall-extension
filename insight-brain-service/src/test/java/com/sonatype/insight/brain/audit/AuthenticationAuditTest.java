@@ -59,6 +59,7 @@ public class AuthenticationAuditTest
   }
 
   @Test
+  @ManualServerInit
   public void testImplicitLoginByReverseProxy() throws Exception {
     ReverseProxyAuthenticationConfig rutConfig = new ReverseProxyAuthenticationConfig();
     rutConfig.setEnabled(true);

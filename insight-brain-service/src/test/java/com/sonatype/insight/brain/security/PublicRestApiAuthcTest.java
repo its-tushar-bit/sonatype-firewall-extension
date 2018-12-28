@@ -135,6 +135,7 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testReverseProxy() throws Exception {
     initServer(REVERSE_PROXY_ENABLED);
     HttpRequest request = restRequest().header("REMOTE_USER", "admin").anon();
@@ -144,6 +145,7 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testReverseProxyBeforeBasicAuthentication() throws Exception {
     initServer(REVERSE_PROXY_ENABLED);
     HttpRequest request = restRequest().header("REMOTE_USER", "admin").auth("admin", "wrong password");
@@ -153,6 +155,7 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testReverseProxyMissingHeaderFallbackToBasicAuthentication() throws Exception {
     initServer(REVERSE_PROXY_ENABLED);
     HttpRequest request = restRequest();
@@ -182,6 +185,7 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
+  @ManualServerInit
   public void testReverseProxyAuthenticationRequiresCsrfTokenForUnsafeRequests() throws Exception {
     initServer(REVERSE_PROXY_ENABLED);
     HttpRequest request = restRequest().header("REMOTE_USER", "admin").anon().noCsrfToken();

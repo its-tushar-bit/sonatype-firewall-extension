@@ -124,6 +124,7 @@ public class ApplicationSummaryResourceTest
   }
 
   @Test
+  @ManualServerInit
   public void testGetApplications_NoGoal_Anonymous_AnonymousClientAccessAllowed() throws Exception {
     initServer(new Configurator() {
       @Override

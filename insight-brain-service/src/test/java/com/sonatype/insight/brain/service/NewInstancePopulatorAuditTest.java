@@ -61,7 +61,6 @@ public class NewInstancePopulatorAuditTest
     // disable startup import and instead call it manually to properly setup log capture after DropWizard's log setup
     Configurator configurator = config -> config.setImportRefrencePoliciesFromHDS(false);
     initServer(configurator, hdsConfigurator);
-    logOutput.before();
     getCLMServer().getConfiguration().setImportRefrencePoliciesFromHDS(true);
   }
 }

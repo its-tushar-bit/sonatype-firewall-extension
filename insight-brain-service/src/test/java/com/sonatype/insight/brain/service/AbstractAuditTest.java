@@ -49,8 +49,7 @@ public abstract class AbstractAuditTest
   protected ObjectMapper objectMapper;
 
   @Before
-  public void setupLogger() {
-    logOutput.before();
+  public void setupCommonFixture() {
     unauthorizedUser = tempEntity.newUser();
     objectMapper = new ObjectMapper();
   }

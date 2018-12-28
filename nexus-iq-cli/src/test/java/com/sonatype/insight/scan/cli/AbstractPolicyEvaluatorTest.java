@@ -72,9 +72,6 @@ public abstract class AbstractPolicyEvaluatorTest
     testInsightServer.getHdsServer().setResponseForURI("rest/application/analysis/SCAN-ID",
         new File("src/test/resources/small-report.zip"), 200);
 
-    // Setup the log capture after dropwizard's logging setup
-    logOutput.before();
-
     insightServerUrl = testInsightServer.getCLMServer().getClientConfiguration().getServerUrl();
   }
 

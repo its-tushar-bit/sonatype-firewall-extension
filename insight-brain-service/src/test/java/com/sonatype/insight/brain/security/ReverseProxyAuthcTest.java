@@ -216,9 +216,6 @@ public class ReverseProxyAuthcTest
   public void testEnabled_HeaderWithValidUserDoesNotMatchSession() throws Exception {
     initServer(ENABLED);
 
-    // explicitly call the before method, since DropWizard ignores the LogOutput configuration
-    logOutput.before();
-
     tempEntity.newUser("Beta", "Beta", "User", "beta.user@company.com");
 
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();

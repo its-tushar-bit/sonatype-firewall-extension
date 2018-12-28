@@ -176,7 +176,7 @@ public class InsightBrainService
     getInstance(ApplicationLifecycle.class).boot();
   }
 
-  void printVersion() {
+  private void printVersion() {
     String version = new VersionService().getLogDisplayVersion();
     log.info("|------------------------------------------");
     log.info("|");

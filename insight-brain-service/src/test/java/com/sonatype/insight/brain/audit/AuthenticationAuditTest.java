@@ -64,7 +64,6 @@ public class AuthenticationAuditTest
     rutConfig.setEnabled(true);
     String username = "rut-user";
     initServer(config -> config.setReverseProxyAuthentication(rutConfig));
-    logOutput.before(); // need to restore appender after DW is done setting up logging
 
     restRequest().path(RESTRICTED_PATH).anon().header(rutConfig.getUsernameHeader(), username).get();
 

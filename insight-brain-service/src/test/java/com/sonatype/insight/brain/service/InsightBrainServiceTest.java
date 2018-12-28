@@ -221,12 +221,11 @@ public class InsightBrainServiceTest
   }
 
   @Test
+  @ManualServerInit
   public void testPrintVersion() throws Exception {
-    // Special handling to capture log output, DropWizard overrides the LogOutput configuration so
-    // we must restore it calling the before() method. Once we've done this we can call the method
-    // again to test the log output as we'll miss the log output the first time during startup.
-    logOutput.before();
-    getCLMServer().getInjector().getInstance(InsightBrainService.class).printVersion();
+    // Manually initialize server with custom configurator to ensure it gets restarted if already running
+    initServer(config -> {
+    });
     assertThat(logOutput).atInfoLevel()
         .contains("Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
   }

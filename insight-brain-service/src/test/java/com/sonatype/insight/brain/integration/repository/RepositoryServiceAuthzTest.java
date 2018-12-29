@@ -26,11 +26,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -73,8 +69,8 @@ public class RepositoryServiceAuthzTest
     catch (NotFoundException e) {
       // We are testing access permissions and we don't care if the component exists
       // This avoids the need to mock the HDS client for the permissions test
-      assertThat(e.getMessage(), is("Cannot find a component with path " + path + " in repository with ID "
-          + repository.getId() + "."));
+      assertThat(e).hasMessage(
+          "Cannot find a component with path " + path + " in repository with ID " + repository.getId() + ".");
     }
   }
 
@@ -343,18 +339,18 @@ public class RepositoryServiceAuthzTest
     grantReadPermission(repository.getId());
     Repository repository2 = tempEntity.newRepository();
     RepositoriesDTO repositories = repositoryService.getRepositories();
-    assertThat(repositories.repositories, hasSize(1));
-    assertThat(repositories.repositories.get(0).repository.getId(), equalTo(repository.getId()));
+    assertThat(repositories.repositories).hasSize(1);
+    assertThat(repositories.repositories.get(0).repository.getId()).isEqualTo(repository.getId());
     grantReadPermission(repository2.getId());
     repositories = repositoryService.getRepositories();
-    assertThat(repositories.repositories, hasSize(2));
+    assertThat(repositories.repositories).hasSize(2);
   }
 
   @Test
   public void testGetRepositories_Unauthenticated() {
     createRepository();
     RepositoriesDTO repositories = repositoryService.getRepositories();
-    assertNull(repositories.repositories);
+    assertThat(repositories.repositories).isNull();
   }
 
   @Test
@@ -362,7 +358,7 @@ public class RepositoryServiceAuthzTest
     createRepository();
     login();
     RepositoriesDTO repositories = repositoryService.getRepositories();
-    assertNull(repositories.repositories);
+    assertThat(repositories.repositories).isNull();
   }
 
   @Test

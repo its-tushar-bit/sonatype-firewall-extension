@@ -23,11 +23,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryResourceTest
     extends AbstractResourceTest
@@ -65,8 +61,8 @@ public class RepositoryResourceTest
 
     repository = repositoryDAO.getById(repository.getId());
 
-    assertNotNull(repository);
-    assertTrue(repository.isEnabled());
+    assertThat(repository).isNotNull();
+    assertThat(repository.isEnabled()).isTrue();
   }
 
   @Test
@@ -80,8 +76,8 @@ public class RepositoryResourceTest
 
     repository = repositoryDAO.getById(repository.getId());
 
-    assertNotNull(repository);
-    assertTrue(repository.isQuarantineEnabled());
+    assertThat(repository).isNotNull();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
   }
 
   @Test
@@ -104,11 +100,11 @@ public class RepositoryResourceTest
     assertResponseStatus(200, response);
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = response
         .getBody(RepositoryPolicyEvaluationSummary.class);
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(3));
-    assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(3);
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);
   }
 
   @Test
@@ -119,8 +115,8 @@ public class RepositoryResourceTest
     HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find a repository with repositoryManagerInstanceId="
-        + repositoryManager.getInstanceId() + " and publicId=" + repositoryId + "."));
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a repository with repositoryManagerInstanceId="
+        + repositoryManager.getInstanceId() + " and publicId=" + repositoryId + ".");
   }
 
   @Test
@@ -132,7 +128,7 @@ public class RepositoryResourceTest
     HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Repository " + repositoryId + " is disabled."));
+    assertThat(response.getBodyText()).isEqualTo("Repository " + repositoryId + " is disabled.");
   }
 
   @Test
@@ -171,7 +167,7 @@ public class RepositoryResourceTest
         .query("sinceUtcTimestamp=" + (now.getTime())).get();
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
-    assertThat(result.pathnames, contains(pathname));
+    assertThat(result.pathnames).containsExactly(pathname);
   }
 
   @Test
@@ -184,7 +180,7 @@ public class RepositoryResourceTest
 
     HttpResponse response = restRequest().path(RepositoryResource.IGNORE_PATTERNS_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getBody(FirewallIgnorePatterns.class).regexpsByRepositoryFormat,
-        is(hdsResult.regexpsByRepositoryFormat));
+    assertThat(response.getBody(FirewallIgnorePatterns.class).regexpsByRepositoryFormat)
+        .isEqualTo(hdsResult.regexpsByRepositoryFormat);
   }
 }

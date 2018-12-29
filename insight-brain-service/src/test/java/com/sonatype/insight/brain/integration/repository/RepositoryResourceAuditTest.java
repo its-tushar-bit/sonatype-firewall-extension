@@ -34,8 +34,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryResourceAuditTest
     extends AbstractAuditTest
@@ -217,7 +216,7 @@ public class RepositoryResourceAuditTest
         .post();
 
     assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, null);
-    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0)).isEmpty();
   }
 
   @Test
@@ -233,7 +232,7 @@ public class RepositoryResourceAuditTest
         .post();
 
     assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, null);
-    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0)).isEmpty();
   }
 
   private void testEvaluateComponents(boolean withQuarantine, int count, String cause) throws Exception {
@@ -311,7 +310,7 @@ public class RepositoryResourceAuditTest
     assertResponseStatus(204, componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
         repositoryComponent.getPathname()).delete());
 
-    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0)).isEmpty();
   }
 
   @Test
@@ -324,7 +323,7 @@ public class RepositoryResourceAuditTest
     assertResponseStatus(204, componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
         repositoryComponent.getPathname()).delete());
 
-    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0)).isEmpty();
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.license;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -18,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
-import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverrideByOwner;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -33,14 +33,9 @@ import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
-import com.google.common.collect.ImmutableSet;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
@@ -48,13 +43,9 @@ import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.sameInstance;
-import static org.mockito.BDDMockito.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class LicenseOverrideServiceTest
     extends AbstractComponentTest
@@ -92,22 +83,20 @@ public class LicenseOverrideServiceTest
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
         JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
 
-    assertThat(overrides.licenseOverridesByOwner, hasSize(2));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(ownerId)));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getParentOwnerId())));
-    assertThat(overrides.licenseOverridesByOwner, not(hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID))));
+    assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
+        .containsExactlyInAnyOrder(ownerId, owner.getParentOwnerId()).doesNotContain(Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Before
   public void setup() {
-    rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
+    rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
     service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(), new LicenseDAO(),
         rootOrganizationConfigMigrationUtils, licenseOverrideEventService);
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchyHideRoot_App() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
 
     final Application app = tempEntity.newApplicationWithParent("test");
     testGetAppliedLicenseOverrides_hierarchyHideRoot(app, app.getPublicId());
@@ -115,20 +104,20 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchyHideRoot_Repository() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
 
     testGetAppliedLicenseOverrides_hierarchyHideRoot(tempEntity.newRepository());
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchyHideRoot_RepositoryContainer() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Owner owner = RepositoryContainer.SINGLETON;
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
         JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
-    assertThat(overrides.licenseOverridesByOwner, hasSize(1));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getId())));
-    assertThat(overrides.licenseOverridesByOwner, not(hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID))));
+    assertThat(overrides.licenseOverridesByOwner).hasSize(1)
+        .extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId).containsExactlyInAnyOrder(owner.getId())
+        .doesNotContain(Organization.ROOT_ORGANIZATION_ID);
   }
 
   private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner) {
@@ -139,15 +128,13 @@ public class LicenseOverrideServiceTest
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
         JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
 
-    assertThat(overrides.licenseOverridesByOwner, hasSize(3));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(ownerId)));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getParentOwnerId())));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
+    assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
+        .containsExactlyInAnyOrder(ownerId, owner.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_App() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
 
     final Application app = tempEntity.newApplicationWithParent("test");
     testGetAppliedLicenseOverrides_hierarchy(app, app.getPublicId());
@@ -155,20 +142,19 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_Repository() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
 
     testGetAppliedLicenseOverrides_hierarchy(tempEntity.newRepository());
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_RepositoryContainer() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Owner owner = RepositoryContainer.SINGLETON;
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
         JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
-    assertThat(overrides.licenseOverridesByOwner, hasSize(2));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getId())));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
+    assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
+        .containsExactlyInAnyOrder(owner.getId(), Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -179,16 +165,16 @@ public class LicenseOverrideServiceTest
     Organization organization = tempEntity.newOrganization();
     LicenseOverride licenseOverride = new LicenseOverride(organization.getId(),
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), OVERRIDDEN, "MIT", "comment");
-    HttpServletRequest mockHttpRequest = Mockito.mock(HttpServletRequest.class);
-    given(mockHttpRequest.getHeader("X-Forwarded-For")).willReturn("1.1.1.1");
+    HttpServletRequest mockHttpRequest = mock(HttpServletRequest.class);
+    when(mockHttpRequest.getHeader("X-Forwarded-For")).thenReturn("1.1.1.1");
 
     service.addLicenseOverride(ORGANIZATION, organization.getId(), licenseOverride, null, mockHttpRequest);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(CREATED));
-    assertThat(handler.getEvent().licenseOverride, sameInstance(licenseOverride));
-    assertThat(handler.getEvent().initiator, is("testuser"));
-    assertThat(handler.getEvent().licenseOverride.getOwnerId(), is(organization.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+    assertThat(handler.getEvent().licenseOverride).isSameAs(licenseOverride);
+    assertThat(handler.getEvent().initiator).isEqualTo("testuser");
+    assertThat(handler.getEvent().licenseOverride.getOwnerId()).isEqualTo(organization.getId());
   }
 
   @Test
@@ -199,16 +185,16 @@ public class LicenseOverrideServiceTest
     Organization organization = tempEntity.newOrganization();
     LicenseOverride licenseOverride = tempEntity.newLicenseOverride(organization.getId(),
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), OVERRIDDEN, "MIT", "comment");
-    HttpServletRequest mockHttpRequest = Mockito.mock(HttpServletRequest.class);
-    given(mockHttpRequest.getHeader("X-Forwarded-For")).willReturn("1.1.1.1");
+    HttpServletRequest mockHttpRequest = mock(HttpServletRequest.class);
+    when(mockHttpRequest.getHeader("X-Forwarded-For")).thenReturn("1.1.1.1");
 
     service.addLicenseOverride(ORGANIZATION, organization.getId(), licenseOverride, null, mockHttpRequest);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(UPDATED));
-    assertThat(handler.getEvent().licenseOverride, sameInstance(licenseOverride));
-    assertThat(handler.getEvent().initiator, is("testuser"));
-    assertThat(handler.getEvent().licenseOverride.getOwnerId(), is(organization.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+    assertThat(handler.getEvent().licenseOverride).isSameAs(licenseOverride);
+    assertThat(handler.getEvent().initiator).isEqualTo("testuser");
+    assertThat(handler.getEvent().licenseOverride.getOwnerId()).isEqualTo(organization.getId());
   }
 
   @Test
@@ -218,41 +204,23 @@ public class LicenseOverrideServiceTest
 
     Organization organization = tempEntity.newOrganization();
     ComponentIdentifier mavenCoordinates = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    Set<String> licenses = ImmutableSet.of("MIT");
+    Set<String> licenses = Collections.singleton("MIT");
     LicenseOverride licenseOverride = tempEntity.newLicenseOverride(organization.getId(), mavenCoordinates, OVERRIDDEN,
         licenses, "comment");
     final String licenseOverrideId = licenseOverride.getId();
-    HttpServletRequest mockHttpRequest = Mockito.mock(HttpServletRequest.class);
-    given(mockHttpRequest.getHeader("X-Forwarded-For")).willReturn("1.1.1.1");
+    HttpServletRequest mockHttpRequest = mock(HttpServletRequest.class);
+    when(mockHttpRequest.getHeader("X-Forwarded-For")).thenReturn("1.1.1.1");
 
     service.deleteLicenseOverride(ORGANIZATION, organization.getId(), licenseOverrideId, null, mockHttpRequest);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(DELETED));
-    assertThat(handler.getEvent().licenseOverride.getOwnerId(), is(organization.getId()));
-    assertThat(handler.getEvent().licenseOverride.getComment(), is("comment"));
-    assertThat(handler.getEvent().licenseOverride.getComponentIdentifier(), is(mavenCoordinates));
-    assertThat(handler.getEvent().licenseOverride.getId(), is(licenseOverrideId));
-    assertThat(handler.getEvent().licenseOverride.getLicenseIds(), is(licenses));
-    assertThat(handler.getEvent().initiator, is("testuser"));
-    assertThat(handler.getEvent().licenseOverride.getOwnerId(), is(organization.getId()));
-  }
-
-  private Matcher<LicenseOverrideByOwner> ownerId(final String ownerId) {
-    return new BaseMatcher<LicenseOverrideByOwner>()
-    {
-      @Override
-      public boolean matches(Object item) {
-        if (item instanceof LicenseOverrideByOwner) {
-          return ownerId.equals(((LicenseOverrideByOwner) item).ownerId);
-        }
-        return false;
-      }
-
-      @Override
-      public void describeTo(Description description) {
-        description.appendText("Expected ownerId: " + ownerId);
-      }
-    };
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+    assertThat(handler.getEvent().licenseOverride.getOwnerId()).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().licenseOverride.getComment()).isEqualTo("comment");
+    assertThat(handler.getEvent().licenseOverride.getComponentIdentifier()).isEqualTo(mavenCoordinates);
+    assertThat(handler.getEvent().licenseOverride.getId()).isEqualTo(licenseOverrideId);
+    assertThat(handler.getEvent().licenseOverride.getLicenseIds()).isEqualTo(licenses);
+    assertThat(handler.getEvent().initiator).isEqualTo("testuser");
+    assertThat(handler.getEvent().licenseOverride.getOwnerId()).isEqualTo(organization.getId());
   }
 }

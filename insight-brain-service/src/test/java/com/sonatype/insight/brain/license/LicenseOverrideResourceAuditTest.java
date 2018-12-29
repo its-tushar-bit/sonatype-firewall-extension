@@ -26,10 +26,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicenseOverrideResourceAuditTest
     extends AbstractAuditTest
@@ -65,11 +62,12 @@ public class LicenseOverrideResourceAuditTest
     assertCustomData(auditDTO, "status", isDelete ? "inherited" : override.getStatus().name().toLowerCase(Locale.ROOT));
     assertCustomData(auditDTO, "comment", isDelete ? null : override.getComment());
     if (selectedOverriddenLicenseNames.length > 0) {
-      assertThat(auditDTO.data, hasKey("licenseNames"));
-      assertThat((List<String>) auditDTO.data.get("licenseNames"), containsInAnyOrder(selectedOverriddenLicenseNames));
+      assertThat(auditDTO.data).containsKey("licenseNames");
+      assertThat((List<String>) auditDTO.data.get("licenseNames"))
+          .containsExactlyInAnyOrder(selectedOverriddenLicenseNames);
     }
     else {
-      assertThat(auditDTO.data, not(hasKey("licenseNames")));
+      assertThat(auditDTO.data).doesNotContainKey("licenseNames");
     }
   }
 

@@ -24,8 +24,7 @@ import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LabelServiceTest
     extends AbstractComponentTest
@@ -46,29 +45,29 @@ public class LabelServiceTest
 
     Label created = labelService.addLabel(ORGANIZATION, organization.getId(), label);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(CREATED));
-    assertThat(handler.getEvent().ownerId, is(organization.getId()));
-    assertThat(handler.getEvent().label.getId(), is(label.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().label.getId()).isEqualTo(label.getId());
 
     handler.setLatch(new CountDownLatch(1));
 
     created.setDescription("some new description");
     labelService.updateLabel(ORGANIZATION, organization.getId(), created);
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(UPDATED));
-    assertThat(handler.getEvent().ownerId, is(organization.getId()));
-    assertThat(handler.getEvent().label.getId(), is(label.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().label.getId()).isEqualTo(label.getId());
 
     handler.setLatch(new CountDownLatch(1));
 
     labelService.deleteLabel(ORGANIZATION, organization.getId(), created.getId());
 
-    assertThat(handler.getLatch().await(5, SECONDS), is(true));
-    assertThat(handler.getEvent().action, is(DELETED));
-    assertThat(handler.getEvent().ownerId, is(organization.getId()));
-    assertThat(handler.getEvent().label.getId(), is(label.getId()));
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+    assertThat(handler.getEvent().ownerId).isEqualTo(organization.getId());
+    assertThat(handler.getEvent().label.getId()).isEqualTo(label.getId());
 
     eventBus.unregister(handler);
   }

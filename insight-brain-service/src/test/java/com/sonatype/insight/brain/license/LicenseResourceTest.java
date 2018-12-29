@@ -12,10 +12,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicenseResourceTest
     extends AbstractResourceTest
@@ -31,12 +28,8 @@ public class LicenseResourceTest
     assertResponseStatus(200, response);
 
     License[] licenses = response.getBody(License[].class);
-    assertNotNull(licenses);
-    assertNotEquals(licenses.length, 0);
-    assertTrue(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
-    assertTrue(isPresent(License.NOT_DECLARED_ID, licenses));
-    assertTrue(isPresent(License.NO_SOURCES_ID, licenses));
-    assertTrue(isPresent(License.NOT_SUPPORTED_ID, licenses));
+    assertThat(licenses).extracting(License::getId).contains(License.NO_SOURCE_LICENSE_ID, License.NOT_DECLARED_ID,
+        License.NO_SOURCES_ID, License.NOT_SUPPORTED_ID);
   }
 
   @Test
@@ -45,20 +38,7 @@ public class LicenseResourceTest
     assertResponseStatus(200, response);
 
     License[] licenses = response.getBody(License[].class);
-    assertNotNull(licenses);
-    assertFalse(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
-    assertFalse(isPresent(License.NOT_DECLARED_ID, licenses));
-    assertFalse(isPresent(License.NO_SOURCES_ID, licenses));
-    assertFalse(isPresent(License.NOT_SUPPORTED_ID, licenses));
-    assertNotEquals(licenses.length, 0);
-  }
-
-  private static boolean isPresent(String licenseId, License[] licenses) {
-    for (License candidate : licenses) {
-      if (candidate.getId().equals(licenseId)) {
-        return true;
-      }
-    }
-    return false;
+    assertThat(licenses).extracting(License::getId).isNotEmpty().doesNotContain(License.NO_SOURCE_LICENSE_ID,
+        License.NOT_DECLARED_ID, License.NO_SOURCES_ID, License.NOT_SUPPORTED_ID);
   }
 }

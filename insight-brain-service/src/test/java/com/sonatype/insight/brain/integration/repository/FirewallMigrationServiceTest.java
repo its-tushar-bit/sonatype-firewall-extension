@@ -6,10 +6,9 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -39,11 +38,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.awaitility.core.ThrowingRunnable;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -54,14 +48,10 @@ import static com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO.get
 import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus.CONFIRMED;
+import static java.util.stream.Collectors.joining;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class FirewallMigrationServiceTest
     extends AbstractComponentTest
@@ -106,54 +96,37 @@ public class FirewallMigrationServiceTest
 
   @Test
   public void testVerifyMigrationSupport_UnsupportedProtocolVersion() throws Exception {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       migrationService.verifyMigrationSupport("v2");
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), endsWith("does not support migration protocol v2, please update your IQ Server."));
-    }
+    }).withMessageEndingWith("does not support migration protocol v2, please update your IQ Server.");
   }
 
   @Test
   public void testVerifyMigrationSupport_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
-    try {
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       migrationService.verifyMigrationSupport(PROTOCOL_V1);
-      fail("Expected exception");
-    }
-    catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
-    }
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
   public void testMigrateRepositoryHistory_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
-    try {
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
           TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
-      fail("Expected exception");
-    }
-    catch (InvalidLicenseException e) {
-      assertThat(e.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
-    }
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
   public void testMigrateRepositoryHistory_UnknownSource() throws Exception {
     createTargetRepository();
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
           TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
-      fail("Expected exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(),
-          is(getErrMsgMissingRepo(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID)));
-    }
+    }).withMessage(getErrMsgMissingRepo(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID));
   }
 
   @Test
@@ -190,7 +163,7 @@ public class FirewallMigrationServiceTest
     GeneratedRepositoryData data = generateRepositoryData(sourceRepository);
 
     MigrationDetails migrationDetails = new MigrationDetails(migrationState);
-    assertThat(migrationService.putIfAbsent(repository.getId(), migrationDetails), is(true));
+    assertThat(migrationService.putIfAbsent(repository.getId(), migrationDetails)).isTrue();
 
     testMigrateRepositoryHistory(repository, previousRunData, sourceRepository, data);
   }
@@ -204,27 +177,25 @@ public class FirewallMigrationServiceTest
         TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
 
     // Wait for migration to complete
-    await().atMost(1, TimeUnit.MINUTES).untilAsserted(new ThrowingRunnable()
-    {
-      @Override
-      public void run() {
-        assertThat(migrationService
-            .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID).getState(),
-            is(MigrationState.COMPLETED));
-      }
+    await().atMost(1, TimeUnit.MINUTES).untilAsserted(() -> {
+      assertThat(migrationService
+          .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID).getState())
+              .isEqualTo(MigrationState.COMPLETED);
     });
 
     // Assert source untouched
-    assertThat(new RepositoryComponentDAO().getByRepositoryId(sourceRepository.getId()),
-        containsComponents(sourceData.components, false));
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(sourceRepository.getId()),
-        containsViolations(sourceData.violations, false));
-    assertThat(new LicenseOverrideDAO().getByOwnerId(sourceRepository.getId()),
-        containsLicenseOverrides(sourceData.licenseOverrides, false));
-    assertThat(new SecurityVulnerabilityOverrideDAO().getByOwnerId(sourceRepository.getId()),
-        containsVulnerabilityOverrides(sourceData.vulnerabilityOverrides, false));
-    assertThat(new PolicyWaiverDAO().getByOwnerId(sourceRepository.getId()),
-        containsPolicyWaivers(sourceData.policyWaivers, false));
+    assertThat(new RepositoryComponentDAO().getByRepositoryId(sourceRepository.getId()))
+        .usingElementComparator(componentComparator).containsExactlyInAnyOrderElementsOf(sourceData.components);
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(sourceRepository.getId()))
+        .usingElementComparator(violationComparator).containsExactlyInAnyOrderElementsOf(sourceData.violations);
+    assertThat(new LicenseOverrideDAO().getByOwnerId(sourceRepository.getId()))
+        .usingElementComparator(licenseOverrideComparator)
+        .containsExactlyInAnyOrderElementsOf(sourceData.licenseOverrides);
+    assertThat(new SecurityVulnerabilityOverrideDAO().getByOwnerId(sourceRepository.getId()))
+        .usingElementComparator(vulnerabilityOverrideComparator)
+        .containsExactlyInAnyOrderElementsOf(sourceData.vulnerabilityOverrides);
+    assertThat(new PolicyWaiverDAO().getByOwnerId(sourceRepository.getId())).usingElementComparator(waiverComparator)
+        .containsExactlyInAnyOrderElementsOf(sourceData.policyWaivers);
 
     if (targetRepository != null) {
       targetRepository = new RepositoryDAO().getById(targetRepository.getId());
@@ -233,51 +204,60 @@ public class FirewallMigrationServiceTest
       targetRepository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(
           TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
       // Assert the target repository is created automatically
-      assertThat(targetRepository, is(notNullValue()));
+      assertThat(targetRepository).isNotNull();
     }
     // Assert the target repository mirrors the source configuration
-    assertThat(targetRepository.getFormat(), is(sourceRepository.getFormat()));
-    assertThat(targetRepository.isEnabled(), is(sourceRepository.isEnabled()));
-    assertThat(targetRepository.isQuarantineEnabled(), is(sourceRepository.isQuarantineEnabled()));
+    assertThat(targetRepository.getFormat()).isEqualTo(sourceRepository.getFormat());
+    assertThat(targetRepository.isEnabled()).isEqualTo(sourceRepository.isEnabled());
+    assertThat(targetRepository.isQuarantineEnabled()).isEqualTo(sourceRepository.isQuarantineEnabled());
 
     // Assert Components are migrated
     List<RepositoryComponent> migratedComponents = new RepositoryComponentDAO()
         .getByRepositoryId(targetRepository.getId());
-    assertThat(migratedComponents, containsComponents(sourceData.components, true));
+    assertThat(migratedComponents).usingElementComparator(componentComparatorIgnoringIds)
+        .containsExactlyInAnyOrderElementsOf(sourceData.components);
     if (previousRunData != null) {
       // Previous run data should be gone by now
-      assertThat(migratedComponents, not(containsComponents(previousRunData.components, false)));
+      assertThat(migratedComponents).usingElementComparator(componentComparator)
+          .doesNotContainAnyElementsOf(previousRunData.components);
     }
     // Assert Policy Violations are migrated
     List<RepositoryPolicyViolation> migratedViolations = new RepositoryPolicyViolationDAO()
         .getByRepositoryId(targetRepository.getId());
-    assertThat(migratedViolations, containsViolations(sourceData.violations, true));
+    assertThat(migratedViolations).usingElementComparator(violationComparatorIgnoringIds)
+        .containsExactlyInAnyOrderElementsOf(sourceData.violations);
     if (previousRunData != null) {
       // Previous run data should be gone by now
-      assertThat(migratedViolations, not(containsViolations(previousRunData.violations, false)));
+      assertThat(migratedViolations).usingElementComparator(violationComparator)
+          .doesNotContainAnyElementsOf(previousRunData.violations);
     }
     // Assert License Overrides are migrated
     List<LicenseOverride> migratedLicenseOverrides = new LicenseOverrideDAO().getByOwnerId(targetRepository.getId());
-    assertThat(migratedLicenseOverrides, containsLicenseOverrides(sourceData.licenseOverrides, true));
+    assertThat(migratedLicenseOverrides).usingElementComparator(licenseOverrideComparatorIgnoringIds)
+        .containsExactlyInAnyOrderElementsOf(sourceData.licenseOverrides);
     if (previousRunData != null) {
       // Previous run data should be gone by now
-      assertThat(migratedLicenseOverrides, not(containsLicenseOverrides(previousRunData.licenseOverrides, false)));
+      assertThat(migratedLicenseOverrides).usingElementComparator(licenseOverrideComparator)
+          .doesNotContainAnyElementsOf(previousRunData.licenseOverrides);
     }
     // Assert Security Vulnerability Overrides are migrated
     List<SecurityVulnerabilityOverride> migratedVulnerabilityOverrides = new SecurityVulnerabilityOverrideDAO()
         .getByOwnerId(targetRepository.getId());
-    assertThat(migratedVulnerabilityOverrides, containsVulnerabilityOverrides(sourceData.vulnerabilityOverrides, true));
+    assertThat(migratedVulnerabilityOverrides).usingElementComparator(vulnerabilityOverrideComparatorIgnoringIds)
+        .containsExactlyInAnyOrderElementsOf(sourceData.vulnerabilityOverrides);
     if (previousRunData != null) {
       // Previous run data should be gone by now
-      assertThat(migratedVulnerabilityOverrides,
-          not(containsVulnerabilityOverrides(previousRunData.vulnerabilityOverrides, false)));
+      assertThat(migratedVulnerabilityOverrides).usingElementComparator(vulnerabilityOverrideComparator)
+          .doesNotContainAnyElementsOf(previousRunData.vulnerabilityOverrides);
     }
     // Assert Security Vulnerability Overrides are migrated
     List<PolicyWaiver> migratedPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(targetRepository.getId());
-    assertThat(migratedPolicyWaivers, containsPolicyWaivers(sourceData.policyWaivers, true));
+    assertThat(migratedPolicyWaivers).usingElementComparator(waiverComparatorIgnoringIds)
+        .containsExactlyInAnyOrderElementsOf(sourceData.policyWaivers);
     if (previousRunData != null) {
       // Previous run data should be gone by now
-      assertThat(migratedPolicyWaivers, not(containsPolicyWaivers(previousRunData.policyWaivers, false)));
+      assertThat(migratedPolicyWaivers).usingElementComparator(waiverComparator)
+          .doesNotContainAnyElementsOf(previousRunData.policyWaivers);
     }
   }
 
@@ -323,7 +303,7 @@ public class FirewallMigrationServiceTest
     createSourceRepository();
     Repository targetRepository = createTargetRepository();
     MigrationDetails migrationDetails = new MigrationDetails();
-    assertThat(migrationService.putIfAbsent(targetRepository.getId(), migrationDetails), is(true));
+    assertThat(migrationService.putIfAbsent(targetRepository.getId(), migrationDetails)).isTrue();
 
     // The migration request is ignored and the migration continues.
     migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
@@ -334,13 +314,9 @@ public class FirewallMigrationServiceTest
   public void testGetRepositoryMigrationState_UnknownRepository() throws Exception {
     tempEntity.newRepositoryManager(TARGET_REPOSITORY_MANAGER_INSTANCE_ID);
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown");
-      fail("Expected exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(getErrMsgMissingRepo(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown")));
-    }
+    }).withMessage(getErrMsgMissingRepo(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown"));
   }
 
   @Test
@@ -350,7 +326,7 @@ public class FirewallMigrationServiceTest
     MigrationDetails migrationDetails = migrationService
         .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
 
-    assertThat(migrationDetails.getState(), is(MigrationState.FAILED));
+    assertThat(migrationDetails.getState()).isEqualTo(MigrationState.FAILED);
   }
 
   private Repository createTargetRepository() {
@@ -361,45 +337,6 @@ public class FirewallMigrationServiceTest
   private Repository createSourceRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID);
     return tempEntity.newRepository(repositoryManager, SOURCE_REPOSITORY_PUBLIC_ID);
-  }
-
-  private Matcher<Iterable<? extends RepositoryComponent>> containsComponents(List<RepositoryComponent> components,
-                                                                              final boolean ignoreIds)
-  {
-    return new IsIterableContainingInAnyOrder<>(
-        components.stream().map(repositoryComponent -> new RepositoryComponentMatcher(repositoryComponent, ignoreIds))
-            .collect(Collectors.toList()));
-  }
-
-  private Matcher<Iterable<? extends RepositoryPolicyViolation>> containsViolations(List<RepositoryPolicyViolation> violations,
-                                                                                    final boolean ignoreIds)
-  {
-    return new IsIterableContainingInAnyOrder<>(violations.stream()
-        .map(repositoryPolicyViolation -> new RepositoryPolicyViolationMatcher(repositoryPolicyViolation, ignoreIds))
-        .collect(Collectors.toList()));
-  }
-
-  private Matcher<Iterable<? extends LicenseOverride>> containsLicenseOverrides(List<LicenseOverride> licenseOverrides,
-                                                                                final boolean ignoreIds)
-  {
-    return new IsIterableContainingInAnyOrder<>(licenseOverrides.stream()
-        .map(licenseOverride -> new LicenseOverrideMatcher(licenseOverride, ignoreIds)).collect(Collectors.toList()));
-  }
-
-  private Matcher<Iterable<? extends SecurityVulnerabilityOverride>> containsVulnerabilityOverrides(List<SecurityVulnerabilityOverride> overrides,
-                                                                                                    final boolean ignoreIds)
-  {
-    return new IsIterableContainingInAnyOrder<>(overrides.stream()
-        .map(securityVulnerabilityOverride -> new SecurityVulnerabilityOverrideMatcher(securityVulnerabilityOverride,
-            ignoreIds))
-        .collect(Collectors.toList()));
-  }
-
-  private Matcher<Iterable<? extends PolicyWaiver>> containsPolicyWaivers(List<PolicyWaiver> policyWaivers,
-                                                                          final boolean ignoreIds)
-  {
-    return new IsIterableContainingInAnyOrder<>(policyWaivers.stream()
-        .map(policyWaiver -> new PolicyWaiverMatcher(policyWaiver, ignoreIds)).collect(Collectors.toList()));
   }
 
   private static class GeneratedRepositoryData
@@ -415,315 +352,77 @@ public class FirewallMigrationServiceTest
     final List<PolicyWaiver> policyWaivers = new ArrayList<>();
   }
 
-  private class RepositoryComponentMatcher
-      extends TypeSafeDiagnosingMatcher<RepositoryComponent>
-  {
-    private final RepositoryComponent component;
-
-    private final boolean ignoreIds;
-
-    RepositoryComponentMatcher(final RepositoryComponent component, final boolean ignoreIds) {
-      this.component = component;
-      this.ignoreIds = ignoreIds;
-    }
-
-    @Override
-    protected boolean matchesSafely(final RepositoryComponent item, final Description mismatchDescription) {
-      if (!ignoreIds && !Objects.equals(component.getId(), item.getId())) {
-        mismatchDescription.appendText("has id ").appendValue(item.getId());
-        return false;
-      }
-      else if (!ignoreIds && !Objects.equals(component.getRepositoryId(), item.getRepositoryId())) {
-        mismatchDescription.appendText("has repositoryId ").appendValue(item.getRepositoryId());
-        return false;
-      }
-      else if (!Objects.equals(component.getPathname(), item.getPathname())) {
-        mismatchDescription.appendText("has pathname ").appendValue(item.getPathname());
-        return false;
-      }
-      else if (!Objects.equals(component.getTime(), item.getTime())) {
-        mismatchDescription.appendText("has time ").appendValue(item.getTime());
-        return false;
-      }
-      else if (!Objects.equals(component.getHash(), item.getHash())) {
-        mismatchDescription.appendText("has hash ").appendValue(item.getHash());
-        return false;
-      }
-      else if (!Objects.equals(component.getMatchStateId(), item.getMatchStateId())) {
-        mismatchDescription.appendText("has matchStateId ").appendValue(item.getMatchStateId());
-        return false;
-      }
-      else if (!Objects.equals(component.getIdentificationSourceId(), item.getIdentificationSourceId())) {
-        mismatchDescription.appendText("has identificationSourceId ").appendValue(item.getIdentificationSourceId());
-        return false;
-      }
-      else if (!Objects.equals(component.getLastEvaluationTime(), item.getLastEvaluationTime())) {
-        mismatchDescription.appendText("has lastEvaluationTime ").appendValue(item.getLastEvaluationTime());
-        return false;
-      }
-      else if (!Objects.equals(component.getQuarantineTime(), item.getQuarantineTime())) {
-        mismatchDescription.appendText("has quarantineTime ").appendValue(item.getQuarantineTime());
-        return false;
-      }
-      else if (!Objects.equals(component.getUnquarantineTime(), item.getUnquarantineTime())) {
-        mismatchDescription.appendText("has unquarantineTime ").appendValue(item.getUnquarantineTime());
-        return false;
-      }
-      else if (!Objects.equals(component.getComponentIdentifier(), item.getComponentIdentifier())) {
-        mismatchDescription.appendText("has componentIdentifier ").appendValue(item.getComponentIdentifier());
-        return false;
-      }
-      return true;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-      description.appendText("matching repository component ").appendValue(component);
-      if (ignoreIds) {
-        description.appendText(" ignoring id and repositoryId fields");
-      }
-    }
+  private <T extends Comparable<? super T>> Comparator<T> nullSafe() {
+    return Comparator.nullsFirst(Comparator.naturalOrder());
   }
 
-  private class RepositoryPolicyViolationMatcher
-      extends TypeSafeDiagnosingMatcher<RepositoryPolicyViolation>
-  {
-    private final RepositoryPolicyViolation violation;
+  private final Comparator<RepositoryComponent> componentComparatorIgnoringIds = Comparator //
+      .comparing(RepositoryComponent::getPathname) //
+      .thenComparing(RepositoryComponent::getTime) //
+      .thenComparing(RepositoryComponent::getHash) //
+      .thenComparing(RepositoryComponent::getMatchStateId) //
+      .thenComparing(RepositoryComponent::getIdentificationSourceId) //
+      .thenComparing(RepositoryComponent::getLastEvaluationTime) //
+      .thenComparing(RepositoryComponent::getQuarantineTime, nullSafe()) //
+      .thenComparing(RepositoryComponent::getUnquarantineTime, nullSafe()) //
+      .thenComparing(RepositoryComponent::getComponentIdentifier, nullSafe());
 
-    private final boolean ignoreIds;
+  private final Comparator<RepositoryComponent> componentComparator = Comparator //
+      .comparing(RepositoryComponent::getId) //
+      .thenComparing(RepositoryComponent::getRepositoryId) //
+      .thenComparing(componentComparatorIgnoringIds);
 
-    RepositoryPolicyViolationMatcher(final RepositoryPolicyViolation violation, final boolean ignoreIds) {
-      this.violation = violation;
-      this.ignoreIds = ignoreIds;
-    }
+  private final Comparator<RepositoryPolicyViolation> violationComparatorIgnoringIds = Comparator //
+      .comparing(RepositoryPolicyViolation::getPathname) //
+      .thenComparing(RepositoryPolicyViolation::isActive) //
+      .thenComparing(RepositoryPolicyViolation::getTime) //
+      .thenComparing(RepositoryPolicyViolation::getPolicyId) //
+      .thenComparing(RepositoryPolicyViolation::getPolicyName) //
+      .thenComparing(RepositoryPolicyViolation::getThreatLevel) //
+      .thenComparing(RepositoryPolicyViolation::getThreatCategory) //
+      .thenComparing(RepositoryPolicyViolation::getHash, nullSafe()) //
+      .thenComparing(RepositoryPolicyViolation::getConstraintFactsJson) //
+      .thenComparing(RepositoryPolicyViolation::getActionTypeId, nullSafe()) //
+      .thenComparing(RepositoryPolicyViolation::isWaived) //
+      .thenComparing(RepositoryPolicyViolation::getComponentIdentifier, nullSafe());
 
-    @Override
-    protected boolean matchesSafely(final RepositoryPolicyViolation item, final Description mismatchDescription) {
-      if (!ignoreIds && !Objects.equals(violation.getId(), item.getId())) {
-        mismatchDescription.appendText("has id ").appendValue(item.getId());
-        return false;
-      }
-      else if (!ignoreIds && !Objects.equals(violation.getRepositoryId(), item.getRepositoryId())) {
-        mismatchDescription.appendText("has repositoryId ").appendValue(item.getRepositoryId());
-        return false;
-      }
-      else if (!Objects.equals(violation.getPathname(), item.getPathname())) {
-        mismatchDescription.appendText("has pathname ").appendValue(item.getPathname());
-        return false;
-      }
-      else if (violation.isActive() != item.isActive()) {
-        mismatchDescription.appendText("has active ").appendValue(item.isActive());
-        return false;
-      }
-      else if (!Objects.equals(violation.getTime(), item.getTime())) {
-        mismatchDescription.appendText("has time ").appendValue(item.getTime());
-        return false;
-      }
-      else if (!Objects.equals(violation.getPolicyId(), item.getPolicyId())) {
-        mismatchDescription.appendText("has policyId ").appendValue(item.getPolicyId());
-        return false;
-      }
-      else if (!Objects.equals(violation.getPolicyName(), item.getPolicyName())) {
-        mismatchDescription.appendText("has policyName ").appendValue(item.getPolicyName());
-        return false;
-      }
-      else if (violation.getThreatLevel() != item.getThreatLevel()) {
-        mismatchDescription.appendText("has threadLevel ").appendValue(item.getThreatLevel());
-        return false;
-      }
-      else if (!Objects.equals(violation.getThreatCategory(), item.getThreatCategory())) {
-        mismatchDescription.appendText("has threadCategory ").appendValue(item.getThreatCategory());
-        return false;
-      }
-      else if (!Objects.equals(violation.getHash(), item.getHash())) {
-        mismatchDescription.appendText("has hash ").appendValue(item.getHash());
-        return false;
-      }
-      else if (!Objects.equals(violation.getConstraintFactsJson(), item.getConstraintFactsJson())) {
-        mismatchDescription.appendText("has constraintFactsJson ").appendValue(item.getConstraintFactsJson());
-        return false;
-      }
-      else if (!Objects.equals(violation.getActionTypeId(), item.getActionTypeId())) {
-        mismatchDescription.appendText("has actionTypeId ").appendValue(item.getActionTypeId());
-        return false;
-      }
-      else if (violation.isWaived() != item.isWaived()) {
-        mismatchDescription.appendText("has waived ").appendValue(item.isWaived());
-        return false;
-      }
-      else if (!Objects.equals(violation.getComponentIdentifier(), item.getComponentIdentifier())) {
-        mismatchDescription.appendText("has componentIdentifier ").appendValue(item.getComponentIdentifier());
-        return false;
-      }
-      return true;
-    }
+  private final Comparator<RepositoryPolicyViolation> violationComparator = Comparator //
+      .comparing(RepositoryPolicyViolation::getId) //
+      .thenComparing(RepositoryPolicyViolation::getRepositoryId) //
+      .thenComparing(violationComparatorIgnoringIds);
 
-    @Override
-    public void describeTo(final Description description) {
-      description.appendText("matching repository policy violation ").appendValue(violation);
-      if (ignoreIds) {
-        description.appendText(" ignoring id and repositoryId fields");
-      }
-    }
-  }
+  private final Comparator<LicenseOverride> licenseOverrideComparatorIgnoringIds = Comparator //
+      .comparing(LicenseOverride::getComponentIdentifier) //
+      .thenComparing(LicenseOverride::getStatus) //
+      .thenComparing(LicenseOverride::getComment, nullSafe()) //
+      .thenComparing(override -> override.getLicenseIds().stream().sorted().collect(joining(",")));
 
-  private class LicenseOverrideMatcher
-      extends TypeSafeDiagnosingMatcher<LicenseOverride>
-  {
-    private final LicenseOverride override;
+  private final Comparator<LicenseOverride> licenseOverrideComparator = Comparator //
+      .comparing(LicenseOverride::getId) //
+      .thenComparing(LicenseOverride::getOwnerId) //
+      .thenComparing(licenseOverrideComparatorIgnoringIds);
 
-    private final Matcher<Iterable<? extends String>> licenseMatcher;
+  private final Comparator<SecurityVulnerabilityOverride> vulnerabilityOverrideComparatorIgnoringIds = Comparator //
+      .comparing(SecurityVulnerabilityOverride::getHash) //
+      .thenComparing(SecurityVulnerabilityOverride::getSource) //
+      .thenComparing(SecurityVulnerabilityOverride::getReferenceId) //
+      .thenComparing(SecurityVulnerabilityOverride::getStatus) //
+      .thenComparing(SecurityVulnerabilityOverride::getComment, nullSafe());
 
-    private final boolean ignoreIds;
+  private final Comparator<SecurityVulnerabilityOverride> vulnerabilityOverrideComparator = Comparator //
+      .comparing(SecurityVulnerabilityOverride::getId) //
+      .thenComparing(SecurityVulnerabilityOverride::getOwnerId) //
+      .thenComparing(vulnerabilityOverrideComparatorIgnoringIds);
 
-    private LicenseOverrideMatcher(final LicenseOverride override, final boolean ignoreIds) {
-      this.override = override;
-      licenseMatcher = containsInAnyOrder(
-          this.override.getLicenseIds().toArray(new String[this.override.getLicenseIds().size()]));
-      this.ignoreIds = ignoreIds;
-    }
+  private final Comparator<PolicyWaiver> waiverComparatorIgnoringIds = Comparator //
+      .comparing(PolicyWaiver::getPolicyId) //
+      .thenComparing(PolicyWaiver::getHash, nullSafe()) //
+      .thenComparing(PolicyWaiver::getCreateTime) //
+      .thenComparing(PolicyWaiver::getComment, nullSafe());
 
-    @Override
-    protected boolean matchesSafely(final LicenseOverride item, final Description mismatchDescription) {
-      if (!ignoreIds && !Objects.equals(override.getId(), item.getId())) {
-        mismatchDescription.appendText("has id ").appendValue(item.getId());
-        return false;
-      }
-      else if (!ignoreIds && !Objects.equals(override.getOwnerId(), item.getOwnerId())) {
-        mismatchDescription.appendText("has ownerId ").appendValue(item.getOwnerId());
-        return false;
-      }
-      else if (!Objects.equals(override.getComponentIdentifier(), item.getComponentIdentifier())) {
-        mismatchDescription.appendText("has componentIdentifier ").appendValue(item.getComponentIdentifier());
-        return false;
-      }
-      else if (!Objects.equals(override.getStatus(), item.getStatus())) {
-        mismatchDescription.appendText("has status ").appendValue(item.getStatus());
-        return false;
-      }
-      else if (!Objects.equals(override.getComment(), item.getComment())) {
-        mismatchDescription.appendText("has comment ").appendValue(item.getComment());
-        return false;
-      }
-      else if (!licenseMatcher.matches(item.getLicenseIds())) {
-        licenseMatcher.describeMismatch(item.getLicenseIds(), mismatchDescription);
-        return false;
-      }
-      return true;
-    }
+  private final Comparator<PolicyWaiver> waiverComparator = Comparator //
+      .comparing(PolicyWaiver::getId) //
+      .thenComparing(PolicyWaiver::getOwnerId) //
+      .thenComparing(waiverComparatorIgnoringIds);
 
-    @Override
-    public void describeTo(final Description description) {
-      description.appendText("matching license override ").appendValue(override);
-      if (ignoreIds) {
-        description.appendText(" ignoring id and ownerId");
-      }
-    }
-  }
-
-  private class SecurityVulnerabilityOverrideMatcher
-      extends TypeSafeDiagnosingMatcher<SecurityVulnerabilityOverride>
-  {
-    private final SecurityVulnerabilityOverride override;
-
-    private final boolean ignoreIds;
-
-    private SecurityVulnerabilityOverrideMatcher(final SecurityVulnerabilityOverride override,
-                                                 final boolean ignoreIds)
-    {
-      this.override = override;
-      this.ignoreIds = ignoreIds;
-    }
-
-    @Override
-    protected boolean matchesSafely(final SecurityVulnerabilityOverride item, final Description mismatchDescription) {
-      if (!ignoreIds && !Objects.equals(override.getId(), item.getId())) {
-        mismatchDescription.appendText("has id ").appendValue(item.getId());
-        return false;
-      }
-      else if (!ignoreIds && !Objects.equals(override.getOwnerId(), item.getOwnerId())) {
-        mismatchDescription.appendText("has ownerId ").appendValue(item.getOwnerId());
-        return false;
-      }
-      else if (!Objects.equals(override.getHash(), item.getHash())) {
-        mismatchDescription.appendText("has hash ").appendValue(item.getHash());
-        return false;
-      }
-      else if (!Objects.equals(override.getSource(), item.getSource())) {
-        mismatchDescription.appendText("has source ").appendValue(item.getSource());
-        return false;
-      }
-      else if (!Objects.equals(override.getReferenceId(), item.getReferenceId())) {
-        mismatchDescription.appendText("has referenceId ").appendValue(item.getReferenceId());
-        return false;
-      }
-      else if (!Objects.equals(override.getStatus(), item.getStatus())) {
-        mismatchDescription.appendText("has status ").appendValue(item.getStatus());
-        return false;
-      }
-      else if (!Objects.equals(override.getComment(), item.getComment())) {
-        mismatchDescription.appendText("has comment ").appendValue(item.getComment());
-        return false;
-      }
-      return true;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-      description.appendText("matching security vulnerability override ").appendValue(override);
-      if (ignoreIds) {
-        description.appendText(" ignoring id and ownerId");
-      }
-    }
-  }
-
-  private class PolicyWaiverMatcher
-      extends TypeSafeDiagnosingMatcher<PolicyWaiver>
-  {
-    private final PolicyWaiver policyWaiver;
-
-    private final boolean ignoreIds;
-
-    private PolicyWaiverMatcher(PolicyWaiver policyWaiver, boolean ignoreIds) {
-      this.policyWaiver = policyWaiver;
-      this.ignoreIds = ignoreIds;
-    }
-
-    @Override
-    protected boolean matchesSafely(final PolicyWaiver item, final Description mismatchDescription) {
-      if (!ignoreIds && !Objects.equals(policyWaiver.getId(), item.getId())) {
-        mismatchDescription.appendText("has id ").appendValue(item.getId());
-        return false;
-      }
-      else if (!ignoreIds && !Objects.equals(policyWaiver.getOwnerId(), item.getOwnerId())) {
-        mismatchDescription.appendText("has ownerId ").appendValue(item.getOwnerId());
-        return false;
-      }
-      else if (!Objects.equals(policyWaiver.getPolicyId(), item.getPolicyId())) {
-        mismatchDescription.appendText("has policyId ").appendValue(item.getPolicyId());
-        return false;
-      }
-      else if (!Objects.equals(policyWaiver.getHash(), item.getHash())) {
-        mismatchDescription.appendText("has hash ").appendValue(item.getHash());
-        return false;
-      }
-      else if (!Objects.equals(policyWaiver.getCreateTime(), item.getCreateTime())) {
-        mismatchDescription.appendText("has createTime ").appendValue(item.getCreateTime());
-        return false;
-      }
-      else if (!Objects.equals(policyWaiver.getComment(), item.getComment())) {
-        mismatchDescription.appendText("has comment ").appendValue(item.getComment());
-        return false;
-      }
-      return true;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-      description.appendText("matching policy waiver ").appendValue(policyWaiver);
-      if (ignoreIds) {
-        description.appendText(" ignoring id and ownerId");
-      }
-    }
-  }
 }

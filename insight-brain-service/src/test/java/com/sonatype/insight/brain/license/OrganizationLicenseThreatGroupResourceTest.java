@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
-import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -17,11 +16,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
@@ -76,19 +71,19 @@ public class OrganizationLicenseThreatGroupResourceTest
     tempEntity.newLicenseThreatGroup(parentOrg.getId(), "LTG-3", 5, "GPL-2.0", "GPL-3.0");
 
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(org.getId());
-    assertNotNull(altgs);
-    assertNotNull(altgs.licenseThreatGroupsByOwner);
-    assertEquals(2, altgs.licenseThreatGroupsByOwner.size());
+    assertThat(altgs).isNotNull();
+    assertThat(altgs.licenseThreatGroupsByOwner).hasSize(2);
     assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), OwnerType.ORGANIZATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
-    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
-      assertThat(ltgwl.licenses, hasSize(1));
-    }
+    assertThat(altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups).allSatisfy(ltgwl -> {
+      assertThat(ltgwl.licenses).hasSize(1);
+    });
     assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), OwnerType.ORGANIZATION,
         LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT + 1, altgs.licenseThreatGroupsByOwner.get(1));
-    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
-      assertThat(ltgwl.licenses, hasSize(1));
-    }
+    assertThat(altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups)
+        .filteredOn(ltgwl -> ltgwl.name.startsWith("LTG-")).allSatisfy(ltgwl -> {
+          assertThat(ltgwl.licenses).hasSize(2);
+        });
   }
 
   @Test
@@ -102,8 +97,8 @@ public class OrganizationLicenseThreatGroupResourceTest
     HttpResponse response = restRequest(otherOrg.getId()).body(ltg).put();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(),
-        is("Cannot find a license threat group with id " + ltg.getId() + " for owner id " + otherOrg.getId()));
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find a license threat group with id " + ltg.getId() + " for owner id " + otherOrg.getId());
   }
 
   protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {
@@ -113,7 +108,7 @@ public class OrganizationLicenseThreatGroupResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
-    assertNotNull(groups);
+    assertThat(groups).isNotNull();
     int initialLicenseThreatGroupCount = groups.length;
 
     // Add a group
@@ -130,8 +125,7 @@ public class OrganizationLicenseThreatGroupResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     groups = response.getBody(LicenseThreatGroup[].class);
-    assertNotNull(groups);
-    assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
+    assertThat(groups).hasSize(initialLicenseThreatGroupCount + 1);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, groups[0]);
 
     // Update a group
@@ -145,8 +139,7 @@ public class OrganizationLicenseThreatGroupResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     groups = response.getBody(LicenseThreatGroup[].class);
-    assertNotNull(groups);
-    assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
+    assertThat(groups).hasSize(initialLicenseThreatGroupCount + 1);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
 
     // Delete a group
@@ -157,8 +150,7 @@ public class OrganizationLicenseThreatGroupResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     groups = response.getBody(LicenseThreatGroup[].class);
-    assertNotNull(groups);
-    assertEquals(initialLicenseThreatGroupCount, groups.length);
+    assertThat(groups).hasSize(initialLicenseThreatGroupCount);
   }
 
   @Override

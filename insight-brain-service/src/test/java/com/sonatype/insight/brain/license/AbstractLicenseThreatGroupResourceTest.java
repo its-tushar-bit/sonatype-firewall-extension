@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
-import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupsByOwner;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -23,11 +22,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 abstract class AbstractLicenseThreatGroupResourceTest
     extends AbstractResourceTest
@@ -43,11 +38,11 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
     HttpResponse response = restRequest(owner2.getPublicId()).path(group.getId()).delete();
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a license threat group with ID " + group.getId() + " for " + getOwnerType()
-        + " ID " + owner2.getPublicId(), response.getBodyText());
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a license threat group with ID " + group.getId() + " for "
+        + getOwnerType() + " ID " + owner2.getPublicId());
 
     // Verify that the group was not deleted
-    assertThat(new LicenseThreatGroupDAO().getById(group.getId()), is(notNullValue()));
+    assertThat(new LicenseThreatGroupDAO().getById(group.getId())).isNotNull();
   }
 
   protected void testDelete_InUseByPolicy(Owner owner) throws Exception {
@@ -76,14 +71,14 @@ abstract class AbstractLicenseThreatGroupResourceTest
       error = error + " " + policyLocation;
     }
 
-    assertEquals(error, response.getBodyText());
-    assertNotNull(new LicenseThreatGroupDAO().getById(ltg.getId()));
+    assertThat(response.getBodyText()).isEqualTo(error);
+    assertThat(new LicenseThreatGroupDAO().getById(ltg.getId())).isNotNull();
   }
 
   protected void assertLicenseThreatGroup(String ownerId, String name, int threatLevel, LicenseThreatGroup actual) {
-    assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(name, actual.getName());
-    assertEquals(threatLevel, actual.getThreatLevel());
+    assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getName()).isEqualTo(name);
+    assertThat(actual.getThreatLevel()).isEqualTo(threatLevel);
   }
 
   protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(String ownerId) throws Exception {
@@ -98,14 +93,12 @@ abstract class AbstractLicenseThreatGroupResourceTest
                                                   int licenseThreatGroupCount,
                                                   LicenseThreatGroupsByOwner actual)
   {
-    assertEquals(ownerId, actual.ownerId);
-    assertEquals(ownerName, actual.ownerName);
-    assertEquals(ownerType, actual.ownerType);
-    assertNotNull(actual.licenseThreatGroups);
-    assertEquals(licenseThreatGroupCount, actual.licenseThreatGroups.size());
-    for (LicenseThreatGroupWithLicenses ltgwl : actual.licenseThreatGroups) {
-      assertNotNull(ltgwl.licenses);
-    }
+    assertThat(actual.ownerId).isEqualTo(ownerId);
+    assertThat(actual.ownerName).isEqualTo(ownerName);
+    assertThat(actual.ownerType).isEqualTo(ownerType);
+    assertThat(actual.licenseThreatGroups).hasSize(licenseThreatGroupCount).allSatisfy(ltgwl -> {
+      assertThat(ltgwl.licenses).isNotNull();
+    });
   }
 
   protected abstract String getOwnerType();

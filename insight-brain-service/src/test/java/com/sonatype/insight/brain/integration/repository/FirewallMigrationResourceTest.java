@@ -17,8 +17,7 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallMigrationResourceTest
     extends AbstractResourceTest
@@ -63,6 +62,6 @@ public class FirewallMigrationResourceTest
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     MigrationDetails migrationDetails = response.getBody(MigrationDetails.class);
-    assertThat(migrationDetails.getState(), is(MigrationState.FAILED));
+    assertThat(migrationDetails.getState()).isEqualTo(MigrationState.FAILED);
   }
 }

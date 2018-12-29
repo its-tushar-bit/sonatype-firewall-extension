@@ -26,11 +26,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentLabelResourceTest
     extends AbstractResourceTest
@@ -70,13 +66,11 @@ public class ComponentLabelResourceTest
   }
 
   private void assertLabelsByOwner(LabelsByOwner labelsByOwner, Owner owner, String labelId) {
-    assertThat(labelsByOwner, is(notNullValue()));
-    assertThat(labelsByOwner.ownerId, is(owner.getPublicId()));
-    assertThat(labelsByOwner.ownerName, is(owner.getName()));
-    assertThat(labelsByOwner.ownerType, is(owner.getType()));
-    assertThat(labelsByOwner.labels, is(notNullValue()));
-    assertThat(labelsByOwner.labels, hasSize(1));
-    assertThat(labelsByOwner.labels.get(0).getId(), is(labelId));
+    assertThat(labelsByOwner).isNotNull();
+    assertThat(labelsByOwner.ownerId).isEqualTo(owner.getPublicId());
+    assertThat(labelsByOwner.ownerName).isEqualTo(owner.getName());
+    assertThat(labelsByOwner.ownerType).isEqualTo(owner.getType());
+    assertThat(labelsByOwner.labels).extracting(Label::getId).containsExactly(labelId);
   }
 
   @Test
@@ -86,28 +80,28 @@ public class ComponentLabelResourceTest
     HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    assertThat(componentLabels.labelsByOwner).isEmpty();
     // Verify org level
     response = restRequest(OwnerType.ORGANIZATION, org.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    assertThat(componentLabels.labelsByOwner).isEmpty();
     // Verify parent org level
     response = restRequest(OwnerType.ORGANIZATION, org.getParentOrganizationId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    assertThat(componentLabels.labelsByOwner).isEmpty();
     // Verify repository level
     response = restRequest(OwnerType.REPOSITORY, repository.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    assertThat(componentLabels.labelsByOwner).isEmpty();
     // Verify repository container level
     response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, componentHash)
         .get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    assertThat(componentLabels.labelsByOwner).isEmpty();
 
     // Labels applied to componentHash at all levels
     tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
@@ -118,7 +112,7 @@ public class ComponentLabelResourceTest
     response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(3));
+    assertThat(componentLabels.labelsByOwner).hasSize(3);
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), app, appLabel.getId());
     assertLabelsByOwner(componentLabels.labelsByOwner.get(1), org, orgLabel.getId());
     assertLabelsByOwner(componentLabels.labelsByOwner.get(2), rootOrg, rootOrgLabel.getId());
@@ -126,21 +120,21 @@ public class ComponentLabelResourceTest
     response = restRequest(OwnerType.ORGANIZATION, org.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(2));
+    assertThat(componentLabels.labelsByOwner).hasSize(2);
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), org, orgLabel.getId());
     assertLabelsByOwner(componentLabels.labelsByOwner.get(1), rootOrg, rootOrgLabel.getId());
     // Verify parent org level
     response = restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(1));
+    assertThat(componentLabels.labelsByOwner).hasSize(1);
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), rootOrg, rootOrgLabel.getId());
     // Verify repository level
     // NOTE: Currently, only RootOrg labels are possible for a Repository.
     response = restRequest(OwnerType.REPOSITORY, repository.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(1));
+    assertThat(componentLabels.labelsByOwner).hasSize(1);
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), rootOrg, rootOrgLabel.getId());
     // Verify repository container level
     // NOTE: Currently, only RootOrg labels are possible for a Repository container.
@@ -148,7 +142,7 @@ public class ComponentLabelResourceTest
         .get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    assertThat(componentLabels.labelsByOwner, hasSize(1));
+    assertThat(componentLabels.labelsByOwner).hasSize(1);
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), rootOrg, rootOrgLabel.getId());
   }
 
@@ -158,8 +152,7 @@ public class ComponentLabelResourceTest
     setComponentLabelAndVerify(OwnerType.APPLICATION, app.getPublicId(), appLabel, app.getId());
     List<ComponentLabel> componentLabels = componentLabelDAO
         .getByOwnerIdAndHash(app.getOrganizationId(), componentHash);
-    assertThat(componentLabels, is(notNullValue()));
-    assertThat(componentLabels.size(), is(0));
+    assertThat(componentLabels).isEmpty();
   }
 
   @Test
@@ -224,9 +217,9 @@ public class ComponentLabelResourceTest
     assertResponseStatus(204, response);
 
     List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(ownerIdToVerify, componentHash);
-    assertThat(componentLabels, is(notNullValue()));
-    assertThat(componentLabels.size(), is(1));
-    assertThat(componentLabels.get(0).getLabelId(), is(labelToAdd.getId()));
+    assertThat(componentLabels).isNotNull();
+    assertThat(componentLabels).hasSize(1);
+    assertThat(componentLabels.get(0).getLabelId()).isEqualTo(labelToAdd.getId());
   }
 
   private void deleteComponentLabelAndVerify(OwnerType ownerType, String requestOwnerId, ComponentLabel componentLabel)
@@ -238,12 +231,11 @@ public class ComponentLabelResourceTest
     HttpResponse response = restRequest(ownerType, requestOwnerId, componentHash).path(labelId).delete();
     assertResponseStatus(204, response);
 
-    assertThat(componentLabelDAO.getById(componentLabel.getId()), is(nullValue()));
+    assertThat(componentLabelDAO.getById(componentLabel.getId())).isNull();
 
     response = restRequest(ownerType, requestOwnerId, componentHash).path(labelId).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(),
-        is("Cannot find the label with ID " + labelId + " for " + ownerType.toString() + " ID " + requestOwnerId
-            + " on the component " + componentHash + "."));
+    assertThat(response.getBodyText()).isEqualTo("Cannot find the label with ID " + labelId + " for "
+        + ownerType.toString() + " ID " + requestOwnerId + " on the component " + componentHash + ".");
   }
 }

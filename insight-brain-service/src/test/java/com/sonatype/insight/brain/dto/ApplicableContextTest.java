@@ -10,8 +10,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApplicableContextTest
 {
@@ -29,13 +28,9 @@ public class ApplicableContextTest
   }
 
   private void assertSetTypeBad(final OwnerType ownerType) {
-    try {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       applicableContext.setType(ownerType);
-      fail();
-    }
-    catch (IllegalArgumentException e) {
-      assertEquals("Unknown context type: " + ownerType, e.getMessage());
-    }
+    }).withMessage("Unknown context type: " + ownerType);
   }
 
   @Test

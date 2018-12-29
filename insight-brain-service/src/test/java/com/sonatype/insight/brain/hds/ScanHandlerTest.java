@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -37,15 +38,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -86,9 +80,9 @@ public class ScanHandlerTest
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.EXPANDED_COVERAGE);
-    assertThat(scanReceipt.getScanId(), is(scanId));
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile.exists(), is(false));
+    assertThat(scanFile).doesNotExist();
   }
 
   @Test
@@ -105,10 +99,9 @@ public class ScanHandlerTest
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
-    assertThat(scanReceipt.getScanId(), is(scanId));
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile.exists(), is(true));
-    assertThat(FileUtils.readFileToString(scanFile, "UTF-8"), is(scanFileContent));
+    assertThat(scanFile).isFile().usingCharset(StandardCharsets.UTF_8).hasContent(scanFileContent);
   }
 
   @Test
@@ -128,39 +121,39 @@ public class ScanHandlerTest
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
-    assertThat(scanReceipt.getScanId(), is(scanId));
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile).isFile();
 
     Scan scan = scanReader.read(scanFile);
 
     // Verify the top scan item in the scan
     List<ScanItem> scanItems = scan.getItems();
-    assertThat(scanItems, hasSize(1));
+    assertThat(scanItems).hasSize(1);
     ScanItem scanItem = scanItems.get(0);
-    assertThat(scanItem, instanceOf(DirectoryScanItem.class));
-    assertThat(scanItem.getPath(), is("DockerImage"));
+    assertThat(scanItem).isInstanceOf(DirectoryScanItem.class);
+    assertThat(scanItem.getPath()).isEqualTo("DockerImage");
 
     // Verify the sub scan items in the scan
     List<? extends ScanItem> subScanItems = scanItem.getItems();
-    assertThat(subScanItems, hasSize(3));
+    assertThat(subScanItems).hasSize(3);
     scanItem = subScanItems.get(0);
-    assertThat(scanItem, instanceOf(ScanItem.class));
-    assertThat(scanItem.getPath(), is("/bin/bash"));
-    assertThat(scanItem.isProprietary(), is(nullValue()));
+    assertThat(scanItem).isInstanceOf(ScanItem.class);
+    assertThat(scanItem.getPath()).isEqualTo("/bin/bash");
+    assertThat(scanItem.isProprietary()).isNull();
     scanItem = subScanItems.get(1);
-    assertThat(scanItem, instanceOf(DirectoryScanItem.class));
-    assertThat(scanItem.getPath(), is("/opt/foo.tar"));
-    assertThat(scanItem.isProprietary(), is(nullValue()));
+    assertThat(scanItem).isInstanceOf(DirectoryScanItem.class);
+    assertThat(scanItem.getPath()).isEqualTo("/opt/foo.tar");
+    assertThat(scanItem.isProprietary()).isNull();
     scanItem = subScanItems.get(2);
-    assertThat(scanItem, instanceOf(DirectoryScanItem.class));
-    assertThat(scanItem.getPath(), is("/opt/bar.tar"));
-    assertThat(scanItem.isProprietary(), is(true));
+    assertThat(scanItem).isInstanceOf(DirectoryScanItem.class);
+    assertThat(scanItem.getPath()).isEqualTo("/opt/bar.tar");
+    assertThat(scanItem.isProprietary()).isTrue();
 
     // Verify some other scan values
-    assertThat(scan.getSummary().getStartTime(), notNullValue());
-    assertThat(scan.getSummary().getEndTime(), notNullValue());
-    assertThat(scan.getSummary().getClientInfo().size(), greaterThan(0));
+    assertThat(scan.getSummary().getStartTime()).isNotNull();
+    assertThat(scan.getSummary().getEndTime()).isNotNull();
+    assertThat(scan.getSummary().getClientInfo()).isNotEmpty();
   }
 
   @Test
@@ -179,29 +172,29 @@ public class ScanHandlerTest
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
-    assertThat(scanReceipt.getScanId(), is(scanId));
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile).isFile();
 
     Scan scan = scanReader.read(scanFile);
 
     // Verify the top scan item in the scan
     List<ScanItem> scanItems = scan.getItems();
-    assertThat(scanItems, hasSize(1));
+    assertThat(scanItems).hasSize(1);
     ScanItem scanItem = scanItems.get(0);
-    assertThat(scanItem, instanceOf(DirectoryScanItem.class));
-    assertThat(scanItem.getPath(), is("DockerImage"));
+    assertThat(scanItem).isInstanceOf(DirectoryScanItem.class);
+    assertThat(scanItem.getPath()).isEqualTo("DockerImage");
 
     // Verify the sub scan items in the scan
     Set<FsScheme> supportedFsSchemesForArchives = getSupportedFsSchemesForArchives();
     Set<FsScheme> detectedFsSchemesForArchives = new HashSet<>();
     List<? extends ScanItem> subScanItems = scanItem.getItems();
     for (ScanItem subScanItem : subScanItems) {
-      assertThat("Item not detected as archive: " + subScanItem.getPath(), subScanItem,
-          instanceOf(DirectoryScanItem.class));
+      assertThat(subScanItem).as("Item not detected as archive: " + subScanItem.getPath())
+          .isInstanceOf(DirectoryScanItem.class);
       detectedFsSchemesForArchives.add(new FsScheme(subScanItem.getPath().substring("/opt/foo.".length())));
     }
-    assertThat(detectedFsSchemesForArchives, is(supportedFsSchemesForArchives));
+    assertThat(detectedFsSchemesForArchives).isEqualTo(supportedFsSchemesForArchives);
   }
 
   private Set<FsScheme> getSupportedFsSchemesForArchives() {
@@ -240,7 +233,7 @@ public class ScanHandlerTest
     scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
 
     HdsClientAnalytics analytics = analyticsArg.getValue();
-    assertThat(analytics, is(equalTo(expectedAnalyticsData)));
+    assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
 
   @Test
@@ -248,12 +241,8 @@ public class ScanHandlerTest
     String appPublicId = "NoSuchAppPublicID";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
-      fail("Expected exception");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Could not find an application with public ID NoSuchAppPublicID."));
-    }
+    }).withMessage("Could not find an application with public ID NoSuchAppPublicID.");
   }
 }

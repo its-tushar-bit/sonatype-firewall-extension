@@ -19,12 +19,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.google.inject.Binder;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 public class ApplicationSummaryServiceAuthzTest
@@ -47,92 +43,88 @@ public class ApplicationSummaryServiceAuthzTest
   public void testGetApplications_Authorized_NullGoal() {
     grantReadPermission(app.getId());
     ApplicationSummaryList list = service.getApplications(null /* goal */);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(1));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).hasSize(1);
   }
 
   @Test
   public void testGetApplications_Authorized_EVALUATE_COMPONENT() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(1));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).hasSize(1);
   }
 
   @Test
   public void testGetApplications_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(1));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).hasSize(1);
   }
 
   @Test
   public void testGetApplications_Authorized_SUMMARIZE_EVALUATION() {
     grantPermission(app.getId(), Permission.READ);
     ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(1));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).hasSize(1);
   }
 
   @Test
   public void testGetApplications_Unauthorized_NullGoal() {
     login();
     ApplicationSummaryList list = service.getApplications(null /* goal */);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(0));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
   }
 
   @Test
   public void testGetApplications_Unauthorized_EVALUATE_APPLICATION() {
     login();
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(0));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
   }
 
   @Test
   public void testGetApplications_Unauthorized_EVALUATE_COMPONENT() {
     login();
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(0));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
   }
 
   @Test
   public void testGetApplications_Unauthorized_SUMMARIZE_EVALUATION() {
     login();
     ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(0));
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     assertThat(
-        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
-        is(true));
+        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
+            .isTrue();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_APPLICATION() {
     login();
     assertThat(
-        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
-        is(false));
+        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
+            .isFalse();
   }
 
   @Test
   public void testVerifyOrCreateApplication_NullGoal() {
     login();
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.verifyOrCreateApplication(app.getPublicId(), null /* goal */, "test_client_user_agent");
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("A goal must be specified"));
-    }
+    }).withMessage("A goal must be specified");
   }
 
   @Test
@@ -143,15 +135,15 @@ public class ApplicationSummaryServiceAuthzTest
     // If the application does not exist, it will be created if automatic app creation is enabled and we have permission
     // to evaluate applications for its configured organization.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
-        is(false));
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
+        .isFalse();
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
-        is(false));
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
+        .isFalse();
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
   }
 
   @Test
@@ -166,14 +158,14 @@ public class ApplicationSummaryServiceAuthzTest
     // If the application does not exist, then "access" is allowed only if automatic app creation is enabled.
     // We should then be able to access it in this scenario because we have permission via the organization.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
-        is(false));
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
+        .isFalse();
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
-        is(true));
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(notNullValue()));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
+        .isTrue();
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNotNull();
   }
 }

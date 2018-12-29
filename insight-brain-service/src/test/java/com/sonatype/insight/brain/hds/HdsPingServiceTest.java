@@ -14,9 +14,7 @@ import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 public class HdsPingServiceTest
@@ -40,8 +38,8 @@ public class HdsPingServiceTest
 
     PingResponseDTO status = hdsPingService.pingHds();
 
-    assertThat(status.alive, is(true));
-    assertThat(status.errorMessage, is(nullValue()));
+    assertThat(status.alive).isTrue();
+    assertThat(status.errorMessage).isNull();
   }
 
   @Test
@@ -50,7 +48,7 @@ public class HdsPingServiceTest
 
     PingResponseDTO status = hdsPingService.pingHds();
 
-    assertThat(status.alive, is(false));
-    assertThat(status.errorMessage.matches("Unreachable \\(ID [0-9a-fA-F]{16}\\)\\."), is(true));
+    assertThat(status.alive).isFalse();
+    assertThat(status.errorMessage).matches("Unreachable \\(ID [0-9a-fA-F]{16}\\)\\.");
   }
 }

@@ -12,8 +12,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConfigResourceTest
     extends AbstractResourceTest
@@ -39,8 +38,8 @@ public class ProprietaryConfigResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
-    assertNotNull(config);
-    assertEquals(0, config.getPackages().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getPackages()).isEmpty();
   }
 
   @Test
@@ -50,8 +49,8 @@ public class ProprietaryConfigResourceTest
     HttpResponse response = restRequest(Goal.EVALUATE_APPLICATION, "app-id").get();
     assertResponseStatus(200, response);
     ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
-    assertNotNull(config);
-    assertEquals(0, config.getPackages().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getPackages()).isEmpty();
   }
 
   @Test
@@ -61,7 +60,7 @@ public class ProprietaryConfigResourceTest
     HttpResponse response = restRequest(Goal.EVALUATE_COMPONENT, "app-id").get();
     assertResponseStatus(200, response);
     ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
-    assertNotNull(config);
-    assertEquals(0, config.getPackages().size());
+    assertThat(config).isNotNull();
+    assertThat(config.getPackages()).isEmpty();
   }
 }

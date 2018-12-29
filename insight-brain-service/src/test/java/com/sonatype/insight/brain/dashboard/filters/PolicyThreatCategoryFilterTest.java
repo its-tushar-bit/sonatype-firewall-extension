@@ -13,11 +13,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyThreatCategoryFilterTest
 {
@@ -31,8 +28,8 @@ public class PolicyThreatCategoryFilterTest
     PolicyViolation falseViolation = new PolicyViolation();
     falseViolation.setThreatCategory(PolicyThreatCategory.OTHER);
 
-    assertThat(filter.asPolicyViolationPredicate().test(trueViolation), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(falseViolation), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(trueViolation)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(falseViolation)).isFalse();
   }
 
   @Test
@@ -48,10 +45,10 @@ public class PolicyThreatCategoryFilterTest
     v3.setThreatCategory(PolicyThreatCategory.QUALITY);
     v4.setThreatCategory(PolicyThreatCategory.SECURITY);
 
-    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v3), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v4), is(true));
+    assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v3)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v4)).isTrue();
   }
 
   @Test
@@ -66,10 +63,10 @@ public class PolicyThreatCategoryFilterTest
     v3.setThreatCategory(PolicyThreatCategory.QUALITY);
     v4.setThreatCategory(PolicyThreatCategory.SECURITY);
 
-    assertThat(filter.asPolicyViolationPredicate().test(v1), is(false));
-    assertThat(filter.asPolicyViolationPredicate().test(v2), is(false));
-    assertThat(filter.asPolicyViolationPredicate().test(v3), is(false));
-    assertThat(filter.asPolicyViolationPredicate().test(v4), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1)).isFalse();
+    assertThat(filter.asPolicyViolationPredicate().test(v2)).isFalse();
+    assertThat(filter.asPolicyViolationPredicate().test(v3)).isFalse();
+    assertThat(filter.asPolicyViolationPredicate().test(v4)).isFalse();
   }
 
   @Test
@@ -85,10 +82,10 @@ public class PolicyThreatCategoryFilterTest
     v3.setThreatCategory(PolicyThreatCategory.QUALITY);
     v4.setThreatCategory(PolicyThreatCategory.SECURITY);
 
-    assertThat(filter.asPolicyViolationPredicate().test(v1), is(false));
-    assertThat(filter.asPolicyViolationPredicate().test(v2), is(false));
-    assertThat(filter.asPolicyViolationPredicate().test(v3), is(false));
-    assertThat(filter.asPolicyViolationPredicate().test(v4), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1)).isFalse();
+    assertThat(filter.asPolicyViolationPredicate().test(v2)).isFalse();
+    assertThat(filter.asPolicyViolationPredicate().test(v3)).isFalse();
+    assertThat(filter.asPolicyViolationPredicate().test(v4)).isFalse();
   }
 
   @Test
@@ -97,7 +94,7 @@ public class PolicyThreatCategoryFilterTest
     PolicyViolation v1 = new PolicyViolation();
     v1.setThreatCategory(null);
 
-    assertThat(filter.asPolicyViolationPredicate().test(v1), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1)).isFalse();
   }
 
   @Test
@@ -122,22 +119,22 @@ public class PolicyThreatCategoryFilterTest
     PolicyThreatCategoryFilter multiCategoryWithSpacesFilter = new PolicyThreatCategoryFilter(multiCategoryWithSpaces);
     PolicyThreatCategoryFilter multiCategoryFilter = new PolicyThreatCategoryFilter(multiCategory);
 
-    assertTrue(singleCategoryFilter.asPolicyViolationPredicate().test(v1));
-    assertFalse(singleCategoryFilter.asPolicyViolationPredicate().test(v2));
+    assertThat(singleCategoryFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(singleCategoryFilter.asPolicyViolationPredicate().test(v2)).isFalse();
 
-    assertTrue(singleCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v1));
-    assertFalse(singleCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v2));
+    assertThat(singleCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(singleCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v2)).isFalse();
 
-    assertTrue(singleCategoryWithDanglingCommaFilter.asPolicyViolationPredicate().test(v1));
-    assertFalse(singleCategoryWithDanglingCommaFilter.asPolicyViolationPredicate().test(v2));
+    assertThat(singleCategoryWithDanglingCommaFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(singleCategoryWithDanglingCommaFilter.asPolicyViolationPredicate().test(v2)).isFalse();
 
-    assertTrue(multiCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v1));
-    assertTrue(multiCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v2));
-    assertFalse(multiCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(multiCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(multiCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(multiCategoryWithSpacesFilter.asPolicyViolationPredicate().test(v3)).isFalse();
 
-    assertTrue(multiCategoryFilter.asPolicyViolationPredicate().test(v1));
-    assertTrue(multiCategoryFilter.asPolicyViolationPredicate().test(v2));
-    assertFalse(multiCategoryFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(multiCategoryFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(multiCategoryFilter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(multiCategoryFilter.asPolicyViolationPredicate().test(v3)).isFalse();
   }
 
   @Test
@@ -147,36 +144,20 @@ public class PolicyThreatCategoryFilterTest
     String emptyString = "";
     String nullString = null;
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatCategoryFilter(emptyCategory);
-      fail("Filter should throw a bad request exception for the first category parsing as empty string.");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Unknown policy threat category with name: "));
-    }
+    }).withMessage("Unknown policy threat category with name: ");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatCategoryFilter(nonExistentCategory);
-      fail("Filter should throw a bad request exception for the first category not being a real category.");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Unknown policy threat category with name: category1"));
-    }
+    }).withMessage("Unknown policy threat category with name: category1");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatCategoryFilter(emptyString);
-      fail("Filter should throw a bad request exception for empty strings.");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Unable to parse policy threat categories from empty or null categories."));
-    }
+    }).withMessage("Unable to parse policy threat categories from empty or null categories.");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatCategoryFilter(nullString);
-      fail("Filter should throw a bad request exception for null strings.");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Unable to parse policy threat categories from empty or null categories."));
-    }
+    }).withMessage("Unable to parse policy threat categories from empty or null categories.");
   }
 }

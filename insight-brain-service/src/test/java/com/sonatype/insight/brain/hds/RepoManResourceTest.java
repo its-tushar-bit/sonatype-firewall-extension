@@ -20,12 +20,7 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepoManResourceTest
     extends AbstractResourceTest
@@ -51,13 +46,13 @@ public class RepoManResourceTest
     assertResponseStatus(200, response);
 
     ScanReceipt receipt = response.getBody(ScanReceipt.class);
-    assertNotNull(receipt);
-    assertEquals(scanReceipt.getScanId(), receipt.getScanId());
-    assertEquals(scanReceipt.getTimeToReport(), receipt.getTimeToReport());
-    assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d",
-        receipt.getReportUrl());
-    assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d/pdf",
-        receipt.getPdfUrl());
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getScanId()).isEqualTo(scanReceipt.getScanId());
+    assertThat(receipt.getTimeToReport()).isEqualTo(scanReceipt.getTimeToReport());
+    assertThat(receipt.getReportUrl())
+        .isEqualTo("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d");
+    assertThat(receipt.getPdfUrl())
+        .isEqualTo("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d/pdf");
   }
 
   @Test
@@ -93,8 +88,8 @@ public class RepoManResourceTest
     assertResponseStatus(200, response);
 
     PendoConfig config = response.getBody(PendoConfig.class);
-    assertThat(config.visitor, is(not(nullValue())));
-    assertThat(config.account, is(not(nullValue())));
+    assertThat(config.visitor).isNotNull();
+    assertThat(config.account).isNotNull();
   }
 
   @Test
@@ -107,7 +102,7 @@ public class RepoManResourceTest
     assertResponseStatus(200, response);
 
     String js = response.getBodyText();
-    assertThat(js, is("some javascript"));
+    assertThat(js).isEqualTo("some javascript");
   }
 
   @Test
@@ -121,7 +116,7 @@ public class RepoManResourceTest
     HttpResponse response = restRequest().path(url).get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is("some response"));
+    assertThat(response.getBodyText()).isEqualTo("some response");
   }
 
   @Test
@@ -135,6 +130,6 @@ public class RepoManResourceTest
     HttpResponse response = restRequest().path(url).post();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText(), is("some response"));
+    assertThat(response.getBodyText()).isEqualTo("some response");
   }
 }

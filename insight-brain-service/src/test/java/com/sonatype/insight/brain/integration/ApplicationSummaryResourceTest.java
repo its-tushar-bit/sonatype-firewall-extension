@@ -17,10 +17,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationSummaryResourceTest
     extends AbstractResourceTest
@@ -114,7 +111,7 @@ public class ApplicationSummaryResourceTest
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
-    assertThat(applicationListDTO.getApplicationSummaries().size(), is(0));
+    assertThat(applicationListDTO.getApplicationSummaries()).isEmpty();
   }
 
   @Test
@@ -141,12 +138,12 @@ public class ApplicationSummaryResourceTest
   }
 
   private void assertApplicationSummaryList(ApplicationSummaryList actual, Application expected) {
-    assertThat(actual, notNullValue());
-    assertThat(actual.getApplicationSummaries(), hasSize(1));
+    assertThat(actual).isNotNull();
+    assertThat(actual.getApplicationSummaries()).hasSize(1);
     ApplicationSummary applicationSummary = actual.getApplicationSummaries().get(0);
-    assertThat(applicationSummary.getId(), is(expected.getId()));
-    assertThat(applicationSummary.getPublicId(), is(expected.getPublicId()));
-    assertThat(applicationSummary.getName(), is(expected.getName()));
+    assertThat(applicationSummary.getId()).isEqualTo(expected.getId());
+    assertThat(applicationSummary.getPublicId()).isEqualTo(expected.getPublicId());
+    assertThat(applicationSummary.getName()).isEqualTo(expected.getName());
   }
 
   @Test
@@ -157,6 +154,6 @@ public class ApplicationSummaryResourceTest
         .parameter(app.getPublicId()).query(ApplicationSummaryResource.GOAL_PARAM, Goal.EVALUATE_APPLICATION).post();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBody(String.class), is("true"));
+    assertThat(response.getBody(String.class)).isEqualTo("true");
   }
 }

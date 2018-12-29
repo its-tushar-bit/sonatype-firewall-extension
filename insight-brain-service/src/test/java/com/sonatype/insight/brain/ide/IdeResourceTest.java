@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -41,14 +40,7 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class IdeResourceTest
     extends AbstractResourceTest
@@ -105,16 +97,15 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(
+        ideMatchedComponent.getComponentIdentifier()).isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -132,15 +123,14 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier()).isEqualTo(componentIdentifier);
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -156,23 +146,21 @@ public class IdeResourceTest
     HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertNotNull(ideMatchedComponent.getWaitDelta());
-    assertTrue(ideMatchedComponent.getWaitDelta() > 0);
+    assertThat(ideMatchedComponent.getWaitDelta()).isPositive();;
 
     mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
-    assertFalse(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isFalse();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -190,22 +178,20 @@ public class IdeResourceTest
     HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertNotNull(ideMatchedComponent.getWaitDelta());
-    assertTrue(ideMatchedComponent.getWaitDelta() > 0);
+    assertThat(ideMatchedComponent.getWaitDelta()).isPositive();
 
     mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier()).isEqualTo(componentIdentifier);
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
-    assertFalse(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isFalse();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -221,15 +207,14 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     // Override the license and evaluate the policy again
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
@@ -238,15 +223,14 @@ public class IdeResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -263,15 +247,14 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     // Override the license and evaluate the policy again
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
@@ -280,15 +263,14 @@ public class IdeResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -306,15 +288,14 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
     // the policy again. There should be no policy alerts.
@@ -323,15 +304,14 @@ public class IdeResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
     tempEntity.newSecurityVulnerabilityOverride(application.getId(), ideMatchedComponent.getHash(), "osvdb", "36079",
@@ -339,15 +319,14 @@ public class IdeResourceTest
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -363,15 +342,14 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -388,7 +366,7 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertNull(ideMatchedComponent.getAlerts());
+    assertThat(ideMatchedComponent.getAlerts()).isNull();
   }
 
   @Test
@@ -406,8 +384,7 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -441,8 +418,7 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -474,45 +450,42 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
 
     request = enhancedScanRequest(applicationPublicId, "abababababababababab").query("proprietary", true);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
 
     request = simpleScanRequest(applicationPublicId, "abababababababababab").query("proprietary", false);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertEquals("abababababababababab", ideMatchedComponent.getHash());
-    assertEquals("exact", ideMatchedComponent.getMatchState());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
   }
 
   @Test
@@ -549,17 +522,16 @@ public class IdeResourceTest
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
     assertGavInIdeMatchedComponent(groupId, artifactId, version, ideMatchedComponent);
-    assertEquals(hash, ideMatchedComponent.getHash());
-    assertEquals(MatchState.EXACT.getId(), ideMatchedComponent.getMatchState());
-    assertEquals(IdentificationSource.MANUAL.getId(), ideMatchedComponent.getIdentificationSource());
-    assertTrue(ideMatchedComponent.isSimpleMatch());
+    assertThat(ideMatchedComponent.getHash()).isEqualTo(hash);
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertThat(policyAlerts.get(0).getTrigger().getPolicyName(), is(policy1.getName()));
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo(policy1.getName());
   }
 
   @Test
@@ -592,16 +564,15 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
-        ideMatchedComponent.getComponentIdentifier());
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
-    assertThat(ideMatchedComponent.getHash(), is(hash));
-    assertThat(ideMatchedComponent.getMatchState(), is("exact"));
-    assertThat(ideMatchedComponent.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
-    assertThat(ideMatchedComponent.isSimpleMatch(), is(true));
+    assertThat(ideMatchedComponent.getHash()).isEqualTo(hash);
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
-    assertThat(policyAlerts, is(notNullValue()));
-    assertThat(policyAlerts.size(), is(1));
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -611,7 +582,7 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = response.getBody(String[].class);
-    assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
+    assertThat(versions).containsExactly("1.1", "2.0");
   }
 
   @Test
@@ -622,7 +593,7 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = response.getBody(String[].class);
-    assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
+    assertThat(versions).containsExactly("1.1", "2.0");
   }
 
   @Test
@@ -647,8 +618,8 @@ public class IdeResourceTest
                                               String version,
                                               IdeMatchedComponent ideMatchedComponent)
   {
-    assertThat(ideMatchedComponent.getGroupId(), is(groupId));
-    assertThat(ideMatchedComponent.getArtifactId(), is(artifactId));
-    assertThat(ideMatchedComponent.getVersion(), is(version));
+    assertThat(ideMatchedComponent.getGroupId()).isEqualTo(groupId);
+    assertThat(ideMatchedComponent.getArtifactId()).isEqualTo(artifactId);
+    assertThat(ideMatchedComponent.getVersion()).isEqualTo(version);
   }
 }

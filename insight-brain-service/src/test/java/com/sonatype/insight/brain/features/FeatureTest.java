@@ -8,8 +8,7 @@ package com.sonatype.insight.brain.features;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FeatureTest
 {
@@ -18,7 +17,7 @@ public class FeatureTest
     ObjectMapper mapper = new ObjectMapper();
     for (Feature feature : Feature.values()) {
       String json = mapper.writeValueAsString(feature);
-      assertThat(json, is('"' + feature.toString() + '"'));
+      assertThat(json).isEqualTo('"' + feature.toString() + '"');
     }
   }
 }

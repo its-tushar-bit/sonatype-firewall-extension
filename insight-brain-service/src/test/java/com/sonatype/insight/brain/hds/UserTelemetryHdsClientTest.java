@@ -25,8 +25,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -69,6 +68,6 @@ public class UserTelemetryHdsClientTest extends AbstractHdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.relay(request, InputStream.class, "foo/bar");
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(browserAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(browserAgent);
   }
 }

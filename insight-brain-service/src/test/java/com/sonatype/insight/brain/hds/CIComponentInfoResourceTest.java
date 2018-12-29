@@ -28,9 +28,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.toLicenseDTO;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CIComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
@@ -88,9 +86,9 @@ public class CIComponentInfoResourceTest
     HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
     ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertThat(licenses.declaredlicenses.get(0).license.getLicenseId(), is("Apache-2.0"));
-    assertThat(licenses.observedlicenses, hasSize(0));
+    assertThat(licenses.declaredlicenses).extracting(license -> license.license.getLicenseId())
+        .containsExactlyInAnyOrder("Apache-2.0");
+    assertThat(licenses.observedlicenses).isEmpty();
   }
 
   private Set<License> toLicenseSet(String... licenseIds) {
@@ -119,13 +117,13 @@ public class CIComponentInfoResourceTest
     assertResponseStatus(200, response);
     ComponentSecurityVulnerabilities retrievedVulnerabilities = response
         .getBody(ComponentSecurityVulnerabilities.class);
-    assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
+    assertThat(retrievedVulnerabilities.securityVulnerabilities).hasSize(1);
     SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
-    assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));
-    assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
-    assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
-    assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
-    assertThat(retrievedVulnerability.getStatus(), is(SecurityVulnerabilityOverrideStatus.OPEN.getName()));
+    assertThat(retrievedVulnerability.getRefId()).isEqualTo(vulnerability.getRefId());
+    assertThat(retrievedVulnerability.getSource()).isEqualTo(vulnerability.getSource());
+    assertThat(retrievedVulnerability.getSeverity()).isEqualTo(vulnerability.getSeverity());
+    assertThat(retrievedVulnerability.getSummary()).isEqualTo(vulnerability.getSummary());
+    assertThat(retrievedVulnerability.getStatus()).isEqualTo(SecurityVulnerabilityOverrideStatus.OPEN.getName());
   }
 
   @Test
@@ -133,6 +131,6 @@ public class CIComponentInfoResourceTest
     HttpResponse response = vulnerabilitiesRequest(OwnerType.REPOSITORY, "repositoryDoesNotExist", "hash",
         MAVEN_COORDINATES).get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find a repository with ID repositoryDoesNotExist."));
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a repository with ID repositoryDoesNotExist.");
   }
 }

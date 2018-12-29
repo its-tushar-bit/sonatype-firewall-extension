@@ -20,11 +20,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.inject.Binder;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,13 +56,13 @@ public class PolicyEvaluationSummaryServiceTest
     PolicyEvaluationSummary policyEvaluationSummary = policyEvaluationSummaryService
         .getEvaluationSummaryByApplicationId(application.getId(), stage);
 
-    assertThat(policyEvaluationSummary, notNullValue());
-    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/application/" + application.getPublicId()
-        + "/report/" + scanId));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
+    assertThat(policyEvaluationSummary).isNotNull();
+    assertThat(policyEvaluationSummary.getReportUrl())
+        .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + scanId);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
   }
 
   @Test
@@ -74,13 +71,9 @@ public class PolicyEvaluationSummaryServiceTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String appId = "invalidAppId";
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(appId, stage);
-      fail("Expected exception " + NotFoundException.class.getSimpleName());
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not find an application with ID " + appId + "."));
-    }
+    }).withMessageContaining("not find an application with ID " + appId);
   }
 
   @Test
@@ -91,7 +84,7 @@ public class PolicyEvaluationSummaryServiceTest
     Application application = tempEntity.newApplicationWithParent("test-app");
     PolicyEvaluationSummary policyEvaluationSummary = policyEvaluationSummaryService
         .getEvaluationSummaryByApplicationId(application.getId(), stage);
-    assertThat(policyEvaluationSummary, nullValue());
+    assertThat(policyEvaluationSummary).isNull();
   }
 
   @Test
@@ -100,12 +93,8 @@ public class PolicyEvaluationSummaryServiceTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");
-    try {
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(application.getId(), stage);
-      fail("Expected exception " + InvalidLicenseException.class.getSimpleName());
-    }
-    catch (InvalidLicenseException e) {
-      assertThat(e.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
-    }
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 }

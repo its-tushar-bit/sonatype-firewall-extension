@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -53,19 +52,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isIn;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.core.AnyOf.anyOf;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -114,28 +102,28 @@ public class HdsClientTest
 
     // Method does not pass an original request, hence the null header.
     client.get(InputStream.class, testPath, null, new String[] {});
-    assertNull(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
     client.relay(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
     client.relay(request, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
     // Method does not pass an original request, hence the null header.
     client.put(null, InputStream.class, testPath,
         new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
-    assertNull(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
 
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
     when(request.getHeader(eq(HdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testClmClientUserAgent);
     client.relay(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
 
     HttpEntity httpEntity = MultipartEntityBuilder.create().build();
     client.post(testPath, httpEntity, null /* testClmClientUserAgent */);
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(nullValue()));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
     client.post(testPath, httpEntity, testClmClientUserAgent);
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
   }
 
   private String getBrainVersion() throws IOException {
@@ -150,7 +138,7 @@ public class HdsClientTest
   @Test
   public void testBrainUserAgentOnRequests() throws Exception {
     String userAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
-    assertThat(userAgent, startsWith("Sonatype_CLM_Server/" + getBrainVersion()));
+    assertThat(userAgent).startsWith("Sonatype_CLM_Server/" + getBrainVersion());
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()
@@ -175,26 +163,26 @@ public class HdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.get(InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.get(InputStream.class, testPath);
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
 
     client.post(testPath, new StringEntity(""), "test-client-user-agent");
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.post(InputStream.class, testPath, Collections.emptyMap());
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.post(null, InputStream.class, testPath, "test-client-user-agent", Collections.emptyMap());
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
 
     client.relay(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.relay(request, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.put(null, InputStream.class, testPath,
         new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
   }
 
   @Test
@@ -213,7 +201,7 @@ public class HdsClientTest
           throws IOException, ServletException
       {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
-          headers.add(en.nextElement().toLowerCase(Locale.ENGLISH));
+          headers.add(en.nextElement());
         }
         baseRequest.setHandled(true);
       }
@@ -228,12 +216,8 @@ public class HdsClientTest
 
     client.relay(request, String.class, "/rest/test");
 
-    assertThat(HttpHeaders.AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat(HttpHeaders.PROXY_AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat(HttpHeaders.COOKIE.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat("Cookie2".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat(usernameHeader.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat(headers, not(empty()));
+    assertThat(headers).usingElementComparator(String.CASE_INSENSITIVE_ORDER).isNotEmpty().doesNotContain(
+        HttpHeaders.AUTHORIZATION, HttpHeaders.PROXY_AUTHORIZATION, HttpHeaders.COOKIE, "Cookie2", usernameHeader);
   }
 
   @Test
@@ -247,7 +231,7 @@ public class HdsClientTest
           throws IOException, ServletException
       {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
-          headers.add(en.nextElement().toLowerCase(Locale.ENGLISH));
+          headers.add(en.nextElement());
         }
         baseRequest.setHandled(true);
       }
@@ -261,10 +245,8 @@ public class HdsClientTest
 
     client.relay(request, String.class, "/rest/test");
 
-    assertThat("X-Forwarded-Host".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat("X-Forwarded-Server".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat("X-Forwarded-For".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
-    assertThat(headers, not(empty()));
+    assertThat(headers).usingElementComparator(String.CASE_INSENSITIVE_ORDER).isNotEmpty()
+        .doesNotContain("X-Forwarded-Host", "X-Forwarded-Server", "X-Forwarded-For");
   }
 
   @Test
@@ -297,8 +279,8 @@ public class HdsClientTest
 
     client.relay(request, String.class, "/rest/test");
 
-    assertThat(request.getContentLength(), not(Integer.parseInt(headers.get(HttpHeaders.CONTENT_LENGTH))));
-    assertThat(headers.get(HttpHeaders.CONTENT_LENGTH), is(Integer.toString(test.length)));
+    assertThat(request.getContentLength()).isNotEqualTo(Integer.parseInt(headers.get(HttpHeaders.CONTENT_LENGTH)));
+    assertThat(headers.get(HttpHeaders.CONTENT_LENGTH)).isEqualTo(Integer.toString(test.length));
   }
 
   @Test
@@ -317,14 +299,9 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), containsString("401"));
-      assertThat(e.getMessage(), containsString("PASSED"));
-    }
+    }).withMessageContaining("401").withMessageContaining("PASSED");
   }
 
   @Test
@@ -343,14 +320,9 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), containsString("403"));
-      assertThat(e.getMessage(), containsString("PASSED"));
-    }
+    }).withMessageContaining("403").withMessageContaining("PASSED");
   }
 
   @Test
@@ -369,14 +341,9 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), containsString("407"));
-      assertThat(e.getMessage(), containsString("PASSED"));
-    }
+    }).withMessageContaining("407").withMessageContaining("PASSED");
   }
 
   @Test
@@ -395,13 +362,9 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), containsString("Sonatype Support"));
-    }
+    }).withMessageContaining("Sonatype Support");
   }
 
   @Test
@@ -420,27 +383,19 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), containsString("Sonatype Support"));
-    }
+    }).withMessageContaining("Sonatype Support");
   }
 
   @Test
   public void testTransformUnknownHost() throws Exception {
     config.setHdsUrl("http://an.unresolvable.hostname/");
     initClient();
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The hostname for the Sonatype Data Services could not be resolved,"
-          + " please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated"));
-    }
+    }).withMessage("The hostname for the Sonatype Data Services could not be resolved,"
+        + " please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated");
   }
 
   @Test
@@ -467,16 +422,16 @@ public class HdsClientTest
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication("test-app-id");
 
     client.relay(request, analytics, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+    assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
+        .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
-    client.put(analytics, String.class, testPath, tempDir.newFile(), new String[] {});
-    assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+    client.put(analytics, String.class, testPath, tempDir.newFile(), new String[]{});
+    assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
+        .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
-    client.post(analytics, String.class, testPath, null, tempDir.newFile(), new String[] {});
-    assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+    client.post(analytics, String.class, testPath, null, tempDir.newFile(), new String[]{});
+    assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
+        .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
   }
 
   @Test
@@ -497,14 +452,9 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The Sonatype Data Services returned error " + statusCode +
-          ", please retry in a bit."));
-    }
+    }).withMessage("The Sonatype Data Services returned error " + statusCode + ", please retry in a bit.");
   }
 
   @Test
@@ -522,15 +472,9 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(Integer.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(
-          e.getMessage(),
-          is("Failed to read response entity received from Sonatype Data Services, please retry in a bit."));
-    }
+    }).withMessage("Failed to read response entity received from Sonatype Data Services, please retry in a bit.");
   }
 
   @Test
@@ -544,27 +488,19 @@ public class HdsClientTest
 
     when(httpClient.execute(any(HttpUriRequest.class))).thenThrow(new IOException("Test"));
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The request to Sonatype Data Services failed, please retry in a bit."));
-    }
+    }).withMessage("The request to Sonatype Data Services failed, please retry in a bit.");
   }
 
   @Test
   public void testSSLExceptionFromHttpClientExecute() throws Exception {
     config.setHdsUrl(config.getHdsUrl().replace("http:", "https:"));
     initClient();
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The SSL/TLS connection to Sonatype Data Services could not be established, "
-          + "contact your network or system administrator for help."));
-    }
+    }).withMessage("The SSL/TLS connection to Sonatype Data Services could not be established, "
+        + "contact your network or system administrator for help.");
   }
 
   @Test
@@ -582,19 +518,15 @@ public class HdsClientTest
       }
     };
 
-    try {
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-      fail("Expected exception");
-    }
-    catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The Sonatype Data Services returned error 500, please retry in a bit."));
-    }
+    }).withMessage("The Sonatype Data Services returned error 500, please retry in a bit.");
   }
 
   @Test
   public void testGetErrorMessage_CatchesException() throws Exception {
-    assertThat(client.getErrorMessage(createMockResponse(new IOException())), is(equalTo("reason")));
-    assertThat(client.getErrorMessage(createMockResponse(new RuntimeException())), is(equalTo("reason")));
+    assertThat(client.getErrorMessage(createMockResponse(new IOException()))).isEqualTo("reason");
+    assertThat(client.getErrorMessage(createMockResponse(new RuntimeException()))).isEqualTo("reason");
   }
 
   @Test
@@ -623,11 +555,10 @@ public class HdsClientTest
 
     //making sure reserved characters are preserved where they should be and encoded in the query values
     String requestUri = client.relay(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams);
-    assertThat(requestUri,
-        containsString("name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit" +
-            "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D"));
-     assertThat(requestUri, containsString("name1=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60"));
-     assertThat(requestUri, anyOf(containsString("&name1="), containsString("&name2=")));
+    assertThat("&" + requestUri).contains(
+        "&name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit"
+            + "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D",
+        "&name1=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60");
   }
 
   private HttpResponse createMockResponse(Exception e) throws Exception {
@@ -695,16 +626,16 @@ public class HdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.post(String.class, testPath, "foo", new String[] {});
-    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
-    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.put(null, String.class, testPath, tempDir.newFile(), new String[] {});
-    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
   }
 
   @Test
@@ -743,8 +674,8 @@ public class HdsClientTest
     FileBody fileBodySent = new FileBody(fileSent);
     HttpEntity httpEntity = MultipartEntityBuilder.create().addPart("file", fileBodySent).build();
     client.post(testPath, httpEntity, "test_client_user_agent");
-    assertThat(statusCode[0], is(HttpStatus.NO_CONTENT_204));
-    assertThat(fileBodyReceived[0].getFileName(), is(fileBodySent.getFilename()));
-    assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), "UTF-8"), is("Test"));
+    assertThat(statusCode[0]).isEqualTo(HttpStatus.NO_CONTENT_204);
+    assertThat(fileBodyReceived[0].getFileName()).isEqualTo(fileBodySent.getFilename());
+    assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), "UTF-8")).isEqualTo("Test");
   }
 }

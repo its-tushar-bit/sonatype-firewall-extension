@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -66,23 +65,16 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
+import org.assertj.core.groups.Tuple;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
 public class ComponentInfoServiceTest
@@ -162,19 +154,15 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     List<License> licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
         MAVEN_COORDINATES, httpRequestMock).selectableLicenses;
-    assertEquals(1, licenses.size());
-    assertEquals("EPL-1.0", licenses.get(0).getLicenseId());
+    assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("EPL-1.0");
 
     // Verify that a versionless license is resolved to versioned licenses
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-UNSPECIFIED"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
         httpRequestMock).selectableLicenses;
-    assertEquals(asList(licenses).toString(), 4, licenses.size());
-    assertContainsLicenseId("Apache-UNSPECIFIED", licenses);
-    assertContainsLicenseId("Apache-1.0", licenses);
-    assertContainsLicenseId("Apache-1.1", licenses);
-    assertContainsLicenseId("Apache-2.0", licenses);
+    assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-UNSPECIFIED", "Apache-1.0",
+        "Apache-1.1", "Apache-2.0");
 
     // Verify that declared and observed licenses are merged
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "EPL-1.0"));
@@ -182,21 +170,15 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
         httpRequestMock).selectableLicenses;
-    assertEquals(asList(licenses).toString(), 3, licenses.size());
-    assertContainsLicenseId("Apache-2.0", licenses);
-    assertContainsLicenseId("EPL-1.0", licenses);
-    assertContainsLicenseId("GPL-2.0", licenses);
+    assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0", "EPL-1.0",
+        "GPL-2.0");
   }
 
   @Test
   public void testGetLicenses_NoComponentIdentifier() throws Exception {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       componentInfoService.getLicenses(null, null, null /* componentIdentifier */, httpRequestMock);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("componentIdentifier is required"));
-    }
+    }).withMessage("componentIdentifier is required");
   }
 
   @Test
@@ -208,13 +190,9 @@ public class ComponentInfoServiceTest
   private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix)
       throws Exception
   {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_COORDINATES, httpRequestMock);
-      fail();
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(expectedErrMsgPrefix + "bogusOwnerId."));
-    }
+    }).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
   @Test
@@ -234,10 +212,10 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, empty());
-    assertThat(licenses.observedlicenses, empty());
-    assertThat(licenses.effectiveLicenses, empty());
-    assertThat(licenses.selectableLicenses, empty());
+    assertThat(licenses.declaredlicenses).isEmpty();
+    assertThat(licenses.observedlicenses).isEmpty();
+    assertThat(licenses.effectiveLicenses).isEmpty();
+    assertThat(licenses.selectableLicenses).isEmpty();
 
     final String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -251,31 +229,15 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES, httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(3));
-    assertContainsLicenseWithThreatLevel("Apache-2.0", "Apache-2.0", 0, licenses.declaredlicenses);
-    assertContainsLicenseWithThreatLevel("LGPL-2.0", "LGPL-2.0", 5, licenses.declaredlicenses);
-    assertContainsLicenseWithThreatLevel("MPL-1.1", "MPL-1.1", 2, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(3));
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
-    assertContainsLicenseWithThreatLevel("AFL-2.1", "AFL-2.1", 2, licenses.observedlicenses);
-    assertContainsLicenseWithThreatLevel("BSD-3-Clause", "BSD-3-Clause", 5, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(6));
-    List<LicenseWithThreatLevel> effectiveLicensesList = new ArrayList<>(licenses.effectiveLicenses);
-    for (LicenseWithThreatLevel licenseWithThreatLevel : licenses.declaredlicenses) {
-      assertContainsLicenseWithThreatLevel(licenseWithThreatLevel.license.getLicenseId(),
-          licenseWithThreatLevel.license.getLicenseName(), licenseWithThreatLevel.threatLevel, effectiveLicensesList);
-    }
-    for (LicenseWithThreatLevel licenseWithThreatLevel : licenses.observedlicenses) {
-      assertContainsLicenseWithThreatLevel(licenseWithThreatLevel.license.getLicenseId(),
-          licenseWithThreatLevel.license.getLicenseName(), licenseWithThreatLevel.threatLevel, effectiveLicensesList);
-    }
-    assertThat(licenses.selectableLicenses, hasSize(6));
-    assertContainsLicenseId("Apache-2.0", licenses.selectableLicenses);
-    assertContainsLicenseId("LGPL-2.0", licenses.selectableLicenses);
-    assertContainsLicenseId("LGPL-2.0", licenses.selectableLicenses);
-    assertContainsLicenseId("GPL-2.0", licenses.selectableLicenses);
-    assertContainsLicenseId("MPL-1.1", licenses.selectableLicenses);
-    assertContainsLicenseId("BSD-3-Clause", licenses.selectableLicenses);
+    assertLicenses(licenses.declaredlicenses, tuple("Apache-2.0", "Apache-2.0", 0), tuple("LGPL-2.0", "LGPL-2.0", 5),
+        tuple("MPL-1.1", "MPL-1.1", 2));
+    assertLicenses(licenses.observedlicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
+        tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple("Apache-2.0", "Apache-2.0", 0), tuple("LGPL-2.0", "LGPL-2.0", 5),
+        tuple("MPL-1.1", "MPL-1.1", 2), tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
+        tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertThat(licenses.selectableLicenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0",
+        "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
   }
 
   @Test
@@ -304,17 +266,11 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(3));
-    assertContainsLicenseWithThreatLevel("Apache-2.0", "Apache-2.0", 0, licenses.declaredlicenses);
-    assertContainsLicenseWithThreatLevel("LGPL-2.0", "LGPL-2.0", 5, licenses.declaredlicenses);
-    assertContainsLicenseWithThreatLevel("MPL-1.1", "MPL-1.1", 2, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(3));
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
-    assertContainsLicenseWithThreatLevel("AFL-2.1", "AFL-2.1", 2, licenses.observedlicenses);
-    assertContainsLicenseWithThreatLevel("BSD-3-Clause", "BSD-3-Clause", 5, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(1));
-    assertThat(licenses.effectiveLicenses.iterator().next().license.getLicenseId(), is("BSD-3-Clause"));
-    assertThat(licenses.effectiveLicenses.iterator().next().license.getLicenseName(), is("BSD-3-Clause"));
+    assertLicenses(licenses.declaredlicenses, tuple("Apache-2.0", "Apache-2.0", 0), tuple("LGPL-2.0", "LGPL-2.0", 5),
+        tuple("MPL-1.1", "MPL-1.1", 2));
+    assertLicenses(licenses.observedlicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
+        tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple("BSD-3-Clause", "BSD-3-Clause", 5));
   }
 
   @Test
@@ -332,13 +288,9 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(1));
-    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
+    assertLicenses(licenses.declaredlicenses, tuple("Not-Declared", "Not Declared", 5));
+    assertLicenses(licenses.observedlicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
   }
 
   @Test
@@ -356,13 +308,9 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("No-Sources", "No Sources", 5, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(1));
-    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
+    assertLicenses(licenses.declaredlicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertLicenses(licenses.observedlicenses, tuple("No-Sources", "No Sources", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
   }
 
   @Test
@@ -380,13 +328,9 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(1));
-    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
-    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
+    assertLicenses(licenses.declaredlicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertLicenses(licenses.observedlicenses, tuple("No-Source-License", "No Source License", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
   }
 
   @Test
@@ -407,14 +351,10 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(2));
-    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
-    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, effectiveList);
-    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, effectiveList);
+    assertLicenses(licenses.declaredlicenses, tuple("Not-Declared", "Not Declared", 5));
+    assertLicenses(licenses.observedlicenses, tuple("No-Source-License", "No Source License", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple("Not-Declared", "Not Declared", 5),
+        tuple("No-Source-License", "No Source License", 5));
   }
 
   @Test
@@ -435,16 +375,11 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, NUGET_COORDINATES,
         httpRequestMock);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("MIT", "MIT", 0, licenses.declaredlicenses);
-    assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("Not-Supported", "Not Supported", null, licenses.observedlicenses);
-    assertThat(licenses.effectiveLicenses, hasSize(1));
-    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
-    assertContainsLicenseWithThreatLevel("MIT", "MIT", 0, effectiveList);
-    assertThat(licenses.selectableLicenses, not(empty()));
-    License notSupportedLicense = new ArrayList<>(toLicenseSet("Not-Supported")).get(0);
-    assertThat(licenses.selectableLicenses, not(contains(notSupportedLicense)));
+    assertLicenses(licenses.declaredlicenses, tuple("MIT", "MIT", 0));
+    assertLicenses(licenses.observedlicenses, tuple("Not-Supported", "Not Supported", null));
+    assertLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
+    assertThat(licenses.selectableLicenses).isNotEmpty().extracting(License::getLicenseId)
+        .doesNotContain("Not-Supported");
   }
 
   @Test
@@ -468,23 +403,13 @@ public class ComponentInfoServiceTest
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
         httpRequestMock);
     // if we got here, we are good, but let's do some sanity check
-    assertThat(licenses.declaredlicenses, empty());
-    assertThat(licenses.observedlicenses, empty());
+    assertThat(licenses.declaredlicenses).isEmpty();
+    assertThat(licenses.observedlicenses).isEmpty();
   }
 
-  private void assertContainsLicenseWithThreatLevel(String licenseId,
-                                                    String licenseName,
-                                                    Integer threatLevel,
-                                                    List<LicenseWithThreatLevel> actual)
-  {
-    for (LicenseWithThreatLevel licenseWithThreatLevel : actual) {
-      if (licenseId.equals(licenseWithThreatLevel.license.getLicenseId())) {
-        assertEquals(licenseName, licenseWithThreatLevel.license.getLicenseName());
-        assertEquals(threatLevel, licenseWithThreatLevel.threatLevel);
-        return;
-      }
-    }
-    fail("Expected license id " + licenseId);
+  private void assertLicenses(Iterable<LicenseWithThreatLevel> actual, Tuple... tuples) {
+    assertThat(actual).extracting(lwtl -> lwtl.license.getLicenseId(), lwtl -> lwtl.license.getLicenseName(),
+        lwtl -> lwtl.threatLevel).containsExactlyInAnyOrder(tuples);
   }
 
   @Test
@@ -526,48 +451,46 @@ public class ComponentInfoServiceTest
         httpRequestMock);
     componentInfoService.augmentComponentDetails(componentDetailsList.getList(), MatchState.EXACT.getId(), application);
 
-    assertNotNull(componentDetailsList);
-    assertEquals(3, componentDetailsList.getList().size());
+    assertThat(componentDetailsList).isNotNull();
+    assertThat(componentDetailsList.getList()).hasSize(3);
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertEquals(componentIdentifier1, componentDetails.getComponentIdentifier());
-    assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
-    assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
-    assertEquals("Group1", componentDetails.getLicenseThreatGroupNames().get(0));
-    assertEquals(1, componentDetails.getDeclaredLicenses().size());
-    assertEquals("Apache-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseName());
-    assertEquals("Apache-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseId());
-    assertEquals(0, componentDetails.getObservedLicenses().size());
-    assertEquals(1, componentDetails.getEffectiveLicenses().size());
-    assertEquals("Apache-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
-    assertEquals("Apache-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
-    assertNull(componentDetails.getEffectiveLicenseStatus());
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+    assertThat(componentDetails.getLicenseThreatLevel()).isEqualTo(9);
+    assertThat(componentDetails.getLicenseThreatGroupNames()).hasSize(1);
+    assertThat(componentDetails.getLicenseThreatGroupNames().get(0)).isEqualTo("Group1");
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
     componentDetails = componentDetailsList.getList().get(1);
-    assertEquals(componentIdentifier2, componentDetails.getComponentIdentifier());
-    assertEquals(new Integer(10), componentDetails.getLicenseThreatLevel());
-    assertEquals(3, componentDetails.getLicenseThreatGroupNames().size());
-    assertThat(componentDetails.getLicenseThreatGroupNames(), contains("groupA", "Groupb", "GroupC"));
-    assertEquals(1, componentDetails.getDeclaredLicenses().size());
-    assertEquals("GPL-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseName());
-    assertEquals("GPL-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseId());
-    assertEquals(0, componentDetails.getObservedLicenses().size());
-    assertEquals(1, componentDetails.getEffectiveLicenses().size());
-    assertEquals("GPL-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
-    assertEquals("GPL-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
-    assertNull(componentDetails.getEffectiveLicenseStatus());
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+    assertThat(componentDetails.getLicenseThreatLevel()).isEqualTo(10);
+    assertThat(componentDetails.getLicenseThreatGroupNames()).containsExactly("groupA", "Groupb", "GroupC");
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
     // Test match against default LGT Copyleft from the root organization
     componentDetails = componentDetailsList.getList().get(2);
-    assertEquals(componentIdentifier3, componentDetails.getComponentIdentifier());
-    assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
-    assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
-    assertThat(componentDetails.getLicenseThreatGroupNames(), contains("Copyleft"));
-    assertEquals(1, componentDetails.getDeclaredLicenses().size());
-    assertEquals("OSL-1.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseName());
-    assertEquals("OSL-1.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseId());
-    assertEquals(0, componentDetails.getObservedLicenses().size());
-    assertEquals(1, componentDetails.getEffectiveLicenses().size());
-    assertEquals("OSL-1.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
-    assertEquals("OSL-1.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
-    assertNull(componentDetails.getEffectiveLicenseStatus());
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier3);
+    assertThat(componentDetails.getLicenseThreatLevel()).isEqualTo(9);
+    assertThat(componentDetails.getLicenseThreatGroupNames()).containsExactly("Copyleft");
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseName()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseId()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
   }
 
   @Test
@@ -597,12 +520,11 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
   }
 
   @Test
@@ -615,21 +537,20 @@ public class ComponentInfoServiceTest
 
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
-    assertEquals(1, componentDetails.getOverriddenLicenses().size());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat( componentDetails.getOverriddenLicenses()).hasSize(1);
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
-    assertNotNull(overriddenLicense);
-    assertEquals("GPL-2.0", overriddenLicense.getLicenseId());
-    assertEquals("GPL-2.0", overriddenLicense.getLicenseName());
-    assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
-    assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
-    assertEquals("Copyleft", componentDetails.getLicenseThreatGroupNames().get(0));
-    assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    assertThat(overriddenLicense).isNotNull();
+    assertThat(overriddenLicense.getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(overriddenLicense.getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getLicenseThreatLevel()).isEqualTo(9);
+    assertThat(componentDetails.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
+    assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
     License effectiveLicense = componentDetails.getEffectiveLicenses().iterator().next();
-    assertEquals("GPL-2.0", effectiveLicense.getLicenseId());
-    assertEquals("GPL-2.0", effectiveLicense.getLicenseName());
-    assertEquals(LicenseStatus.Overridden, componentDetails.getEffectiveLicenseStatus());
+    assertThat(effectiveLicense.getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(effectiveLicense.getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isEqualTo(LicenseStatus.Overridden);
   }
 
   @Test
@@ -642,21 +563,20 @@ public class ComponentInfoServiceTest
 
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
-    assertEquals(1, componentDetails.getOverriddenLicenses().size());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getOverriddenLicenses()).hasSize(1);
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
-    assertNotNull(overriddenLicense);
-    assertEquals("GPL-2.0", overriddenLicense.getLicenseId());
-    assertEquals("GPL-2.0", overriddenLicense.getLicenseName());
-    assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
-    assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
-    assertEquals("Copyleft", componentDetails.getLicenseThreatGroupNames().get(0));
-    assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    assertThat(overriddenLicense).isNotNull();
+    assertThat(overriddenLicense.getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(overriddenLicense.getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getLicenseThreatLevel()).isEqualTo(9);
+    assertThat(componentDetails.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
+    assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
     License effectiveLicense = componentDetails.getEffectiveLicenses().iterator().next();
-    assertEquals("GPL-2.0", effectiveLicense.getLicenseId());
-    assertEquals("GPL-2.0", effectiveLicense.getLicenseName());
-    assertEquals(LicenseStatus.Selected, componentDetails.getEffectiveLicenseStatus());
+    assertThat(effectiveLicense.getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(effectiveLicense.getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isEqualTo(LicenseStatus.Selected);
   }
 
   @Test
@@ -676,12 +596,11 @@ public class ComponentInfoServiceTest
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
 
-    assertNotNull(componentDetails);
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
 
     ComponentIdentifier emptyComponentIdentifier = ComponentIdentifier.createMavenCoordinates("", "", "");
     hdsComponentDetails = newNamedComponentDetails(emptyComponentIdentifier);
@@ -691,12 +610,11 @@ public class ComponentInfoServiceTest
             newCoordinatesQueryParam(hdsComponentDetails))).thenThrow(new NotFoundException("unknown GAV"));
     componentDetails = componentInfoService.getComponentDetails(application, emptyComponentIdentifier,
         MatchState.UNKNOWN.getId(), "01234567890123456789", false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(emptyComponentIdentifier, componentDetails.getComponentIdentifier());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(emptyComponentIdentifier);
     policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
   }
 
   // CLM-4195
@@ -715,16 +633,14 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setHash(hash);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application,
         null /* componentIdentifier */, MatchState.UNKNOWN.getId(), hash, true /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(hash, componentDetails.getHash());
-    assertNull(componentDetails.getComponentIdentifier());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isNull();
 
-    assertEquals(MatchState.UNKNOWN.getId(), componentDetails.getMatchState());
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.UNKNOWN.getId());
 
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts).hasSize(1);
   }
 
   @Test
@@ -738,8 +654,8 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
   }
 
   @Test
@@ -758,20 +674,18 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, true /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(1, policyAlerts.size());
-    assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
 
     componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
     policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
   }
 
   @Test
@@ -791,30 +705,28 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(hash, componentDetails.getHash());
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
-    assertEquals(MatchState.SIMILAR.getId(), componentDetails.getMatchState());
-    assertEquals(IdentificationSource.SONATYPE.getId(), componentDetails.getIdentificationSource());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.SIMILAR.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertNotNull(policyAlerts);
-    assertNotNull(policyAlerts);
-    assertEquals(0, policyAlerts.size());
+    assertThat(policyAlerts).isEmpty();
 
     ComponentIdentifier claimedComponentIdentifier = ComponentIdentifier.createMavenCoordinates("Claimed g",
         "Claimed a", "Claimed v");
     HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent(hash, claimedComponentIdentifier);
     componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(hash, componentDetails.getHash());
-    assertEquals(claimedComponentIdentifier, componentDetails.getComponentIdentifier());
-    assertEquals(MatchState.EXACT.getId(), componentDetails.getMatchState());
-    assertEquals(IdentificationSource.MANUAL.getId(), componentDetails.getIdentificationSource());
-    assertEquals(claimedComponent.getComment(), componentDetails.getIdentificationSourceComment());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(claimedComponentIdentifier);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+    assertThat(componentDetails.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
     policyAlerts = componentDetails.getPolicyAlerts();
-    assertEquals(1, policyAlerts.size());
-    assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
   }
 
   @Test
@@ -851,14 +763,13 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
-    assertThat(componentDetails, is(notNullValue()));
-    assertThat(componentDetails.getHash(), is(hash));
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
-    assertThat(componentDetails.getMatchState(), is(MatchState.SIMILAR.getId()));
-    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.SIMILAR.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertThat(policyAlerts, is(notNullValue()));
-    assertThat(policyAlerts.size(), is(1));
+    assertThat(policyAlerts).hasSize(1);
   }
 
   private void addPolicy(String applicationPublicId, Policy policy) throws Exception {
@@ -866,15 +777,6 @@ public class ComponentInfoServiceTest
     PolicyDAO policyDAO = new PolicyDAO();
     policy.setOwnerId(appId);
     policyDAO.insert(policy);
-  }
-
-  private void assertContainsLicenseId(String licenseId, Iterable<License> licenses) {
-    for (License license : licenses) {
-      if (licenseId.equals(license.getLicenseId())) {
-        return;
-      }
-    }
-    fail("Expected license id " + licenseId);
   }
 
   private static Set<License> toLicenseSet(String... licenseIds) {
@@ -893,10 +795,10 @@ public class ComponentInfoServiceTest
     ComponentDetails componentDetails = componentInfoService
         .getComponentDetails_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(),
             null /* hash */, false /* proprietary */, httpRequestMock);
-    assertThat(componentDetails, is(notNullValue()));
-    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
-    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
-    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
   }
 
   @Test
@@ -917,10 +819,10 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
         owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
-    assertThat(componentDetailsList.getList(), hasSize(1));
+    assertThat(componentDetailsList.getList()).hasSize(1);
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
-    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
   }
 
   @Deprecated
@@ -955,24 +857,24 @@ public class ComponentInfoServiceTest
     List<ComponentDetailsDTO> componentDetailsList = componentInfoService
         .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, httpRequestMock);
 
-    assertThat(componentDetailsList, hasSize(2));
+    assertThat(componentDetailsList).hasSize(2);
 
     ComponentDetailsDTO componentDetails1 = componentDetailsList.get(0);
-    assertThat(componentDetails1.displayName.toString(),
-        is(ComponentDisplayNameUtil.fromIdentifier(MAVEN_COORDINATES).toString()));
-    assertThat(componentDetails1.matchState, is(MatchState.EXACT.getId()));
-    assertThat(componentDetails1.componentIdentifier, is(hdsComponentDetails1.getComponentIdentifier()));
-    assertThat(componentDetails1.highestSecurityVulnerabilitySeverity, is(8.1f));
-    assertThat(componentDetails1.catalogDate, is(timestamp));
+    assertThat(componentDetails1.displayName)
+        .hasToString(ComponentDisplayNameUtil.fromIdentifier(MAVEN_COORDINATES).toString());
+    assertThat(componentDetails1.matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails1.componentIdentifier).isEqualTo(hdsComponentDetails1.getComponentIdentifier());
+    assertThat(componentDetails1.highestSecurityVulnerabilitySeverity).isEqualTo(8.1f);
+    assertThat(componentDetails1.catalogDate).isEqualTo(timestamp);
 
     ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
-    assertThat(componentDetails2.displayName.toString(),
-        is(ComponentDisplayNameUtil.fromIdentifier(NUGET_COORDINATES).toString()));
-    assertThat(componentDetails2.matchState, is(MatchState.EXACT.getId()));
-    assertThat(componentDetails2.componentIdentifier, is(hdsComponentDetails2.getComponentIdentifier()));
-    assertThat(componentDetails2.highestSecurityVulnerabilitySeverity, is(0.1f));
-    assertThat(componentDetails2.securityVulnerabilityCount, is(1));
-    assertThat(componentDetails2.catalogDate, is(timestamp));
+    assertThat(componentDetails2.displayName)
+        .hasToString(ComponentDisplayNameUtil.fromIdentifier(NUGET_COORDINATES).toString());
+    assertThat(componentDetails2.matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails2.componentIdentifier).isEqualTo(hdsComponentDetails2.getComponentIdentifier());
+    assertThat(componentDetails2.highestSecurityVulnerabilitySeverity).isEqualTo(0.1f);
+    assertThat(componentDetails2.securityVulnerabilityCount).isEqualTo(1);
+    assertThat(componentDetails2.catalogDate).isEqualTo(timestamp);
 
     return componentDetailsList;
   }
@@ -999,13 +901,14 @@ public class ComponentInfoServiceTest
         application, application.getPublicId());
 
     ComponentDetailsDTO componentDetails1 = componentDetailsList.get(0);
-    assertThat(componentDetails1.policyMaxThreatLevelsByCategory,
-        is(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8, PolicyThreatCategory.LICENSE, 6)));
-    assertThat(componentDetails1.violatedPolicyCount, is(2));
+    assertThat(componentDetails1.policyMaxThreatLevelsByCategory)
+        .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8, PolicyThreatCategory.LICENSE, 6));
+    assertThat(componentDetails1.violatedPolicyCount).isEqualTo(2);
 
     ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
-    assertThat(componentDetails2.policyMaxThreatLevelsByCategory, is(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6)));
-    assertThat(componentDetails2.violatedPolicyCount, is(1));
+    assertThat(componentDetails2.policyMaxThreatLevelsByCategory)
+        .isEqualTo(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6));
+    assertThat(componentDetails2.violatedPolicyCount).isEqualTo(1);
   }
 
   @Test
@@ -1046,14 +949,14 @@ public class ComponentInfoServiceTest
 
     NamedComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.EXACT.getId(), fullHash, false /* proprietary */, httpRequestMock);
-    assertNotNull(componentDetails);
-    assertEquals(hash, componentDetails.getHash());
-    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
-    assertEquals(MatchState.EXACT.getId(), componentDetails.getMatchState());
-    assertEquals(IdentificationSource.SONATYPE.getId(), componentDetails.getIdentificationSource());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertEquals(1, policyAlerts.size());
-    assertEquals(policy1.getName(), policyAlerts.get(0).getTrigger().getPolicyName());
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo(policy1.getName());
   }
 
   @Test
@@ -1070,13 +973,14 @@ public class ComponentInfoServiceTest
 
     ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
         OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES, httpRequestMock);
-    assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
+    assertThat(retrievedVulnerabilities.securityVulnerabilities).hasSize(1);
     SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
-    assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));
-    assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
-    assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
-    assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
-    assertThat(retrievedVulnerability.getStatus(), is(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName()));
+    assertThat(retrievedVulnerability.getRefId()).isEqualTo(vulnerability.getRefId());
+    assertThat(retrievedVulnerability.getSource()).isEqualTo(vulnerability.getSource());
+    assertThat(retrievedVulnerability.getSeverity()).isEqualTo(vulnerability.getSeverity());
+    assertThat(retrievedVulnerability.getSummary()).isEqualTo(vulnerability.getSummary());
+    assertThat(retrievedVulnerability.getStatus())
+        .isEqualTo(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName());
   }
 
   @Test
@@ -1093,12 +997,13 @@ public class ComponentInfoServiceTest
 
     ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
         OwnerType.APPLICATION, application.getPublicId(), hash, MAVEN_COORDINATES, httpRequestMock);
-    assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
+    assertThat(retrievedVulnerabilities.securityVulnerabilities).hasSize(1);
     SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
-    assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));
-    assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
-    assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
-    assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
-    assertThat(retrievedVulnerability.getStatus(), is(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName()));
+    assertThat(retrievedVulnerability.getRefId()).isEqualTo(vulnerability.getRefId());
+    assertThat(retrievedVulnerability.getSource()).isEqualTo(vulnerability.getSource());
+    assertThat(retrievedVulnerability.getSeverity()).isEqualTo(vulnerability.getSeverity());
+    assertThat(retrievedVulnerability.getSummary()).isEqualTo(vulnerability.getSummary());
+    assertThat(retrievedVulnerability.getStatus())
+        .isEqualTo(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName());
   }
 }

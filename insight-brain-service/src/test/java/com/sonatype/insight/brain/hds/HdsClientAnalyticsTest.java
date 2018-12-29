@@ -11,10 +11,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HdsClientAnalyticsTest
 {
@@ -23,9 +20,9 @@ public class HdsClientAnalyticsTest
     String appId = "test-app-id";
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
 
-    assertThat(analytics.getOwnerId(), is(notNullValue()));
-    assertThat(analytics.getOwnerId(), is(not(appId)));
-    assertThat(analytics.getOwnerType(), is(OwnerType.APPLICATION));
+    assertThat(analytics.getOwnerId()).isNotNull();
+    assertThat(analytics.getOwnerId()).isNotEqualTo(appId);
+    assertThat(analytics.getOwnerType()).isEqualTo(OwnerType.APPLICATION);
   }
 
   @Test
@@ -33,9 +30,9 @@ public class HdsClientAnalyticsTest
     Owner owner = new Repository("my-repo-man-id", "central");
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(owner);
 
-    assertThat(analytics.getOwnerId(), is(notNullValue()));
-    assertThat(analytics.getOwnerId(), is(not("central")));
-    assertThat(analytics.getOwnerType(), is(OwnerType.REPOSITORY));
+    assertThat(analytics.getOwnerId()).isNotNull();
+    assertThat(analytics.getOwnerId()).isNotEqualTo("central");
+    assertThat(analytics.getOwnerType()).isEqualTo(OwnerType.REPOSITORY);
   }
 
   /**
@@ -51,6 +48,6 @@ public class HdsClientAnalyticsTest
 
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
 
-    assertThat(analytics.getOwnerId(), is(appIdAsSha1));
+    assertThat(analytics.getOwnerId()).isEqualTo(appIdAsSha1);
   }
 }

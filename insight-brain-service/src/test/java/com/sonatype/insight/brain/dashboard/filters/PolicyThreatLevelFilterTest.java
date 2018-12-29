@@ -10,12 +10,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyThreatLevelFilterTest
 {
@@ -28,8 +24,8 @@ public class PolicyThreatLevelFilterTest
     PolicyViolation falseViolation = new PolicyViolation();
     falseViolation.setThreatLevel(0);
 
-    assertThat(filter.asPolicyViolationPredicate().test(trueViolation), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(falseViolation), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(trueViolation)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(falseViolation)).isFalse();
   }
 
   @Test
@@ -41,8 +37,8 @@ public class PolicyThreatLevelFilterTest
     PolicyViolation falseViolation = new PolicyViolation();
     falseViolation.setThreatLevel(5);
 
-    assertThat(filter.asPolicyViolationPredicate().test(trueViolation), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(falseViolation), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(trueViolation)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(falseViolation)).isFalse();
   }
 
   @Test
@@ -55,9 +51,9 @@ public class PolicyThreatLevelFilterTest
     v2.setThreatLevel(2);
     v3.setThreatLevel(0);
 
-    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v3), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v3)).isFalse();
   }
 
   @Test
@@ -70,20 +66,16 @@ public class PolicyThreatLevelFilterTest
     v2.setThreatLevel(2);
     v3.setThreatLevel(0);
 
-    assertThat(filter.asPolicyViolationPredicate().test(v1), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v2), is(true));
-    assertThat(filter.asPolicyViolationPredicate().test(v3), is(false));
+    assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(filter.asPolicyViolationPredicate().test(v3)).isFalse();
   }
 
   @Test
   public void testMinimumThreatLevelExceedsMaximumThreatLevel() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(Integer.valueOf(4), Integer.valueOf(2));
-      fail("Filter should throw a bad request exception when minimum threat level exceeds maximum threat level.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Minimum policy threat level should not exceed maximum policy threat level.", e.getMessage());
-    }
+    }).withMessage("Minimum policy threat level should not exceed maximum policy threat level.");
   }
 
   @Test
@@ -95,56 +87,32 @@ public class PolicyThreatLevelFilterTest
     String nullString = null;
     String emptyString = "";
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(noComma);
-      fail("Filter should throw a bad request exception when unable to parse range.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Unable to parse policy threat range from " + noComma
-          + ". Expected format is 'min,max' or ',max' or 'min,'.", e.getMessage());
-    }
+    }).withMessage(
+        "Unable to parse policy threat range from " + noComma + ". Expected format is 'min,max' or ',max' or 'min,'.");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(singlePoint);
-      fail("Filter should throw a bad request exception when unable to parse range.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Unable to parse policy threat range from " + singlePoint
-          + ". Expected format is 'min,max' or ',max' or 'min,'.", e.getMessage());
-    }
+    }).withMessage("Unable to parse policy threat range from " + singlePoint
+        + ". Expected format is 'min,max' or ',max' or 'min,'.");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(notAnInteger);
-      fail("Filter should throw a bad request exception when unable to parse range.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Unable to parse policy threat range from " + notAnInteger + ".", e.getMessage());
-    }
+    }).withMessage("Unable to parse policy threat range from " + notAnInteger + ".");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(tooManyPoints);
-      fail("Filter should throw a bad request exception when unable to parse range.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Unable to parse policy threat range from " + tooManyPoints
-          + ". Expected format is 'min,max' or ',max' or 'min,'.", e.getMessage());
-    }
+    }).withMessage("Unable to parse policy threat range from " + tooManyPoints
+        + ". Expected format is 'min,max' or ',max' or 'min,'.");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(nullString);
-      fail("Filter should throw a bad request exception when unable to parse range.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Unable to parse policy threat range from empty or null range.", e.getMessage());
-    }
+    }).withMessage("Unable to parse policy threat range from empty or null range.");
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new PolicyThreatLevelFilter(emptyString);
-      fail("Filter should throw a bad request exception when unable to parse range.");
-    }
-    catch (BadRequestException e) {
-      assertEquals("Unable to parse policy threat range from empty or null range.", e.getMessage());
-    }
+    }).withMessage("Unable to parse policy threat range from empty or null range.");
   }
 
   @Test
@@ -169,24 +137,24 @@ public class PolicyThreatLevelFilterTest
     v2.setThreatLevel(2);
     v3.setThreatLevel(6);
 
-    assertTrue(noMinFilter.asPolicyViolationPredicate().test(v1));
-    assertTrue(noMinFilter.asPolicyViolationPredicate().test(v2));
-    assertFalse(noMinFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(noMinFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(noMinFilter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(noMinFilter.asPolicyViolationPredicate().test(v3)).isFalse();
 
-    assertFalse(noMaxFilter.asPolicyViolationPredicate().test(v1));
-    assertFalse(noMaxFilter.asPolicyViolationPredicate().test(v2));
-    assertTrue(noMaxFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(noMaxFilter.asPolicyViolationPredicate().test(v1)).isFalse();
+    assertThat(noMaxFilter.asPolicyViolationPredicate().test(v2)).isFalse();
+    assertThat(noMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
 
-    assertFalse(minAndMaxFilter.asPolicyViolationPredicate().test(v1));
-    assertFalse(minAndMaxFilter.asPolicyViolationPredicate().test(v2));
-    assertTrue(minAndMaxFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(minAndMaxFilter.asPolicyViolationPredicate().test(v1)).isFalse();
+    assertThat(minAndMaxFilter.asPolicyViolationPredicate().test(v2)).isFalse();
+    assertThat(minAndMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
 
-    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v1));
-    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v2));
-    assertTrue(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v2)).isTrue();
+    assertThat(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
 
-    assertFalse(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v1));
-    assertFalse(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v2));
-    assertTrue(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v3));
+    assertThat(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v1)).isFalse();
+    assertThat(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v2)).isFalse();
+    assertThat(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
   }
 }

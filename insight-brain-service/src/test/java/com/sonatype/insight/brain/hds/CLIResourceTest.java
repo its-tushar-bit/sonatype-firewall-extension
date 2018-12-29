@@ -16,9 +16,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CLIResourceTest
     extends AbstractScanResourceTest
@@ -46,13 +44,13 @@ public class CLIResourceTest
     assertResponseStatus(200, response);
 
     ScanReceipt receipt = response.getBody(ScanReceipt.class);
-    assertThat(receipt, is(notNullValue()));
-    assertThat(receipt.getScanId(), is(scanReceipt.getScanId()));
-    assertThat(receipt.getTimeToReport(), is(scanReceipt.getTimeToReport()));
-    assertThat(receipt.getReportUrl(),
-        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId()));
-    assertThat(receipt.getPdfUrl(),
-        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId() + "/pdf"));
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getScanId()).isEqualTo(scanReceipt.getScanId());
+    assertThat(receipt.getTimeToReport()).isEqualTo(scanReceipt.getTimeToReport());
+    assertThat(receipt.getReportUrl())
+        .isEqualTo("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId());
+    assertThat(receipt.getPdfUrl())
+        .isEqualTo("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId() + "/pdf");
   }
 
   @Test
@@ -75,12 +73,12 @@ public class CLIResourceTest
     assertResponseStatus(200, response);
 
     ScanReceipt receipt = response.getBody(ScanReceipt.class);
-    assertThat(receipt, is(notNullValue()));
-    assertThat(receipt.getScanId(), is(scanReceipt.getScanId()));
-    assertThat(receipt.getTimeToReport(), is(scanReceipt.getTimeToReport()));
-    assertThat(receipt.getReportUrl(),
-        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId()));
-    assertThat(receipt.getPdfUrl(),
-        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId() + "/pdf"));
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getScanId()).isEqualTo(scanReceipt.getScanId());
+    assertThat(receipt.getTimeToReport()).isEqualTo(scanReceipt.getTimeToReport());
+    assertThat(receipt.getReportUrl())
+        .isEqualTo("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId());
+    assertThat(receipt.getPdfUrl())
+        .isEqualTo("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId() + "/pdf");
   }
 }

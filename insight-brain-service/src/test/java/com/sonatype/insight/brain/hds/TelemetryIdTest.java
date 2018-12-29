@@ -20,11 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TelemetryIdTest
 {
@@ -50,19 +46,18 @@ public class TelemetryIdTest
     TelemetryId telemetryId = new TelemetryId(insightConfig);
     SystemConfigurationProperty generatedIdProperty1 = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(generatedIdProperty1.getValue(), is(notNullValue()));
+    assertThat(generatedIdProperty1.getValue()).isNotNull();
     String telemetryId1 = telemetryId.getId();
-    assertThat(telemetryId1, startsWith(generatedIdProperty1.getValue() + "-"));
-    assertThat(telemetryId1.length(), is(11));
+    assertThat(telemetryId1).startsWith(generatedIdProperty1.getValue() + "-").hasSize(11);
 
     // Initialize the telemetry ID again, the generated and derived parts should not change.
     telemetryId = new TelemetryId(insightConfig);
     SystemConfigurationProperty generatedIdProperty2 = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(generatedIdProperty2.getId(), is(generatedIdProperty1.getId()));
-    assertThat(generatedIdProperty2.getValue(), is(generatedIdProperty1.getValue()));
+    assertThat(generatedIdProperty2.getId()).isEqualTo(generatedIdProperty1.getId());
+    assertThat(generatedIdProperty2.getValue()).isEqualTo(generatedIdProperty1.getValue());
     String telemetryId2 = telemetryId.getId();
-    assertThat(telemetryId2, is(telemetryId1));
+    assertThat(telemetryId2).isEqualTo(telemetryId1);
 
     // Initialize the telemetry ID again using a different port, the generated part should not change, but the derived
     // part should change.
@@ -70,11 +65,11 @@ public class TelemetryIdTest
     telemetryId = new TelemetryId(insightConfig);
     SystemConfigurationProperty generatedIdProperty3 = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(generatedIdProperty3.getId(), is(generatedIdProperty2.getId()));
-    assertThat(generatedIdProperty3.getValue(), is(generatedIdProperty2.getValue()));
+    assertThat(generatedIdProperty3.getId()).isEqualTo(generatedIdProperty2.getId());
+    assertThat(generatedIdProperty3.getValue()).isEqualTo(generatedIdProperty2.getValue());
     String telemetryId3 = telemetryId.getId();
-    assertThat(telemetryId3.substring(0, 6), is(telemetryId2.substring(0, 6)));
-    assertThat(telemetryId3, is(not(telemetryId2)));
+    assertThat(telemetryId3.substring(0, 6)).isEqualTo(telemetryId2.substring(0, 6));
+    assertThat(telemetryId3).isNotEqualTo(telemetryId2);
   }
 
   @Test
@@ -126,10 +121,9 @@ public class TelemetryIdTest
   }
 
   private void assertValidTelemetryId(SystemConfigurationProperty generatedIdProperty, TelemetryId telemetryId) {
-    assertThat(generatedIdProperty.getValue(), is(notNullValue()));
+    assertThat(generatedIdProperty.getValue()).isNotNull();
     String telemetryId1 = telemetryId.getId();
-    assertThat(telemetryId1, startsWith(generatedIdProperty.getValue() + "-"));
-    assertThat(telemetryId1.length(), is(11));
+    assertThat(telemetryId1).startsWith(generatedIdProperty.getValue() + "-").hasSize(11);
   }
 
   private void assertTelemetryIdSame(SystemConfigurationProperty generatedIdProperty,
@@ -138,9 +132,9 @@ public class TelemetryIdTest
   {
     SystemConfigurationProperty newGeneratedIdProperty = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(newGeneratedIdProperty.getId(), is(generatedIdProperty.getId()));
-    assertThat(newGeneratedIdProperty.getValue(), is(generatedIdProperty.getValue()));
-    assertThat(newTelemetryId.getId(), is(telemetryId.getId()));
+    assertThat(newGeneratedIdProperty.getId()).isEqualTo(generatedIdProperty.getId());
+    assertThat(newGeneratedIdProperty.getValue()).isEqualTo(generatedIdProperty.getValue());
+    assertThat(newTelemetryId.getId()).isEqualTo(telemetryId.getId());
   }
 
   private void assertTelemetryIdDifferentDerived(SystemConfigurationProperty generatedIdProperty,
@@ -149,10 +143,10 @@ public class TelemetryIdTest
   {
     SystemConfigurationProperty newGeneratedIdProperty = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(newGeneratedIdProperty.getId(), is(generatedIdProperty.getId()));
-    assertThat(newGeneratedIdProperty.getValue(), is(generatedIdProperty.getValue()));
-    assertThat(newTelemetryId.getId().substring(0, 6), is(telemetryId.getId().substring(0, 6)));
-    assertThat(newTelemetryId.getId(), is(not(telemetryId.getId())));
+    assertThat(newGeneratedIdProperty.getId()).isEqualTo(generatedIdProperty.getId());
+    assertThat(newGeneratedIdProperty.getValue()).isEqualTo(generatedIdProperty.getValue());
+    assertThat(newTelemetryId.getId().substring(0, 6)).isEqualTo(telemetryId.getId().substring(0, 6));
+    assertThat(newTelemetryId.getId()).isNotEqualTo(telemetryId.getId());
   }
 
   private void setApplicationHttpConnectors(InsightConfig insightConfig, int... ports) {
@@ -181,14 +175,14 @@ public class TelemetryIdTest
   public void testCalculateDerivedId() throws Exception {
     List<byte[]> hardwareAddresses = new ArrayList<>();
     hardwareAddresses.add("123456789ABC".getBytes("UTF-8"));
-    assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses), is("e7c7e"));
+    assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses)).isEqualTo("e7c7e");
 
-    assertThat(TelemetryId.calculateDerivedId("otherhost", "7788", hardwareAddresses), is("9ee29"));
+    assertThat(TelemetryId.calculateDerivedId("otherhost", "7788", hardwareAddresses)).isEqualTo("9ee29");
 
-    assertThat(TelemetryId.calculateDerivedId("somehost", "8899", hardwareAddresses), is("17868"));
+    assertThat(TelemetryId.calculateDerivedId("somehost", "8899", hardwareAddresses)).isEqualTo("17868");
 
     hardwareAddresses.add("123456789DEF".getBytes("UTF-8"));
-    assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses), is("e1380"));
+    assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses)).isEqualTo("e1380");
   }
 
   @Test
@@ -198,7 +192,7 @@ public class TelemetryIdTest
     TelemetryId telemetryId = new TelemetryId(insightConfig);
     SystemConfigurationProperty generatedIdProperty = dao
         .getByName(TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
-    assertThat(telemetryId.getId(), startsWith(generatedIdProperty.getValue() + "-"));
+    assertThat(telemetryId.getId()).startsWith(generatedIdProperty.getValue() + "-");
   }
 
   private void setFirstApplicationConnectorPort(InsightConfig insightConfig, int port) {

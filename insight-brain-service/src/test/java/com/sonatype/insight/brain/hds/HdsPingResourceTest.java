@@ -10,9 +10,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HdsPingResourceTest
     extends AbstractResourceTest
@@ -26,7 +24,7 @@ public class HdsPingResourceTest
     assertResponseStatus(200, response);
     
     PingResponseDTO result = response.getBody(PingResponseDTO.class);
-    assertThat(result.alive, is(true));
-    assertThat(result.errorMessage, is(nullValue()));
+    assertThat(result.alive).isTrue();
+    assertThat(result.errorMessage).isNull();
   }
 }

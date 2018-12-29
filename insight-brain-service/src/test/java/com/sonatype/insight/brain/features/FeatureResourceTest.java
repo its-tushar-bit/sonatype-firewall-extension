@@ -5,20 +5,13 @@
  */
 package com.sonatype.insight.brain.features;
 
-import java.util.Arrays;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FeatureResourceTest
     extends AbstractResourceTest
@@ -34,10 +27,7 @@ public class FeatureResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertNotNull(features);
-    assertTrue(Arrays.asList(features).contains("policy"));
-    assertTrue(Arrays.asList(features).contains("labels"));
-    assertTrue(Arrays.asList(features).contains("policy-violations"));
+    assertThat(features).contains("policy", "labels", "policy-violations");
   }
 
   @Test
@@ -47,7 +37,6 @@ public class FeatureResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertThat(features, is(notNullValue()));
-    assertThat(features, is(emptyArray()));
+    assertThat(features).isEmpty();
   }
 }

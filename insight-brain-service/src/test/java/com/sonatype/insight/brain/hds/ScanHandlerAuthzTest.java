@@ -21,8 +21,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -69,6 +68,6 @@ public class ScanHandlerAuthzTest
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
-    assertThat(scanReceipt.getScanId(), is(scanId));
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
   }
 }

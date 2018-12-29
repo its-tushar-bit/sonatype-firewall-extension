@@ -10,8 +10,7 @@ import java.io.File;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TwistlockScanTest
 {
@@ -22,18 +21,18 @@ public class TwistlockScanTest
   @Test
   public void testGetAnalysisJson() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getAnalysisJson(), is(readFile("expected-analysis.json")));
+    assertThat(twistlockScan.getAnalysisJson()).isEqualTo(readFile("expected-analysis.json"));
   }
 
   @Test
   public void testGetFilesJson() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getFilesJson(), is(readFile("expected-files.json")));
+    assertThat(twistlockScan.getFilesJson()).isEqualTo(readFile("expected-files.json"));
   }
 
   @Test
   public void testGetScanXml() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getScanXml(), is(readFile("expected-scan.xml").replace("\r\n", "\n")));
+    assertThat(twistlockScan.getScanXml()).isEqualTo(readFile("expected-scan.xml").replace("\r\n", "\n"));
   }
 }

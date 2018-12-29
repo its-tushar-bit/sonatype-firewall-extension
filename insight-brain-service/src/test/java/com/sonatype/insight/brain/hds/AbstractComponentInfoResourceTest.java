@@ -26,11 +26,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractComponentInfoResourceTest
     extends AbstractResourceTest
@@ -110,11 +106,11 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
-    assertThat(componentDetails, is(notNullValue()));
-    assertThat(componentDetails.getHash(), is(hash));
-    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
-    assertThat(componentDetails.getMatchState(), is(MatchState.SIMILAR.getId()));
-    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.SIMILAR.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
   }
 
   protected void testGetComponentDetailsList_EvaluateComponentPermission() throws Exception {
@@ -128,8 +124,8 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = response.getBody(TestComponentDetailsList.class);
-    assertThat(componentDetailsList, is(notNullValue()));
-    assertThat(componentDetailsList.getList(), hasSize(1));
+    assertThat(componentDetailsList).isNotNull();
+    assertThat(componentDetailsList.getList()).hasSize(1);
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
@@ -142,11 +138,11 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
-    assertThat(componentDetails, is(notNullValue()));
-    assertThat(componentDetails.getHash(), is(hash));
-    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
-    assertThat(componentDetails.getMatchState(), is(MatchState.SIMILAR.getId()));
-    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.SIMILAR.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
   }
 
   void testGetComponentDetailsList_ReadPermission() throws Exception {
@@ -160,8 +156,8 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = response.getBody(TestComponentDetailsList.class);
-    assertThat(componentDetailsList, is(notNullValue()));
-    assertThat(componentDetailsList.getList(), hasSize(1));
+    assertThat(componentDetailsList).isNotNull();
+    assertThat(componentDetailsList.getList()).hasSize(1);
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
@@ -178,61 +174,60 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(200, response);
 
     ComponentDetailsDTO[] componentDetailsForAllVersions = response.getBody(ComponentDetailsDTO[].class);
-    assertThat(componentDetailsForAllVersions, arrayWithSize(1));
+    assertThat(componentDetailsForAllVersions).hasSize(1);
     ComponentDetailsDTO componentDetailsDTO = componentDetailsForAllVersions[0];
     assertComponentDetails(componentDetailsDTO, hdsComponentDetails);
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {
-    assertThat(actual.getComponentIdentifier(), is(expected.getComponentIdentifier()));
-    assertThat(actual.getHash(), is(expected.getHash()));
-    assertThat(actual.getMatchState(), is(expected.getMatchState()));
-    assertThat(actual.getDeclaredLicenses(), is(expected.getDeclaredLicenses()));
-    assertThat(actual.getObservedLicenses(), is(expected.getObservedLicenses()));
-    assertThat(actual.getOverriddenLicenses(), is(expected.getOverriddenLicenses()));
-    assertThat(actual.getEffectiveLicenses(), is(expected.getEffectiveLicenses()));
-    assertThat(actual.getEffectiveLicenseStatus(), is(expected.getEffectiveLicenseStatus()));
-    assertThat(actual.getCatalogDate(), is(expected.getCatalogDate()));
-    assertThat(actual.getSecurityVulnerabilities().size(), is(expected.getSecurityVulnerabilities().size()));
+    assertThat(actual.getComponentIdentifier()).isEqualTo(expected.getComponentIdentifier());
+    assertThat(actual.getHash()).isEqualTo(expected.getHash());
+    assertThat(actual.getMatchState()).isEqualTo(expected.getMatchState());
+    assertThat(actual.getDeclaredLicenses()).isEqualTo(expected.getDeclaredLicenses());
+    assertThat(actual.getObservedLicenses()).isEqualTo(expected.getObservedLicenses());
+    assertThat(actual.getOverriddenLicenses()).isEqualTo(expected.getOverriddenLicenses());
+    assertThat(actual.getEffectiveLicenses()).isEqualTo(expected.getEffectiveLicenses());
+    assertThat(actual.getEffectiveLicenseStatus()).isEqualTo(expected.getEffectiveLicenseStatus());
+    assertThat(actual.getCatalogDate()).isEqualTo(expected.getCatalogDate());
+    assertThat(actual.getSecurityVulnerabilities()).hasSameSizeAs(expected.getSecurityVulnerabilities());
     for (int i = 0; i < expected.getSecurityVulnerabilities().size(); i++) {
-      assertSecurityVulnerability(actual.getSecurityVulnerabilities().get(i), expected.getSecurityVulnerabilities()
-          .get(i));
+      assertSecurityVulnerability(actual.getSecurityVulnerabilities().get(i),
+          expected.getSecurityVulnerabilities().get(i));
     }
-    assertThat(actual.getWebsite(), is(expected.getWebsite()));
-    assertThat(actual.getLicenseThreatLevel(), is(expected.getLicenseThreatLevel()));
-    assertThat(actual.getLicenseThreatGroupNames(), is(Collections.singletonList("Weak Copyleft")));
-    assertThat(actual.getIdentificationSource(), is(expected.getIdentificationSource()));
-    assertThat(actual.getIdentificationSourceComment(), is(expected.getIdentificationSourceComment()));
+    assertThat(actual.getWebsite()).isEqualTo(expected.getWebsite());
+    assertThat(actual.getLicenseThreatLevel()).isEqualTo(expected.getLicenseThreatLevel());
+    assertThat(actual.getLicenseThreatGroupNames()).isEqualTo(Collections.singletonList("Weak Copyleft"));
+    assertThat(actual.getIdentificationSource()).isEqualTo(expected.getIdentificationSource());
+    assertThat(actual.getIdentificationSourceComment()).isEqualTo(expected.getIdentificationSourceComment());
   }
 
   private void assertComponentDetails(ComponentDetailsDTO actual, ComponentDetails expected) {
-    assertThat(actual.catalogDate, is(expected.getCatalogDate()));
-    assertThat(actual.componentIdentifier, is(expected.getComponentIdentifier()));
-    assertThat(actual.displayName.toString(),
-        is(ComponentDisplayNameUtil.fromIdentifier(expected.getComponentIdentifier()).toString()));
-    assertThat(actual.declaredLicenses, is(expected.getDeclaredLicenses()));
-    assertThat(actual.observedLicenses, is(expected.getObservedLicenses()));
-    assertThat(actual.overriddenLicenses, is(expected.getOverriddenLicenses()));
-    assertThat(actual.effectiveLicenses, is(expected.getEffectiveLicenses()));
-    assertThat(actual.effectiveLicenseStatus, is(expected.getEffectiveLicenseStatus()));
-    assertThat(actual.highestSecurityVulnerabilitySeverity,
-        is(expected.getSecurityVulnerabilities().stream().map(SecurityVulnerability::getSeverity).max(Float::compareTo)
-            .get()));
-    assertThat(actual.identificationSource, is(expected.getIdentificationSource()));
-    assertThat(actual.identificationSourceComment, is(expected.getIdentificationSourceComment()));
-    assertThat(actual.majorRevisionStep, is(expected.isMajorRevisionStep()));
-    assertThat(actual.matchState, is(expected.getMatchState()));
-    assertThat(actual.relativePopularity, is(expected.getRelativePopularity()));
-    assertThat(actual.securityVulnerabilityCount, is(expected.getSecurityVulnerabilities().size()));
-    assertThat(actual.website, is(expected.getWebsite()));
+    assertThat(actual.catalogDate).isEqualTo(expected.getCatalogDate());
+    assertThat(actual.componentIdentifier).isEqualTo(expected.getComponentIdentifier());
+    assertThat(actual.displayName)
+        .hasToString(ComponentDisplayNameUtil.fromIdentifier(expected.getComponentIdentifier()).toString());
+    assertThat(actual.declaredLicenses).isEqualTo(expected.getDeclaredLicenses());
+    assertThat(actual.observedLicenses).isEqualTo(expected.getObservedLicenses());
+    assertThat(actual.overriddenLicenses).isEqualTo(expected.getOverriddenLicenses());
+    assertThat(actual.effectiveLicenses).isEqualTo(expected.getEffectiveLicenses());
+    assertThat(actual.effectiveLicenseStatus).isEqualTo(expected.getEffectiveLicenseStatus());
+    assertThat(actual.highestSecurityVulnerabilitySeverity).isEqualTo(expected.getSecurityVulnerabilities().stream()
+        .map(SecurityVulnerability::getSeverity).max(Float::compareTo).get());
+    assertThat(actual.identificationSource).isEqualTo(expected.getIdentificationSource());
+    assertThat(actual.identificationSourceComment).isEqualTo(expected.getIdentificationSourceComment());
+    assertThat(actual.majorRevisionStep).isEqualTo(expected.isMajorRevisionStep());
+    assertThat(actual.matchState).isEqualTo(expected.getMatchState());
+    assertThat(actual.relativePopularity).isEqualTo(expected.getRelativePopularity());
+    assertThat(actual.securityVulnerabilityCount).isEqualTo(expected.getSecurityVulnerabilities().size());
+    assertThat(actual.website).isEqualTo(expected.getWebsite());
   }
 
   private void assertSecurityVulnerability(SecurityVulnerability actual, SecurityVulnerability expected) {
-    assertThat(actual.getRefId(), is(expected.getRefId()));
-    assertThat(actual.getSeverity(), is(expected.getSeverity()));
-    assertThat(actual.getSource(), is(expected.getSource()));
-    assertThat(actual.getSummary(), is(expected.getSummary()));
-    assertThat(actual.getStatus(), is(expected.getStatus()));
-    assertThat(actual.getUrl(), is(expected.getUrl()));
+    assertThat(actual.getRefId()).isEqualTo(expected.getRefId());
+    assertThat(actual.getSeverity()).isEqualTo(expected.getSeverity());
+    assertThat(actual.getSource()).isEqualTo(expected.getSource());
+    assertThat(actual.getSummary()).isEqualTo(expected.getSummary());
+    assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
+    assertThat(actual.getUrl()).isEqualTo(expected.getUrl());
   }
 }

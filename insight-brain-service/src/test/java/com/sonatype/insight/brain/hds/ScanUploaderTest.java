@@ -18,9 +18,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -45,10 +43,10 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
     scanUploader.augmentScanReceipt("app id", receipt);
-    assertThat(receipt.getReportUrl(), is("ui/links/application/app%20id/report/scan%20id"));
-    assertThat(receipt.getPdfUrl(), is("ui/links/application/app%20id/report/scan%20id/pdf"));
-    assertThat(receipt.getDataUrl(), is("api/v2/applications/app%20id/reports/scan%20id"));
-    assertThat(receipt.getReportTimeoutInSeconds(), is(900));
+    assertThat(receipt.getReportUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id");
+    assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
+    assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id");
+    assertThat(receipt.getReportTimeoutInSeconds()).isEqualTo(900);
   }
 
   @Test
@@ -66,6 +64,6 @@ public class ScanUploaderTest
 
     scanUploader.upload(tempDir.newFile(), app);
     HdsClientAnalytics analytics = analyticsArg.getValue();
-    assertThat(analytics, is(equalTo(expectedAnalyticsData)));
+    assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
 }

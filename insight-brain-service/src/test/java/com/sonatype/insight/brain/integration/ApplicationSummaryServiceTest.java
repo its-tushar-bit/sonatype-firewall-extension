@@ -14,6 +14,7 @@ import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
+import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -36,14 +37,8 @@ import org.apache.http.HttpEntity;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
@@ -88,7 +83,7 @@ public class ApplicationSummaryServiceTest
     boolean result = service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION,
         "test_client_user_agent");
 
-    assertThat(result, is(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -102,7 +97,7 @@ public class ApplicationSummaryServiceTest
 
     boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION,
         "test_client_user_agent");
-    assertThat(result, is(false));
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -118,10 +113,10 @@ public class ApplicationSummaryServiceTest
 
     boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION,
         "test_client_user_agent");
-    assertThat(result, is(true));
+    assertThat(result).isTrue();
 
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    assertThat(app.getOrganizationId(), is(automaticApplicationsConfigurationDAO.getOrganizationId()));
+    assertThat(app.getOrganizationId()).isEqualTo(automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 
   private void testGetApplications_SortedByCaseInsensitiveName(Goal goal) throws Exception {
@@ -130,11 +125,9 @@ public class ApplicationSummaryServiceTest
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
     ApplicationSummaryList applicationListDTO = service.getApplications(goal);
-    assertThat(applicationListDTO, notNullValue());
-    assertThat(applicationListDTO.getApplicationSummaries(), hasSize(3));
-    assertThat(applicationListDTO.getApplicationSummaries().get(0).getId(), is(app0.getId()));
-    assertThat(applicationListDTO.getApplicationSummaries().get(1).getId(), is(app1.getId()));
-    assertThat(applicationListDTO.getApplicationSummaries().get(2).getId(), is(app2.getId()));
+    assertThat(applicationListDTO).isNotNull();
+    assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app0.getId(), app1.getId(), app2.getId());
   }
 
   @Test
@@ -202,56 +195,50 @@ public class ApplicationSummaryServiceTest
     productLicenseManager.setApplicationLimit(0);
     clmLicenseManager.installLicense(null);
 
-    try {
+    assertThatExceptionOfType(PaymentRequiredException.class).isThrownBy(() -> {
       service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-      fail("Expected Licensing Exception");
-    }
-    catch (PaymentRequiredException e) {
-      Application app = new ApplicationDAO().getByPublicId(appPublicId);
-      assertThat(app, is(nullValue()));
-    }
+    });
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
     productLicenseManager.setApplicationLimit(1);
     clmLicenseManager.installLicense(null);
 
     boolean result = service
         .verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    assertThat(result, is(true));
+    assertThat(result).isTrue();
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    assertThat(app.getOrganizationId(), is(automaticApplicationsConfigurationDAO.getOrganizationId()));
+    assertThat(app.getOrganizationId()).isEqualTo(automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 
   private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected)
       throws Exception
   {
-    assertThat(TelemetrySender.RESOURCE_PATH, is(invocation.getArguments()[0]));
+    assertThat(TelemetrySender.RESOURCE_PATH).isEqualTo(invocation.getArguments()[0]);
     HttpEntity httpEntity = (HttpEntity) invocation.getArguments()[1];
     ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
     BodyPart bodyPart = multipart.getBodyPart(0);
     String filename = bodyPart.getFileName();
-    assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
+    assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
 
     try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
       byte[] buffer = new byte[1024];
 
       ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
-      assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
+      assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryHeader telemetryHeader = JsonUtils.parse(buffer, TelemetryHeader.class);
-      assertThat(telemetryHeader.getCreateTime(), greaterThanOrEqualTo(before));
-      assertThat(telemetryHeader.getCreateTime(), lessThanOrEqualTo(after));
+      assertThat(telemetryHeader.getCreateTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
-      assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
+      assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryData telemetryData = JsonUtils.parse(buffer, TelemetryData.class);
-      assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION));
-      assertThat(telemetryData.getAttributes().get(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR),
-          is(String.valueOf(expected)));
-      assertThat(telemetryData.getAttributes().size(), is(1));
-      assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(before.getTime()));
-      assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(after.getTime()));
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
+      assertThat(telemetryData.getAttributes()).hasSize(1)
+          .containsEntry(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR, String.valueOf(expected));
+      assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
+          .isLessThanOrEqualTo(after.getTime());
     }
   }
 }

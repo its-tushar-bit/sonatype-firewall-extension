@@ -15,11 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationSummaryAdapterTest
 {
@@ -33,14 +29,14 @@ public class ApplicationSummaryAdapterTest
     application.setName("testName");
 
     ApplicationSummary applicationSummary = applicationAdapter.convert(application);
-    assertThat(applicationSummary.getId(), is(application.getId()));
-    assertThat(applicationSummary.getPublicId(), is(application.getPublicId()));
-    assertThat(applicationSummary.getName(), is(application.getName()));
+    assertThat(applicationSummary.getId()).isEqualTo(application.getId());
+    assertThat(applicationSummary.getPublicId()).isEqualTo(application.getPublicId());
+    assertThat(applicationSummary.getName()).isEqualTo(application.getName());
   }
 
   @Test
   public void testConvertApplication_Null() {
-    assertThat(applicationAdapter.convert((Application) null), nullValue());
+    assertThat(applicationAdapter.convert((Application) null)).isNull();
   }
 
   @Test
@@ -53,26 +49,26 @@ public class ApplicationSummaryAdapterTest
     applicationList.add(application);
 
     ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(applicationList);
-    assertThat(applicationSummaryList, notNullValue());
-    assertThat(applicationSummaryList.getApplicationSummaries(), hasSize(1));
+    assertThat(applicationSummaryList).isNotNull();
+    assertThat(applicationSummaryList.getApplicationSummaries()).hasSize(1);
     ApplicationSummary applicationSummary = applicationSummaryList.getApplicationSummaries().get(0);
-    assertThat(applicationSummary.getId(), is(application.getId()));
-    assertThat(applicationSummary.getPublicId(), is(application.getPublicId()));
-    assertThat(applicationSummary.getName(), is(application.getName()));
+    assertThat(applicationSummary.getId()).isEqualTo(application.getId());
+    assertThat(applicationSummary.getPublicId()).isEqualTo(application.getPublicId());
+    assertThat(applicationSummary.getName()).isEqualTo(application.getName());
   }
 
   @Test
   public void testConvertApplicationList_EmptyList() {
     ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(Collections.<Application> emptyList());
-    assertThat(applicationSummaryList, notNullValue());
-    assertThat(applicationSummaryList.getApplicationSummaries(), hasSize(0));
+    assertThat(applicationSummaryList).isNotNull();
+    assertThat(applicationSummaryList.getApplicationSummaries()).isEmpty();
   }
 
   @Test
   public void testConvertApplicationList_NullList() {
     List<Application> applicationList = null;
     ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(applicationList);
-    assertThat(applicationSummaryList, notNullValue());
-    assertThat(applicationSummaryList.getApplicationSummaries(), hasSize(0));
+    assertThat(applicationSummaryList).isNotNull();
+    assertThat(applicationSummaryList.getApplicationSummaries()).isEmpty();
   }
 }

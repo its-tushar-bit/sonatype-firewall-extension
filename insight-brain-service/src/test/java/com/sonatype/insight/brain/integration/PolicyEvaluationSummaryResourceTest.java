@@ -17,9 +17,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyEvaluationSummaryResourceTest
     extends AbstractResourceTest
@@ -53,19 +51,19 @@ public class PolicyEvaluationSummaryResourceTest
 
     PolicyEvaluationSummary policyEvaluationSummary = response.getBody(PolicyEvaluationSummary.class);
 
-    assertThat(policyEvaluationSummary, notNullValue());
-    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/application/" + application.getPublicId()
-        + "/report/" + scanId));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
+    assertThat(policyEvaluationSummary).isNotNull();
+    assertThat(policyEvaluationSummary.getReportUrl())
+        .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + scanId);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
   }
 
   @Test
   public void testGetPolicyEvaluationSummary_badStage() throws Exception {
     HttpResponse response = summaryRequest(application.getId(), invalidStageId).get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid parameter stageTypeId=" + invalidStageId + "."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid parameter stageTypeId=" + invalidStageId + ".");
   }
 }

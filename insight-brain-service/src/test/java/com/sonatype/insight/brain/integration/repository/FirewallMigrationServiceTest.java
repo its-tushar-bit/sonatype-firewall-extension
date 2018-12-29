@@ -376,13 +376,14 @@ public class FirewallMigrationServiceTest
       .comparing(RepositoryPolicyViolation::getPathname) //
       .thenComparing(RepositoryPolicyViolation::isActive) //
       .thenComparing(RepositoryPolicyViolation::getTime) //
-      .thenComparing(RepositoryPolicyViolation::getPolicyId) //
-      .thenComparing(RepositoryPolicyViolation::getPolicyName) //
-      .thenComparing(RepositoryPolicyViolation::getThreatLevel) //
-      .thenComparing(RepositoryPolicyViolation::getThreatCategory) //
-      .thenComparing(RepositoryPolicyViolation::getHash, nullSafe()) //
-      .thenComparing(RepositoryPolicyViolation::getConstraintFactsJson) //
-      .thenComparing(RepositoryPolicyViolation::getActionTypeId, nullSafe()) //
+      // not using method references below to work around https://bugs.openjdk.java.net/browse/JDK-8068254
+      .thenComparing(violation -> violation.getPolicyId()) //
+      .thenComparing(violation -> violation.getPolicyName()) //
+      .thenComparing(violation -> violation.getThreatLevel()) //
+      .thenComparing(violation -> violation.getThreatCategory()) //
+      .thenComparing(violation -> violation.getHash(), nullSafe()) //
+      .thenComparing(violation -> violation.getConstraintFactsJson()) //
+      .thenComparing(violation -> violation.getActionTypeId(), nullSafe()) //
       .thenComparing(RepositoryPolicyViolation::isWaived) //
       .thenComparing(RepositoryPolicyViolation::getComponentIdentifier, nullSafe());
 

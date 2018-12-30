@@ -9,10 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -21,7 +19,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
@@ -44,14 +41,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationResourceV2Test
     extends AbstractResourceTest
@@ -127,7 +117,7 @@ public class ApiApplicationResourceV2Test
     assertResponseStatus(204, response);
 
     final Application application = applicationDAO.getById(applicationResult.id);
-    assertThat(application, nullValue());
+    assertThat(application).isNull();
   }
 
   @Test
@@ -138,8 +128,8 @@ public class ApiApplicationResourceV2Test
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     ApiApplicationListDTO applicationListDTO = response.getBody(ApiApplicationListDTO.class);
-    assertThat(applicationListDTO, notNullValue());
-    assertThat(applicationListDTO.applications, hasSize(numApps + 1));
+    assertThat(applicationListDTO).isNotNull();
+    assertThat(applicationListDTO.applications).hasSize(numApps + 1);
   }
 
   @Test
@@ -157,7 +147,7 @@ public class ApiApplicationResourceV2Test
         applications.get(1).getPublicId()).get();
     assertResponseStatus(200, response);
     ApiApplicationListDTO applicationListDTO = response.getBody(ApiApplicationListDTO.class);
-    assertThat(applicationListDTO, notNullValue());
+    assertThat(applicationListDTO).isNotNull();
     List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
     for (Application application : applications) {
       ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
@@ -174,8 +164,8 @@ public class ApiApplicationResourceV2Test
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
     String errorMessage = response.getBodyText();
-    assertThat(errorMessage, is("The applicationId=" + app.getId() + " provided in the url did not match the id="
-        + applicationDTO.id + " provided in the json."));
+    assertThat(errorMessage).isEqualTo("The applicationId=" + app.getId() + " provided in the url did not match the id="
+        + applicationDTO.id + " provided in the json.");
   }
 
   @Test
@@ -216,7 +206,7 @@ public class ApiApplicationResourceV2Test
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
     String errorMessage = response.getBodyText();
-    assertThat(errorMessage, is("Cannot change the parent organization of an application."));
+    assertThat(errorMessage).isEqualTo("Cannot change the parent organization of an application.");
   }
 
   @Test
@@ -238,14 +228,14 @@ public class ApiApplicationResourceV2Test
     final String appId = "invalidAppId";
     final HttpResponse response = restRequest().path(appId).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), equalTo("Could not find an application with ID " + appId + "."));
+    assertThat(response.getBodyText()).isEqualTo("Could not find an application with ID " + appId + ".");
   }
 
   @Test
   public void testGetNotExistentApplication() throws Exception {
     final HttpResponse response = restRequest().path("invalidId").get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), equalTo("Could not find an application with ID invalidId."));
+    assertThat(response.getBodyText()).isEqualTo("Could not find an application with ID invalidId.");
   }
 
   @Test
@@ -259,7 +249,7 @@ public class ApiApplicationResourceV2Test
 
     final HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), equalTo(app.getPublicId() + " is already used as an ID."));
+    assertThat(response.getBodyText()).isEqualTo(app.getPublicId() + " is already used as an ID.");
   }
 
   @Test
@@ -277,7 +267,7 @@ public class ApiApplicationResourceV2Test
     // Test the post
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), equalTo("Application must not have an ID set on creation."));
+    assertThat(response.getBodyText()).isEqualTo("Application must not have an ID set on creation.");
   }
 
   @Test
@@ -295,8 +285,8 @@ public class ApiApplicationResourceV2Test
     // Test the post
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), equalTo("Application has a contactUserName=" + contactUserName
-        + " that does not exist."));
+    assertThat(response.getBodyText()).isEqualTo("Application has a contactUserName=" + contactUserName
+        + " that does not exist.");
   }
 
   @Test
@@ -312,8 +302,8 @@ public class ApiApplicationResourceV2Test
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(402, response);
-    assertThat(response.getBodyText(),
-        equalTo("You have exceeded the licensed limit of " + appLimit + " applications."));
+    assertThat(response.getBodyText())
+        .isEqualTo("You have exceeded the licensed limit of " + appLimit + " applications.");
   }
 
   @Test
@@ -329,8 +319,8 @@ public class ApiApplicationResourceV2Test
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), equalTo("Application references an organization (ID=" + orgId
-        + ") that does not exist."));
+    assertThat(response.getBodyText()).isEqualTo("Application references an organization (ID=" + orgId
+        + ") that does not exist.");
   }
 
   @Test
@@ -345,7 +335,7 @@ public class ApiApplicationResourceV2Test
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), equalTo("Application must have a parent organization."));
+    assertThat(response.getBodyText()).isEqualTo("Application must have a parent organization.");
   }
 
   @Test
@@ -365,8 +355,8 @@ public class ApiApplicationResourceV2Test
     final List<Role> appRoles = roleDAO.getApplicationRoles();
 
     ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(roleMemberMappings, is(notNullValue()));
-    assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
+    assertThat(roleMemberMappings).isNotNull();
+    assertThat(roleMemberMappings.memberMappings).hasSameSizeAs(appRoles);
 
     // Create
     final ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
@@ -381,27 +371,27 @@ public class ApiApplicationResourceV2Test
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
-    assertThat(returnedRoleMemberMappings, is(notNullValue()));
+    assertThat(returnedRoleMemberMappings).isNotNull();
     final List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
-    assertThat(returnedRoleMemberMappingList, is(notNullValue()));
-    assertThat(returnedRoleMemberMappingList, hasSize(appRoles.size()));
+    assertThat(returnedRoleMemberMappingList).isNotNull();
+    assertThat(returnedRoleMemberMappingList).hasSameSizeAs(appRoles);
 
     for (final ApiRoleMemberMappingDTO roleMember : returnedRoleMemberMappingList) {
       if (roleMember.roleId.equals(appRoles.get(0).getId())) {
-        assertThat(roleMember.members, hasSize(3));
+        assertThat(roleMember.members).hasSize(3);
         final Map<String, MemberType> memberMap = new HashMap<>();
         for (final ApiMemberDTO member : roleMember.members) {
           memberMap.put(member.userOrGroupName, member.type);
         }
         MemberType type = memberMap.get("Alpha");
-        assertThat(type, is(MemberType.GROUP));
+        assertThat(type).isEqualTo(MemberType.GROUP);
         type = memberMap.get("testuser");
-        assertThat(type, is(MemberType.USER));
+        assertThat(type).isEqualTo(MemberType.USER);
         type = memberMap.get(User.ADMIN_USERNAME);
-        assertThat(type, is(MemberType.USER));
+        assertThat(type).isEqualTo(MemberType.USER);
       }
       else {
-        assertThat(roleMember.members, hasSize(0));
+        assertThat(roleMember.members).isEmpty();
       }
     }
   }
@@ -416,8 +406,8 @@ public class ApiApplicationResourceV2Test
     final List<Role> appRoles = roleDAO.getApplicationRoles();
 
     ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(roleMemberMappings, is(notNullValue()));
-    assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
+    assertThat(roleMemberMappings).isNotNull();
+    assertThat(roleMemberMappings.memberMappings).hasSameSizeAs(appRoles);
 
     // Create
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
@@ -430,10 +420,9 @@ public class ApiApplicationResourceV2Test
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
-    assertThat(returnedRoleMemberMappings, is(notNullValue()));
+    assertThat(returnedRoleMemberMappings).isNotNull();
     List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
-    assertThat(returnedRoleMemberMappingList, is(notNullValue()));
-    assertThat(returnedRoleMemberMappingList, hasSize(appRoles.size()));
+    assertThat(returnedRoleMemberMappingList).hasSameSizeAs(appRoles);
 
     ApiRoleMemberMappingDTO returnedRoleMemberMapping = null;
     for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappingList) {
@@ -459,10 +448,9 @@ public class ApiApplicationResourceV2Test
     response = request.get();
     assertResponseStatus(200, response);
     returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(returnedRoleMemberMappings, is(notNullValue()));
+    assertThat(returnedRoleMemberMappings).isNotNull();
     returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
-    assertThat(returnedRoleMemberMappingList, is(notNullValue()));
-    assertThat(returnedRoleMemberMappingList, hasSize(appRoles.size()));
+    assertThat(returnedRoleMemberMappingList).hasSameSizeAs(appRoles);
 
     ApiRoleMemberMappingDTO[] returnedRoleMemberMappingArray = new ApiRoleMemberMappingDTO[2];
     for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappingList) {
@@ -473,7 +461,7 @@ public class ApiApplicationResourceV2Test
         returnedRoleMemberMappingArray[1] = roleMemberMapping;
       }
     }
-    assertThat(returnedRoleMemberMappingArray, arrayWithSize(2));
+    assertThat(returnedRoleMemberMappingArray).hasSize(2);
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[0], appRoles.get(0).getId(), userA, MemberType.USER);
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[1], appRoles.get(1).getId(), userB, MemberType.USER);
   }
@@ -484,14 +472,9 @@ public class ApiApplicationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiRoleListDTO appRoles = response.getBody(ApiRoleListDTO.class);
-    assertThat(appRoles, notNullValue());
-    assertThat(appRoles.roles, hasSize(4));
-
-    Set<String> roleNames = new HashSet<>();
-    for (ApiRoleDTO appRole : appRoles.roles) {
-      roleNames.add(appRole.name);
-    }
-    assertThat(roleNames, hasItems("Owner", "Developer", "Application Evaluator", "Component Evaluator"));
+    assertThat(appRoles).isNotNull();
+    assertThat(appRoles.roles).hasSize(4).extracting(dto -> dto.name).containsExactlyInAnyOrder("Owner", "Developer",
+        "Application Evaluator", "Component Evaluator");
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
@@ -514,19 +497,19 @@ public class ApiApplicationResourceV2Test
   }
 
   private void assertApplication(final ApiApplicationDTO returnedDTO, final ApiApplicationDTO sendDTO) {
-    assertThat(returnedDTO.publicId, equalTo(sendDTO.publicId));
-    assertThat(returnedDTO.name, equalTo(sendDTO.name));
-    assertThat(returnedDTO.organizationId, equalTo(sendDTO.organizationId));
-    assertThat(returnedDTO.contactUserName, equalTo(sendDTO.contactUserName));
+    assertThat(returnedDTO.publicId).isEqualTo(sendDTO.publicId);
+    assertThat(returnedDTO.name).isEqualTo(sendDTO.name);
+    assertThat(returnedDTO.organizationId).isEqualTo(sendDTO.organizationId);
+    assertThat(returnedDTO.contactUserName).isEqualTo(sendDTO.contactUserName);
 
     if (returnedDTO.applicationTags == null) {
-      assertThat(sendDTO.applicationTags, nullValue());
+      assertThat(sendDTO.applicationTags).isNull();
     }
     else {
-      assertThat(returnedDTO.applicationTags.size(), is(sendDTO.applicationTags.size()));
-      assertThat(returnedDTO.applicationTags.size(), is(1));
-      assertThat(returnedDTO.applicationTags.get(0).tagId, is(sendDTO.applicationTags.get(0).tagId));
-      assertThat(returnedDTO.applicationTags.get(0).applicationId, is(returnedDTO.id));
+      assertThat(returnedDTO.applicationTags).hasSameSizeAs(sendDTO.applicationTags);
+      assertThat(returnedDTO.applicationTags).hasSize(1);
+      assertThat(returnedDTO.applicationTags.get(0).tagId).isEqualTo(sendDTO.applicationTags.get(0).tagId);
+      assertThat(returnedDTO.applicationTags.get(0).applicationId).isEqualTo(returnedDTO.id);
     }
   }
 
@@ -535,11 +518,11 @@ public class ApiApplicationResourceV2Test
                                              final User user,
                                              final MemberType type)
   {
-    assertThat(apiRoleMemberMappingDTO, notNullValue());
-    assertThat(apiRoleMemberMappingDTO.roleId, is(roleId));
-    assertThat(apiRoleMemberMappingDTO.members, hasSize(1));
-    assertThat(apiRoleMemberMappingDTO.members.get(0).type, is(type));
-    assertThat(apiRoleMemberMappingDTO.members.get(0).userOrGroupName, is(user.getUsername()));
+    assertThat(apiRoleMemberMappingDTO).isNotNull();
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(roleId);
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
+    assertThat(apiRoleMemberMappingDTO.members.get(0).type).isEqualTo(type);
+    assertThat(apiRoleMemberMappingDTO.members.get(0).userOrGroupName).isEqualTo(user.getUsername());
   }
 
   private ApiApplicationDTO createApplicationDTO(String applicationId) {
@@ -563,19 +546,20 @@ public class ApiApplicationResourceV2Test
   private void assertApplications(List<ApiApplicationDTO> actualApplications,
                                   List<ApiApplicationDTO> expectedApplications)
   {
-    assertThat(actualApplications.size(), is(expectedApplications.size()));
+    assertThat(actualApplications).hasSameSizeAs(expectedApplications);
 
-    actualApplications.sort(new ApiApplicationDTOComparator());
-    expectedApplications.sort(new ApiApplicationDTOComparator());
+    Comparator<ApiApplicationDTO> appComparator = Comparator.<ApiApplicationDTO, String>comparing(dto -> dto.id);
+    actualApplications.sort(appComparator);
+    expectedApplications.sort(appComparator);
 
     for (int i = 0; i < actualApplications.size(); i++) {
       ApiApplicationDTO actualApplication = actualApplications.get(i);
       ApiApplicationDTO expectedApplication = expectedApplications.get(i);
-      assertThat(actualApplication.id, is(expectedApplication.id));
-      assertThat(actualApplication.name, is(expectedApplication.name));
-      assertThat(actualApplication.organizationId, is(expectedApplication.organizationId));
-      assertThat(actualApplication.publicId, is(expectedApplication.publicId));
-      assertThat(actualApplication.contactUserName, is(expectedApplication.contactUserName));
+      assertThat(actualApplication.id).isEqualTo(expectedApplication.id);
+      assertThat(actualApplication.name).isEqualTo(expectedApplication.name);
+      assertThat(actualApplication.organizationId).isEqualTo(expectedApplication.organizationId);
+      assertThat(actualApplication.publicId).isEqualTo(expectedApplication.publicId);
+      assertThat(actualApplication.contactUserName).isEqualTo(expectedApplication.contactUserName);
 
       assertTags(actualApplication.applicationTags, expectedApplication.applicationTags);
     }
@@ -583,42 +567,17 @@ public class ApiApplicationResourceV2Test
 
   private void assertTags(List<ApiApplicationTagDTO> actualTags, List<ApiApplicationTagDTO> expectedTags) {
     if (actualTags == null) {
-      assertThat(expectedTags, nullValue());
+      assertThat(expectedTags).isNull();
       return;
     }
 
-    assertThat(actualTags.size(), is(expectedTags.size()));
-
-    actualTags.sort(new ApiApplicationTagDTOComparator());
-    expectedTags.sort(new ApiApplicationTagDTOComparator());
-
-    for (int i = 0; i < actualTags.size(); i++) {
-      assertThat(actualTags.get(i).id, is(expectedTags.get(i).id));
-      assertThat(actualTags.get(i).tagId, is(expectedTags.get(i).tagId));
-      assertThat(actualTags.get(i).applicationId, is(expectedTags.get(i).applicationId));
-    }
+    Comparator<ApiApplicationTagDTO> tagComparator = Comparator.<ApiApplicationTagDTO, String> comparing(dto -> dto.id)
+        .thenComparing(dto -> dto.applicationId).thenComparing(dto -> dto.tagId);
+    assertThat(actualTags).usingElementComparator(tagComparator).containsExactlyInAnyOrderElementsOf(expectedTags);
   }
 
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.APP_RESOURCE_PATH);
-  }
-
-  private static class ApiApplicationDTOComparator
-      implements Comparator<ApiApplicationDTO>
-  {
-    @Override
-    public int compare(final ApiApplicationDTO o1, final ApiApplicationDTO o2) {
-      return o1.id.compareTo(o2.id);
-    }
-  }
-
-  private static class ApiApplicationTagDTOComparator
-      implements Comparator<ApiApplicationTagDTO>
-  {
-    @Override
-    public int compare(final ApiApplicationTagDTO o1, final ApiApplicationTagDTO o2) {
-      return o1.id.compareTo(o2.id);
-    }
   }
 }

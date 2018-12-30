@@ -21,9 +21,7 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiMetricsReportingAggregationDTOV2Test
 {
@@ -50,82 +48,82 @@ public class ApiMetricsReportingAggregationDTOV2Test
         open, //
         10);
 
-    assertThat(dto.timePeriodStart, is("2017-10-01"));
+    assertThat(dto.timePeriodStart).isEqualTo("2017-10-01");
 
-    assertThat(dto.mttrLowThreat, is(20L));
-    assertThat(dto.mttrModerateThreat, is(500L));
-    assertThat(dto.mttrSevereThreat, is(2L));
-    assertThat(dto.mttrCriticalThreat, is(6L));
+    assertThat(dto.mttrLowThreat).isEqualTo(20);
+    assertThat(dto.mttrModerateThreat).isEqualTo(500);
+    assertThat(dto.mttrSevereThreat).isEqualTo(2);
+    assertThat(dto.mttrCriticalThreat).isEqualTo(6);
 
-    assertThat(dto.discoveredCounts.get(SECURITY).get(LOW), is(1));
-    assertThat(dto.discoveredCounts.get(SECURITY).get(MODERATE), is(0));
-    assertThat(dto.discoveredCounts.get(SECURITY).get(SEVERE), is(0));
-    assertThat(dto.discoveredCounts.get(SECURITY).get(CRITICAL), is(0));
-    assertThat(dto.discoveredCounts.get(LICENSE).get(LOW), is(0));
-    assertThat(dto.discoveredCounts.get(LICENSE).get(MODERATE), is(5));
-    assertThat(dto.discoveredCounts.get(LICENSE).get(SEVERE), is(0));
-    assertThat(dto.discoveredCounts.get(LICENSE).get(CRITICAL), is(0));
-    assertThat(dto.discoveredCounts.get(QUALITY).get(LOW), is(0));
-    assertThat(dto.discoveredCounts.get(QUALITY).get(MODERATE), is(0));
-    assertThat(dto.discoveredCounts.get(QUALITY).get(SEVERE), is(0));
-    assertThat(dto.discoveredCounts.get(QUALITY).get(CRITICAL), is(0));
-    assertThat(dto.discoveredCounts.get(OTHER).get(LOW), is(0));
-    assertThat(dto.discoveredCounts.get(OTHER).get(MODERATE), is(0));
-    assertThat(dto.discoveredCounts.get(OTHER).get(SEVERE), is(0));
-    assertThat(dto.discoveredCounts.get(OTHER).get(CRITICAL), is(0));
+    assertThat(dto.discoveredCounts.get(SECURITY).get(LOW)).isEqualTo(1);
+    assertThat(dto.discoveredCounts.get(SECURITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(SECURITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(SECURITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(LICENSE).get(LOW)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(LICENSE).get(MODERATE)).isEqualTo(5);
+    assertThat(dto.discoveredCounts.get(LICENSE).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(LICENSE).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(QUALITY).get(LOW)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(QUALITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(QUALITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(QUALITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(OTHER).get(LOW)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(OTHER).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(OTHER).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.discoveredCounts.get(OTHER).get(CRITICAL)).isEqualTo(0);
 
-    assertThat(dto.fixedCounts.get(SECURITY).get(LOW), is(0));
-    assertThat(dto.fixedCounts.get(SECURITY).get(MODERATE), is(0));
-    assertThat(dto.fixedCounts.get(SECURITY).get(SEVERE), is(0));
-    assertThat(dto.fixedCounts.get(SECURITY).get(CRITICAL), is(0));
-    assertThat(dto.fixedCounts.get(LICENSE).get(LOW), is(0));
-    assertThat(dto.fixedCounts.get(LICENSE).get(MODERATE), is(0));
-    assertThat(dto.fixedCounts.get(LICENSE).get(SEVERE), is(0));
-    assertThat(dto.fixedCounts.get(LICENSE).get(CRITICAL), is(0));
-    assertThat(dto.fixedCounts.get(QUALITY).get(LOW), is(0));
-    assertThat(dto.fixedCounts.get(QUALITY).get(MODERATE), is(0));
-    assertThat(dto.fixedCounts.get(QUALITY).get(SEVERE), is(2));
-    assertThat(dto.fixedCounts.get(QUALITY).get(CRITICAL), is(0));
-    assertThat(dto.fixedCounts.get(OTHER).get(LOW), is(0));
-    assertThat(dto.fixedCounts.get(OTHER).get(MODERATE), is(0));
-    assertThat(dto.fixedCounts.get(OTHER).get(SEVERE), is(0));
-    assertThat(dto.fixedCounts.get(OTHER).get(CRITICAL), is(0));
+    assertThat(dto.fixedCounts.get(SECURITY).get(LOW)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(SECURITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(SECURITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(SECURITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(LICENSE).get(LOW)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(LICENSE).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(LICENSE).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(LICENSE).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(QUALITY).get(LOW)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(QUALITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(QUALITY).get(SEVERE)).isEqualTo(2);
+    assertThat(dto.fixedCounts.get(QUALITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(OTHER).get(LOW)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(OTHER).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(OTHER).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.fixedCounts.get(OTHER).get(CRITICAL)).isEqualTo(0);
 
-    assertThat(dto.waivedCounts.get(SECURITY).get(LOW), is(0));
-    assertThat(dto.waivedCounts.get(SECURITY).get(MODERATE), is(0));
-    assertThat(dto.waivedCounts.get(SECURITY).get(SEVERE), is(0));
-    assertThat(dto.waivedCounts.get(SECURITY).get(CRITICAL), is(0));
-    assertThat(dto.waivedCounts.get(LICENSE).get(LOW), is(0));
-    assertThat(dto.waivedCounts.get(LICENSE).get(MODERATE), is(0));
-    assertThat(dto.waivedCounts.get(LICENSE).get(SEVERE), is(0));
-    assertThat(dto.waivedCounts.get(LICENSE).get(CRITICAL), is(0));
-    assertThat(dto.waivedCounts.get(QUALITY).get(LOW), is(0));
-    assertThat(dto.waivedCounts.get(QUALITY).get(MODERATE), is(0));
-    assertThat(dto.waivedCounts.get(QUALITY).get(SEVERE), is(0));
-    assertThat(dto.waivedCounts.get(QUALITY).get(CRITICAL), is(0));
-    assertThat(dto.waivedCounts.get(OTHER).get(LOW), is(0));
-    assertThat(dto.waivedCounts.get(OTHER).get(MODERATE), is(0));
-    assertThat(dto.waivedCounts.get(OTHER).get(SEVERE), is(0));
-    assertThat(dto.waivedCounts.get(OTHER).get(CRITICAL), is(100));
+    assertThat(dto.waivedCounts.get(SECURITY).get(LOW)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(SECURITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(SECURITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(SECURITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(LICENSE).get(LOW)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(LICENSE).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(LICENSE).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(LICENSE).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(QUALITY).get(LOW)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(QUALITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(QUALITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(QUALITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(OTHER).get(LOW)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(OTHER).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(OTHER).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.waivedCounts.get(OTHER).get(CRITICAL)).isEqualTo(100);
 
-    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(LOW), is(2));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(MODERATE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(SEVERE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(CRITICAL), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(LOW), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(MODERATE), is(10));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(SEVERE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(CRITICAL), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(LOW), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(MODERATE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(SEVERE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(CRITICAL), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(LOW), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(MODERATE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(SEVERE), is(0));
-    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(CRITICAL), is(0));
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(LOW)).isEqualTo(2);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(SECURITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(LOW)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(MODERATE)).isEqualTo(10);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(LICENSE).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(LOW)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(QUALITY).get(CRITICAL)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(LOW)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(MODERATE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(SEVERE)).isEqualTo(0);
+    assertThat(dto.openCountsAtTimePeriodEnd.get(OTHER).get(CRITICAL)).isEqualTo(0);
 
-    assertThat(dto.evaluationCount, is(10));
+    assertThat(dto.evaluationCount).isEqualTo(10);
   }
 
   private Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> emptyMap() {

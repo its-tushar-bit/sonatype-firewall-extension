@@ -11,8 +11,7 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentLabelResourceV2AuthzTest
     extends AbstractResourceAuthzTest
@@ -21,13 +20,13 @@ public class ApiComponentLabelResourceV2AuthzTest
   public void testSetApplicationComponentLabel_Unauthenticated() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
         .parameter("bababababa", "label", app.getId()).anon().post();
-    assertThat(response.getStatusCode(), is(401));
+    assertThat(response.getStatusCode()).isEqualTo(401);
   }
 
   @Test
   public void testDeleteApplicationComponentLabel_Unauthenticated() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
         .parameter("bababababa", "label", app.getId()).anon().delete();
-    assertThat(response.getStatusCode(), is(401));
+    assertThat(response.getStatusCode()).isEqualTo(401);
   }
 }

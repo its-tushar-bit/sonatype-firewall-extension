@@ -27,12 +27,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentDetailsResourceV2Test
     extends AbstractResourceTest
@@ -59,30 +54,27 @@ public class ApiComponentDetailsResourceV2Test
     assertResponseStatus(200, response);
 
     String responseText = response.getBodyText();
-    assertThat(responseText, not(containsString("proprietary")));
-    assertThat(responseText, not(containsString("overriddenLicenses")));
-    assertThat(responseText, not(containsString("status")));
-    assertThat(responseText, not(containsString("policyData")));
+    assertThat(responseText).doesNotContain("proprietary", "overriddenLicenses", "status", "policyData");
 
     ApiComponentDetailsResultDTOV2 result = response.getBody(ApiComponentDetailsResultDTOV2.class);
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
     ApiComponentDetailsDTOV2 componentDetails = result.componentDetails.get(0);
-    assertThat(componentDetails, notNullValue());
-    assertThat(componentDetails.component, notNullValue());
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.component).isNotNull();
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(componentIdentifier);
-    assertThat(componentDetails.component.componentIdentifier.getFormat(), is(expectedComponentIdentifier.getFormat()));
-    assertThat(componentDetails.component.componentIdentifier.getCoordinates(),
-        is(expectedComponentIdentifier.getCoordinates()));
-    assertThat(componentDetails.component.hash, is("h1"));
-    assertThat(componentDetails.licenseData.declaredLicenses, hasSize(1));
-    assertThat(componentDetails.licenseData.declaredLicenses.get(0).licenseId, is("Apache-2.0"));
-    assertThat(componentDetails.licenseData.observedLicenses, hasSize(1));
-    assertThat(componentDetails.licenseData.observedLicenses.get(0).licenseId, is("GPL-2.0"));
-    assertThat(componentDetails.securityData.securityIssues, hasSize(1));
-    assertThat(componentDetails.securityData.securityIssues.get(0).reference, is("SOME-REFID"));
+    assertThat(componentDetails.component.componentIdentifier.getFormat())
+        .isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(componentDetails.component.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(componentDetails.component.hash).isEqualTo("h1");
+    assertThat(componentDetails.licenseData.declaredLicenses).extracting(dto -> dto.licenseId)
+        .containsExactlyInAnyOrder("Apache-2.0");
+    assertThat(componentDetails.licenseData.observedLicenses).extracting(dto -> dto.licenseId)
+        .containsExactlyInAnyOrder("GPL-2.0");
+    assertThat(componentDetails.securityData.securityIssues).extracting(dto -> dto.reference)
+        .containsExactlyInAnyOrder("SOME-REFID");
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {

@@ -20,11 +20,7 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiSearchResourceV2AuthzTest
     extends AbstractResourceAuthzTest
@@ -50,14 +46,14 @@ public class ApiSearchResourceV2AuthzTest
     HttpResponse response = request.auth(unauthorized).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(empty()));
+    assertThat(results).isNotNull();
+    assertThat(results.results).isEmpty();
 
     response = request.auth(authorized).get();
     assertResponseStatus(200, response);
     results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, hasSize(1));
-    assertThat(results.results.get(0).applicationId, is(app.getPublicId()));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(1);
+    assertThat(results.results.get(0).applicationId).isEqualTo(app.getPublicId());
   }
 }

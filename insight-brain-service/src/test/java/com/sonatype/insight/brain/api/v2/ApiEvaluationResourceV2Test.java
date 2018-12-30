@@ -41,11 +41,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.13.0
@@ -82,7 +78,7 @@ public class ApiEvaluationResourceV2Test
     String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     HttpResponse response = restRequest(app.getId()).body(jsonRequest).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("A component identifier must have at least one coordinate."));
+    assertThat(response.getBodyText()).isEqualTo("A component identifier must have at least one coordinate.");
   }
 
   @Test
@@ -94,7 +90,7 @@ public class ApiEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is(MISSING_COORDINATES + "[extension]"));
+    assertThat(response.getBodyText()).isEqualTo(MISSING_COORDINATES + "[extension]");
   }
 
   @Test
@@ -128,7 +124,7 @@ public class ApiEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("One of either componentIdentifier or hash must be supplied."));
+    assertThat(response.getBodyText()).isEqualTo("One of either componentIdentifier or hash must be supplied.");
   }
 
   @Test
@@ -138,7 +134,7 @@ public class ApiEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("No components provided for evaluation"));
+    assertThat(response.getBodyText()).isEqualTo("No components provided for evaluation");
   }
 
   @Test
@@ -148,7 +144,7 @@ public class ApiEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("No components provided for evaluation"));
+    assertThat(response.getBodyText()).isEqualTo("No components provided for evaluation");
   }
 
   @Test
@@ -169,14 +165,13 @@ public class ApiEvaluationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
-    assertThat(details, notNullValue());
-    assertThat(details.isError, is(true));
-    assertThat(details.errorMessage, startsWith("The Sonatype Data Services returned error 500, please retry in a bit."));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(0));
+    assertThat(details).isNotNull();
+    assertThat(details.isError).isTrue();
+    assertThat(details.errorMessage).startsWith("The Sonatype Data Services returned error 500, please retry in a bit.");
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).isEmpty();
   }
 
   @Test
@@ -215,14 +210,13 @@ public class ApiEvaluationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(2));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 1, policies);
@@ -267,14 +261,13 @@ public class ApiEvaluationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(2));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 10, policies);
@@ -316,14 +309,13 @@ public class ApiEvaluationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(2));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper
         .assertComponentDetails(details.results.get(0),
             componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1"), MatchState.EXACT.getId(),
@@ -374,14 +366,13 @@ public class ApiEvaluationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(2));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 21, policies);
@@ -432,14 +423,13 @@ public class ApiEvaluationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(2));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1",
         MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
@@ -460,7 +450,7 @@ public class ApiEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is(MISSING_COORDINATES + "[extension]"));
+    assertThat(response.getBodyText()).isEqualTo(MISSING_COORDINATES + "[extension]");
   }
 
   private void mockHDSInternalServiceError() {
@@ -481,7 +471,7 @@ public class ApiEvaluationResourceV2Test
 
     assertResponseStatus(200, response);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
-    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
+    assertThat(apiPromoteScanResultDTOV2).isNotNull();
   }
 
   @Test
@@ -493,14 +483,14 @@ public class ApiEvaluationResourceV2Test
         .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
     assertResponseStatus(200, response);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
-    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
+    assertThat(apiPromoteScanResultDTOV2).isNotNull();
 
     response = restRequest().path(apiPromoteScanResultDTOV2.statusUrl).get();
 
     assertResponseStatus(200, response);
     ApiScanResultDTOV2 apiScanResultDTOV2 = response.getBody(ApiScanResultDTOV2.class);
-    assertThat(apiScanResultDTOV2, is(notNullValue()));
-    assertThat(apiScanResultDTOV2.status, is(notNullValue()));
+    assertThat(apiScanResultDTOV2).isNotNull();
+    assertThat(apiScanResultDTOV2.status).isNotNull();
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {

@@ -30,8 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationResourceV2AuditTest
     extends AbstractMembershipMappingAuditTest
@@ -96,7 +95,7 @@ public class ApiApplicationResourceV2AuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());
 
-    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, 0), empty());
+    assertThat(awaitLogEntries(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, 0)).isEmpty();
   }
 
   @Test

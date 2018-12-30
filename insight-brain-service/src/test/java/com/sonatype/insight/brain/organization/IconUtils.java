@@ -10,18 +10,14 @@ import java.io.InputStream;
 
 import org.codehaus.plexus.util.IOUtil;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class IconUtils
 {
   private static byte[] loadImage(String resource) throws IOException {
-    InputStream iconStream = IconUtils.class.getResourceAsStream(resource);
-    assertNotNull("Missing resource: " + resource, iconStream);
-    try {
+    try (InputStream iconStream = IconUtils.class.getResourceAsStream(resource)) {
+      assertThat(iconStream).as("Missing resource: " + resource).isNotNull();
       return IOUtil.toByteArray(iconStream);
-    }
-    finally {
-      IOUtil.close(iconStream);
     }
   }
 

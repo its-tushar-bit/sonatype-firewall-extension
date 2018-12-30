@@ -35,13 +35,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiOrganizationResourceV2Test
     extends AbstractResourceTest
@@ -75,26 +69,25 @@ public class ApiOrganizationResourceV2Test
     final HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     final ApiOrganizationListDTO organizationListDTO = response.getBody(ApiOrganizationListDTO.class);
-    assertThat(organizationListDTO, notNullValue());
+    assertThat(organizationListDTO).isNotNull();
 
-    assertThat(organizationListDTO.organizations, notNullValue());
     // One that was created for the test and one for the root org
-    assertThat(organizationListDTO.organizations, hasSize(2));
+    assertThat(organizationListDTO.organizations).hasSize(2);
 
     ApiOrganizationDTO retrievedOrg = organizationListDTO.organizations.get(0);
     if (Organization.ROOT_ORGANIZATION_ID.equals(retrievedOrg.id)) {
       retrievedOrg = organizationListDTO.organizations.get(1);
     }
-    assertThat(retrievedOrg.id, is(organization.getId()));
-    assertThat(retrievedOrg.name, is(organization.getName()));
+    assertThat(retrievedOrg.id).isEqualTo(organization.getId());
+    assertThat(retrievedOrg.name).isEqualTo(organization.getName());
 
-    assertThat(retrievedOrg.tags, hasSize(1));
+    assertThat(retrievedOrg.tags).hasSize(1);
 
     ApiTagDTO retrievedTag = retrievedOrg.tags.get(0);
-    assertThat(retrievedTag.id, is(tag.getId()));
-    assertThat(retrievedTag.name, is(tag.getName()));
-    assertThat(retrievedTag.description, is(tag.getDescription()));
-    assertThat(retrievedTag.color, is(tag.getColor()));
+    assertThat(retrievedTag.id).isEqualTo(tag.getId());
+    assertThat(retrievedTag.name).isEqualTo(tag.getName());
+    assertThat(retrievedTag.description).isEqualTo(tag.getDescription());
+    assertThat(retrievedTag.color).isEqualTo(tag.getColor());
   }
 
   @Test
@@ -122,8 +115,8 @@ public class ApiOrganizationResourceV2Test
     final List<Role> orgRoles = roleDAO.getApplicationRoles();
 
     ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(roleMemberMappings, is(notNullValue()));
-    assertThat(roleMemberMappings.memberMappings, hasSize(orgRoles.size()));
+    assertThat(roleMemberMappings).isNotNull();
+    assertThat(roleMemberMappings.memberMappings).hasSameSizeAs(orgRoles);
 
     // Create
     final ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
@@ -138,26 +131,26 @@ public class ApiOrganizationResourceV2Test
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
-    assertThat(returnedRoleMemberMappings, is(notNullValue()));
-    assertThat(returnedRoleMemberMappings.memberMappings, is(notNullValue()));
-    assertThat(returnedRoleMemberMappings.memberMappings, hasSize(orgRoles.size()));
+    assertThat(returnedRoleMemberMappings).isNotNull();
+    assertThat(returnedRoleMemberMappings.memberMappings).isNotNull();
+    assertThat(returnedRoleMemberMappings.memberMappings).hasSameSizeAs(orgRoles);
 
     for (final ApiRoleMemberMappingDTO roleMember : returnedRoleMemberMappings.memberMappings) {
       if (roleMember.roleId.equals(orgRoles.get(0).getId())) {
-        assertThat(roleMember.members, hasSize(3));
+        assertThat(roleMember.members).hasSize(3);
         final Map<String, MemberType> memberMap = new HashMap<>();
         for (final ApiMemberDTO member : roleMember.members) {
           memberMap.put(member.userOrGroupName, member.type);
         }
         MemberType type = memberMap.get("Alpha");
-        assertThat(type, is(MemberType.GROUP));
+        assertThat(type).isEqualTo(MemberType.GROUP);
         type = memberMap.get("testuser");
-        assertThat(type, is(MemberType.USER));
+        assertThat(type).isEqualTo(MemberType.USER);
         type = memberMap.get(User.ADMIN_USERNAME);
-        assertThat(type, is(MemberType.USER));
+        assertThat(type).isEqualTo(MemberType.USER);
       }
       else {
-        assertThat(roleMember.members, hasSize(0));
+        assertThat(roleMember.members).isEmpty();
       }
     }
   }
@@ -173,8 +166,8 @@ public class ApiOrganizationResourceV2Test
     final List<Role> orgRoles = roleDAO.getApplicationRoles();
 
     ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(roleMemberMappings, is(notNullValue()));
-    assertThat(roleMemberMappings.memberMappings, hasSize(orgRoles.size()));
+    assertThat(roleMemberMappings).isNotNull();
+    assertThat(roleMemberMappings.memberMappings).hasSameSizeAs(orgRoles);
 
     // Create
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
@@ -187,9 +180,9 @@ public class ApiOrganizationResourceV2Test
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
-    assertThat(returnedRoleMemberMappings, is(notNullValue()));
-    assertThat(returnedRoleMemberMappings.memberMappings, is(notNullValue()));
-    assertThat(returnedRoleMemberMappings.memberMappings, hasSize(orgRoles.size()));
+    assertThat(returnedRoleMemberMappings).isNotNull();
+    assertThat(returnedRoleMemberMappings.memberMappings).isNotNull();
+    assertThat(returnedRoleMemberMappings.memberMappings).hasSameSizeAs(orgRoles);
 
     ApiRoleMemberMappingDTO returnedRoleMemberMapping = null;
     for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappings.memberMappings) {
@@ -215,9 +208,9 @@ public class ApiOrganizationResourceV2Test
     response = request.get();
     assertResponseStatus(200, response);
     returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(returnedRoleMemberMappings, is(notNullValue()));
-    assertThat(returnedRoleMemberMappings.memberMappings, is(notNullValue()));
-    assertThat(returnedRoleMemberMappings.memberMappings, hasSize(orgRoles.size()));
+    assertThat(returnedRoleMemberMappings).isNotNull();
+    assertThat(returnedRoleMemberMappings.memberMappings).isNotNull();
+    assertThat(returnedRoleMemberMappings.memberMappings).hasSameSizeAs(orgRoles);
 
     ApiRoleMemberMappingDTO[] returnedRoleMemberMappingArray = new ApiRoleMemberMappingDTO[2];
     for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappings.memberMappings) {
@@ -228,7 +221,7 @@ public class ApiOrganizationResourceV2Test
         returnedRoleMemberMappingArray[1] = roleMemberMapping;
       }
     }
-    assertThat(returnedRoleMemberMappingArray, arrayWithSize(2));
+    assertThat(returnedRoleMemberMappingArray).hasSize(2);
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[0], orgRoles.get(0).getId(), userA, MemberType.USER);
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[1], orgRoles.get(1).getId(), userB, MemberType.USER);
   }
@@ -244,15 +237,15 @@ public class ApiOrganizationResourceV2Test
     assertResponseStatus(200, response);
 
     ApiOrganizationDTO responseBody = response.getBody(ApiOrganizationDTO.class);
-    assertThat(responseBody.id, not(isEmptyOrNullString()));
+    assertThat(responseBody.id).isNotEmpty();
 
     Organization organization = organizationDAO.getByIdNotNull(responseBody.id);
     tempEntity.register(organization);
 
-    assertThat(responseBody.name, is(requestBody.name));
-    assertThat(responseBody.tags, hasSize(0));
+    assertThat(responseBody.name).isEqualTo(requestBody.name);
+    assertThat(responseBody.tags).isEmpty();
 
-    assertThat(organization.getName(), is(requestBody.name));
+    assertThat(organization.getName()).isEqualTo(requestBody.name);
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
@@ -279,12 +272,12 @@ public class ApiOrganizationResourceV2Test
                                              final User user,
                                              final MemberType type)
   {
-    assertThat(apiRoleMemberMappingDTO, notNullValue());
-    assertThat(apiRoleMemberMappingDTO.roleId, is(roleId));
+    assertThat(apiRoleMemberMappingDTO).isNotNull();
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(roleId);
     final List<ApiMemberDTO> returnedMembers = apiRoleMemberMappingDTO.members;
-    assertThat(returnedMembers, hasSize(1));
-    assertThat(returnedMembers.get(0).type, is(type));
-    assertThat(returnedMembers.get(0).userOrGroupName, is(user.getUsername()));
+    assertThat(returnedMembers).hasSize(1);
+    assertThat(returnedMembers.get(0).type).isEqualTo(type);
+    assertThat(returnedMembers.get(0).userOrGroupName).isEqualTo(user.getUsername());
   }
 
   @Override

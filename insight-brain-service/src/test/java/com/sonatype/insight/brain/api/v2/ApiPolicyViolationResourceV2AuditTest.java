@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.List;
-
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -15,11 +13,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyViolationResourceV2AuditTest
     extends AbstractAuditTest
@@ -37,15 +33,12 @@ public class ApiPolicyViolationResourceV2AuditTest
         .query("p", policy1.getId(), policy2.getId(), unknownPolicyId).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_POLICY_VIOLATIONS, null);
-    List<PolicyAuditDTO> actuals = objectMapper
-        .convertValue(auditDTO.data.get("selectedPolicies"), new TypeReference<List<PolicyAuditDTO>>()
-        {
-        });
+    PolicyAuditDTO[] actuals = objectMapper.convertValue(auditDTO.data.get("selectedPolicies"), PolicyAuditDTO[].class);
 
-    assertThat(actuals, containsInAnyOrder(
+    assertThat(actuals).containsExactlyInAnyOrder(
         new PolicyAuditDTO(policy1.getId(), policy1),
         new PolicyAuditDTO(policy2.getId(), policy2),
-        new PolicyAuditDTO(unknownPolicyId, null)));
+        new PolicyAuditDTO(unknownPolicyId, null));
     assertCustomData(auditDTO, "inspectedApplicationCount", 2);
   }
 }

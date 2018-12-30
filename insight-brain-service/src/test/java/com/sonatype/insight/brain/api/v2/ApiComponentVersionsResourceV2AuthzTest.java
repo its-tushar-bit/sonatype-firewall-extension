@@ -11,8 +11,7 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentVersionsResourceV2AuthzTest
     extends AbstractResourceAuthzTest
@@ -20,6 +19,6 @@ public class ApiComponentVersionsResourceV2AuthzTest
   @Test
   public void testGetComponentVersions_Unauthenticated() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_VERSIONS_PATH_V2).anon().post();
-    assertThat(response.getStatusCode(), is(401));
+    assertThat(response.getStatusCode()).isEqualTo(401);
   }
 }

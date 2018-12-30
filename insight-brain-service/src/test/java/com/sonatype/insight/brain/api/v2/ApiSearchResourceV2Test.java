@@ -21,11 +21,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiSearchResourceV2Test
     extends AbstractResourceTest
@@ -59,20 +55,20 @@ public class ApiSearchResourceV2Test
                                   ComponentIdentifier componentIdentifier,
                                   Integer threatLevel) throws Exception
   {
-    assertThat(result.applicationId, is(appId));
-    assertThat(result.applicationName, is(appName));
-    assertThat(result.reportUrl, is(notNullValue()));
+    assertThat(result.applicationId).isEqualTo(appId);
+    assertThat(result.applicationName).isEqualTo(appName);
+    assertThat(result.reportUrl).isNotNull();
     assertResponseStatus(200, HttpRequest.to(result.reportUrl).followRedirects().get());
-    assertThat(result.hash, is(hash));
+    assertThat(result.hash).isEqualTo(hash);
     if (componentIdentifier != null) {
-      assertThat(result.componentIdentifier, is(notNullValue()));
-      assertThat(result.componentIdentifier.getFormat(), is(componentIdentifier.getFormat()));
-      assertThat(result.componentIdentifier.getCoordinates(), is(componentIdentifier.getCoordinates()));
+      assertThat(result.componentIdentifier).isNotNull();
+      assertThat(result.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
+      assertThat(result.componentIdentifier.getCoordinates()).isEqualTo(componentIdentifier.getCoordinates());
     }
     else {
-      assertThat(result.componentIdentifier, is(nullValue()));
+      assertThat(result.componentIdentifier).isNull();
     }
-    assertThat(result.threatLevel, is(threatLevel));
+    assertThat(result.threatLevel).isEqualTo(threatLevel);
   }
 
   private void sortResultsByAppIdAndHash(ApiSearchResultsDTOV2 resultsDTO) {
@@ -87,36 +83,36 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_MissingStageId() throws Exception {
     HttpResponse response = addHash(searchRequest(""), "12345678901234567890").get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Stage has not been specified."));
+    assertThat(response.getBodyText()).isEqualTo("Stage has not been specified.");
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
     HttpResponse response = addHash(searchRequest("invalid"), "12345678901234567890").get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid stage: invalid."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid stage: invalid.");
   }
 
   @Test
   public void testSearchComponent_MissingHashAndCoordinates() throws Exception {
     HttpResponse response = searchRequest(Stage.ID_BUILD).get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(),
-        is("Neither hash nor coordinates of component to search for have been specified."));
+    assertThat(response.getBodyText())
+        .isEqualTo("Neither hash nor coordinates of component to search for have been specified.");
   }
 
   @Test
   public void testSearchComponent_InvalidHash() throws Exception {
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "invalid-hash").get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid hash: invalid-hash."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid hash: invalid-hash.");
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bed").get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid hash: 1249e25aebb15358bed."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid hash: 1249e25aebb15358bed.");
   }
 
   @Test
@@ -127,9 +123,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(1));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(1);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
   }
@@ -142,9 +137,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(2));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(2);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
@@ -158,9 +152,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd00000000000000000000").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(1));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(1);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
   }
@@ -172,9 +165,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "69b58197caabec2e0d06").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(1));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(1);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "69b58197caabec2e0d06", null, null);
   }
 
@@ -186,9 +178,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(4));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(4);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
@@ -209,9 +200,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(9));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(9);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
@@ -244,9 +234,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(2));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
@@ -263,9 +252,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(1));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(1);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
@@ -280,9 +268,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(4));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(4);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
@@ -303,9 +290,9 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(2));
+    assertThat(results).isNotNull();
+    assertThat(results.results).isNotNull();
+    assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "2143b68270b82576110f",
         ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 8);
@@ -323,9 +310,8 @@ public class ApiSearchResourceV2Test
         componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(2));
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
@@ -343,9 +329,8 @@ public class ApiSearchResourceV2Test
         componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(0));
+    assertThat(results).isNotNull();
+    assertThat(results.results).isEmpty();
   }
 
   @Test
@@ -355,15 +340,14 @@ public class ApiSearchResourceV2Test
         componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(0));
-    assertThat(results.criteria, is(notNullValue()));
-    assertThat(results.criteria.stageId, is(Stage.ID_BUILD));
-    assertThat(results.criteria.hash, is("1249e25aebb15358bedd"));
-    assertThat(results.criteria.componentIdentifier.getFormat(), is(componentIdentifier.getFormat()));
-    assertThat(results.criteria.componentIdentifier.getCoordinates(),
-        is(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*").getCoordinates()));
+    assertThat(results).isNotNull();
+    assertThat(results.results).isEmpty();
+    assertThat(results.criteria).isNotNull();
+    assertThat(results.criteria.stageId).isEqualTo(Stage.ID_BUILD);
+    assertThat(results.criteria.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(results.criteria.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
+    assertThat(results.criteria.componentIdentifier.getCoordinates())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*").getCoordinates());
   }
 
   @Test
@@ -373,9 +357,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdf").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(0));
+    assertThat(results).isNotNull();
+    assertThat(results.results).isEmpty();
   }
 
   @Test
@@ -385,8 +368,7 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results, is(notNullValue()));
-    assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(0));
+    assertThat(results).isNotNull();
+    assertThat(results.results).isEmpty();
   }
 }

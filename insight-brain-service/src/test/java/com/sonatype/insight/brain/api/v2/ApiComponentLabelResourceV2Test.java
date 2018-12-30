@@ -15,10 +15,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentLabelResourceV2Test
     extends AbstractResourceTest
@@ -37,7 +34,7 @@ public class ApiComponentLabelResourceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
   }
 
   @Test
@@ -49,7 +46,7 @@ public class ApiComponentLabelResourceV2Test
     componentLabelDAO.insert(new ComponentLabel(app.getId(), label.getId(), componentHash));
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
 
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
         .parameter(componentHash, label.getLabel(), app.getId()).delete();
@@ -57,6 +54,6 @@ public class ApiComponentLabelResourceV2Test
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(nullValue()));
+    assertThat(componentLabel).isNull();
   }
 }

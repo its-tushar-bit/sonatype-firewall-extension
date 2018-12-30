@@ -8,8 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiMetricsReportingFlattenedDTOV2Test
 {
@@ -37,87 +36,87 @@ public class ApiMetricsReportingFlattenedDTOV2Test
         0, 0, 0, 0, // open quality
         0, 0, 99, 0); // open other
 
-    assertThat(dto.timePeriodStart, is("2017-10-01"));
+    assertThat(dto.timePeriodStart).isEqualTo("2017-10-01");
 
-    assertThat(dto.applicationId, is("appId"));
-    assertThat(dto.applicationPublicId, is("appPublicId"));
-    assertThat(dto.applicationName, is("appName"));
-    assertThat(dto.organizationId, is("orgId"));
-    assertThat(dto.organizationName, is("orgName"));
+    assertThat(dto.applicationId).isEqualTo("appId");
+    assertThat(dto.applicationPublicId).isEqualTo("appPublicId");
+    assertThat(dto.applicationName).isEqualTo("appName");
+    assertThat(dto.organizationId).isEqualTo("orgId");
+    assertThat(dto.organizationName).isEqualTo("orgName");
 
-    assertThat(dto.mttrLowThreat, is(20L));
-    assertThat(dto.mttrModerateThreat, is(500L));
-    assertThat(dto.mttrSevereThreat, is(2L));
-    assertThat(dto.mttrCriticalThreat, is(6L));
+    assertThat(dto.mttrLowThreat).isEqualTo(20);
+    assertThat(dto.mttrModerateThreat).isEqualTo(500);
+    assertThat(dto.mttrSevereThreat).isEqualTo(2);
+    assertThat(dto.mttrCriticalThreat).isEqualTo(6);
 
-    assertThat(dto.discoveredCountSecurityLow, is(1));
-    assertThat(dto.discoveredCountSecurityModerate, is(0));
-    assertThat(dto.discoveredCountSecuritySevere, is(0));
-    assertThat(dto.discoveredCountSecurityCritical, is(0));
-    assertThat(dto.discoveredCountLicenseLow, is(0));
-    assertThat(dto.discoveredCountLicenseModerate, is(5));
-    assertThat(dto.discoveredCountLicenseSevere, is(0));
-    assertThat(dto.discoveredCountLicenseCritical, is(0));
-    assertThat(dto.discoveredCountQualityLow, is(0));
-    assertThat(dto.discoveredCountQualityModerate, is(0));
-    assertThat(dto.discoveredCountQualitySevere, is(0));
-    assertThat(dto.discoveredCountQualityCritical, is(0));
-    assertThat(dto.discoveredCountOtherLow, is(0));
-    assertThat(dto.discoveredCountOtherModerate, is(0));
-    assertThat(dto.discoveredCountOtherSevere, is(0));
-    assertThat(dto.discoveredCountOtherCritical, is(0));
+    assertThat(dto.discoveredCountSecurityLow).isEqualTo(1);
+    assertThat(dto.discoveredCountSecurityModerate).isEqualTo(0);
+    assertThat(dto.discoveredCountSecuritySevere).isEqualTo(0);
+    assertThat(dto.discoveredCountSecurityCritical).isEqualTo(0);
+    assertThat(dto.discoveredCountLicenseLow).isEqualTo(0);
+    assertThat(dto.discoveredCountLicenseModerate).isEqualTo(5);
+    assertThat(dto.discoveredCountLicenseSevere).isEqualTo(0);
+    assertThat(dto.discoveredCountLicenseCritical).isEqualTo(0);
+    assertThat(dto.discoveredCountQualityLow).isEqualTo(0);
+    assertThat(dto.discoveredCountQualityModerate).isEqualTo(0);
+    assertThat(dto.discoveredCountQualitySevere).isEqualTo(0);
+    assertThat(dto.discoveredCountQualityCritical).isEqualTo(0);
+    assertThat(dto.discoveredCountOtherLow).isEqualTo(0);
+    assertThat(dto.discoveredCountOtherModerate).isEqualTo(0);
+    assertThat(dto.discoveredCountOtherSevere).isEqualTo(0);
+    assertThat(dto.discoveredCountOtherCritical).isEqualTo(0);
 
-    assertThat(dto.fixedCountSecurityLow, is(0));
-    assertThat(dto.fixedCountSecurityModerate, is(0));
-    assertThat(dto.fixedCountSecuritySevere, is(0));
-    assertThat(dto.fixedCountSecurityCritical, is(0));
-    assertThat(dto.fixedCountLicenseLow, is(0));
-    assertThat(dto.fixedCountLicenseModerate, is(0));
-    assertThat(dto.fixedCountLicenseSevere, is(0));
-    assertThat(dto.fixedCountLicenseCritical, is(0));
-    assertThat(dto.fixedCountQualityLow, is(0));
-    assertThat(dto.fixedCountQualityModerate, is(0));
-    assertThat(dto.fixedCountQualitySevere, is(2));
-    assertThat(dto.fixedCountQualityCritical, is(0));
-    assertThat(dto.fixedCountOtherLow, is(0));
-    assertThat(dto.fixedCountOtherModerate, is(0));
-    assertThat(dto.fixedCountOtherSevere, is(0));
-    assertThat(dto.fixedCountOtherCritical, is(0));
+    assertThat(dto.fixedCountSecurityLow).isEqualTo(0);
+    assertThat(dto.fixedCountSecurityModerate).isEqualTo(0);
+    assertThat(dto.fixedCountSecuritySevere).isEqualTo(0);
+    assertThat(dto.fixedCountSecurityCritical).isEqualTo(0);
+    assertThat(dto.fixedCountLicenseLow).isEqualTo(0);
+    assertThat(dto.fixedCountLicenseModerate).isEqualTo(0);
+    assertThat(dto.fixedCountLicenseSevere).isEqualTo(0);
+    assertThat(dto.fixedCountLicenseCritical).isEqualTo(0);
+    assertThat(dto.fixedCountQualityLow).isEqualTo(0);
+    assertThat(dto.fixedCountQualityModerate).isEqualTo(0);
+    assertThat(dto.fixedCountQualitySevere).isEqualTo(2);
+    assertThat(dto.fixedCountQualityCritical).isEqualTo(0);
+    assertThat(dto.fixedCountOtherLow).isEqualTo(0);
+    assertThat(dto.fixedCountOtherModerate).isEqualTo(0);
+    assertThat(dto.fixedCountOtherSevere).isEqualTo(0);
+    assertThat(dto.fixedCountOtherCritical).isEqualTo(0);
 
-    assertThat(dto.waivedCountSecurityLow, is(0));
-    assertThat(dto.waivedCountSecurityModerate, is(0));
-    assertThat(dto.waivedCountSecuritySevere, is(0));
-    assertThat(dto.waivedCountSecurityCritical, is(0));
-    assertThat(dto.waivedCountLicenseLow, is(0));
-    assertThat(dto.waivedCountLicenseModerate, is(0));
-    assertThat(dto.waivedCountLicenseSevere, is(0));
-    assertThat(dto.waivedCountLicenseCritical, is(0));
-    assertThat(dto.waivedCountQualityLow, is(0));
-    assertThat(dto.waivedCountQualityModerate, is(0));
-    assertThat(dto.waivedCountQualitySevere, is(0));
-    assertThat(dto.waivedCountQualityCritical, is(0));
-    assertThat(dto.waivedCountOtherLow, is(0));
-    assertThat(dto.waivedCountOtherModerate, is(0));
-    assertThat(dto.waivedCountOtherSevere, is(0));
-    assertThat(dto.waivedCountOtherCritical, is(100));
+    assertThat(dto.waivedCountSecurityLow).isEqualTo(0);
+    assertThat(dto.waivedCountSecurityModerate).isEqualTo(0);
+    assertThat(dto.waivedCountSecuritySevere).isEqualTo(0);
+    assertThat(dto.waivedCountSecurityCritical).isEqualTo(0);
+    assertThat(dto.waivedCountLicenseLow).isEqualTo(0);
+    assertThat(dto.waivedCountLicenseModerate).isEqualTo(0);
+    assertThat(dto.waivedCountLicenseSevere).isEqualTo(0);
+    assertThat(dto.waivedCountLicenseCritical).isEqualTo(0);
+    assertThat(dto.waivedCountQualityLow).isEqualTo(0);
+    assertThat(dto.waivedCountQualityModerate).isEqualTo(0);
+    assertThat(dto.waivedCountQualitySevere).isEqualTo(0);
+    assertThat(dto.waivedCountQualityCritical).isEqualTo(0);
+    assertThat(dto.waivedCountOtherLow).isEqualTo(0);
+    assertThat(dto.waivedCountOtherModerate).isEqualTo(0);
+    assertThat(dto.waivedCountOtherSevere).isEqualTo(0);
+    assertThat(dto.waivedCountOtherCritical).isEqualTo(100);
 
-    assertThat(dto.openCountAtTimePeriodEndSecurityLow, is(0));
-    assertThat(dto.openCountAtTimePeriodEndSecurityModerate, is(0));
-    assertThat(dto.openCountAtTimePeriodEndSecuritySevere, is(0));
-    assertThat(dto.openCountAtTimePeriodEndSecurityCritical, is(0));
-    assertThat(dto.openCountAtTimePeriodEndLicenseLow, is(0));
-    assertThat(dto.openCountAtTimePeriodEndLicenseModerate, is(0));
-    assertThat(dto.openCountAtTimePeriodEndLicenseSevere, is(0));
-    assertThat(dto.openCountAtTimePeriodEndLicenseCritical, is(0));
-    assertThat(dto.openCountAtTimePeriodEndQualityLow, is(0));
-    assertThat(dto.openCountAtTimePeriodEndQualityModerate, is(0));
-    assertThat(dto.openCountAtTimePeriodEndQualitySevere, is(0));
-    assertThat(dto.openCountAtTimePeriodEndQualityCritical, is(0));
-    assertThat(dto.openCountAtTimePeriodEndOtherLow, is(0));
-    assertThat(dto.openCountAtTimePeriodEndOtherModerate, is(0));
-    assertThat(dto.openCountAtTimePeriodEndOtherSevere, is(99));
-    assertThat(dto.openCountAtTimePeriodEndOtherCritical, is(0));
+    assertThat(dto.openCountAtTimePeriodEndSecurityLow).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndSecurityModerate).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndSecuritySevere).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndSecurityCritical).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndLicenseLow).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndLicenseModerate).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndLicenseSevere).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndLicenseCritical).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndQualityLow).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndQualityModerate).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndQualitySevere).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndQualityCritical).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndOtherLow).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndOtherModerate).isEqualTo(0);
+    assertThat(dto.openCountAtTimePeriodEndOtherSevere).isEqualTo(99);
+    assertThat(dto.openCountAtTimePeriodEndOtherCritical).isEqualTo(0);
 
-    assertThat(dto.evaluationCount, is(10));
+    assertThat(dto.evaluationCount).isEqualTo(10);
   }
 }

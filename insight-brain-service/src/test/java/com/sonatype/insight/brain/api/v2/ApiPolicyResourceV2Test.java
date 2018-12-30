@@ -21,9 +21,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyResourceV2Test
     extends AbstractResourceTest
@@ -51,9 +49,9 @@ public class ApiPolicyResourceV2Test
     assertResponseStatus(200, response);
     ApiPolicyListDTO apiPolicyListDTO = response.getBody(ApiPolicyListDTO.class);
 
-    assertThat(apiPolicyListDTO, notNullValue());
-    assertThat(apiPolicyListDTO.policies, notNullValue());
-    assertThat(apiPolicyListDTO.policies.size(), is(organizationPolicyMap.size() + applicationPolicyMap.size()));
+    assertThat(apiPolicyListDTO).isNotNull();
+    assertThat(apiPolicyListDTO.policies).isNotNull();
+    assertThat(apiPolicyListDTO.policies).hasSize(organizationPolicyMap.size() + applicationPolicyMap.size());
     PolicyAssertUtils.assertPolicies(apiPolicyListDTO.policies, organizationPolicyMap, applicationPolicyMap);
   }
 

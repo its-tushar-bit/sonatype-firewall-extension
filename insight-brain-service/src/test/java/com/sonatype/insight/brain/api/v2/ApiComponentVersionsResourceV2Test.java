@@ -17,8 +17,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentVersionsResourceV2Test
     extends AbstractResourceTest
@@ -35,6 +34,6 @@ public class ApiComponentVersionsResourceV2Test
     assertResponseStatus(200, response);
 
     List<String> result = response.getBodyList();
-    assertThat(result, contains("v1", "v2", "v3", "v4"));
+    assertThat(result).containsExactly("v1", "v2", "v3", "v4");
   }
 }

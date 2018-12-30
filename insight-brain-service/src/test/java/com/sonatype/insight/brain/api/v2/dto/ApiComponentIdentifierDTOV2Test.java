@@ -9,8 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * A compatibility test to highlight when changes to the internal {@link ComponentIdentifier} break the public API.
@@ -31,12 +30,12 @@ public class ApiComponentIdentifierDTOV2Test
     ApiComponentIdentifierDTOV2 apiComponentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(identifier);
 
-    assertThat(apiComponentIdentifier.getFormat(), is("maven"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("groupId"), is("g1"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("artifactId"), is("a1"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("version"), is("v1"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("classifier"), is("c1"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("extension"), is("e1"));
+    assertThat(apiComponentIdentifier.getFormat()).isEqualTo("maven");
+    assertThat(apiComponentIdentifier.getCoordinates().get("groupId")).isEqualTo("g1");
+    assertThat(apiComponentIdentifier.getCoordinates().get("artifactId")).isEqualTo("a1");
+    assertThat(apiComponentIdentifier.getCoordinates().get("version")).isEqualTo("v1");
+    assertThat(apiComponentIdentifier.getCoordinates().get("classifier")).isEqualTo("c1");
+    assertThat(apiComponentIdentifier.getCoordinates().get("extension")).isEqualTo("e1");
   }
 
   @Test
@@ -45,8 +44,8 @@ public class ApiComponentIdentifierDTOV2Test
     ApiComponentIdentifierDTOV2 apiComponentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(identifier);
 
-    assertThat(apiComponentIdentifier.getFormat(), is("nuget"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("packageId"), is("p1"));
-    assertThat(apiComponentIdentifier.getCoordinates().get("version"), is("v1"));
+    assertThat(apiComponentIdentifier.getFormat()).isEqualTo("nuget");
+    assertThat(apiComponentIdentifier.getCoordinates().get("packageId")).isEqualTo("p1");
+    assertThat(apiComponentIdentifier.getCoordinates().get("version")).isEqualTo("v1");
   }
 }

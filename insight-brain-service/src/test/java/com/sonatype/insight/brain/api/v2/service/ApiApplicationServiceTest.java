@@ -20,9 +20,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiApplicationServiceTest
     extends AbstractComponentTest
@@ -36,13 +35,9 @@ public class ApiApplicationServiceTest
     app.publicId = "appPublicId";
     app.name = "appName";
     app.organizationId = Organization.ROOT_ORGANIZATION_ID;
-    try {
+    assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
       applicationService.addApplication(app);
-      fail("Expected exception");
-    }
-    catch (InvalidApplicationException e) {
-      assertThat(e.getMessage(), is("Applications cannot have the root organization as parent."));
-    }
+    }).withMessage("Applications cannot have the root organization as parent.");
   }
 
   @Test
@@ -55,8 +50,8 @@ public class ApiApplicationServiceTest
     app = applicationService.addApplication(app);
     List<MembershipMapping> mappings = new MembershipMappingDAO()
         .getByContextIdAndRoleId(app.id, Role.OWNER_ROLE_ID);
-    assertThat(mappings.size(), is(1));
-    assertThat(mappings.get(0).getMemberName(), is(USERNAME));
-    assertThat(mappings.get(0).getMemberType(), is(MemberType.USER));
+    assertThat(mappings).hasSize(1);
+    assertThat(mappings.get(0).getMemberName()).isEqualTo(USERNAME);
+    assertThat(mappings.get(0).getMemberType()).isEqualTo(MemberType.USER);
   }
 }

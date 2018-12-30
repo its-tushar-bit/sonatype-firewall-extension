@@ -19,8 +19,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -52,20 +51,20 @@ public class ApiApplicationServiceAuthzTest
   public void testGetApplications_Authorized() {
     grantReadPermission(app.getId());
     List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
-    assertThat(applications, hasSize(1));
+    assertThat(applications).hasSize(1);
   }
 
   @Test
   public void testGetApplications_Unauthenticated() {
     List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
-    assertThat(applications, hasSize(0));
+    assertThat(applications).isEmpty();
   }
 
   @Test
   public void testGetApplications_UnauthorizedButAuthenticated() {
     login();
     List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
-    assertThat(applications, hasSize(0));
+    assertThat(applications).isEmpty();
   }
 
   @Test

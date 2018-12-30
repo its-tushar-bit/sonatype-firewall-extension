@@ -12,14 +12,7 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class RecordingAuditDataTest
@@ -35,10 +28,10 @@ public class RecordingAuditDataTest
       Thread.sleep(1);
     }
   }
-
+  
   @Test
   public void testForSubEvent_Dependent() throws Exception {
-    List<RecordingAuditData> committed = new ArrayList<>();
+    List<AuditData> committed = new ArrayList<>();
     RequestData requestData = mock(RequestData.class);
     RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, requestData);
     recordingAuditData.setUsername("username");
@@ -46,13 +39,12 @@ public class RecordingAuditDataTest
 
     AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false, false);
 
-    assertThat(auditData, is(instanceOf(RecordingAuditData.class)));
-    assertThat(auditData, is(not(recordingAuditData)));
-    assertThat(recordingAuditData.getChildren(), contains(auditData));
+    assertThat(auditData).isInstanceOf(RecordingAuditData.class).isNotEqualTo(recordingAuditData);
     RecordingAuditData childRecordingAuditData = (RecordingAuditData) auditData;
-    assertThat(childRecordingAuditData.getTimestamp(), is(recordingAuditData.getTimestamp()));
-    assertThat(childRecordingAuditData.getRequestData(), is(requestData));
-    assertThat(childRecordingAuditData.getUsername(), is("username"));
+    assertThat(recordingAuditData.getChildren()).containsExactly(childRecordingAuditData);
+    assertThat(childRecordingAuditData.getTimestamp()).isEqualTo(recordingAuditData.getTimestamp());
+    assertThat(childRecordingAuditData.getRequestData()).isEqualTo(requestData);
+    assertThat(childRecordingAuditData.getUsername()).isEqualTo("username");
   }
 
   @Test
@@ -65,58 +57,58 @@ public class RecordingAuditDataTest
 
     AuditData auditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true, false);
 
-    assertThat(auditData, is(instanceOf(RecordingAuditData.class)));
-    assertThat(auditData, is(not(recordingAuditData)));
-    assertThat(recordingAuditData.getChildren(), is(empty()));
+    assertThat(auditData).isInstanceOf(RecordingAuditData.class).isNotEqualTo(recordingAuditData);
+    assertThat(recordingAuditData.getChildren()).isEmpty();
     RecordingAuditData childRecordingAuditData = (RecordingAuditData) auditData;
-    assertThat(childRecordingAuditData.getTimestamp(), greaterThan(recordingAuditData.getTimestamp()));
-    assertThat(childRecordingAuditData.getRequestData(), is(requestData));
-    assertThat(childRecordingAuditData.getUsername(), is("username"));
+    assertThat(childRecordingAuditData.getTimestamp()).isGreaterThan(recordingAuditData.getTimestamp());
+    assertThat(childRecordingAuditData.getRequestData()).isEqualTo(requestData);
+    assertThat(childRecordingAuditData.getUsername()).isEqualTo("username");
   }
 
   @Test
   public void testCommit_Self() {
-    List<RecordingAuditData> committed = new ArrayList<>();
+    List<AuditData> committed = new ArrayList<>();
     RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
 
     recordingAuditData.commit();
 
-    assertThat(committed, contains(recordingAuditData));
+    assertThat(committed).containsExactly(recordingAuditData);
   }
 
   @Test
   public void testCommit_DependentSubEvent() {
-    List<RecordingAuditData> committed = new ArrayList<>();
+    List<AuditData> committed = new ArrayList<>();
     RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
     AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, false, false);
 
     childAuditData.commit();
 
-    assertThat(committed, is(empty()));
+    assertThat(committed).isEmpty();
   }
 
   @Test
   public void testCommit_IndependentSubEvent() {
-    List<RecordingAuditData> committed = new ArrayList<>();
+    List<AuditData> committed = new ArrayList<>();
     RecordingAuditData recordingAuditData = new RecordingAuditData(committed::add, null);
     AuditData childAuditData = recordingAuditData.forSubEvent(AuditEvent.LOGIN, true, false);
 
     childAuditData.commit();
 
-    assertThat(committed, contains(childAuditData));
+    assertThat(committed).containsExactly(childAuditData);
   }
 
   @Test
   public void testCommitSubEvents() {
-    List<RecordingAuditData> committedChildren = new ArrayList<>();
+    List<AuditData> committedChildren = new ArrayList<>();
     RecordingAuditData auditData = new RecordingAuditData(committedChildren::add, null);
     AuditData child1 = auditData.forSubEvent(AuditEvent.LOGIN, false, false);
     AuditData child2 = auditData.forSubEvent(AuditEvent.LOGIN, false, false);
     AuditData child3 = auditData.forSubEvent(AuditEvent.LOGIN, false, false);
-    assertThat(auditData.getChildren(), contains(child1, child2, child3));
+    assertThat(auditData.getChildren()).containsExactly((RecordingAuditData) child1, (RecordingAuditData) child2,
+        (RecordingAuditData) child3);
     auditData.commitSubEvents();
-    assertThat(auditData.getChildren(), is(empty()));
-    assertThat(committedChildren, contains(child1, child2, child3));
+    assertThat(auditData.getChildren()).isEmpty();
+    assertThat(committedChildren).containsExactly(child1, child2, child3);
   }
 
   @Test
@@ -124,7 +116,7 @@ public class RecordingAuditDataTest
     RecordingAuditData auditData = new RecordingAuditData(null, null);
     auditData.setData("some-key", "some-value");
     auditData.setData("some-key", null);
-    assertThat(auditData.getData().keySet(), is(empty()));
+    assertThat(auditData.getData()).isEmpty();
   }
 
   @Test
@@ -134,8 +126,8 @@ public class RecordingAuditDataTest
 
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, true, true);
 
-    assertThat(child.getUsername(), is(MDCUsernameScope.SYSTEM));
-    assertThat(child.getRequestData(), is(nullValue()));
+    assertThat(child.getUsername()).isEqualTo(MDCUsernameScope.SYSTEM);
+    assertThat(child.getRequestData()).isNull();
   }
 
   @Test
@@ -146,8 +138,8 @@ public class RecordingAuditDataTest
 
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, true, false);
 
-    assertThat(child.getUsername(), is(parent.getUsername()));
-    assertThat(child.getRequestData(), is(mockRequestData));
+    assertThat(child.getUsername()).isEqualTo(parent.getUsername());
+    assertThat(child.getRequestData()).isEqualTo(mockRequestData);
   }
 
   @Test
@@ -158,7 +150,7 @@ public class RecordingAuditDataTest
 
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.LOGIN, true, false);
 
-    assertThat(child.getData(), is(parent.getData()));
+    assertThat(child.getData()).isEqualTo(parent.getData());
   }
 
   @Test
@@ -169,6 +161,6 @@ public class RecordingAuditDataTest
 
     RecordingAuditData child = (RecordingAuditData) parent.forSubEvent(AuditEvent.IMPORT, true, false);
 
-    assertThat(child.getData().keySet(), is(empty()));
+    assertThat(child.getData()).isEmpty();
   }
 }

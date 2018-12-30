@@ -17,9 +17,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -37,13 +35,13 @@ public class ComponentDetailServiceAuthzTest
 
   @Test
   public void testGetApplicationDetailsByHash_Unauthenticated() throws Exception {
-    assertThat(componentDetailService.getApplicationDetailsByHash(hash), hasSize(0));
+    assertThat(componentDetailService.getApplicationDetailsByHash(hash)).isEmpty();
   }
 
   @Test
   public void testGetApplicationDetailsByHash_Unauthorized() throws Exception {
     login();
-    assertThat(componentDetailService.getApplicationDetailsByHash(hash), hasSize(0));
+    assertThat(componentDetailService.getApplicationDetailsByHash(hash)).isEmpty();
   }
 
   @Test
@@ -53,7 +51,6 @@ public class ComponentDetailServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));
     grantReadPermission(app.getId());
     List<ApplicationComponentDetailsDTO> result = componentDetailService.getApplicationDetailsByHash(hash);
-    assertThat(result, hasSize(1));
-    assertThat(result.get(0).application.getId(), is(app.getId()));
+    assertThat(result).extracting(dto -> dto.application.getId()).containsExactlyInAnyOrder(app.getId());
   }
 }

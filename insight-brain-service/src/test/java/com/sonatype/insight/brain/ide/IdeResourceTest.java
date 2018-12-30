@@ -146,7 +146,7 @@ public class IdeResourceTest
     HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertThat(ideMatchedComponent.getWaitDelta()).isPositive();;
+    assertThat(ideMatchedComponent.getWaitDelta()).isPositive();
 
     mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
     response = request.get();

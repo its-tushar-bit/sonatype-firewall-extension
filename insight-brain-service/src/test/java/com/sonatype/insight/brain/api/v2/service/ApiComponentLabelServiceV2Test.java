@@ -16,11 +16,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiComponentLabelServiceV2Test
     extends AbstractComponentTest
@@ -40,7 +37,7 @@ public class ApiComponentLabelServiceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
   }
 
   @Test
@@ -54,7 +51,7 @@ public class ApiComponentLabelServiceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
   }
 
   @Test
@@ -68,7 +65,7 @@ public class ApiComponentLabelServiceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), shortHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
   }
 
   @Test
@@ -77,13 +74,9 @@ public class ApiComponentLabelServiceV2Test
     Application app = tempEntity.newApplicationWithParent();
     String label = "FAKELABEL";
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       apiComponentLabelService.setApplicationComponentLabel(app.getId(), componentHash, label);
-      fail("Expected NotFoundException to be thrown.");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + "."));
-    }
+    }).withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
   }
 
   @Test
@@ -95,13 +88,13 @@ public class ApiComponentLabelServiceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
 
     apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, label.getLabel());
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(nullValue()));
+    assertThat(componentLabel).isNull();
   }
 
   @Test
@@ -114,13 +107,13 @@ public class ApiComponentLabelServiceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
 
     apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, upperCaseLabelName);
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
-    assertThat(componentLabel, is(nullValue()));
+    assertThat(componentLabel).isNull();
   }
 
   @Test
@@ -133,13 +126,13 @@ public class ApiComponentLabelServiceV2Test
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), shortHash,
         label.getId());
-    assertThat(componentLabel, is(notNullValue()));
+    assertThat(componentLabel).isNotNull();
 
     apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, label.getLabel());
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), shortHash,
         label.getId());
-    assertThat(componentLabel, is(nullValue()));
+    assertThat(componentLabel).isNull();
   }
 
   @Test
@@ -148,12 +141,8 @@ public class ApiComponentLabelServiceV2Test
     Application app = tempEntity.newApplicationWithParent();
     String label = "FAKELABEL";
 
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, label);
-      fail("Expected NotFoundException to be thrown.");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + "."));
-    }
+    }).withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
   }
 }

@@ -8,8 +8,7 @@ package com.sonatype.insight.brain.audit;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -29,7 +28,7 @@ public class AuditSessionTest
   public void testConstructor_SetThreadLocal() {
     AuditData auditData = mock(AuditData.class);
     try (AuditSession auditSession = new AuditSession(auditData)) {
-      assertThat(AuditSession.getCurrent(), is(auditData));
+      assertThat(AuditSession.getCurrent()).isEqualTo(auditData);
     }
   }
 
@@ -49,6 +48,6 @@ public class AuditSessionTest
     try (AuditSession auditSession = new AuditSession(mock(AuditData.class))) {
       // noop
     }
-    assertThat(AuditSession.getCurrent(), is(previous));
+    assertThat(AuditSession.getCurrent()).isEqualTo(previous);
   }
 }

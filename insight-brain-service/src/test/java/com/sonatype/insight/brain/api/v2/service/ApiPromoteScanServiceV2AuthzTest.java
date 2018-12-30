@@ -17,9 +17,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiPromoteScanServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -58,13 +56,8 @@ public class ApiPromoteScanServiceV2AuthzTest
   @Test
   public void testGetScanStatus_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       service.getScanStatus(app.getId(), "statusId");
-      fail("Expected exception.");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(String
-          .format("Scan status with id %s for application with id %s was not found.", "statusId", app.getId())));
-    }
+    }).withMessage("Scan status with id %s for application with id %s was not found.", "statusId", app.getId());
   }
 }

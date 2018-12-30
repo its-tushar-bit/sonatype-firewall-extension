@@ -17,11 +17,7 @@ import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthenticationAuditTest
     extends AbstractAuditTest
@@ -37,25 +33,25 @@ public class AuthenticationAuditTest
     HttpCookie sessionCookie = restRequest().path(UserSessionResource.RESOURCE_PATH).post().getSessionCookie();
 
     AuditDTO log = awaitLogEntries(AuditEvent.LOGIN, 1).get(0);
-    assertThat(log.domain, is("authentication"));
-    assertThat(log.type, is("login"));
-    assertThat(log.timestamp, not(isEmptyOrNullString()));
-    assertThat(log.error, is(nullValue()));
-    assertThat(log.username, is(User.ADMIN_USERNAME));
-    assertThat(log.requestMethod, is("POST"));
-    assertThat(log.requestUri, is(AUTH_RESOURCE_PATH));
+    assertThat(log.domain).isEqualTo("authentication");
+    assertThat(log.type).isEqualTo("login");
+    assertThat(log.timestamp).isNotEmpty();
+    assertThat(log.error).isNull();
+    assertThat(log.username).isEqualTo(User.ADMIN_USERNAME);
+    assertThat(log.requestMethod).isEqualTo("POST");
+    assertThat(log.requestUri).isEqualTo(AUTH_RESOURCE_PATH);
 
     restRequest().path(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).anon().cookie(sessionCookie)
         .delete();
 
     log = awaitLogEntries(AuditEvent.LOGOUT, 1).get(0);
-    assertThat(log.domain, is("authentication"));
-    assertThat(log.type, is("logout"));
-    assertThat(log.timestamp, not(isEmptyOrNullString()));
-    assertThat(log.error, is(nullValue()));
-    assertThat(log.username, is(User.ADMIN_USERNAME));
-    assertThat(log.requestMethod, is("DELETE"));
-    assertThat(log.requestUri, is(AUTH_RESOURCE_PATH + '/' + UserSessionResource.LOGOUT_PATH));
+    assertThat(log.domain).isEqualTo("authentication");
+    assertThat(log.type).isEqualTo("logout");
+    assertThat(log.timestamp).isNotEmpty();
+    assertThat(log.error).isNull();
+    assertThat(log.username).isEqualTo(User.ADMIN_USERNAME);
+    assertThat(log.requestMethod).isEqualTo("DELETE");
+    assertThat(log.requestUri).isEqualTo(AUTH_RESOURCE_PATH + '/' + UserSessionResource.LOGOUT_PATH);
   }
 
   @Test
@@ -69,13 +65,13 @@ public class AuthenticationAuditTest
     restRequest().path(RESTRICTED_PATH).anon().header(rutConfig.getUsernameHeader(), username).get();
 
     AuditDTO log = awaitLogEntries(AuditEvent.LOGIN, 1).get(0);
-    assertThat(log.domain, is("authentication"));
-    assertThat(log.type, is("login"));
-    assertThat(log.timestamp, not(isEmptyOrNullString()));
-    assertThat(log.error, is(nullValue()));
-    assertThat(log.username, is(username));
-    assertThat(log.requestMethod, is("GET"));
-    assertThat(log.requestUri, is(RESTRICTED_PATH));
+    assertThat(log.domain).isEqualTo("authentication");
+    assertThat(log.type).isEqualTo("login");
+    assertThat(log.timestamp).isNotEmpty();
+    assertThat(log.error).isNull();
+    assertThat(log.username).isEqualTo(username);
+    assertThat(log.requestMethod).isEqualTo("GET");
+    assertThat(log.requestUri).isEqualTo(RESTRICTED_PATH);
   }
 
   @Test
@@ -127,10 +123,10 @@ public class AuthenticationAuditTest
                               final String resourcePath,
                               final String error)
   {
-    assertThat(auditDTO.requestMethod, is(method));
-    assertThat(auditDTO.requestUri, is(resourcePath));
-    assertThat(auditDTO.domain, is("authentication"));
-    assertThat(auditDTO.type, is("failure"));
-    assertThat(auditDTO.error, is(error));
+    assertThat(auditDTO.requestMethod).isEqualTo(method);
+    assertThat(auditDTO.requestUri).isEqualTo(resourcePath);
+    assertThat(auditDTO.domain).isEqualTo("authentication");
+    assertThat(auditDTO.type).isEqualTo("failure");
+    assertThat(auditDTO.error).isEqualTo(error);
   }
 }

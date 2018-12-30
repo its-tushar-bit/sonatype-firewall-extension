@@ -32,16 +32,14 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.inject.Binder;
+import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
@@ -121,9 +119,8 @@ public class ApiComponentDetailsServiceV2Test
 
     ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
 
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(numComponents));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(numComponents);
     int i = 0;
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : result.componentDetails) {
       assertComponentDetails(componentDetailsDTOV2, request.components.get(i), MatchState.EXACT.getId(),
@@ -137,13 +134,9 @@ public class ApiComponentDetailsServiceV2Test
   public void testGetComponentDetails_invalidComponentIdentifier_noCoordinates() throws Exception {
     String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     ApiComponentEvaluationRequestDTOV2 request = JsonUtils.parse(jsonRequest, ApiComponentEvaluationRequestDTOV2.class);
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("A component identifier must have at least one coordinate."));
-    }
+    }).withMessage("A component identifier must have at least one coordinate.");
   }
 
   @Test
@@ -153,13 +146,9 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is(MISSING_COORDINATES + "[extension]"));
-    }
+    }).withMessage(MISSING_COORDINATES + "[extension]");
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {
@@ -186,9 +175,8 @@ public class ApiComponentDetailsServiceV2Test
 
     ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
 
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(resultComponentIdentifier), "h1");
   }
@@ -205,9 +193,8 @@ public class ApiComponentDetailsServiceV2Test
 
     ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
 
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0), component.componentIdentifier, "h1");
   }
 
@@ -217,13 +204,9 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("One of either componentIdentifier or hash must be supplied."));
-    }
+    }).withMessage("One of either componentIdentifier or hash must be supplied.");
   }
 
   @Test
@@ -231,13 +214,9 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = null;
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("No components provided in the request"));
-    }
+    }).withMessage("No components provided in the request");
   }
 
   @Test
@@ -245,13 +224,9 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = Collections.emptyList();
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("No components provided in the request"));
-    }
+    }).withMessage("No components provided in the request");
   }
 
   @Test
@@ -270,9 +245,9 @@ public class ApiComponentDetailsServiceV2Test
 
     ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
 
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1");
   }
@@ -294,9 +269,8 @@ public class ApiComponentDetailsServiceV2Test
 
     ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
 
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(2));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(2);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1");
     assertComponentDetails(result.componentDetails.get(1),
@@ -324,9 +298,8 @@ public class ApiComponentDetailsServiceV2Test
 
     ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
 
-    assertThat(result, notNullValue());
-    assertThat(result.componentDetails, notNullValue());
-    assertThat(result.componentDetails, hasSize(1));
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), hash);
   }
@@ -335,13 +308,13 @@ public class ApiComponentDetailsServiceV2Test
                                       ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
                                       String expectedHash)
   {
-    assertThat(resultComponentDTO, notNullValue());
-    assertThat(resultComponentDTO.component, notNullValue());
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
-        is(expectedComponentIdentifier.getFormat()));
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
-        is(expectedComponentIdentifier.getCoordinates()));
-    assertThat(resultComponentDTO.component.hash, is(expectedHash));
+    assertThat(resultComponentDTO).isNotNull();
+    assertThat(resultComponentDTO.component).isNotNull();
+    assertThat(resultComponentDTO.component.componentIdentifier.getFormat())
+        .isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
   }
 
   public void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
@@ -355,46 +328,39 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier = requestComponentDTO.componentIdentifier;
     String expectedHash = requestComponentDTO.hash;
 
-    assertThat(resultComponentDTO, notNullValue());
-    assertThat(resultComponentDTO.component, notNullValue());
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
-        is(expectedComponentIdentifier.getFormat()));
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
-        is(expectedComponentIdentifier.getCoordinates()));
-    assertThat(resultComponentDTO.component.hash, is(expectedHash));
-    assertThat(resultComponentDTO.matchState, is(matchState));
-    assertThat(resultComponentDTO.relativePopularity, is(relativePopularity));
+    assertThat(resultComponentDTO).isNotNull();
+    assertThat(resultComponentDTO.component).isNotNull();
+    assertThat(resultComponentDTO.component.componentIdentifier.getFormat())
+        .isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
+    assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
+    assertThat(resultComponentDTO.relativePopularity).isEqualTo(relativePopularity);
 
-    assertThat(resultComponentDTO.licenseData, notNullValue());
-    assertThat(resultComponentDTO.licenseData.declaredLicenses.size(), is(declaredLicenses.size()));
-    for (int i = 0; i < declaredLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseId, is(declaredLicenses.get(i)
-          .getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseName, is(declaredLicenses.get(i)
-          .getLicenseName()));
-    }
+    assertThat(resultComponentDTO.licenseData).isNotNull();
+    assertThat(resultComponentDTO.licenseData.declaredLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
+        .containsExactly(declaredLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
 
-    assertThat(resultComponentDTO.licenseData.observedLicenses.size(), is(observedLicenses.size()));
-    for (int i = 0; i < observedLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseId, is(observedLicenses.get(i)
-          .getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseName, is(observedLicenses.get(i)
-          .getLicenseName()));
-    }
-    assertThat(resultComponentDTO.licenseData.overriddenLicenses, is(nullValue()));
+    assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
+        .containsExactly(observedLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+    assertThat(resultComponentDTO.licenseData.overriddenLicenses).isNull();
 
-    assertThat(resultComponentDTO.securityData, notNullValue());
-    assertThat(resultComponentDTO.securityData.securityIssues.size(), is(securityVulnerabilities.size()));
+    assertThat(resultComponentDTO.securityData).isNotNull();
+    assertThat(resultComponentDTO.securityData.securityIssues).hasSameSizeAs(securityVulnerabilities);
     for (int i = 0; i < securityVulnerabilities.size(); i++) {
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source, is(securityVulnerabilities.get(i)
-          .getSource()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference, is(securityVulnerabilities.get(i)
-          .getRefId()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity, is(securityVulnerabilities.get(i)
-          .getSeverity()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url, is(securityVulnerabilities.get(i).getUrl()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source)
+          .isEqualTo(securityVulnerabilities.get(i).getSource());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference)
+          .isEqualTo(securityVulnerabilities.get(i).getRefId());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity)
+          .isEqualTo(securityVulnerabilities.get(i).getSeverity());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url)
+          .isEqualTo(securityVulnerabilities.get(i).getUrl());
     }
 
-    assertThat(resultComponentDTO.policyData, nullValue());
+    assertThat(resultComponentDTO.policyData).isNull();
   }
 }

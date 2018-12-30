@@ -17,8 +17,6 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
-
 public class ApiComponentEvaluationServiceV2AuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -33,30 +31,18 @@ public class ApiComponentEvaluationServiceV2AuthzTest
     apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
-    try {
-      apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
-      fail("Expected UnauthenticatedException");
-    }
-    catch (UnauthenticatedException ignore) {
-
-    }
+    apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_UnauthorizedButAuthenticated() {
     login();
 
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
-    try {
-      apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
-      fail("Expected UnauthorizedException");
-    }
-    catch (UnauthorizedException ignore) {
-
-    }
+    apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
   }
 
   private ApiComponentEvaluationRequestDTOV2 createEvaluationRequest() {

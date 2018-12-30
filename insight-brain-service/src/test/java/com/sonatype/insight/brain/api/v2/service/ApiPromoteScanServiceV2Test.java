@@ -40,12 +40,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -108,9 +104,9 @@ public class ApiPromoteScanServiceV2Test
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
 
-    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
-    assertThat(apiPromoteScanResultDTOV2.statusUrl,
-        startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId())));
+    assertThat(apiPromoteScanResultDTOV2).isNotNull();
+    assertThat(apiPromoteScanResultDTOV2.statusUrl)
+        .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
   }
 
   @Test
@@ -127,73 +123,52 @@ public class ApiPromoteScanServiceV2Test
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service.promoteScan(app.getId(),
         ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE));
 
-    assertThat(apiPromoteScanResultDTOV2, is(notNullValue()));
-    assertThat(apiPromoteScanResultDTOV2.statusUrl,
-        startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId())));
+    assertThat(apiPromoteScanResultDTOV2).isNotNull();
+    assertThat(apiPromoteScanResultDTOV2.statusUrl)
+        .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
 
     // await successful completion
     String scanPromotionKey = getScanPromotionKey(apiPromoteScanResultDTOV2.statusUrl);
     service.scanPromotions.getIfPresent(scanPromotionKey).get(1, TimeUnit.MINUTES);
-    assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID).isFile(), is(true));
+    assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
     verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
   }
 
   @Test
   public void testPromoteScan_NullRequestDTO() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.promoteScan(app.getId(), null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Missing parameters."));
-    }
+    }).withMessage("Missing parameters.");
   }
 
   @Test
   public void testPromoteScan_NoSourceScan() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), startsWith("Either scanId or sourceStageId need to be supplied."));
-    }
+    }).withMessageStartingWith("Either scanId or sourceStageId need to be supplied.");
   }
 
   @Test
   public void testPromoteScan_AmbiguousSourceScan() {
-    try {
-      ApiPromoteScanRequestDTOV2 requestDTO = ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE);
-      requestDTO.scanId = SCAN_ID;
+    ApiPromoteScanRequestDTOV2 requestDTO = ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE);
+    requestDTO.scanId = SCAN_ID;
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.promoteScan(app.getId(), requestDTO);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), startsWith("Only one of scanId or sourceStageId can be supplied."));
-    }
+    }).withMessageStartingWith("Only one of scanId or sourceStageId can be supplied.");
   }
 
   @Test
   public void testPromoteScan_NoEvaluationsInSourceStage() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), startsWith("No scan available to promote from stage"));
-    }
+    }).withMessageStartingWith("No scan available to promote from stage");
   }
 
   @Test
   public void testPromoteScan_ScanDoesNotExist_Failed() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          startsWith("A scan with ID " + SCAN_ID + " does not exist on the server and may be obsolete. "));
-    }
+    }).withMessageStartingWith("A scan with ID " + SCAN_ID + " does not exist on the server and may be obsolete. ");
   }
 
   @Test
@@ -201,13 +176,9 @@ public class ApiPromoteScanServiceV2Test
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     final List<String> invalidStages = Arrays.asList("invalidStage", Stage.ID_DEVELOP, Stage.ID_PROXY);
     for (String invalidStage : invalidStages) {
-      try {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
         service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage));
-        fail("Expected exception for stage " + invalidStage + ".");
-      }
-      catch (BadRequestException e) {
-        assertThat(e.getMessage(), is("Stage " + invalidStage + " is invalid."));
-      }
+      }).withMessage("Stage " + invalidStage + " is invalid.");
     }
   }
 
@@ -227,13 +198,13 @@ public class ApiPromoteScanServiceV2Test
     ApiScanResultDTOV2 scanStatus = service.getScanStatus(app.getId(), getStatusId(scanPromotionKey));
     countDownLatch.countDown();
 
-    assertThat(scanStatus, is(notNullValue()));
-    assertThat(scanStatus.status, is(ScanStatus.PENDING.name()));
-    assertThat(scanStatus.reason, is(nullValue()));
-    assertThat(scanStatus.reportHtmlUrl, is(nullValue()));
-    assertThat(scanStatus.embeddableReportHtmlUrl, is(nullValue()));
-    assertThat(scanStatus.reportPdfUrl, is(nullValue()));
-    assertThat(scanStatus.reportDataUrl, is(nullValue()));
+    assertThat(scanStatus).isNotNull();
+    assertThat(scanStatus.status).isEqualTo(ScanStatus.PENDING.name());
+    assertThat(scanStatus.reason).isNull();
+    assertThat(scanStatus.reportHtmlUrl).isNull();
+    assertThat(scanStatus.embeddableReportHtmlUrl).isNull();
+    assertThat(scanStatus.reportPdfUrl).isNull();
+    assertThat(scanStatus.reportDataUrl).isNull();
   }
 
   @Test
@@ -253,13 +224,13 @@ public class ApiPromoteScanServiceV2Test
 
     ApiScanResultDTOV2 scanStatus = service.getScanStatus(app.getId(), getStatusId(scanPromotionKey));
 
-    assertThat(scanStatus, is(notNullValue()));
-    assertThat(scanStatus.status, is(ScanStatus.FAILED.name()));
-    assertThat(scanStatus.reason, startsWith("Internal Server Error"));
-    assertThat(scanStatus.reportHtmlUrl, is(nullValue()));
-    assertThat(scanStatus.embeddableReportHtmlUrl, is(nullValue()));
-    assertThat(scanStatus.reportPdfUrl, is(nullValue()));
-    assertThat(scanStatus.reportDataUrl, is(nullValue()));
+    assertThat(scanStatus).isNotNull();
+    assertThat(scanStatus.status).isEqualTo(ScanStatus.FAILED.name());
+    assertThat(scanStatus.reason).startsWith("Internal Server Error");
+    assertThat(scanStatus.reportHtmlUrl).isNull();
+    assertThat(scanStatus.embeddableReportHtmlUrl).isNull();
+    assertThat(scanStatus.reportPdfUrl).isNull();
+    assertThat(scanStatus.reportDataUrl).isNull();
   }
 
   @Test
@@ -278,17 +249,17 @@ public class ApiPromoteScanServiceV2Test
 
     ApiScanResultDTOV2 scanStatus = service.getScanStatus(app.getId(), getStatusId(scanPromotionKey));
 
-    assertThat(scanStatus, is(notNullValue()));
-    assertThat(scanStatus.status, is(ScanStatus.COMPLETED.name()));
-    assertThat(scanStatus.reason, is(nullValue()));
-    assertThat(scanStatus.reportHtmlUrl,
-        is(String.format("ui/links/application/%s/report/%s", app.getPublicId(), NEW_SCAN_ID)));
-    assertThat(scanStatus.embeddableReportHtmlUrl,
-        is(String.format("ui/links/application/%s/report/%s/embeddable", app.getPublicId(), NEW_SCAN_ID)));
-    assertThat(scanStatus.reportPdfUrl,
-        is(String.format("ui/links/application/%s/report/%s/pdf", app.getPublicId(), NEW_SCAN_ID)));
-    assertThat(scanStatus.reportDataUrl,
-        is(String.format("api/v2/applications/%s/reports/%s", app.getPublicId(), NEW_SCAN_ID)));
+    assertThat(scanStatus).isNotNull();
+    assertThat(scanStatus.status).isEqualTo(ScanStatus.COMPLETED.name());
+    assertThat(scanStatus.reason).isNull();
+    assertThat(scanStatus.reportHtmlUrl)
+        .isEqualTo(String.format("ui/links/application/%s/report/%s", app.getPublicId(), NEW_SCAN_ID));
+    assertThat(scanStatus.embeddableReportHtmlUrl)
+        .isEqualTo(String.format("ui/links/application/%s/report/%s/embeddable", app.getPublicId(), NEW_SCAN_ID));
+    assertThat(scanStatus.reportPdfUrl)
+        .isEqualTo(String.format("ui/links/application/%s/report/%s/pdf", app.getPublicId(), NEW_SCAN_ID));
+    assertThat(scanStatus.reportDataUrl)
+        .isEqualTo(String.format("api/v2/applications/%s/reports/%s", app.getPublicId(), NEW_SCAN_ID));
   }
 
   @Test
@@ -312,14 +283,9 @@ public class ApiPromoteScanServiceV2Test
   }
 
   private void assertNotFound(String applicationId, String statusId) {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       service.getScanStatus(applicationId, statusId);
-      fail("Expected exception.");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is(String
-          .format("Scan status with id %s for application with id %s was not found.", statusId, applicationId)));
-    }
+    }).withMessage("Scan status with id %s for application with id %s was not found.", statusId, applicationId);
   }
 
   private String getScanPromotionKey(String statusUrl) {

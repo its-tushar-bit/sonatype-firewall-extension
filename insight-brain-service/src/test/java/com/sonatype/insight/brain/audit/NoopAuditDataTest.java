@@ -5,20 +5,22 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import java.util.function.Function;
+
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NoopAuditDataTest
 {
   @Test
   public void testContinueAsync() {
-    assertThat(NoopAuditData.INSTANCE.continueAsync(auditData -> auditData), is(NoopAuditData.INSTANCE));
+    assertThat(NoopAuditData.INSTANCE.continueAsync((Function<AuditData, AuditData>) auditData -> auditData))
+        .isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
   public void testForSubEvent() {
-    assertThat(NoopAuditData.INSTANCE.forSubEvent(null, false, false), is(NoopAuditData.INSTANCE));
+    assertThat(NoopAuditData.INSTANCE.forSubEvent(null, false, false)).isEqualTo(NoopAuditData.INSTANCE);
   }
 }

@@ -24,15 +24,11 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.inject.Binder;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -67,38 +63,26 @@ public class HashComponentIdentifierServiceTest
         .thenReturn(ComponentSummary.create(true));
 
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       hashComponentIdentifierService.set(hashComponentIdentifier);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("The 'gid : aid : jar : jdk15 : 1.0' coordinates are already in use."));
-    }
+    }).withMessage("The 'gid : aid : jar : jdk15 : 1.0' coordinates are already in use.");
   }
 
   @Test
   public void testSet_NullComponentIdentifier() throws Exception {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, null);
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       hashComponentIdentifierService.set(hashComponentIdentifier);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("The component identifier cannot be null."));
-    }
+    }).withMessage("The component identifier cannot be null.");
   }
 
   @Test
   public void testSet_InvalidComponentIdentifier() throws Exception {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, JsonUtils.parse(
         "{\"format\":\"maven\",\"coordinates\":null}", ComponentIdentifier.class));
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       hashComponentIdentifierService.set(hashComponentIdentifier);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("A component identifier must have at least one coordinate."));
-    }
+    }).withMessage("A component identifier must have at least one coordinate.");
   }
 
   @Test
@@ -131,8 +115,8 @@ public class HashComponentIdentifierServiceTest
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(),
         updatedComponentIdentifier);
-    assertThat(override, Matchers.notNullValue());
-    assertThat(override.getId(), Matchers.is(expectedLicenseOverride.getId()));
+    assertThat(override).isNotNull();
+    assertThat(override.getId()).isEqualTo(expectedLicenseOverride.getId());
   }
 
   private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,
@@ -140,20 +124,20 @@ public class HashComponentIdentifierServiceTest
                                                 final String comment,
                                                 final Date createTime)
   {
-    assertThat(hashComponentIdentifierDTO, notNullValue());
-    assertThat(hashComponentIdentifierDTO.hash, is(HASH));
-    assertThat(hashComponentIdentifierDTO.componentIdentifier, is(componentIdentifier));
-    assertThat(hashComponentIdentifierDTO.comment, is(comment));
-    assertThat(hashComponentIdentifierDTO.createTime, is(createTime));
+    assertThat(hashComponentIdentifierDTO).isNotNull();
+    assertThat(hashComponentIdentifierDTO.hash).isEqualTo(HASH);
+    assertThat(hashComponentIdentifierDTO.componentIdentifier).isEqualTo(componentIdentifier);
+    assertThat(hashComponentIdentifierDTO.comment).isEqualTo(comment);
+    assertThat(hashComponentIdentifierDTO.createTime).isEqualTo(createTime);
 
     ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
-    assertThat(hashComponentIdentifierDTO.displayName.parts, hasSize(componentDisplayName.parts.size()));
+    assertThat(hashComponentIdentifierDTO.displayName.parts).hasSameSizeAs(componentDisplayName.parts);
     for (int i = 0; i < componentDisplayName.parts.size(); i++) {
       ComponentDisplayNamePart expected = componentDisplayName.parts.get(i);
       ComponentDisplayNamePart actual = hashComponentIdentifierDTO.displayName.parts.get(i);
-      assertThat(actual.field, Matchers.is(expected.field));
-      assertThat(actual.value, Matchers.is(expected.value));
+      assertThat(actual.field).isEqualTo(expected.field);
+      assertThat(actual.value).isEqualTo(expected.value);
     }
-    assertThat(hashComponentIdentifierDTO.coordinates, Matchers.is(componentDisplayName.toString()));
+    assertThat(hashComponentIdentifierDTO.coordinates).isEqualTo(componentDisplayName.toString());
   }
 }

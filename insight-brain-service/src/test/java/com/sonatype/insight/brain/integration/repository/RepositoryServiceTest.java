@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -80,21 +81,9 @@ import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -170,7 +159,7 @@ public class RepositoryServiceTest
     repositoryService.unquarantineComponent(repository.getId(), pathname, null);
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
   }
 
   @Test
@@ -180,17 +169,12 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), pathname, null,
         null);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.unquarantineComponent(repository.getId(), pathname, null);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Component " + pathname + " in repository " + repository.getId()
-          + " is not quarantined."));
-    }
+    }).withMessage("Component " + pathname + " in repository " + repository.getId() + " is not quarantined.");
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
   }
 
   @Test
@@ -203,14 +187,9 @@ public class RepositoryServiceTest
     createQuarantiningPolicy(repository);
     mockHdsRequestForComponent(repositoryComponent, true);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.unquarantineComponent(repository.getId(), pathname, null);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Component " + pathname + " in repository " + repository.getId()
-          + " has policy violations."));
-    }
+    }).withMessage("Component " + pathname + " in repository " + repository.getId() + " has policy violations.");
   }
 
   @Test
@@ -226,7 +205,7 @@ public class RepositoryServiceTest
     repositoryService.unquarantineComponent(repository.getId(), pathname, null);
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
   }
 
   private void mockHdsRequestForComponent(RepositoryComponent repositoryComponent, boolean withSecurityVulnerabilities)
@@ -277,41 +256,34 @@ public class RepositoryServiceTest
     RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = repositoryService.getPolicyThreats(repository.getId(),
         pathname);
 
-    assertThat(repositoryPolicyThreatDTO.activePolicyViolations, hasSize(1));
+    assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);
     RepositoryPolicyViolationDTO repositoryViolationDTO = repositoryPolicyThreatDTO.activePolicyViolations.get(0);
-    assertThat(repositoryViolationDTO.policyId, is("policyId1"));
-    assertThat(repositoryViolationDTO.policyName, is("policyName1"));
-    assertThat(repositoryViolationDTO.policyThreatLevel, is(8));
-    assertThat(repositoryViolationDTO.constraintFactsJson, is(repositoryPolicyViolation1.getConstraintFactsJson()));
-    assertFalse(repositoryViolationDTO.blocksUnquarantine);
+    assertThat(repositoryViolationDTO.policyId).isEqualTo("policyId1");
+    assertThat(repositoryViolationDTO.policyName).isEqualTo("policyName1");
+    assertThat(repositoryViolationDTO.policyThreatLevel).isEqualTo(8);
+    assertThat(repositoryViolationDTO.constraintFactsJson)
+        .isEqualTo(repositoryPolicyViolation1.getConstraintFactsJson());
+    assertThat(repositoryViolationDTO.blocksUnquarantine).isFalse();
 
     repositoryViolationDTO = repositoryService.getPolicyThreats(repository.getId(), "path4").activePolicyViolations
         .get(0);
-    assertTrue(repositoryViolationDTO.blocksUnquarantine);
+    assertThat(repositoryViolationDTO.blocksUnquarantine).isTrue();
   }
 
   @Test
   public void testGetPolicyThreats_RepositoryComponentDoesNotExist() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist");
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a component with path pathDoesNotExist in repository with ID "
-          + repository.getId() + "."));
-    }
+    }).withMessage(
+        "Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + ".");
   }
 
   @Test
   public void testGetPolicyThreats_RepositoryDoesNotExist() {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.getPolicyThreats("RepositoryIdDoesNotExist", null);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a repository with ID RepositoryIdDoesNotExist."));
-    }
+    }).withMessage("Cannot find a repository with ID RepositoryIdDoesNotExist.");
   }
 
   @Test
@@ -320,13 +292,13 @@ public class RepositoryServiceTest
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
 
-    assertNotNull(repositoryManager);
+    assertThat(repositoryManager).isNotNull();
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
-    assertEquals(1, repositories.size());
-    assertEquals(REPO_PUBLIC_ID, repositories.get(0).getPublicId());
-    assertTrue(repositories.get(0).isEnabled());
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(repositories.get(0).isEnabled()).isTrue();
   }
 
   @Test
@@ -337,9 +309,9 @@ public class RepositoryServiceTest
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
-    assertEquals(1, repositories.size());
-    assertEquals(REPO_PUBLIC_ID, repositories.get(0).getPublicId());
-    assertTrue(repositories.get(0).isEnabled());
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(repositories.get(0).isEnabled()).isTrue();
   }
 
   @Test
@@ -351,22 +323,18 @@ public class RepositoryServiceTest
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
-    assertEquals(1, repositories.size());
-    assertEquals(REPO_PUBLIC_ID, repositories.get(0).getPublicId());
-    assertTrue(repositories.get(0).isEnabled());
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(repositories.get(0).isEnabled()).isTrue();
   }
 
   @Test
   public void testSetEnabled_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
-    try {
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       repositoryService.setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
-      fail("Expected exception");
-    }
-    catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
-    }
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
@@ -378,20 +346,16 @@ public class RepositoryServiceTest
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
-    assertEquals(1, repositories.size());
-    assertEquals(REPO_PUBLIC_ID, repositories.get(0).getPublicId());
-    assertFalse(repositories.get(0).isEnabled());
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(repositories.get(0).isEnabled()).isFalse();
   }
 
   @Test
   public void testSetQuarantine_RepositoryDoesNotExist() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -399,14 +363,9 @@ public class RepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Cannot enable quarantine when repository " + REPO_PUBLIC_ID
-          + " is disabled."));
-    }
+    }).withMessage("Cannot enable quarantine when repository " + REPO_PUBLIC_ID + " is disabled.");
   }
 
   @Test
@@ -415,13 +374,13 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, true);
 
     // Check initial state
-    assertThat(repository.isEnabled(), is(false));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
 
     repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(false));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
   @Test
@@ -430,11 +389,11 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
     // Check that the initial value is false
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isQuarantineEnabled()).isFalse();
 
     repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isQuarantineEnabled()).isTrue();
   }
 
   @Test
@@ -443,13 +402,13 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
     // Check that initial value is true
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
   @Test
@@ -472,12 +431,13 @@ public class RepositoryServiceTest
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = repositoryService.getPolicyEvaluationSummary(
         REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/repository/" + repository.getId() + "/result"));
-    assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getReportUrl())
+        .isEqualTo("ui/links/repository/" + repository.getId() + "/result");
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);
   }
 
   @Test
@@ -492,10 +452,10 @@ public class RepositoryServiceTest
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = repositoryService.getPolicyEvaluationSummary(
         REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
   }
 
   @Test
@@ -508,34 +468,26 @@ public class RepositoryServiceTest
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = repositoryService.getPolicyEvaluationSummary(
         REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
-    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
   }
 
   @Test
   public void testGetPolicyEvaluationSummary_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
-    try {
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       repositoryService.getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-      fail("Expected exception");
-    }
-    catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
-    }
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
   public void testEvaluateComponents_WithQuarantine_RepositoryDoesNotExist() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -543,7 +495,7 @@ public class RepositoryServiceTest
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataList componentEvaluationResultList = repositoryService.evaluateComponents(
         REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
-    assertThat(componentEvaluationResultList.componentEvalResults, hasSize(0));
+    assertThat(componentEvaluationResultList.componentEvalResults).isEmpty();
   }
 
   @Test
@@ -558,14 +510,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           true, null);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The pathname cannot be null or empty."));
-    }
+    }).withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -579,14 +527,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           true, null);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The hash cannot be null or empty."));
-    }
+    }).withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -617,20 +561,20 @@ public class RepositoryServiceTest
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
@@ -671,24 +615,24 @@ public class RepositoryServiceTest
     Date timeBeforeEvaluation = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
     Date timeAfterEvaluation = new Date();
     
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(repository.getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     assertRepositoryComponent(repository.getId(), pathname, timeBeforeEvaluation, timeAfterEvaluation, hash,
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation,
         timeAfterEvaluation, timeAfterEvaluation, repositoryComponent);
-    assertThat(repositoryComponent.isQuarantined(), is(true));
+    assertThat(repositoryComponent.isQuarantined()).isTrue();
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
         repository.getId(), pathname).get(0);
@@ -705,15 +649,15 @@ public class RepositoryServiceTest
     // evaluate and confirm quarantine state
     repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
     
     List<RepositoryPolicyViolation> currentRepositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
-    assertThat(currentRepositoryPolicyViolations.isEmpty(), is(true));
+    assertThat(currentRepositoryPolicyViolations.isEmpty()).isTrue();
     repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
-    assertThat(repositoryComponent.isQuarantined(), is(true));
+    assertThat(repositoryComponent.isQuarantined()).isTrue();
   }
 
   @Test
@@ -744,17 +688,17 @@ public class RepositoryServiceTest
     Date timeBeforeEvaluation = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     List<RepositoryPolicyViolation> currentRepositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
-    assertThat(currentRepositoryPolicyViolations.isEmpty(), is(true));
+    assertThat(currentRepositoryPolicyViolations.isEmpty()).isTrue();
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
 
     // prepare hds result with violations
     hdsResult.components = new ArrayList<>();
@@ -766,22 +710,22 @@ public class RepositoryServiceTest
     repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     Date after = new Date();
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
 
     repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
     assertRepositoryComponent(repository.getId(), pathname, timeBeforeEvaluation, after, hash, componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation, after, null,
         repositoryComponent);
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
         repository.getId(), pathname).get(0);
@@ -817,20 +761,20 @@ public class RepositoryServiceTest
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
@@ -869,17 +813,17 @@ public class RepositoryServiceTest
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
@@ -917,21 +861,21 @@ public class RepositoryServiceTest
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
@@ -963,34 +907,34 @@ public class RepositoryServiceTest
     // initial evaluation of component, audit-only
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
-    assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
-    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
+    assertThat(repositoryComponents).hasSize(1);
+    assertThat(repositoryComponents.get(0).getPathname()).isEqualTo(pathname);
+    assertThat(repositoryComponents.get(0).getQuarantineTime()).isNull();
 
     // re-evaluation of component, this time with quarantine enabled
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
         REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
-    assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
-    assertThat(repositoryComponents.get(0).isQuarantined(), is(false));
-    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
+    assertThat(repositoryComponents).hasSize(1);
+    assertThat(repositoryComponents.get(0).getPathname()).isEqualTo(pathname);
+    assertThat(repositoryComponents.get(0).isQuarantined()).isFalse();
+    assertThat(repositoryComponents.get(0).getQuarantineTime()).isNull();
   }
 
   @Test
@@ -1019,51 +963,46 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true /* withQuarantine */,
             null);
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
-    assertThat(repositoryComponent.isQuarantined(), is(true));
+    assertThat(repositoryComponent.isQuarantined()).isTrue();
 
     // Unquarantine the component
     repositoryComponent.setUnquarantineTime(new Date());
     repositoryComponentDAO.update(repositoryComponent);
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
 
     // Re-evaluation of component, quarantine enabled
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
         REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     Date after = new Date();
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
 
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     repositoryComponent = repositoryComponents.get(0);
-    assertThat(repositoryComponent.getPathname(), is(pathname));
-    assertThat(repositoryComponent.getQuarantineTime(), is(greaterThanOrEqualTo(before)));
-    assertThat(repositoryComponent.getQuarantineTime(), is(lessThanOrEqualTo(after)));
-    assertThat(repositoryComponent.isQuarantined(), is(false));
+    assertThat(repositoryComponent.getPathname()).isEqualTo(pathname);
+    assertThat(repositoryComponent.getQuarantineTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
+    assertThat(repositoryComponent.isQuarantined()).isFalse();
   }
 
   @Test
   public void testEvaluateComponents_RepositoryDoesNotExist() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           null /* componentEvaluationDataRequestList */, false, null);
-      fail("Expected exception");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -1075,8 +1014,8 @@ public class RepositoryServiceTest
         null /* componentEvaluationDataRequestList */, false, null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(false));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
   @Test
@@ -1088,8 +1027,8 @@ public class RepositoryServiceTest
         null /* componentEvaluationDataRequestList */, true, null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
   }
 
   @Test
@@ -1101,8 +1040,8 @@ public class RepositoryServiceTest
         null /* componentEvaluationDataRequestList */, true, null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
   }
 
   @Test
@@ -1137,13 +1076,13 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(2));
+    assertThat(repositoryComponents).hasSize(2);
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(2));
+    assertThat(policyViolations).hasSize(2);
 
     for (int i = 0; i < componentCount; i++) {
       String pathname = "path" + i;
@@ -1202,21 +1141,21 @@ public class RepositoryServiceTest
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(repository.getId());
-    assertThat(policyViolations, hasSize(4));
+    assertThat(policyViolations).hasSize(4);
 
     List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
         .get(repository.getId());
-    assertThat(policyNotifications, hasSize(2));
+    assertThat(policyNotifications).hasSize(2);
     for (PolicyNotification policyNotification : policyNotifications) {
-      assertThat(policyNotification.getPolicyFact().getPolicyName(), is("Test Policy"));
+      assertThat(policyNotification.getPolicyFact().getPolicyName()).isEqualTo("Test Policy");
 
       Notifications notifications = policyNotification.getNotifications();
-      assertThat(notifications.getUserNotifications(), hasSize(1));
-      assertThat(notifications.getRoleNotifications(), hasSize(0));
-      assertThat(notifications.getJiraNotifications(), hasSize(0));
+      assertThat(notifications.getUserNotifications()).hasSize(1);
+      assertThat(notifications.getRoleNotifications()).isEmpty();
+      assertThat(notifications.getJiraNotifications()).isEmpty();
 
       UserNotification userNotification = notifications.getUserNotifications().get(0);
-      assertThat(userNotification.getEmailAddress(), is("test@sonatype.com"));
+      assertThat(userNotification.getEmailAddress()).isEqualTo("test@sonatype.com");
     }
   }
 
@@ -1251,11 +1190,11 @@ public class RepositoryServiceTest
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(repository.getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
 
     List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
         .get(repository.getId());
-    assertThat(policyNotifications, nullValue());
+    assertThat(policyNotifications).isNull();
   }
 
    @Test
@@ -1291,14 +1230,14 @@ public class RepositoryServiceTest
     Date after1 = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before1, after1, hash, componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before1, after1, policyViolations.get(0));
 
@@ -1319,13 +1258,13 @@ public class RepositoryServiceTest
     Date after2 = new Date();
 
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before2, after2, updatedHash, updatedComponentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before2, after2, null, repositoryComponent);
 
     policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
-    assertThat(policyViolations, hasSize(2));
+    assertThat(policyViolations).hasSize(2);
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
       if (policyViolation.isActive()) {
         assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
@@ -1372,14 +1311,14 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, "h", componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), "h", componentIdentifier, before, after, policyViolations.get(0));
   }
@@ -1422,14 +1361,14 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolations.get(0));
   }
@@ -1470,13 +1409,13 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     assertRepositoryComponent(repository.getId(), "path", before, after, "h", claimedComponentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.MANUAL.getId(), repositoryComponents.get(0));
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), "h", claimedComponentIdentifier, before, after, policyViolations.get(0));
   }
@@ -1495,7 +1434,7 @@ public class RepositoryServiceTest
     String hash = "01234567890123456789";
     String longHash = hash + "1";
     // Sanity check
-    assertThat(longHash.length(), greaterThan(HashHelper.MAX_LENGTH));
+    assertThat(longHash.length()).isGreaterThan(HashHelper.MAX_LENGTH);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     // Prepare request and mock the HDS request
@@ -1517,14 +1456,14 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolations.get(0));
   }
@@ -1561,14 +1500,14 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
         MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
-    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations).hasSize(1);
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolations.get(0));
   }
@@ -1599,7 +1538,7 @@ public class RepositoryServiceTest
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents).hasSize(1);
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier1,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
@@ -1613,14 +1552,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", null,
         "hash"));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           false, null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The pathname cannot be null or empty."));
-    }
+    }).withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -1631,14 +1566,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", " ",
         "hash"));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           false, null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The pathname cannot be null or empty."));
-    }
+    }).withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -1649,14 +1580,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(null, "pathname",
         "hash"));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           false, null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The format cannot be null or empty."));
-    }
+    }).withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -1667,14 +1594,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(" ", "pathname",
         "hash"));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           false, null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The format cannot be null or empty."));
-    }
+    }).withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -1687,14 +1610,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
         hash));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           false, null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The hash cannot be null or empty."));
-    }
+    }).withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -1705,14 +1624,10 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
         " "));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
           false, null);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The hash cannot be null or empty."));
-    }
+    }).withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -1734,26 +1649,22 @@ public class RepositoryServiceTest
 
     RepositoryReportSummary summary = repositoryService.getReportSummary(repo.getId());
 
-    assertThat(summary.knownComponentCount, is(5));
-    assertThat(summary.totalComponentCount, is(6));
-    assertThat(summary.criticalComponentCount, is(1));
-    assertThat(summary.severeComponentCount, is(2));
-    assertThat(summary.moderateComponentCount, is(0));
-    assertThat(summary.affectedComponentCount, is(3));
-    assertThat(summary.quarantinedComponentCount, is(1));
+    assertThat(summary.knownComponentCount).isEqualTo(5);
+    assertThat(summary.totalComponentCount).isEqualTo(6);
+    assertThat(summary.criticalComponentCount).isEqualTo(1);
+    assertThat(summary.severeComponentCount).isEqualTo(2);
+    assertThat(summary.moderateComponentCount).isEqualTo(0);
+    assertThat(summary.affectedComponentCount).isEqualTo(3);
+    assertThat(summary.quarantinedComponentCount).isEqualTo(1);
   }
 
   @Test
   public void testEvaluateComponents_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
-    try {
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, false, null);
-      fail("Expected exception");
-    }
-    catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
-    }
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   private void mockHdsRequest(RepositoryComponentEvaluationDataRequestList serviceRequest,
@@ -1823,21 +1734,20 @@ public class RepositoryServiceTest
                                          Date afterQuarantineTime,
                                          RepositoryComponent actual)
   {
-    assertThat(actual.getRepositoryId(), is(repositoryId));
-    assertThat(actual.getPathname(), is(pathname));
-    assertThat(actual.getHash(), is(hash));
-    assertThat(actual.getTime(), greaterThanOrEqualTo(beforeCreate));
-    assertThat(actual.getTime(), lessThanOrEqualTo(afterCreate));
-    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getMatchStateId(), is(matchStateId));
-    assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
-    assertThat(actual.getLastEvaluationTime(), greaterThanOrEqualTo(beforeLastEvaluation));
-    assertThat(actual.getLastEvaluationTime(), lessThanOrEqualTo(afterLastEvaluation));
+    assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
+    assertThat(actual.getPathname()).isEqualTo(pathname);
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getTime()).isAfterOrEqualsTo(beforeCreate).isBeforeOrEqualsTo(afterCreate);
+    assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getMatchStateId()).isEqualTo(matchStateId);
+    assertThat(actual.getIdentificationSourceId()).isEqualTo(identificationSourceId);
+    assertThat(actual.getLastEvaluationTime()).isAfterOrEqualsTo(beforeLastEvaluation)
+        .isBeforeOrEqualsTo(afterLastEvaluation);
     if (afterQuarantineTime != null) {
-      assertThat(actual.getQuarantineTime(), lessThanOrEqualTo(afterQuarantineTime));
+      assertThat(actual.getQuarantineTime()).isBeforeOrEqualsTo(afterQuarantineTime);
     }
     else {
-      assertThat(actual.getQuarantineTime(), nullValue());
+      assertThat(actual.getQuarantineTime()).isNull();
     }
   }
 
@@ -1867,27 +1777,22 @@ public class RepositoryServiceTest
                                      Date after,
                                      RepositoryPolicyViolation actual)
   {
-    assertThat(actual.getRepositoryId(), is(repositoryId));
-    assertThat(actual.getPathname(), is(pathname));
-    assertThat(actual.getPolicyId(), is(policyId));
-    assertThat(actual.getPolicyName(), is(policyName));
-    assertThat(actual.getThreatLevel(), is(threatLevel));
-    assertThat(actual.getThreatCategory(), is(threatCategory));
-    assertThat(actual.getHash(), is(hash));
-    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getTime(), greaterThanOrEqualTo(before));
-    assertThat(actual.getTime(), lessThanOrEqualTo(after));
+    assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
+    assertThat(actual.getPathname()).isEqualTo(pathname);
+    assertThat(actual.getPolicyId()).isEqualTo(policyId);
+    assertThat(actual.getPolicyName()).isEqualTo(policyName);
+    assertThat(actual.getThreatLevel()).isEqualTo(threatLevel);
+    assertThat(actual.getThreatCategory()).isEqualTo(threatCategory);
+    assertThat(actual.getHash()).isEqualTo(hash);
+    assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
   }
 
   @Test
   public void testRemoveComponent_RepositoryDoesNotExist() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
-      fail("Expected exception");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -1898,7 +1803,7 @@ public class RepositoryServiceTest
     repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(true));
+    assertThat(repository.isEnabled()).isTrue();
   }
 
   @Test
@@ -1914,13 +1819,13 @@ public class RepositoryServiceTest
 
     repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, pathname1);
 
-    assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId()), is(nullValue()));
-    assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId()), is(notNullValue()));
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname1), is(nullValue()));
+    assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId())).isNull();
+    assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId())).isNotNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname1)).isNull();
     policyViolation1 = repositoryPolicyViolationDAO.getById(policyViolation1.getId());
-    assertThat(policyViolation1.isActive(), is(false));
+    assertThat(policyViolation1.isActive()).isFalse();
     policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
-    assertThat(policyViolation2.isActive(), is(true));
+    assertThat(policyViolation2.isActive()).isTrue();
   }
 
   @Test
@@ -1936,13 +1841,13 @@ public class RepositoryServiceTest
 
     repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "/" + pathname1);
 
-    assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId()), is(nullValue()));
-    assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId()), is(notNullValue()));
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname1), is(nullValue()));
+    assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId())).isNull();
+    assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId())).isNotNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname1)).isNull();
     policyViolation1 = repositoryPolicyViolationDAO.getById(policyViolation1.getId());
-    assertThat(policyViolation1.isActive(), is(false));
+    assertThat(policyViolation1.isActive()).isFalse();
     policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
-    assertThat(policyViolation2.isActive(), is(true));
+    assertThat(policyViolation2.isActive()).isTrue();
   }
 
   @Test
@@ -1952,20 +1857,20 @@ public class RepositoryServiceTest
     final RepositoryReportDetail detail2 = RepositoryReportDetail.create(new RepositoryComponent(null, "a", null, null,
         null, null, null, null), new RepositoryPolicyViolation(null, null, null, null, null, 9, null, null,
         null, "[]" /* constraintFacts */), false);
-    assertTrue("Should sort ThreatLevel Descending",
-        0 < RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail2));
+    assertThat(RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail2))
+        .as("Should sort ThreatLevel Descending").isPositive();
 
     final RepositoryReportDetail detail3 = RepositoryReportDetail.create(new RepositoryComponent(null, "a", null, null,
         null, null, null, null), new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null,
         null, "[]" /* constraintFacts */), false);
-    assertTrue("Should sort Pathname Ascending",
-        0 < RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail3));
+    assertThat(RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail3))
+        .as("Should sort Pathname Ascending").isPositive();
 
     final RepositoryReportDetail detail4 = RepositoryReportDetail.create(new RepositoryComponent(null, "z", null, null,
         null, null, null, null), new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null,
         null, "[]" /* constraintFacts */), false);
-    assertEquals("Equal ThreatLevel and pathname", 0,
-        RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail4));
+    assertThat(RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail4))
+        .as("Equal ThreatLevel and pathname").isZero();
   }
 
   @Test
@@ -1996,7 +1901,7 @@ public class RepositoryServiceTest
     final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null,
         null);
 
-    assertThat(reportDetails.size(), is(6));
+    assertThat(reportDetails).hasSize(6);
 
     int idx = 0;
     // list should be sorted by 'threadLevel DESC', 'pathname ASC'
@@ -2024,12 +1929,11 @@ public class RepositoryServiceTest
     final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), "hash1",
         null);
 
-    assertThat(reportDetails.size(), is(2));
+    assertThat(reportDetails).hasSize(2);
 
     for (RepositoryReportDetail detail : reportDetails) {
-      assertThat(detail.getHash(), is("hash1"));
-      assertTrue(detail.getPathname().equals(component1.getPathname())
-          || detail.getPathname().equals(component2.getPathname()));
+      assertThat(detail.getHash()).isEqualTo("hash1");
+      assertThat(detail.getPathname()).isIn(component1.getPathname(), component2.getPathname());
     }
   }
 
@@ -2048,8 +1952,8 @@ public class RepositoryServiceTest
     final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null,
         component.getPathname());
 
-    assertThat(reportDetails.size(), is(1));
-    assertThat(reportDetails.get(0).getPathname(), is(component.getPathname()));
+    assertThat(reportDetails).hasSize(1);
+    assertThat(reportDetails.get(0).getPathname()).isEqualTo(component.getPathname());
   }
 
   @Test
@@ -2058,9 +1962,9 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), new Date());
 
     RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
-    assertNotNull(actual.repository);
-    assertThat(actual.repository.getPublicId(), is(repository.getPublicId()));
-    assertThat(actual.oldestEvalTimestamp, is(repositoryComponent.getLastEvaluationTime().getTime()));
+    assertThat(actual.repository).isNotNull();
+    assertThat(actual.repository.getPublicId()).isEqualTo(repository.getPublicId());
+    assertThat(actual.oldestEvalTimestamp).isEqualTo(repositoryComponent.getLastEvaluationTime().getTime());
   }
 
   @Test
@@ -2068,20 +1972,16 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository();
 
     RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
-    assertNotNull(actual.repository);
-    assertThat(actual.repository.getPublicId(), is(repository.getPublicId()));
-    assertNull(actual.oldestEvalTimestamp);
+    assertThat(actual.repository).isNotNull();
+    assertThat(actual.repository.getPublicId()).isEqualTo(repository.getPublicId());
+    assertThat(actual.oldestEvalTimestamp).isNull();
   }
 
   @Test
   public void testGetRepositoryById_UnknownId() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.getRepositoryById("foobar");
-      fail("Did not throw exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
-    }
+    }).withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
@@ -2104,44 +2004,32 @@ public class RepositoryServiceTest
     Date beforeEvaluation = new Date();
     repositoryService.reevaluateRepository(repository.getId());
 
-    for (int i = 0; i < 100; i++) {
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
       Date lastEvaluationTime = repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0)
           .getLastEvaluationTime();
-      if (!beforeEvaluation.after(lastEvaluationTime)) {
-        return;
-      }
-      Thread.sleep(10);
-    }
-    fail("Last evaluation time was not updated");
+      assertThat(lastEvaluationTime).isAfterOrEqualsTo(beforeEvaluation);
+    });
   }
 
   @Test
   public void testReevaluateRepository_UnknownId() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.reevaluateRepository("foobar");
-      fail("Did not throw exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
-    }
+    }).withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
   public void testDeleteRepository() throws Exception {
     Repository repository = tempEntity.newRepository();
     repositoryService.deleteRepository(repository.getId());
-    assertNull(repositoryDAO.getById(repository.getId()));
+    assertThat(repositoryDAO.getById(repository.getId())).isNull();
   }
 
   @Test
   public void testDeleteRepository_UnknownId() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.deleteRepository("foobar");
-      fail("Did not throw exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
-    }
+    }).withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
@@ -2166,21 +2054,16 @@ public class RepositoryServiceTest
     RepositoryComponent actualComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         repositoryComponent.getPathname());
 
-    assertTrue(actualComponent.getLastEvaluationTime().after(repositoryComponent.getLastEvaluationTime()));
+    assertThat(actualComponent.getLastEvaluationTime()).isAfter(repositoryComponent.getLastEvaluationTime());
 
   }
 
   @Test
   public void testReevaluateComponent_UnknownHash() throws Exception {
     Repository repo = tempEntity.newRepository();
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null);
-      fail("Did not throw exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a repository component for hash missing-hash in " + repo.getPublicId()
-          + "."));
-    }
+    }).withMessage("Cannot find a repository component for hash missing-hash in " + repo.getPublicId() + ".");
   }
 
   private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
@@ -2209,17 +2092,17 @@ public class RepositoryServiceTest
                                             final boolean expectedHighestThreatLevel,
                                             final boolean isWaived)
   {
-    assertEquals(expectedPathname, actualReportDetail.getPathname());
-    assertEquals(expectedPolicyName, actualReportDetail.getPolicyName());
-    assertEquals(expectedThreatLevel, actualReportDetail.getThreatLevel());
-    assertEquals(expectedHighestThreatLevel, actualReportDetail.isHighestThreatLevel());
+    assertThat(actualReportDetail.getPathname()).isEqualTo(expectedPathname);
+    assertThat(actualReportDetail.getPolicyName()).isEqualTo(expectedPolicyName);
+    assertThat(actualReportDetail.getThreatLevel()).isEqualTo(expectedThreatLevel);
+    assertThat(actualReportDetail.isHighestThreatLevel()).isEqualTo(expectedHighestThreatLevel);
 
-    assertEquals("hash", actualReportDetail.getHash());
-    assertEquals("exact", actualReportDetail.getMatchState());
-    assertEquals("g : a : v", actualReportDetail.getComponentDisplayText());
-    assertEquals("maven", actualReportDetail.getComponentIdentifier().getFormat());
-    assertFalse(actualReportDetail.isQuarantined());
-    assertEquals(isWaived, actualReportDetail.isWaived());
+    assertThat(actualReportDetail.getHash()).isEqualTo("hash");
+    assertThat(actualReportDetail.getMatchState()).isEqualTo("exact");
+    assertThat(actualReportDetail.getComponentDisplayText()).isEqualTo("g : a : v");
+    assertThat(actualReportDetail.getComponentIdentifier().getFormat()).isEqualTo("maven");
+    assertThat(actualReportDetail.isQuarantined()).isFalse();
+    assertThat(actualReportDetail.isWaived()).isEqualTo(isWaived);
   }
 
   private Policy createQuarantiningPolicy(Repository repository) {
@@ -2247,18 +2130,14 @@ public class RepositoryServiceTest
         new Date(since) /* quarantineTime */, new Date(since) /* unquarantineTime */);
     UnquarantinedComponentList result = repositoryService.getUnquarantinedComponents(REPO_MAN_INSTANCE_ID,
         REPO_PUBLIC_ID, since);
-    assertThat(result.pathnames, contains("pathnameUnquarantinedAfter"));
+    assertThat(result.pathnames).containsExactly("pathnameUnquarantinedAfter");
   }
 
   @Test
   public void testGetUnquarantinedComponents_RepositoryDoesNotExist() throws Exception {
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       repositoryService.getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0);
-      fail("Expected exception");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -2273,6 +2152,6 @@ public class RepositoryServiceTest
     // Call the service
     FirewallIgnorePatterns firewallIgnorePatterns = repositoryService.getIgnorePatterns();
 
-    assertThat(firewallIgnorePatterns, is(hdsResult));
+    assertThat(firewallIgnorePatterns).isEqualTo(hdsResult);
   }
 }

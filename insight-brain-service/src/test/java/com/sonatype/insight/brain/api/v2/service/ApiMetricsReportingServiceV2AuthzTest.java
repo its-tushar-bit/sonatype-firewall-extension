@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -28,10 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiMetricsReportingServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -56,7 +52,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, Collections.singleton(app.getId()));
 
-    assertThat(results, is(empty()));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -66,7 +62,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(Collections.singleton(org.getId()), null);
 
-    assertThat(results, is(empty()));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -118,7 +114,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
     List<ApiMetricsReportingDTOV2> results = getMetrics(null, null);
 
-    assertThat(results, is(empty()));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -155,7 +151,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, Collections.singleton(app.getId()));
 
-    assertThat(results, is(empty()));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -165,7 +161,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(Collections.singleton(org.getId()), null);
 
-    assertThat(results, is(empty()));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -217,7 +213,7 @@ public class ApiMetricsReportingServiceV2AuthzTest
 
     List<ApiMetricsReportingFlattenedDTOV2> results = getFlattenedMetrics(null, null);
 
-    assertThat(results, is(empty()));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -262,15 +258,12 @@ public class ApiMetricsReportingServiceV2AuthzTest
   }
 
   private void assertResults(List<ApiMetricsReportingDTOV2> results) {
-    assertThat(results, hasSize(1));
-    assertThat(results.get(0).aggregations, hasSize(2));
-    assertThat(results.get(0).applicationId, is(app.getId()));
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).aggregations).hasSize(2);
+    assertThat(results.get(0).applicationId).isEqualTo(app.getId());
   }
 
   private void assertFlattenedResults(List<ApiMetricsReportingFlattenedDTOV2> results) {
-    assertThat(results, hasSize(2));
-
-    Set<String> presentApps = results.stream().map(dto -> dto.applicationId).collect(Collectors.toSet());
-    assertThat(presentApps, is(Collections.singleton(app.getId())));
+    assertThat(results).hasSize(2).extracting(dto -> dto.applicationId).containsOnly(app.getId());
   }
 }

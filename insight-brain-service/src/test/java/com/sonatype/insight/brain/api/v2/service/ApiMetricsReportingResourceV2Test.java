@@ -27,9 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiMetricsReportingResourceV2Test
     extends AbstractResourceTest
@@ -56,15 +54,15 @@ public class ApiMetricsReportingResourceV2Test
     assertResponseStatus(200, response);
 
     List<Map<String, Object>> results = response.getBodyList();
-    assertThat(results, hasSize(1));
+    assertThat(results).hasSize(1);
 
     Map<String, Object> result = results.get(0);
-    assertThat(result.get("applicationId"), is(app.getId()));
+    assertThat(result.get("applicationId")).isEqualTo(app.getId());
 
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> aggregations = ((List<Map<String, Object>>) result.get("aggregations"));
-    assertThat(aggregations, hasSize(1));
-    assertThat(aggregations.get(0).get("timePeriodStart"), is("2017-11-01"));
+    assertThat(aggregations).hasSize(1);
+    assertThat(aggregations.get(0).get("timePeriodStart")).isEqualTo("2017-11-01");
   }
 
   @Test
@@ -76,7 +74,7 @@ public class ApiMetricsReportingResourceV2Test
     String expectedCSV = IOUtils.toString(getClass().getResource("/ApiMetricsReportingResourceV2Test/expected.csv"),
         "UTF-8").replace("\r\n", "\n");
 
-    assertThat(responseText, is(expectedCSV));
+    assertThat(responseText).isEqualTo(expectedCSV);
   }
 
   private HttpRequest createRequest(String acceptType) {

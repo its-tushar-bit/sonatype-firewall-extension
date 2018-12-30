@@ -38,11 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
@@ -124,14 +120,13 @@ public class ApiComponentEvaluationServiceV2Test
     ApiComponentEvaluationTicketDTOV2 ticket = apiComponentEvaluationService.evaluateComponents(app.getId(), request);
     ApiComponentEvaluationResultDTOV2 details = getComponentEvaluationResult(ticket);
 
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.applicationId, is(app.getId()));
-    assertThat(details.evaluationDate, notNullValue());
-    assertThat(details.submittedDate, notNullValue());
-    assertThat(details.results, notNullValue());
-    assertThat(details.results.size(), is(numComponents));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.applicationId).isEqualTo(app.getId());
+    assertThat(details.evaluationDate).isNotNull();
+    assertThat(details.submittedDate).isNotNull();
+    assertThat(details.results).hasSize(numComponents);
     int i = 0;
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : details.results) {
       componentEvaluationV2Helper.assertComponentDetails(componentDetailsDTOV2, request.components.get(i),
@@ -165,14 +160,15 @@ public class ApiComponentEvaluationServiceV2Test
     ApiComponentEvaluationTicketDTOV2 ticket = apiComponentEvaluationService.evaluateComponents(app.getId(), request);
     ApiComponentEvaluationResultDTOV2 details = getComponentEvaluationResult(ticket);
 
-    assertThat(details, notNullValue());
-    assertThat(details.errorMessage, nullValue());
-    assertThat(details.isError, is(false));
-    assertThat(details.results, hasSize(1));
-    assertThat(details.results.get(0).component.hash, is(hash));
-    assertThat(details.results.get(0).component.componentIdentifier.getFormat(), is(componentIdentifier.getFormat()));
-    assertThat(details.results.get(0).component.componentIdentifier.getCoordinates(),
-        is(componentIdentifier.getCoordinates()));
+    assertThat(details).isNotNull();
+    assertThat(details.errorMessage).isNull();
+    assertThat(details.isError).isFalse();
+    assertThat(details.results).hasSize(1);
+    assertThat(details.results.get(0).component.hash).isEqualTo(hash);
+    assertThat(details.results.get(0).component.componentIdentifier.getFormat())
+        .isEqualTo(componentIdentifier.getFormat());
+    assertThat(details.results.get(0).component.componentIdentifier.getCoordinates())
+        .isEqualTo(componentIdentifier.getCoordinates());
   }
 
   private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationTicket)

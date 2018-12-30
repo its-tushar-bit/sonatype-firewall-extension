@@ -16,8 +16,7 @@ import com.sonatype.insight.brain.security.SecurityModule;
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +27,7 @@ public class RequestDataTest
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getMethod()).thenReturn("method");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getMethod(), is("method"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getMethod()).isEqualTo("method");
   }
 
   @Test
@@ -36,7 +35,7 @@ public class RequestDataTest
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getUri(), is("requestUri"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getUri()).isEqualTo("requestUri");
   }
 
   @Test
@@ -45,7 +44,7 @@ public class RequestDataTest
     when(mockHttpServletRequest.getRequestURI()).thenReturn("requestUri");
     when(mockHttpServletRequest.getQueryString()).thenReturn("queryString");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getUri(), is("requestUri?queryString"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getUri()).isEqualTo("requestUri?queryString");
   }
 
   @Test
@@ -53,7 +52,7 @@ public class RequestDataTest
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getRemoteAddr()).thenReturn("remoteAddr");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getRemoteIpAddress(), is("remoteAddr"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getRemoteIpAddress()).isEqualTo("remoteAddr");
   }
 
   @Test
@@ -62,8 +61,8 @@ public class RequestDataTest
     when(mockHttpServletRequest.getHeaders(HttpHeaders.FORWARDED))
         .thenReturn(Collections.enumeration(Arrays.asList("forwarded1", "forwarded2", "forwarded3")));
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getForwarded(),
-        is("forwarded1, forwarded2, forwarded3"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getForwarded())
+        .isEqualTo("forwarded1, forwarded2, forwarded3");
   }
 
   @Test
@@ -72,8 +71,8 @@ public class RequestDataTest
     when(mockHttpServletRequest.getHeaders(HttpHeaders.X_FORWARDED_FOR))
         .thenReturn(Collections.enumeration(Arrays.asList("forwarded1", "forwarded2", "forwarded3")));
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getForwarded(),
-        is("forwarded1, forwarded2, forwarded3"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getForwarded())
+        .isEqualTo("forwarded1, forwarded2, forwarded3");
   }
 
   @Test
@@ -81,7 +80,7 @@ public class RequestDataTest
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getHeader(HttpHeaders.USER_AGENT)).thenReturn("userAgent");
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getUserAgent(), is("userAgent"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getUserAgent()).isEqualTo("userAgent");
   }
 
   @Test
@@ -92,7 +91,7 @@ public class RequestDataTest
         new Cookie("cookieName3", "cookieValue3")
     });
 
-    assertThat(RequestData.newInstance(mockHttpServletRequest).getSessionId(), is("sessionId"));
+    assertThat(RequestData.newInstance(mockHttpServletRequest).getSessionId()).isEqualTo("sessionId");
   }
 
   private HttpServletRequest mockHttpServletRequest() {

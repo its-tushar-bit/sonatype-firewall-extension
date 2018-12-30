@@ -15,9 +15,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiComponentLabelServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -46,13 +44,9 @@ public class ApiComponentLabelServiceV2AuthzTest
   @Test
   public void testSetApplicationComponentLabel_UnknownApplicationId() {
     login();
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       apiComponentLabelService.setApplicationComponentLabel("fakeappid", "bababababa", "label");
-      fail("Expected NotFoundException to be thrown.");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not find an application with ID fakeappid."));
-    }
+    }).withMessage("Could not find an application with ID fakeappid.");
   }
 
   @Test
@@ -76,12 +70,8 @@ public class ApiComponentLabelServiceV2AuthzTest
   @Test
   public void testDeleteApplicationComponentLabel_UnknownApplicationId() {
     login();
-    try {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       apiComponentLabelService.deleteApplicationComponentLabel("fakeappid", "bababababa", "label");
-      fail("Expected NotFoundException to be thrown.");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not find an application with ID fakeappid."));
-    }
+    }).withMessage("Could not find an application with ID fakeappid.");
   }
 }

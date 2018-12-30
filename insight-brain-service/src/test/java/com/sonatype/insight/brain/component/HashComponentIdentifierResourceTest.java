@@ -20,11 +20,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HashComponentIdentifierResourceTest
     extends AbstractResourceTest
@@ -88,7 +84,7 @@ public class HashComponentIdentifierResourceTest
     response = restRequest().path(hashComponentIdentifier.getHash()).delete();
     assertResponseStatus(204, response);
     // resource has no use case for GET so look directly in DB to ensure that record is deleted
-    assertThat(hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash()), nullValue());
+    assertThat(hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash())).isNull();
   }
 
   private void assertHashComponentIdentifier(String hash,
@@ -97,10 +93,10 @@ public class HashComponentIdentifierResourceTest
                                              Date createTime,
                                              HashComponentIdentifier hashComponentIdentifier)
   {
-    assertEquals(hash, hashComponentIdentifier.getHash());
-    assertEquals(componentIdentifier, hashComponentIdentifier.getComponentIdentifier());
-    assertEquals(comment, hashComponentIdentifier.getComment());
-    assertEquals(createTime, hashComponentIdentifier.getCreateTime());
+    assertThat(hashComponentIdentifier.getHash()).isEqualTo(hash);
+    assertThat(hashComponentIdentifier.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(hashComponentIdentifier.getComment()).isEqualTo(comment);
+    assertThat(hashComponentIdentifier.getCreateTime()).isEqualTo(createTime);
   }
 
   private void assertHashComponentIdentifierDTO(String hash,
@@ -109,19 +105,19 @@ public class HashComponentIdentifierResourceTest
                                                 Date createTime,
                                                 HashComponentIdentifierDTO hashComponentIdentifier)
   {
-    assertEquals(hash, hashComponentIdentifier.hash);
-    assertEquals(componentIdentifier, hashComponentIdentifier.componentIdentifier);
-    assertEquals(comment, hashComponentIdentifier.comment);
-    assertEquals(createTime, hashComponentIdentifier.createTime);
+    assertThat(hashComponentIdentifier.hash).isEqualTo(hash);
+    assertThat(hashComponentIdentifier.componentIdentifier).isEqualTo(componentIdentifier);
+    assertThat(hashComponentIdentifier.comment).isEqualTo(comment);
+    assertThat(hashComponentIdentifier.createTime).isEqualTo(createTime);
 
     ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
-    assertThat(hashComponentIdentifier.displayName.parts, hasSize(componentDisplayName.parts.size()));
+    assertThat(hashComponentIdentifier.displayName.parts).hasSameSizeAs(componentDisplayName.parts);
     for (int i = 0; i < componentDisplayName.parts.size(); i++) {
       ComponentDisplayNamePart expected = componentDisplayName.parts.get(i);
       ComponentDisplayNamePart actual = hashComponentIdentifier.displayName.parts.get(i);
-      assertThat(actual.field, is(expected.field));
-      assertThat(actual.value, is(expected.value));
+      assertThat(actual.field).isEqualTo(expected.field);
+      assertThat(actual.value).isEqualTo(expected.value);
     }
-    assertThat(hashComponentIdentifier.coordinates, is(componentDisplayName.toString()));
+    assertThat(hashComponentIdentifier.coordinates).isEqualTo(componentDisplayName.toString());
   }
 }

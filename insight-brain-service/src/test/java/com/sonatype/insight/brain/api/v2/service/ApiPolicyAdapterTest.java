@@ -19,8 +19,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyAdapterTest
 {
@@ -47,7 +46,7 @@ public class ApiPolicyAdapterTest
     orgPolicyMap.put(policy2.getId(), policy2);
 
     List<ApiPolicyDTO> policyDTOList = apiPolicyAdapter.convert(orgPolicyMap.values(), ApiPolicyOwnerType.ORGANIZATION);
-    assertThat(policyDTOList, hasSize(2));
+    assertThat(policyDTOList).hasSize(2);
     PolicyAssertUtils.assertPolicies(policyDTOList, orgPolicyMap, Collections.<String, Policy> emptyMap());
   }
 }

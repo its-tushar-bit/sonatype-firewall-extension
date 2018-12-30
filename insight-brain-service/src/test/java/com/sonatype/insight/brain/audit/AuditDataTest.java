@@ -24,9 +24,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -50,13 +49,13 @@ public class AuditDataTest
 
   @Test
   public void testGet_Initial() {
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
   public void testGet_Current() {
     testAuditSession.set(auditData);
-    assertThat(AuditData.get(), is(auditData));
+    assertThat(AuditData.get()).isEqualTo(auditData);
   }
 
   @Test
@@ -65,7 +64,7 @@ public class AuditDataTest
     when(auditData.forSubEvent(null, false, false)).thenReturn(subAuditData);
 
     try (AuditSession auditSession = auditData.recordSubEvent(null, false)) {
-      assertThat(auditSession, is(notNullValue()));
+      assertThat(auditSession).isNotNull();
       verify(auditData).forSubEvent(null, false, false);
     }
 
@@ -81,12 +80,12 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
+    assertThat(wrappedTaskSubmitter).isNotNull();
     wrappedTaskSubmitter.apply(auditData);
-    assertThat(result[0], is("result"));
+    assertThat(result[0]).isEqualTo("result");
     verify(auditData, never()).setException(any());
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
@@ -98,12 +97,12 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
+    assertThat(wrappedTaskSubmitter).isNotNull();
     wrappedTaskSubmitter.apply(auditData);
-    assertThat(result[0], is("result"));
+    assertThat(result[0]).isEqualTo("result");
     verify(auditData, never()).setException(any());
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
@@ -117,16 +116,13 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
-    try {
+    assertThat(wrappedTaskSubmitter).isNotNull();
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       wrappedTaskSubmitter.apply(auditData);
-    }
-    catch (RuntimeException | Error e) {
-      assertThat(e.getMessage(), is(t.getMessage()));
-    }
+    }).isSameAs(t);
     verify(auditData).setException(t);
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
@@ -141,12 +137,12 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
+    assertThat(wrappedTaskSubmitter).isNotNull();
     wrappedTaskSubmitter.apply(auditData);
-    assertThat(result[0], is("result"));
+    assertThat(result[0]).isEqualTo("result");
     verify(auditData, never()).setException(any());
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
@@ -160,16 +156,11 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
-    try {
-      wrappedTaskSubmitter.apply(auditData);
-    }
-    catch (RuntimeException | Error e) {
-      assertThat(e.getMessage(), is(t.getMessage()));
-    }
+    assertThat(wrappedTaskSubmitter).isNotNull();
+    wrappedTaskSubmitter.apply(auditData);
     verify(auditData).setException(t);
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
@@ -184,12 +175,12 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
+    assertThat(wrappedTaskSubmitter).isNotNull();
     wrappedTaskSubmitter.apply(auditData);
-    assertThat(result[0], is("result"));
+    assertThat(result[0]).isEqualTo("result");
     verify(auditData, never()).setException(any());
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test
@@ -203,16 +194,13 @@ public class AuditDataTest
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter, is(notNullValue()));
-    try {
+    assertThat(wrappedTaskSubmitter).isNotNull();
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
       wrappedTaskSubmitter.apply(auditData);
-    }
-    catch (RuntimeException | Error e) {
-      assertThat(e.getMessage(), is(t.getMessage()));
-    }
+    }).isSameAs(t);
     verify(auditData).setException(t);
     verify(auditData).commit();
-    assertThat(AuditData.get(), is(NoopAuditData.INSTANCE));
+    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
   }
 
   @Test

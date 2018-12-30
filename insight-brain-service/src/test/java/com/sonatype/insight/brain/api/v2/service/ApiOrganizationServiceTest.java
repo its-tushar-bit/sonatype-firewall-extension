@@ -17,13 +17,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiOrganizationServiceTest
     extends AbstractComponentTest
@@ -44,12 +39,12 @@ public class ApiOrganizationServiceTest
     Organization organization = organizationDAO.getByIdNotNull(newOrganizationDTO.id);
     tempEntity.register(organization);
 
-    assertThat(organization.getName(), is(ORGANIZATION_NAME));
-    assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
+    assertThat(organization.getName()).isEqualTo(ORGANIZATION_NAME);
+    assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
 
-    assertThat(newOrganizationDTO.id, not(isEmptyOrNullString()));
-    assertThat(newOrganizationDTO.name, is(ORGANIZATION_NAME));
-    assertThat(newOrganizationDTO.tags, hasSize(0));
+    assertThat(newOrganizationDTO.id).isNotEmpty();
+    assertThat(newOrganizationDTO.name).isEqualTo(ORGANIZATION_NAME);
+    assertThat(newOrganizationDTO.tags).isEmpty();
   }
 
   @Test
@@ -59,15 +54,11 @@ public class ApiOrganizationServiceTest
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, ORGANIZATION_NAME);
     apiOrganizationDTO.tags = Collections.emptyList();
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiOrganizationService.addOrganization(apiOrganizationDTO);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Organization must not have tags set on creation."));
-    }
+    }).withMessage("Organization must not have tags set on creation.");
 
-    assertThat(organizationDAO.getByName(ORGANIZATION_NAME), nullValue());
+    assertThat(organizationDAO.getByName(ORGANIZATION_NAME)).isNull();
   }
 
   @Test
@@ -76,14 +67,10 @@ public class ApiOrganizationServiceTest
     
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO("testId", ORGANIZATION_NAME);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiOrganizationService.addOrganization(apiOrganizationDTO);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Organization must not have an ID set on creation."));
-    }
+    }).withMessage("Organization must not have an ID set on creation.");
 
-    assertThat(organizationDAO.getByName(ORGANIZATION_NAME), nullValue());
+    assertThat(organizationDAO.getByName(ORGANIZATION_NAME)).isNull();
   }
 }

@@ -19,9 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DbBackupTaskTest
     extends AbstractResourceTest
@@ -50,12 +48,11 @@ public class DbBackupTaskTest
     HttpResponse response = adminRequest().path("tasks", DbBackupTask.PATH).post();
     assertResponseStatus(200, response);
     String message = response.getBodyText();
-    assertThat(message, startsWith(DbBackupTask.RESPONSE_MESSAGE_PREFIX));
+    assertThat(message).startsWith(DbBackupTask.RESPONSE_MESSAGE_PREFIX);
     File dbBackupDir = new File(message.substring(DbBackupTask.RESPONSE_MESSAGE_PREFIX.length()));
-    assertThat(dbBackupDir.isDirectory(), is(true));
-    assertThat(dbBackupDir.getParentFile().getAbsolutePath(), is(getCLMServer().getConfiguration().getDbBackupDir()
-        .getAbsolutePath()));
-    assertThat(new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX).isFile(),
-        is(true));
+    assertThat(dbBackupDir).isDirectory();
+    assertThat(dbBackupDir.getParentFile().getAbsolutePath())
+        .isEqualTo(getCLMServer().getConfiguration().getDbBackupDir().getAbsolutePath());
+    assertThat(new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX)).isFile();
   }
 }

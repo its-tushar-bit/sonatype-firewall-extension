@@ -13,9 +13,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class PolicyAssertUtils
 {
@@ -31,18 +30,18 @@ public class PolicyAssertUtils
         assertPolicy(actualPolicy, expectedOrgPolicies.get(actualPolicy.id), ApiPolicyOwnerType.ORGANIZATION);
       }
       else {
-        assertThat("Policy " + actualPolicy + " not found", false);
+        fail("Policy " + actualPolicy + " not found");
       }
     }
   }
 
   public static void assertPolicy(ApiPolicyDTO actualPolicy, Policy expectedPolicy, ApiPolicyOwnerType ownerType) {
-    assertThat(actualPolicy, notNullValue());
-    assertThat(actualPolicy.id, is(expectedPolicy.getId()));
-    assertThat(actualPolicy.name, is(expectedPolicy.getName()));
-    assertThat(actualPolicy.ownerId, is(expectedPolicy.getOwnerId()));
-    assertThat(actualPolicy.ownerType, is(ownerType));
-    assertThat(actualPolicy.threatLevel, is(expectedPolicy.getThreatLevel()));
-    assertThat(PolicyThreatCategory.getByName(actualPolicy.policyType), is(expectedPolicy.getThreatCategory()));
+    assertThat(actualPolicy).isNotNull();
+    assertThat(actualPolicy.id).isEqualTo(expectedPolicy.getId());
+    assertThat(actualPolicy.name).isEqualTo(expectedPolicy.getName());
+    assertThat(actualPolicy.ownerId).isEqualTo(expectedPolicy.getOwnerId());
+    assertThat(actualPolicy.ownerType).isEqualTo(ownerType);
+    assertThat(actualPolicy.threatLevel).isEqualTo(expectedPolicy.getThreatLevel());
+    assertThat(PolicyThreatCategory.getByName(actualPolicy.policyType)).isEqualTo(expectedPolicy.getThreatCategory());
   }
 }

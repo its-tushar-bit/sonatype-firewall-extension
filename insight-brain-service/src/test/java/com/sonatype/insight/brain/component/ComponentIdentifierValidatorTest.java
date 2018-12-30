@@ -12,34 +12,24 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentIdentifierValidatorTest
 {
   @Test
   public void testValidateNull() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       ComponentIdentifierValidator.validate(null);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("The component identifier cannot be null."));
-    }
+    }).withMessage("The component identifier cannot be null.");
   }
 
   @Test
   public void testValidateInvalid() throws Exception {
     ComponentIdentifier componentIdentifier = JsonUtils.parse("{}", ComponentIdentifier.class);
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       ComponentIdentifierValidator.validate(componentIdentifier);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getCause(), instanceOf(InvalidComponentIdentifierException.class));
-      assertThat(expected.getMessage(), is(expected.getCause().getMessage()));
-    }
+    }).withCauseInstanceOf(InvalidComponentIdentifierException.class)
+        .satisfies(e -> assertThat(e.getMessage()).isEqualTo(e.getCause().getMessage()));
   }
 }

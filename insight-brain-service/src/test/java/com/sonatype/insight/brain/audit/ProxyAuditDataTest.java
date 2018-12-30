@@ -9,10 +9,7 @@ import java.util.function.Function;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -30,8 +27,8 @@ public class ProxyAuditDataTest
 
     proxyAuditData.commit();
     verify(auditData, never()).commit();
-    assertThat(childProxyAuditData, is(instanceOf(ProxyAuditData.class)));
-    assertThat(childProxyAuditData, is(not(proxyAuditData)));
+    assertThat(childProxyAuditData).isInstanceOf(ProxyAuditData.class);
+    assertThat(childProxyAuditData).isNotEqualTo(proxyAuditData);
     childProxyAuditData.commit();
     verify(auditData).commit();
   }
@@ -44,8 +41,8 @@ public class ProxyAuditDataTest
     ProxyAuditData proxyAuditData = new ProxyAuditData(mockParentAuditData);
 
     AuditData childProxyAuditData = proxyAuditData.forSubEvent(AuditEvent.LOGIN, true, false);
-    assertThat(childProxyAuditData, is(instanceOf(ProxyAuditData.class)));
-    assertThat(childProxyAuditData, is(not(proxyAuditData)));
+    assertThat(childProxyAuditData).isInstanceOf(ProxyAuditData.class);
+    assertThat(childProxyAuditData).isNotEqualTo(proxyAuditData);
 
     childProxyAuditData.commit();
     verify(mockChildAuditData).commit();

@@ -37,9 +37,10 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import org.assertj.core.groups.Tuple;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class ComponentEvaluationV2Helper
 {
@@ -142,51 +143,40 @@ public class ComponentEvaluationV2Helper
                                      final Integer relativePopularity,
                                      final Map<String, Policy> policies)
   {
-    assertThat(resultComponentDTO, notNullValue());
-    assertThat(resultComponentDTO.component, notNullValue());
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
-        is(expectedComponentIdentifier.getFormat()));
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
-        is(expectedComponentIdentifier.getCoordinates()));
-    assertThat(resultComponentDTO.component.hash, is(expectedHash));
-    assertThat(resultComponentDTO.matchState, is(matchState));
-    assertThat(resultComponentDTO.relativePopularity, is(relativePopularity));
+    assertThat(resultComponentDTO).isNotNull();
+    assertThat(resultComponentDTO.component).isNotNull();
+    assertThat(resultComponentDTO.component.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates()).isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
+    assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
+    assertThat(resultComponentDTO.relativePopularity).isEqualTo(relativePopularity);
 
-    assertThat(resultComponentDTO.licenseData, notNullValue());
-    assertThat(resultComponentDTO.licenseData.declaredLicenses.size(), is(declaredLicenses.size()));
-    for (int i = 0; i < declaredLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseId, is(declaredLicenses.get(i)
-          .getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseName, is(declaredLicenses.get(i)
-          .getLicenseName()));
-    }
+    assertThat(resultComponentDTO.licenseData).isNotNull();
+    assertThat(resultComponentDTO.licenseData.declaredLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
+        .containsExactly(declaredLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+    assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
+    .containsExactly(observedLicenses.stream()
+        .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+    assertThat(resultComponentDTO.licenseData.overriddenLicenses).isEmpty();
 
-    assertThat(resultComponentDTO.licenseData.observedLicenses.size(), is(observedLicenses.size()));
-    for (int i = 0; i < observedLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseId, is(observedLicenses.get(i)
-          .getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseName, is(observedLicenses.get(i)
-          .getLicenseName()));
-    }
-    assertThat(resultComponentDTO.licenseData.overriddenLicenses.size(), is(0));
-
-    assertThat(resultComponentDTO.securityData, notNullValue());
-    assertThat(resultComponentDTO.securityData.securityIssues.size(), is(securityVulnerabilities.size()));
+    assertThat(resultComponentDTO.securityData).isNotNull();
+    assertThat(resultComponentDTO.securityData.securityIssues).hasSameSizeAs(securityVulnerabilities);
     for (int i = 0; i < securityVulnerabilities.size(); i++) {
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source, is(securityVulnerabilities.get(i)
-          .getSource()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference, is(securityVulnerabilities.get(i)
-          .getRefId()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity, is(securityVulnerabilities.get(i)
-          .getSeverity()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url, is(securityVulnerabilities.get(i).getUrl()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source).isEqualTo(securityVulnerabilities.get(i)
+          .getSource());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference).isEqualTo(securityVulnerabilities.get(i)
+          .getRefId());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity).isEqualTo(securityVulnerabilities.get(i)
+          .getSeverity());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url).isEqualTo(securityVulnerabilities.get(i).getUrl());
     }
 
-    assertThat(resultComponentDTO.policyData, notNullValue());
-    assertThat(resultComponentDTO.policyData.policyViolations.size(), is(policies.size()));
+    assertThat(resultComponentDTO.policyData).isNotNull();
+    assertThat(resultComponentDTO.policyData.policyViolations).hasSize(policies.size());
     for (ApiPolicyViolationDTOV2 violation : resultComponentDTO.policyData.policyViolations) {
-      assertThat(violation.policyId, is(policies.get(violation.policyId).getId()));
-      assertThat(violation.policyName, is(policies.get(violation.policyId).getName()));
+      assertThat(violation.policyId).isEqualTo(policies.get(violation.policyId).getId());
+      assertThat(violation.policyName).isEqualTo(policies.get(violation.policyId).getName());
     }
   }
 

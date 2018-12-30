@@ -32,9 +32,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -147,7 +145,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setApplicationId(application.getId());
     verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(application.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(application.getId());
   }
 
   @Test
@@ -170,7 +168,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setApplicationPublicId(application.getPublicId());
     verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(application.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(application.getId());
   }
 
   @Test
@@ -193,7 +191,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setOrganizationId(organization.getId());
     verify(mockAuditData).setOrganization((Organization) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(organization.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(organization.getId());
   }
 
   @Test
@@ -216,7 +214,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setRepositoryId(repository.getId());
     verify(mockAuditData).setRepository((Repository) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(repository.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(repository.getId());
   }
 
   @Test
@@ -240,7 +238,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setRepositoryPublicId(repository.getPublicId());
     verify(mockAuditData).setRepository((Repository) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(repository.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(repository.getId());
   }
 
   @Test
@@ -265,7 +263,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setApplicationPublicId(application.getPublicId());
     verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(application.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(application.getId());
   }
 
   @Test
@@ -290,7 +288,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setOrganizationId(organization.getId());
     verify(mockAuditData).setOrganization((Organization) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(organization.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(organization.getId());
   }
 
   @Test
@@ -315,7 +313,7 @@ public class AuditContainerRequestFilterTest
 
     verify(mockAuditData, atLeastOnce()).setRepositoryId(repository.getId());
     verify(mockAuditData).setRepository((Repository) ownerArgumentCaptor.capture());
-    assertThat(ownerArgumentCaptor.getValue().getId(), is(repository.getId()));
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(repository.getId());
   }
 
   @Test
@@ -421,7 +419,7 @@ public class AuditContainerRequestFilterTest
   public void testPriority_IsPresent() {
     Priority priority = AuditContainerRequestFilter.class.getAnnotation(Priority.class);
 
-    assertThat(priority.value(), lessThan(Priorities.AUTHENTICATION));
+    assertThat(priority.value()).isLessThan(Priorities.AUTHENTICATION);
   }
 
   private static class AuditedAnnotationTest

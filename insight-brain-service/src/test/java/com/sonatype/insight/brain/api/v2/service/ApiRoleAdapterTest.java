@@ -14,10 +14,7 @@ import com.sonatype.insight.brain.model.security.Role;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiRoleAdapterTest
 {
@@ -33,12 +30,12 @@ public class ApiRoleAdapterTest
     roles.add(role);
 
     ApiRoleListDTO apiRoleListDTO = roleAdapter.convertToDTO(roles);
-    assertThat(apiRoleListDTO, notNullValue());
-    assertThat(apiRoleListDTO.roles, hasSize(1));
+    assertThat(apiRoleListDTO).isNotNull();
+    assertThat(apiRoleListDTO.roles).hasSize(1);
 
     ApiRoleDTO apiRoleDTO = apiRoleListDTO.roles.get(0);
-    assertThat(apiRoleDTO.id, is(role.getId()));
-    assertThat(apiRoleDTO.name, is(role.getName()));
-    assertThat(apiRoleDTO.description, is(role.getDescription()));
+    assertThat(apiRoleDTO.id).isEqualTo(role.getId());
+    assertThat(apiRoleDTO.name).isEqualTo(role.getName());
+    assertThat(apiRoleDTO.description).isEqualTo(role.getDescription());
   }
 }

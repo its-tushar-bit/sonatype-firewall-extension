@@ -13,9 +13,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationTagAdapterTest
 {
@@ -36,16 +34,16 @@ public class ApiApplicationTagAdapterTest
     applicationTags.add(applicationTag);
 
     List<ApiApplicationTagDTO> apiApplicationTagDTOs = apiApplicationTagAdapter.convertToDTO(applicationTags);
-    assertThat(apiApplicationTagDTOs, hasSize(1));
-    assertThat(apiApplicationTagDTOs.get(0).id, is(applicationTag.getId()));
-    assertThat(apiApplicationTagDTOs.get(0).applicationId, is(applicationTag.getApplicationId()));
-    assertThat(apiApplicationTagDTOs.get(0).tagId, is(applicationTag.getTagId()));
+    assertThat(apiApplicationTagDTOs).hasSize(1);
+    assertThat(apiApplicationTagDTOs.get(0).id).isEqualTo(applicationTag.getId());
+    assertThat(apiApplicationTagDTOs.get(0).applicationId).isEqualTo(applicationTag.getApplicationId());
+    assertThat(apiApplicationTagDTOs.get(0).tagId).isEqualTo(applicationTag.getTagId());
   }
 
   @Test
   public void testConvertToDTO_nullList() {
     List<ApiApplicationTagDTO> apiApplicationTagDTOs = apiApplicationTagAdapter.convertToDTO(null);
-    assertThat(apiApplicationTagDTOs, hasSize(0));
+    assertThat(apiApplicationTagDTOs).isEmpty();
   }
 
   @Test
@@ -58,15 +56,15 @@ public class ApiApplicationTagAdapterTest
 
     List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(APPLICATION_ID,
         apiApplicationTagDTOs);
-    assertThat(applicationTags, hasSize(1));
-    assertThat(applicationTags.get(0).getId(), is(apiApplicationTagDTO.id));
-    assertThat(applicationTags.get(0).getApplicationId(), is(APPLICATION_ID));
-    assertThat(applicationTags.get(0).getTagId(), is(apiApplicationTagDTO.tagId));
+    assertThat(applicationTags).hasSize(1);
+    assertThat(applicationTags.get(0).getId()).isEqualTo(apiApplicationTagDTO.id);
+    assertThat(applicationTags.get(0).getApplicationId()).isEqualTo(APPLICATION_ID);
+    assertThat(applicationTags.get(0).getTagId()).isEqualTo(apiApplicationTagDTO.tagId);
   }
 
   @Test
   public void testConvertFromDTO_nullList() {
     List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(APPLICATION_ID, null);
-    assertThat(applicationTags, hasSize(0));
+    assertThat(applicationTags).isEmpty();
   }
 }

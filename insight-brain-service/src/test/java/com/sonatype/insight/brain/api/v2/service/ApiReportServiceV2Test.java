@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ApiReportServiceV2Test
     extends AbstractServiceAuthzTest
@@ -55,7 +55,7 @@ public class ApiReportServiceV2Test
   public void testAll() {
     List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getAll();
 
-    assertEquals(3, reports.size());
+    assertThat(reports).hasSize(3);
 
     assertContainsReport(appOne, StageTypes.BUILD, "one-build", reports);
     assertContainsReport(appOne, StageTypes.RELEASE, "one-release", reports);
@@ -66,7 +66,7 @@ public class ApiReportServiceV2Test
   public void testSpecific() {
     List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getByApplicationId(appOne.getId());
 
-    assertEquals(2, reports.size());
+    assertThat(reports).hasSize(2);
 
     assertContainsReport(appOne, StageTypes.BUILD, "one-build", reports);
     assertContainsReport(appOne, StageTypes.RELEASE, "one-release", reports);
@@ -80,11 +80,14 @@ public class ApiReportServiceV2Test
     String expectedStageId = expectedStage.getId();
     for (ApiApplicationReportDTOV2 report : actual) {
       if (app.getId().equals(report.applicationId) && expectedStageId.equals(report.stage)) {
-        assertEquals(UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), expectedScanId), report.reportPdfUrl);
-        assertEquals(UserInterfaceLinksResource.getReportUrl(app.getPublicId(), expectedScanId), report.reportHtmlUrl);
-        assertEquals(UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(), expectedScanId),
-            report.embeddableReportHtmlUrl);
-        assertEquals(ApiReportDataResourceV2.getDataUrl(app.getPublicId(), expectedScanId), report.reportDataUrl);
+        assertThat(report.reportPdfUrl)
+            .isEqualTo(UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), expectedScanId));
+        assertThat(report.reportHtmlUrl)
+            .isEqualTo(UserInterfaceLinksResource.getReportUrl(app.getPublicId(), expectedScanId));
+        assertThat(report.embeddableReportHtmlUrl)
+            .isEqualTo(UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(), expectedScanId));
+        assertThat(report.reportDataUrl)
+            .isEqualTo(ApiReportDataResourceV2.getDataUrl(app.getPublicId(), expectedScanId));
         return;
       }
     }

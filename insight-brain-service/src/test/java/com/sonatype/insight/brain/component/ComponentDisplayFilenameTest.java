@@ -9,9 +9,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDisplayFilenameTest
 {
@@ -21,37 +19,37 @@ public class ComponentDisplayFilenameTest
 
   @Test
   public void testGetFilename_NoOccurrences() {
-    assertThat(getFilename(), is(nullValue()));
+    assertThat(getFilename()).isNull();
   }
 
   @Test
   public void testGetFilename_FromWindowsPath() {
-    assertThat(getFilename("sub\\dir\\some.jar"), is("some.jar"));
+    assertThat(getFilename("sub\\dir\\some.jar")).isEqualTo("some.jar");
   }
 
   @Test
   public void testGetFilename_FromUnixPath() {
-    assertThat(getFilename("sub/dir/some.jar"), is("some.jar"));
+    assertThat(getFilename("sub/dir/some.jar")).isEqualTo("some.jar");
   }
 
   @Test
   public void testGetFilename_FromPathWithUnresolvableParentDirectory() {
-    assertThat(getFilename("../sub/dir/some.jar"), is("some.jar"));
+    assertThat(getFilename("../sub/dir/some.jar")).isEqualTo("some.jar");
   }
 
   @Test
   public void testGetFilename_FromDependency() {
-    assertThat(getFilename("dependency:/project.gid:project.aid:jar:1.2/dep.gid:dep.aid:jar:1.2.3"),
-        is("dep.gid:dep.aid:jar:1.2.3"));
+    assertThat(getFilename("dependency:/project.gid:project.aid:jar:1.2/dep.gid:dep.aid:jar:1.2.3"))
+        .isEqualTo("dep.gid:dep.aid:jar:1.2.3");
   }
 
   @Test
   public void testGetFilename_MostFrequentWins() {
-    assertThat(getFilename("some.jar", "some-1.0.jar", "some-1.0.jar"), is("some-1.0.jar"));
+    assertThat(getFilename("some.jar", "some-1.0.jar", "some-1.0.jar")).isEqualTo("some-1.0.jar");
   }
 
   @Test
   public void testGetFilename_MostFrequentWins_AlphaSortBreaksTie() {
-    assertThat(getFilename("x.jar", "c.jar", "a.jar", "b.jar", "y.jar"), is("a.jar"));
+    assertThat(getFilename("x.jar", "c.jar", "a.jar", "b.jar", "y.jar")).isEqualTo("a.jar");
   }
 }

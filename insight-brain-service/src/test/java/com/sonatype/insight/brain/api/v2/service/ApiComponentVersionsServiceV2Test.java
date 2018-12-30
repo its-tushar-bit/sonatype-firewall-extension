@@ -22,10 +22,8 @@ import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 public class ApiComponentVersionsServiceV2Test
@@ -54,7 +52,7 @@ public class ApiComponentVersionsServiceV2Test
     List<String> versions = apiComponentVersionsServiceV2
         .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
 
-    assertThat(versions, contains("v1", "v2", "v3", "v4"));
+    assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
   }
 
   @Test
@@ -68,7 +66,7 @@ public class ApiComponentVersionsServiceV2Test
     List<String> versions = apiComponentVersionsServiceV2
         .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
 
-    assertThat(versions, contains("v1", "v2", "v3", "v4"));
+    assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
   }
 
   @Test
@@ -82,7 +80,7 @@ public class ApiComponentVersionsServiceV2Test
     List<String> versions = apiComponentVersionsServiceV2
         .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
 
-    assertThat(versions, contains("v1", "v2", "v3", "v4"));
+    assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
   }
 
   @Test
@@ -91,13 +89,8 @@ public class ApiComponentVersionsServiceV2Test
     apiComponentIdentifierDTOV2.setFormat(ComponentIdentifier.FORMAT_MAVEN);
     apiComponentIdentifierDTOV2.setCoordinates(Collections.singletonMap("no-such-coordinate", "x"));
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentVersionsServiceV2.getComponentVersions(apiComponentIdentifierDTOV2);
-      fail("Expected exception");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(),
-          is("Coordinates contain the following incorrect entries for the given format: [no-such-coordinate]"));
-    }
+    }).withMessage("Coordinates contain the following incorrect entries for the given format: [no-such-coordinate]");
   }
 }

@@ -45,13 +45,8 @@ import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolati
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.open;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.openWithSampleData;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiMetricsReportingServiceV2Test
     extends AbstractComponentTest
@@ -67,13 +62,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(null, "2018-02", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("timePeriod must be defined"));
-    }
+    }).withMessage("timePeriod must be defined");
   }
 
   @Test
@@ -81,13 +72,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, null, "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("firstTimePeriod must be defined"));
-    }
+    }).withMessage("firstTimePeriod must be defined");
   }
 
   @Test
@@ -95,13 +82,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("lastTimePeriod must not be before firstTimePeriod"));
-    }
+    }).withMessage("lastTimePeriod must not be before firstTimePeriod");
   }
 
   @Test
@@ -109,14 +92,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww"));
-    }
+    }).withMessage("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -124,14 +102,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-W03", "2018-04",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww"));
-    }
+    }).withMessage("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -139,14 +112,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-W03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM"));
-    }
+    }).withMessage("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -154,14 +122,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-W04",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM"));
-    }
+    }).withMessage("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -329,7 +292,7 @@ public class ApiMetricsReportingServiceV2Test
     new PolicyViolationDAO().update(violation1);
 
     List<ApiMetricsReportingDTOV2> results = service.getMetrics(queryDTO);
-    assertThat(results, hasSize(1));
+    assertThat(results).hasSize(1);
 
     ApiMetricsReportingDTOV2 actualDTO = results.get(0);
     ApiMetricsReportingDTOV2 expectedDTO =
@@ -364,13 +327,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(null, "2018-02", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("timePeriod must be defined"));
-    }
+    }).withMessage("timePeriod must be defined");
   }
 
   @Test
@@ -378,13 +337,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, null, "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("firstTimePeriod must be defined"));
-    }
+    }).withMessage("firstTimePeriod must be defined");
   }
 
   @Test
@@ -392,13 +347,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("lastTimePeriod must not be before firstTimePeriod"));
-    }
+    }).withMessage("lastTimePeriod must not be before firstTimePeriod");
   }
 
   @Test
@@ -406,14 +357,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww"));
-    }
+    }).withMessage("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -421,14 +367,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-W03", "2018-04",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww"));
-    }
+    }).withMessage("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -436,14 +377,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-W03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM"));
-    }
+    }).withMessage("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -451,14 +387,9 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-W04",
         Collections.emptySet(), Collections.emptySet());
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getFlattenedMetrics(queryDTO);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM"));
-    }
+    }).withMessage("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -626,7 +557,7 @@ public class ApiMetricsReportingServiceV2Test
     new PolicyViolationDAO().update(violation1);
 
     List<ApiMetricsReportingFlattenedDTOV2> results = service.getFlattenedMetrics(queryDTO);
-    assertThat(results, hasSize(2));
+    assertThat(results).hasSize(2);
 
     List<ApiMetricsReportingFlattenedDTOV2> expectedDTOs = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2(app.getId(), app.getPublicId(), app.getName(), org.getId(), org.getName(),
@@ -673,7 +604,7 @@ public class ApiMetricsReportingServiceV2Test
         )
     );
 
-    assertThat(results, hasSize(expectedDTOs.size()));
+    assertThat(results).hasSameSizeAs(expectedDTOs);
 
     for (int i = 0; i < results.size(); i++) {
       assertFlattenedDTO(results.get(i), expectedDTOs.get(i));
@@ -1740,13 +1671,14 @@ public class ApiMetricsReportingServiceV2Test
   }
 
   private void assertDTO(ApiMetricsReportingDTOV2 actual, ApiMetricsReportingDTOV2 expected) {
-    assertThat(actual.applicationId, is(expected.applicationId));
-    assertThat(actual.applicationName, is(expected.applicationName));
-    assertThat(actual.applicationPublicId, is(expected.applicationPublicId));
-    assertThat(actual.organizationId, is(expected.organizationId));
-    assertThat(actual.organizationName, is(expected.organizationName));
+    assertThat(actual).isNotNull();
+    assertThat(actual.applicationId).isEqualTo(expected.applicationId);
+    assertThat(actual.applicationName).isEqualTo(expected.applicationName);
+    assertThat(actual.applicationPublicId).isEqualTo(expected.applicationPublicId);
+    assertThat(actual.organizationId).isEqualTo(expected.organizationId);
+    assertThat(actual.organizationName).isEqualTo(expected.organizationName);
 
-    assertThat(actual.aggregations, hasSize(expected.aggregations.size()));
+    assertThat(actual.aggregations).hasSameSizeAs(expected.aggregations);
     for (int i = 0; i < actual.aggregations.size(); i++) {
       ApiMetricsReportingAggregationDTOV2 actualAgg = actual.aggregations.get(i);
       ApiMetricsReportingAggregationDTOV2 expectedAgg = expected.aggregations.get(i);
@@ -1758,96 +1690,103 @@ public class ApiMetricsReportingServiceV2Test
   private void assertAggregation(ApiMetricsReportingAggregationDTOV2 actual,
                                  ApiMetricsReportingAggregationDTOV2 expected)
   {
-    assertThat(actual.timePeriodStart, is(expected.timePeriodStart));
-    assertThat(actual.mttrLowThreat, is(expected.mttrLowThreat));
-    assertThat(actual.mttrModerateThreat, is(expected.mttrModerateThreat));
-    assertThat(actual.mttrSevereThreat, is(expected.mttrSevereThreat));
-    assertThat(actual.mttrCriticalThreat, is(expected.mttrCriticalThreat));
-    assertThat(actual.discoveredCounts, is(expected.discoveredCounts));
-    assertThat(actual.fixedCounts, is(expected.fixedCounts));
-    assertThat(actual.waivedCounts, is(expected.waivedCounts));
-    assertThat(actual.evaluationCount, is(expected.evaluationCount));
-    assertThat(actual.openCountsAtTimePeriodEnd, is(expected.openCountsAtTimePeriodEnd));
+    assertThat(actual.timePeriodStart).isEqualTo(expected.timePeriodStart);
+    assertThat(actual.mttrLowThreat).isEqualTo(expected.mttrLowThreat);
+    assertThat(actual.mttrModerateThreat).isEqualTo(expected.mttrModerateThreat);
+    assertThat(actual.mttrSevereThreat).isEqualTo(expected.mttrSevereThreat);
+    assertThat(actual.mttrCriticalThreat).isEqualTo(expected.mttrCriticalThreat);
+    assertThat(actual.discoveredCounts).isEqualTo(expected.discoveredCounts);
+    assertThat(actual.fixedCounts).isEqualTo(expected.fixedCounts);
+    assertThat(actual.waivedCounts).isEqualTo(expected.waivedCounts);
+    assertThat(actual.evaluationCount).isEqualTo(expected.evaluationCount);
+    assertThat(actual.openCountsAtTimePeriodEnd).isEqualTo(expected.openCountsAtTimePeriodEnd);
   }
 
   private void assertFlattenedDTO(ApiMetricsReportingFlattenedDTOV2 actual,
                                   ApiMetricsReportingFlattenedDTOV2 expected)
   {
-    assertThat(actual.applicationId, is(expected.applicationId));
-    assertThat(actual.applicationPublicId, is(expected.applicationPublicId));
-    assertThat(actual.applicationName, is(expected.applicationName));
-    assertThat(actual.organizationId, is(expected.organizationId));
-    assertThat(actual.organizationName, is(expected.organizationName));
-    assertThat(actual.timePeriodStart, is(expected.timePeriodStart));
-    assertThat(actual.mttrLowThreat, is(expected.mttrLowThreat));
-    assertThat(actual.mttrModerateThreat, is(expected.mttrModerateThreat));
-    assertThat(actual.mttrSevereThreat, is(expected.mttrSevereThreat));
-    assertThat(actual.mttrCriticalThreat, is(expected.mttrCriticalThreat));
-    assertThat(actual.evaluationCount, is(expected.evaluationCount));
-    assertThat(actual.discoveredCountSecurityLow, is(expected.discoveredCountSecurityLow));
-    assertThat(actual.discoveredCountSecurityModerate, is(expected.discoveredCountSecurityModerate));
-    assertThat(actual.discoveredCountSecuritySevere, is(expected.discoveredCountSecuritySevere));
-    assertThat(actual.discoveredCountSecurityCritical, is(expected.discoveredCountSecurityCritical));
-    assertThat(actual.discoveredCountLicenseLow, is(expected.discoveredCountLicenseLow));
-    assertThat(actual.discoveredCountLicenseModerate, is(expected.discoveredCountLicenseModerate));
-    assertThat(actual.discoveredCountLicenseSevere, is(expected.discoveredCountLicenseSevere));
-    assertThat(actual.discoveredCountLicenseCritical, is(expected.discoveredCountLicenseCritical));
-    assertThat(actual.discoveredCountQualityLow, is(expected.discoveredCountQualityLow));
-    assertThat(actual.discoveredCountQualityModerate, is(expected.discoveredCountQualityModerate));
-    assertThat(actual.discoveredCountQualitySevere, is(expected.discoveredCountQualitySevere));
-    assertThat(actual.discoveredCountQualityCritical, is(expected.discoveredCountQualityCritical));
-    assertThat(actual.discoveredCountOtherLow, is(expected.discoveredCountOtherLow));
-    assertThat(actual.discoveredCountOtherModerate, is(expected.discoveredCountOtherModerate));
-    assertThat(actual.discoveredCountOtherSevere, is(expected.discoveredCountOtherSevere));
-    assertThat(actual.discoveredCountOtherCritical, is(expected.discoveredCountOtherCritical));
-    assertThat(actual.fixedCountSecurityLow, is(expected.fixedCountSecurityLow));
-    assertThat(actual.fixedCountSecurityModerate, is(expected.fixedCountSecurityModerate));
-    assertThat(actual.fixedCountSecuritySevere, is(expected.fixedCountSecuritySevere));
-    assertThat(actual.fixedCountSecurityCritical, is(expected.fixedCountSecurityCritical));
-    assertThat(actual.fixedCountLicenseLow, is(expected.fixedCountLicenseLow));
-    assertThat(actual.fixedCountLicenseModerate, is(expected.fixedCountLicenseModerate));
-    assertThat(actual.fixedCountLicenseSevere, is(expected.fixedCountLicenseSevere));
-    assertThat(actual.fixedCountLicenseCritical, is(expected.fixedCountLicenseCritical));
-    assertThat(actual.fixedCountQualityLow, is(expected.fixedCountQualityLow));
-    assertThat(actual.fixedCountQualityModerate, is(expected.fixedCountQualityModerate));
-    assertThat(actual.fixedCountQualitySevere, is(expected.fixedCountQualitySevere));
-    assertThat(actual.fixedCountQualityCritical, is(expected.fixedCountQualityCritical));
-    assertThat(actual.fixedCountOtherLow, is(expected.fixedCountOtherLow));
-    assertThat(actual.fixedCountOtherModerate, is(expected.fixedCountOtherModerate));
-    assertThat(actual.fixedCountOtherSevere, is(expected.fixedCountOtherSevere));
-    assertThat(actual.fixedCountOtherCritical, is(expected.fixedCountOtherCritical));
-    assertThat(actual.waivedCountSecurityLow, is(expected.waivedCountSecurityLow));
-    assertThat(actual.waivedCountSecurityModerate, is(expected.waivedCountSecurityModerate));
-    assertThat(actual.waivedCountSecuritySevere, is(expected.waivedCountSecuritySevere));
-    assertThat(actual.waivedCountSecurityCritical, is(expected.waivedCountSecurityCritical));
-    assertThat(actual.waivedCountLicenseLow, is(expected.waivedCountLicenseLow));
-    assertThat(actual.waivedCountLicenseModerate, is(expected.waivedCountLicenseModerate));
-    assertThat(actual.waivedCountLicenseSevere, is(expected.waivedCountLicenseSevere));
-    assertThat(actual.waivedCountLicenseCritical, is(expected.waivedCountLicenseCritical));
-    assertThat(actual.waivedCountQualityLow, is(expected.waivedCountQualityLow));
-    assertThat(actual.waivedCountQualityModerate, is(expected.waivedCountQualityModerate));
-    assertThat(actual.waivedCountQualitySevere, is(expected.waivedCountQualitySevere));
-    assertThat(actual.waivedCountQualityCritical, is(expected.waivedCountQualityCritical));
-    assertThat(actual.waivedCountOtherLow, is(expected.waivedCountOtherLow));
-    assertThat(actual.waivedCountOtherModerate, is(expected.waivedCountOtherModerate));
-    assertThat(actual.waivedCountOtherSevere, is(expected.waivedCountOtherSevere));
-    assertThat(actual.waivedCountOtherCritical, is(expected.waivedCountOtherCritical));
-    assertThat(actual.openCountAtTimePeriodEndSecurityLow, is(expected.openCountAtTimePeriodEndSecurityLow));
-    assertThat(actual.openCountAtTimePeriodEndSecurityModerate, is(expected.openCountAtTimePeriodEndSecurityModerate));
-    assertThat(actual.openCountAtTimePeriodEndSecuritySevere, is(expected.openCountAtTimePeriodEndSecuritySevere));
-    assertThat(actual.openCountAtTimePeriodEndSecurityCritical, is(expected.openCountAtTimePeriodEndSecurityCritical));
-    assertThat(actual.openCountAtTimePeriodEndLicenseLow, is(expected.openCountAtTimePeriodEndLicenseLow));
-    assertThat(actual.openCountAtTimePeriodEndLicenseModerate, is(expected.openCountAtTimePeriodEndLicenseModerate));
-    assertThat(actual.openCountAtTimePeriodEndLicenseSevere, is(expected.openCountAtTimePeriodEndLicenseSevere));
-    assertThat(actual.openCountAtTimePeriodEndLicenseCritical, is(expected.openCountAtTimePeriodEndLicenseCritical));
-    assertThat(actual.openCountAtTimePeriodEndQualityLow, is(expected.openCountAtTimePeriodEndQualityLow));
-    assertThat(actual.openCountAtTimePeriodEndQualityModerate, is(expected.openCountAtTimePeriodEndQualityModerate));
-    assertThat(actual.openCountAtTimePeriodEndQualitySevere, is(expected.openCountAtTimePeriodEndQualitySevere));
-    assertThat(actual.openCountAtTimePeriodEndQualityCritical, is(expected.openCountAtTimePeriodEndQualityCritical));
-    assertThat(actual.openCountAtTimePeriodEndOtherLow, is(expected.openCountAtTimePeriodEndOtherLow));
-    assertThat(actual.openCountAtTimePeriodEndOtherModerate, is(expected.openCountAtTimePeriodEndOtherModerate));
-    assertThat(actual.openCountAtTimePeriodEndOtherSevere, is(expected.openCountAtTimePeriodEndOtherSevere));
-    assertThat(actual.openCountAtTimePeriodEndOtherCritical, is(expected.openCountAtTimePeriodEndOtherCritical));
+    assertThat(actual.applicationId).isEqualTo(expected.applicationId);
+    assertThat(actual.applicationPublicId).isEqualTo(expected.applicationPublicId);
+    assertThat(actual.applicationName).isEqualTo(expected.applicationName);
+    assertThat(actual.organizationId).isEqualTo(expected.organizationId);
+    assertThat(actual.organizationName).isEqualTo(expected.organizationName);
+    assertThat(actual.timePeriodStart).isEqualTo(expected.timePeriodStart);
+    assertThat(actual.mttrLowThreat).isEqualTo(expected.mttrLowThreat);
+    assertThat(actual.mttrModerateThreat).isEqualTo(expected.mttrModerateThreat);
+    assertThat(actual.mttrSevereThreat).isEqualTo(expected.mttrSevereThreat);
+    assertThat(actual.mttrCriticalThreat).isEqualTo(expected.mttrCriticalThreat);
+    assertThat(actual.evaluationCount).isEqualTo(expected.evaluationCount);
+    assertThat(actual.discoveredCountSecurityLow).isEqualTo(expected.discoveredCountSecurityLow);
+    assertThat(actual.discoveredCountSecurityModerate).isEqualTo(expected.discoveredCountSecurityModerate);
+    assertThat(actual.discoveredCountSecuritySevere).isEqualTo(expected.discoveredCountSecuritySevere);
+    assertThat(actual.discoveredCountSecurityCritical).isEqualTo(expected.discoveredCountSecurityCritical);
+    assertThat(actual.discoveredCountLicenseLow).isEqualTo(expected.discoveredCountLicenseLow);
+    assertThat(actual.discoveredCountLicenseModerate).isEqualTo(expected.discoveredCountLicenseModerate);
+    assertThat(actual.discoveredCountLicenseSevere).isEqualTo(expected.discoveredCountLicenseSevere);
+    assertThat(actual.discoveredCountLicenseCritical).isEqualTo(expected.discoveredCountLicenseCritical);
+    assertThat(actual.discoveredCountQualityLow).isEqualTo(expected.discoveredCountQualityLow);
+    assertThat(actual.discoveredCountQualityModerate).isEqualTo(expected.discoveredCountQualityModerate);
+    assertThat(actual.discoveredCountQualitySevere).isEqualTo(expected.discoveredCountQualitySevere);
+    assertThat(actual.discoveredCountQualityCritical).isEqualTo(expected.discoveredCountQualityCritical);
+    assertThat(actual.discoveredCountOtherLow).isEqualTo(expected.discoveredCountOtherLow);
+    assertThat(actual.discoveredCountOtherModerate).isEqualTo(expected.discoveredCountOtherModerate);
+    assertThat(actual.discoveredCountOtherSevere).isEqualTo(expected.discoveredCountOtherSevere);
+    assertThat(actual.discoveredCountOtherCritical).isEqualTo(expected.discoveredCountOtherCritical);
+    assertThat(actual.fixedCountSecurityLow).isEqualTo(expected.fixedCountSecurityLow);
+    assertThat(actual.fixedCountSecurityModerate).isEqualTo(expected.fixedCountSecurityModerate);
+    assertThat(actual.fixedCountSecuritySevere).isEqualTo(expected.fixedCountSecuritySevere);
+    assertThat(actual.fixedCountSecurityCritical).isEqualTo(expected.fixedCountSecurityCritical);
+    assertThat(actual.fixedCountLicenseLow).isEqualTo(expected.fixedCountLicenseLow);
+    assertThat(actual.fixedCountLicenseModerate).isEqualTo(expected.fixedCountLicenseModerate);
+    assertThat(actual.fixedCountLicenseSevere).isEqualTo(expected.fixedCountLicenseSevere);
+    assertThat(actual.fixedCountLicenseCritical).isEqualTo(expected.fixedCountLicenseCritical);
+    assertThat(actual.fixedCountQualityLow).isEqualTo(expected.fixedCountQualityLow);
+    assertThat(actual.fixedCountQualityModerate).isEqualTo(expected.fixedCountQualityModerate);
+    assertThat(actual.fixedCountQualitySevere).isEqualTo(expected.fixedCountQualitySevere);
+    assertThat(actual.fixedCountQualityCritical).isEqualTo(expected.fixedCountQualityCritical);
+    assertThat(actual.fixedCountOtherLow).isEqualTo(expected.fixedCountOtherLow);
+    assertThat(actual.fixedCountOtherModerate).isEqualTo(expected.fixedCountOtherModerate);
+    assertThat(actual.fixedCountOtherSevere).isEqualTo(expected.fixedCountOtherSevere);
+    assertThat(actual.fixedCountOtherCritical).isEqualTo(expected.fixedCountOtherCritical);
+    assertThat(actual.waivedCountSecurityLow).isEqualTo(expected.waivedCountSecurityLow);
+    assertThat(actual.waivedCountSecurityModerate).isEqualTo(expected.waivedCountSecurityModerate);
+    assertThat(actual.waivedCountSecuritySevere).isEqualTo(expected.waivedCountSecuritySevere);
+    assertThat(actual.waivedCountSecurityCritical).isEqualTo(expected.waivedCountSecurityCritical);
+    assertThat(actual.waivedCountLicenseLow).isEqualTo(expected.waivedCountLicenseLow);
+    assertThat(actual.waivedCountLicenseModerate).isEqualTo(expected.waivedCountLicenseModerate);
+    assertThat(actual.waivedCountLicenseSevere).isEqualTo(expected.waivedCountLicenseSevere);
+    assertThat(actual.waivedCountLicenseCritical).isEqualTo(expected.waivedCountLicenseCritical);
+    assertThat(actual.waivedCountQualityLow).isEqualTo(expected.waivedCountQualityLow);
+    assertThat(actual.waivedCountQualityModerate).isEqualTo(expected.waivedCountQualityModerate);
+    assertThat(actual.waivedCountQualitySevere).isEqualTo(expected.waivedCountQualitySevere);
+    assertThat(actual.waivedCountQualityCritical).isEqualTo(expected.waivedCountQualityCritical);
+    assertThat(actual.waivedCountOtherLow).isEqualTo(expected.waivedCountOtherLow);
+    assertThat(actual.waivedCountOtherModerate).isEqualTo(expected.waivedCountOtherModerate);
+    assertThat(actual.waivedCountOtherSevere).isEqualTo(expected.waivedCountOtherSevere);
+    assertThat(actual.waivedCountOtherCritical).isEqualTo(expected.waivedCountOtherCritical);
+    assertThat(actual.openCountAtTimePeriodEndSecurityLow).isEqualTo(expected.openCountAtTimePeriodEndSecurityLow);
+    assertThat(actual.openCountAtTimePeriodEndSecurityModerate)
+        .isEqualTo(expected.openCountAtTimePeriodEndSecurityModerate);
+    assertThat(actual.openCountAtTimePeriodEndSecuritySevere)
+        .isEqualTo(expected.openCountAtTimePeriodEndSecuritySevere);
+    assertThat(actual.openCountAtTimePeriodEndSecurityCritical)
+        .isEqualTo(expected.openCountAtTimePeriodEndSecurityCritical);
+    assertThat(actual.openCountAtTimePeriodEndLicenseLow).isEqualTo(expected.openCountAtTimePeriodEndLicenseLow);
+    assertThat(actual.openCountAtTimePeriodEndLicenseModerate)
+        .isEqualTo(expected.openCountAtTimePeriodEndLicenseModerate);
+    assertThat(actual.openCountAtTimePeriodEndLicenseSevere).isEqualTo(expected.openCountAtTimePeriodEndLicenseSevere);
+    assertThat(actual.openCountAtTimePeriodEndLicenseCritical)
+        .isEqualTo(expected.openCountAtTimePeriodEndLicenseCritical);
+    assertThat(actual.openCountAtTimePeriodEndQualityLow).isEqualTo(expected.openCountAtTimePeriodEndQualityLow);
+    assertThat(actual.openCountAtTimePeriodEndQualityModerate)
+        .isEqualTo(expected.openCountAtTimePeriodEndQualityModerate);
+    assertThat(actual.openCountAtTimePeriodEndQualitySevere).isEqualTo(expected.openCountAtTimePeriodEndQualitySevere);
+    assertThat(actual.openCountAtTimePeriodEndQualityCritical)
+        .isEqualTo(expected.openCountAtTimePeriodEndQualityCritical);
+    assertThat(actual.openCountAtTimePeriodEndOtherLow).isEqualTo(expected.openCountAtTimePeriodEndOtherLow);
+    assertThat(actual.openCountAtTimePeriodEndOtherModerate).isEqualTo(expected.openCountAtTimePeriodEndOtherModerate);
+    assertThat(actual.openCountAtTimePeriodEndOtherSevere).isEqualTo(expected.openCountAtTimePeriodEndOtherSevere);
+    assertThat(actual.openCountAtTimePeriodEndOtherCritical).isEqualTo(expected.openCountAtTimePeriodEndOtherCritical);
   }
 
   /**
@@ -1872,7 +1811,7 @@ public class ApiMetricsReportingServiceV2Test
       }
 
       // if it's an id that we've already seen then this item fails the grouping requirement
-      assertThat(idsAlreadySeen, not(contains(currentAppId)));
+      assertThat(idsAlreadySeen).doesNotContain(currentAppId);
 
       retval.computeIfAbsent(currentAppId, k -> new ArrayList<>()).add(dto);
     }
@@ -1917,15 +1856,13 @@ public class ApiMetricsReportingServiceV2Test
           .collect(Collectors.toList());
     }
 
-    assertThat(actual, hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
 
     for (ApiMetricsReportingDTOV2 expectedDTO : expected) {
       // results have no guaranteed application ordering
       ApiMetricsReportingDTOV2 matchingResult = actual.stream()
           .filter(r -> r.applicationId.equals(expectedDTO.applicationId))
           .findFirst().orElse(null);
-
-      assertThat(matchingResult, is(notNullValue()));
 
       assertDTO(matchingResult, expectedDTO);
     }
@@ -1934,13 +1871,13 @@ public class ApiMetricsReportingServiceV2Test
   private void assertFlattenedDTOGroups(Map<String, List<ApiMetricsReportingFlattenedDTOV2>> actual,
                                         Map<String, List<ApiMetricsReportingFlattenedDTOV2>> expected)
   {
-    assertThat(actual.keySet(), hasSize(expected.size()));
+    assertThat(actual).hasSameSizeAs(expected);
     for (Map.Entry<String, List<ApiMetricsReportingFlattenedDTOV2>> entry : expected.entrySet()) {
       String applicationId = entry.getKey();
       List<ApiMetricsReportingFlattenedDTOV2> expectedDTOGroup = entry.getValue();
       List<ApiMetricsReportingFlattenedDTOV2> actualDTOGroup = actual.get(applicationId);
 
-      assertThat(actualDTOGroup, hasSize(expectedDTOGroup.size()));
+      assertThat(actualDTOGroup).hasSameSizeAs(expectedDTOGroup);
       for (int i = 0; i < actualDTOGroup.size(); i++) {
         assertFlattenedDTO(actualDTOGroup.get(i), expectedDTOGroup.get(i));
       }

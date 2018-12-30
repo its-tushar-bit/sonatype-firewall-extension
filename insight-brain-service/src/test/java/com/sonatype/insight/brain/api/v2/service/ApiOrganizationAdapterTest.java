@@ -20,10 +20,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiOrganizationAdapterTest
 {
@@ -46,20 +43,20 @@ public class ApiOrganizationAdapterTest
     orgTagMap.put(org.getId(), tagList);
 
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationAdapter.convert(organizations, orgTagMap);
-    assertThat(apiOrganizationListDTO, notNullValue());
+    assertThat(apiOrganizationListDTO).isNotNull();
 
-    assertThat(apiOrganizationListDTO.organizations, hasSize(1));
+    assertThat(apiOrganizationListDTO.organizations).hasSize(1);
 
     ApiOrganizationDTO organizationDTO = apiOrganizationListDTO.organizations.get(0);
-    assertThat(organizationDTO.id, is(org.getId()));
-    assertThat(organizationDTO.name, is(org.getName()));
-    assertThat(organizationDTO.tags, hasSize(1));
+    assertThat(organizationDTO.id).isEqualTo(org.getId());
+    assertThat(organizationDTO.name).isEqualTo(org.getName());
+    assertThat(organizationDTO.tags).hasSize(1);
 
     ApiTagDTO apiTagDTO = organizationDTO.tags.get(0);
-    assertThat(apiTagDTO.id, is(tag.getId()));
-    assertThat(apiTagDTO.name, is(tag.getName()));
-    assertThat(apiTagDTO.description, is(tag.getDescription()));
-    assertThat(apiTagDTO.color, is(tag.getColor()));
+    assertThat(apiTagDTO.id).isEqualTo(tag.getId());
+    assertThat(apiTagDTO.name).isEqualTo(tag.getName());
+    assertThat(apiTagDTO.description).isEqualTo(tag.getDescription());
+    assertThat(apiTagDTO.color).isEqualTo(tag.getColor());
   }
 
   @Test
@@ -70,14 +67,14 @@ public class ApiOrganizationAdapterTest
     tagList.add(tag);
 
     ApiOrganizationDTO organizationDTO = apiOrganizationAdapter.convert(org, tagList);
-    assertThat(organizationDTO.id, is(org.getId()));
-    assertThat(organizationDTO.name, is(org.getName()));
-    assertThat(organizationDTO.tags, hasSize(1));
+    assertThat(organizationDTO.id).isEqualTo(org.getId());
+    assertThat(organizationDTO.name).isEqualTo(org.getName());
+    assertThat(organizationDTO.tags).hasSize(1);
 
     ApiTagDTO apiTagDTO = organizationDTO.tags.get(0);
-    assertThat(apiTagDTO.id, is(tag.getId()));
-    assertThat(apiTagDTO.name, is(tag.getName()));
-    assertThat(apiTagDTO.description, is(tag.getDescription()));
-    assertThat(apiTagDTO.color, is(tag.getColor()));
+    assertThat(apiTagDTO.id).isEqualTo(tag.getId());
+    assertThat(apiTagDTO.name).isEqualTo(tag.getName());
+    assertThat(apiTagDTO.description).isEqualTo(tag.getDescription());
+    assertThat(apiTagDTO.color).isEqualTo(tag.getColor());
   }
 }

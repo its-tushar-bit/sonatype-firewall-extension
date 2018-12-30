@@ -17,10 +17,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiOrganizationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -32,25 +29,25 @@ public class ApiOrganizationServiceAuthzTest
   public void testGetAll_Authorized() {
     grantReadPermission(org.getId());
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
-    assertThat(apiOrganizationListDTO, notNullValue());
-    assertThat(apiOrganizationListDTO.organizations, hasSize(1));
-    assertThat(apiOrganizationListDTO.organizations.get(0).id, is(org.getId()));
-    assertThat(apiOrganizationListDTO.organizations.get(0).name, is(org.getName()));
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).hasSize(1);
+    assertThat(apiOrganizationListDTO.organizations.get(0).id).isEqualTo(org.getId());
+    assertThat(apiOrganizationListDTO.organizations.get(0).name).isEqualTo(org.getName());
   }
 
   @Test
   public void testGetAll_Unauthenticated() {
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
-    assertThat(apiOrganizationListDTO, notNullValue());
-    assertThat(apiOrganizationListDTO.organizations, hasSize(0));
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).isEmpty();
   }
 
   @Test
   public void testGetAll_UnauthorizedButAuthenticated() {
     login();
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
-    assertThat(apiOrganizationListDTO, notNullValue());
-    assertThat(apiOrganizationListDTO.organizations, hasSize(0));
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).isEmpty();
   }
 
   @Test

@@ -18,10 +18,7 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -56,11 +53,11 @@ public class ApiPolicyServiceAuthzTest
   public void testGetPolicies_AuthorizedOneApp() {
     grantReadPermission(app.getId());
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
-    assertThat(policyListDTO, notNullValue());
-    assertThat(policyListDTO.policies, hasSize(3));
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).hasSize(3);
     Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
         policyListDTO.policies.get(2).name);
-    assertThat(policyNames, containsInAnyOrder(PARENT_ORG_POLICY_NAME1, ORG_POLICY_NAME1, APP_POLICY_NAME1));
+    assertThat(policyNames).containsExactlyInAnyOrder(PARENT_ORG_POLICY_NAME1, ORG_POLICY_NAME1, APP_POLICY_NAME1);
   }
 
   @Test
@@ -68,25 +65,25 @@ public class ApiPolicyServiceAuthzTest
     grantReadPermission(org.getId());
     grantReadPermission(app.getId());
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
-    assertThat(policyListDTO, notNullValue());
-    assertThat(policyListDTO.policies, hasSize(3));
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).hasSize(3);
     Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
         policyListDTO.policies.get(2).name);
-    assertThat(policyNames, containsInAnyOrder(PARENT_ORG_POLICY_NAME1, ORG_POLICY_NAME1, APP_POLICY_NAME1));
+    assertThat(policyNames).containsExactlyInAnyOrder(PARENT_ORG_POLICY_NAME1, ORG_POLICY_NAME1, APP_POLICY_NAME1);
   }
 
   @Test
   public void testGetPolicies_Unauthenticated() {
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
-    assertThat(policyListDTO, notNullValue());
-    assertThat(policyListDTO.policies, hasSize(0));
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).isEmpty();
   }
 
   @Test
   public void testGetPolicies_UnauthorizedButAuthenticated() {
     login();
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
-    assertThat(policyListDTO, notNullValue());
-    assertThat(policyListDTO.policies, hasSize(0));
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).isEmpty();
   }
 }

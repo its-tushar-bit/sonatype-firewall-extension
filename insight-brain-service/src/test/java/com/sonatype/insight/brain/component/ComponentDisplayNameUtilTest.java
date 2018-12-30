@@ -26,10 +26,7 @@ import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.from
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDisplayNameUtilTest
 {
@@ -41,18 +38,17 @@ public class ComponentDisplayNameUtilTest
     injectDisplayName(jsonNode);
 
     ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
-    assertThat(displayNode, is(notNullValue()));
-    assertThat(displayNode.size(), is(5));
-    assertThat(displayNode.get(0).get("field").textValue(), is("Group"));
-    assertThat(displayNode.get(0).get("value").textValue(), is("g"));
-    assertThat(displayNode.get(1).get("field"), is(nullValue()));
-    assertThat(displayNode.get(1).get("value").textValue(), is(" : "));
-    assertThat(displayNode.get(2).get("field").textValue(), is("Artifact"));
-    assertThat(displayNode.get(2).get("value").textValue(), is("a"));
-    assertThat(displayNode.get(3).get("field"), is(nullValue()));
-    assertThat(displayNode.get(3).get("value").textValue(), is(" : "));
-    assertThat(displayNode.get(4).get("field").textValue(), is("Version"));
-    assertThat(displayNode.get(4).get("value").textValue(), is("v"));
+    assertThat(displayNode).hasSize(5);
+    assertThat(displayNode.get(0).get("field").textValue()).isEqualTo("Group");
+    assertThat(displayNode.get(0).get("value").textValue()).isEqualTo("g");
+    assertThat(displayNode.get(1).get("field")).isNull();
+    assertThat(displayNode.get(1).get("value").textValue()).isEqualTo(" : ");
+    assertThat(displayNode.get(2).get("field").textValue()).isEqualTo("Artifact");
+    assertThat(displayNode.get(2).get("value").textValue()).isEqualTo("a");
+    assertThat(displayNode.get(3).get("field")).isNull();
+    assertThat(displayNode.get(3).get("value").textValue()).isEqualTo(" : ");
+    assertThat(displayNode.get(4).get("field").textValue()).isEqualTo("Version");
+    assertThat(displayNode.get(4).get("value").textValue()).isEqualTo("v");
   }
 
   @Test
@@ -62,14 +58,13 @@ public class ComponentDisplayNameUtilTest
         .readTree("{\"componentIdentifier\":{\"format\":\"nuget\",\"coordinates\":{\"packageId\":\"i\",\"version\":\"v\"}}}");
 
     List<ComponentDisplayNamePart> displayFieldValues = fromJsonNode(jsonNode).parts;
-    assertThat(displayFieldValues, is(notNullValue()));
-    assertThat(displayFieldValues.size(), is(3));
-    assertThat(displayFieldValues.get(0).field, is("ID"));
-    assertThat(displayFieldValues.get(0).value, is("i"));
-    assertThat(displayFieldValues.get(1).field, is(nullValue()));
-    assertThat(displayFieldValues.get(1).value, is(" "));
-    assertThat(displayFieldValues.get(2).field, is("Version"));
-    assertThat(displayFieldValues.get(2).value, is("v"));
+    assertThat(displayFieldValues).hasSize(3);
+    assertThat(displayFieldValues.get(0).field).isEqualTo("ID");
+    assertThat(displayFieldValues.get(0).value).isEqualTo("i");
+    assertThat(displayFieldValues.get(1).field).isNull();
+    assertThat(displayFieldValues.get(1).value).isEqualTo(" ");
+    assertThat(displayFieldValues.get(2).field).isEqualTo("Version");
+    assertThat(displayFieldValues.get(2).value).isEqualTo("v");
   }
 
   @Test
@@ -79,18 +74,17 @@ public class ComponentDisplayNameUtilTest
     injectDisplayName(jsonNode);
 
     ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
-    assertThat(displayNode, is(notNullValue()));
-    assertThat(displayNode.size(), is(5));
-    assertThat(displayNode.get(0).get("field").textValue(), is("Filename"));
-    assertThat(displayNode.get(0).get("value").textValue(), is("foo.jar"));
-    assertThat(displayNode.get(1).get("field"), is(nullValue()));
-    assertThat(displayNode.get(1).get("value").textValue(), is(", "));
-    assertThat(displayNode.get(2).get("field").textValue(), is("Filename"));
-    assertThat(displayNode.get(2).get("value").textValue(), is("bar.ear"));
-    assertThat(displayNode.get(3).get("field"), is(nullValue()));
-    assertThat(displayNode.get(3).get("value").textValue(), is(", "));
-    assertThat(displayNode.get(4).get("field").textValue(), is("Filename"));
-    assertThat(displayNode.get(4).get("value").textValue(), is("baz.war"));
+    assertThat(displayNode).hasSize(5);
+    assertThat(displayNode.get(0).get("field").textValue()).isEqualTo("Filename");
+    assertThat(displayNode.get(0).get("value").textValue()).isEqualTo("foo.jar");
+    assertThat(displayNode.get(1).get("field")).isNull();
+    assertThat(displayNode.get(1).get("value").textValue()).isEqualTo(", ");
+    assertThat(displayNode.get(2).get("field").textValue()).isEqualTo("Filename");
+    assertThat(displayNode.get(2).get("value").textValue()).isEqualTo("bar.ear");
+    assertThat(displayNode.get(3).get("field")).isNull();
+    assertThat(displayNode.get(3).get("value").textValue()).isEqualTo(", ");
+    assertThat(displayNode.get(4).get("field").textValue()).isEqualTo("Filename");
+    assertThat(displayNode.get(4).get("value").textValue()).isEqualTo("baz.war");
   }
 
   @Test
@@ -100,12 +94,11 @@ public class ComponentDisplayNameUtilTest
     injectDisplayName(jsonNode);
 
     ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
-    assertThat(displayNode, is(notNullValue()));
-    assertThat(displayNode.size(), is(2));
-    assertThat(displayNode.get(0).get("field"), is(nullValue()));
-    assertThat(displayNode.get(0).get("value").textValue(), is("(Anonymized Path) SHA1: "));
-    assertThat(displayNode.get(1).get("field").textValue(), is("Hash"));
-    assertThat(displayNode.get(1).get("value").textValue(), is("h"));
+    assertThat(displayNode).hasSize(2);
+    assertThat(displayNode.get(0).get("field")).isNull();
+    assertThat(displayNode.get(0).get("value").textValue()).isEqualTo("(Anonymized Path) SHA1: ");
+    assertThat(displayNode.get(1).get("field").textValue()).isEqualTo("Hash");
+    assertThat(displayNode.get(1).get("value").textValue()).isEqualTo("h");
   }
 
   @Test
@@ -120,24 +113,24 @@ public class ComponentDisplayNameUtilTest
   @Test
   public void testCreateComponentNameFromPolicyViolationMissingComponentIdentifier() {
     ComponentDisplayName componentNameDTO = fromPolicyViolation(new PolicyViolation());
-    assertThat(componentNameDTO, nullValue());
+    assertThat(componentNameDTO).isNull();
   }
 
   @Test
   public void testDeriveComponentName() {
     String filename = "c.jar";
     ComponentDisplayName displayName = fromFilename(filename, "hash");
-    assertThat(deriveComponentName(createNewestRiskDTO(displayName, null)), is("c.jar"));
+    assertThat(deriveComponentName(createNewestRiskDTO(displayName, null))).isEqualTo("c.jar");
 
-    assertThat(deriveComponentName(createNewestRiskDTO(null, "c.jar")), is("c.jar"));
+    assertThat(deriveComponentName(createNewestRiskDTO(null, "c.jar"))).isEqualTo("c.jar");
 
-    assertThat(deriveComponentName(createNewestRiskDTO(null, null)), is("Unknown"));
+    assertThat(deriveComponentName(createNewestRiskDTO(null, null))).isEqualTo("Unknown");
 
-    assertThat(deriveComponentName(createComponentRiskDTO(displayName, null)), is("c.jar"));
+    assertThat(deriveComponentName(createComponentRiskDTO(displayName, null))).isEqualTo("c.jar");
 
-    assertThat(deriveComponentName(createComponentRiskDTO(null, filename)), is("c.jar"));
+    assertThat(deriveComponentName(createComponentRiskDTO(null, filename))).isEqualTo("c.jar");
 
-    assertThat(deriveComponentName(createComponentRiskDTO(null, null)), is("Unknown"));
+    assertThat(deriveComponentName(createComponentRiskDTO(null, null))).isEqualTo("Unknown");
   }
 
   private NewestRiskDTO createNewestRiskDTO(ComponentDisplayName displayName, String filename) {

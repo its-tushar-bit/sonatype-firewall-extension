@@ -1113,7 +1113,7 @@ public class ReportResourceTest
         assertComponentIdentifier(details, componentIdentifier);
         assertThat(details.getDisplayName().toString()).isEqualTo("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7");
         assertThat(details.getCatalogDate()).isEqualTo(1447958674000L);
-        assertThat(details.getOverriddenLicenses()).isEmpty();;
+        assertThat(details.getOverriddenLicenses()).isEmpty();
         assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Sonatype Special Licenses");
         assertThat(details.getLicenseThreatLevel()).isEqualTo(5);
         assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());

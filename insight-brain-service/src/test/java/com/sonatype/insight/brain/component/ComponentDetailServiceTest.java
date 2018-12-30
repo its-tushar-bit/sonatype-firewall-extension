@@ -35,12 +35,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentDetailServiceTest
     extends AbstractComponentTest
@@ -81,22 +77,19 @@ public class ComponentDetailServiceTest
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, notNullValue());
-    assertThat(appComponentDetailsDTOs, hasSize(2));
+    assertThat(appComponentDetailsDTOs).hasSize(2);
     ApplicationComponentDetailsDTO appComponentDetailsDTO = appComponentDetailsDTOs.get(0);
-    assertThat(appComponentDetailsDTO.application.getId(), is(app1.getId()));
-    assertThat(appComponentDetailsDTO.policyViolations, notNullValue());
-    assertThat(appComponentDetailsDTO.policyViolations, hasSize(0));
+    assertThat(appComponentDetailsDTO.application.getId()).isEqualTo(app1.getId());
+    assertThat(appComponentDetailsDTO.policyViolations).isEmpty();
     appComponentDetailsDTO = appComponentDetailsDTOs.get(1);
-    assertThat(appComponentDetailsDTO.application.getId(), is(app2.getId()));
-    assertThat(appComponentDetailsDTO.policyViolations, notNullValue());
-    assertThat(appComponentDetailsDTO.policyViolations, hasSize(2));
+    assertThat(appComponentDetailsDTO.application.getId()).isEqualTo(app2.getId());
+    assertThat(appComponentDetailsDTO.policyViolations).hasSize(2);
     PolicyViolationSummaryDTO policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policy1.getId(),
         appComponentDetailsDTO.policyViolations);
-    assertThat(policyViolationSummaryDTO, notNullValue());
-    assertThat(policyViolationSummaryDTO.policyName, is(policy1.getName()));
-    assertThat(policyViolationSummaryDTO.threatLevel, is(2));
-    assertThat(policyViolationSummaryDTO.stageDetails, hasSize(4));
+    assertThat(policyViolationSummaryDTO).isNotNull();
+    assertThat(policyViolationSummaryDTO.policyName).isEqualTo(policy1.getName());
+    assertThat(policyViolationSummaryDTO.threatLevel).isEqualTo(2);
+    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(4);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
         policyEvaluation1.getScanId(), policyEvaluation1.getTime().getTime());
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
@@ -105,10 +98,10 @@ public class ComponentDetailServiceTest
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
 
     policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policy2.getId(), appComponentDetailsDTO.policyViolations);
-    assertThat(policyViolationSummaryDTO, notNullValue());
-    assertThat(policyViolationSummaryDTO.policyName, is(policy2.getName()));
-    assertThat(policyViolationSummaryDTO.threatLevel, is(5));
-    assertThat(policyViolationSummaryDTO.stageDetails, hasSize(4));
+    assertThat(policyViolationSummaryDTO).isNotNull();
+    assertThat(policyViolationSummaryDTO.policyName).isEqualTo(policy2.getName());
+    assertThat(policyViolationSummaryDTO.threatLevel).isEqualTo(5);
+    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(4);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
         policyEvaluation1.getScanId(), policyEvaluation1.getTime().getTime());
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
@@ -131,18 +124,18 @@ public class ComponentDetailServiceTest
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, notNullValue());
-    assertThat(appComponentDetailsDTOs, hasSize(1));
+    assertThat(appComponentDetailsDTOs).isNotNull();
+    assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO appComponentDetailsDTO = appComponentDetailsDTOs.get(0);
-    assertThat(appComponentDetailsDTO.application.getId(), is(app.getId()));
-    assertThat(appComponentDetailsDTO.policyViolations, notNullValue());
-    assertThat(appComponentDetailsDTO.policyViolations, hasSize(1));
+    assertThat(appComponentDetailsDTO.application.getId()).isEqualTo(app.getId());
+    assertThat(appComponentDetailsDTO.policyViolations).isNotNull();
+    assertThat(appComponentDetailsDTO.policyViolations).hasSize(1);
     PolicyViolationSummaryDTO policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policyId,
         appComponentDetailsDTO.policyViolations);
-    assertThat(policyViolationSummaryDTO, notNullValue());
-    assertThat(policyViolationSummaryDTO.policyName, is(policy.getName()));
-    assertThat(policyViolationSummaryDTO.threatLevel, is(5));
-    assertThat(policyViolationSummaryDTO.stageDetails, hasSize(4));
+    assertThat(policyViolationSummaryDTO).isNotNull();
+    assertThat(policyViolationSummaryDTO.policyName).isEqualTo(policy.getName());
+    assertThat(policyViolationSummaryDTO.threatLevel).isEqualTo(5);
+    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(4);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
         policyEvaluation.getScanId(), policyEvaluation.getTime().getTime());
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
@@ -174,17 +167,17 @@ public class ComponentDetailServiceTest
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, notNullValue());
-    assertThat(appComponentDetailsDTOs, hasSize(1));
+    assertThat(appComponentDetailsDTOs).isNotNull();
+    assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
-    assertThat(dto.application.getId(), is(app2.getId()));
-    assertThat(dto.stageDetails, hasSize(4));
+    assertThat(dto.application.getId()).isEqualTo(app2.getId());
+    assertThat(dto.stageDetails).hasSize(4);
     assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, null, "scanId1", evaluation3.getTime().getTime());
     assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
-    assertThat(dto.policyViolations, hasSize(1));
-    assertThat(dto.policyViolations.get(0).stageDetails, hasSize(4));
+    assertThat(dto.policyViolations).hasSize(1);
+    assertThat(dto.policyViolations.get(0).stageDetails).hasSize(4);
     assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, null,
         evaluation3.getScanId(), evaluation3.getTime().getTime());
     assertStageDetails(dto.policyViolations.get(0).stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
@@ -211,12 +204,12 @@ public class ComponentDetailServiceTest
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, notNullValue());
-    assertThat(appComponentDetailsDTOs, hasSize(1));
+    assertThat(appComponentDetailsDTOs).isNotNull();
+    assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
-    assertThat(dto.application.getId(), is(app1.getId()));
-    assertThat(dto.policyViolations, hasSize(1));
-    assertThat(dto.policyViolations.get(0).stageDetails, hasSize(4));
+    assertThat(dto.application.getId()).isEqualTo(app1.getId());
+    assertThat(dto.policyViolations).hasSize(1);
+    assertThat(dto.policyViolations.get(0).stageDetails).hasSize(4);
     assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, FailActionType.ID,
         evaluation2.getScanId(), evaluation1.getTime().getTime());
   }
@@ -247,11 +240,10 @@ public class ComponentDetailServiceTest
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, notNullValue());
-    assertThat(appComponentDetailsDTOs, hasSize(1));
+    assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
-    assertThat(dto.application.getId(), is(app1.getId()));
-    assertThat(dto.stageDetails, hasSize(4));
+    assertThat(dto.application.getId()).isEqualTo(app1.getId());
+    assertThat(dto.stageDetails).hasSize(4);
     // should show the first occurence time and link to most recent scan report
     assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, "scanId2", evaluation1.getTime()
         .getTime());
@@ -270,10 +262,10 @@ public class ComponentDetailServiceTest
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, hasSize(1));
+    assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO appComponentDetailsDTO = appComponentDetailsDTOs.get(0);
-    assertThat(appComponentDetailsDTO.application.getId(), is(app.getId()));
-    assertThat(appComponentDetailsDTO.application.getContact(), is(nullValue()));
+    assertThat(appComponentDetailsDTO.application.getId()).isEqualTo(app.getId());
+    assertThat(appComponentDetailsDTO.application.getContact()).isNull();
   }
 
   private void assertStageDetails(StageDetailDTO stageDetailDTO,
@@ -282,11 +274,11 @@ public class ComponentDetailServiceTest
                                   String scanId,
                                   Long time)
   {
-    assertThat(stageDetailDTO.stageTypeId, is(stageType.getId()));
-    assertThat(stageDetailDTO.stageTypeName, is(stageType.getName()));
-    assertThat(stageDetailDTO.actionTypeId, is(actionType));
-    assertThat(stageDetailDTO.scanId, is(scanId));
-    assertThat(stageDetailDTO.time, is(time));
+    assertThat(stageDetailDTO.stageTypeId).isEqualTo(stageType.getId());
+    assertThat(stageDetailDTO.stageTypeName).isEqualTo(stageType.getName());
+    assertThat(stageDetailDTO.actionTypeId).isEqualTo(actionType);
+    assertThat(stageDetailDTO.scanId).isEqualTo(scanId);
+    assertThat(stageDetailDTO.time).isEqualTo(time);
   }
 
   @Test
@@ -307,14 +299,9 @@ public class ComponentDetailServiceTest
   @Test
   public void testGetComponentNameByHash_UnknownHash() throws Exception {
     String hash = "ababababab";
-
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       componentDetailService.getComponentNameByHash(hash);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Unknown component with hash ababababab."));
-    }
+    }).withMessage("Unknown component with hash " + hash + ".");
   }
 
   @Test
@@ -325,7 +312,7 @@ public class ComponentDetailServiceTest
         "somepath");
 
     List<ComponentDisplayNamePart> name = componentDetailService.getComponentNameByHash(hash).parts;
-    assertThat(name, hasSize(1));
+    assertThat(name).hasSize(1);
     assertDisplayFieldValue(name.get(0), "Pathname", "somepath");
   }
 
@@ -335,7 +322,7 @@ public class ComponentDetailServiceTest
     Application app = tempEntity.newApplicationWithParent("app");
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* componentIdentifier */);
 
-    assertThat(componentDetailService.getComponentNameByHash(hash), nullValue());
+    assertThat(componentDetailService.getComponentNameByHash(hash)).isNull();
   }
 
   private PolicyViolationSummaryDTO getPolicyViolationSummaryDTO(String policyId,

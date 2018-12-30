@@ -20,10 +20,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
@@ -173,9 +170,9 @@ public class AuditFilterTest
     auditFilter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
     verify(filterChain).doFilter(requestArgumentCaptor.capture(), responseArgumentCaptor.capture());
-    assertThat(requestArgumentCaptor.getValue(), equalTo(httpServletRequest));
-    assertThat(responseArgumentCaptor.getValue(), is(instanceOf(ResponseWrapper.class)));
-    assertThat(responseArgumentCaptor.getValue().getStatus(), is(200));
+    assertThat(requestArgumentCaptor.getValue()).isEqualTo(httpServletRequest);
+    assertThat(responseArgumentCaptor.getValue()).isInstanceOf(ResponseWrapper.class);
+    assertThat(responseArgumentCaptor.getValue().getStatus()).isEqualTo(200);
     verify(auditRecorder).recordUserEvent(httpServletRequest);
     verify(auditSession).close();
   }

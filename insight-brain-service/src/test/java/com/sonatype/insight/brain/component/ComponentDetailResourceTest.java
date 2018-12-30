@@ -16,10 +16,7 @@ import com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailResourceTest
     extends AbstractResourceTest
@@ -39,8 +36,7 @@ public class ComponentDetailResourceTest
     assertResponseStatus(200, response);
     ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = response
         .getBody(ApplicationComponentDetailsDTO[].class);
-    assertThat(applicationComponentDetailsDTOs, notNullValue());
-    assertThat(applicationComponentDetailsDTOs, arrayWithSize(1));
+    assertThat(applicationComponentDetailsDTOs).hasSize(1);
   }
 
   @Test
@@ -51,7 +47,7 @@ public class ComponentDetailResourceTest
 
     HttpResponse response = request.get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Unknown component with hash ababababab."));
+    assertThat(response.getBodyText()).isEqualTo("Unknown component with hash ababababab.");
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));

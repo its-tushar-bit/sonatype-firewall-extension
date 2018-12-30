@@ -31,11 +31,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyViolationServiceV2Test
     extends AbstractComponentTest
@@ -49,8 +45,8 @@ public class ApiPolicyViolationServiceV2Test
 
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(Collections.<String> emptySet());
-    assertThat(apiApplicationViolationListDTO, notNullValue());
-    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(0));
+    assertThat(apiApplicationViolationListDTO).isNotNull();
+    assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
   }
 
   @Test
@@ -66,8 +62,8 @@ public class ApiPolicyViolationServiceV2Test
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(policyIds);
 
-    assertThat(apiApplicationViolationListDTO, notNullValue());
-    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(2));
+    assertThat(apiApplicationViolationListDTO).isNotNull();
+    assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(2);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO1 = apiApplicationViolationListDTO.applicationViolations
         .get(0);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO2 = apiApplicationViolationListDTO.applicationViolations
@@ -92,8 +88,8 @@ public class ApiPolicyViolationServiceV2Test
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(policyIds);
 
-    assertThat(apiApplicationViolationListDTO, notNullValue());
-    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
+    assertThat(apiApplicationViolationListDTO).isNotNull();
+    assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO1 = apiApplicationViolationListDTO.applicationViolations
         .get(0);
     assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1);
@@ -107,7 +103,7 @@ public class ApiPolicyViolationServiceV2Test
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(policyIds);
 
-    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
+    assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
         .get(0);
     assertPolicyViolation(apiApplicationViolationDTO, appPolicyData);
@@ -123,7 +119,7 @@ public class ApiPolicyViolationServiceV2Test
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(policyIds);
 
-    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
+    assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
         .get(0);
     assertPolicyViolation(apiApplicationViolationDTO, policyData);
@@ -131,15 +127,16 @@ public class ApiPolicyViolationServiceV2Test
 
   private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO, PolicyData appPolicyData)
   {
-    assertThat(apiApplicationViolationDTO.application, notNullValue());
-    assertThat(apiApplicationViolationDTO.application.id, is(appPolicyData.application.getId()));
-    assertThat(apiApplicationViolationDTO.application.name, is(appPolicyData.application.getName()));
-    assertThat(apiApplicationViolationDTO.application.publicId, is(appPolicyData.application.getPublicId()));
-    assertThat(apiApplicationViolationDTO.application.contactUserName,
-        is(appPolicyData.application.getContactInternalName()));
-    assertThat(apiApplicationViolationDTO.application.organizationId, is(appPolicyData.application.getOrganizationId()));
+    assertThat(apiApplicationViolationDTO.application).isNotNull();
+    assertThat(apiApplicationViolationDTO.application.id).isEqualTo(appPolicyData.application.getId());
+    assertThat(apiApplicationViolationDTO.application.name).isEqualTo(appPolicyData.application.getName());
+    assertThat(apiApplicationViolationDTO.application.publicId).isEqualTo(appPolicyData.application.getPublicId());
+    assertThat(apiApplicationViolationDTO.application.contactUserName)
+        .isEqualTo(appPolicyData.application.getContactInternalName());
+    assertThat(apiApplicationViolationDTO.application.organizationId)
+        .isEqualTo(appPolicyData.application.getOrganizationId());
 
-    assertThat(apiApplicationViolationDTO.policyViolations, hasSize(2));
+    assertThat(apiApplicationViolationDTO.policyViolations).hasSize(2);
     ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO1 = apiApplicationViolationDTO.policyViolations.get(0);
     ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO2 = apiApplicationViolationDTO.policyViolations.get(1);
 
@@ -163,34 +160,35 @@ public class ApiPolicyViolationServiceV2Test
                                      PolicyViolation policyViolation,
                                      PolicyData appPolicyData)
   {
-    assertThat(apiPolicyViolationDTO.policyId, is(policyViolation.getPolicyId()));
-    assertThat(apiPolicyViolationDTO.policyName, is(policyViolation.getPolicyName()));
-    assertThat(apiPolicyViolationDTO.threatLevel, is(policyViolation.getThreatLevel()));
-    assertThat(apiPolicyViolationDTO.reportUrl, is("ui/links/application/" + application.getPublicId() + "/report/"
-        + policyEvaluation.getScanId()));
-    assertThat(apiPolicyViolationDTO.stageId, is(policyEvaluation.getStageTypeId()));
-    assertThat(apiPolicyViolationDTO.component.hash, is(policyViolation.getHash()));
-    assertThat(apiPolicyViolationDTO.component.proprietary, is(appPolicyData.applicationComponent.isProprietary()));
+    assertThat(apiPolicyViolationDTO.policyId).isEqualTo(policyViolation.getPolicyId());
+    assertThat(apiPolicyViolationDTO.policyName).isEqualTo(policyViolation.getPolicyName());
+    assertThat(apiPolicyViolationDTO.threatLevel).isEqualTo(policyViolation.getThreatLevel());
+    assertThat(apiPolicyViolationDTO.reportUrl)
+        .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + policyEvaluation.getScanId());
+    assertThat(apiPolicyViolationDTO.stageId).isEqualTo(policyEvaluation.getStageTypeId());
+    assertThat(apiPolicyViolationDTO.component.hash).isEqualTo(policyViolation.getHash());
+    assertThat(apiPolicyViolationDTO.component.proprietary)
+        .isEqualTo(appPolicyData.applicationComponent.isProprietary());
     if (policyViolation.getComponentIdentifier() != null) {
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(
           apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
           apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
-      assertThat(componentIdentifier, is(policyViolation.getComponentIdentifier()));
+      assertThat(componentIdentifier).isEqualTo(policyViolation.getComponentIdentifier());
     }
     else {
-      assertThat(apiPolicyViolationDTO.component.componentIdentifier, is(nullValue()));
+      assertThat(apiPolicyViolationDTO.component.componentIdentifier).isNull();
     }
 
-    assertThat(apiPolicyViolationDTO.constraintViolations, hasSize(1));
+    assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);
-    assertThat(apiConstraintViolationDTO.constraintId,
-        is(policyViolation.getConstraintFacts().get(0).getConstraintId()));
-    assertThat(apiConstraintViolationDTO.constraintName, is(policyViolation.getConstraintFacts().get(0)
-        .getConstraintName()));
-    assertThat(apiConstraintViolationDTO.reasons, hasSize(1));
+    assertThat(apiConstraintViolationDTO.constraintId)
+        .isEqualTo(policyViolation.getConstraintFacts().get(0).getConstraintId());
+    assertThat(apiConstraintViolationDTO.constraintName)
+        .isEqualTo(policyViolation.getConstraintFacts().get(0).getConstraintName());
+    assertThat(apiConstraintViolationDTO.reasons).hasSize(1);
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
-    assertThat(apiConstraintViolationReasonDTO.reason, is(policyViolation.getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason()));
+    assertThat(apiConstraintViolationReasonDTO.reason)
+        .isEqualTo(policyViolation.getConstraintFacts().get(0).getConditionFacts().get(0).getReason());
   }
 
   private PolicyData createPolicyTestData(String scanId,

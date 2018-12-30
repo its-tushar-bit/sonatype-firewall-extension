@@ -44,16 +44,7 @@ import org.mockito.Mockito;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 public class DashboardResourceTest
@@ -85,8 +76,8 @@ public class DashboardResourceTest
         .body(new RisksFilterDTO()).post();
 
     assertResponseStatus(200, response);
-    DashboardResultsDTO<NewestRiskDTO> dto = response.getBody(DashboardResultsDTO.class);
-    assertThat(dto.dashboardResults, hasSize(1));
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults).hasSize(1);
   }
 
   @Test
@@ -105,9 +96,9 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
 
     NamedDashboardFilterDTO result = response.getBody(NamedDashboardFilterDTO.class);
-    assertThat(result, notNullValue());
+    assertThat(result).isNotNull();
     assertDashboardFilterDTO(result.filter, dashboardFilterDTO);
-    assertThat(result.name, is(filterName));
+    assertThat(result.name).isEqualTo(filterName);
   }
 
   @Test
@@ -124,10 +115,10 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
 
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(tempUser.getUsername()).get(0);
-    assertThat(dashboardFilter, notNullValue());
+    assertThat(dashboardFilter).isNotNull();
 
     DashboardFilterDTO returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
-    assertThat(returnedDashboardFilterDTO, notNullValue());
+    assertThat(returnedDashboardFilterDTO).isNotNull();
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO.filter);
   }
 
@@ -149,21 +140,21 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
 
     DashboardFilterDTO result = response.getBody(DashboardFilterDTO.class);
-    assertThat(result, notNullValue());
+    assertThat(result).isNotNull();
     assertDashboardFilterDTO(result, dashboardFilterDTO.filter);
   }
 
   private void assertDashboardFilterDTO(DashboardFilterDTO actual, DashboardFilterDTO expected) {
-    assertThat(actual.minPolicyThreatLevel, is(expected.minPolicyThreatLevel));
-    assertThat(actual.maxPolicyThreatLevel, is(expected.maxPolicyThreatLevel));
-    assertThat(actual.applicationFilters, hasSize(1));
-    assertThat(actual.applicationFilters.get(0), is(expected.applicationFilters.get(0)));
-    assertThat(actual.tagFilters, hasSize(1));
-    assertThat(actual.tagFilters.get(0), is(expected.tagFilters.get(0)));
-    assertThat(actual.policyThreatCategoryFilters, hasSize(1));
-    assertThat(actual.policyThreatCategoryFilters.get(0), is(expected.policyThreatCategoryFilters.get(0)));
-    assertThat(actual.stageTypeFilters, hasSize(1));
-    assertThat(actual.stageTypeFilters.get(0), is(expected.stageTypeFilters.get(0)));
+    assertThat(actual.minPolicyThreatLevel).isEqualTo(expected.minPolicyThreatLevel);
+    assertThat(actual.maxPolicyThreatLevel).isEqualTo(expected.maxPolicyThreatLevel);
+    assertThat(actual.applicationFilters).hasSize(1);
+    assertThat(actual.applicationFilters.get(0)).isEqualTo(expected.applicationFilters.get(0));
+    assertThat(actual.tagFilters).hasSize(1);
+    assertThat(actual.tagFilters.get(0)).isEqualTo(expected.tagFilters.get(0));
+    assertThat(actual.policyThreatCategoryFilters).hasSize(1);
+    assertThat(actual.policyThreatCategoryFilters.get(0)).isEqualTo(expected.policyThreatCategoryFilters.get(0));
+    assertThat(actual.stageTypeFilters).hasSize(1);
+    assertThat(actual.stageTypeFilters.get(0)).isEqualTo(expected.stageTypeFilters.get(0));
   }
 
   private DashboardFilterDTO createDashboardFilter(Application application, Tag tag) {
@@ -210,22 +201,17 @@ public class DashboardResourceTest
 
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
     String[] lines = response.getBodyText().split("\r\n");
-    assertThat(lines.length, is(3));
-    assertThat(lines[0], is(NewestRiskDTO.getCsvHeader()));
-    assertThat(lines[1],
-        is("5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
-    assertThat(lines[2],
-        is("5,build policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1)));
+    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(),
+        "5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2),
+        "5,build policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
     response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
     lines = response.getBodyText().split("\r\n");
-    assertThat(lines.length, is(2));
-    assertThat(lines[0], is(NewestRiskDTO.getCsvHeader()));
-    assertThat(lines[1],
-        is("5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
+    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(),
+        "5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2));
   }
 
   @Test
@@ -265,7 +251,7 @@ public class DashboardResourceTest
         .body(filter).post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid orderBy property."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
   }
 
   @Test
@@ -288,19 +274,16 @@ public class DashboardResourceTest
 
     assertResponseOkAndCsvHeadersSet(response, "results-applications");
     String[] lines = response.getBodyText().split("\r\n");
-    assertThat(lines.length, is(3));
-    assertThat(lines[0], is(ApplicationRiskScoreDTO.getCsvHeader()));
-    assertThat(lines[1], is("test organization,test application,10,0,10,0,0"));
-    assertThat(lines[2], is("test organization 2,test application 2,5,0,5,0,0"));
+    assertThat(lines).containsExactly(ApplicationRiskScoreDTO.getCsvHeader(),
+        "test organization,test application,10,0,10,0,0", "test organization 2,test application 2,5,0,5,0,0");
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
     response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filter).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-applications");
     lines = response.getBodyText().split("\r\n");
-    assertThat(lines.length, is(2));
-    assertThat(lines[0], is(ApplicationRiskScoreDTO.getCsvHeader()));
-    assertThat(lines[1], is("test organization,test application,5,0,5,0,0"));
+    assertThat(lines).containsExactly(ApplicationRiskScoreDTO.getCsvHeader(),
+        "test organization,test application,5,0,5,0,0");
   }
 
   @Test
@@ -311,7 +294,7 @@ public class DashboardResourceTest
         .body(filter).post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid orderBy property."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
   }
 
   @Test
@@ -345,7 +328,7 @@ public class DashboardResourceTest
         .body(filter).post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("Invalid orderBy property."));
+    assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
   }
 
   @Test
@@ -355,8 +338,7 @@ public class DashboardResourceTest
 
     assertResponseOkAndCsvHeadersSet(response, "results-components");
     String[] lines = response.getBodyText().split("\r\n");
-    assertThat(lines.length, is(1));
-    assertThat(lines[0], is(ComponentRiskDTO.getCsvHeader()));
+    assertThat(lines).containsExactly(ComponentRiskDTO.getCsvHeader());
   }
 
   @Test
@@ -373,10 +355,8 @@ public class DashboardResourceTest
 
     assertResponseOkAndCsvHeadersSet(response, "results-components");
     String[] lines = response.getBodyText().split("\r\n");
-    assertThat(lines.length, is(3));
-    assertThat(lines[0], is(ComponentRiskDTO.getCsvHeader()));
-    assertThat(lines[1], is("Group1 : Artifact2 : Version1,1,5,0,5,0,0"));
-    assertThat(lines[2], is("Group1 : Artifact1 : Version1,1,5,0,5,0,0"));
+    assertThat(lines).containsExactly(ComponentRiskDTO.getCsvHeader(), "Group1 : Artifact2 : Version1,1,5,0,5,0,0",
+        "Group1 : Artifact1 : Version1,1,5,0,5,0,0");
   }
 
   @Test
@@ -436,17 +416,14 @@ public class DashboardResourceTest
 
   private void assertResponseOkAndCsvHeadersSet(HttpResponse response, String fileNamePrefix) throws ParseException {
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is("text/csv"));
+    assertThat(response.getContentType()).isEqualTo("text/csv");
     String dispositionHeader = response.getHeader("Content-Disposition");
     String headerStart = "attachment; filename=\"" + fileNamePrefix + "-";
-    assertThat(dispositionHeader, startsWith(headerStart));
+    assertThat(dispositionHeader).startsWith(headerStart);
     Matcher matcher = Pattern.compile(headerStart + "([0-9]{8}-[0-9]{6})" + "\\.csv").matcher(dispositionHeader);
-    if (matcher.find()) {
-      Date fileNameTimestamp = filenameTimestampFormatter.parse(matcher.group(1));
-      assertThat(new Date().getTime() - fileNameTimestamp.getTime(), lessThan(5*1000L));
-    } else {
-      fail("Could not find a timestamp in filename attribute: " + dispositionHeader);
-    }
+    assertThat(matcher.find()).as("Could not find a timestamp in filename attribute: " + dispositionHeader).isTrue();
+    Date fileNameTimestamp = filenameTimestampFormatter.parse(matcher.group(1));
+    assertThat(new Date().getTime() - fileNameTimestamp.getTime()).isLessThan(5 * 1000);
   }
 
   private String getTimestamps(PolicyViolation policyViolation) {
@@ -472,8 +449,8 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
 
     NamedDashboardFilterDTO result = response.getBody(NamedDashboardFilterDTO.class);
-    assertThat(result, notNullValue());
-    assertThat(result.name, is(namedDashboardFilterDTO.name));
+    assertThat(result).isNotNull();
+    assertThat(result.name).isEqualTo(namedDashboardFilterDTO.name);
     assertDashboardFilterDTO(result.filter, namedDashboardFilterDTO.filter);
 
     // verify what was saved in the db is what's expected
@@ -504,9 +481,8 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
 
     NamedDashboardFilterDTO[] result = response.getBody(NamedDashboardFilterDTO[].class);
-    assertThat(result, not(emptyArray()));
-    assertThat(result.length, is(1));
-    assertThat(result[0].name, is(filterName));
+    assertThat(result).hasSize(1);
+    assertThat(result[0].name).isEqualTo(filterName);
     
     // verify what was saved in the db is what's expected
     verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
@@ -534,10 +510,10 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
 
     NamedDashboardFilterDTO result = response.getBody(NamedDashboardFilterDTO.class);
-    assertThat(result, notNullValue());
-    assertThat(result.name, is(namedDashboardFilterDTO.name));
-    assertThat(result.filter.minPolicyThreatLevel, is(3));
-    assertThat(result.filter.maxPolicyThreatLevel, is(7));
+    assertThat(result).isNotNull();
+    assertThat(result.name).isEqualTo(namedDashboardFilterDTO.name);
+    assertThat(result.filter.minPolicyThreatLevel).isEqualTo(3);
+    assertThat(result.filter.maxPolicyThreatLevel).isEqualTo(7);
     
     // verify what was saved in the db is what's expected
     verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
@@ -564,7 +540,7 @@ public class DashboardResourceTest
     HttpResponse response = request.parameter(filterName1).post();
     assertResponseStatus(204, response);
     // verify that both filters above got deleted
-    assertThat(dashboardFilterDAO.getByUsername(username), hasSize(0));
+    assertThat(dashboardFilterDAO.getByUsername(username)).isEmpty();
   }
 
   @Test
@@ -585,13 +561,13 @@ public class DashboardResourceTest
     HttpResponse response = request.parameter(filterName).post();
     assertResponseStatus(404, response);
     DashboardFilterErrorResponseDTO[] errorResponseDTOs = response.getBody(DashboardFilterErrorResponseDTO[].class);
-    assertThat(errorResponseDTOs, arrayWithSize(1));
-    assertThat(errorResponseDTOs[0].status, is(404));
-    assertThat(errorResponseDTOs[0].name, is("NotFoundFilter"));
-    assertThat(errorResponseDTOs[0].errorMessage,
-        is("Cannot find a filter with name NotFoundFilter for user " + username + "."));
+    assertThat(errorResponseDTOs).hasSize(1);
+    assertThat(errorResponseDTOs[0].status).isEqualTo(404);
+    assertThat(errorResponseDTOs[0].name).isEqualTo("NotFoundFilter");
+    assertThat(errorResponseDTOs[0].errorMessage)
+        .isEqualTo("Cannot find a filter with name NotFoundFilter for user " + username + ".");
     // verify that Filter 1 got deleted
-    assertThat(dashboardFilterDAO.getByUsername(username), hasSize(0));
+    assertThat(dashboardFilterDAO.getByUsername(username)).isEmpty();
   }
 
   @Test
@@ -621,17 +597,17 @@ public class DashboardResourceTest
     
     DashboardResource underTest = new DashboardResource(null, dashboardFilterServiceMock, null, null);
     Response actual = underTest.deleteDashboardFiltersForCurrentUserByFilterName(filterNames);
-    assertThat(actual.getStatus(), is(500));
-    assertThat((ArrayList<DashboardFilterErrorResponseDTO>) actual.getEntity(), hasSize(2));
+    assertThat(actual.getStatus()).isEqualTo(500);
+    assertThat(actual.getEntity()).asList().hasSize(2);
   }
 
   private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)
       throws IOException
   {
     DashboardFilter actual = dashboardFilterDAO.getByUsernameAndName(tempUser.getUsername(), filterName);
-    assertThat(actual, notNullValue());
+    assertThat(actual).isNotNull();
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
-    assertThat(actual.getName(), is(expected.name));
+    assertThat(actual.getName()).isEqualTo(expected.name);
     assertDashboardFilterDTO(actualDto, expected.filter);
   }
 }

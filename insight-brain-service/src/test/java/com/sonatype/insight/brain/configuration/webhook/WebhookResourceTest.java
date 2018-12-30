@@ -26,13 +26,7 @@ import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEven
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookResourceTest
     extends AbstractResourceTest
@@ -50,7 +44,7 @@ public class WebhookResourceTest
     assertResponseStatus(200, response);
     Webhook[] results = response.getBody(Webhook[].class);
 
-    assertThat(results.length, is(0));
+    assertThat(results).isEmpty();
   }
 
   @Test
@@ -64,10 +58,8 @@ public class WebhookResourceTest
 
     Webhook[] results = response.getBody(Webhook[].class);
 
-    assertThat(results.length, is(3));
-    assertThat(results[0].getId(), is(webhook1.getId()));
-    assertThat(results[1].getId(), is(webhook2.getId()));
-    assertThat(results[2].getId(), is(webhook3.getId()));
+    assertThat(results).extracting(Webhook::getId).containsExactly(webhook1.getId(), webhook2.getId(),
+        webhook3.getId());
   }
 
   @Test
@@ -77,11 +69,8 @@ public class WebhookResourceTest
 
     WebhookEventType[] results = response.getBody(WebhookEventType[].class);
 
-    assertThat(results.length, is(4));
-    assertThat(results[0], is(POLICY_MANAGEMENT));
-    assertThat(results[1], is(APPLICATION_EVALUATION));
-    assertThat(results[2], is(LICENSE_OVERRIDE_MANAGEMENT));
-    assertThat(results[3], is(SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT));
+    assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, LICENSE_OVERRIDE_MANAGEMENT,
+        SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT);
   }
 
   @Test
@@ -92,7 +81,7 @@ public class WebhookResourceTest
     assertResponseStatus(200, response);
 
     String result = response.getBodyText();
-    assertThat(result, containsString("Management"));
+    assertThat(result).contains("Management");
   }
 
   @Test
@@ -105,7 +94,7 @@ public class WebhookResourceTest
     Webhook[] results = response.getBody(Webhook[].class);
     Webhook result = results[0];
 
-    assertThat(result.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(result.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
   }
 
   @Test
@@ -121,10 +110,10 @@ public class WebhookResourceTest
     Webhook result = response.getBody(Webhook.class);
     webhookDao.delete(result);
 
-    assertThat(result.getId(), not(nullValue()));
-    assertThat(result.getUrl(), is(webhook.getUrl()));
-    assertThat(result.getEventTypes(), hasItems(POLICY_MANAGEMENT, LICENSE_OVERRIDE_MANAGEMENT));
-    assertThat(result.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(result.getId()).isNotNull();
+    assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
+    assertThat(result.getEventTypes()).containsExactlyInAnyOrder(POLICY_MANAGEMENT, LICENSE_OVERRIDE_MANAGEMENT);
+    assertThat(result.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
   }
 
   @Test
@@ -138,12 +127,12 @@ public class WebhookResourceTest
 
     Webhook result = response.getBody(Webhook.class);
 
-    assertThat(result.getId(), not(nullValue()));
-    assertThat(result.getUrl(), is(webhook.getUrl()));
-    assertThat(result.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(result.getId()).isNotNull();
+    assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
+    assertThat(result.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
 
     Webhook savedWebhook = webhookDao.getById(webhook.getId());
-    assertThat(savedWebhook.getSecretKey(), is(WEBHOOK_SECRET_KEY_ENCRYPTED));
+    assertThat(savedWebhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_ENCRYPTED);
   }
 
   @Test
@@ -159,13 +148,12 @@ public class WebhookResourceTest
 
     Webhook result = response.getBody(Webhook.class);
 
-    assertThat(result.getId(), not(nullValue()));
-    assertThat(result.getUrl(), is(webhook.getUrl()));
-    assertThat(result.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(result.getId()).isNotNull();
+    assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
+    assertThat(result.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
 
     Webhook savedWebhook = webhookDao.getById(webhook.getId());
-    assertThat(savedWebhook.getSecretKey(), is(not(secretKey)));
-    assertThat(savedWebhook.getSecretKey(), not(isEmptyOrNullString()));
+    assertThat(savedWebhook.getSecretKey()).isNotEqualTo(secretKey).isNotEmpty();
   }
 
   @Test
@@ -174,6 +162,6 @@ public class WebhookResourceTest
 
     HttpResponse response = restRequest().body(webhook).path(webhook.getId()).delete();
     assertResponseStatus(204, response);
-    assertThat(webhookDao.getById(webhook.getId()), is(nullValue()));
+    assertThat(webhookDao.getById(webhook.getId())).isNull();
   }
 }

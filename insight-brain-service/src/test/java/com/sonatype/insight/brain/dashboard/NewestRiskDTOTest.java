@@ -10,8 +10,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NewestRiskDTOTest
 {
@@ -33,28 +32,28 @@ public class NewestRiskDTOTest
 
   @Test
   public void testToCsvLine_WithDisplayName() throws Exception {
-    assertThat(risk.toCsvLine(), is("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0");
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayName() throws Exception {
     risk.displayName = null;
-    assertThat(risk.toCsvLine(), is("7,p,o,a,filename,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,filename,1970-01-01T00:00:00Z,0");
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayNameOrFilename() throws Exception {
     risk.displayName = null;
     risk.filename = null;
-    assertThat(risk.toCsvLine(), is("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0");
     risk.filename = "";
-    assertThat(risk.toCsvLine(), is("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0");
   }
 
   @Test
   public void testToCsvLine_QuotedIfNecessary() {
     risk.displayName = null;
     risk.filename = "c,d.jar";
-    assertThat(risk.toCsvLine(), is("7,p,o,a,\"c,d.jar\",1970-01-01T00:00:00Z,0"));
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,\"c,d.jar\",1970-01-01T00:00:00Z,0");
   }
 }

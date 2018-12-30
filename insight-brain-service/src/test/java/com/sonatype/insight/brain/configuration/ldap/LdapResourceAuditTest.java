@@ -24,9 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapResourceAuditTest
     extends AbstractAuditTest
@@ -44,7 +42,7 @@ public class LdapResourceAuditTest
     LdapServer persistedServer = ldapRequest().body(server).post().getBody(LdapServer.class);
     try {
       AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LDAP_SERVER, null);
-      assertThat(persistedServer, is(notNullValue()));
+      assertThat(persistedServer).isNotNull();
       assertLdapServerData(auditDTO, persistedServer);
     }
     finally {

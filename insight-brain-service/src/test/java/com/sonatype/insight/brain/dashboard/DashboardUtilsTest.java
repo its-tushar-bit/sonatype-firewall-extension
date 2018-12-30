@@ -18,10 +18,8 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DashboardUtilsTest
     extends InjectedTest
@@ -37,37 +35,29 @@ public class DashboardUtilsTest
 
   @Test
   public void testGetStageTypes_StageTypeIdsNull() {
-    assertThat(dashboardUtils.getStageTypes(null),
-        contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+    assertThat(dashboardUtils.getStageTypes(null)).containsExactly(StageTypes.BUILD, StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE, StageTypes.OPERATE);
   }
 
   @Test
   public void testGetStageTypes_StageTypeIdsEmpty() {
-    assertThat(dashboardUtils.getStageTypes(Collections.emptySet()),
-        contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+    assertThat(dashboardUtils.getStageTypes(Collections.emptySet())).containsExactly(StageTypes.BUILD,
+        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
   }
 
   @Test
   public void testGetStageTypes_InvalidStageTypeId() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardUtils.getStageTypes(Collections.singleton("invalid-stage-type-id"));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Invalid stage type: invalid-stage-type-id."));
-    }
+    }).withMessage("Invalid stage type: invalid-stage-type-id.");
   }
 
   @Test
   public void testGetStageTypes_UnlicensedStageTypeId() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardUtils.getStageTypes(Collections.singleton(StageTypes.BUILD.getId()));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Current license does not support stage type: build."));
-    }
+    }).withMessage("Current license does not support stage type: build.");
   }
 }

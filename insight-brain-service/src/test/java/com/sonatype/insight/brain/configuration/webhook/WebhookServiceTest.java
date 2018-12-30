@@ -22,10 +22,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookServiceTest
     extends AbstractComponentTest
@@ -51,16 +48,16 @@ public class WebhookServiceTest
     webhook = webhookService.addWebhook(webhook);
 
     // WebhookService should fake out secret key when returning from addWebhook
-    assertThat(webhook.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(webhook.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
 
     webhook = webhookDAO.getByIdNotNull(webhook.getId());
 
     // WebhookService should store secret key encrypted
-    assertThat(webhook.getSecretKey(), is(not(secretKey)));
+    assertThat(webhook.getSecretKey()).isNotEqualTo(secretKey);
     synchronized (plexusCipher) {
       final String decryptedSecretKey = plexusCipher
           .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
-      assertThat(decryptedSecretKey, is(secretKey));
+      assertThat(decryptedSecretKey).isEqualTo(secretKey);
     }
 
     webhookDAO.delete(webhook);
@@ -76,16 +73,16 @@ public class WebhookServiceTest
     webhook = webhookService.updateWebhook(webhook);
 
     // WebhookService should fake out secret key when returning from updateWebhook
-    assertThat(webhook.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(webhook.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
 
     webhook = webhookDAO.getByIdNotNull(webhook.getId());
 
     // WebhookService should store secret key encrypted
-    assertThat(webhook.getSecretKey(), is(not(WEBHOOK_SECRET_KEY_CLEAR)));
+    assertThat(webhook.getSecretKey()).isNotEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
     synchronized (plexusCipher) {
       final String decryptedSecretKey = plexusCipher
           .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
-      assertThat(decryptedSecretKey, is(WEBHOOK_SECRET_KEY_CLEAR));
+      assertThat(decryptedSecretKey).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
     }
   }
 
@@ -100,12 +97,12 @@ public class WebhookServiceTest
     webhook = webhookService.addWebhook(webhook);
 
     // WebhookService should fake out secret key when returning from addWebhook
-    assertThat(webhook.getSecretKey(), is(FAKE_SECRET_KEY));
+    assertThat(webhook.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
 
     webhook = webhookDAO.getByIdNotNull(webhook.getId());
 
     // WebhookService should store empty secret key as empty string
-    assertThat(webhook.getSecretKey(), isEmptyString());
+    assertThat(webhook.getSecretKey()).isEmpty();
 
     webhookDAO.delete(webhook);
   }
@@ -116,8 +113,8 @@ public class WebhookServiceTest
 
     Webhook result = webhookService.getDecrypted(webhook.getId());
 
-    assertThat(result.getId(), is(webhook.getId()));
-    assertThat(result.getUrl(), is(webhook.getUrl()));
-    assertThat(result.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+    assertThat(result.getId()).isEqualTo(webhook.getId());
+    assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
+    assertThat(result.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
   }
 }

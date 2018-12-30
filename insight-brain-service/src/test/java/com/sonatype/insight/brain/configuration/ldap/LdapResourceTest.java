@@ -30,15 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapResourceTest
     extends AbstractResourceTest
@@ -69,30 +61,29 @@ public class LdapResourceTest
     HttpResponse response = restRequest().body(server).post();
     assertResponseStatus(200, response);
     server = response.getBody(LdapServer.class);
-    assertNotNull(server);
-    assertNotNull(server.getId());
-    assertEquals("test server", server.getName());
+    assertThat(server).isNotNull();
+    assertThat(server.getId()).isNotNull();
+    assertThat(server.getName()).isEqualTo("test server");
     String ldapServerId = server.getId();
 
     LdapServer raw = serverDao.getById(server.getId());
 
-    assertNotNull(raw);
-    assertEquals(ldapServerId, raw.getId());
-    assertEquals(server.getName(), raw.getName());
-    assertEquals(NameHelper.normalize(server.getName()), raw.getNameLowercaseNoWhitespace());
+    assertThat(raw).isNotNull();
+    assertThat(raw.getId()).isEqualTo(ldapServerId);
+    assertThat(raw.getName()).isEqualTo(server.getName());
+    assertThat(raw.getNameLowercaseNoWhitespace()).isEqualTo(NameHelper.normalize(server.getName()));
 
     // Get all
     response = restRequest().get();
     assertResponseStatus(200, response);
     LdapServer[] ldapServers = response.getBody(LdapServer[].class);
-    assertNotNull(ldapServers);
-    assertEquals(1, ldapServers.length);
+    assertThat(ldapServers).hasSize(1);
     LdapServer echo = ldapServers[0];
 
-    assertNotNull(echo);
-    assertEquals(ldapServerId, echo.getId());
-    assertEquals(server.getName(), echo.getName());
-    assertEquals(NameHelper.normalize(server.getName()), echo.getNameLowercaseNoWhitespace());
+    assertThat(echo).isNotNull();
+    assertThat(echo.getId()).isEqualTo(ldapServerId);
+    assertThat(echo.getName()).isEqualTo(server.getName());
+    assertThat(echo.getNameLowercaseNoWhitespace()).isEqualTo(NameHelper.normalize(server.getName()));
 
     String name = "test server updated";
 
@@ -103,21 +94,21 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     server = response.getBody(LdapServer.class);
 
-    assertNotNull(server);
-    assertEquals(ldapServerId, server.getId());
-    assertEquals(name, server.getName());
+    assertThat(server).isNotNull();
+    assertThat(server.getId()).isEqualTo(ldapServerId);
+    assertThat(server.getName()).isEqualTo(name);
 
     raw = serverDao.getById(server.getId());
-    assertNotNull(raw);
-    assertEquals(ldapServerId, raw.getId());
-    assertEquals(name, raw.getName());
-    assertEquals(NameHelper.normalize(name), raw.getNameLowercaseNoWhitespace());
+    assertThat(raw).isNotNull();
+    assertThat(raw.getId()).isEqualTo(ldapServerId);
+    assertThat(raw.getName()).isEqualTo(name);
+    assertThat(raw.getNameLowercaseNoWhitespace()).isEqualTo(NameHelper.normalize(name));
 
     // Delete
     response = restRequest().path(ldapServerId).delete();
     assertResponseStatus(204, response);
 
-    assertNull(serverDao.getById(ldapServerId));
+    assertThat(serverDao.getById(ldapServerId)).isNull();
   }
 
   @Test
@@ -126,8 +117,8 @@ public class LdapResourceTest
     LdapServer server2 = tempEntity.newLdapServer("server2");
     HttpResponse response = restRequest().path(LdapResource.PRIORITY_PATH)
         .body(Arrays.asList(server2.getId(), server1.getId())).put();
-    assertThat(serverDao.getById(server2.getId()).getPriority(), is(1));
-    assertThat(serverDao.getById(server1.getId()).getPriority(), is(2));
+    assertThat(serverDao.getById(server2.getId()).getPriority()).isEqualTo(1);
+    assertThat(serverDao.getById(server1.getId()).getPriority()).isEqualTo(2);
     assertResponseStatus(204, response);
   }
 
@@ -153,7 +144,7 @@ public class LdapResourceTest
     response = request.body(umap).put();
     assertResponseStatus(200, response);
     umap = response.getBody(LdapUserMapping.class);
-    assertEquals(orig.getUserEmailAttribute() + "changed", umap.getUserEmailAttribute());
+    assertThat(umap.getUserEmailAttribute()).isEqualTo(orig.getUserEmailAttribute() + "changed");
   }
 
   @Test
@@ -163,8 +154,8 @@ public class LdapResourceTest
     HttpResponse response = restRequest().path(LdapResource.USER_MAPPING_PATH).parameter(server.getId()).get();
     assertResponseStatus(200, response);
     LdapUserMapping umap = response.getBody(LdapUserMapping.class);
-    assertNotNull(umap);
-    assertEquals(server.getId(), umap.getServerId());
+    assertThat(umap).isNotNull();
+    assertThat(umap.getServerId()).isEqualTo(server.getId());
   }
 
   @Test
@@ -174,8 +165,8 @@ public class LdapResourceTest
     HttpResponse response = restRequest().path(LdapResource.CONNECTION_PATH).parameter(server.getId()).get();
     assertResponseStatus(200, response);
     LdapConnection conn = response.getBody(LdapConnection.class);
-    assertNotNull(conn);
-    assertEquals(server.getId(), conn.getServerId());
+    assertThat(conn).isNotNull();
+    assertThat(conn.getServerId()).isEqualTo(server.getId());
   }
 
   @Test
@@ -187,45 +178,45 @@ public class LdapResourceTest
     HttpResponse response = request.body(conn).put();
     assertResponseStatus(200, response);
     conn = response.getBody(LdapConnection.class);
-    assertNotNull(conn);
-    assertNotNull(conn.getId());
+    assertThat(conn).isNotNull();
+    assertThat(conn.getId()).isNotNull();
     String ldapConnId = conn.getId();
 
     LdapConnectionDAO dao = new LdapConnectionDAO();
     LdapConnection raw = dao.getById(conn.getId());
     String oldEncryptedPassword = raw.getSystemPassword();
 
-    assertNotNull(raw);
-    assertEquals(ldapConnId, raw.getId());
-    assertEquals(conn.getProtocol(), raw.getProtocol());
-    assertEquals(conn.getHostname(), raw.getHostname());
-    assertEquals(conn.getPort(), raw.getPort());
-    assertEquals(conn.getSearchBase(), raw.getSearchBase());
-    assertEquals(conn.getAuthenticationMethod(), raw.getAuthenticationMethod());
-    assertEquals(conn.getSaslRealm(), raw.getSaslRealm());
-    assertEquals(conn.getSystemUsername(), raw.getSystemUsername());
-    assertNotEquals(conn.getSystemPassword(), raw.getSystemPassword()); // stored encrypted
-    assertNotEquals(LdapService.FAKE_PASSWORD, raw.getSystemPassword());
-    assertEquals(conn.getConnectionTimeout(), raw.getConnectionTimeout());
-    assertEquals(conn.getRetryDelay(), raw.getRetryDelay());
+    assertThat(raw).isNotNull();
+    assertThat(raw.getId()).isEqualTo(ldapConnId);
+    assertThat(raw.getProtocol()).isEqualTo(conn.getProtocol());
+    assertThat(raw.getHostname()).isEqualTo(conn.getHostname());
+    assertThat(raw.getPort()).isEqualTo(conn.getPort());
+    assertThat(raw.getSearchBase()).isEqualTo(conn.getSearchBase());
+    assertThat(raw.getAuthenticationMethod()).isEqualTo(conn.getAuthenticationMethod());
+    assertThat(raw.getSaslRealm()).isEqualTo(conn.getSaslRealm());
+    assertThat(raw.getSystemUsername()).isEqualTo(conn.getSystemUsername());
+    assertThat(raw.getSystemPassword()).isNotEqualTo(LdapService.FAKE_PASSWORD) //
+        .isNotEqualTo(conn.getSystemPassword()); // stored encrypted
+    assertThat(raw.getConnectionTimeout()).isEqualTo(conn.getConnectionTimeout());
+    assertThat(raw.getRetryDelay()).isEqualTo(conn.getRetryDelay());
 
     // Get by serverId
     response = request.get();
     assertResponseStatus(200, response);
     LdapConnection echo = response.getBody(LdapConnection.class);
 
-    assertNotNull(echo);
-    assertEquals(ldapConnId, echo.getId());
-    assertEquals(conn.getProtocol(), echo.getProtocol());
-    assertEquals(conn.getHostname(), echo.getHostname());
-    assertEquals(conn.getPort(), echo.getPort());
-    assertEquals(conn.getSearchBase(), echo.getSearchBase());
-    assertEquals(conn.getAuthenticationMethod(), echo.getAuthenticationMethod());
-    assertEquals(conn.getSaslRealm(), echo.getSaslRealm());
-    assertEquals(conn.getSystemUsername(), echo.getSystemUsername());
-    assertEquals(LdapService.FAKE_PASSWORD, echo.getSystemPassword());
-    assertEquals(conn.getConnectionTimeout(), echo.getConnectionTimeout());
-    assertEquals(conn.getRetryDelay(), echo.getRetryDelay());
+    assertThat(echo).isNotNull();
+    assertThat(echo.getId()).isEqualTo(ldapConnId);
+    assertThat(echo.getProtocol()).isEqualTo(conn.getProtocol());
+    assertThat(echo.getHostname()).isEqualTo(conn.getHostname());
+    assertThat(echo.getPort()).isEqualTo(conn.getPort());
+    assertThat(echo.getSearchBase()).isEqualTo(conn.getSearchBase());
+    assertThat(echo.getAuthenticationMethod()).isEqualTo(conn.getAuthenticationMethod());
+    assertThat(echo.getSaslRealm()).isEqualTo(conn.getSaslRealm());
+    assertThat(echo.getSystemUsername()).isEqualTo(conn.getSystemUsername());
+    assertThat(echo.getSystemPassword()).isEqualTo(LdapService.FAKE_PASSWORD);
+    assertThat(echo.getConnectionTimeout()).isEqualTo(conn.getConnectionTimeout());
+    assertThat(echo.getRetryDelay()).isEqualTo(conn.getRetryDelay());
 
     LdapProtocol protocol = LdapProtocol.LDAPS;
     String hostname = "hostname";
@@ -254,23 +245,22 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     conn = response.getBody(LdapConnection.class);
 
-    assertNotNull(conn);
-    assertEquals(ldapConnId, ldapConnId);
-    assertEquals(protocol, conn.getProtocol());
-    assertEquals(hostname, conn.getHostname());
-    assertEquals(port, conn.getPort());
-    assertEquals(searchBase, conn.getSearchBase());
-    assertEquals(authenticationMethod, conn.getAuthenticationMethod());
-    assertEquals(saslRealm, conn.getSaslRealm());
-    assertEquals(systemUsername, conn.getSystemUsername());
-    assertEquals(LdapService.FAKE_PASSWORD, conn.getSystemPassword());
-    assertEquals(connectionTimeout, conn.getConnectionTimeout());
-    assertEquals(retryDelay, conn.getRetryDelay());
+    assertThat(conn).isNotNull();
+    assertThat(conn.getId()).isEqualTo(ldapConnId);
+    assertThat(conn.getProtocol()).isEqualTo(protocol);
+    assertThat(conn.getHostname()).isEqualTo(hostname);
+    assertThat(conn.getPort()).isEqualTo(port);
+    assertThat(conn.getSearchBase()).isEqualTo(searchBase);
+    assertThat(conn.getAuthenticationMethod()).isEqualTo(authenticationMethod);
+    assertThat(conn.getSaslRealm()).isEqualTo(saslRealm);
+    assertThat(conn.getSystemUsername()).isEqualTo(systemUsername);
+    assertThat(conn.getSystemPassword()).isEqualTo(LdapService.FAKE_PASSWORD);
+    assertThat(conn.getConnectionTimeout()).isEqualTo(connectionTimeout);
+    assertThat(conn.getRetryDelay()).isEqualTo(retryDelay);
 
     raw = dao.getById(conn.getId());
-    assertNotEquals(oldEncryptedPassword, raw.getSystemPassword());
-    assertNotEquals(conn.getSystemPassword(), raw.getSystemPassword());
-    assertNotEquals(LdapService.FAKE_PASSWORD, raw.getSystemPassword());
+    assertThat(raw.getSystemPassword()).isNotEqualTo(oldEncryptedPassword).isNotEqualTo(conn.getSystemPassword())
+        .isNotEqualTo(LdapService.FAKE_PASSWORD);
   }
 
   @Test
@@ -317,7 +307,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
+    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   @Test
@@ -335,7 +325,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
+    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   @Test
@@ -353,7 +343,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
+    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   @Test
@@ -371,7 +361,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
+    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   @Test
@@ -390,8 +380,8 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(status.getMessage(), containsString("Invalid authentication"));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(status.getMessage()).contains("Invalid authentication");
   }
 
   @Test
@@ -409,8 +399,8 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(status.getMessage(), containsString("Cannot authenticate user"));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(status.getMessage()).contains("Cannot authenticate user");
   }
 
   @Test
@@ -426,10 +416,9 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(status.getMessage(),
-        allOf(anyOf(containsString("UnknownHostException"), containsString("CommunicationException")),
-            containsString("garbage.localhost.litter")));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(status.getMessage()).contains("garbage.localhost.litter")
+        .containsPattern("(UnknownHost|Communication)Exception");
   }
 
   @Test
@@ -448,8 +437,8 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(status.getMessage(), containsString("Nonexistent realm: invalidrealm"));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(status.getMessage()).contains("Nonexistent realm: invalidrealm");
   }
 
   @Test
@@ -470,7 +459,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
+    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   @Test
@@ -493,10 +482,10 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapUser[] users = response.getBody(LdapUser[].class);
     Arrays.sort(users);
-    assertThat(users.length, is(3));
-    assertThat(users[0].getUsername(), is("Beta"));
-    assertThat(users[0].getRealName(), is("Beta User"));
-    assertThat(users[0].getEmail(), is("beta.user@company.com"));
+    assertThat(users).hasSize(3);
+    assertThat(users[0].getUsername()).isEqualTo("Beta");
+    assertThat(users[0].getRealName()).isEqualTo("Beta User");
+    assertThat(users[0].getEmail()).isEqualTo("beta.user@company.com");
   }
 
   @Test
@@ -516,20 +505,20 @@ public class LdapResourceTest
     HttpResponse response = request.body(login).put();
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.FAILURE));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
 
     tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
 
     response = request.body(login).put();
     assertResponseStatus(200, response);
     status = response.getBody(LdapConnectionStatus.class);
-    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.FAILURE));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
 
     login.setPassword("far2simple");
     response = request.body(login).put();
     assertResponseStatus(200, response);
     status = response.getBody(LdapConnectionStatus.class);
-    assertThat(status.getMessage(), status.getStatus(), is(LdapConnectionStatus.Status.OK));
+    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   /**
@@ -556,12 +545,12 @@ public class LdapResourceTest
         .body(login).put();
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.OK));
+    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   private File getTestResourceFile(String path) throws IOException {
     URL resource = getClass().getResource(path);
-    assertNotNull(resource); // sanity check
+    assertThat(resource).as(path).isNotNull(); // sanity check
     File tempFile = temporaryFolder.newFile();
     FileUtils.copyURLToFile(resource, tempFile);
     return tempFile;
@@ -609,22 +598,22 @@ public class LdapResourceTest
   }
 
   private void assertUserMappingEquals(LdapUserMapping expected, LdapUserMapping actual) {
-    assertEquals(expected.getServerId(), actual.getServerId());
-    assertEquals(expected.getUserBaseDN(), actual.getUserBaseDN());
-    assertEquals(expected.isUserSubtree(), actual.isUserSubtree());
-    assertEquals(expected.getUserObjectClass(), actual.getUserObjectClass());
-    assertEquals(expected.getUserFilter(), actual.getUserFilter());
-    assertEquals(expected.getUserIDAttribute(), actual.getUserIDAttribute());
-    assertEquals(expected.getUserRealNameAttribute(), actual.getUserRealNameAttribute());
-    assertEquals(expected.getUserEmailAttribute(), actual.getUserEmailAttribute());
-    assertEquals(expected.getUserPasswordAttribute(), actual.getUserPasswordAttribute());
+    assertThat(actual.getServerId()).isEqualTo(expected.getServerId());
+    assertThat(actual.getUserBaseDN()).isEqualTo(expected.getUserBaseDN());
+    assertThat(actual.isUserSubtree()).isEqualTo(expected.isUserSubtree());
+    assertThat(actual.getUserObjectClass()).isEqualTo(expected.getUserObjectClass());
+    assertThat(actual.getUserFilter()).isEqualTo(expected.getUserFilter());
+    assertThat(actual.getUserIDAttribute()).isEqualTo(expected.getUserIDAttribute());
+    assertThat(actual.getUserRealNameAttribute()).isEqualTo(expected.getUserRealNameAttribute());
+    assertThat(actual.getUserEmailAttribute()).isEqualTo(expected.getUserEmailAttribute());
+    assertThat(actual.getUserPasswordAttribute()).isEqualTo(expected.getUserPasswordAttribute());
 
-    assertEquals(expected.getGroupMappingType(), actual.getGroupMappingType());
-    assertEquals(expected.getGroupBaseDN(), actual.getGroupBaseDN());
-    assertEquals(expected.getGroupObjectClass(), actual.getGroupObjectClass());
-    assertEquals(expected.getGroupIDAttribute(), actual.getGroupIDAttribute());
-    assertEquals(expected.getGroupMemberAttribute(), actual.getGroupMemberAttribute());
-    assertEquals(expected.getGroupMemberFormat(), actual.getGroupMemberFormat());
-    assertEquals(expected.getUserMemberOfGroupAttribute(), actual.getUserMemberOfGroupAttribute());
+    assertThat(actual.getGroupMappingType()).isEqualTo(expected.getGroupMappingType());
+    assertThat(actual.getGroupBaseDN()).isEqualTo(expected.getGroupBaseDN());
+    assertThat(actual.getGroupObjectClass()).isEqualTo(expected.getGroupObjectClass());
+    assertThat(actual.getGroupIDAttribute()).isEqualTo(expected.getGroupIDAttribute());
+    assertThat(actual.getGroupMemberAttribute()).isEqualTo(expected.getGroupMemberAttribute());
+    assertThat(actual.getGroupMemberFormat()).isEqualTo(expected.getGroupMemberFormat());
+    assertThat(actual.getUserMemberOfGroupAttribute()).isEqualTo(expected.getUserMemberOfGroupAttribute());
   }
 }

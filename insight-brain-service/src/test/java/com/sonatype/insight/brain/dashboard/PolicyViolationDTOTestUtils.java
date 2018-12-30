@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 class PolicyViolationDTOTestUtils
 {
@@ -26,17 +26,17 @@ class PolicyViolationDTOTestUtils
   {
     for (PolicyViolationDTO dto : dtos) {
       if (dto.id.equals(violation.getId())) {
-        assertEquals(dto.applicationId, application.getId());
-        assertEquals(dto.applicationName, application.getName());
-        assertEquals(dto.componentIdentifier, violation.getComponentIdentifier());
-        assertEquals(dto.hash, violation.getHash());
-        assertEquals(dto.id, violation.getId());
-        assertEquals(dto.policyId, policy.getId());
-        assertEquals(dto.policyName, policy.getName());
-        assertEquals(dto.threatCategory, violation.getThreatCategory());
-        assertEquals(dto.threatLevel, violation.getThreatLevel());
-        assertEquals(dto.time, evaluation.getTime().getTime());
-        assertEquals(dto.filename, violation.getFilename());
+        assertThat(application.getId()).isEqualTo(dto.applicationId);
+        assertThat(application.getName()).isEqualTo(dto.applicationName);
+        assertThat(violation.getComponentIdentifier()).isEqualTo(dto.componentIdentifier);
+        assertThat(violation.getHash()).isEqualTo(dto.hash);
+        assertThat(violation.getId()).isEqualTo(dto.id);
+        assertThat(policy.getId()).isEqualTo(dto.policyId);
+        assertThat(policy.getName()).isEqualTo(dto.policyName);
+        assertThat(violation.getThreatCategory()).isEqualTo(dto.threatCategory);
+        assertThat(violation.getThreatLevel()).isEqualTo(dto.threatLevel);
+        assertThat(evaluation.getTime().getTime()).isEqualTo(dto.time);
+        assertThat(violation.getFilename()).isEqualTo(dto.filename);
         return;
       }
     }

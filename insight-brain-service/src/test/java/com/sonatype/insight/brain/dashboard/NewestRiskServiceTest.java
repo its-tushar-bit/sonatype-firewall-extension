@@ -38,12 +38,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class NewestRiskServiceTest
     extends AbstractComponentTest
@@ -93,8 +89,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -104,8 +100,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(Collections.singleton(app2.getParentOwnerId()),
             null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -118,8 +114,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null,
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, null, 
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
   }
@@ -132,20 +128,16 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null, 
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
-    assertThat(riskDTO.stageTypeId, is(not(DevelopStageType.ID)));
+    assertThat(riskDTO.stageTypeId).isNotEqualTo(DevelopStageType.ID);
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       newestRiskService.getNewestRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null, null,
           null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Invalid stage type: develop."));
-    }
+    }).withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -156,8 +148,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, null, null, Collections.singleton(app2Tag.getId()), null, null, null, null, 
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -170,8 +162,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null, null, null,
         new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY), null, null, null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, app1PolicyEvaluation.getTime());
   }
@@ -183,10 +175,10 @@ public class NewestRiskServiceTest
         "1", "hash1");
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null, null, null, null,
         new PolicyThreatLevelFilter(7, 7), null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
-    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.dashboardResults).hasSize(1);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, app1PolicyEvaluation.getTime());
   }
 
@@ -198,8 +190,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.WAIVED),
             null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, waivedViolation, app1PolicyEvaluation.getTime());
 
@@ -210,16 +202,16 @@ public class NewestRiskServiceTest
     result = newestRiskService.getNewestRisks(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, grandfatherViolation, app1PolicyEvaluation.getTime());
 
     result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.OPEN),
             "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 100);
-    assertThat(result.dashboardResults, hasSize(3));
-    assertThat(result.numResults, is(3));
+    assertThat(result.dashboardResults).hasSize(3);
+    assertThat(result.numResults).isEqualTo(3);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(1), app1, org1, app1PolicyViolation,
@@ -229,8 +221,8 @@ public class NewestRiskServiceTest
     result = newestRiskService.getNewestRisks(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
             PolicyViolationState.OPEN), "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 100);
-    assertThat(result.dashboardResults, hasSize(5));
-    assertThat(result.numResults, is(5));
+    assertThat(result.dashboardResults).hasSize(5);
+    assertThat(result.numResults).isEqualTo(5);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(1), app1, org1, app1PolicyViolation,
@@ -247,7 +239,7 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL", 
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 100);
-    assertThat(result.dashboardResults, hasSize(3));
+    assertThat(result.dashboardResults).hasSize(3);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(1), app1, org1, app1PolicyViolation,
@@ -258,8 +250,8 @@ public class NewestRiskServiceTest
     result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL", 
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(3));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(3);
     assertNewestRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
         app2PolicyEvaluation.getTime());
   }
@@ -275,8 +267,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL", 
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 100);
-    assertThat(result.dashboardResults, hasSize(3));
-    assertThat(result.numResults, is(3));
+    assertThat(result.dashboardResults).hasSize(3);
+    assertThat(result.numResults).isEqualTo(3);
 
     NewestRiskDTO riskDTO0 = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO0, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -310,15 +302,15 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null,
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, "COMPONENT_NAME",
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(2));
-    assertThat(result.numResults, is(2));
+    assertThat(result.dashboardResults).hasSize(2);
+    assertThat(result.numResults).isEqualTo(2);
 
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
-    assertThat(riskDTO.derivedComponentName, is("b.zip")); // we use the last file in the path name
+    assertThat(riskDTO.derivedComponentName).isEqualTo("b.zip"); // we use the last file in the path name
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolationPathName, evaluation.getTime());
 
     riskDTO = result.dashboardResults.get(1);
-    assertThat(riskDTO.derivedComponentName, is("Unknown"));
+    assertThat(riskDTO.derivedComponentName).isEqualTo("Unknown");
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
   }
 
@@ -336,15 +328,15 @@ public class NewestRiskServiceTest
     Integer maxDaysOld = 1000;
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, 
         Collections.singleton(app.getId()), null, null, null, null, null, null, maxDaysOld, 100);
-    assertThat(result.dashboardResults, hasSize(0));
-    assertThat(result.numResults, is(0));
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isEqualTo(0);
 
     // then run a query with no date limit
     maxDaysOld = null;
     result = newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
         null, maxDaysOld, 100);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     assertNewestRiskDTO(result.dashboardResults.get(0), app, org1, oldPolicyViolation, oldPolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(result.dashboardResults.get(0), BuildStageType.ID, oldScanId,
         orgPolicyViolation.getActionTypeId(), oldPolicyEvaluation.getTime());
@@ -354,26 +346,15 @@ public class NewestRiskServiceTest
   public void testGetNewestRisks_InvalidTimeLimit() throws Exception {
     Application app = tempEntity.newApplication("myapp", "myapp", org1.getId());
 
-    Integer maxDaysOld;
-    try {
-      maxDaysOld = -50;
-      newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
-          null, maxDaysOld, 100);
-      fail("Expected IllegalArgumentException when maxDaysOld is negative");
-    }
-    catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is("Max Days Old must be a positive integer"));
-    }
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
+          -50, 100);
+    }).withMessage("Max Days Old must be a positive integer");
 
-    try {
-      maxDaysOld = 0;
-      newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
-          null, maxDaysOld, 100);
-      fail("Expected IllegalArgumentException when maxDaysOld is zero");
-    }
-    catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is("Max Days Old must be a positive integer"));
-    }
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null, 0,
+          100);
+    }).withMessage("Max Days Old must be a positive integer");
   }
 
   @Test
@@ -405,8 +386,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, 
         Collections.singleton(app.getId()), null, null, null, null, null, null, 
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 100);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
 
     assertNewestRiskDTO(result.dashboardResults.get(0), app, org1, policyViolation1, firstOccurrenceTime);
     assertNewestRiskDTOContainsStageDetail(result.dashboardResults.get(0), ReleaseStageType.ID, scanId4,
@@ -422,8 +403,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null, null, 
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, null, 
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
 
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
@@ -437,8 +418,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, null, Collections.singleton(ReleaseStageType.ID), null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, policyViolation, evaluation.getTime());
   }
@@ -448,8 +429,8 @@ public class NewestRiskServiceTest
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, BuildStageType.ID, app2PolicyEvaluation.getScanId(),
@@ -465,8 +446,8 @@ public class NewestRiskServiceTest
     result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, policyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, ReleaseStageType.ID, releaseEvaluation.getScanId(),
@@ -478,8 +459,8 @@ public class NewestRiskServiceTest
     result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app2, org2, policyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetail(riskDTO, BuildStageType.ID, buildEvaluation.getScanId(),
@@ -504,8 +485,8 @@ public class NewestRiskServiceTest
         Collections.singleton(app.getId()), null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD,
         1000);
 
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app, org1, violation1, evaluation.getTime());
   }
@@ -528,22 +509,22 @@ public class NewestRiskServiceTest
                                    PolicyViolation policyViolation,
                                    Date firstOccurrenceTime)
   {
-    assertThat(actual.organizationName, is(org.getName()));
-    assertThat(actual.applicationName, is(app.getName()));
-    assertThat(actual.applicationPublicId, is(app.getPublicId()));
-    assertThat(actual.threatLevel, is(policyViolation.getThreatLevel()));
-    assertThat(actual.firstOccurrenceTime, is(firstOccurrenceTime.getTime()));
-    assertThat(actual.policyName, is(policyViolation.getPolicyName()));
-    assertThat(actual.policyId, is(policyViolation.getPolicyId()));
-    assertThat(actual.hash, is(policyViolation.getHash()));
+    assertThat(actual.organizationName).isEqualTo(org.getName());
+    assertThat(actual.applicationName).isEqualTo(app.getName());
+    assertThat(actual.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(actual.threatLevel).isEqualTo(policyViolation.getThreatLevel());
+    assertThat(actual.firstOccurrenceTime).isEqualTo(firstOccurrenceTime.getTime());
+    assertThat(actual.policyName).isEqualTo(policyViolation.getPolicyName());
+    assertThat(actual.policyId).isEqualTo(policyViolation.getPolicyId());
+    assertThat(actual.hash).isEqualTo(policyViolation.getHash());
     if (policyViolation.getComponentIdentifier() != null) {
       assertDisplayFieldValues(actual.displayName.parts, policyViolation);
-      assertThat(actual.derivedComponentName, is(actual.displayName.toString()));
+      assertThat(actual.derivedComponentName).isEqualTo(actual.displayName.toString());
     }
     else {
-      assertThat(actual.displayName, is(nullValue()));
+      assertThat(actual.displayName).isNull();
     }
-    assertThat(actual.filename, is(policyViolation.getFilename()));
+    assertThat(actual.filename).isEqualTo(policyViolation.getFilename());
   }
 
   private void assertNewestRiskDTOContainsStageDetail(NewestRiskDTO actual,
@@ -552,9 +533,9 @@ public class NewestRiskServiceTest
                                                       String actionTypeId,
                                                       Date lastOccurrenceTime)
   {
-    assertThat(actual.stageTypeId, is(stageTypeId));
-    assertThat(actual.actionTypeId, is(actionTypeId));
-    assertThat(actual.scanId, is(scanId));
-    assertThat(actual.lastOccurrenceTime, is(lastOccurrenceTime.getTime()));
+    assertThat(actual.stageTypeId).isEqualTo(stageTypeId);
+    assertThat(actual.actionTypeId).isEqualTo(actionTypeId);
+    assertThat(actual.scanId).isEqualTo(scanId);
+    assertThat(actual.lastOccurrenceTime).isEqualTo(lastOccurrenceTime.getTime());
   }
 }

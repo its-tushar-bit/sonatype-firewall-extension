@@ -14,8 +14,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AutomaticApplicationsConfigurationResourceTest
     extends AbstractResourceTest
@@ -31,8 +30,8 @@ public class AutomaticApplicationsConfigurationResourceTest
     assertResponseStatus(HttpStatus.SC_OK, response);
 
     AutomaticApplicationsConfiguration configuration = response.getBody(AutomaticApplicationsConfiguration.class);
-    assertThat(configuration.isEnabled(), is(false));
-    assertThat(configuration.getParentOrganizationId(), is(""));
+    assertThat(configuration.isEnabled()).isFalse();
+    assertThat(configuration.getParentOrganizationId()).isEqualTo("");
   }
 
   @Test
@@ -44,12 +43,12 @@ public class AutomaticApplicationsConfigurationResourceTest
     assertResponseStatus(HttpStatus.SC_OK, response);
 
     AutomaticApplicationsConfiguration configuration = response.getBody(AutomaticApplicationsConfiguration.class);
-    assertThat(configuration.isEnabled(), is(true));
-    assertThat(configuration.getParentOrganizationId(), is(organization.getId()));
+    assertThat(configuration.isEnabled()).isTrue();
+    assertThat(configuration.getParentOrganizationId()).isEqualTo(organization.getId());
 
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
 
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(true));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(organization.getId()));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isTrue();
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());
   }
 }

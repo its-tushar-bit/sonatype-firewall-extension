@@ -7,21 +7,20 @@ package com.sonatype.insight.brain.dashboard;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationScoreRiskDTOTest
 {
   @Test
   public void testGetCsvHeader() {
-    assertThat(ApplicationRiskScoreDTO.getCsvHeader(),
-        is("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low"));
+    assertThat(ApplicationRiskScoreDTO.getCsvHeader())
+        .isEqualTo("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low");
   }
   
   @Test
   public void testToCsvLine() {
     ApplicationRiskScoreDTO risk = new ApplicationRiskScoreDTO("orgName", "appName", "appId");
     risk.totalApplicationRisk = new RiskDTO(5, 4, 3, 2, 1);
-    assertThat(risk.toCsvLine(), is("orgName,appName,5,4,3,2,1"));
+    assertThat(risk.toCsvLine()).isEqualTo("orgName,appName,5,4,3,2,1");
   }
 }

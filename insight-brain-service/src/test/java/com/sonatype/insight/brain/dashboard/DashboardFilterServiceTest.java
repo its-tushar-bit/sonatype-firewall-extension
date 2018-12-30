@@ -36,13 +36,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -106,18 +101,18 @@ public class DashboardFilterServiceTest
   @Test
   public void testDashboardFilterDefaultFilter() throws Exception {
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual, notNullValue());
-    assertThat(actual.filter.minPolicyThreatLevel, is(2));
-    assertThat(actual.filter.maxPolicyThreatLevel, is(10));
-    assertThat(actual.filter.applicationFilters, hasSize(0));
-    assertThat(actual.filter.tagFilters, hasSize(0));
-    assertThat(actual.filter.policyThreatCategoryFilters, hasSize(0));
-    assertThat(actual.filter.stageTypeFilters, hasSize(0));
-    assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
-    assertThat(actual.filter.policyViolationStates, hasSize(1));
-    assertThat(actual.filter.policyViolationStates.get(0), is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
-    assertThat(actual.name, is(ACTIVE_FILTER_NAME));
-    assertThat(actual.basedOnFilterName, is(nullValue()));
+    assertThat(actual).isNotNull();
+    assertThat(actual.filter.minPolicyThreatLevel).isEqualTo(2);
+    assertThat(actual.filter.maxPolicyThreatLevel).isEqualTo(10);
+    assertThat(actual.filter.applicationFilters).isEmpty();
+    assertThat(actual.filter.tagFilters).isEmpty();
+    assertThat(actual.filter.policyThreatCategoryFilters).isEmpty();
+    assertThat(actual.filter.stageTypeFilters).isEmpty();
+    assertThat(actual.filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
+    assertThat(actual.filter.policyViolationStates).hasSize(1);
+    assertThat(actual.filter.policyViolationStates.get(0)).isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
+    assertThat(actual.name).isEqualTo(ACTIVE_FILTER_NAME);
+    assertThat(actual.basedOnFilterName).isNull();
   }
 
   @Test
@@ -135,7 +130,7 @@ public class DashboardFilterServiceTest
     tempEntity.newDashboardFilter(USERNAME, filterName3, JsonUtils.format(dto3.filter));
 
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
-    assertThat(actual, hasSize(2));
+    assertThat(actual).hasSize(2);
     assertNamedDashboardFilterDTO(actual.get(0), filterName1, null /* basedOnFilterName */,
         false /* needsAcknowledgement */);
     assertFilterEmptyState(actual.get(0).filter, 2, 10);
@@ -154,8 +149,8 @@ public class DashboardFilterServiceTest
     tempEntity.newDashboardFilter(USERNAME, filterName, filterJsonWithoutMaxDaysOld);
 
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
-    assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
+    assertThat(actual).hasSize(1);
+    assertThat(actual.get(0).filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
   }
 
   @Test
@@ -167,13 +162,13 @@ public class DashboardFilterServiceTest
     tempEntity.newDashboardFilter(USERNAME, filterName, filterJsonWithoutPolicyViolationStates);
 
     List<NamedDashboardFilterDTO> namedFilters = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
-    assertThat(namedFilters, hasSize(1));
+    assertThat(namedFilters).hasSize(1);
 
     NamedDashboardFilterDTO actual = namedFilters.get(0);
 
-    assertThat(actual.filter.policyViolationStates, hasSize(1));
-    assertThat(actual.filter.policyViolationStates.get(0),
-        is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
+    assertThat(actual.filter.policyViolationStates).hasSize(1);
+    assertThat(actual.filter.policyViolationStates.get(0))
+        .isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
   }
 
   @Test
@@ -194,7 +189,7 @@ public class DashboardFilterServiceTest
     String filterName1 = "Filter1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
     DashboardFilter filter1 = tempEntity.newDashboardFilter(USERNAME, filterName1, JsonUtils.format(dto1.filter));
-    assertThat(filter1.isAcknowledged(), is(false));
+    assertThat(filter1.isAcknowledged()).isFalse();
 
     insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
@@ -247,7 +242,7 @@ public class DashboardFilterServiceTest
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto1);
 
     List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
-    assertThat(actual, hasSize(1));
+    assertThat(actual).hasSize(1);
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.get(0).getFilter(), DashboardFilterDTO.class);
     assertDashboardFilter(actual.get(0), USERNAME, "Filter1", "filter1", null /* basedOnFilterName */,
         needsAcknowledgementOfInitialDashboardFilter);
@@ -263,13 +258,13 @@ public class DashboardFilterServiceTest
                                       int minPolicyThreatLevel,
                                       int maxPolicyThreatLevel)
   {
-    assertThat(actualDto.minPolicyThreatLevel, is(minPolicyThreatLevel));
-    assertThat(actualDto.maxPolicyThreatLevel, is(maxPolicyThreatLevel));
-    assertThat(actualDto.applicationFilters, empty());
-    assertThat(actualDto.organizationFilters, empty());
-    assertThat(actualDto.tagFilters, empty());
-    assertThat(actualDto.policyThreatCategoryFilters, empty());
-    assertThat(actualDto.stageTypeFilters, empty());
+    assertThat(actualDto.minPolicyThreatLevel).isEqualTo(minPolicyThreatLevel);
+    assertThat(actualDto.maxPolicyThreatLevel).isEqualTo(maxPolicyThreatLevel);
+    assertThat(actualDto.applicationFilters).isEmpty();
+    assertThat(actualDto.organizationFilters).isEmpty();
+    assertThat(actualDto.tagFilters).isEmpty();
+    assertThat(actualDto.policyThreatCategoryFilters).isEmpty();
+    assertThat(actualDto.stageTypeFilters).isEmpty();
   }
 
   @Test
@@ -293,7 +288,7 @@ public class DashboardFilterServiceTest
         needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actual.filter, 2, 10);
 
-    assertThat(dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME), is(nullValue()));
+    assertThat(dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME)).isNull();
   }
 
   @Test
@@ -351,7 +346,7 @@ public class DashboardFilterServiceTest
     tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, filterJsonWithoutMaxDaysOld);
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
+    assertThat(actual.filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
   }
 
   @Test
@@ -362,9 +357,9 @@ public class DashboardFilterServiceTest
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
 
-    assertThat(actual.filter.policyViolationStates, hasSize(1));
-    assertThat(actual.filter.policyViolationStates.get(0),
-        is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
+    assertThat(actual.filter.policyViolationStates).hasSize(1);
+    assertThat(actual.filter.policyViolationStates.get(0))
+        .isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
   }
 
   @Test
@@ -386,9 +381,9 @@ public class DashboardFilterServiceTest
     dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
 
     List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
-    assertThat(actual, hasSize(0));
+    assertThat(actual).isEmpty();
     DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
-    assertThat(activeFilter.getBasedOnFilterName(), nullValue());
+    assertThat(activeFilter.getBasedOnFilterName()).isNull();
   }
 
   @Test
@@ -403,15 +398,15 @@ public class DashboardFilterServiceTest
     List<DashboardFilterErrorResponseDTO> actualErrors = dashboardFilterService
         .deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
     // verify that Filter X failed
-    assertThat(actualErrors, hasSize(1));
-    assertThat(actualErrors.get(0).name, is(filterName1));
-    assertThat(actualErrors.get(0).errorMessage,
-        is("Cannot find a filter with name " + filterName1 + " for user " + USERNAME + "."));
-    assertThat(actualErrors.get(0).status, is(404));
+    assertThat(actualErrors).hasSize(1);
+    assertThat(actualErrors.get(0).name).isEqualTo(filterName1);
+    assertThat(actualErrors.get(0).errorMessage)
+        .isEqualTo("Cannot find a filter with name " + filterName1 + " for user " + USERNAME + ".");
+    assertThat(actualErrors.get(0).status).isEqualTo(404);
 
     // verify that Filter Y got deleted
     List<DashboardFilter> actualFilters = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
-    assertThat(actualFilters, hasSize(0));
+    assertThat(actualFilters).isEmpty();
   }
 
   @Test
@@ -446,40 +441,33 @@ public class DashboardFilterServiceTest
     List<DashboardFilterErrorResponseDTO> actualErrors = dashboardFilterService
         .deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
     // verify that Filter 1 failed
-    assertThat(actualErrors, hasSize(1));
-    assertThat(actualErrors.get(0).name, is(filterName1));
-    assertThat(actualErrors.get(0).errorMessage,
-        is("An exception occurred while trying to find or delete filter name " + filterName1 + " for user " + USERNAME + "."));
-    assertThat(actualErrors.get(0).status, is(500));
+    assertThat(actualErrors).hasSize(1);
+    assertThat(actualErrors.get(0).name).isEqualTo(filterName1);
+    assertThat(actualErrors.get(0).errorMessage)
+        .isEqualTo("An exception occurred while trying to find or delete filter name " + filterName1 + " for user "
+            + USERNAME + ".");
+    assertThat(actualErrors.get(0).status).isEqualTo(500);
 
     // verify that Filter 1 is present and Filter 2 got deleted
     List<DashboardFilter> actualFilters = dashboardFilterDao.getNamedFiltersByUsername(USERNAME);
-    assertThat(actualFilters, hasSize(1));
+    assertThat(actualFilters).hasSize(1);
     assertDashboardFilter(actualFilters.get(0), USERNAME, "Filter 1", "filter1", null, false);
   }
 
   @Test
   public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnNullInput()
   {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Filter names cannot be null or empty."));
-    }
+    }).withMessage("Filter names cannot be null or empty.");
   }
 
   @Test
   public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnEmptyInput()
   {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
-      fail("Expected exception to be thrown.");
-    }
-    catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Filter names cannot be null or empty."));
-    }
+    }).withMessage("Filter names cannot be null or empty.");
   }
 
   private NamedDashboardFilterDTO createNamedDashboardFilterDTO(String filterName,
@@ -505,9 +493,9 @@ public class DashboardFilterServiceTest
                                              String basedOnFilterName,
                                              boolean needsAcknowledgement)
   {
-    assertThat(actual.name, is(name));
-    assertThat(actual.basedOnFilterName, is(basedOnFilterName));
-    assertThat(actual.needsAcknowledgement, is(needsAcknowledgement));
+    assertThat(actual.name).isEqualTo(name);
+    assertThat(actual.basedOnFilterName).isEqualTo(basedOnFilterName);
+    assertThat(actual.needsAcknowledgement).isEqualTo(needsAcknowledgement);
   }
 
   private void assertDashboardFilter(DashboardFilter actual,
@@ -517,11 +505,11 @@ public class DashboardFilterServiceTest
                                      String basedOnFilterName,
                                      boolean acknowledged)
   {
-    assertThat(actual.getId(), is(notNullValue()));
-    assertThat(actual.getUsername(), is(username));
-    assertThat(actual.getName(), is(name));
-    assertThat(actual.getNameLowercaseNoWhitespace(), is(nameLowercaseNoWhitespace));
-    assertThat(actual.getBasedOnFilterName(), is(basedOnFilterName));
-    assertThat(actual.isAcknowledged(), is(acknowledged));
+    assertThat(actual.getId()).isNotNull();
+    assertThat(actual.getUsername()).isEqualTo(username);
+    assertThat(actual.getName()).isEqualTo(name);
+    assertThat(actual.getNameLowercaseNoWhitespace()).isEqualTo(nameLowercaseNoWhitespace);
+    assertThat(actual.getBasedOnFilterName()).isEqualTo(basedOnFilterName);
+    assertThat(actual.isAcknowledged()).isEqualTo(acknowledged);
   }
 }

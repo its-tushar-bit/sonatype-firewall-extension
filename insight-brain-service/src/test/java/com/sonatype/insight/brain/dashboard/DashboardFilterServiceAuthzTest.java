@@ -15,10 +15,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardFilterServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -36,12 +33,12 @@ public class DashboardFilterServiceAuthzTest
 
     grantReadPermission(app.getId());
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
-    assertThat(actual.get(0).filter.applicationFilters, not(contains(app2.getId())));
-    assertThat(actual.get(0).filter.applicationFilters, contains(app.getId()));
+    assertThat(actual.get(0).filter.applicationFilters).doesNotContain(app2.getId())
+        .containsExactlyInAnyOrder(app.getId());
 
     grantReadPermission(app2.getId());
     actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
-    assertThat(actual.get(0).filter.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
+    assertThat(actual.get(0).filter.applicationFilters).containsExactlyInAnyOrder(app.getId(), app2.getId());
   }
 
   @Test
@@ -55,12 +52,11 @@ public class DashboardFilterServiceAuthzTest
 
     grantReadPermission(app.getId());
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual.filter.applicationFilters, contains(app.getId()));
-    assertThat(actual.filter.applicationFilters, not(contains(app2.getId())));
+    assertThat(actual.filter.applicationFilters).containsExactlyInAnyOrder(app.getId()).doesNotContain(app2.getId());
 
     grantReadPermission(app2.getId());
     actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual.filter.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
+    assertThat(actual.filter.applicationFilters).containsExactlyInAnyOrder(app.getId(), app2.getId());
   }
 
   private NamedDashboardFilterDTO createNamedDashboardFilterDTO(final String filterName, String... applicationIDs) {

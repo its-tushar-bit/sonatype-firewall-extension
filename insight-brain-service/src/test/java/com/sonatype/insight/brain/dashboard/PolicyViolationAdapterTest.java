@@ -20,7 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationAdapterTest
 {
@@ -45,7 +45,7 @@ public class PolicyViolationAdapterTest
 
     PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, violation);
 
-    assertNotNull(dto);
+    assertThat(dto).isNotNull();
     assertPolicyViolationDTO(Arrays.asList(dto), violation, app, policyEvaluation, policy);
   }
 
@@ -61,7 +61,7 @@ public class PolicyViolationAdapterTest
 
     PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, policyViolation);
 
-    assertNotNull(dto);
+    assertThat(dto).isNotNull();
     assertPolicyViolationDTO(Arrays.asList(dto), policyViolation, app, policyEvaluation, policy);
   }
 }

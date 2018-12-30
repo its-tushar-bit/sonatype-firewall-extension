@@ -30,11 +30,8 @@ import org.apache.http.HttpEntity;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
@@ -66,11 +63,11 @@ public class AutomaticApplicationsConfigurationServiceTest
     AutomaticApplicationsConfiguration updated = service
         .update(new AutomaticApplicationsConfiguration(true, organization.getId()));
 
-    assertThat(updated.isEnabled(), is(true));
-    assertThat(updated.getParentOrganizationId(), is(organization.getId()));
+    assertThat(updated.isEnabled()).isTrue();
+    assertThat(updated.getParentOrganizationId()).isEqualTo(organization.getId());
 
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(true));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(organization.getId()));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isTrue();
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());
   }
 
   @Test
@@ -107,121 +104,91 @@ public class AutomaticApplicationsConfigurationServiceTest
   private void assertTelemetryEvent(InvocationOnMock invocation, Date before, Date after, boolean expected)
       throws Exception
   {
-    assertThat(TelemetrySender.RESOURCE_PATH, is(invocation.getArguments()[0]));
+    assertThat(TelemetrySender.RESOURCE_PATH).isEqualTo(invocation.getArguments()[0]);
     HttpEntity httpEntity = (HttpEntity) invocation.getArguments()[1];
     ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
     BodyPart bodyPart = multipart.getBodyPart(0);
     String filename = bodyPart.getFileName();
-    assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
+    assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
 
     try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
       byte[] buffer = new byte[1024];
 
       ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
-      assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
+      assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryHeader telemetryHeader = JsonUtils.parse(buffer, TelemetryHeader.class);
-      assertThat(telemetryHeader.getCreateTime(), greaterThanOrEqualTo(before));
-      assertThat(telemetryHeader.getCreateTime(), lessThanOrEqualTo(after));
+      assertThat(telemetryHeader.getCreateTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
-      assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
+      assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryData telemetryData = JsonUtils.parse(buffer, TelemetryData.class);
-      assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION));
-      assertThat(
-          telemetryData.getAttributes()
-              .get(AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR),
-          is(String.valueOf(expected)));
-      assertThat(telemetryData.getAttributes().size(), is(1));
-      assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(before.getTime()));
-      assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(after.getTime()));
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
+      assertThat(telemetryData.getAttributes()).hasSize(1).containsEntry(
+          AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR, String.valueOf(expected));
+      assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
+          .isLessThanOrEqualTo(after.getTime());
     }
   }
 
   @Test
   public void testUpdate_RootOrganizationId_Enabled() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.update(new AutomaticApplicationsConfiguration(true, Organization.ROOT_ORGANIZATION_ID));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Parent cannot be the root organization."));
-    }
+    }).withMessage("Parent cannot be the root organization.");
   }
 
   @Test
   public void testUpdate_RootOrganizationId_Disabled() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.update(new AutomaticApplicationsConfiguration(false, Organization.ROOT_ORGANIZATION_ID));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Parent cannot be the root organization."));
-    }
+    }).withMessage("Parent cannot be the root organization.");
   }
 
   @Test
   public void testUpdate_InvalidOrganizationId_Enabled() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.update(new AutomaticApplicationsConfiguration(true, "testOrganizationID"));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Parent organization ID testOrganizationID not found."));
-    }
+    }).withMessage("Parent organization ID testOrganizationID not found.");
   }
 
   @Test
   public void testUpdate_InvalidOrganizationId_Disabled() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.update(new AutomaticApplicationsConfiguration(false, "testOrganizationID"));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Parent organization ID testOrganizationID not found."));
-    }
+    }).withMessage("Parent organization ID testOrganizationID not found.");
   }
 
   @Test
   public void testUpdate_EmptyParentOrganizationId_Enabled() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.update(new AutomaticApplicationsConfiguration(true, ""));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Parent organization ID is required when automatic application creation is enabled."));
-    }
+    }).withMessage("Parent organization ID is required when automatic application creation is enabled.");
   }
 
   @Test
   public void testUpdate_EmptyParentOrganizationId_Disabled() {
     service.update(new AutomaticApplicationsConfiguration(false, ""));
 
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(false));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(""));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isFalse();
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo("");
   }
 
   @Test
   public void testUpdate_NullParentOrganizationId_Enabled() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.update(new AutomaticApplicationsConfiguration(true, null));
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Parent organization ID is required when automatic application creation is enabled."));
-    }
+    }).withMessage("Parent organization ID is required when automatic application creation is enabled.");
   }
 
   @Test
   public void testUpdate_NullParentOrganizationId_Disabled() {
     service.update(new AutomaticApplicationsConfiguration(false, null));
 
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(false));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(""));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isFalse();
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo("");
   }
 
   @Test
@@ -231,7 +198,7 @@ public class AutomaticApplicationsConfigurationServiceTest
 
     AutomaticApplicationsConfiguration configuration = service.get();
 
-    assertThat(configuration.isEnabled(), is(true));
-    assertThat(configuration.getParentOrganizationId(), is("testGetId"));
+    assertThat(configuration.isEnabled()).isTrue();
+    assertThat(configuration.getParentOrganizationId()).isEqualTo("testGetId");
   }
 }

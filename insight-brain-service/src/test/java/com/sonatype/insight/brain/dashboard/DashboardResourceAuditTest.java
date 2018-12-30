@@ -26,15 +26,13 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardResourceAuditTest
     extends AbstractAuditTest
@@ -243,10 +241,8 @@ public class DashboardResourceAuditTest
   }
 
   private void assertSelectedApplicationCategories(AuditDTO auditDTO, ApplicationCategoryAuditDTO... expected) {
-    List<ApplicationCategoryAuditDTO> actuals = objectMapper.convertValue(
-        auditDTO.data.get("selectedApplicationCategories"), new TypeReference<List<ApplicationCategoryAuditDTO>>()
-        {
-        });
-    assertThat(actuals, containsInAnyOrder(expected));
+    ApplicationCategoryAuditDTO[] actuals = objectMapper
+        .convertValue(auditDTO.data.get("selectedApplicationCategories"), ApplicationCategoryAuditDTO[].class);
+    assertThat(actuals).containsExactlyInAnyOrder(expected);
   }
 }

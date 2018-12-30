@@ -32,13 +32,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApplicationRiskServiceTest
     extends AbstractComponentTest
@@ -85,19 +80,15 @@ public class ApplicationRiskServiceTest
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 100);
-    assertThat(result.dashboardResults, hasSize(2));
-    assertThat(result.numResults, is(2));
-    assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
-    assertThat(result.dashboardResults.get(1).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
+    assertThat(result.dashboardResults).hasSize(2);
+    assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID)).isNull();
+    assertThat(result.dashboardResults.get(1).getStageRiskScore(DevelopStageType.ID)).isNull();
 
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       applicationRiskService.getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
           null, null, "-TOTAL_RISK", 100);
-      fail("Expected exception");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Invalid stage type: develop."));
-    }
+    }).withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -113,14 +104,11 @@ public class ApplicationRiskServiceTest
         Collections.singleton(app1.getId()),
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
             StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 100);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(4));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
-    assertThat(appDTO.stageRisks.get(1).stageTypeId, is(StageReleaseStageType.ID));
-    assertThat(appDTO.stageRisks.get(2).stageTypeId, is(ReleaseStageType.ID));
-    assertThat(appDTO.stageRisks.get(3).stageTypeId, is(OperateStageType.ID));
+    assertThat(appDTO.stageRisks).extracting(dto -> dto.stageTypeId).containsExactly(BuildStageType.ID,
+        StageReleaseStageType.ID, ReleaseStageType.ID, OperateStageType.ID);
   }
 
   @Test
@@ -130,13 +118,13 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK",
             100);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(1));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk,
-        is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2));
+    assertThat(appDTO.stageRisks).hasSize(1);
+    assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk)
+        .isEqualTo(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2);
   }
 
   @Test
@@ -147,12 +135,12 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(1));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(app1Policy.getThreatLevel()));
+    assertThat(appDTO.stageRisks).hasSize(1);
+    assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(app1Policy.getThreatLevel());
 
     Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1);
     tempEntity.newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
@@ -160,42 +148,42 @@ public class ApplicationRiskServiceTest
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), "-TOTAL_RISK", 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(1));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(app1GrandfatherPolicy.getThreatLevel()));
+    assertThat(appDTO.stageRisks).hasSize(1);
+    assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(app1GrandfatherPolicy.getThreatLevel());
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(1));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel()));
+    assertThat(appDTO.stageRisks).hasSize(1);
+    assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel());
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
                 PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(1));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk,
-        is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2 + app1GrandfatherPolicy.getThreatLevel()));
+    assertThat(appDTO.stageRisks).hasSize(1);
+    assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(
+        orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2 + app1GrandfatherPolicy.getThreatLevel());
   }
 
   @Test
   public void testGetApplicationRisks_ResultsCountCanExceedNumberOfReturnedResults() {
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(2));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(2);
   }
 
   @Test
@@ -204,18 +192,18 @@ public class ApplicationRiskServiceTest
         Collections.singleton(app1.getId()), Collections.singleton(BuildStageType.ID), null, null, null, null,
         "-TOTAL_RISK", Integer.MAX_VALUE);
 
-    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.dashboardResults).hasSize(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
     assertRisk(appDTO.totalApplicationRisk, 0, 5, 3, 0, 8);
-    assertEquals("Organization name was set right", org.getName(), appDTO.organizationName);
-    assertEquals("Risk name was set right", app1.getName(), appDTO.applicationName);
-    assertEquals("Risk public appID was set right", app1.getPublicId(), appDTO.applicationId);
-    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.organizationName).isEqualTo(org.getName());
+    assertThat(appDTO.applicationName).isEqualTo(app1.getName());
+    assertThat(appDTO.applicationId).isEqualTo(app1.getPublicId());
+    assertThat(appDTO.stageRisks).hasSize(1);
 
     StageRiskScoreDTO buildStageRisk = appDTO.getStageRiskScore(BuildStageType.ID);
     assertRisk(buildStageRisk.risk, 0, 5, 3, 0, 8);
-    assertThat(buildStageRisk.scanId, is("test scan app1 id"));
-    assertThat(buildStageRisk.stageTypeName, is(StageTypes.BUILD.getName()));
+    assertThat(buildStageRisk.scanId).isEqualTo("test scan app1 id");
+    assertThat(buildStageRisk.stageTypeName).isEqualTo(StageTypes.BUILD.getName());
   }
 
   @Test
@@ -230,7 +218,7 @@ public class ApplicationRiskServiceTest
         Collections.singleton(app.getId()), Collections.singleton(BuildStageType.ID), null, null, null, null,
         "-TOTAL_RISK", Integer.MAX_VALUE);
 
-    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.dashboardResults).isEmpty();
   }
 
   @Test
@@ -240,11 +228,11 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK", 100);
 
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks, hasSize(1));
-    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks).hasSize(1);
+    assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
   }
 
   @Test
@@ -263,34 +251,34 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null, null, null,
         null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
 
-    assertThat(result.dashboardResults, hasSize(4));
+    assertThat(result.dashboardResults).hasSize(4);
 
     // app3 should be first because it has the highest risk.
     // app0 and app2 have the same risk, so app0 must be before app2 based on their IDs.
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
-    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
-    assertEquals(app3.getName(), applicationRiskScoreDTO.applicationName);
-    assertEquals(app3.getPublicId(), applicationRiskScoreDTO.applicationId);
-    assertEquals(9, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
+    assertThat(applicationRiskScoreDTO.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO.applicationName).isEqualTo(app3.getName());
+    assertThat(applicationRiskScoreDTO.applicationId).isEqualTo(app3.getPublicId());
+    assertThat(applicationRiskScoreDTO.totalApplicationRisk.totalRisk).isEqualTo(9);
 
     applicationRiskScoreDTO = result.dashboardResults.get(1);
-    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
-    assertEquals(app1.getName(), applicationRiskScoreDTO.applicationName);
-    assertEquals(app1.getPublicId(), applicationRiskScoreDTO.applicationId);
-    assertEquals(8, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
+    assertThat(applicationRiskScoreDTO.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO.applicationName).isEqualTo(app1.getName());
+    assertThat(applicationRiskScoreDTO.applicationId).isEqualTo(app1.getPublicId());
+    assertThat(applicationRiskScoreDTO.totalApplicationRisk.totalRisk).isEqualTo(8);
 
     applicationRiskScoreDTO = result.dashboardResults.get(2);
-    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
-    assertEquals(app0.getName(), applicationRiskScoreDTO.applicationName);
-    assertEquals(app0.getPublicId(), applicationRiskScoreDTO.applicationId);
-    assertEquals(3, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
+    assertThat(applicationRiskScoreDTO.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO.applicationName).isEqualTo(app0.getName());
+    assertThat(applicationRiskScoreDTO.applicationId).isEqualTo(app0.getPublicId());
+    assertThat(applicationRiskScoreDTO.totalApplicationRisk.totalRisk).isEqualTo(3);
 
     applicationRiskScoreDTO = result.dashboardResults.get(3);
-    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
-    assertEquals(app2.getName(), applicationRiskScoreDTO.applicationName);
-    assertEquals(app2.getPublicId(), applicationRiskScoreDTO.applicationId);
-    assertEquals(3, applicationRiskScoreDTO.totalApplicationRisk.totalRisk);
+    assertThat(applicationRiskScoreDTO.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO.applicationName).isEqualTo(app2.getName());
+    assertThat(applicationRiskScoreDTO.applicationId).isEqualTo(app2.getPublicId());
+    assertThat(applicationRiskScoreDTO.totalApplicationRisk.totalRisk).isEqualTo(3);
   }
 
   @Test
@@ -310,11 +298,11 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
 
-    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.dashboardResults).hasSize(1);
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
     assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 10, 5, 0, 0, 15);
-    assertThat(applicationRiskScoreDTO.stageRisks, hasSize(3));
+    assertThat(applicationRiskScoreDTO.stageRisks).hasSize(3);
 
     StageRiskScoreDTO buildStageRisk = applicationRiskScoreDTO.getStageRiskScore(BuildStageType.ID);
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
@@ -342,21 +330,21 @@ public class ApplicationRiskServiceTest
         Collections.singleton(app.getId()), new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)),
         null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
 
-    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.dashboardResults).hasSize(1);
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
     assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 0, 12, 0, 0, 12);
-    assertEquals(org.getName(), applicationRiskScoreDTO.organizationName);
-    assertEquals(app.getName(), applicationRiskScoreDTO.applicationName);
-    assertEquals(app.getPublicId(), applicationRiskScoreDTO.applicationId);
-    assertThat(applicationRiskScoreDTO.stageRisks, hasSize(2));
+    assertThat(applicationRiskScoreDTO.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO.applicationName).isEqualTo(app.getName());
+    assertThat(applicationRiskScoreDTO.applicationId).isEqualTo(app.getPublicId());
+    assertThat(applicationRiskScoreDTO.stageRisks).hasSize(2);
 
     StageRiskScoreDTO buildStageRisk = applicationRiskScoreDTO.getStageRiskScore(BuildStageType.ID);
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
-    assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
+    assertThat(buildStageRisk.scanId).isEqualTo(policyEvaluation1.getScanId());
 
     StageRiskScoreDTO releaseStageRisk = applicationRiskScoreDTO.getStageRiskScore(ReleaseStageType.ID);
     assertRisk(releaseStageRisk.risk, 0, 7, 0, 0, 7);
-    assertThat(releaseStageRisk.scanId, is(policyEvaluation2.getScanId()));
+    assertThat(releaseStageRisk.scanId).isEqualTo(policyEvaluation2.getScanId());
   }
   @Test
   public void testGetApplicationRisks_TwoStagesTwoApps() {
@@ -385,45 +373,45 @@ public class ApplicationRiskServiceTest
         new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), null, null, null, null,
         "-TOTAL_RISK", Integer.MAX_VALUE);
 
-    assertThat(result.dashboardResults, hasSize(2));
+    assertThat(result.dashboardResults).hasSize(2);
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO1 = result.dashboardResults.get(0);
     assertRisk(applicationRiskScoreDTO1.totalApplicationRisk, 0, 12, 0, 0, 12);
-    assertEquals(org.getName(), applicationRiskScoreDTO1.organizationName);
-    assertEquals(app1.getName(), applicationRiskScoreDTO1.applicationName);
-    assertEquals(app1.getPublicId(), applicationRiskScoreDTO1.applicationId);
-    assertThat(applicationRiskScoreDTO1.stageRisks, hasSize(2));
+    assertThat(applicationRiskScoreDTO1.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO1.applicationName).isEqualTo(app1.getName());
+    assertThat(applicationRiskScoreDTO1.applicationId).isEqualTo(app1.getPublicId());
+    assertThat(applicationRiskScoreDTO1.stageRisks).hasSize(2);
 
     StageRiskScoreDTO buildStageRisk1 = applicationRiskScoreDTO1.getStageRiskScore(BuildStageType.ID);
     assertRisk(buildStageRisk1.risk, 0, 5, 0, 0, 5);
-    assertThat(buildStageRisk1.scanId, is(policyEvaluation11.getScanId()));
+    assertThat(buildStageRisk1.scanId).isEqualTo(policyEvaluation11.getScanId());
 
     StageRiskScoreDTO releaseStageRisk1 = applicationRiskScoreDTO1.getStageRiskScore(ReleaseStageType.ID);
     assertRisk(releaseStageRisk1.risk, 0, 7, 0, 0, 7);
-    assertThat(releaseStageRisk1.scanId, is(policyEvaluation12.getScanId()));
+    assertThat(releaseStageRisk1.scanId).isEqualTo(policyEvaluation12.getScanId());
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO2 = result.dashboardResults.get(1);
     assertRisk(applicationRiskScoreDTO2.totalApplicationRisk, 0, 0, 3, 1, 4);
-    assertEquals(org.getName(), applicationRiskScoreDTO2.organizationName);
-    assertEquals(app2.getName(), applicationRiskScoreDTO2.applicationName);
-    assertEquals(app2.getPublicId(), applicationRiskScoreDTO2.applicationId);
-    assertThat(applicationRiskScoreDTO2.stageRisks, hasSize(2));
+    assertThat(applicationRiskScoreDTO2.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO2.applicationName).isEqualTo(app2.getName());
+    assertThat(applicationRiskScoreDTO2.applicationId).isEqualTo(app2.getPublicId());
+    assertThat(applicationRiskScoreDTO2.stageRisks).hasSize(2);
 
     StageRiskScoreDTO buildStageRisk2 = applicationRiskScoreDTO2.getStageRiskScore(BuildStageType.ID);
     assertRisk(buildStageRisk2.risk, 0, 0, 0, 1, 1);
-    assertThat(buildStageRisk2.scanId, is(policyEvaluation21.getScanId()));
+    assertThat(buildStageRisk2.scanId).isEqualTo(policyEvaluation21.getScanId());
 
     StageRiskScoreDTO releaseStageRisk2 = applicationRiskScoreDTO2.getStageRiskScore(ReleaseStageType.ID);
     assertRisk(releaseStageRisk2.risk, 0, 0, 3, 0, 3);
-    assertThat(releaseStageRisk2.scanId, is(policyEvaluation22.getScanId()));
+    assertThat(releaseStageRisk2.scanId).isEqualTo(policyEvaluation22.getScanId());
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {
-    assertNotNull("Stage risk is set", risk);
-    assertEquals(criticalRisk, risk.criticalRisk);
-    assertEquals(severeRisk, risk.severeRisk);
-    assertEquals(moderateRisk, risk.moderateRisk);
-    assertEquals(lowRisk, risk.lowRisk);
-    assertEquals(netRisk, risk.totalRisk);
+    assertThat(risk).isNotNull();
+    assertThat(risk.criticalRisk).isEqualTo(criticalRisk);
+    assertThat(risk.severeRisk).isEqualTo(severeRisk);
+    assertThat(risk.moderateRisk).isEqualTo(moderateRisk);
+    assertThat(risk.lowRisk).isEqualTo(lowRisk);
+    assertThat(risk.totalRisk).isEqualTo(netRisk);
   }
 }

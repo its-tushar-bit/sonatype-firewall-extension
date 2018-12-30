@@ -13,10 +13,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SystemNoticeServiceTest
     extends AbstractComponentTest
@@ -27,7 +24,7 @@ public class SystemNoticeServiceTest
   @Test
   public void testGetSystemNotice() {
     SystemNotice updated = service.getSystemNotice();
-    assertThat(updated, is(notNullValue()));
+    assertThat(updated).isNotNull();
   }
 
   @Test
@@ -37,7 +34,7 @@ public class SystemNoticeServiceTest
     systemNotice.setMessage(message);
     SystemNotice updated = service.updateSystemNotice(systemNotice);
     SystemNotice stored = new SystemNoticeDAO().get();
-    assertThat(updated.getMessage(), equalTo(stored.getMessage()));
-    assertThat(updated.isEnabled(), equalTo(stored.isEnabled()));
+    assertThat(updated.getMessage()).isEqualTo(stored.getMessage());
+    assertThat(updated.isEnabled()).isEqualTo(stored.isEnabled());
   }
 }

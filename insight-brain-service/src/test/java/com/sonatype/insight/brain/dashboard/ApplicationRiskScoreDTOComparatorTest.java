@@ -11,9 +11,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApplicationRiskScoreDTOComparatorTest
 {
@@ -38,8 +37,8 @@ public class ApplicationRiskScoreDTOComparatorTest
                                 ApplicationRiskScoreDTO dto1,
                                 ApplicationRiskScoreDTO dto2)
   {
-    assertThat(comparator.compare(dto1, dto2), is(expected));
-    assertThat(comparator.compare(dto2, dto1), is(-expected));
+    assertThat(comparator.compare(dto1, dto2)).isEqualTo(expected);
+    assertThat(comparator.compare(dto2, dto1)).isEqualTo(-expected);
   }
 
   @Test
@@ -116,15 +115,10 @@ public class ApplicationRiskScoreDTOComparatorTest
 
   @Test
   public void testCompare_InvalidOrderBy() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       assertComparison(new ApplicationRiskScoreDTOComparator("Invalid"), -1, newDTO("Name", 0, 0, 0, 0, 5),
           newDTO("Name", 0, 0, 0, 0, 4));
-      fail("Expected BadRequestException when invalid orderBy is used");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Invalid orderBy property."));
-    }
+    }).withMessage("Invalid orderBy property.");
   }
 
   @Test
@@ -135,14 +129,9 @@ public class ApplicationRiskScoreDTOComparatorTest
 
   @Test
   public void testCompare_EmptyOrderBy() {
-    try {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       assertComparison(new ApplicationRiskScoreDTOComparator(""), 0, newDTO("Name", 0, 0, 0, 0, 5),
           newDTO("Name1", 1, 1, 1, 1, 4));
-      fail("Expected BadRequestException when invalid orderBy is used");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Invalid orderBy property."));
-    }
+    }).withMessage("Invalid orderBy property.");
   }
 }

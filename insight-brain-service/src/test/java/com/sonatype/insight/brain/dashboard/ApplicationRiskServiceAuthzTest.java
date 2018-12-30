@@ -16,9 +16,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -39,8 +37,8 @@ public class ApplicationRiskServiceAuthzTest
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthenticated() {
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(0));
-    assertThat(result.numResults, is(0));
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isEqualTo(0);
   }
 
   @Test
@@ -48,8 +46,8 @@ public class ApplicationRiskServiceAuthzTest
     login();
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(0));
-    assertThat(result.numResults, is(0));
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isEqualTo(0);
   }
 
   @Test
@@ -57,8 +55,8 @@ public class ApplicationRiskServiceAuthzTest
     grantReadPermission(app.getId());
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
   }
 
   @Test
@@ -66,8 +64,8 @@ public class ApplicationRiskServiceAuthzTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null,
             "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(0));
-    assertThat(result.numResults, is(0));
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isEqualTo(0);
   }
 
   @Test
@@ -76,8 +74,8 @@ public class ApplicationRiskServiceAuthzTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null,
             "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(0));
-    assertThat(result.numResults, is(0));
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isEqualTo(0);
   }
 
   @Test
@@ -86,7 +84,7 @@ public class ApplicationRiskServiceAuthzTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null,
             "-TOTAL_RISK", 1);
-    assertThat(result.dashboardResults, hasSize(1));
-    assertThat(result.numResults, is(1));
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
   }
 }

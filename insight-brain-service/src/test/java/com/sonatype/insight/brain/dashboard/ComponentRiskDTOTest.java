@@ -10,8 +10,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentRiskDTOTest
 {
@@ -34,28 +33,28 @@ public class ComponentRiskDTOTest
 
   @Test
   public void testToCsvLine_WithDisplayName() throws Exception {
-    assertThat(risk.toCsvLine(), is("displayNameValue,1,14,2,3,4,5"));
+    assertThat(risk.toCsvLine()).isEqualTo("displayNameValue,1,14,2,3,4,5");
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayName() throws Exception {
     risk.displayName = null;
-    assertThat(risk.toCsvLine(), is("filename,1,14,2,3,4,5"));
+    assertThat(risk.toCsvLine()).isEqualTo("filename,1,14,2,3,4,5");
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayNameOrFilename() throws Exception {
     risk.displayName = null;
     risk.filename = null;
-    assertThat(risk.toCsvLine(), is("(Anonymized Path) SHA1: theHash,1,14,2,3,4,5"));
+    assertThat(risk.toCsvLine()).isEqualTo("(Anonymized Path) SHA1: theHash,1,14,2,3,4,5");
     risk.filename = "";
-    assertThat(risk.toCsvLine(), is("(Anonymized Path) SHA1: theHash,1,14,2,3,4,5"));
+    assertThat(risk.toCsvLine()).isEqualTo("(Anonymized Path) SHA1: theHash,1,14,2,3,4,5");
   }
 
   @Test
   public void testToCsvLine_QuotedIfNecessary() throws Exception {
     risk.displayName = null;
     risk.filename = "filename,1";
-    assertThat(risk.toCsvLine(), is("\"filename,1\",1,14,2,3,4,5"));
+    assertThat(risk.toCsvLine()).isEqualTo("\"filename,1\",1,14,2,3,4,5");
   }
 }

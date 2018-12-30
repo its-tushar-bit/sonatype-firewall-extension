@@ -12,9 +12,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationDTOComparatorTest
 {
@@ -53,7 +52,7 @@ public class PolicyViolationDTOComparatorTest
     List<PolicyViolationDTO> expected = Lists.newArrayList(dto9AA, dto8AA, dto8BA, dto8BB, dto7AAAAA, dto7AAAAB,
         dto7AAA_NULL_A, dto7AAA_NULL_B, dto7BAAAB, dto7BAACA, dto7CCCCC_A, dto7CCCCC_B, dto7CCCCC_BA, dto7CCCCC_BB);
 
-    assertThat(sorted, is(expected));
+    assertThat(sorted).isEqualTo(expected);
   }
 
   private PolicyViolationDTO buildPolicyViolationDTO(int threatLevel,
@@ -82,7 +81,7 @@ public class PolicyViolationDTOComparatorTest
     sorted.sort(new PolicyViolationDTOComparator());
 
     // sanity check, the key point is merely to not blow up with an NPE
-    assertThat(sorted, contains(dto1, dto2));
+    assertThat(sorted).containsExactly(dto1, dto2);
   }
 
   @Test
@@ -93,7 +92,7 @@ public class PolicyViolationDTOComparatorTest
         ComponentIdentifier.createNugetCoordinates("A", "B"), null);
 
     PolicyViolationDTOComparator comparator = new PolicyViolationDTOComparator();
-    assertThat(comparator.compare(dto1, dto2), is(-1));
-    assertThat(comparator.compare(dto2, dto1), is(1));
+    assertThat(comparator.compare(dto1, dto2)).isEqualTo(-1);
+    assertThat(comparator.compare(dto2, dto1)).isEqualTo(1);
   }
 }

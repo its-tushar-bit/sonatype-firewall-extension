@@ -244,6 +244,7 @@ public class HdsMockServer
     handlers.addHandler(new ConnectHandler());
     handlers.addHandler(mainHandler);
     server.setHandler(handlers);
+    server.setRequestLog(new HdsRequestLog());
     server.start();
 
     if (configurator != null) {
@@ -377,7 +378,6 @@ public class HdsMockServer
     if (licenseFingerprint == null || licenseFingerprint.isEmpty()) {
       throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "license fingerprint required");
     }
-    System.out.println("license fingerprint: " + licenseFingerprint);
     return licenseFingerprint;
   }
 

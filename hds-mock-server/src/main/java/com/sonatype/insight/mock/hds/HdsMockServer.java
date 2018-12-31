@@ -331,8 +331,31 @@ public class HdsMockServer
           }
           baseRequest.setHandled(true);
         }
-        else if (uri.equals("/rest/environment/stats") && "POST".equals(request.getMethod())) {
-          IO.copy(request.getInputStream(), IO.getNullStream());
+        else if (uri.equals("/rest/productNotifications") && "GET".equals(request.getMethod())) {
+          response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
+          try (PrintWriter writer = response.getWriter()) {
+            writer.print("{}");
+          }
+          baseRequest.setHandled(true);
+        }
+        else if (uri.equals("/rest/environment/stats")) {
+          if ("GET".equals(request.getMethod())) {
+            response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
+            try (PrintWriter writer = response.getWriter()) {
+              writer.print("{}");
+            }
+            baseRequest.setHandled(true);
+          }
+          else if ("POST".equals(request.getMethod())) {
+            IO.copy(request.getInputStream(), IO.getNullStream());
+            baseRequest.setHandled(true);
+          }
+        }
+        else if (uri.equals("/user-telemetry.js") && "GET".equals(request.getMethod())) {
+          response.setContentType("application/javascript");
+          try (PrintWriter writer = response.getWriter()) {
+            writer.print("function noop() {}");
+          }
           baseRequest.setHandled(true);
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {

@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.telemetry.PendoCache;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -187,8 +186,6 @@ public abstract class AbstractFunctionalTest
   @Before
   public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
-
-    testCLMServer.getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "function foo() {}", 200);
   }
 
   @After

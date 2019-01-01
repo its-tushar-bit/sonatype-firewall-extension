@@ -11,6 +11,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.service.Zipper;
+
 import org.junit.rules.TemporaryFolder;
 
 public class ReportHelper

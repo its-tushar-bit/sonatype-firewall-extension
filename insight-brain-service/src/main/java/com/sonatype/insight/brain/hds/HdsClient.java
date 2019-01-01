@@ -41,6 +41,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -143,14 +144,8 @@ public class HdsClient
   }
 
   private <T> T internalGet(Class<T> clazz, String url) {
-    long start = System.currentTimeMillis();
-    try {
-      HttpGet cloudReq = createGetRequest(url, null, null);
-      return execute(cloudReq, clazz);
-    }
-    finally {
-      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
-    }
+    HttpGet cloudReq = createGetRequest(url, null, null);
+    return execute(cloudReq, clazz);
   }
 
   public <T> T relay(HttpServletRequest request, Class<T> clazz, String path, String... uriParams) throws IOException {
@@ -175,16 +170,9 @@ public class HdsClient
                      String... uriParams)
       throws IOException
   {
-    long start = System.currentTimeMillis();
-
-    try {
-      String url = buildUri(request, path, queryParams, uriParams);
-      HttpUriRequest cloudReq = createRequest(request, url, analytics);
-      return execute(cloudReq, clazz);
-    }
-    finally {
-      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
-    }
+    String url = buildUri(request, path, queryParams, uriParams);
+    HttpUriRequest cloudReq = createRequest(request, url, analytics);
+    return execute(cloudReq, clazz);
   }
 
   private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
@@ -317,15 +305,9 @@ public class HdsClient
    * @since 1.46
    */
   public void post(String path, HttpEntity httpEntity, String clientUserAgent) {
-    long start = System.currentTimeMillis();
-    try {
-      HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
-      cloudReq.setEntity(httpEntity);
-      execute(cloudReq, null);
-    }
-    finally {
-      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
-    }
+    HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
+    cloudReq.setEntity(httpEntity);
+    execute(cloudReq, null);
   }
 
   /**
@@ -362,19 +344,13 @@ public class HdsClient
                     String... uriParams)
       throws IOException
   {
-    long start = System.currentTimeMillis();
-    try {
-      HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
-      StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
-      cloudReq.setEntity(entity);
-      cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
-      cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+    HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
+    StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
+    cloudReq.setEntity(entity);
+    cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
+    cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
-      return execute(cloudReq, clazz);
-    }
-    finally {
-      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
-    }
+    return execute(cloudReq, clazz);
   }
 
   private HttpPut createPutRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
@@ -390,24 +366,22 @@ public class HdsClient
   public <T> T put(HdsClientAnalytics analytics, Class<T> clazz, String path, File uploadFile, String... uriParams)
       throws IOException
   {
-    long start = System.currentTimeMillis();
-
-    try {
-      if (!uploadFile.exists()) {
-        throw new FileNotFoundException(uploadFile.getAbsolutePath());
-      }
-      HttpPut cloudReq = createPutRequest(buildUri(path, uriParams), analytics, null);
-      cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
-      return execute(cloudReq, clazz);
+    if (!uploadFile.exists()) {
+      throw new FileNotFoundException(uploadFile.getAbsolutePath());
     }
-    finally {
-      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
-    }
+    HttpPut cloudReq = createPutRequest(buildUri(path, uriParams), analytics, null);
+    cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
+    return execute(cloudReq, clazz);
   }
 
   private <T> T execute(HttpUriRequest request, Class<T> clazz) {
+    log.debug("Starting request: {} {}", request.getMethod(), request.getURI());
+    long start = System.currentTimeMillis();
+    StatusLine statusLine = null;
     try {
-      return fromHttpResponse(client.execute(request), clazz);
+      HttpResponse response = client.execute(request);
+      statusLine = response.getStatusLine();
+      return fromHttpResponse(response, clazz);
     }
     catch (HttpHostConnectException e) {
       throw new GatewayTimeoutException(e.getMessage(), e);
@@ -423,6 +397,10 @@ public class HdsClient
     catch (IOException e) {
       log.error(e.getMessage(), e);
       throw new BadGatewayException("The request to Sonatype Data Services failed, please retry in a bit.");
+    }
+    finally {
+      log.debug("Completed request in {} ms. {}", System.currentTimeMillis() - start,
+          statusLine != null ? statusLine.getStatusCode() : "");
     }
   }
 
@@ -522,9 +500,7 @@ public class HdsClient
       }
     }
 
-    String result = uriBuilder.build((Object[]) uriParams).toString();
-    log.debug("Constructed Sonatype Data Services URI: {}", result);
-    return result;
+    return uriBuilder.build((Object[]) uriParams).toString();
   }
 
   private HttpClientConnectionManager buildHttpClientConnectionManager(int poolSize) {

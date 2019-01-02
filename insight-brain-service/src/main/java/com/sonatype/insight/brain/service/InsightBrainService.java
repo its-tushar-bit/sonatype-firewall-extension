@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
+import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
@@ -311,6 +312,7 @@ public class InsightBrainService
 
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
+    addServletFilter(env, ContentTypeOptionsHeaderFilter.class, "/*");
     addServletFilter(env, GuiceShiroFilter.class, "/*");
     addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);
     addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);

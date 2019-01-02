@@ -9,24 +9,26 @@ describe('policy.editor.actions.controller.spec.js', function() {
   }));
 
   var vm,
-      $timeout,
-      stageTypeStoreDefer;
+      stageTypeStoreDefer,
+      CLMLocations,
+      $httpBackend;
 
-  beforeEach(inject(function($q, _$timeout_, $controller, StageTypeStore) {
-    $timeout = _$timeout_;
+  beforeEach(inject(function($q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_, StageTypeStore) {
+    CLMLocations = _CLMLocations_;
+    $httpBackend = _$httpBackend_;
 
     stageTypeStoreDefer = $q.defer();
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
     spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
+    stageTypeStoreDefer.resolve(MockData.getActionStageData());
     vm = $controller('policy.editor.actions.controller', {}, {actions: []});
   }));
 
-  it('Properly loads action info', inject(function() {
+  it('Properly loads action info', function() {
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
-    stageTypeStoreDefer.resolve(MockData.getActionStageData());
-    $timeout.flush();
+    $httpBackend.flush();
 
     expect(vm.actionStages.length).toBe(6);
-  }));
-
+  });
 });

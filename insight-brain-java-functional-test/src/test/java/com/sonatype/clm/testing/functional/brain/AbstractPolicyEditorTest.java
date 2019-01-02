@@ -76,10 +76,12 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -112,6 +114,11 @@ public abstract class AbstractPolicyEditorTest
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
+  }
+
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   private void setupJiraService() throws IOException {
@@ -247,6 +254,37 @@ public abstract class AbstractPolicyEditorTest
 
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
+  }
+  @Test
+  public void testLifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+
+    String ownerId = currentOwner.getId();
+    Tag[] categories = createCategories(
+        OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
+    Policy policy = createPolicy(ownerId, categories);
+
+    refresh();
+
+    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, false);
+  }
+
+  @Test
+  public void testLifecycleLight_NoFirewall() {
+    // Should be replaced after CLM-11573 is done
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+
+    String ownerId = currentOwner.getId();
+    Tag[] categories = createCategories(
+        OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
+    Policy policy = createPolicy(ownerId, categories);
+
+    refresh();
+
+    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true);
   }
 
   @Test
@@ -1069,13 +1107,23 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {
+    assertEditPolicyStateIsCorrect(policy, category1, category2, isReadOnly, false, false);
+  }
+
+  private void assertEditPolicyStateIsCorrect(Policy policy,
+                                              Tag category1,
+                                              Tag category2,
+                                              boolean isReadOnly,
+                                              boolean actionsReadOnly,
+                                              boolean proxyActionReadOnly)
+  {
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
     PolicyEditorPage.title().shouldHave(text(isReadOnly ? "View" : "Edit"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
     eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
-    assertEditPolicyStateIsCorrect_actionsSection(isReadOnly);
+    assertEditPolicyStateIsCorrect_actionsSection(isReadOnly, actionsReadOnly, proxyActionReadOnly);
     assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly);
     eyesWatcher.eyesCheck("Actions and notifications states are correct");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
@@ -1089,10 +1137,13 @@ public abstract class AbstractPolicyEditorTest
     assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
   }
 
-  private void assertEditPolicyStateIsCorrect_actionsSection(boolean isReadOnly) {
+  private void assertEditPolicyStateIsCorrect_actionsSection(boolean isReadOnly,
+                                                             boolean actionsReadOnly,
+                                                             boolean proxyActionReadOnly)
+  {
     PolicyEditorPage.actionsPill().click();
 
-    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly ? disabled : enabled;
+    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || actionsReadOnly ? disabled : enabled;
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.
@@ -1101,13 +1152,28 @@ public abstract class AbstractPolicyEditorTest
     develop.warnRadio().shouldBe(selected, visible, disabledOrEnabled);
     develop.noActionRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
 
+    // For firewall with lifecycle light proxy should be enabled
+    disabledOrEnabled = isReadOnly || proxyActionReadOnly ? disabled : enabled;
+    ActionsSection.Stage proxy = actionsTable.proxy();
+    proxy.failRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+    proxy.warnRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+    proxy.noActionRadio().shouldBe(selected, visible, disabledOrEnabled);
+
     actionsTable.build().failRadio().shouldBe(selected);
 
     // The rest of the stages should have no-action selected
-    actionsTable.proxy().noActionRadio().input().shouldBe(selected);
     actionsTable.operate().noActionRadio().input().shouldBe(selected);
     actionsTable.release().noActionRadio().input().shouldBe(selected);
     actionsTable.stageRelease().noActionRadio().input().shouldBe(selected);
+
+    if (actionsReadOnly) {
+      String expectedText = "Actions are not supported by your license. " +
+          (!proxyActionReadOnly ? "(Exclusions apply for firewall supported licenses)" : "");
+      PolicyEditorPage.disabledActionsMessage().shouldBe(text(expectedText));
+    }
+    else {
+      PolicyEditorPage.disabledActionsMessage().shouldBe(hidden);
+    }
   }
 
   private void assertEditPolicyStateIsCorrect_notificationsSection(final boolean isReadOnly) {

@@ -34,9 +34,14 @@ productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', functi
     return available('dashboard');
   }
 
+  function isEnforcementSupportedForStage(stage) {
+    return (available('firewall') && stage === 'proxy') || available('enforcement');
+  }
+
   return {
     load: load,
     isAvailable: available,
-    isDashboardLicensed: dashboardAvailable
+    isDashboardLicensed: dashboardAvailable,
+    isEnforcementSupportedForStage: isEnforcementSupportedForStage
   };
 }]);

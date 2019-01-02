@@ -91,6 +91,10 @@ public class PolicyEditorPage
     return new PolicyInheritsToSection();
   }
 
+  public static SelenideElement disabledActionsMessage() {
+    return $("#actions-disabled-message");
+  }
+
   public static ActionsSection actionsSection() {
     return new ActionsSection();
   }

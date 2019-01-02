@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -70,6 +71,8 @@ public class ApiSearchServiceV2
   }
 
   public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier) {
+    AuditData.get().setComponentHash(hash).setComponentIdentifier(componentIdentifier);
+
     if (StringUtils.isEmpty(stageId)) {
       throw new BadRequestException("Stage has not been specified.");
     }
@@ -105,7 +108,11 @@ public class ApiSearchServiceV2
     results.criteria.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     String baseUrl = this.baseUrl.get();
 
-    for (Application app : getApplicationsWithReadPermission()) {
+    List<Application> apps = getApplicationsWithReadPermission();
+
+    AuditData.get().setData("inspectedApplicationCount", apps.size());
+
+    for (Application app : apps) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(app.getId(), stageId);
       if (eval == null) {
         continue;
@@ -139,6 +146,8 @@ public class ApiSearchServiceV2
         }
       }
     }
+
+    AuditData.get().setData("resultRecordCount", results.results.size());
 
     log.debug("Searched for component with hash={} and componentIdentifier={} in {} ms, got {} hits", hash,
         componentIdentifier, System.currentTimeMillis() - start, results.results.size());

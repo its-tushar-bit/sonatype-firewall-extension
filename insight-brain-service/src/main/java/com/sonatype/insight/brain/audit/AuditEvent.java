@@ -140,9 +140,11 @@ public enum AuditEvent
   
   EXPORT_DASHBOARD_APPLICATION_LIST(Domain.REPORTING_DASHBOARD_APPLICATION_LIST, Type.EXPORT), //
   EXPORT_DASHBOARD_COMPONENT_LIST(Domain.REPORTING_DASHBOARD_COMPONENT_LIST, Type.EXPORT), //
-  EXPORT_DASHBOARD_VIOLATION_LIST(Domain.REPORTING_DASHBOARD_VIOLATION_LIST, Type.EXPORT),
+  EXPORT_DASHBOARD_VIOLATION_LIST(Domain.REPORTING_DASHBOARD_VIOLATION_LIST, Type.EXPORT), //
 
-  EXPORT_POLICY_VIOLATIONS(Domain.REPORTING_POLICY_VIOLATIONS, Type.EXPORT);
+  EXPORT_POLICY_VIOLATIONS(Domain.REPORTING_POLICY_VIOLATIONS, Type.EXPORT), //
+
+  SEARCH_COMPONENT_USES(Domain.REPORTING_COMPONENT_USES, Type.SEARCH);
 
   private final String domain;
 
@@ -275,6 +277,8 @@ public enum AuditEvent
 
     String REPORTING_POLICY_VIOLATIONS = join(REPORTING, "policy-violations");
 
+    String REPORTING_COMPONENT_USES = join(REPORTING, "component-uses");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -347,5 +351,7 @@ public enum AuditEvent
     String PRINT = "print";
 
     String SAVE = "save";
+
+    String SEARCH = "search";
   }
 }

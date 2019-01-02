@@ -16,6 +16,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiSearchServiceV2;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
@@ -45,6 +47,7 @@ public class ApiSearchResourceV2
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.SEARCH_COMPONENT_USES)
   public ApiSearchResultsDTOV2 searchComponent(@QueryParam("stageId") String stageId,
                                                @QueryParam("hash") String hash,
                                                @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)

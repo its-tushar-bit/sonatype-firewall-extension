@@ -153,6 +153,15 @@
                 <td>Identification Source:</td>
                 <td>{{componentDetails.identificationSource}}</td>
               </tr>
+              <tr id="artifactInfoCategory">
+                <td>Category:</td>
+                <td>
+                  <span ng-repeat="category in componentDetails.componentCategories">{{category.path}}<!--
+                 --><span ng-show="!$last">, 
+                    </span>
+                  </span>
+                </td>
+              </tr>
               <tr id='artifactWebsite' ng-if='componentDetails.website'>
                 <td>Website:</td>
                 <td>

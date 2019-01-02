@@ -176,5 +176,11 @@
   "artifactId": "threat",
   "groupId": "critical",
   "declaredLicenseIds": ["Not-Declared"],
-  "observedLicenseIds": ["No-Sources"]
+  "observedLicenseIds": ["No-Sources"],
+  "componentCategories": [
+    {
+      "componentCategoryId": 113,
+      "path": "Other"
+    }
+  ]
 }

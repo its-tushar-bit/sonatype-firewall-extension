@@ -85,6 +85,10 @@ public class VersionsCIP
     return artifactTable().find("#artifactInfoIdentificatonSource td:last-child");
   }
 
+  public static SelenideElement componentCategory() {
+    return artifactTable().find("#artifactInfoCategory td:last-child");
+  }
+
   public static SelenideElement selectComponentMessage() {
     return $("#select-component");
   }

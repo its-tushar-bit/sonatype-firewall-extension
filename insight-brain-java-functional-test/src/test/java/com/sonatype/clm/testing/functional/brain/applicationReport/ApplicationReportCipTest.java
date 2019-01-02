@@ -204,6 +204,7 @@ public class ApplicationReportCipTest
     VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
+    VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);

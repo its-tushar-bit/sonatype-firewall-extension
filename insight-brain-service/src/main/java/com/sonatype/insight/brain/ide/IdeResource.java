@@ -28,6 +28,8 @@ import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -86,6 +88,7 @@ public class IdeResource
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @Audited(AuditEvent.EVALUATE_PROJECT)
   public IdeMatchedComponent doScan(@PathParam("scanType") String scanType,
                                     @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
                                     @PathParam("path") String path,
@@ -138,6 +141,7 @@ public class IdeResource
   @POST
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_PROJECT)
   public IdeMatchedComponent postScan(@PathParam("scanType") String scanType,
                                       @PathParam("applicationPublicId") String applicationPublicId,
                                       @PathParam("path") String path,

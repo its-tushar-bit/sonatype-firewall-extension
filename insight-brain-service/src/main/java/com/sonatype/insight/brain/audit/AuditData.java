@@ -34,14 +34,33 @@ import com.sonatype.insight.brain.policy.NotificationDTO;
  */
 public abstract class AuditData
 {
+  /**
+   * Gets the data for the current audit event. Note that this method can safely be called from anywhere in the code and
+   * from any thread: It never returns {@code null}.
+   */
   public static AuditData get() {
     return AuditSession.getCurrent();
   }
 
+  /**
+   * Starts a nested audit event that inherits the user and request information from the current event.
+   * <p>
+   * If the event is declared independent, it will be committed to the audit log once the returned audit session is
+   * closed. Logging of a dependent event on the other hand will be deferred until either the parent event is committed
+   * or {@link #commitSubEvents()} gets invoked on the parent event.
+   */
   public final AuditSession recordSubEvent(AuditEvent event, boolean independent) {
     return new AuditSession(forSubEvent(event, independent, false));
   }
 
+  /**
+   * Starts a nested audit event that does not inherit the user or request information from the current event. Instead,
+   * the audited operation is attributed to the system/server itself.
+   * <p>
+   * If the event is declared independent, it will be committed to the audit log once the returned audit session is
+   * closed. Logging of a dependent event on the other hand will be deferred until either the parent event is committed
+   * or {@link #commitSubEvents()} gets invoked on the parent event.
+   */
   public final AuditSession recordSystemEvent(AuditEvent event, boolean independent) {
     return new AuditSession(forSubEvent(event, independent, true));
   }
@@ -120,8 +139,13 @@ public abstract class AuditData
 
   protected abstract <F> F continueAsync(Function<AuditData, F> taskSubmitter);
 
-  public abstract void commit();
+  protected abstract void commit();
 
+  /**
+   * Commits all dependent sub events of this event to the audit log. This is typically done after a database
+   * transaction is successfully committed, thereby flushing the sub events for changes audited during that database
+   * transaction.
+   */
   public abstract void commitSubEvents();
 
   public abstract void setUsername(String username);

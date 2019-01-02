@@ -33,7 +33,7 @@
                 </th>
               </tr>
             </thead>
-            <tbody vs-repeat vs-size="40" vs-scroll-parent=".scrollable-container-inner">
+            <tbody vs-repeat vs-scroll-parent=".scrollable-container-inner">
             <tr ng-repeat='application in applications' ng-class="application.index % 2 == 0? 'even' : 'odd'">
               <td class="tm-report-list-application">
                 <a ui-sref="management.view.application({applicationPublicId: application.publicId})">

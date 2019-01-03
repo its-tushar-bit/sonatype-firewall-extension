@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,6 +51,11 @@ public abstract class AbstractPolicyMonitoringEditorTest
     loginAsAdmin();
   }
 
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
+  }
+
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     this.parentOrg = orgDao.getById(currentOwner.getParentOwnerId());
@@ -74,6 +80,16 @@ public abstract class AbstractPolicyMonitoringEditorTest
   @Test
   public void testNotLicensed() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    assertNotLicensed();
+  }
+
+  @Test
+  public void testNotLicensed_lifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    assertNotLicensed();
+  }
+  
+  public void assertNotLicensed() {
     refresh();
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();

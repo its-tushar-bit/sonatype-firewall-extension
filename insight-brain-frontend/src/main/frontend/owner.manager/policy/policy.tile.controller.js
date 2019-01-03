@@ -20,6 +20,7 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
   vm.grandfatheringStatusMessage = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
+  vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
 

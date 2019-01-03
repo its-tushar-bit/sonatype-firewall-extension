@@ -20,4 +20,6 @@ public class CLM
   public static final Condition COLLAPSED = cssClass("collapse");
 
   public static final Condition SELECTED = cssClass("selected");
+
+  public static final Condition IQ_DISABLED = cssClass("iq-disabled");
 }

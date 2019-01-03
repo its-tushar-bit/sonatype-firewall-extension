@@ -26,7 +26,8 @@
         </th>
         <th class="iq-cell iq-cell--header policy-list__stage-column tm-stage-{{::stage.stageTypeId}}"
             sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"
-            ng-repeat="stage in vm.actionStages">
+            ng-repeat="stage in vm.actionStages"
+            ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">
           {{::stage.shortName | uppercase}}
         </th>
         <th class="iq-cell iq-cell--header iq-cell--chevron"></th>
@@ -40,7 +41,8 @@
           <span class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"></span><!--
           -->{{policy.name}}
         </td>
-        <td class="iq-cell iq-cell--policy-list-stage" ng-repeat="stage in vm.actionStages">
+        <td class="iq-cell iq-cell--policy-list-stage" ng-repeat="stage in vm.actionStages"
+            ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">
           <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
                       'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"></i>
           {{policy.enforcementAction[stage.stageTypeId] || 'no action'}}

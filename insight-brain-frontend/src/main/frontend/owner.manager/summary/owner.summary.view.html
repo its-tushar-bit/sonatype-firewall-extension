@@ -232,7 +232,8 @@
         <owner-policy-list ng-repeat="ownerPolicyList in vm.policiesByOwner"
                            owner-policy-list="ownerPolicyList"
                            action-stages="vm.actionStages"
-                           on-policy-click="vm.editPolicy(policyId)">
+                           on-policy-click="vm.editPolicy(policyId)"
+                           is-enforcement-supported-for-stage="vm.isEnforcementSupportedForStage(stage)">
         </owner-policy-list>
         <div ng-if="vm.isAppOrOrg"
              class="iq-list iq-list--clickable"

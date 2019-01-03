@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -60,6 +61,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.IQ_DISABLED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.COLUMN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.DOWN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.UP_SELECTED;
@@ -77,6 +79,11 @@ public abstract class AbstractSummaryViewTest
   public static void boot() {
     refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
+  }
+
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   protected void init(Owner currentOwner) {
@@ -710,6 +717,63 @@ public abstract class AbstractSummaryViewTest
       policy.build().find("i").shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
           .shouldNotHave(PolicyTileListElement.WARN_ICON).shouldNotHave(PolicyTileListElement.WARN);
     }
+  }
+
+  @Test
+  public void testPolicyTile_LifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
+
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+
+    assertPolicyTile_LifecycleLight(policy, false);
+  }
+
+  @Test
+  public void testPolicyTile_LifecycleLight_NoFirewall() {
+    // Should be replaced after CLM-11573 is done
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
+
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    
+    assertPolicyTile_LifecycleLight(policy, true);
+  }
+  
+  private void assertPolicyTile_LifecycleLight(Policy policy, boolean proxyActionReadOnly) {
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    PolicyTileList list = policyTile.policyList(0);
+
+    PolicyTileListElement policyElement = list.row(1);
+    policyElement.threadLegend().shouldBe(visible).shouldHave(threatLevel(policy.getThreatLevel()));
+    policyElement.name().shouldBe(visible).shouldHave(text(policy.getName()));
+
+    HeaderColumn proxy = list.header(2);
+    proxy.anchor().shouldHave(text("PROXY"));
+    if (proxyActionReadOnly) {
+      proxy.root.shouldHave(IQ_DISABLED);
+      policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
+    }
+    else {
+      proxy.root.shouldNotHave(IQ_DISABLED);
+      policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldNotHave(IQ_DISABLED);
+    }
+
+    // check a few of the other stages (develop, and operate) and make sure they're disabled.
+    HeaderColumn develop = list.header(3);
+    develop.anchor().shouldHave(text("DEVELOP"));
+    develop.root.shouldHave(IQ_DISABLED);
+    policyElement.column(3).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
+    HeaderColumn operate = list.header(7);
+    operate.anchor().shouldHave(text("OPERATE"));
+    operate.root.shouldHave(IQ_DISABLED);
+    policyElement.column(7).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
+
+    policyElement.chevron().shouldBe(visible);
+    eyesWatcher.eyesCheck();
   }
 
   @Test

@@ -12,7 +12,8 @@ export default {
   bindings: {
     ownerPolicyList: '<',
     actionStages: '<',
-    onPolicyClick: '&'
+    onPolicyClick: '&',
+    isEnforcementSupportedForStage: '&'
   }
 };
 

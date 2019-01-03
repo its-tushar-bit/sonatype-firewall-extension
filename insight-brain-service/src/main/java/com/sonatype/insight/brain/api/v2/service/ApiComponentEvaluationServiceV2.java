@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -107,7 +108,11 @@ public class ApiComponentEvaluationServiceV2
     validateRequest(evaluationRequest);
 
     ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = createEvaluationTicket(applicationId);
-    executor.submit(new SystemRunnable(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest)));
+    AuditData.get() //
+        .setData("componentCount", evaluationRequest.components.size()) //
+        .setData("resultId", evaluationTicketDTO.resultId) //
+        .continueAsync(executor,
+            new SystemRunnable(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest)));
 
     return evaluationTicketDTO;
   }
@@ -116,6 +121,7 @@ public class ApiComponentEvaluationServiceV2
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
                                                                   final String resultId) throws IOException
   {
+    AuditData.get().setData("resultId", resultId);
     File componentDetailsFile = work.getComponentDetailsFile(applicationId, resultId);
     try {
       return JsonUtils.read(componentDetailsFile, ApiComponentEvaluationResultDTOV2.class);
@@ -215,6 +221,7 @@ public class ApiComponentEvaluationServiceV2
       catch (Exception e) {
         evaluationResultDTO.isError = true;
         evaluationResultDTO.errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
+        AuditData.get().setException(e);
       }
 
       try {
@@ -241,6 +248,7 @@ public class ApiComponentEvaluationServiceV2
       }
       catch (IOException e) {
         log.error(e.getMessage(), e);
+        AuditData.get().setException(e);
       }
     }
 

@@ -59,6 +59,7 @@ public class ApiEvaluationResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_AD_HOC)
   public ApiComponentEvaluationTicketDTOV2 evaluateComponents(@PathParam("applicationId") final String applicationId,
                                                               final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
@@ -68,6 +69,7 @@ public class ApiEvaluationResourceV2
   @Path("{applicationId}/results/{resultId}")
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EXPORT_EVALUATION_AD_HOC)
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(@PathParam("applicationId") final String applicationId,
                                                                   @PathParam("resultId") final String resultId)
       throws IOException

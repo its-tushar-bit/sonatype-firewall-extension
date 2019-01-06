@@ -266,6 +266,27 @@ public class HdsMockServer
     }
   }
 
+  private void consume(Request request) throws IOException {
+    request.setHandled(true);
+    IO.copy(request.getInputStream(), IO.getNullStream());
+  }
+
+  private void sendError(HttpServletResponse response, int status, String message) throws IOException {
+    response.setStatus(status);
+    send(response, "text/plain; charset=UTF-8", message);
+  }
+
+  private void sendJson(HttpServletResponse response, String json) throws IOException {
+    send(response, ResponseProvider.CONTENT_TYPE_JSON, json);
+  }
+
+  private void send(HttpServletResponse response, String contentType, String content) throws IOException {
+    response.setContentType(contentType);
+    try (PrintWriter writer = response.getWriter()) {
+      writer.print(content);
+    }
+  }
+
   public class RestHandler
       extends AbstractHandler
   {
@@ -273,37 +294,11 @@ public class HdsMockServer
 
     public static final String SCAN_ID = "SCAN-ID";
 
-    private void handleMatchedRequest(HttpServletRequest request) throws IOException {
-      validateLicense(request);
-      IO.copy(request.getInputStream(), IO.getNullStream());
-    }
-
-    private void handleScanUpload(Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-        throws IOException
-    {
-      handleMatchedRequest(request);
-
-      response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
-
-      try (PrintWriter writer = response.getWriter()) {
-        writer.println("{");
-        writer.println("\"scanId\" : \"" + SCAN_ID + "\", ");
-        writer.println("\"timeToReport\" : " + 1);
-        writer.println("}");
+    private void validateLicense(HttpServletRequest request) throws RequestException {
+      String licenseFingerprint = request.getHeader("X-CLM-Token");
+      if (licenseFingerprint == null || licenseFingerprint.isEmpty()) {
+        throw new RequestException(HttpServletResponse.SC_PAYMENT_REQUIRED, "license fingerprint required");
       }
-
-      baseRequest.setHandled(true);
-    }
-
-    private void handleReportDownload(HttpServletRequest request) throws IOException {
-      handleMatchedRequest(request);
-
-      String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());
-      if (scanId.length() <= 0) {
-        throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "scan id missing");
-      }
-
-      throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "bad scan id");
     }
 
     @Override
@@ -321,64 +316,48 @@ public class HdsMockServer
         ResponseProvider responseProvider = getResponseProvider(uriWithParams);
         if (responseProvider != null) {
           validateLicense(request);
-          responseProvider.render(request,response);
-          IO.copy(request.getInputStream(), IO.getNullStream());
-          baseRequest.setHandled(true);
+          responseProvider.render(request, response);
+          consume(baseRequest);
         }
         else if (uri.equals("/rest/license") && "GET".equals(request.getMethod())) {
-          response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
-          try (PrintWriter writer = response.getWriter()) {
-            writer.print("{\"licenses\": [], \"multiLicenses\": []}");
-          }
-          baseRequest.setHandled(true);
+          consume(baseRequest);
+          sendJson(response, "{\"licenses\": [], \"multiLicenses\": []}");
         }
         else if (uri.equals("/rest/productNotifications") && "GET".equals(request.getMethod())) {
-          response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
-          try (PrintWriter writer = response.getWriter()) {
-            writer.print("{}");
-          }
-          baseRequest.setHandled(true);
+          consume(baseRequest);
+          sendJson(response, "{}");
         }
         else if (uri.equals("/rest/environment/stats")) {
           if ("GET".equals(request.getMethod())) {
-            response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
-            try (PrintWriter writer = response.getWriter()) {
-              writer.print("{}");
-            }
-            baseRequest.setHandled(true);
+            consume(baseRequest);
+            sendJson(response, "{}");
           }
           else if ("POST".equals(request.getMethod())) {
-            IO.copy(request.getInputStream(), IO.getNullStream());
-            baseRequest.setHandled(true);
+            consume(baseRequest);
           }
         }
         else if (uri.equals("/user-telemetry.js") && "GET".equals(request.getMethod())) {
-          response.setContentType("application/javascript");
-          try (PrintWriter writer = response.getWriter()) {
-            writer.print("function noop() {}");
-          }
-          baseRequest.setHandled(true);
+          consume(baseRequest);
+          send(response, "application/javascript", "function noop() {}");
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
-          handleScanUpload(baseRequest, request, response);
+          consume(baseRequest);
+          validateLicense(request);
+          sendJson(response, "{\"scanId\": \"" + SCAN_ID + "\", \"timeToReport\": 1}");
         }
         else if (uri.startsWith(REPORT_PATH_PREFIX) && "GET".equals(request.getMethod())) {
-          handleReportDownload(request);
+          consume(baseRequest);
+          validateLicense(request);
+          String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());
+          throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,
+              scanId.isEmpty() ? "scan id missing" : "bad scan id");
         }
       }
       catch (RequestException e) {
-        response.sendError(e.statusCode, e.errorMsg);
-        baseRequest.setHandled(true);
+        consume(baseRequest);
+        sendError(response, e.statusCode, e.errorMsg);
       }
     }
-  }
-
-  private String validateLicense(HttpServletRequest request) throws RequestException {
-    String licenseFingerprint = request.getHeader("X-CLM-Token");
-    if (licenseFingerprint == null || licenseFingerprint.isEmpty()) {
-      throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "license fingerprint required");
-    }
-    return licenseFingerprint;
   }
 
   static class RequestException
@@ -415,11 +394,10 @@ public class HdsMockServer
       }
 
       if (!(proxyUsername + ':' + proxyPassword).equals(auth)) {
-        response.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
-        response.addHeader("Proxy-Authenticate", "Basic realm=\"TestRealm\"");
-        response.getWriter().println("Proxy authentication required");
-
-        baseRequest.setHandled(true);
+        consume(baseRequest);
+        response.setHeader("Proxy-Authenticate", "Basic realm=\"TestRealm\"");
+        sendError(response, HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED,
+            "Proxy authentication required, got " + auth);
       }
     }
   }

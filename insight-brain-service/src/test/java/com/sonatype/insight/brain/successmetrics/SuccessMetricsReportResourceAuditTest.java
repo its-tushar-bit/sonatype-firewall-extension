@@ -198,7 +198,7 @@ public class SuccessMetricsReportResourceAuditTest
         .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, "not-found",
-        unauthorizedUser.getUsername());
+        getUnauthorizedUsername());
     assertCustomData(auditDTO, "reportId", report.getId());
     assertCustomData(auditDTO, "reportName", null);
     assertCustomData(auditDTO, "selectedOrganizations", null);
@@ -208,13 +208,13 @@ public class SuccessMetricsReportResourceAuditTest
   private void testViewSuccessMetricsData_Unauthorized(final String resourceSubpath) throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     SuccessMetricsReport report = createSuccessMetricsReport(null, Collections.singleton(app.getId()),
-        unauthorizedUser.getUsername());
+        getUnauthorizedUsername());
 
     successMetricsReportRequest().path(resourceSubpath).with(unauthorizedUser())
         .parameter(report.getId()).get();
 
     // user allowed to access resource but no apps included in report
-    assertViewSuccessMetricsReport(report, 0, unauthorizedUser.getUsername());
+    assertViewSuccessMetricsReport(report, 0, getUnauthorizedUsername());
   }
 
   private void testViewSuccessMetricsData(final String resourceSubpath) throws Exception {

@@ -5,21 +5,48 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
+
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
+import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.version.VersionService;
 
+import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.mockito.Mockito.mock;
+
 public class ApplicationLifecycleAuditTest
-    extends AbstractAuditTest
+    extends AbstractComponentAuditTest
 {
+  @Inject
   private ApplicationLifecycle lifecycle;
 
+  private File configFile;
+
   @Before
-  public void before() {
-    lifecycle = getCLMServer().getInjector().getInstance(ApplicationLifecycle.class);
+  public void before() throws Exception {
+    configFile = tempDir.newFile("config.yml");
+    InsightBrainService.setConfigFile(configFile);
+  }
+
+  @After
+  public void after() {
+    InsightBrainService.setConfigFile(null);
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(DataMigrator.class).toInstance(mock(DataMigrator.class));
+    binder.bind(DefaultLicenseDataUpdater.class).toInstance(mock(DefaultLicenseDataUpdater.class));
+    binder.bind(NewInstancePopulator.class).toInstance(mock(NewInstancePopulator.class));
   }
 
   @Test
@@ -40,7 +67,7 @@ public class ApplicationLifecycleAuditTest
 
   private void assertLifecycleAuditData(final AuditDTO auditDTO) {
     assertCustomData(auditDTO, "serverInstanceId", InsightBrainService.getInstanceId());
-    assertCustomData(auditDTO, "serverConfigurationFile", InsightBrainService.getConfigFile().toString());
+    assertCustomData(auditDTO, "serverConfigurationFile", configFile.toString());
     assertCustomData(auditDTO, "serverRelease", new VersionService().getLogDisplayVersion());
     assertCustomData(auditDTO, "processOwner", System.getProperty("user.name"));
   }

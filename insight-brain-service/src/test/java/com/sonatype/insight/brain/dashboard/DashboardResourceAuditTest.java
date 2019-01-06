@@ -241,7 +241,7 @@ public class DashboardResourceAuditTest
   }
 
   private void assertSelectedApplicationCategories(AuditDTO auditDTO, ApplicationCategoryAuditDTO... expected) {
-    ApplicationCategoryAuditDTO[] actuals = objectMapper
+    ApplicationCategoryAuditDTO[] actuals = JSON
         .convertValue(auditDTO.data.get("selectedApplicationCategories"), ApplicationCategoryAuditDTO[].class);
     assertThat(actuals).containsExactlyInAnyOrder(expected);
   }

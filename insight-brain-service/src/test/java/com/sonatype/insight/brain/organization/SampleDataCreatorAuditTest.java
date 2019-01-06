@@ -5,23 +5,28 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 
 import org.junit.After;
 import org.junit.Test;
 
 public class SampleDataCreatorAuditTest
-    extends AbstractAuditTest
+    extends AbstractComponentAuditTest
 {
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  @Inject
+  private SampleDataCreator sampleDataCreator;
 
   @After
   public void cleanup() {
@@ -37,7 +42,7 @@ public class SampleDataCreatorAuditTest
 
   @Test
   public void testCreateSampleData() {
-    getCLMServer().getInjector().getInstance(SampleDataCreator.class).createSampleData();
+    sampleDataCreator.createSampleData();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ORGANIZATION, null, SYSTEM_USER);
     Organization organization = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);

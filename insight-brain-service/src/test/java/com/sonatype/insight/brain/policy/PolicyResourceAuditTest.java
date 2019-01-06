@@ -493,7 +493,7 @@ public class PolicyResourceAuditTest
   private void assertAuditedTags(final AuditDTO auditDTO, final List<Tag> tags) {
     List<ApplicationCategoryAuditDTO> auditedTags =
         ((Collection<?>) auditDTO.data.get("applicationCategories")).stream()
-            .map(p -> objectMapper.convertValue(p, ApplicationCategoryAuditDTO.class)).collect(Collectors.toList());
+            .map(p -> JSON.convertValue(p, ApplicationCategoryAuditDTO.class)).collect(Collectors.toList());
     TagDAO tagDAO = new TagDAO();
 
     assertThat(auditedTags).hasSameSizeAs(tags);

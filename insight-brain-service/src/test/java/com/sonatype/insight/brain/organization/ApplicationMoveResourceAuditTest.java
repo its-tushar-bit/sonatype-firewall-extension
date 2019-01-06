@@ -61,7 +61,7 @@ public class ApplicationMoveResourceAuditTest
 
   @Test
   public void testMoveApplication_UnauthorizedAddApplication() throws Exception {
-    tempEntity.newMembershipMapping(application.getId(), Role.OWNER_ROLE_ID, unauthorizedUser.getUsername());
+    tempEntity.newMembershipMapping(application.getId(), Role.OWNER_ROLE_ID, getUnauthorizedUsername());
 
     moveRequest(application.getId(), organization.getId()).with(unauthorizedUser()).post();
 

@@ -11,24 +11,32 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class CLMLicenseManagerAuditTest
-    extends AbstractAuditTest
+    extends AbstractComponentAuditTest
 {
+  @Inject
+  private CLMLicenseManager licenseManager;
+
+  @Inject
+  private TestProductLicenseManager testProductLicenseManager;
+
   @Test
   public void testInstallLicenseIfUnlicensed() throws Exception {
-    uninstallLicense();
+    licenseManager.uninstallLicense();
     File licenseFile = tempDir.newFile();
 
-    getCLMServer().getInjector().getInstance(CLMLicenseManager.class)
-        .installLicenseIfUnlicensed(licenseFile.getAbsolutePath());
+    licenseManager.installLicenseIfUnlicensed(licenseFile.getAbsolutePath());
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.INSTALL_LICENSE, null, SYSTEM_USER);
     assertLicenseData(auditDTO, licenseFile.getName());
@@ -36,10 +44,10 @@ public class CLMLicenseManagerAuditTest
 
   @Test
   public void testInstallLicenseIfUnlicensed_ServerError() throws Exception {
-    uninstallLicense();
+    licenseManager.uninstallLicense();
 
     assertThatExceptionOfType(Exception.class).isThrownBy(() -> {
-      getCLMServer().getInjector().getInstance(CLMLicenseManager.class).installLicenseIfUnlicensed("doesNotExist");
+      licenseManager.installLicenseIfUnlicensed("doesNotExist");
     });
     assertAuditLog(AuditEvent.INSTALL_LICENSE, "server-error", SYSTEM_USER);
   }
@@ -48,7 +56,7 @@ public class CLMLicenseManagerAuditTest
     assertCustomData(auditDTO, "productLicenseFingerprint", "1234");
     assertCustomData(auditDTO, "productLicenseFilename", filename);
     String productLicenseExpiry = ZonedDateTime
-        .ofInstant(Instant.ofEpochMilli(getTestProductLicenseManager().getExpirationDate().getTime()),
+        .ofInstant(Instant.ofEpochMilli(testProductLicenseManager.getExpirationDate().getTime()),
             ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE);
     assertCustomData(auditDTO, "productLicenseExpiry", productLicenseExpiry);
   }

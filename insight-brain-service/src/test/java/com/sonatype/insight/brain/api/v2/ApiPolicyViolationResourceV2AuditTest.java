@@ -33,7 +33,7 @@ public class ApiPolicyViolationResourceV2AuditTest
         .query("p", policy1.getId(), policy2.getId(), unknownPolicyId).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_POLICY_VIOLATIONS, null);
-    PolicyAuditDTO[] actuals = objectMapper.convertValue(auditDTO.data.get("selectedPolicies"), PolicyAuditDTO[].class);
+    PolicyAuditDTO[] actuals = JSON.convertValue(auditDTO.data.get("selectedPolicies"), PolicyAuditDTO[].class);
 
     assertThat(actuals).containsExactlyInAnyOrder(
         new PolicyAuditDTO(policy1.getId(), policy1),

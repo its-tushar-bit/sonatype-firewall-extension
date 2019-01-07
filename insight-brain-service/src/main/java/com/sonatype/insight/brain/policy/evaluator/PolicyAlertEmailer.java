@@ -15,6 +15,10 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -42,16 +46,20 @@ public class PolicyAlertEmailer
   private final BaseUrl baseUrl;
 
   private final ApplicationAdapter applicationAdapter;
+  
+  private final AuditRecorder auditRecorder;
 
   @Inject
   public PolicyAlertEmailer(final InsightMail mail,
                             final BaseUrl baseUrl,
                             final ApplicationAdapter applicationAdapter,
-                            final PolicyAlertEmailResolver policyAlertEmailResolver)
+                            final PolicyAlertEmailResolver policyAlertEmailResolver,
+                            final AuditRecorder auditRecorder)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
+    this.auditRecorder = auditRecorder;
   }
 
   public void sendNotifications(final Application app,
@@ -74,19 +82,26 @@ public class PolicyAlertEmailer
               + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
         }
         for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
-          try {
-            log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}", mailServer,
-                details.getKey(), applicationPublicId, scanId, stage);
-            final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
-            final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
-            final String subject = createPolicyMailSubject(new PolicyAlertCounts(details.getValue()), app.getName());
-            final String body = createPolicyMailBody(
-                createPolicyMailModel(app, scanId, stage, details.getValue(), grandfatheredPolicyViolationCount));
-            getMail().sendHtml(mailId, addresses, subject, body);
-          }
-          catch (final Exception e) {
-            log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
-                details.getKey(), applicationPublicId, scanId, stage, e);
+          try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
+            try {
+              log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}",
+                  mailServer, details.getKey(), applicationPublicId, scanId, stage);
+              AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId())
+                  .setData("emailAddress", details.getKey());
+              PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
+              AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
+              final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
+              final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
+              final String subject = createPolicyMailSubject(policyAlertCounts, app.getName());
+              final String body = createPolicyMailBody(
+                  createPolicyMailModel(app, scanId, stage, details.getValue(), grandfatheredPolicyViolationCount));
+              getMail().sendHtml(mailId, addresses, subject, body);
+            }
+            catch (final Exception e) {
+              log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
+                  details.getKey(), applicationPublicId, scanId, stage, e);
+              AuditData.get().setException(e);
+            }
           }
         }
       }

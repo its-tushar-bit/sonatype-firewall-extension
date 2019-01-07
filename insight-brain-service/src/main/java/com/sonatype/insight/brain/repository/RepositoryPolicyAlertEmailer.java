@@ -15,6 +15,10 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
@@ -41,30 +45,40 @@ public class RepositoryPolicyAlertEmailer
 
   private final BaseUrl baseUrl;
 
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final PolicyAlertEmailResolver policyAlertEmailResolver,
-                                      final BaseUrl baseUrl)
+                                      final BaseUrl baseUrl,
+                                      final AuditRecorder auditRecorder)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
+    this.auditRecorder = auditRecorder;
   }
 
   public void sendNotifications(Repository repository, List<PolicyNotification> notifications) {
     Map<String, List<PolicyFact>> policyFactsByEmailAddress = getPolicyFactsByEmailAddress(repository, notifications);
     for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
-      try {
-        log.debug("Sending notification email via {} to {} for repository {}", getMail().getServer(), details.getKey(),
-            repository.getId());
-        final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
-        final List<Address> addresses = Collections.singletonList(new Address(details.getKey()));
-        final String subject = createPolicyMailSubject(new PolicyAlertCounts(details.getValue()),
-            repository.getName());
-        final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
-        getMail().sendHtml(mailId, addresses, subject, body);
-      }
-      catch (final Exception e) {
-        log.error("Unable to send notification email to {} for repository {}", details.getKey(), repository.getId(), e);
+      try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
+        try {
+          log.debug("Sending notification email via {} to {} for repository {}", getMail().getServer(),
+              details.getKey(), repository.getId());
+          AuditData.get().setRepository(repository).setData("emailAddress", details.getKey());
+          PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
+          AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
+          final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
+          final List<Address> addresses = Collections.singletonList(new Address(details.getKey()));
+          final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName());
+          final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
+          getMail().sendHtml(mailId, addresses, subject, body);
+        }
+        catch (final Exception e) {
+          log.error("Unable to send notification email to {} for repository {}", details.getKey(), repository.getId(),
+              e);
+          AuditData.get().setException(e);
+        }
       }
     }
   }

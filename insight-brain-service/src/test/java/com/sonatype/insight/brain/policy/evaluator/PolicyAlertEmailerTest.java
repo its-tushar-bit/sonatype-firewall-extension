@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -417,7 +418,8 @@ public class PolicyAlertEmailerTest
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class),
         new ApplicationAdapter(userDirectory),
-        new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()));
+        new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()),
+        new AuditRecorder(null));
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // make sure emails from server 2 still go out

@@ -150,7 +150,9 @@ public enum AuditEvent
 
   SEARCH_COMPONENT_USES(Domain.REPORTING_COMPONENT_USES, Type.SEARCH), //
 
-  INVOKE_WEBHOOK(Domain.NOTIFICATION_WEBHOOK, Type.INVOKE);
+  INVOKE_WEBHOOK(Domain.NOTIFICATION_WEBHOOK, Type.INVOKE), //
+
+  SEND_MAIL(Domain.NOTIFICATION_MAIL, Type.SEND);
 
   private final String domain;
 
@@ -293,6 +295,8 @@ public enum AuditEvent
 
     String NOTIFICATION_WEBHOOK = join(NOTIFICATION, "webhook");
 
+    String NOTIFICATION_MAIL = join(NOTIFICATION, "mail");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -369,5 +373,7 @@ public enum AuditEvent
     String SEARCH = "search";
 
     String INVOKE = "invoke";
+
+    String SEND = "send";
   }
 }

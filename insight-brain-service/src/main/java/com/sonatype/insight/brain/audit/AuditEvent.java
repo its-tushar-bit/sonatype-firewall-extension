@@ -148,7 +148,9 @@ public enum AuditEvent
 
   EXPORT_POLICY_VIOLATIONS(Domain.REPORTING_POLICY_VIOLATIONS, Type.EXPORT), //
 
-  SEARCH_COMPONENT_USES(Domain.REPORTING_COMPONENT_USES, Type.SEARCH);
+  SEARCH_COMPONENT_USES(Domain.REPORTING_COMPONENT_USES, Type.SEARCH), //
+
+  INVOKE_WEBHOOK(Domain.NOTIFICATION_WEBHOOK, Type.INVOKE);
 
   private final String domain;
 
@@ -287,6 +289,10 @@ public enum AuditEvent
 
     String REPORTING_COMPONENT_USES = join(REPORTING, "component-uses");
 
+    String NOTIFICATION = "notification";
+
+    String NOTIFICATION_WEBHOOK = join(NOTIFICATION, "webhook");
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }
@@ -361,5 +367,7 @@ public enum AuditEvent
     String SAVE = "save";
 
     String SEARCH = "search";
+
+    String INVOKE = "invoke";
   }
 }

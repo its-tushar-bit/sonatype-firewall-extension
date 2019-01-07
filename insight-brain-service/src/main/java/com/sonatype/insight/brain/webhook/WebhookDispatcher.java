@@ -13,6 +13,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -60,22 +64,28 @@ public class WebhookDispatcher
 
   private final OwnerDTOUtil ownerDTOUtil;
 
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public WebhookDispatcher(final AsyncEventBus asyncEventBus,
                            final WebhookService webhookService,
                            final WebhookClientUtil webhookClientUtil,
-                           final OwnerDTOUtil ownerDTOUtil)
+                           final OwnerDTOUtil ownerDTOUtil,
+                           final AuditRecorder auditRecorder)
   {
     this.webhookService = webhookService;
     this.webhookClientUtil = webhookClientUtil;
     this.asyncEventBus = asyncEventBus;
     this.ownerDTOUtil = ownerDTOUtil;
+    this.auditRecorder = auditRecorder;
   }
 
   @Subscribe
   public void on(final ApplicationEvaluationEvent applicationEvaluationEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.APPLICATION_EVALUATION)) {
-      sendApplicationEvaluationPayload(webhookService.getDecrypted(webhook.getId()), applicationEvaluationEvent);
+      invokeWithAudit(webhook, WebhookEventType.APPLICATION_EVALUATION,
+          () -> sendApplicationEvaluationPayload(webhookService.getDecrypted(webhook.getId()),
+              applicationEvaluationEvent));
     }
   }
 
@@ -84,64 +94,88 @@ public class WebhookDispatcher
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
       PolicyManagementType type = ownerEvent.owner.getType() ==
           OwnerType.ORGANIZATION ? PolicyManagementType.ORGANIZATION : PolicyManagementType.APPLICATION;
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), type, ownerEvent.owner.getId(),
-          ownerEvent);
+      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+          () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), type,
+              ownerEvent.owner.getId(),
+              ownerEvent));
     }
   }
 
   @Subscribe
   public void on(final TagEvent tagEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
-          PolicyManagementType.APPLICATION_CATEGORY, tagEvent.tag.getId(), tagEvent);
+      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+          () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
+              PolicyManagementType.APPLICATION_CATEGORY, tagEvent.tag.getId(), tagEvent));
     }
   }
 
   @Subscribe
   public void on(final LabelEvent labelEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.LABEL,
-          labelEvent.label.getId(), labelEvent);
+      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+          () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.LABEL,
+              labelEvent.label.getId(), labelEvent));
     }
   }
 
   @Subscribe
   public void on(final LicenseThreatGroupEvent licenseThreatGroupEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
-          PolicyManagementType.LICENSE_THREAT_GROUP, licenseThreatGroupEvent.licenseThreatGroup.getId(),
-          licenseThreatGroupEvent);
+      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+          () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
+              PolicyManagementType.LICENSE_THREAT_GROUP, licenseThreatGroupEvent.licenseThreatGroup.getId(),
+              licenseThreatGroupEvent));
     }
   }
 
   @Subscribe
   public void on(final PolicyEvent policyEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.POLICY,
-          policyEvent.policy.getId(), policyEvent);
+      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+          () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.POLICY,
+              policyEvent.policy.getId(), policyEvent));
     }
   }
 
   @Subscribe
   public void on(final RoleEvent roleEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.ACCESS,
-          roleEvent.ownerId, roleEvent);
+      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+          () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.ACCESS,
+              roleEvent.ownerId, roleEvent));
     }
   }
 
   @Subscribe
   public void on(final SecurityVulnerabilityOverrideEvent securityVulnerabilityOverrideEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT)) {
-      sendSecurityVulnerabilityOverridePayload(webhookService.getDecrypted(webhook.getId()),
-          securityVulnerabilityOverrideEvent);
+      invokeWithAudit(webhook, WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT,
+          () -> sendSecurityVulnerabilityOverridePayload(webhookService.getDecrypted(webhook.getId()),
+              securityVulnerabilityOverrideEvent));
     }
   }
 
   @Subscribe
   public void on(final LicenseOverrideEvent licenseOverrideEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT)) {
-      sendLicenseOverridePayload(webhookService.getDecrypted(webhook.getId()), licenseOverrideEvent);
+      invokeWithAudit(webhook, WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT,
+          () -> sendLicenseOverridePayload(webhookService.getDecrypted(webhook.getId()), licenseOverrideEvent));
+    }
+  }
+
+  private void invokeWithAudit(Webhook webhook, WebhookEventType webhookEventType, Runnable invocation) {
+    try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.INVOKE_WEBHOOK)) {
+      try {
+        AuditData.get().setData("webhookdId", webhook.getId())
+            .setData("webhookUrl", webhook.getUrl())
+            .setEnum("webhookTriggerEvent", webhookEventType);
+        invocation.run();
+      }
+      catch (RuntimeException e) {
+        AuditData.get().setException(e);
+        throw e;
+      }
     }
   }
 

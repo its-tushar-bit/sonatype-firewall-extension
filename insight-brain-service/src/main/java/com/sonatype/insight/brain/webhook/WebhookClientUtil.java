@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
@@ -70,9 +71,12 @@ public class WebhookClientUtil
       insightProxy.contextualize(configuration, decryptedWebhook.getUrl());
 
       WebhookClient webhookClient = new WebhookClient(configuration, deliveryId, decryptedWebhook, webhookId, payload);
+
+      AuditData.get().setData("webhookDeliveryId", deliveryId);
       log.debug("Sending Webhook {} with delivery ID {}", webhookId, deliveryId);
       Result result = webhookClient.post();
       if (result.status() >= 300) {
+        AuditData.get().setHttpStatus(result.status());
         String msg = result.message();
         log.error(
             "Unable to perform HTTP request for Webhook {} with delivery ID {} due to Status Code: {} Message: {}",
@@ -80,9 +84,11 @@ public class WebhookClientUtil
       }
     }
     catch (JsonProcessingException ex) {
+      AuditData.get().setException(ex);
       log.error("Unable to marshall Webhook {}", webhookId, ex);
     }
     catch (SocketTimeoutException ex) {
+      AuditData.get().setException(ex);
       log.error("Timeout waiting for response from peer for Webhook {} with delivery ID {} Message: {}",
           webhookId, deliveryId, ex.getMessage());
     }
@@ -91,6 +97,7 @@ public class WebhookClientUtil
       if (ex instanceof RuntimeException) {
         throw (RuntimeException)ex;
       }
+      AuditData.get().setException(ex);
     }
   }
 

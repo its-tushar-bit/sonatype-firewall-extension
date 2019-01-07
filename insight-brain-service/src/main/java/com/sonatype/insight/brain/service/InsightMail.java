@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
+import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,10 +41,10 @@ public class InsightMail
     return config.getCdnUrl();
   }
 
-  public void sendHtml(final String mailId, final List<Address> to, final String subject, final String body) {
+  public void sendHtml(final String mailId, final String mailAddress, final String subject, final String body) {
     final MailRequest message = new MailRequest(mailId, HtmlMailType.HTML_TYPE_ID);
 
-    message.setToAddresses(to);
+    message.setToAddresses(Collections.singletonList(new Address(mailAddress)));
     message.setExpandedSubject(subject);
     message.setExpandedBody(body);
 

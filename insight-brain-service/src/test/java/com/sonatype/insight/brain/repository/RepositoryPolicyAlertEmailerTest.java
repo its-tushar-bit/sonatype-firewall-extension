@@ -42,18 +42,14 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 
-import org.sonatype.micromailer.Address;
-
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -117,8 +113,7 @@ public class RepositoryPolicyAlertEmailerTest
   private void sendNotificationsAndVerify(Repository repository, User user, List<PolicyNotification> notifications) {
     emailer.sendNotifications(repository, notifications);
 
-    verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()),
-        argThat(new AddressListEq(Collections.singletonList(new Address(user.getEmail())))), anyString(), anyString());
+    verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()), eq(user.getEmail()), anyString(), anyString());
   }
 
   @Test
@@ -205,39 +200,5 @@ public class RepositoryPolicyAlertEmailerTest
     policyFact.addComponentFact(componentFact);
 
     return policyFact;
-  }
-
-  // This is required as Address doesn't implement equals/hashCode
-  private static class AddressListEq
-      implements ArgumentMatcher<List<Address>>
-  {
-    private final List<Address> addresses;
-
-    AddressListEq(List<Address> addresses) {
-      this.addresses = addresses;
-    }
-
-    @Override
-    public boolean matches(List<Address> addressList) {
-      if (addressList == null || addressList.isEmpty()) {
-        return addresses == null || addresses.isEmpty();
-      }
-
-      if (addresses == null || addresses.isEmpty()) {
-        return false;
-      }
-
-      if (addressList.size() != addresses.size()) {
-        return false;
-      }
-
-      for (int i = 0; i < addresses.size(); i++) {
-        if (!addresses.get(i).getMailAddress().equals(addressList.get(i).getMailAddress())) {
-          return false;
-        }
-      }
-
-      return true;
-    }
   }
 }

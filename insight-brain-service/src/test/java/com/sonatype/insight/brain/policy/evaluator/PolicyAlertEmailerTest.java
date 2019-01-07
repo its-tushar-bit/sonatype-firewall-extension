@@ -56,8 +56,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.test.LogOutput;
 
-import org.sonatype.micromailer.Address;
-
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Rule;
@@ -72,7 +70,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.endsWith;
@@ -99,7 +96,7 @@ public class PolicyAlertEmailerTest
   private InsightMail mailer;
 
   @Captor
-  private ArgumentCaptor<List<Address>> toAddressesArgumentCaptor;
+  private ArgumentCaptor<String> toAddressesArgumentCaptor;
 
   @Rule
   public TestLdapServer testLdapServer1 = new TestLdapServer();
@@ -202,7 +199,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     Exception ex = new RuntimeException();
-    doThrow(ex).when(mailer).sendHtml(anyString(), anyList(), anyString(), anyString());
+    doThrow(ex).when(mailer).sendHtml(anyString(), anyString(), anyString(), anyString());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
@@ -316,7 +313,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT)).sendHtml(endsWith(scanId), anyList(), anyString(),
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT)).sendHtml(endsWith(scanId), anyString(), anyString(),
         anyString());
 
     String newAddress = "newaddress@sonatype.com";
@@ -350,8 +347,8 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT))
-        .sendHtml(endsWith(scanId), anyList(), anyString(), anyString());
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT)).sendHtml(endsWith(scanId), anyString(), anyString(),
+        anyString());
 
     testLdapServer1.loadData("/PolicyAlertEmailerTest/alter_testuser1_1_email.ldif");
 
@@ -492,8 +489,7 @@ public class PolicyAlertEmailerTest
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(expectedEmailAddresses.length))
         .sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
 
-    assertThat(toAddressesArgumentCaptor.getAllValues()).flatExtracting(addresses -> addresses)
-        .extracting(Address::getMailAddress).containsExactlyInAnyOrder(expectedEmailAddresses);
+    assertThat(toAddressesArgumentCaptor.getAllValues()).containsExactlyInAnyOrder(expectedEmailAddresses);
   }
 
   private void startLdapServer1() throws Exception {

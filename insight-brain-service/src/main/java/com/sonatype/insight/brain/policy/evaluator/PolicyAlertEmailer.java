@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,8 +25,6 @@ import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
-
-import org.sonatype.micromailer.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,11 +88,10 @@ public class PolicyAlertEmailer
               PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
               final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
-              final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
               final String subject = createPolicyMailSubject(policyAlertCounts, app.getName());
               final String body = createPolicyMailBody(
                   createPolicyMailModel(app, scanId, stage, details.getValue(), grandfatheredPolicyViolationCount));
-              getMail().sendHtml(mailId, addresses, subject, body);
+              getMail().sendHtml(mailId, details.getKey(), subject, body);
             }
             catch (final Exception e) {
               log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",

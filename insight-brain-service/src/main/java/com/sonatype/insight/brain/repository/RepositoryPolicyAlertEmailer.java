@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,8 +27,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
-
-import org.sonatype.micromailer.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +66,9 @@ public class RepositoryPolicyAlertEmailer
           PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
           AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
           final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
-          final List<Address> addresses = Collections.singletonList(new Address(details.getKey()));
           final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName());
           final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
-          getMail().sendHtml(mailId, addresses, subject, body);
+          getMail().sendHtml(mailId, details.getKey(), subject, body);
         }
         catch (final Exception e) {
           log.error("Unable to send notification email to {} for repository {}", details.getKey(), repository.getId(),

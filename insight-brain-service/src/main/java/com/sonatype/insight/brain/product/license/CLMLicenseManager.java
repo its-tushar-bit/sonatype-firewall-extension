@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -53,6 +54,14 @@ public class CLMLicenseManager
   private static final String FEATURE_QUALITY = "QUALITY";
 
   private static final String FEATURE_REPOSITORY_FIREWALL = "REPOSITORY_FIREWALL";
+
+  private static final String FEATURE_ENFORCEMENT = "ENFORCEMENT";
+
+  private static final String FEATURE_NOTIFICATIONS = "NOTIFICATIONS";
+
+  private static final String FEATURE_POLICY_GRANDFATHERING = "POLICY_GRANDFATHERING";
+
+  private static final String FEATURE_WEBHOOKS = "WEBHOOKS";
 
   public static final String PRODUCT_PRO_PLUS = "Pro+";
 
@@ -192,14 +201,19 @@ public class CLMLicenseManager
   
   private final AuditRecorder auditRecorder;
 
+  // will be removed once lifecycle light is read from license
+  private final InsightConfig insightConfig;
+
   @Inject
   public CLMLicenseManager(final ProductLicenseManager licenseManager,
                            final LicenseFingerprinter licenseFingerprinter,
-                           final AuditRecorder auditRecorder)
+                           final AuditRecorder auditRecorder,
+                           final InsightConfig insightConfig)
   {
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
     this.auditRecorder = auditRecorder;
+    this.insightConfig = insightConfig;
     try {
       populateLicenseCache();
     }
@@ -290,6 +304,34 @@ public class CLMLicenseManager
    */
   public boolean hasRepositoryFirewall() {
     return hasFeature(FEATURE_REPOSITORY_FIREWALL);
+  }
+
+  /**
+   * @since 1.58
+   */
+  public boolean hasEnforcement() {
+    return hasFeature(FEATURE_ENFORCEMENT);
+  }
+
+  /**
+   * @since 1.58
+   */
+  public boolean hasNotifications() {
+    return hasFeature(FEATURE_NOTIFICATIONS);
+  }
+
+  /**
+   * @since 1.58
+   */
+  public boolean hasPolicyGrandfathering() {
+    return hasFeature(FEATURE_POLICY_GRANDFATHERING);
+  }
+
+  /**
+   * @since 1.58
+   */
+  public boolean hasWebhooks() {
+    return hasFeature(FEATURE_WEBHOOKS);
   }
 
   private boolean hasFeature(String feature) {
@@ -523,6 +565,19 @@ public class CLMLicenseManager
       }
       if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
         features.add(FEATURE_REPOSITORY_FIREWALL);
+      }
+
+      // insightConfig to be removed once license drives lifecycle light
+      boolean lifecycleLight = (insightConfig != null && insightConfig.isLifecycleLight()) ||
+          products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION);
+      if (lifecycleLight) {
+        features.remove(FEATURE_POLICY_MONITORING);
+      }
+      else {
+        features.add(FEATURE_ENFORCEMENT);
+        features.add(FEATURE_NOTIFICATIONS);
+        features.add(FEATURE_POLICY_GRANDFATHERING);
+        features.add(FEATURE_WEBHOOKS);
       }
     }
 

@@ -138,6 +138,11 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
     assertThat(clmLicenseManager.hasQuality()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
+    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
+    assertThat(clmLicenseManager.hasNotifications()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
+    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
   }
 
   @Test
@@ -204,7 +209,12 @@ public class CLMLicenseManagerTest
   public void testHasRepositoryFirewall_NexusLifecycleLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
     assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
+    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
+    assertThat(clmLicenseManager.hasNotifications()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
+    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
   }
 
   @Test
@@ -522,5 +532,28 @@ public class CLMLicenseManagerTest
     }).isInstanceOf(LicensingException.class);
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
+  }
+
+  @Test
+  public void testFoundationLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
+    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
+    assertThat(clmLicenseManager.hasNotifications()).isFalse();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
+    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+  }
+
+  @Test
+  public void testFoundationLicense_WithFirewall() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    clmLicenseManager.installLicense(null);
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
+    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
+    assertThat(clmLicenseManager.hasNotifications()).isFalse();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
+    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
   }
 }

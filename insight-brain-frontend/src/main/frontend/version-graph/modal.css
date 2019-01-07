@@ -38,12 +38,3 @@
   font-family: Proxima Nova Regular, sans-serif;
   padding-left: 40px;
 }
-
-.iq-modal .section.with-icon {
-  margin-top: -4px;
-  margin-bottom: 19px;
-}
-
-.iq-modal .section.with-icon>i {
-  margin-right: 8px;
-}

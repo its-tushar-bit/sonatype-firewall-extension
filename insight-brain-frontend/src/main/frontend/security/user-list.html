@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{error : error}">
-      <div class="section with-icon" ng-if="error">
+      <div class="iq-alert iq-alert--error" ng-if="error">
         <i class="fa fa-warning"></i> {{ error }}
       </div>
       <button class="btn btn-error" type="submit" ng-click="resetClick()" ng-if="error">

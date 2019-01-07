@@ -71,8 +71,8 @@ describe('dropdown.selector.directive.spec.js', function() {
       scope.options = [];
       scope.$digest();
       expect(element.attr('class').split(' ')).toContain('no-options');
-      expect(element.find('span.warning').length).toBe(1);
-      expect(element.find('span.warning').text()).toEqual('No Berries Available');
+      expect(element.find('span.iq-alert').length).toBe(1);
+      expect(element.find('span.iq-alert').text()).toEqual('No Berries Available');
     });
 
     it('Directive does not add no-options class when options are undefined', function() {
@@ -82,7 +82,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       scope.options = undefined;
       scope.$digest();
       expect(element.attr('class').split(' ')).not.toContain('no-options');
-      expect(element.find('span.warning').length).toBe(0);
+      expect(element.find('span.iq-alert').length).toBe(0);
     });
 
     it('Directive displays disabled dropdown when options are undefined', function() {

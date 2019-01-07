@@ -78,7 +78,7 @@ public class CategoryEditorPage
     }
 
     public static SelenideElement message() {
-      return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".section"));
+      return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".iq-alert"));
     }
 
     public static SelenideElement closeButton() {

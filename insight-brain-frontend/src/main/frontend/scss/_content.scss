@@ -174,20 +174,6 @@ body {
 /*
  ##Sections
 */
-.section {
-  margin-bottom: 20px;
-
-  /* based on default font size */
-  &.with-icon {
-    margin-top: -4px;
-    margin-bottom: 19px;
-
-    > .fa {
-      margin-right: 8px;
-    }
-  }
-}
-
 .sub-section {
   margin-bottom: 12px;
 }

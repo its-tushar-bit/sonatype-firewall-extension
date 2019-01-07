@@ -38,7 +38,7 @@
         </div>
       </section>
       <footer class="iq-modal-footer" ng-class="{ error : vm.submitError }">
-        <div ng-if="vm.submitError" class="section with-icon"><i class="fa fa-warning"></i>{{::vm.submitError}}</div>
+        <div ng-if="vm.submitError" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{::vm.submitError}}</div>
         <button ng-if="!vm.submitError" class="btn btn-primary" type="submit">
           Uninstall
         </button>

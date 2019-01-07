@@ -43,7 +43,7 @@
     </div>
 
     <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-      <div ng-if="vm.error" class="section with-icon"><i class="clm-icon-error"></i>{{::vm.error}}</div>
+      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="clm-icon-error"></i> {{::vm.error}}</div>
       <button ng-if="!vm.error" class="clm-btn clm-btn-primary" type="submit"
               submit-validation submit-tooltip-target="body" submit-type="Add" submit-dirty="vm.isValid()">
         Add

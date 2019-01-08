@@ -177,7 +177,7 @@
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <!-- Exclude the dependencies we obfuscate in order to ensure the un-obfuscated code is not available. -->
           <classpathDependencyExcludes>
-            <classpathDependencyExcludes>com.sonatype.insight.scan:insight-scanner-hashing</classpathDependencyExcludes>
+            <classpathDependencyExcludes>com.sonatype.insight.scan:insight-scanner-hashing*</classpathDependencyExcludes>
             <classpathDependencyExcludes>org.ow2.asm:asm*</classpathDependencyExcludes>
           </classpathDependencyExcludes>
         </configuration>

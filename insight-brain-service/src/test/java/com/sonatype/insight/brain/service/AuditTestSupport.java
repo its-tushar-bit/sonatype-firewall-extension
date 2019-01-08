@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -50,7 +52,8 @@ public interface AuditTestSupport
 
   default List<AuditDTO> getLogEntries(AuditEvent auditEvent) {
     return getLogOutput().getInfoMessages(AuditRecorder.toLoggerName(auditEvent.getDomain())).stream()
-        .map(AuditTestSupport::parseAuditLog).filter(dto -> auditEvent.getType().equals(dto.type)).collect(toList());
+        .map(AuditTestSupport::parseAuditLog).filter(dto -> auditEvent.getType().equals(dto.type))
+        .collect(toCollection(ArrayList::new));
   }
 
   static AuditDTO parseAuditLog(String auditLogEntry) {

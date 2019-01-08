@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.notifications;
+package com.sonatype.insight.brain.product.notifications;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +17,6 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
-import com.sonatype.insight.brain.notifications.dto.ProductNotificationDTO;
-import com.sonatype.insight.brain.notifications.dto.ProductNotificationListDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.annotations.VisibleForTesting;

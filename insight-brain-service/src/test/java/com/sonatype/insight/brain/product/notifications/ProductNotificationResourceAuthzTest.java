@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.notifications;
+package com.sonatype.insight.brain.product.notifications;
 
 import java.util.UUID;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.notifications.dto.ProductNotificationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;

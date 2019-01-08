@@ -197,7 +197,7 @@ public class ScanPolicyEvaluator
    * - persists policy evaluation
    * - persists policy violation data and component data if this is an evaluation for the most recent scan for the
    * specified stage
-   * - set or updates the grandfathered status on policy violations
+   * - sets or updates the grandfathered status on policy violations
    * - determines the policy violations for which notifications should be sent
    */
   private ScanPolicyEvaluatorResults processPolicyResults(Application app,

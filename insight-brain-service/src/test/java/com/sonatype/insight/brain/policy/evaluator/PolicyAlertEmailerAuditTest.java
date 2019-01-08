@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -44,6 +45,9 @@ public class PolicyAlertEmailerAuditTest
 {
   private static final List<String> EMAILS = Arrays.asList("test1@sonatype.com", "test2@sonatype.com");
 
+  private static final Comparator<AuditDTO> EMAIL_COMPARATOR = Comparator
+      .comparing(auditDTO -> (String) auditDTO.data.getOrDefault("emailAddress", ""));
+
   private static final String SCAN_ID = "scanId";
 
   private static final String STAGE_ID = BuildStageType.ID;
@@ -78,7 +82,8 @@ public class PolicyAlertEmailerAuditTest
 
     policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0);
 
-    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.SEND_MAIL, 2, null, SYSTEM_USER);
+    List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.SEND_MAIL, 2);
+    auditDTOs.sort(EMAIL_COMPARATOR);
     assertApplicationPolicyNotificationAuditData(auditDTOs.get(0), policyNotifications.size(), EMAILS.get(0), null);
     assertApplicationPolicyNotificationAuditData(auditDTOs.get(1), policyNotifications.size(), EMAILS.get(1), null);
   }
@@ -92,6 +97,7 @@ public class PolicyAlertEmailerAuditTest
     policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0);
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.SEND_MAIL, 2);
+    auditDTOs.sort(EMAIL_COMPARATOR);
     assertApplicationPolicyNotificationAuditData(auditDTOs.get(0), policyNotifications.size(), EMAILS.get(0),
         "server-error");
     assertApplicationPolicyNotificationAuditData(auditDTOs.get(1), policyNotifications.size(), EMAILS.get(1), null);

@@ -152,7 +152,9 @@ public enum AuditEvent
 
   INVOKE_WEBHOOK(Domain.NOTIFICATION_WEBHOOK, Type.INVOKE), //
 
-  SEND_MAIL(Domain.NOTIFICATION_MAIL, Type.SEND);
+  SEND_MAIL(Domain.NOTIFICATION_MAIL, Type.SEND),
+
+  CREATE_JIRA_ISSUE(Domain.NOTIFICATION_ISSUE_JIRA, Type.CREATE);
 
   private final String domain;
 
@@ -296,6 +298,8 @@ public enum AuditEvent
     String NOTIFICATION_WEBHOOK = join(NOTIFICATION, "webhook");
 
     String NOTIFICATION_MAIL = join(NOTIFICATION, "mail");
+
+    String NOTIFICATION_ISSUE_JIRA = join(NOTIFICATION, join("issue", "jira"));
 
     static String join(String parent, String child) {
       return parent + "." + child;

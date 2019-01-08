@@ -19,6 +19,10 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -55,16 +59,20 @@ public class JiraPolicyAlertNotifier
 
   private final BaseUrl baseUrl;
 
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public JiraPolicyAlertNotifier(final InsightConfig insightConfig,
                                  final ApplicationAdapter applicationAdapter,
                                  final JiraService jiraService,
-                                 final BaseUrl baseUrl)
+                                 final BaseUrl baseUrl,
+                                 final AuditRecorder auditRecorder)
   {
     this.insightConfig = insightConfig;
     this.applicationAdapter = applicationAdapter;
     this.jiraService = jiraService;
     this.baseUrl = baseUrl;
+    this.auditRecorder = auditRecorder;
 
     // resolve template used to render issue description
     try {
@@ -104,43 +112,50 @@ public class JiraPolicyAlertNotifier
               + ", no JIRA projects configured for any violated policy", app.getPublicId(), scanId, stage);
           return;
         }
-        for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification : policyFactsByJiraNotifications
-            .entrySet()) {
+        for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification :
+            policyFactsByJiraNotifications.entrySet()) {
+          try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.CREATE_JIRA_ISSUE)) {
+            JiraNotification jiraNotification = policyFactsByJiraNotification.getKey();
+            List<PolicyFact> policyFacts = policyFactsByJiraNotification.getValue();
 
-          JiraNotification jiraNotification = policyFactsByJiraNotification.getKey();
-          List<PolicyFact> policyFacts = policyFactsByJiraNotification.getValue();
+            try {
+              AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId());
+              JiraIssueCreateRequest request = new JiraIssueCreateRequest();
 
-          try {
-            JiraIssueCreateRequest request = new JiraIssueCreateRequest();
+              // include optional fields; before we add more specific details
+              if (customFields != null) {
+                request.getFields().putAll(customFields);
+              }
 
-            // include optional fields; before we add more specific details
-            if (customFields != null) {
-              request.getFields().putAll(customFields);
+              request.project(jiraNotification.getProjectKey());
+              request.issueType(jiraNotification.getIssueTypeId());
+
+              final PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
+
+              AuditData.get().setData("jiraProjectKey", jiraNotification.getProjectKey())
+                  .setData("jiraIssueTypeId", jiraNotification.getIssueTypeId())
+                  .setData("totalPolicyViolationCount", counts.getTotal());
+
+              request.summary(String
+                  .format("Nexus IQ: Application %s; %s stage; %d Policy alerts", app.getName(), stage.getStageName(),
+                      counts.getTotal()));
+
+              // render description from template; prepare template parameters with appropriate details
+              Map<String, Object> params = createPolicyMailModel(app, scanId, stage, counts, policyFacts);
+              request.description(TemplateUtils.render(descriptionTemplate, params));
+
+              log.debug("Creating JIRA issue: {}", request);
+              JiraClient client = jiraService.client();
+              JiraIssueCreateResponse response = client.createIssue(request);
+              log.info("Created JIRA issue: {}", response.getKey());
             }
-
-            request.project(jiraNotification.getProjectKey());
-            request.issueType(jiraNotification.getIssueTypeId());
-
-            final PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
-
-            request.summary(String.format("Nexus IQ: Application %s; %s stage; %d Policy alerts",
-                app.getName(), stage.getStageName(), counts.getTotal()
-            ));
-
-            // render description from template; prepare template parameters with appropriate details
-            Map<String, Object> params = createPolicyMailModel(app, scanId, stage, counts, policyFacts);
-            request.description(TemplateUtils.render(descriptionTemplate, params));
-
-            log.debug("Creating JIRA issue: {}", request);
-            JiraClient client = jiraService.client();
-            JiraIssueCreateResponse response = client.createIssue(request);
-            log.info("Created JIRA issue: {}", response.getKey());
-          }
-          catch (Exception e) {
-            log.error(
-                "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
+            catch (Exception e) {
+              AuditData.get().setException(e);
+              log.error(
+                  "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
                     " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
                     app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
+            }
           }
         }
       }

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +21,11 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -58,7 +62,9 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.MockReportDownloader;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -66,6 +72,7 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -1316,6 +1323,37 @@ public class ScanPolicyEvaluatorTest
     assertThat(appComponents2).hasSize(1);
     assertApplicationComponent(geronimoTomcatComponentIdentifier, policyEvaluation2.getTime(), appComponents2.get(0));
     assertThat(appComponents2.get(0).getId()).isEqualTo(appComponent2.getId());
+  }
+
+  @Test
+  public void testEvaluate_CreatesReportFiles() throws Exception {
+    // The policy will cause three policy violations.
+    Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
+    // The waiver will waive one policy violation, leaving two active policy violations.
+    tempEntity.newWaiver("f2e35e4a21f07d25710f", policy.getId(), application.getId(), "Waiver comment here");
+    String scanId = simulateReportIsAvailable("report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+        scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
+
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    // Verify the policyalerts.json report file
+    ReportEntry policyAlertsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils.parse(policyAlertsReportEntry.buf, PolicyAlert[].class));
+    assertThat(policyAlerts).extracting(PolicyAlert::getTrigger) //
+        .flatExtracting(PolicyFact::getComponentFacts) //
+        .extracting(ComponentFact::getHash) //
+        .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae");
+    // Verify the policythreats.json report file
+    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
+    assertThat(policyThreats.aaData) //
+        .extracting(component -> component.hash) //
+        .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
   }
 
   private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,

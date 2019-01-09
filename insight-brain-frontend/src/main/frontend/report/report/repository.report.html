@@ -22,7 +22,7 @@
   <script type='text/ng-template' id='repository-reevaluate-modal-template'>
     <div id="repository-reevaluate-modal">
       <div class="iq-modal-header">
-        <h3>Re-evaluate policy</h3>
+        <h2>Re-evaluate policy</h2>
       </div>
       <form ng-submit="vm.reEvaluatePolicy()" form-mask="vm.reEvaluatePolicyMask" mask-message="Starting evaluation">
         <div class="iq-modal-content">
@@ -43,7 +43,7 @@
             Re-evaluate
           </button>
           <button id="perform-re-evaluate-retry" ng-if="vm.error" class="btn btn-error" type="submit">
-            Retry
+            <i class="fa fa-refresh"></i>Retry
           </button>
           <button id="close-re-evaluate" class="btn" ng-click="$dismiss()" type="button">Cancel</button>
         </div>

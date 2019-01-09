@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -98,6 +99,8 @@ public class ScanPolicyEvaluator
 
   private final TelemetrySender telemetrySender;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
   public ScanPolicyEvaluator(final InsightWork insightWork,
                              final ReportService reportService,
@@ -106,7 +109,8 @@ public class ScanPolicyEvaluator
                              final ApplicationEvaluationEventService applicationEvaluationEventService,
                              final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
                              final TelemetrySender telemetrySender,
-                             final PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
+                             final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
+                             final CLMLicenseManager clmLicenseManager)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -116,6 +120,7 @@ public class ScanPolicyEvaluator
     this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
     this.telemetrySender = telemetrySender;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
+    this.clmLicenseManager = clmLicenseManager;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
@@ -542,10 +547,17 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
-      List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
-      List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(activePolicyViolations,
-          policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
-      policyEvaluationResult.setAlerts(policyAlerts);
+      if (clmLicenseManager.hasEnforcement(policyEvaluation.getStageTypeId())) {
+        List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
+        List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(activePolicyViolations,
+            policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
+        policyEvaluationResult.setAlerts(policyAlerts);
+      }
+      else {
+        log.debug("Not adding policy alerts for application {} and scan {} in stage {}, " +
+                "license does not support enforcement", policyEvaluation.getApplicationId(),
+            policyEvaluation.getScanId(), policyEvaluation.getStageTypeId());
+      }
     }
     return policyEvaluationResult;
   }

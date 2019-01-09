@@ -26,7 +26,9 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -61,6 +63,7 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -73,6 +76,7 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -113,6 +117,12 @@ public class ScanPolicyEvaluatorTest
   private MockReportDownloader mockReportDownloader;
 
   private TelemetrySender mockTelemetrySender;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   @Override
   public void configure(Binder binder) {
@@ -1334,8 +1344,7 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report.zip");
 
     // Evaluate policy
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
 
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
@@ -1354,6 +1363,20 @@ public class ScanPolicyEvaluatorTest
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
+  }
+
+  @Test
+  public void testEvaluate_LifecycleFoundation_WithoutEnforcement() throws Exception {
+    newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
+
+    // Evaluate policy for the Build stage
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    String scanBuildId = simulateReportIsAvailable("report.zip");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
+    PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
+        results.allViolations, true);
+    assertThat(evaluationResult.getAlerts()).isEmpty();
   }
 
   private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,

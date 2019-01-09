@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Test;
 
@@ -59,5 +60,31 @@ public class PolicyEvaluateResourceTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
+    assertThat(policyEvaluationResult.getAlerts()).isNotEmpty();
+  }
+
+  @Test
+  public void testEvaluate_LifecycleFoundation_WithoutEnforcement() throws Exception {
+    getTestProductLicenseManager().setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    getTestProductLicenseManager().installLicense(null);
+
+    Application app = tempEntity.newApplicationWithParent();
+    setLicenseFingerprint(licenseFingerprint);
+
+    tempEntity.newPolicy(app);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
+
+    // evaluate policy
+    HttpResponse response = evaluateRequest(app.getPublicId(), scanId, new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationResult policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getAlerts()).isEmpty();
   }
 }

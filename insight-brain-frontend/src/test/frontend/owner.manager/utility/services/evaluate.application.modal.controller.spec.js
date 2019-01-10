@@ -31,6 +31,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
 
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
     spyOn(StageTypeStore, 'get').and.returnValue(stageTypeStoreDefer.promise);
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
 
     vm = $controller('evaluate.application.modal.controller',
         {$scope: scope, selectedApplication: mockSelectedApplication});
@@ -38,7 +39,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     expect(vm.evaluationState).toBe('loading');
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
     stageTypeStoreDefer.resolve(MockData.getActionStageData());
-    $timeout.flush();
+    $httpBackend.flush();
   }));
 
   it('Loads bundle and stages properly', function() {

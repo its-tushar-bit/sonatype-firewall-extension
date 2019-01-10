@@ -5,3 +5,9 @@
 .iq-progress-bar {
   margin-bottom: 12px;
 }
+
+#eval-notifications-disabled-message {
+  &.iq-alert {
+    margin: 0 0 8px 0;
+  }
+}

@@ -4,8 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $timeout, $window, $cookies, Messages,
-                                            CLMLocations, selectedApplication, StageTypeStore) {
+function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $timeout, $window, $cookies, $q,
+                                            Messages, CLMLocations, selectedApplication, StageTypeStore,
+                                            ProductFeatures) {
   var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
       vm = this;
 
@@ -24,6 +25,7 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
   vm.stages = [];
   vm.uploadBundleUrl = uploadBundleUrl;
   vm.uploaded = uploaded;
+  vm.isNotificationsSupported = undefined;
 
   doLoad();
 
@@ -57,14 +59,21 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
       return setError('Cannot find the associated Application', doLoad);
     }
 
-    StageTypeStore.get().then(function(stageTypeStore) {
+    const promises = [
+      StageTypeStore.get(),
+      ProductFeatures.load()
+    ];
+
+    $q.all(promises).then(function(results) {
       vm.evaluationState = 'ready';
 
-      stageTypeStore.forEach(function(stage) {
+      results[0].forEach(function(stage) {
         if (validEvaluateBundleStages.indexOf(stage.stageTypeId) > -1) {
           vm.stages.push(stage);
         }
       });
+
+      vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
     }, function(error) {
       vm.evaluationState = 'ready';
       setError(Messages.getHttpErrorMessage(error), doLoad);
@@ -176,6 +185,6 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
 }
 
 EvaluateApplicationModalController.$inject = [
-  '$rootScope', '$scope', '$http', '$state', '$timeout', '$window', '$cookies', 'Messages', 'CLMLocations',
-  'selectedApplication', 'StageTypeStore'
+  '$rootScope', '$scope', '$http', '$state', '$timeout', '$window', '$cookies', '$q', 'Messages', 'CLMLocations',
+  'selectedApplication', 'StageTypeStore', 'ProductFeatures'
 ];

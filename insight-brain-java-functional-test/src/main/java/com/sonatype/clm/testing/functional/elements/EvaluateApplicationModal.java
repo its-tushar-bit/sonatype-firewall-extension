@@ -69,6 +69,10 @@ public class EvaluateApplicationModal
     return $("#evaluate-bundle-close");
   }
 
+  public static SelenideElement disabledNotificationsMessage() {
+    return $("#eval-notifications-disabled-message");
+  }
+
   public static class NotifyRadioButtons
   {
     private final String root;

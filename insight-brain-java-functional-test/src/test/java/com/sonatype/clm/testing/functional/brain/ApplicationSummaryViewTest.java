@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -77,6 +78,11 @@ public class ApplicationSummaryViewTest
         YE_OLE_ORGANIZATION);
 
     super.init(application);
+  }
+
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   @Test
@@ -309,7 +315,15 @@ public class ApplicationSummaryViewTest
   public void testActionDropDown() {
     super.testActionDropDown();
 
-    testEvaluateApplicationBinary();
+    testEvaluateApplicationBinary(true);
+  }
+
+  @Test
+  public void testEvaluateApplicationBinary_LifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    refresh();
+
+    testEvaluateApplicationBinary(false);
   }
 
   @Test
@@ -370,7 +384,7 @@ public class ApplicationSummaryViewTest
     }
   }
 
-  private void testEvaluateApplicationBinary() {
+  private void testEvaluateApplicationBinary(boolean isNotificationsAllowed) {
     File tempFile = null;
 
     try {
@@ -401,8 +415,15 @@ public class ApplicationSummaryViewTest
         stageDropdown.listItem(2).shouldHave(textCaseSensitive(StageTypes.RELEASE.getName())).click();
         stageDropdown.selectedItem().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
 
-        modal.notifyRadioButtons().yes().shouldBe(visible, selected);
-        modal.notifyRadioButtons().no().shouldBe(visible).shouldNotBe(selected);
+        if (!isNotificationsAllowed) {
+          modal.disabledNotificationsMessage().shouldBe(text("Notifications are not supported by your license."));
+        }
+        else {
+          modal.disabledNotificationsMessage().shouldBe(hidden);
+        }
+        Condition disabledOrEnabled = !isNotificationsAllowed ? disabled : enabled;
+        modal.notifyRadioButtons().yes().shouldBe(visible, selected, disabledOrEnabled);
+        modal.notifyRadioButtons().no().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
 
         modal.cancelButton().shouldBe(visible, enabled);
         modal.uploadButton().shouldBe(visible, enabled).click();

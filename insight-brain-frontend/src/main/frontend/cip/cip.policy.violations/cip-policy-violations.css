@@ -103,6 +103,11 @@
   display: block;
 }
 
+#add-waiver-modal .iq-scrollable {
+  /* enough to avoid the scrollbar with the default content */
+  max-height: 404px;
+}
+
 #add-waiver-modal .iq-alert {
   margin-bottom: 10px;
 }
@@ -125,6 +130,10 @@
 
 #add-proprietary-matchers-modal {
   overflow: hidden;
+}
+
+#waiver-comment {
+  width: 515px;
 }
 
 /* XXX Remove in favour of new-ui styling */

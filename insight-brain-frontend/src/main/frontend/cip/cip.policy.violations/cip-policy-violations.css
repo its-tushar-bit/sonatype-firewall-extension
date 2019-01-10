@@ -105,7 +105,9 @@
 
 #add-waiver-modal .iq-scrollable {
   /* enough to avoid the scrollbar with the default content */
-  max-height: 404px;
+  max-height: 434px;
+
+  padding-bottom: 0;
 }
 
 #add-waiver-modal .iq-alert {
@@ -133,6 +135,7 @@
 }
 
 #waiver-comment {
+  margin-bottom: 18px;
   width: 515px;
 }
 

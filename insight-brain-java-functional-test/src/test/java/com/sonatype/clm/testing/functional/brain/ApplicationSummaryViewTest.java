@@ -45,7 +45,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -78,11 +77,6 @@ public class ApplicationSummaryViewTest
         YE_OLE_ORGANIZATION);
 
     super.init(application);
-  }
-
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   @Test

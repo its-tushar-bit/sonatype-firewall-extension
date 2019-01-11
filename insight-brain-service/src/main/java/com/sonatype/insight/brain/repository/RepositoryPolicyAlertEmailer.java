@@ -21,10 +21,12 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyAlertEmailer;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
@@ -48,14 +50,21 @@ public class RepositoryPolicyAlertEmailer
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final PolicyAlertEmailResolver policyAlertEmailResolver,
                                       final BaseUrl baseUrl,
-                                      final AuditRecorder auditRecorder)
+                                      final AuditRecorder auditRecorder,
+                                      final CLMLicenseManager clmLicenseManager)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
+    this.clmLicenseManager = clmLicenseManager;
     this.auditRecorder = auditRecorder;
   }
 
   public void sendNotifications(Repository repository, List<PolicyNotification> notifications) {
+    if (!clmLicenseManager.hasNotifications(StageTypes.getById(ProxyStageType.ID))) {
+      log.debug("Not sending notifications for repository {}" + ", license does not support notifications",
+          repository.getPublicId());
+      return;
+    }
     Map<String, List<PolicyFact>> policyFactsByEmailAddress = getPolicyFactsByEmailAddress(repository, notifications);
     for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {

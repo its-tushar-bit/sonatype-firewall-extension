@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -49,11 +50,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -91,6 +94,12 @@ public class PolicyAlertEmailerTest
 
   @Inject
   private PolicyAlertEmailer policyAlertEmailer;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   @Mock
   private InsightMail mailer;
@@ -232,6 +241,72 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // emailAddress3 should not get a message
     assertEmailAddresses(emailAddress1, emailAddress2);
+  }
+
+  @Test
+  public void testSendNotifications_Foundation() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    Application app = tempEntity.newApplicationWithParent("test");
+    Stage stage = new Stage(Stage.ID_PROXY);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app);
+    String emailAddress1 = "test1@sonatype.com";
+    policy.getNotifications().add(new UserNotification(emailAddress1, eval.getStageTypeId()));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).sendHtml(anyString(), any(), anyString(), anyString());
+  }
+
+  @Test
+  public void testSendNotifications_FoundationWithFirewall_ProxyStage() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    Application app = tempEntity.newApplicationWithParent("test");
+    Stage stage = new Stage(Stage.ID_PROXY);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app);
+    String emailAddress1 = "test1@sonatype.com";
+    policy.getNotifications().add(new UserNotification(emailAddress1, Stage.ID_PROXY));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    assertEmailAddresses(emailAddress1);
+  }
+
+  @Test
+  public void testSendNotifications_FoundationWithFirewall_NotProxyStage() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    Application app = tempEntity.newApplicationWithParent("test");
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app);
+    String emailAddress1 = "test1@sonatype.com";
+    policy.getNotifications().add(new UserNotification(emailAddress1, Stage.ID_BUILD));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).sendHtml(anyString(), any(), anyString(), anyString());
   }
 
   @Test
@@ -416,7 +491,7 @@ public class PolicyAlertEmailerTest
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class),
         new ApplicationAdapter(userDirectory),
         new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()),
-        new AuditRecorder(null));
+        new AuditRecorder(null), clmLicenseManager);
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // make sure emails from server 2 still go out

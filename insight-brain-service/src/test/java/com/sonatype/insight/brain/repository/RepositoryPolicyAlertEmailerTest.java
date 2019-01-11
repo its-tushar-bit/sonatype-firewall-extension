@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -37,10 +38,12 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -52,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class RepositoryPolicyAlertEmailerTest
@@ -66,6 +70,12 @@ public class RepositoryPolicyAlertEmailerTest
   @Inject
   private BaseUrl baseUrl;
 
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
+
   @Mock
   private InsightMail mail;
 
@@ -74,7 +84,6 @@ public class RepositoryPolicyAlertEmailerTest
     super.configure(binder);
 
     binder.bind(InsightMail.class).toInstance(mail);
-    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
   }
 
   @Before
@@ -84,6 +93,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testSendNotifications_validateEmailAddresses() {
+    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
     Repository repository = tempEntity.newRepository();
     User user = tempEntity.newUser();
     Policy policy = createPolicy(user);
@@ -95,6 +105,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testSendNotifications_observeEmailAddressChanges() {
+    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
     Repository repository = tempEntity.newRepository();
     User user = tempEntity.newUser();
     Policy policy = createPolicy(user);
@@ -118,6 +129,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testCreatePolicyMailModel() {
+    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
     Repository repository = new Repository("repoManagerId", "repoPublicId");
     repository.setId("repoId");
     List<PolicyFact> policyFacts = new ArrayList<>();
@@ -150,6 +162,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
+    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
     insightConfig.setBaseUrl(null);
 
     Repository repository = new Repository("repoManagerId", "repoPublicId");
@@ -167,6 +180,37 @@ public class RepositoryPolicyAlertEmailerTest
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       emailer.createPolicyMailModel(repository, policyFacts);
     }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+  }
+
+  @Test
+  public void testSendNotifications_Foundation() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    Repository repository = tempEntity.newRepository();
+    User user = tempEntity.newUser();
+    Policy policy = createPolicy(user);
+    PolicyNotification notification = createPolicyNotification(policy,
+        tempEntity.newRepositoryComponent(repository.getId()));
+
+    emailer.sendNotifications(repository, Collections.singletonList(notification));
+
+    verifyZeroInteractions(mail);
+  }
+
+  @Test
+  public void testSendNotifications_FoundationAndFirewall() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
+    Repository repository = tempEntity.newRepository();
+    User user = tempEntity.newUser();
+    Policy policy = createPolicy(user);
+    PolicyNotification notification = createPolicyNotification(policy,
+        tempEntity.newRepositoryComponent(repository.getId()));
+
+    sendNotificationsAndVerify(repository, user, Collections.singletonList(notification));
   }
 
   private Policy createPolicy(User user) {

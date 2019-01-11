@@ -21,8 +21,10 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
@@ -51,12 +53,14 @@ public class PolicyAlertEmailer
                             final BaseUrl baseUrl,
                             final ApplicationAdapter applicationAdapter,
                             final PolicyAlertEmailResolver policyAlertEmailResolver,
-                            final AuditRecorder auditRecorder)
+                            final AuditRecorder auditRecorder,
+                            final CLMLicenseManager clmLicenseManager)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
     this.auditRecorder = auditRecorder;
+    this.clmLicenseManager = clmLicenseManager;
   }
 
   public void sendNotifications(final Application app,
@@ -65,6 +69,11 @@ public class PolicyAlertEmailer
                                 final List<PolicyNotification> policyNotifications,
                                 final int grandfatheredPolicyViolationCount)
   {
+    if (!clmLicenseManager.hasNotifications(StageTypes.getById(stage.getStageTypeId()))) {
+      log.debug("Not sending notifications for application {} and scan {} in stage {}" +
+          ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
+      return;
+    }
     new Thread("PolicyAlertEmailNotifierForScan-" + scanId)
     {
       @Override

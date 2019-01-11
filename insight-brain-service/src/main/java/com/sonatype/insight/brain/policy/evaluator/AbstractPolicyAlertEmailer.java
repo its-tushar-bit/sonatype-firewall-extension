@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 
@@ -34,6 +35,8 @@ public abstract class AbstractPolicyAlertEmailer
   private final PolicyAlertEmailResolver policyAlertEmailResolver;
 
   private static Template policyThreatsTemplate;
+
+  protected CLMLicenseManager clmLicenseManager;
 
   public AbstractPolicyAlertEmailer(final InsightMail mail, final PolicyAlertEmailResolver policyAlertEmailResolver) {
     this.mail = mail;

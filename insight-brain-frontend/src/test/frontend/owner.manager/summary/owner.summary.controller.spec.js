@@ -27,7 +27,9 @@ describe('owner.summary.controller.js', function() {
         mockPermissionService,
         mockChangeApplicationIdService,
         getGrandfatheringDefer,
-        mockPolicyViolationGrandfatheringService;
+        mockPolicyViolationGrandfatheringService,
+        mockGrandfatherModalService,
+        mockRevokeGrandfatheringModalService;
 
     beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_, StageTypeStore) {
       $timeout = _$timeout_;
@@ -43,6 +45,8 @@ describe('owner.summary.controller.js', function() {
           return deleteOwnerDefer.promise;
         }
       };
+      mockGrandfatherModalService = jasmine.createSpyObj('mockGrandfatherModalService', ['open']);
+      mockRevokeGrandfatheringModalService = jasmine.createSpyObj('mockRevokeGrandfatheringModalService', ['open']);
       mockPermissionService = {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise)
       };
@@ -77,7 +81,9 @@ describe('owner.summary.controller.js', function() {
         DeleteModalService: mockDeleteService,
         PermissionService: mockPermissionService,
         'change.application.id.service': mockChangeApplicationIdService,
-        policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService
+        policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
+        RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
+        GrandfatherModalService: mockGrandfatherModalService
       });
     }
     ));
@@ -92,20 +98,24 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
       resolveApplicationEvaluatePermission(true);
-      $timeout.flush();
-
-      expect(vm.owner).toEqual(owner);
 
       if (isApp) {
+        $timeout.flush();
         expect(vm.stages).toEqual(MockData.getDashboardStageData());
         expect(vm.applicationSummary).toEqual(applicationResourceMockData.getApplicationSummaryUrl());
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
         expect(vm.hasPermissionToEvaluateApp).toEqual(true);
         expect(vm.isGrandfatheringEnabled).toEqual(true);
       }
+      else {
+        $httpBackend.flush();
+      }
+
+      expect(vm.owner).toEqual(owner);
     });
 
     it('Properly loads permissions when unauthorized', function() {
@@ -113,14 +123,18 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(false);
       resolveApplicationEvaluatePermission(false);
-      $timeout.flush();
 
       if (isApp) {
+        $timeout.flush();
         expect(vm.hasPermissionToChangeAppId).toEqual(false);
         expect(vm.hasPermissionToEvaluateApp).toEqual(false);
+      }
+      else {
+        $httpBackend.flush();
       }
     });
 
@@ -129,11 +143,12 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
-      $timeout.flush();
 
       if (isApp) {
+        $timeout.flush();
         spyOn(mockState, 'href').and.returnValue();
         spyOn(mockWindow, 'open');
 
@@ -145,6 +160,9 @@ describe('owner.summary.controller.js', function() {
         });
         expect(mockWindow.open).toHaveBeenCalled();
       }
+      else {
+        $httpBackend.flush();
+      }
     });
 
     it('Properly Displaying Error', function() {
@@ -152,8 +170,15 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.rejectGetById('Could not find an ' + type);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
-      $timeout.flush();
+
+      if (isApp) {
+        $timeout.flush();
+      }
+      else {
+        $httpBackend.flush();
+      }
 
       expect(vm.owner).toBeUndefined();
       expect(vm.error).toContain('Could not find an ' + type);
@@ -163,6 +188,7 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.rejectGet('Error');
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
@@ -176,7 +202,13 @@ describe('owner.summary.controller.js', function() {
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
-      $timeout.flush();
+
+      if (isApp) {
+        $timeout.flush();
+      }
+      else {
+        $httpBackend.flush();
+      }
 
       expect(vm.owner).toEqual(owner);
       expect(vm.error).toBeUndefined();
@@ -187,13 +219,15 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(400, 'Bad Request');
-      $timeout.flush();
 
       if (isApp) {
+        $timeout.flush();
         expect(vm.error).toBeDefined();
       }
       else {
+        $httpBackend.flush();
         expect(vm.error).toBeUndefined();
       }
     });
@@ -203,13 +237,15 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
-      $timeout.flush();
 
       if (isApp) {
+        $timeout.flush();
         expect(vm.error).toBeDefined();
       }
       else {
+        $httpBackend.flush();
         expect(vm.error).toBeUndefined();
       }
     });
@@ -219,14 +255,16 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
-      $timeout.flush();
 
       if (isApp) {
+        $timeout.flush();
         owner.organizationId = owner.id;
       }
       else {
+        $httpBackend.flush();
         owner.parentOrganizationId = owner.id;
       }
 
@@ -245,6 +283,7 @@ describe('owner.summary.controller.js', function() {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
+          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           resolveApplicationWritePermission(true);
           $timeout.flush();
@@ -261,6 +300,7 @@ describe('owner.summary.controller.js', function() {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
+          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           resolveApplicationWritePermission(false);
           $timeout.flush();
@@ -272,7 +312,111 @@ describe('owner.summary.controller.js', function() {
           expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
         });
       });
+
+      describe('grandfather()', function () {
+        it('Does not open modal when grandfathering is not enabled and is not supported', function() {
+          createMocks(false, false);
+
+          $timeout.flush();
+
+          vm.grandfather();
+          expect(mockGrandfatherModalService.open).not.toHaveBeenCalled();
+        });
+
+        it('Does not open modal when grandfathering is not enabled and is supported', function() {
+          createMocks(false, true);
+
+          $timeout.flush();
+
+          vm.grandfather();
+          expect(mockGrandfatherModalService.open).not.toHaveBeenCalled();
+        });
+
+        it('Does not open modal when grandfathering is enabled and is not supported', function() {
+          createMocks(true, false);
+
+          $timeout.flush();
+
+          vm.grandfather();
+          expect(mockGrandfatherModalService.open).not.toHaveBeenCalled();
+        });
+
+        it('opens modal when grandfathering is enabled and supported', function() {
+          createMocks(true, true);
+
+          $timeout.flush();
+
+          vm.grandfather();
+          expect(mockGrandfatherModalService.open).toHaveBeenCalled();
+        });
+      });
+
+      describe('getDisabledGrandfatherTooltipMessage()', function() {
+        it('returns not enabled tooltip message', function() {
+          createMocks(false, true);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe('Grandfathering is not enabled for this application.');
+        });
+
+        it('returns not supported tooltip message', function() {
+          createMocks(true, false);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe(
+              'Policy Violation Grandfathering is not supported by your license');
+        });
+
+        it('returns undefined when grandfathering is enabled and supported', function() {
+          createMocks(true, true);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledGrandfatherTooltipMessage()).toBeUndefined();
+        });
+
+        it('returns not supported tooltip message when grandfathering is not enabled and not supported', function() {
+          createMocks(false, false);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe(
+              'Policy Violation Grandfathering is not supported by your license');
+        });
+      });
     }
+
+    describe('revokeGrandfathering()', function () {
+      it('Does not open modal when grandfathering is not supported', function() {
+        createMocks(false, false);
+
+        if (isApp) {
+          $timeout.flush();
+        }
+        else {
+          $httpBackend.flush();
+        }
+
+        vm.revokeGrandfathering();
+        expect(mockRevokeGrandfatheringModalService.open).not.toHaveBeenCalled();
+      });
+
+      it('opens modal when grandfathering is supported', function() {
+        createMocks(false, true);
+
+        if (isApp) {
+          $timeout.flush();
+        }
+        else {
+          $httpBackend.flush();
+        }
+
+        vm.revokeGrandfathering();
+        expect(mockRevokeGrandfatheringModalService.open).toHaveBeenCalled();
+      });
+    });
 
     function resolveApplicationSummary() {
       if (isApp) {
@@ -309,6 +453,18 @@ describe('owner.summary.controller.js', function() {
           calculatedEnabled
         });
       }
+    }
+
+    function createMocks(isGrandfatheringEnabled, isGrandfatheringSuppored) {
+      mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(isGrandfatheringEnabled);
+      resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(
+          isGrandfatheringSuppored ? ['policy-grandfathering'] : []
+      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationWritePermission(true);
     }
   }
 

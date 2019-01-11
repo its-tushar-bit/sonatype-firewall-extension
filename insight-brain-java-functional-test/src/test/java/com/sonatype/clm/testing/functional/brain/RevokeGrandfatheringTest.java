@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.RevokeGrandfatheringModal;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,6 +27,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RevokeGrandfatheringTest
@@ -53,6 +56,11 @@ public class RevokeGrandfatheringTest
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
   }
 
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
+  }
+
   @Test
   public void testRevokeGrandfathering_ModalInitialState() {
     ActionDropDown.actionButton().shouldBe(visible).click();
@@ -62,6 +70,22 @@ public class RevokeGrandfatheringTest
     modal.revokeButton().shouldBe(visible);
     modal.retryButton().shouldBe(hidden);
     modal.cancelButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testGrandfather_LifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+
+    refreshOrOpen(OwnerSummaryPage.url(application));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
+
+    ActionDropDown.actionButton().shouldBe(visible).click();
+    ActionDropDown.revokeGrandfathered().shouldBe(visible).shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Policy Violation Grandfathering is not supported by your license"));
+    ActionDropDown.grandfather().click();
+    RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
+    modal.shouldNotBe(visible);
   }
 
   @Test

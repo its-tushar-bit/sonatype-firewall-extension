@@ -6,8 +6,9 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyViolationGrandfatheringEditorPage;
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 
+import com.codeborne.selenide.Condition;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,6 +32,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyViolationGrandfatheringEditorTest
@@ -50,6 +54,11 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
+  }
+
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   protected void init(Owner currentOwner) {
@@ -94,9 +103,9 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       PolicyViolationGrandfatheringEditorPage.overridesCheckbox().click();
     }
 
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldNotBe(CLM.DISABLED).click();
+    PolicyViolationGrandfatheringEditorPage.updateButton().shouldNotBe(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(CLM.DISABLED);
+    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(DISABLED);
 
     policyViolationGrandfatheringDTO = policyViolationGrandfatheringService.getGrandfathering(currentOwner.getType(),
         currentOwner.getPublicId());
@@ -140,9 +149,33 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       }
     }
 
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(CLM.DISABLED);
+    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(DISABLED);
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testPolicyViolationGrandfatheringConfiguration_LifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    refresh();
+
+    configureOrganizationsAndApplications(false);
+    Condition notLicensedText = PolicyViolationGrandfatheringEditorPage.unsupportedLicenseText();
+
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+    
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
+    OwnerSummaryPage.policyTile().violationGrandfathering().shouldHave(notLicensedText).click();
+
+    PolicyViolationGrandfatheringEditorPage.title().shouldNotBe(visible);
+
+    // if the user gets there manually, show a warning
+    refreshOrOpen(PolicyViolationGrandfatheringEditorPage.url(currentOwner));
+    PolicyViolationGrandfatheringEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
+
+    // make sure the owner detail tree view item is disabled
+    OwnerDetailTreeView.policyGroup().item(1).shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(notLicensedText);
   }
 
   private void configureOrganizationsAndApplications(boolean allowOverride) {

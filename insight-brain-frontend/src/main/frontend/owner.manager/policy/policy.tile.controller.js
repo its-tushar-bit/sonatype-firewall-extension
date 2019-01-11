@@ -20,6 +20,7 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
   vm.grandfatheringStatusMessage = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
+  vm.isGrandfatheringSupported = undefined;
   vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
@@ -83,6 +84,7 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
       });
 
       vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+      vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
 
       if (vm.isAppOrOrg) {
         vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[5]);

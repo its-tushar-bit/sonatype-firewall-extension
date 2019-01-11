@@ -48,14 +48,16 @@
             <a ng-if="vm.isApp"
                id="policy-violation-grandfather-link"
                ng-click="vm.grandfather()"
-               tooltip="{{vm.isGrandfatheringEnabled ? undefined : 'Grandfathering is not enabled for this application.'}}"
-               ng-class="{'disabled': !vm.isGrandfatheringEnabled}"
+               tooltip="{{vm.getDisabledGrandfatherTooltipMessage()}}"
+               ng-class="{'disabled': !vm.isGrandfatheringEnabled || !vm.isGrandfatheringSupported}"
                class="iq-btn iq-btn--dropdown">
               <i class="fa fa-gavel"></i>Grandfather {{vm.owner.name}}
             </a>
             <a ng-if="vm.isApp"
                id="revoke-policy-violation-grandfathering-link"
                ng-click="vm.revokeGrandfathering()"
+               tooltip="{{vm.isGrandfatheringSupported ? undefined : 'Policy Violation Grandfathering is not supported by your license'}}"
+               ng-class="{'disabled': !vm.isGrandfatheringSupported}"
                class="iq-btn iq-btn--dropdown">
               <i class="fa fa-history"/>Revoke All Grandfathered
             </a>
@@ -241,7 +243,10 @@
           <h4 class="iq-list__title">
             Policy Violation Grandfathering
           </h4>
-          <ul>
+          <div class="iq-list__item iq-list__item--empty" ng-if="!vm.isGrandfatheringSupported">
+            Policy Violation Grandfathering is not supported by your license
+          </div>
+          <ul ng-if="vm.isGrandfatheringSupported">
             <li class="iq-list__item"
                 same-owner-edit-sref="violation-grandfathering-policy"
                 id="policy-violation-grandfathering">

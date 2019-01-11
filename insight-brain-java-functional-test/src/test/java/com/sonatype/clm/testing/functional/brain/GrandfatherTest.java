@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -63,6 +64,11 @@ public class GrandfatherTest
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
   }
 
+  @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
+  }
+
   @Test
   public void testGrandfather_ModalInitialState_GrandfatheringEnabled() {
     ActionDropDown.actionButton().shouldBe(visible).click();
@@ -87,6 +93,22 @@ public class GrandfatherTest
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.grandfather().shouldBe(visible).shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Grandfathering is not enabled for this application."));
+    ActionDropDown.grandfather().click();
+    GrandfatherModal modal = new GrandfatherModal();
+    modal.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testGrandfather_LifecycleLight() {
+    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+
+    refreshOrOpen(OwnerSummaryPage.url(application));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
+
+    ActionDropDown.actionButton().shouldBe(visible).click();
+    ActionDropDown.grandfather().shouldBe(visible).shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Policy Violation Grandfathering is not supported by your license"));
     ActionDropDown.grandfather().click();
     GrandfatherModal modal = new GrandfatherModal();
     modal.shouldNotBe(visible);

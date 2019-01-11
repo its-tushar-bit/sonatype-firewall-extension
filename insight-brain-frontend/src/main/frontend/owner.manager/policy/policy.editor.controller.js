@@ -8,7 +8,7 @@ import { prop } from 'ramda';
 export default
 function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
                                 SameOwnerStateNavigationService, CLMContextLocations, $rootScope, EventNameConstant,
-                                $state) {
+                                $state, ProductFeatures) {
   var vm = this,
       originalCategories,
       originalHasPolicyCategories,
@@ -31,6 +31,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
   vm.owner = undefined;
   vm.readOnly = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
+  vm.isGrandfatheringSupported = undefined;
 
   vm.doLoad();
 
@@ -49,7 +50,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
   }
 
   function doLoad() {
-    var promises = [PolicyHierarchyStore.get()];
+    var promises = [PolicyHierarchyStore.get(), ProductFeatures.load()];
 
     if ($stateParams.policyId) {
       promises.push(PolicyHierarchyStore.getById($stateParams.policyId));
@@ -62,11 +63,12 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
         vm.siblings = vm.siblings.concat(owner.policies);
       });
 
-      if (results.length > 1) {
-        vm.dirtyPolicy = results[1].$clone();
+      vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
+      if (results.length > 2) {
+        vm.dirtyPolicy = results[2].$clone();
 
         policyStores.some(function(owner, index) {
-          if (owner.policies.indexOf(results[1]) !== -1) {
+          if (owner.policies.indexOf(results[2]) !== -1) {
             vm.readOnly = index !== 0;
 
             vm.owner = {
@@ -183,5 +185,6 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
 
 PolicyEditorController.$inject = [
   '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'TagStore', 'DeleteModalService',
-  'SameOwnerStateNavigationService', 'CLMContextLocations', '$rootScope', 'event.name.constant', '$state'
+  'SameOwnerStateNavigationService', 'CLMContextLocations', '$rootScope', 'event.name.constant', '$state',
+  'ProductFeatures'
 ];

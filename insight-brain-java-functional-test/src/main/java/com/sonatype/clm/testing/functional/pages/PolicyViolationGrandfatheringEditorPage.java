@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
@@ -84,5 +85,13 @@ public class PolicyViolationGrandfatheringEditorPage
 
   public static SelenideElement disabledMessage() {
     return $(ROOT + " #violation-grandfathering-disabled-message");
+  }
+
+  public static SelenideElement unsupportedLicenseWarning() {
+    return $(ROOT + " .iq-alert");
+  }
+
+  public static Condition unsupportedLicenseText() {
+    return text("Policy violation grandfathering is not supported by your license");
   }
 }

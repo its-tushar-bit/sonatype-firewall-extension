@@ -11,8 +11,8 @@ export default {
   controllerAs: 'vm'
 };
 
-function PolicyViolationGrandfatheringEditorController($scope, Messages, CLMContextLocations,
-                                                       PolicyViolationGrandfatheringService) {
+function PolicyViolationGrandfatheringEditorController($scope, $q, Messages, CLMContextLocations,
+                                                       PolicyViolationGrandfatheringService, ProductFeatures) {
   const vm = this;
 
   Object.assign(vm, {
@@ -22,6 +22,7 @@ function PolicyViolationGrandfatheringEditorController($scope, Messages, CLMCont
     currentConfiguration: undefined,
     statusMessage: undefined,
     violationGrandfatheringEditorMask: undefined,
+    isGrandfatheringSupported: undefined,
 
     isApp: CLMContextLocations.isApplication(),
     isRootOrg: CLMContextLocations.isRootOrg(),
@@ -32,11 +33,17 @@ function PolicyViolationGrandfatheringEditorController($scope, Messages, CLMCont
 
     doLoad() {
       delete vm.loadError;
-      PolicyViolationGrandfatheringService.getGrandfathering().then(function(data) {
-        vm.originalConfiguration = data;
-        vm.currentConfiguration = angular.copy(data);
+      const promises = [
+        PolicyViolationGrandfatheringService.getGrandfathering(),
+        ProductFeatures.load()
+      ];
+
+      $q.all(promises).then(function(results) {
+        vm.originalConfiguration = results[0];
+        vm.currentConfiguration = angular.copy(results[0]);
         vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(vm.originalConfiguration);
-      }).catch(function(error) {
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
+      }, function(error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
       });
     },
@@ -63,5 +70,5 @@ function PolicyViolationGrandfatheringEditorController($scope, Messages, CLMCont
 }
 
 PolicyViolationGrandfatheringEditorController.$inject = [
-  '$scope', 'Messages', 'CLMContextLocations', 'policyViolationGrandfatheringService'
+  '$scope', '$q', 'Messages', 'CLMContextLocations', 'policyViolationGrandfatheringService', 'ProductFeatures'
 ];

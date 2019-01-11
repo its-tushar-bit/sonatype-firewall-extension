@@ -44,7 +44,7 @@ describe('policy.editor.controller.spec.js', function() {
             .getApplicablePolicies(type, owner.id, owner.name), 'policiesByOwner'),
         mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMContextLocations_) {
+    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMContextLocations_, CLMLocations) {
       scope = $rootScope.$new();
       $q = _$q_;
       $timeout = _$timeout_;
@@ -63,6 +63,7 @@ describe('policy.editor.controller.spec.js', function() {
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
       spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
 
       $state.current.name = type;
       if (type === 'application') {
@@ -369,13 +370,9 @@ describe('policy.editor.controller.spec.js', function() {
         if (policyId) {
           $httpBackend.expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
         }
-
-        $timeout.flush();
-        $httpBackend.flush();
       }
-      else {
-        $timeout.flush();
-      }
+      $timeout.flush();
+      $httpBackend.flush();
     }
 
     function resolveSaveData(policyId) {

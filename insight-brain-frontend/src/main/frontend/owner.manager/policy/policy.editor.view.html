@@ -85,11 +85,16 @@
           <label class="iq-label" for="editor-policy-violation-grandfathering" ng-class="{disabled: vm.readOnly}">
             Policy Violation Grandfathering
           </label>
+          <div id="grandfathering-disabled-message"
+               ng-if="!vm.isGrandfatheringSupported"
+               class="iq-alert iq-alert--info iq-alert--form-item">
+            <i class="fa fa-info-circle"></i>Policy Violation Grandfathering is not supported by your license
+          </div>
           <iq-checkbox id="editor-policy-violation-grandfathering"
                        label="Do not allow this policy to be grandfathered"
                        on-click="vm.dirtyPolicy.policyViolationGrandfatheringAllowed = !vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
                        is-checked="!vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
-                       is-disabled="vm.readOnly">
+                       is-disabled="vm.readOnly || !vm.isGrandfatheringSupported">
           </iq-checkbox>
         </div>
       </div>

@@ -6,14 +6,16 @@ describe('PolicyViolationGrandfatheringEditorController', function() {
 
   var $scope,
       $timeout,
+      $httpBackend,
       getGrandfatheringDeferred,
       setGrandfatheringDeferred,
       mockPolicyViolationGrandfatheringService,
       vm;
 
-  beforeEach(inject(function(_$rootScope_, $q, _$timeout_, $componentController) {
+  beforeEach(inject(function(_$rootScope_, $q, _$timeout_, _$httpBackend_, $componentController, CLMLocations) {
     $scope = _$rootScope_.$new();
     $timeout = _$timeout_;
+    $httpBackend = _$httpBackend_;
     getGrandfatheringDeferred = $q.defer();
     setGrandfatheringDeferred = $q.defer();
     mockPolicyViolationGrandfatheringService = {
@@ -21,6 +23,7 @@ describe('PolicyViolationGrandfatheringEditorController', function() {
       setGrandfathering: jasmine.createSpy().and.returnValue(setGrandfatheringDeferred.promise),
       getStatusMessage: JSON.stringify
     };
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     vm = $componentController('policyViolationGrandfatheringEditor', {
       $scope: $scope,
       'policyViolationGrandfatheringService': mockPolicyViolationGrandfatheringService
@@ -44,7 +47,7 @@ describe('PolicyViolationGrandfatheringEditorController', function() {
 
       getGrandfatheringDeferred.resolve(config);
 
-      $timeout.flush();
+      $httpBackend.flush();
 
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(config);
@@ -86,7 +89,7 @@ describe('PolicyViolationGrandfatheringEditorController', function() {
       setGrandfatheringDeferred.resolve({});
       getGrandfatheringDeferred.resolve(newConfig);
 
-      $timeout.flush();
+      $httpBackend.flush();
 
       expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();

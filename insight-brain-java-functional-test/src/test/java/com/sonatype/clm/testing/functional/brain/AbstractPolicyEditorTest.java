@@ -267,7 +267,7 @@ public abstract class AbstractPolicyEditorTest
     refresh();
 
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
-    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, false);
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, false, true);
   }
 
   @Test
@@ -284,7 +284,7 @@ public abstract class AbstractPolicyEditorTest
     refresh();
 
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
-    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, true);
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, true, true);
   }
 
   @Test
@@ -1107,7 +1107,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {
-    assertEditPolicyStateIsCorrect(policy, category1, category2, isReadOnly, false, false, false);
+    assertEditPolicyStateIsCorrect(policy, category1, category2, isReadOnly, false, false, false, false);
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy,
@@ -1116,12 +1116,13 @@ public abstract class AbstractPolicyEditorTest
                                               boolean isReadOnly,
                                               boolean actionsReadOnly,
                                               boolean notificationsReadOnly,
-                                              boolean proxyActionReadOnly)
+                                              boolean proxyActionReadOnly,
+                                              boolean grandfatheringReadOnly)
   {
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
     PolicyEditorPage.title().shouldHave(text(isReadOnly ? "View" : "Edit"));
 
-    assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly);
+    assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly, grandfatheringReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
     eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
     assertEditPolicyStateIsCorrect_actionsSection(isReadOnly, actionsReadOnly, proxyActionReadOnly);
@@ -1131,11 +1132,24 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.deleteButton().shouldBe(visible, isReadOnly ? disabled : enabled);
   }
 
-  private void assertEditPolicyStateIsCorrect_summarySection(Policy policy, boolean isReadOnly) {
+  private void assertEditPolicyStateIsCorrect_summarySection(Policy policy,
+                                                             boolean isReadOnly,
+                                                             boolean grandfatheringReadOnly)
+  {
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(CLM.PRISTINE)
         .shouldHave(value(policy.getName()));
     assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
+
+    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || grandfatheringReadOnly ? disabled : enabled;
+    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible, disabledOrEnabled).shouldBe(selected);
+    if (grandfatheringReadOnly) {
+      String expectedText = "Policy Violation Grandfathering is not supported by your license";
+      PolicyEditorPage.disabledGrandfatheringMessage().shouldBe(text(expectedText));
+    }
+    else {
+      PolicyEditorPage.disabledGrandfatheringMessage().shouldBe(hidden);
+    }
   }
 
   private void assertEditPolicyStateIsCorrect_actionsSection(boolean isReadOnly,

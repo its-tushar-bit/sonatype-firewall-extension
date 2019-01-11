@@ -10,6 +10,7 @@ function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, 
 
   vm.areAnyCategoriesDefined = undefined;
   vm.isMonitoringSupported = undefined;
+  vm.isGrandfatheringSupported = undefined;
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRepositories = CLMContextLocations.isRepositories();
@@ -59,6 +60,7 @@ function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, 
         vm.ownerName = 'Repositories';
       }
       vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+      vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
     }, function(error) {
       vm.error = error;
     });

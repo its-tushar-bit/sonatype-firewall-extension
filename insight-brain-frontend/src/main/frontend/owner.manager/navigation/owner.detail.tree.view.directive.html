@@ -86,7 +86,12 @@
            id="policy-violation-grandfathering-link"
            ng-if="(vm.isApp || vm.isOrg) && (vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy'))"
            ui-sref=".violation-grandfathering-policy"
-           ui-sref-active="selected">
+           ui-sref-active="selected"
+           ng-class="{disabled: !vm.isGrandfatheringSupported}"
+           data-tooltip="{{:: vm.isGrandfatheringSupported ? '' : 'Policy Violation Grandfathering is not supported by your license'}}"
+           data-tooltip-placement="top"
+           data-tooltip-append-to-body="true"
+           ng-click="vm.isGrandfatheringSupported || $event.preventDefault()">
           <i class="fa fa-history size-16px size-fw iq-owner-tree-view__icon"></i>Policy Violation Grandfathering
         </a>
         <a class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--child"

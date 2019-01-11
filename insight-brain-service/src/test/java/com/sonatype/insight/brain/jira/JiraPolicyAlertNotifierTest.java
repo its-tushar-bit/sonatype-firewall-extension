@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -29,9 +30,11 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -64,6 +67,12 @@ public class JiraPolicyAlertNotifierTest
 
   @Inject
   private InsightConfig config;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   @Mock
   private JiraClient jiraClient;
@@ -233,5 +242,97 @@ public class JiraPolicyAlertNotifierTest
     assertThatThrownBy(() -> {
       jiraPolicyAlertNotifier.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), null, null);
     }).isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+  }
+
+  @Test
+  public void testSendNotifications_Foundation() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    Application application = tempEntity.newApplicationWithParent("app");
+
+    final String projectKey = "projectKey";
+    final Long issueTypeId = 1L;
+
+    Stage stage = new Stage(Stage.ID_PROXY, "PROXY");
+    String scanId = "scan-id";
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(application);
+    policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
+    new PolicyDAO().update(policy);
+
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+
+    jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
+
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any());
+  }
+
+  @Test
+  public void testSendNotifications_FoundationAndFirewall_NotProxy() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    Application application = tempEntity.newApplicationWithParent("app");
+
+    final String projectKey = "projectKey";
+    final Long issueTypeId = 1L;
+
+    Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
+    String scanId = "scan-id";
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(application);
+    policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
+    new PolicyDAO().update(policy);
+
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+
+    jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
+
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any());
+  }
+
+  @Test
+  public void testSendNotifications_FoundationAndFirewall_Proxy() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    Application application = tempEntity.newApplicationWithParent("app");
+
+    final String projectKey = "projectKey";
+    final Long issueTypeId = 1L;
+
+    Stage stage = new Stage(Stage.ID_PROXY, "PROXY");
+    String scanId = "scan-id";
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(application);
+    policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
+    new PolicyDAO().update(policy);
+
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+
+    jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
+
+    ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
+        .forClass(JiraIssueCreateRequest.class);
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(1)).createIssue(createRequestArgumentCaptor.capture());
+
+    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
+    assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
+    Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
+    assertThat(projectMeta).containsEntry("key", projectKey);
+    Map<String, Long> issueMeta = jiraIssueCreateRequest.getField(JiraField.ISSUETYPE);
+    assertThat(issueMeta).containsEntry("id", issueTypeId);
+    String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
+    assertThat(summary).isEqualTo("Nexus IQ: Application " + application.getName() + "; PROXY stage; 1 Policy alerts");
   }
 }

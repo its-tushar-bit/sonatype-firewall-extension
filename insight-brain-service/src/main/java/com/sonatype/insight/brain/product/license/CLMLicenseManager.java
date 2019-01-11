@@ -25,13 +25,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -336,7 +336,7 @@ public class CLMLicenseManager
    * @since 1.58
    */
   public boolean hasNotifications(StageType stageType) {
-    return hasNotifications() || (hasRepositoryFirewall() && stageType == StageTypes.PROXY);
+    return hasNotifications() || (hasRepositoryFirewall() && stageType.getId() == Stage.ID_PROXY);
   }
 
   /**

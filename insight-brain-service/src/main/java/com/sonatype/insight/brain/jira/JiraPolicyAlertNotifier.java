@@ -28,8 +28,10 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -61,18 +63,22 @@ public class JiraPolicyAlertNotifier
 
   private final AuditRecorder auditRecorder;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
   public JiraPolicyAlertNotifier(final InsightConfig insightConfig,
                                  final ApplicationAdapter applicationAdapter,
                                  final JiraService jiraService,
                                  final BaseUrl baseUrl,
-                                 final AuditRecorder auditRecorder)
+                                 final AuditRecorder auditRecorder,
+                                 final CLMLicenseManager clmLicenseManager)
   {
     this.insightConfig = insightConfig;
     this.applicationAdapter = applicationAdapter;
     this.jiraService = jiraService;
     this.baseUrl = baseUrl;
     this.auditRecorder = auditRecorder;
+    this.clmLicenseManager = clmLicenseManager;
 
     // resolve template used to render issue description
     try {
@@ -90,6 +96,11 @@ public class JiraPolicyAlertNotifier
                                 final Stage stage,
                                 final List<PolicyNotification> policyNotifications)
   {
+    if (!clmLicenseManager.hasNotifications(StageTypes.getById(stage.getStageTypeId()))) {
+      log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}" +
+          ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
+      return;
+    }
     if (!jiraService.isEnabled()) {
       log.debug("JIRA integration is not enabled; skipping issue creation");
       return;

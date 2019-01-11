@@ -1,4 +1,10 @@
 <div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
+  <div id="notifications-disabled-message"
+       ng-if="!vm.isNotificationsSupported"
+       class="iq-alert iq-alert--info iq-alert--form-item">
+    <i class="fa fa-info-circle"></i>Notifications are not supported by your license.
+    <span ng-if="vm.isFirewallSupported">(Exclusions apply for firewall supported licenses)</span>
+  </div>
   <table id="policy-edit-notifications" class="iq-table">
     <thead>
       <tr class="iq-table-row">
@@ -37,8 +43,8 @@
         <td ng-repeat="stage in vm.actionStages" class="iq-cell tm-stage-{{::stage.stageTypeId}}">
           <iq-checkbox on-click="vm.toggleStage(recipient, stage.stageTypeId)"
                        is-checked="vm.hasStage(recipient, stage.stageTypeId)"
-                       is-disabled="vm.disabled || !vm.isStageApplicable(recipient, stage.stageTypeId)"
-                       tooltip="{{ !vm.isStageApplicable(recipient, stage.stageTypeId) ? 'Notifications for this type and stage are not available' : '' }}">
+                       is-disabled="vm.isCheckboxForStageDisabled(recipient, stage.stageTypeId)"
+                       tooltip="{{ !vm.isStageApplicable(recipient, stage.stageTypeId) ? 'Notifications are not supported by your license.' : '' }}">
           </iq-checkbox>
         </td>
         <td class="iq-cell tm-continuous-monitoring">
@@ -65,32 +71,38 @@
     <ng-form name="vm.addRecipientForm">
       <div class="iq-form-row">
         <div class="iq-form-group">
-          <label class="iq-label" for="recipient-type" ng-class="{ disabled: vm.disabled }">Recipient Type</label>
+          <label class="iq-label" 
+                 for="recipient-type" 
+                 ng-class="{ disabled: vm.isNotificationsFormDisabled() }">Recipient Type</label>
           <dropdown-selector id="recipient-type"
                              class="iq-policy-editor__editor-notification-type"
                              ng-model="vm.recipientType"
                              name="recipient-type"
                              options="vm.recipientTypeOptions"
                              item-as-class="true"
-                             ng-disabled="vm.disabled"
+                             ng-disabled="vm.isNotificationsFormDisabled()"
                              ng-change="vm.resetNotifications()">
           </dropdown-selector>
         </div>
         <div class="iq-form-group" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">
-          <label class="iq-label" for="recipient-email" ng-class="{ disabled: vm.disabled }">Email Address</label>
+          <label class="iq-label" 
+                 for="recipient-email" 
+                 ng-class="{ disabled: vm.isNotificationsFormDisabled() }">Email Address</label>
           <input clm-input
                  id="recipient-email"
                  class="iq-text-input iq-policy-editor__editor-notification-email"
                  name="recipient-email"
                  type="email"
                  ng-model="vm.recipientToAdd"
-                 ng-disabled="vm.disabled"
+                 ng-disabled="vm.isNotificationsFormDisabled()"
                  unique-validator="vm.getEmails()"
                  ng-keypress="$event.keyCode == 13 && vm.addRecipient($event)"
                  messages="{unique: 'Email already exists'}">
         </div>
         <div class="iq-form-group" ng-if="vm.recipientType === 'Role'">
-          <label class="iq-label" for="recipient-role" ng-class="{ disabled: vm.disabled }">Role</label>
+          <label class="iq-label" 
+                 for="recipient-role" 
+                 ng-class="{ disabled: vm.isNotificationsFormDisabled() }">Role</label>
           <dropdown-selector id="recipient-role"
                              option-name-param="roleName"
                              ng-model="vm.recipientToAdd"
@@ -98,12 +110,14 @@
                              options="vm.getAvailableRoles()"
                              no-options-string="All roles are being notified."
                              empty-option-string="-- Select Role --"
-                             ng-disabled="vm.disabled">
+                             ng-disabled="vm.isNotificationsFormDisabled()">
           </dropdown-selector>
         </div>
         <span ng-if="vm.recipientType === vm.recipientTypes.JIRA">
           <div class="iq-form-group">
-            <label class="iq-label" for="recipient-jira-project" ng-class="{ disabled: vm.disabled }">Project</label>
+            <label class="iq-label" 
+                   for="recipient-jira-project" 
+                   ng-class="{ disabled: vm.isNotificationsFormDisabled() }">Project</label>
             <dropdown-selector id="recipient-jira-project"
                                option-name-param="name"
                                ng-model="vm.recipientToAdd"
@@ -112,13 +126,13 @@
                                options="vm.availableJiraProjects"
                                no-options-string="No applicable projects available."
                                empty-option-string="-- Select Project --"
-                               ng-disabled="vm.disabled">
+                               ng-disabled="vm.isNotificationsFormDisabled()">
             </dropdown-selector>
           </div>
           <div class="iq-form-group">
             <label class="iq-label"
                    for="recipient-jira-issue-type"
-                   ng-class="{ disabled: vm.disabled || !vm.recipientToAdd }">
+                   ng-class="{ disabled: vm.isNotificationsFormDisabled() || !vm.recipientToAdd }">
               Issue Type
             </label>
             <dropdown-selector id="recipient-jira-issue-type"
@@ -129,7 +143,7 @@
                                no-options-string="No applicable issue type."
                                empty-option-string="-- Select Issue Type --"
                                undefined-options-string="-- Select JIRA Project --"
-                               ng-disabled="vm.disabled">
+                               ng-disabled="vm.isNotificationsFormDisabled()">
             </dropdown-selector>
           </div>
         </span>

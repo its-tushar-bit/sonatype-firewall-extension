@@ -37,7 +37,11 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
   vm.doLoad = doLoad;
   vm.isAddButtonDisabled = isAddButtonDisabled;
   vm.isMonitoringSupported = undefined;
+  vm.isNotificationsSupported = undefined;
+  vm.isFirewallSupported = undefined;
   vm.resetNotifications = resetNotifications;
+  vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
+  vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
 
   vm.doLoad();
 
@@ -97,6 +101,8 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
       loadRecipients();
 
       vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+      vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
+      vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
     }, function(error) {
       vm.loadError = error;
     });
@@ -292,12 +298,21 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
   function isAddButtonDisabled() {
     return (vm.recipientType !== vm.recipientTypes.JIRA && !vm.recipientToAdd) ||
         (vm.recipientType === vm.recipientTypes.JIRA && (!vm.recipientToAdd || !vm.recipientToAddIssueType)) ||
-        vm.disabled;
+        vm.isNotificationsFormDisabled();
   }
 
   function resetNotifications() {
     vm.recipientToAdd = undefined;
     vm.recipientToAddIssueType = undefined;
+  }
+
+  function isNotificationsFormDisabled() {
+    return vm.disabled || !ProductFeatures.isNotificationsSupportedForAnyStage();
+  }
+
+  function isCheckboxForStageDisabled(recipient, stageTypeId) {
+    return vm.disabled || !vm.isStageApplicable(recipient, stageTypeId) ||
+        !ProductFeatures.isNotificationsSupportedForStage(stageTypeId);
   }
 }
 

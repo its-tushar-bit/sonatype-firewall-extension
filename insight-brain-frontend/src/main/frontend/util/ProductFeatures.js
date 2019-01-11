@@ -38,10 +38,20 @@ productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', functi
     return (available('firewall') && stage === 'proxy') || available('enforcement');
   }
 
+  function isNotificationsSupportedForStage(stage) {
+    return (available('firewall') && stage === 'proxy') || available('notifications');
+  }
+
+  function isNotificationsSupportedForAnyStage() {
+    return available('notifications') || available('firewall');
+  }
+
   return {
     load: load,
     isAvailable: available,
     isDashboardLicensed: dashboardAvailable,
-    isEnforcementSupportedForStage: isEnforcementSupportedForStage
+    isEnforcementSupportedForStage: isEnforcementSupportedForStage,
+    isNotificationsSupportedForStage: isNotificationsSupportedForStage,
+    isNotificationsSupportedForAnyStage: isNotificationsSupportedForAnyStage
   };
 }]);

@@ -267,7 +267,7 @@ public abstract class AbstractPolicyEditorTest
     refresh();
 
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
-    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, false);
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, false);
   }
 
   @Test
@@ -284,7 +284,7 @@ public abstract class AbstractPolicyEditorTest
     refresh();
 
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
-    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true);
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, true);
   }
 
   @Test
@@ -1107,7 +1107,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {
-    assertEditPolicyStateIsCorrect(policy, category1, category2, isReadOnly, false, false);
+    assertEditPolicyStateIsCorrect(policy, category1, category2, isReadOnly, false, false, false);
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy,
@@ -1115,6 +1115,7 @@ public abstract class AbstractPolicyEditorTest
                                               Tag category2,
                                               boolean isReadOnly,
                                               boolean actionsReadOnly,
+                                              boolean notificationsReadOnly,
                                               boolean proxyActionReadOnly)
   {
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
@@ -1124,7 +1125,7 @@ public abstract class AbstractPolicyEditorTest
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
     eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
     assertEditPolicyStateIsCorrect_actionsSection(isReadOnly, actionsReadOnly, proxyActionReadOnly);
-    assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly);
+    assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly, notificationsReadOnly, proxyActionReadOnly);
     eyesWatcher.eyesCheck("Actions and notifications states are correct");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldBe(visible, isReadOnly ? disabled : enabled);
@@ -1176,10 +1177,13 @@ public abstract class AbstractPolicyEditorTest
     }
   }
 
-  private void assertEditPolicyStateIsCorrect_notificationsSection(final boolean isReadOnly) {
+  private void assertEditPolicyStateIsCorrect_notificationsSection(final boolean isReadOnly,
+                                                                   boolean notificationsReadOnly,
+                                                                   boolean proxyActionReadOnly)
+  {
     AddNotificationItem addNotificationItem = NotificationsSection.addNotification();
 
-    if (isReadOnly) {
+    if (isReadOnly || (notificationsReadOnly && proxyActionReadOnly)) {
       addNotificationItem.notificationType().shouldHave(CLM.DISABLED);
       addNotificationItem.email().shouldBe(disabled);
     }
@@ -1191,10 +1195,19 @@ public abstract class AbstractPolicyEditorTest
     addNotificationItem.role().shouldNot(exist);
     addNotificationItem.addButton().shouldBe(disabled);
 
+    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || notificationsReadOnly ? disabled : enabled;
+
     NotificationsSection.notifications().shouldHaveSize(2).shouldHave(texts("Developer", "test@foo.com"));
-    NotificationsSection.notificationFor("Developer").build().shouldBe(selected);
-    NotificationsSection.notificationFor("test@foo.com").build().shouldBe(selected);
-    NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().shouldBe(selected);
+    NotificationsSection.notificationFor("Developer").build().input().shouldBe(selected, disabledOrEnabled);
+    NotificationsSection.notificationFor("test@foo.com").build().input().shouldBe(selected, disabledOrEnabled);
+    NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().input()
+        .shouldBe(selected, disabledOrEnabled);
+
+    // For firewall with lifecycle light proxy should be enabled
+    disabledOrEnabled = isReadOnly || proxyActionReadOnly ? disabled : enabled;
+    NotificationsSection.notificationFor("Developer").proxy().input().shouldNotBe(selected).shouldBe(disabledOrEnabled);
+    NotificationsSection.notificationFor("test@foo.com").proxy().input().shouldNotBe(selected)
+        .shouldBe(disabledOrEnabled);
   }
 
   private void assertThreatLevelSelectorState(int selectedThreatLevel, boolean isReadOnly) {

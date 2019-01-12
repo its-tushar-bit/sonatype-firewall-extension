@@ -32,6 +32,7 @@ import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNoti
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -1216,6 +1217,15 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("test@foo.com").build().input().shouldBe(selected, disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().input()
         .shouldBe(selected, disabledOrEnabled);
+    
+    // check the tooltip on just one of the checkboxes
+    NotificationsSection.notificationFor("Developer").build().hover();
+    if (notificationsReadOnly) {
+      Tooltip.get().shouldBe(visible).shouldHave(text("Notifications are not supported by your license"));
+    }
+    else {
+      Tooltip.get().shouldNotBe(visible);
+    }
 
     // For firewall with lifecycle light proxy should be enabled
     disabledOrEnabled = isReadOnly || proxyActionReadOnly ? disabled : enabled;

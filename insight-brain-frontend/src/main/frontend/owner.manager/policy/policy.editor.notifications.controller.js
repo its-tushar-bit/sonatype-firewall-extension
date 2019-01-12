@@ -40,6 +40,7 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
   vm.isNotificationsSupported = undefined;
   vm.isFirewallSupported = undefined;
   vm.resetNotifications = resetNotifications;
+  vm.isNotificationsSupportedForStage = ProductFeatures.isNotificationsSupportedForStage;
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
 
@@ -312,7 +313,7 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
 
   function isCheckboxForStageDisabled(recipient, stageTypeId) {
     return vm.disabled || !vm.isStageApplicable(recipient, stageTypeId) ||
-        !ProductFeatures.isNotificationsSupportedForStage(stageTypeId);
+        !vm.isNotificationsSupportedForStage(stageTypeId);
   }
 }
 

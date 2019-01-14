@@ -10,6 +10,7 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -22,12 +23,16 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 public class PolicyViolationGrandfatheringServiceTest
@@ -35,6 +40,12 @@ public class PolicyViolationGrandfatheringServiceTest
 {
   @Inject
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+
+  @Inject
+  private TestProductLicenseManager licenseManager;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
 
   @Test
   public void testRevokeGrandfathering() throws Exception {
@@ -58,6 +69,15 @@ public class PolicyViolationGrandfatheringServiceTest
     assertThat(policyViolationDAO.getById(fixedGrandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).isGrandfathered()).isFalse();
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered()).isTrue();
+  }
+
+  @Test
+  public void testRevokeGrandfathering_LifecycleFoundationLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        policyViolationGrandfatheringService.revokeGrandfathering("APPID")
+    );
   }
 
   private void testGrandfather(Application app, boolean grandfatheringAllowed) throws Exception {
@@ -210,6 +230,15 @@ public class PolicyViolationGrandfatheringServiceTest
     application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
     testGrandfather(application, false);
+  }
+
+  @Test
+  public void testGrandfather_LifecycleFoundationLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+      policyViolationGrandfatheringService.grandfather("APPID")
+    );
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {
@@ -372,5 +401,16 @@ public class PolicyViolationGrandfatheringServiceTest
     org = new OrganizationDAO().getById(org.getId());
     assertThat(org.isPolicyViolationGrandfatheringEnabled()).isNull();
     assertThat(org.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
+  }
+
+  @Test
+  public void testSetGrandfathering_LifecycleFoundationLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    Organization org = tempEntity.newOrganization();
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, org.getId(),
+            new PolicyViolationGrandfatheringDTO())
+    );
   }
 }

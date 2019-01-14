@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -45,22 +47,30 @@ public class PolicyViolationGrandfatheringService
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
   public PolicyViolationGrandfatheringService(ApplicationDAO applicationDAO,
                                               OrganizationDAO organizationDAO,
                                               PolicyDAO policyDAO,
                                               PolicyViolationDAO policyViolationDAO,
-                                              PolicyViolationPersistenceLocks policyViolationPersistenceLocks)
+                                              PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
+                                              CLMLicenseManager clmLicenseManager)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
+    this.clmLicenseManager = clmLicenseManager;
   }
 
   @Authorize(permission = Permission.WRITE)
   public void revokeGrandfathering(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    if (!clmLicenseManager.hasPolicyGrandfathering()) {
+      log.debug("Policy violation grandfathering is not supported by the current license.");
+      throw new InvalidLicenseException();
+    }
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     log.info("Revoking grandfathered policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
 
@@ -84,6 +94,10 @@ public class PolicyViolationGrandfatheringService
 
   @Authorize(permission = Permission.WRITE)
   public void grandfather(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    if (!clmLicenseManager.hasPolicyGrandfathering()) {
+      log.debug("Policy violation grandfathering is not supported by the current license.");
+      throw new InvalidLicenseException();
+    }
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     if (!isPolicyViolationGrandfatheringEnabled(app.getId())) {
@@ -167,6 +181,11 @@ public class PolicyViolationGrandfatheringService
                                                             @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                                             PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
   {
+    if (!clmLicenseManager.hasPolicyGrandfathering()) {
+      log.debug("Policy violation grandfathering is not supported by the current license.");
+      throw new InvalidLicenseException();
+    }
+
     switch (ownerType) {
       case APPLICATION:
         Application app = applicationDAO.getByPublicIdNotNull(ownerId);

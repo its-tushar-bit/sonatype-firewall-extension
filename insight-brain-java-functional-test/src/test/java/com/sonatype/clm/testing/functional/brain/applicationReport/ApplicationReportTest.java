@@ -68,7 +68,7 @@ public class ApplicationReportTest
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService = new PolicyViolationGrandfatheringService(
       applicationDAO, new OrganizationDAO(), policyDAO, new PolicyViolationDAO(),
-      new PolicyViolationPersistenceLocks());
+      new PolicyViolationPersistenceLocks(), clmLicenseManager);
 
   @BeforeClass
   public static void startup() {

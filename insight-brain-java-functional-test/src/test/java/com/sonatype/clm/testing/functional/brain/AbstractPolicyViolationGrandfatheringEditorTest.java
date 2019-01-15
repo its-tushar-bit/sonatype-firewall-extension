@@ -154,7 +154,6 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 
-    configureOrganizationsAndApplications(false);
     Condition notLicensedText = PolicyViolationGrandfatheringEditorPage.unsupportedLicenseText();
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));

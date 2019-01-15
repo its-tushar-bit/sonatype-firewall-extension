@@ -14,8 +14,8 @@ export const propSetConst = curry((propName, constValue, payload, state) => set(
  * A generic reducer function parameterized over a reducerActionMap and an initialState.
  * Works by looking up the action type in the reducerAction map
  * and then executing the found function
- * 
- * @param reducerActionMap: an object/dictionary of 'actions':'functions', 
+ *
+ * @param reducerActionMap: an object/dictionary of 'actions':'functions',
  *  where `actions` are action type strings
  *  and the functions are with signature `(payload, state) => state`; that is, reducer functions.
  * @param initialState: the initial state of the app/reducer.

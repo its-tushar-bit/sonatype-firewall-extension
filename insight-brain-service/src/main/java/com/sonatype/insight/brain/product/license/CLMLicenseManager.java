@@ -577,28 +577,32 @@ public class CLMLicenseManager
     }
     else {
       // new license with product info
+      if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
+        features.add(FEATURE_POLICY_MONITORING);
+        features.add(FEATURE_DASHBOARD);
+        features.add(FEATURE_CLI_SCAN);
+        features.add(FEATURE_ENFORCEMENT);
+        features.add(FEATURE_NOTIFICATIONS);
+        features.add(FEATURE_POLICY_GRANDFATHERING);
+        features.add(FEATURE_WEBHOOKS);
+      }
       if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
         features.add(FEATURE_QUALITY);
-      }
-      if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
-          || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+
         features.add(FEATURE_POLICY_MONITORING);
+        features.add(FEATURE_DASHBOARD);
+        features.add(FEATURE_CLI_SCAN);
+        features.add(FEATURE_ENFORCEMENT);
+        features.add(FEATURE_NOTIFICATIONS);
+        features.add(FEATURE_POLICY_GRANDFATHERING);
+        features.add(FEATURE_WEBHOOKS);
+      }
+      if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
         features.add(FEATURE_DASHBOARD);
         features.add(FEATURE_CLI_SCAN);
       }
       if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
         features.add(FEATURE_REPOSITORY_FIREWALL);
-      }
-
-      if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
-        features.add(FEATURE_DASHBOARD);
-        features.add(FEATURE_CLI_SCAN);
-      }
-      else {
-        features.add(FEATURE_ENFORCEMENT);
-        features.add(FEATURE_NOTIFICATIONS);
-        features.add(FEATURE_POLICY_GRANDFATHERING);
-        features.add(FEATURE_WEBHOOKS);
       }
     }
 

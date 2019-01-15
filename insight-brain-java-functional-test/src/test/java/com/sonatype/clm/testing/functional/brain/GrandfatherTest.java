@@ -94,8 +94,8 @@ public class GrandfatherTest
   }
 
   @Test
-  public void testGrandfather_LifecycleLight() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+  public void testGrandfather_Foundation() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));

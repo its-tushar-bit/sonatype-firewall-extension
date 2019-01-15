@@ -68,7 +68,7 @@ public class RevokeGrandfatheringTest
   }
 
   @Test
-  public void testGrandfather_LifecycleLight() {
+  public void testGrandfather_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     refreshOrOpen(OwnerSummaryPage.url(application));

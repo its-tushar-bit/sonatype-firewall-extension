@@ -78,13 +78,13 @@ public abstract class AbstractPolicyMonitoringEditorTest
   }
 
   @Test
-  public void testNotLicensed_lifecycleLight() {
+  public void testNotLicensed_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     assertNotLicensed(true);
   }
 
   @Test
-  public void testNotLicensed_lifecycleLight_Firewall() {
+  public void testNotLicensed_Foundation_Firewall() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
     assertNotLicensed(false);
   }

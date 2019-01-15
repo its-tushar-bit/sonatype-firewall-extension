@@ -251,7 +251,7 @@ public abstract class AbstractPolicyEditorTest
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
   }
   @Test
-  public void testLifecycleLight() {
+  public void testFoundation_Firewall() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
 
     String ownerId = currentOwner.getId();
@@ -266,7 +266,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   @Test
-  public void testLifecycleLight_NoFirewall() {
+  public void testFoundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     String ownerId = currentOwner.getId();
@@ -1160,7 +1160,7 @@ public abstract class AbstractPolicyEditorTest
     develop.warnRadio().shouldBe(selected, visible, disabledOrEnabled);
     develop.noActionRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
 
-    // For firewall with lifecycle light proxy should be enabled
+    // For firewall with foundation proxy should be enabled
     disabledOrEnabled = isReadOnly || proxyActionReadOnly ? disabled : enabled;
     ActionsSection.Stage proxy = actionsTable.proxy();
     proxy.failRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
@@ -1219,7 +1219,7 @@ public abstract class AbstractPolicyEditorTest
       Tooltip.get().shouldNotBe(visible);
     }
 
-    // For firewall with lifecycle light proxy should be enabled
+    // For firewall with foundation proxy should be enabled
     disabledOrEnabled = isReadOnly || proxyActionReadOnly ? disabled : enabled;
     NotificationsSection.notificationFor("Developer").proxy().input().shouldNotBe(selected).shouldBe(disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").proxy().input().shouldNotBe(selected)

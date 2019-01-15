@@ -714,28 +714,28 @@ public abstract class AbstractSummaryViewTest
   }
 
   @Test
-  public void testPolicyTile_LifecycleLight() {
+  public void testPolicyTile_Foundation_Firewall() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
 
-    assertPolicyTile_LifecycleLight(policy, false);
+    assertPolicyTile_Foundation(policy, false);
   }
 
   @Test
-  public void testPolicyTile_LifecycleLight_NoFirewall() {
+  public void testPolicyTile_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
     
-    assertPolicyTile_LifecycleLight(policy, true);
+    assertPolicyTile_Foundation(policy, true);
   }
   
-  private void assertPolicyTile_LifecycleLight(Policy policy, boolean proxyActionReadOnly) {
+  private void assertPolicyTile_Foundation(Policy policy, boolean proxyActionReadOnly) {
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     PolicyTileList list = policyTile.policyList(0);
 

@@ -592,7 +592,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testFoundationLicense_WithFirewall() throws Exception {
+  public void testFoundationLicense_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
     assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();

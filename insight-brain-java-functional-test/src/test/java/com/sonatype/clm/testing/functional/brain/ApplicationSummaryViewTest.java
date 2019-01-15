@@ -314,7 +314,7 @@ public class ApplicationSummaryViewTest
   }
 
   @Test
-  public void testEvaluateApplicationBinary_LifecycleLight() {
+  public void testEvaluateApplicationBinary_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 

@@ -170,7 +170,7 @@ public class FeatureServiceTest
   }
 
   @Test
-  public void testGetFeatures_WithoutLifecycleLight() {
+  public void testGetFeatures_WithoutFoundation() {
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
@@ -184,7 +184,7 @@ public class FeatureServiceTest
   }
 
   @Test
-  public void testGetFeatures_WithLifecycleLight() {
+  public void testGetFeatures_WithFoundation() {
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasDashboard()).thenReturn(true);

@@ -150,7 +150,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   }
 
   @Test
-  public void testPolicyViolationGrandfatheringConfiguration_LifecycleLight() {
+  public void testPolicyViolationGrandfatheringConfiguration_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 

@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -51,11 +50,6 @@ public abstract class AbstractPolicyMonitoringEditorTest
     loginAsAdmin();
   }
 
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
-  }
-
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     this.parentOrg = orgDao.getById(currentOwner.getParentOwnerId());
@@ -80,16 +74,22 @@ public abstract class AbstractPolicyMonitoringEditorTest
   @Test
   public void testNotLicensed() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    assertNotLicensed();
+    assertNotLicensed(false);
   }
 
   @Test
   public void testNotLicensed_lifecycleLight() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
-    assertNotLicensed();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    assertNotLicensed(true);
+  }
+
+  @Test
+  public void testNotLicensed_lifecycleLight_Firewall() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    assertNotLicensed(false);
   }
   
-  public void assertNotLicensed() {
+  public void assertNotLicensed(boolean notificationsReadOnly) {
     refresh();
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
@@ -111,14 +111,20 @@ public abstract class AbstractPolicyMonitoringEditorTest
     NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
     cmIndex = stageTypeService.getLicensedStageTypes().size();
     notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
-    NotificationsSection.addNotification().email().val("a@b");
-    NotificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
-    IqCheckbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
-    monitoringCheckbox.input().shouldBe(disabled);
-    monitoringCheckbox.hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
-    NotificationsSection.notificationFor("a@b").deleteButton().hover(); // tooltip obscures button, discard it
-    NotificationsSection.notificationFor("a@b").deleteButton().click();
+    if (notificationsReadOnly) {
+      NotificationsSection.addNotification().email().shouldBe(disabled);
+      NotificationsSection.addNotification().addButton().shouldBe(DISABLED);
+    }
+    else {
+      NotificationsSection.addNotification().email().val("a@b");
+      NotificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
+      IqCheckbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
+      monitoringCheckbox.input().shouldBe(disabled);
+      monitoringCheckbox.hover();
+      Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
+      NotificationsSection.notificationFor("a@b").deleteButton().hover(); // tooltip obscures button, discard it
+      NotificationsSection.notificationFor("a@b").deleteButton().click();
+    }
   }
 
   private void assertEditMonitoredStageStateIsCorrect(String selectedStageText) {

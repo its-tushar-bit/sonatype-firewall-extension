@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -79,11 +78,6 @@ public abstract class AbstractSummaryViewTest
   public static void boot() {
     refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
-  }
-
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   protected void init(Owner currentOwner) {
@@ -721,7 +715,7 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testPolicyTile_LifecycleLight() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
@@ -732,9 +726,7 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testPolicyTile_LifecycleLight_NoFirewall() {
-    // Should be replaced after CLM-11573 is done
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));

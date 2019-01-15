@@ -95,6 +95,24 @@ public class StageTypeServiceTest
   }
 
   @Test
+  public void testGetLicensedStageTypes_Foundation() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
+        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_Foundation_Firewall() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
+        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+  }
+
+  @Test
   public void testGetLicensedStageTypes_RiskRemediation_ContextAll() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);

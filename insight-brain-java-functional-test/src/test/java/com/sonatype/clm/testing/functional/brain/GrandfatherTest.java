@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -64,11 +64,6 @@ public class GrandfatherTest
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
   }
 
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
-  }
-
   @Test
   public void testGrandfather_ModalInitialState_GrandfatheringEnabled() {
     ActionDropDown.actionButton().shouldBe(visible).click();
@@ -100,7 +95,7 @@ public class GrandfatherTest
 
   @Test
   public void testGrandfather_LifecycleLight() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));

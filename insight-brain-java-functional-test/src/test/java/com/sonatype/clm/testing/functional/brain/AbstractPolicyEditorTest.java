@@ -82,7 +82,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -115,11 +114,6 @@ public abstract class AbstractPolicyEditorTest
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
-  }
-
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   private void setupJiraService() throws IOException {
@@ -258,7 +252,7 @@ public abstract class AbstractPolicyEditorTest
   }
   @Test
   public void testLifecycleLight() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
 
     String ownerId = currentOwner.getId();
     Tag[] categories = createCategories(
@@ -273,9 +267,7 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   public void testLifecycleLight_NoFirewall() {
-    // Should be replaced after CLM-11573 is done
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     String ownerId = currentOwner.getId();
     Tag[] categories = createCategories(

@@ -107,7 +107,7 @@ public abstract class AbstractFunctionalTest
   static {
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
-    clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter, null, null);
+    clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter, null);
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();

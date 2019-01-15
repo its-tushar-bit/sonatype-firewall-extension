@@ -94,7 +94,8 @@ public class StageTypeService
   private Collection<StageType> calculateLicensedStages() {
     Collection<StageType> allowed = new HashSet<>();
 
-    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION) ||
+        licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
       // all allowed
       allowed.addAll(StageTypes.getAll());
     }

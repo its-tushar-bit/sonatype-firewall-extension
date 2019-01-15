@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -56,11 +56,6 @@ public class RevokeGrandfatheringTest
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
   }
 
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
-  }
-
   @Test
   public void testRevokeGrandfathering_ModalInitialState() {
     ActionDropDown.actionButton().shouldBe(visible).click();
@@ -74,7 +69,7 @@ public class RevokeGrandfatheringTest
 
   @Test
   public void testGrandfather_LifecycleLight() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));

@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -54,11 +54,6 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
-  }
-
-  @After
-  public void reset() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(false);
   }
 
   protected void init(Owner currentOwner) {
@@ -156,7 +151,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   @Test
   public void testPolicyViolationGrandfatheringConfiguration_LifecycleLight() {
-    testCLMServer.getCLMServer().getConfiguration().setLifecycleLight(true);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 
     configureOrganizationsAndApplications(false);

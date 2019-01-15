@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -204,19 +203,14 @@ public class CLMLicenseManager
   
   private final AuditRecorder auditRecorder;
 
-  // will be removed once lifecycle light is read from license
-  private final InsightConfig insightConfig;
-
   @Inject
   public CLMLicenseManager(final ProductLicenseManager licenseManager,
                            final LicenseFingerprinter licenseFingerprinter,
-                           final AuditRecorder auditRecorder,
-                           final InsightConfig insightConfig)
+                           final AuditRecorder auditRecorder)
   {
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
     this.auditRecorder = auditRecorder;
-    this.insightConfig = insightConfig;
     try {
       populateLicenseCache();
     }
@@ -586,11 +580,9 @@ public class CLMLicenseManager
         features.add(FEATURE_REPOSITORY_FIREWALL);
       }
 
-      // insightConfig to be removed once license drives lifecycle light
-      boolean lifecycleLight = (insightConfig != null && insightConfig.isLifecycleLight()) ||
-          products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION);
-      if (lifecycleLight) {
-        features.remove(FEATURE_POLICY_MONITORING);
+      if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
+        features.add(FEATURE_DASHBOARD);
+        features.add(FEATURE_CLI_SCAN);
       }
       else {
         features.add(FEATURE_ENFORCEMENT);

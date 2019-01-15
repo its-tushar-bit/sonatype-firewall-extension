@@ -543,6 +543,8 @@ public class CLMLicenseManagerTest
     assertThat(clmLicenseManager.hasNotifications()).isFalse();
     assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
     assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
   }
 
   @Test
@@ -555,5 +557,7 @@ public class CLMLicenseManagerTest
     assertThat(clmLicenseManager.hasNotifications()).isFalse();
     assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
     assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
   }
 }

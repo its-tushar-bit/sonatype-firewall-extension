@@ -86,15 +86,20 @@ public class FeaturesService
     if (licenseManager.hasRepositoryFirewall()) {
       features.add(Feature.FIREWALL);
     }
-    
-    if (insightConfig.isLifecycleLight()) { // to be replaced once new license has been created
-      // line 78 should prevent this from getting added once license is properly configured
-      features.remove(Feature.POLICY_MONITORING);
-    }
-    else {
+
+    if (licenseManager.hasEnforcement()) {
       features.add(Feature.ENFORCEMENT);
+    }
+
+    if (licenseManager.hasNotifications()) {
       features.add(Feature.NOTIFICATIONS);
+    }
+
+    if (licenseManager.hasPolicyGrandfathering()) {
       features.add(Feature.POLICY_GRANDFATHERING);
+    }
+
+    if (licenseManager.hasWebhooks()) {
       features.add(Feature.WEBHOOKS);
     }
   }

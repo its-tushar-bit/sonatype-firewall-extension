@@ -70,7 +70,7 @@ extends GebReportingSpec {
   public static TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter()
 
   public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter,
-      null, null)
+      null)
 
   def getBrainModules() {
     return Arrays.asList(new AbstractModule() {

@@ -15,9 +15,18 @@
 var iqTooltip = function($timeout, $window) {
   return {
     restrict: 'A',
+    scope: {
+      enabled: '<iqTooltip'
+    },
     link: function(scope, element, attrs) {
-      var templateString =
-              '<div class="tooltip iq-tooltip ' + attrs.tooltipClass + '" role="tooltip">' +
+      // iq-tooltip attr can be used either with a boolean value or without a value. If no value, that means enabled
+      if (scope.enabled === false) {
+        return;
+      }
+
+      var tooltipClass = attrs.tooltipClass || '',
+          templateString =
+              '<div class="tooltip iq-tooltip ' + tooltipClass + '" role="tooltip">' +
               '<div class="tooltip-arrow"></div>' +
               '<div class="tooltip-inner"></div>' +
               '</div>',

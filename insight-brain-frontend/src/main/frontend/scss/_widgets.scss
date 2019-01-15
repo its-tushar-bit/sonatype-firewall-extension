@@ -460,15 +460,6 @@ double-column-picker {
             overflow-y: scroll;
             padding-top: 9px;
 
-            .tooltip.top {
-              margin-left: -90px;
-
-              .tooltip-inner {
-                text-align: left;
-                white-space:pre-wrap;
-              }
-            }
-
             .iq-checkbox__label {
               height: $list-item-height;
               margin: 0;

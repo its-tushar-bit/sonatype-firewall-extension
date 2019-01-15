@@ -84,13 +84,9 @@ public class DoubleColumnPicker
       super($(createSelector(selectors)));
     }
 
-    public SelenideElement tooltip() {
-      return $("div.tooltip.top");
-    }
-
     @Override
     public Item hover() {
-      label().hover();
+      element.$("ng-transclude span").hover();
       return this;
     }
   }

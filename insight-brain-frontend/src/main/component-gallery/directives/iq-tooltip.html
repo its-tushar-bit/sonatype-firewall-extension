@@ -6,6 +6,7 @@
 
     Params                            | Type        | Details|
     :---                              | :---        | :---
+    iq-tooltip                        | Boolean     | optional value - if the iq-tooltip attr itself has a value, this value is taken to mean whether the tooltip is enabled. Thus if false, it is as if the directive isn't applied at all
     tooltip-text                      | String      |
     tooltip-class                     | String      | optional - one or multiple classes to use for the tooltip
     tooltip-attach-to-body            | void        | optional - if truthy the tooltip will be attached to body. Defaults to false
@@ -18,6 +19,7 @@
 
 <item-example-html>
   <div iq-tooltip tooltip-text="foo" style="width:20px">bar</div>
+  <div iq-tooltip="false" tooltip-text="This tooltip won't appear" style="width:20px">baz</div>
   <div iq-tooltip tooltip-text="metasyntactic variables" tooltip-only-on-overflow="true" class="truncate-ellipsis" style="width:50px">foo bar baz qux quux quuz corge</div>
   <div iq-tooltip tooltip-text="metasyntactic variables" tooltip-only-on-overflow="true" class="truncate-ellipsis">foo bar baz qux quux quuz corge</div>
   <div iq-tooltip tooltip-text="won't show as child doesn't overflow" tooltip-only-on-overflow="true" tooltip-overflow-element-selector=".truncate-ellipsis" style="width:100px;background-color:cadetblue"><div class="truncate-ellipsis" style="width:80px;margin-left:10px;background-color:indianred">inner div</div></div>

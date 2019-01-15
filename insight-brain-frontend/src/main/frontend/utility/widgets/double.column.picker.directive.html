@@ -46,10 +46,11 @@
           <iq-checkbox ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam"
                        on-click="vm.toggleChecked(item, false)"
                        is-checked="item.checked"
-                       is-disabled="vm.disabled"
-                       data-tooltip="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}" data-tooltip-placement="top"
-                       data-tooltip-popup-delay="200" data-tooltip-enable="{{!!vm.tooltipFn({item: item})}}">
-            <span>
+                       is-disabled="vm.disabled">
+            <span iq-tooltip="!!vm.tooltipFn({item: item})"
+                  tooltip-text="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}"
+                  tooltip-only-on-overflow="true"
+                  tooltip-attach-to-body>
               <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
             </span>
           </iq-checkbox>
@@ -60,10 +61,11 @@
           <iq-checkbox ng-repeat="item in vm.list | filter: vm.listFilter(true) | orderBy: vm.itemNameParam"
                        on-click="vm.toggleChecked(item, true)"
                        is-checked="item.checked"
-                       is-disabled="vm.disabled"
-                       data-tooltip="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}" data-tooltip-placement="top"
-                       data-tooltip-popup-delay="200" data-tooltip-enable="{{!!vm.tooltipFn({item: item})}}">
-            <span>
+                       is-disabled="vm.disabled">
+            <span iq-tooltip="!!vm.tooltipFn({item: item})"
+                  tooltip-text="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}"
+                  tooltip-only-on-overflow="true"
+                  tooltip-attach-to-body>
               <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
             </span>
           </iq-checkbox>

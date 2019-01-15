@@ -15,6 +15,8 @@ import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.Item;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
+
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -31,6 +33,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
@@ -110,6 +113,42 @@ public abstract class AbstractLTGEditorTest
     testDeleteLTG(ltg);
   }
 
+  @Test
+  public void testTooltips() {
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
+    refresh();
+
+    OwnerSummaryPage.licenseThreatGroupTile().localLTGs().shouldHaveSize(1);
+    OwnerSummaryPage.licenseThreatGroupTile().localLTG(ltg.getName()).click();
+    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
+
+    DoubleColumnPicker picker = LTGEditorPage.picker();
+
+    // no tooltip for short items
+    picker.filter().val("Adobe");
+    picker.availableItem(0).shouldHave(exactText("Adobe")).hover();
+    Tooltip.get().shouldNot(exist);
+    picker.availableItem(0).click();
+    picker.pickCheckedItemsButton().hover().click();
+
+    // tooltip should exist for overflowing items
+    picker.filter().val("AFL");
+    picker.availableItem(0).shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype")).hover();
+    Tooltip.get().shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype"));
+
+    eyesWatcher.eyesCheck();
+
+    picker.availableItem(0).click();
+    picker.pickCheckedItemsButton().hover().click();
+
+    // check tooltips in the picked column too
+    picker.filter().clear();
+    picker.pickedItem(0).shouldHave(exactText("Adobe")).hover();
+    Tooltip.get().shouldNot(exist);
+    picker.pickedItem(1).shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype")).hover();
+    Tooltip.get().shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype"));
+  }
+
   public void testDeleteLTG(LicenseThreatGroup ltg) {
     LTGEditorPage.deleteButton().shouldBe(visible, enabled).click();
 
@@ -150,12 +189,7 @@ public abstract class AbstractLTGEditorTest
 
     for (int i = 0; i < 3; i++) {
       Item item = picker.availableItem(i);
-      item.hover().tooltip().shouldBe(visible).shouldHave(text(item.label().text()));
-      LTGEditorPage.title().hover(); // hide the tooltip
-      item.tooltip().shouldNot(exist);
       item.shouldBe(visible).click();
-      LTGEditorPage.title().hover(); // hide the tooltip... click event may trigger tooltip again
-      item.tooltip().shouldNot(exist);
       pickedLicenseNames.add(item.label().text());
     }
 

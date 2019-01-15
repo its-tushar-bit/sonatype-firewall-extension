@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.Item;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
@@ -67,7 +69,9 @@ public abstract class AbstractAccessEditorTest
     this.currentOwner = owner;
 
     User u1 = tempEntity.newUser();
-    User u2 = tempEntity.newUser();
+    User u2 = tempEntity.newUser("longname", "JohnJohnJohnJohnJohnJohn", "DoeDoeDoeDoeDoeDoeDoeDoe",
+        "longname@example.com");
+
     Role role = APPLICATION_ROLES.get(0);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
@@ -105,9 +109,6 @@ public abstract class AbstractAccessEditorTest
 
     Item availableItem = picker.availableItem(0);
     availableItem.label().shouldHave(text("Admin Builtin"));
-    availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
-    AccessEditorPage.title().hover(); // hide the tooltip
-    availableItem.tooltip().shouldNot(exist);
     picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
 
     picker.checkAllLeft().click();
@@ -143,9 +144,6 @@ public abstract class AbstractAccessEditorTest
     picker.availableItems().shouldHaveSize(2);
     Item availableItem = picker.availableItem(0);
     availableItem.label().shouldHave(text("Admin Builtin"));
-    availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
-    AccessEditorPage.title().hover(); // hide the tooltip
-    availableItem.tooltip().shouldNot(exist);
     picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
     picker.checkAllLeft().click();
     picker.pickCheckedItemsButton().shouldBe(enabled).click();
@@ -160,6 +158,36 @@ public abstract class AbstractAccessEditorTest
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     picker.pickedItems().shouldHaveSize(4);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).hasSize(4);
+  }
+
+  @Test
+  public void testTooltips() {
+    goFromSummaryToAddRole();
+
+    DoubleColumnPicker picker = AccessEditorPage.picker();
+
+    AccessEditorPage.searchBox().val("Admin*");
+    AccessEditorPage.searchButton().click();
+    picker.availableItem(0).shouldHave(exactText("Admin BuiltIn")).hover();
+    Tooltip.get().shouldNot(exist);
+    picker.availableItem(0).click();
+    picker.pickCheckedItemsButton().hover().click();
+
+    AccessEditorPage.searchBox().val("JohnJohn*");
+    AccessEditorPage.searchButton().click();
+    picker.availableItem(0).shouldHave(exactText("JohnJohnJohnJohnJohnJohn DoeDoeDoeDoeDoeDoeDoeDoe")).hover();
+    Tooltip.get().shouldHave(exactText("IQ Server longname@example.com"));
+
+    eyesWatcher.eyesCheck();
+
+    picker.availableItem(0).click();
+    picker.pickCheckedItemsButton().hover().click();
+
+    // check tooltips in the right side as well
+    picker.pickedItem(0).shouldHave(exactText("Admin BuiltIn")).hover();
+    Tooltip.get().shouldNot(exist);
+    picker.pickedItem(1).shouldHave(exactText("JohnJohnJohnJohnJohnJohn DoeDoeDoeDoeDoeDoeDoeDoe")).hover();
+    Tooltip.get().shouldHave(exactText("IQ Server longname@example.com"));
   }
 
   @Test

@@ -6,44 +6,14 @@
     <!-- Insight 3566b5df-329e-49a0-9b9c-57f047aade27  -->
     <title>Component Information Panel</title>
     <link type="text/css" rel="stylesheet" href="../../../version.graph.app.css?${build.timestamp}">
+    <link type="text/css" rel="stylesheet" href="./version-graph-eclipse.css">
     <script src="../../../brain.client.js?${build.timestamp}"></script>
     <script src="../../protovis.min.js?${build.timestamp}"></script>
     <script src="../../../version.graph.app.js?${build.timestamp}"></script>
-    <script>
-      var clmEndpoint = {
-        type : 'ide',
-        migrate : true,
-        selectApplication : false,
-        viewDetails : true,
-        openView : function (args) {
-          Eclipse_openView(args);
-        },
-        linkTarget : '_self',
-        path : '../../'
-      };
-      var CLM = {
-        path: clmEndpoint.path + '../../',
-        assetsPath: clmEndpoint.path + '../'
-      };
-
-      // disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code
-      $(document).bind('contextmenu', function(e) {
-        return false;
-      });
-      $(document).ready(function () {
-        if (navigator.platform === 'MacIntel') {
-          $('html').addClass('macos');
-        }
-      });
-    </script>
-    <style>
-      .macos .btn.disabled {
-        opacity : 1.0;
-      }
-    </style>
+    <script type="text/javascript" src="version-graph-eclipse.js"></script>
     <!--[if lt IE 9]><script src="../../protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
   </head>
-  <body information-panel>
+  <body ng-csp="no-unsafe-eval" information-panel>
     <noscript>
       <div class="alert alert-error alert-centered">
       It appears that javascript is disabled.  Please verify security settings for the domain used for your Nexus IQ Server.

@@ -26,9 +26,7 @@
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
     <grunt.task>build</grunt.task>
-    <grunt.task.obfuscate>build-prod</grunt.task.obfuscate>
     <grunt.tests.skip>${skip.grunt}</grunt.tests.skip>
-    <angular.debug>false</angular.debug>
   </properties>
 
   <build>
@@ -365,53 +363,13 @@
         </property>
       </activation>
       <properties>
-        <angular.debug>true</angular.debug>
-        <grunt.task>m2e</grunt.task>
-        <!-- As obfuscate profile is default enabled the frontend plugin uses the grunt obfuscate task -->
-        <grunt.task.obfuscate>m2e</grunt.task.obfuscate>
         <grunt.tests.skip>true</grunt.tests.skip>
-      </properties>
-    </profile>
-    <profile>
-      <id>m2e-ui-dev</id>
-      <properties>
-        <!-- As obfuscate profile is default enabled the frontend plugin uses the grunt obfuscate task -->
-        <grunt.task.obfuscate>m2e-ui-dev</grunt.task.obfuscate>
       </properties>
     </profile>
     <profile>
       <id>idea</id>
       <properties>
       </properties>
-    </profile>
-    <profile>
-      <id>obfuscate</id>
-      <activation>
-        <property>
-          <name>!skip-obfuscate</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.github.eirslett</groupId>
-            <artifactId>frontend-maven-plugin</artifactId>
-            <version>1.0</version>
-            <executions>
-              <execution>
-                <id>grunt-build</id>
-                <goals>
-                  <goal>grunt</goal>
-                </goals>
-                <configuration>
-                  <srcdir>${basedir}/src/main/frontend</srcdir>
-                  <arguments>${grunt.task.obfuscate}</arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
     <profile>
       <id>clean-node</id>

@@ -9,25 +9,9 @@
     <script src='../../../brain.client.js?${build.timestamp}'></script>
     <script src="../../protovis.min.js?${build.timestamp}"></script>
     <script src="../../../version.graph.app.js?${build.timestamp}"></script>
-    <script>
-      var clmEndpoint = {
-        type : 'rm',
-        migrate : false,
-        viewDetails : true,
-        selectApplication : true,
-        openView : function (args) {
-          Eclipse_openView(args);
-        },
-        linkTarget : '_blank',
-        path : '../../'
-      };
-      var CLM = {
-        path: clmEndpoint.path + '../../',
-        assetsPath: clmEndpoint.path + '../'
-      };
-    </script>
+    <script type="text/javascript" src="version-graph-rm.js"></script>
     <!--[if lt IE 9]><script src="protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
   </head>
-  <body information-panel>
+  <body ng-csp="no-unsafe-eval" information-panel>
   </body>
 </html>

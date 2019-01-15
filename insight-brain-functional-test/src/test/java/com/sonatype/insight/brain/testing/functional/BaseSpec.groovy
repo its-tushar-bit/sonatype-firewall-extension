@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.CLMLicenseManager
 import com.sonatype.insight.brain.service.HdsMockServerRule
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
 import com.sonatype.insight.test.PortAllocator
@@ -50,8 +52,7 @@ extends GebReportingSpec {
 
   @Shared
   @ClassRule
-  TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-  PortAllocator.findFreePort(8071), "http://localhost:" + hdsPort, false, getBrainModules())
+  TestInsightBrainServiceRule serviceRule = createServiceRule()
 
   @Shared
   @ClassRule
@@ -80,6 +81,18 @@ extends GebReportingSpec {
         bind(CLMLicenseManager.class).toInstance(clmLicenseManager)
       }
     });
+  }
+
+  def createServiceRule() {
+    def rule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
+        "http://localhost:" + hdsPort, false, getBrainModules())
+
+    rule.setConfigurator(new Configurator() {
+      void configure(InsightConfig config) {
+        // HTTP CSP headers that prohibit eval break webdriver control of phantomjs
+        config.setCspEnabled(false)
+      }
+    })
   }
 
   def setupSpec() {

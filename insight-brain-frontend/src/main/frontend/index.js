@@ -1,3 +1,5 @@
+import './webpackGlobals.js';
+
 import 'components-font-awesome/css/font-awesome.min.css';
 import './lib/glyphicon/glyphicons.css';
 import './lib/bootstrap.scss';

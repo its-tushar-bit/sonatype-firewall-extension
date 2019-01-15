@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
+import com.sonatype.insight.brain.security.CspHeaderFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
@@ -316,6 +317,7 @@ public class InsightBrainService
     addServletFilter(env, GuiceShiroFilter.class, "/*");
     addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);
     addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
+    addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);
 
     if (config.isForceBaseUrl()) {
       log.error("DEPRECATION NOTICE: Forcing use of server base URL: {}, any 'X-Forwarded-*' headers will be " +

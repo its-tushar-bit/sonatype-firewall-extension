@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class CspHeaderFilterChainTest
+    extends AbstractBrainServiceTest
+{
+
+  @Test
+  public void testHeader() throws Exception {
+    assertHeader(restRequest().path("/assets/index.html").get());
+    assertHeader(restRequest().path("/assets/audit-report/index.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/ide/eclipse/index.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/ide/eclipse/viewdetails.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/ide/idea/index.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/ide/idea/viewdetails.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/ide/visualstudio/index.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/ide/visualstudio/viewdetails.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/rm/nexus/index.html").get());
+    assertHeader(restRequest().path("/assets/version-graph/rm/nexus/viewdetails.html").get());
+
+    Application app = tempEntity.newApplicationWithParent("ReportResourceTest_AppId");
+    String scanId = mockReport("/CspHeaderFilterChainTest/report");
+
+    // HDS reports should not include the CSP header
+    assertNoHeader(restRequest().path(app.getPublicId(), scanId).path("browseReport").get());
+  }
+
+  private void assertHeader(HttpResponse response) {
+    assertThat(response.getHeader("Content-Security-Policy"))
+        .isEqualTo("default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:");
+  }
+
+  private void assertNoHeader(HttpResponse response) {
+    assertThat(response.getHeader("Content-Security-Policy")).isNull();
+  }
+}

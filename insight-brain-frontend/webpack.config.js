@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CSSSplitPlugin = require('css-split-webpack-plugin').default;
@@ -14,11 +15,12 @@ const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutput
  * @param entryPath path to the javascript entry file for this config, relative to src/main/frontend
  * @param outputPath path to the javascript output file, relative to the assets dir
  * @param cssOutputPath path to the css output file, relative to the assets dir
- * @param production {boolean} whether this is a production build
+ * @param env webpack environment object, expected to contain 'production' and 'clmServerVersion' properties
  * @param externals configuration object to use on the `externals` property
  */
-function config({ entryPath, outputPath, cssOutputPath, production, externals }) {
-  const extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
+function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
+  const production = env.production,
+      extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
       getCssPlugins = () => [
         extractSass,
         new CSSSplitPlugin({
@@ -31,7 +33,12 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
           destination: path.join('target', 'webpack-modules')
         })
       ],
-      plugins = [].concat(
+      plugins = [
+        new webpack.DefinePlugin({
+          CLM_BUILD_TIMESTAMP: new Date().getTime(),
+          CLM_SERVER_VERSION: JSON.stringify(env.clmServerVersion)
+        })
+      ].concat(
           cssOutputPath ? getCssPlugins() : [],
           productionPlugins
       );
@@ -142,7 +149,7 @@ module.exports = function(env) {
         entryPath: './index.js',
         outputPath: 'bundle.js',
         cssOutputPath: 'style.css',
-        production: env.production
+        env
       }),
 
       // to be used as the `externals` config on bundles that expect jquery to already be defined.  Prevents
@@ -164,39 +171,39 @@ module.exports = function(env) {
         entryPath: './audit-report/audit-report-index.js',
         outputPath: 'audit-report.js',
         cssOutputPath: 'audit-report.css',
-        production: env.production,
+        env,
         externals: Object.assign({}, jqueryExternals, angularExternals)
       }),
       config({
         entryPath: './cip/cip-loader-index.js',
         outputPath: 'cip-loader.js',
         cssOutputPath: 'cip-loader.css',
-        production: env.production,
+        env,
         externals: jqueryExternals
       }),
       config({
         entryPath: './cip/cip-index.js',
         outputPath: 'cip.js',
         cssOutputPath: 'cip.css',
-        production: env.production,
+        env,
         externals: Object.assign({}, jqueryExternals, angularExternals)
       }),
       config({
         entryPath: './audit-report/external-index.js',
         outputPath: 'external.js',
-        production: env.production
+        env
       }),
       config({
         entryPath: './version-graph/version-graph-app-index.js',
         outputPath: 'version.graph.app.js',
         cssOutputPath: 'version.graph.app.css',
-        production: env.production
+        env
       }),
       config({
         entryPath: './version-graph/view-details-index.js',
         outputPath: 'viewdetails.js',
         cssOutputPath: 'viewdetails.css',
-        production: env.production
+        env
       })
     ];
   }

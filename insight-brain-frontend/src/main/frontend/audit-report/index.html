@@ -11,20 +11,12 @@
     <link href="../cip.css?<%= config.buildTimestamp %>" rel="stylesheet"/>
     <link type="text/css" href="../audit-report.css?<%= config.buildTimestamp %>" rel="stylesheet"/>
 
-    <script>
-      window.clmEndpoint = {
-        type: 'ci',
-        linkTarget: '_blank',
-        path: '../assets/version-graph/'
-      };
-      angularDebug = <%= config.angularDebug %>;
-    </script>
     <script src="../external.js?<%= config.buildTimestamp %>"></script>
     <script src="../brain.client.js?<%= config.buildTimestamp %>"></script>
     <script src="../audit-report.js?<%= config.buildTimestamp %>"></script>
     <script src="../cip.js?<%= config.buildTimestamp %>"></script>
   </head>
-  <body ng-app="audit" id="audit-report" ng-cloak>
+  <body ng-app="audit" id="audit-report" ng-cloak ng-csp="no-unsafe-eval">
     <div>
       <div ng-controller="audit.summary.controller">
         <div id="summary" load-wrapper="error" reload="doLoad()" error-message="Unable to load summary data."

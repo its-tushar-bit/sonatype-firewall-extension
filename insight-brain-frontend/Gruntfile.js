@@ -16,8 +16,10 @@
     }
 
     var path = require('path');
-    var webpackCmd = path.join('node_modules', '.bin', 'webpack');
-    var webpackDevServerCmd = path.join('node_modules', '.bin', 'webpack-dev-server');
+    var webpackCmd = path.join('node_modules', '.bin', 'webpack') +
+        ' --env.clmServerVersion=<%= config.pom.clmVersion %>';
+    var webpackDevServerCmd = path.join('node_modules', '.bin', 'webpack-dev-server') +
+        ' --env.clmServerVersion=<%= config.pom.clmVersion %>';
     require('load-grunt-tasks')(grunt);
     require('time-grunt')(grunt);
 
@@ -29,7 +31,6 @@
           clmVersion: extractFromPom('version')
         },
         angularDebug: false,
-        buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
         test: 'src/test/frontend',
         generated: 'target/classes/assets',
@@ -62,7 +63,8 @@
           src: [
             '**/*.{html,ttf,woff,woff2,png,gif,jpg,ico}',
             '!lib/**',
-            'brain.client.js'
+            'brain.client.js',
+            'reports.js'
           ],
           dest: '<%= config.generated %>'
         },
@@ -122,7 +124,6 @@
         }
       },
       exec: {
-        'webpack': webpackCmd,
         'webpack-prod': {
           // -p for production - adds uglify and sets NODE_ENV in application sources (not in webpack config itself)
           cmd: webpackCmd + ' -p --env.production',
@@ -174,17 +175,6 @@
 
       'eslint',
       'clean',
-      'exec:webpack',
-      'copy:build',
-      'template:build',
-      'clean:temp'
-    ]);
-
-    grunt.registerTask('build-prod', [
-      'configure_override:build',
-
-      'eslint',
-      'clean',
       'exec:webpack-prod',
       'copy:build',
       'template:build',
@@ -194,25 +184,6 @@
     grunt.registerTask('deploy', [
       'build',
 
-      'clean:temp'
-    ]);
-
-    grunt.registerTask('m2e', [
-      'configure_override:develop',
-
-      'clean:temp',
-      'exec:webpack',
-      'copy:develop',
-      'template:dev',
-      'clean:temp'
-    ]);
-
-    grunt.registerTask('m2e-ui-dev', [
-      'configure_override:develop',
-
-      'clean:temp',
-      'copy:develop',
-      'template:dev',
       'clean:temp'
     ]);
 

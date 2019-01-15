@@ -243,6 +243,14 @@ public class InsightConfig
   @JsonProperty
   private boolean externalHyperlinksAllowed = true;
 
+  /**
+   * @since 1.57
+   * This configuration disables the HTTP CSP header. It only exists because that header breaks the Geb functional
+   * tests
+   */
+  @JsonProperty
+  private boolean cspEnabled = true;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -642,5 +650,13 @@ public class InsightConfig
 
   public void setExternalHyperlinksAllowed(final boolean externalHyperlinksAllowed) {
     this.externalHyperlinksAllowed = externalHyperlinksAllowed;
+  }
+
+  public boolean isCspEnabled() {
+    return cspEnabled;
+  }
+
+  public void setCspEnabled(final boolean cspEnabled) {
+    this.cspEnabled = cspEnabled;
   }
 }

@@ -7,14 +7,8 @@
     <link type="text/css" rel='stylesheet' href='../../../viewdetails.css?${build.timestamp}'>
     <script src='../../../brain.client.js?${build.timestamp}'></script>
     <script src='../../../viewdetails.js?${build.timestamp}'></script>
-    <script>
-      var clmEndpoint = {
-        type : 'rm',
-        showContext : true,
-        linkTarget : '_blank'
-      };
-    </script>
+    <script type="text/javascript" src="viewdetails-rm.js"></script>
   </head>
-  <body ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>
+  <body ng-csp="no-unsafe-eval" ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>
   </body>
 </html>

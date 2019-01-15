@@ -2,11 +2,17 @@
   <root-organization-migrate></root-organization-migrate>
   <div class="dashboard-summary iq-dashboard-summary">
     <div class="iq-tile iq-tile--top-tile iq-tile--dashboard">
-      <button id="export-results"
-              class="btn btn-tertiary iq-tile__actions"
-              onclick="document.forms['export-results'].submit();">
-        <i class="fa fa-file-o"></i>Export {{vm.title}} Data
-      </button>
+      <form id="export-results-form"
+            class="iq-tile__actions"
+            name="export-results"
+            action="{{vm.getExportUrl()}}"
+            method="post"
+            enctype="multipart/form-data">
+        <input type="hidden" name="filter" value="{{vm.getExportRequestJson()}}">
+        <button id="export-results" class="btn btn-tertiary">
+          <i class="fa fa-file-o"></i>Export {{vm.title}} Data
+        </button>
+      </form>
       <div class="iq-tile-header">
         <div class="iq-tile-header__title">
           <h1>Results</h1>
@@ -16,7 +22,4 @@
     </div>
   </div>
   <div ui-view></div>
-  <form id="export-results-form" name="export-results" action="{{vm.getExportUrl()}}"  method="post" enctype="multipart/form-data">
-    <input type="hidden" name="filter" value="{{vm.getExportRequestJson()}}">
-  </form>
 </div>

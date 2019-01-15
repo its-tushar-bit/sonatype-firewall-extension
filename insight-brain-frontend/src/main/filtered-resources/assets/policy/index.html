@@ -7,27 +7,10 @@
 
 -->
 <html lang="en">
-  <head>
-    <script type='text/javascript'>
-      // backward-compatibility: redirect old clients (e.g. CI plugin 2.9) to the new management UI
-      function loadFn() {
-        var query = window.location.search.substring(1).split('&'),
-                baseUrl = window.location.href.split('policy')[0];
-
-        baseUrl += "assets/index.html#/management/application/";
-
-        for (var i=0; i<query.length; i++) {
-          var appId = query[i].split('=');
-          if (appId.length > 0 && appId[0] === 'appId') {
-            window.location.href = baseUrl + appId[1] + "/policies";
-            return;
-          }
-        }
-        window.location.href = baseUrl;
-      }
-    </script>
-  </head>
-  <body onload='javascript:loadFn()'>
+  <!-- backward-compatibility: redirect old clients (e.g. CI plugin 2.9) to the new management UI -->
+  <body>
     Redirecting...
+    <script type='text/javascript' src="./index.js">
+    </script>
   </body>
 </html>

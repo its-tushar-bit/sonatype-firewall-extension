@@ -69,6 +69,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_LIFECYCLE = "Lifecycle";
 
+  public static final String PRODUCT_LIFECYCLE_FOUNDATION = "Lifecycle Foundation";
+
   public static final String PRODUCT_FIREWALL = "Firewall";
 
   public static final String PRODUCT_AUDITOR = "Auditor";
@@ -432,6 +434,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION:
         marketingNameSuffix = PRODUCT_LIFECYCLE;
         break;
+      case ProductLicenseDetails.PRODUCT_FOUNDATION:
+        marketingNameSuffix = PRODUCT_LIFECYCLE_FOUNDATION;
+        break;
       case ProductLicenseDetails.PRODUCT_FIREWALL:
         marketingNameSuffix = PRODUCT_FIREWALL;
         break;
@@ -477,6 +482,8 @@ public class CLMLicenseManager
         licensedUsersToDisplay = licenseCache.getMaxUsers();
         break;
       case PRODUCT_LIFECYCLE:
+        // no break
+      case PRODUCT_LIFECYCLE_FOUNDATION:
         licensedUsersToDisplay = licenseCache.getMaxUsers();
         // no break
       case PRODUCT_FIREWALL:
@@ -492,6 +499,9 @@ public class CLMLicenseManager
   private String getProductEdition() {
     if (hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       return (PRODUCT_LIFECYCLE);
+    }
+    else if (hasProduct(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
+      return (PRODUCT_LIFECYCLE_FOUNDATION);
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       return (PRODUCT_FIREWALL);

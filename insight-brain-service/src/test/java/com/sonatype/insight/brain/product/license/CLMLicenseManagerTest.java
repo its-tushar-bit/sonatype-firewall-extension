@@ -351,6 +351,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseSummary_ProductEditionLifecycleFoundation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION);
+  }
+
+  @Test
   public void testGetLicenseInfo_IncludesFingerprint() throws Exception {
     String fingerprint = "test-passed";
     licenseFingerprinter.setDummyLicenseFingerprint(fingerprint);
@@ -405,8 +414,22 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseInfo_ProductEditionLifecycleFoundation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION);
+  }
+
+  @Test
   public void testGetLicenseInfo_LicensedUsersToDisplay() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
     // should be null when product is auditor
@@ -423,6 +446,16 @@ public class CLMLicenseManagerTest
 
     // should not be null when it is Pro+
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
@@ -445,8 +478,19 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay).isEqualTo(45);
+
     // should be null when Lifecycle but with null maxFirewallUsers
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    licenseManager.setMaxFirewallUsers(null);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay).isNull();
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     licenseManager.setMaxFirewallUsers(null);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();

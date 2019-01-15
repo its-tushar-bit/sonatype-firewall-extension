@@ -14,7 +14,7 @@ import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanItemProvider;
 import com.sonatype.insight.scan.model.ScanSummary;
-import com.sonatype.insight.scan.model.io.DefaultScanReader;
+import com.sonatype.insight.scan.model.io.ScanReader;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class ScanFactoryTest
   }
 
   private Scan parse(File scanFile) throws Exception {
-    return new DefaultScanReader(LoggerFactory.getLogger("ScanReader")).read(scanFile);
+    return new ScanReader(LoggerFactory.getLogger("ScanReader")).read(scanFile);
   }
 
   private void assertRepository(Repository repo) {

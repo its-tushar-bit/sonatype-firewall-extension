@@ -5,14 +5,11 @@
  */
 package com.sonatype.insight.rm.scan;
 
-import com.sonatype.insight.scan.anon.DefaultAnonymizer;
+import com.sonatype.insight.scan.anon.Anonymizer;
 import com.sonatype.insight.scan.client.ClientScanner;
-import com.sonatype.insight.scan.client.DefaultClientScanner;
-import com.sonatype.insight.scan.file.DefaultFileScanner;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.hash.internal.DefaultDigester;
 import com.sonatype.insight.scan.hash.internal.JavaDigester;
-import com.sonatype.insight.scan.model.io.DefaultScanWriterFactory;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 
@@ -26,15 +23,15 @@ final class Bindings
   }
 
   static ScanWriterFactory scanWriterFactory() {
-    return new DefaultScanWriterFactory(logger(ScanWriter.class));
+    return new ScanWriterFactory(logger(ScanWriter.class));
   }
 
   static ClientScanner clientScanner() {
-    return new DefaultClientScanner(logger(DefaultClientScanner.class));
+    return new ClientScanner(logger(ClientScanner.class));
   }
 
   static FileScanner fileScanner() {
-    return new DefaultFileScanner(new DefaultDigester(new JavaDigester(), logger(DefaultDigester.class)),
-        new DefaultAnonymizer(), logger(DefaultFileScanner.class));
+    return new FileScanner(new DefaultDigester(new JavaDigester(), logger(DefaultDigester.class)), new Anonymizer(),
+        logger(FileScanner.class));
   }
 }

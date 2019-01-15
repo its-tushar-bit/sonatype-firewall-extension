@@ -18,7 +18,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.mock.twistlock.TwistlockMockServerRule;
 import com.sonatype.insight.scan.model.Scan;
-import com.sonatype.insight.scan.model.io.DefaultScanReader;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.PortAllocator;
 
@@ -89,7 +88,7 @@ public class TwistlockPolicyEvaluatorTest
 
       // Verify the Sonatype scan in the scan zip file
       entry = scanFileZip.getEntry("scan.xml.gz");
-      ScanReader scanReader = new DefaultScanReader();
+      ScanReader scanReader = new ScanReader();
       Scan scan = scanReader.read(new GZIPInputStream(scanFileZip.getInputStream(entry)));
       assertThat(scan.getSummary().getStartTime()).isNotNull();
       assertThat(scan.getSummary().getEndTime()).isNotNull();

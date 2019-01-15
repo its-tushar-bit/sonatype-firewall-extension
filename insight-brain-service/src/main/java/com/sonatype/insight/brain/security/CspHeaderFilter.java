@@ -46,6 +46,10 @@ public class CspHeaderFilter
 
       httpResponse.setHeader("Content-Security-Policy",
           "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:");
+
+      // This header guards against server-reflected XSS attacks (not that our architecture is really at risk
+      // of having any).  It is redundant with the CSP header but applicable for browsers that don't fully support CSP
+      httpResponse.setHeader("X-XSS-Protection", "1; mode=block");
     }
 
     filterChain.doFilter(request, response);

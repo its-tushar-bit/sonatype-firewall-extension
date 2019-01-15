@@ -5,9 +5,14 @@
  */
 import changeDefaultAdminPasswordNotice from './changeDefaultAdminPasswordNotice';
 import CLMLocationModule from '../util/CLMLocation';
-import defaultAdminPasswordChangedServiceModule from '../services/defaultAdminPasswordChangedService';
 import telemetryServiceModule from '../services/telemetryService';
+import userActions from '../user/userActions';
+import userReducer from '../user/userReducer';
+import currentUserService from '../mainHeader/userMenu/CurrentUserService';
 
 export default angular.module('changeDefaultAdminPasswordNoticeModule',
-    [CLMLocationModule.name, defaultAdminPasswordChangedServiceModule.name, telemetryServiceModule.name])
-    .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice);
+    [CLMLocationModule.name, telemetryServiceModule.name])
+    .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice)
+    .factory('CurrentUser', currentUserService)
+    .factory('userActions', userActions)
+    .value('userReducer', userReducer);

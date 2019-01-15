@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { set, lensProp, compose, append, contains, curry, merge, pick, find, propEq } from 'ramda';
+import { compose, append, contains, curry, merge, pick, find, propEq } from 'ramda';
 import { propSet } from '../../util/jsUtil';
-
+import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import {
   FETCH_SAVED_FILTERS_FULFILLED,
   FETCH_SAVED_FILTERS_FAILED,
@@ -33,24 +33,6 @@ const initState = {
   deleteFiltersSaving: false,
   deleteFiltersSuccess: false
 };
-
-/**
- * The main reducer function for this file.  Works by looking up the action type in the reducerAction map
- * and then executing the found function
- */
-export default function manageFiltersReducer(state = initState, action) {
-  const type = action && action.type,
-      payload = action && action.payload,
-      reducer = type && reducerActionMap[type];
-
-  return reducer ? reducer(payload, state) : state;
-}
-
-/*
- * like propSet but is meant to be partially applied in 2 args.  The payload is ignored and is only an argument
- * to conform to the interface needed by reducerActionMap
- */
-const propSetConst = curry((propName, constValue, payload, state) => set(lensProp(propName), constValue, state));
 
 /*
  * Create a function for reducerActionMap which resets the specified properties back to their values from initState.
@@ -130,3 +112,10 @@ const setShowDirtyAsterisk = payload => state => {
   const showDirtyAsterisk = savedFilter && !angular.equals(filter, savedFilter.filter);
   return {...state, showDirtyAsterisk};
 };
+
+/**
+ * The main reducer function for this file.  Works by looking up the action type in the reducerAction map
+ * and then executing the found function
+ */
+const manageFiltersReducer = createReducerFromActionMap(reducerActionMap, initState);
+export default manageFiltersReducer;

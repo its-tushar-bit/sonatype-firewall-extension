@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import { curry, lensProp, set } from 'ramda';
+/*
+ * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.  The payload is ignored and is only an argument
+ * to conform to the interface needed by reducerActionMap
+ */
+export const propSetConst = curry((propName, constValue, payload, state) => set(lensProp(propName), constValue, state));
+
+/**
+ * A generic reducer function parameterized over a reducerActionMap and an initialState.
+ * Works by looking up the action type in the reducerAction map
+ * and then executing the found function
+ * 
+ * @param reducerActionMap: an object/dictionary of 'actions':'functions', 
+ *  where `actions` are action type strings
+ *  and the functions are with signature `(payload, state) => state`; that is, reducer functions.
+ * @param initialState: the initial state of the app/reducer.
+ */
+export function createReducerFromActionMap(reducerActionMap, initialState) {
+  return (state = initialState, action) => {
+    const type = action && action.type,
+        payload = action && action.payload,
+        reducer = type && reducerActionMap[type];
+
+    return reducer ? reducer(payload, state) : state;
+  };
+}

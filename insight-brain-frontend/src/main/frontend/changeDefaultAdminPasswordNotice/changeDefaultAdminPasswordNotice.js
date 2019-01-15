@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import { pick } from 'ramda';
 import template from './changeDefaultAdminPasswordNotice.html';
 
 export default {
@@ -12,33 +12,24 @@ export default {
   controllerAs: 'vm'
 };
 
-function changeDefaultAdminPasswordNoticeController($q, $http, CurrentUser, CLMLocations, telemetryService,
-                                                    defaultAdminPasswordChangedService) {
+function changeDefaultAdminPasswordNoticeController($ngRedux, actions) {
   const vm = this;
 
   Object.assign(vm, {
-    isDefaultUser: false,
-    shouldDisplayNotice: false,
-
     $onInit() {
-      $q.all([CurrentUser, defaultAdminPasswordChangedService.shouldDisplayDefaultPasswordWarning()]).then(results => {
-        vm.isDefaultUser = results[0].username === 'admin';
-        vm.shouldDisplayNotice = results[1];
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
+    },
 
-        if (vm.shouldDisplayNotice) {
-          fireTelemetryEvent();
-        }
-      });
+    $onDestroy() {
+      vm.unsubscribe();
     }
   });
+}
 
-  function fireTelemetryEvent() {
-    telemetryService.submitData('ADMIN_PASSWORD_CHANGE', {
-      action: 'WARNING_SHOWN'
-    });
-  }
+function mapStateToThis({user}) {
+  return pick(['isDefaultUser', 'shouldDisplayNotice'], user);
 }
 
 changeDefaultAdminPasswordNoticeController.$inject = [
-  '$q', '$http', 'CurrentUser', 'CLMLocations', 'telemetryService', 'defaultAdminPasswordChangedService'
+  '$ngRedux', 'userActions'
 ];

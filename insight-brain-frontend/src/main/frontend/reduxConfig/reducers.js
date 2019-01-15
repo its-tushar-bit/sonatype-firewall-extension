@@ -9,11 +9,13 @@ import dashboardReducer from '../dashboard/dashboardReducer';
 import manageFiltersReducer from '../dashboard/filter/manageFiltersReducer';
 import dashboardFilterReducer from '../dashboard/filter/dashboardFilterReducer';
 import applicationReportReducer from '../applicationReport/applicationReportReducer';
+import userReducer from '../user/userReducer';
 
 export default combineReducers({
   router: routerStateReducer,
   dashboard: dashboardReducer,
   manageFilters: manageFiltersReducer,
   dashboardFilter: dashboardFilterReducer,
-  applicationReport: applicationReportReducer
+  applicationReport: applicationReportReducer,
+  user: userReducer
 });

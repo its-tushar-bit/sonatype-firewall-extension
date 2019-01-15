@@ -1,53 +1,29 @@
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 
-describe('changeDefaultAdminPasswordNotice component', function() {
-  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
+describe('changeDefaultAdminPasswordNotice component', () => {
+  let vm;
 
-  var vm,
-      $scope,
-      currentUserDeferred,
-      shouldDisplayDefaultPasswordWarningDeferred;
+  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, ($provide) => {
+    SpecUtil.mockNgRedux($provide);
+  }));
 
-  beforeEach(inject(
-      function($q, _$httpBackend_, $rootScope, $componentController, defaultAdminPasswordChangedService) {
-        $scope = $rootScope.$new();
-        currentUserDeferred = $q.defer();
-        shouldDisplayDefaultPasswordWarningDeferred = $q.defer();
+  beforeEach(inject(($componentController) => {
+    vm = $componentController('changeDefaultAdminPasswordNotice');
+    vm.$onInit();
+  }));
 
-        spyOn(defaultAdminPasswordChangedService, 'shouldDisplayDefaultPasswordWarning')
-            .and.returnValue(shouldDisplayDefaultPasswordWarningDeferred.promise);
-
-        vm = $componentController('changeDefaultAdminPasswordNotice', {
-          'CurrentUser': currentUserDeferred.promise,
-          $scope: $scope
-        });
-      }
-  ));
-
-  describe('$onInit', function() {
-
-    it('sets shouldDisplayNotice and isDefaultUser flags to true based on supplied data', function() {
-      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
-      currentUserDeferred.resolve({username: 'admin'});
-
+  describe('$onInit', () => {
+    it('subscribes to ngRedux', () => {
       vm.$onInit();
-
-      $scope.$digest();
-
-      expect(vm.shouldDisplayNotice).toBe(true);
-      expect(vm.isDefaultUser).toBe(true);
+      expect(vm.unsubscribe).toBeDefined();
     });
+  });
 
-    it('sets shouldDisplayNotice and isDefaultUser flags to false based on supplied data', function() {
-      shouldDisplayDefaultPasswordWarningDeferred.resolve(false);
-      currentUserDeferred.resolve({username: 'foo'});
-
-      vm.$onInit();
-
-      $scope.$digest();
-
-      expect(vm.shouldDisplayNotice).toBe(false);
-      expect(vm.isDefaultUser).toBe(false);
+  describe('$onDestroy', () => {
+    it('unsubscribes from ngRedux', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      vm.$onDestroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 });

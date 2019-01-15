@@ -1,32 +1,35 @@
 import mainHeaderModule from '../../../../main/frontend/mainHeader/module';
 
 describe('userMenu', function() {
-  var scope,
+  let scope,
       vm,
-      currentUserSuccess,
+      modal,
       dialogScope,
       parentScope,
+      CLMLocations,
       pendoFlushDeferred,
-      mockPendoService = {
-        flush: function() { return pendoFlushDeferred.promise; }
-      };
+      $httpBackend,
+      $componentController,
+      mockPendoService,
+      mockActions;
 
   beforeEach(angular.mock.module(mainHeaderModule.name, function($provide) {
+    mockActions = jasmine.createSpyObj('userActions', ['loadUser', 'passwordChanged']);
+    $provide.value('userActions', mockActions);
+    SpecUtil.mockNgRedux($provide);
+  }));
 
-    $provide.value('CurrentUser', {
-      then: function (success) {
-        currentUserSuccess = success;
-        return this;
-      }
-    });
-
-    $provide.value('ProductFeatures', {
-      isDashboardLicensed: function() {
-        return true;
-      }
-    });
-
-    $provide.value('Modal', {
+  beforeEach(inject(function($q, $rootScope, _$componentController_, _$httpBackend_, _CLMLocations_) {
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
+    $componentController = _$componentController_;
+    parentScope = $rootScope.$new();
+    scope = parentScope.$new();
+    pendoFlushDeferred = $q.defer();
+    mockPendoService = {
+      flush: () => pendoFlushDeferred.promise
+    };
+    modal = {
       open: function(config) {
         dialogScope = scope.$new();
         dialogScope.$close = jasmine.createSpy('dialogClose');
@@ -43,18 +46,16 @@ describe('userMenu', function() {
           }
         };
       }
-    });
-  }));
+    };
 
-  beforeEach(inject(function($q, $rootScope, $componentController) {
-    parentScope = $rootScope.$new();
-    scope = parentScope.$new();
-    pendoFlushDeferred = $q.defer();
     vm = $componentController('userMenu', {
       $scope: scope,
-      pendoService: mockPendoService
+      pendoService: mockPendoService,
+      Modal: modal
     });
+
     vm.$onInit();
+    expect(vm.loadUser).toHaveBeenCalled();
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -69,8 +70,22 @@ describe('userMenu', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
+  describe('$onInit', function () {
+    it('fires loadUser', function() {
+      expect(vm.loadUser).toHaveBeenCalled();
+    });
+  });
+
+  describe('$onDestroy', function() {
+    it('unsubscribes from the redux store', function() {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      vm.$onDestroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('logout()', function () {
-    it('provides the ability to log out', inject(function($httpBackend, CLMLocations) {
+    it('provides the ability to log out', function() {
       var spy = jasmine.createSpy();
       parentScope.$on('logout', spy);
 
@@ -85,13 +100,14 @@ describe('userMenu', function() {
       $httpBackend.flush();
 
       expect(spy).toHaveBeenCalled();
-    }));
+    });
 
-    it('provides the ability to log out for reverse proxy', inject(function($httpBackend, CLMLocations) {
+    it('provides the ability to log out for reverse proxy', function() {
       var spy = jasmine.createSpy();
       parentScope.$on('logout', spy);
       var headers = {'Location': 'http://localhost/logout'};
       expect(vm.logout).not.toBeUndefined();
+
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
 
       vm.logout();
@@ -102,9 +118,9 @@ describe('userMenu', function() {
       $httpBackend.flush();
 
       expect(spy).toHaveBeenCalledWith(jasmine.any(Object), headers.Location);
-    }));
+    });
 
-    it('still logs out if the pendo promise is rejected', inject(function($httpBackend, CLMLocations) {
+    it('still logs out if the pendo promise is rejected', function() {
       var spy = jasmine.createSpy();
       parentScope.$on('logout', spy);
 
@@ -119,79 +135,30 @@ describe('userMenu', function() {
       $httpBackend.flush();
 
       expect(spy).toHaveBeenCalled();
-    }));
-
-    it('doesn\'t log out from the server before the pendo promise completes', inject(
-        function($httpBackend, CLMLocations) {
-          var spy = jasmine.createSpy();
-          parentScope.$on('logout', spy);
-
-          expect(vm.logout).not.toBeUndefined();
-
-          vm.logout();
-
-          // not setting this up until after `logout` is called, to ensure that the test fails if the request occurs too
-          // early
-          $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
-
-          pendoFlushDeferred.resolve();
-          scope.$digest();
-
-          $httpBackend.flush();
-
-          expect(spy).toHaveBeenCalled();
-        }
-    ));
-  });
-
-  describe('canChangePassword()', function () {
-    it('Not Loaded', function () {
-      expect(vm.canChangePassword()).toBeFalsy();
     });
-    it('CLM User', function () {
-      currentUserSuccess({
-        username: 'foo',
-        authenticated: true,
-        clmUser: true
-      });
-      expect(vm.canChangePassword()).toBeTruthy();
-    });
-    it('Not CLM User', function () {
-      currentUserSuccess({
-        username: 'foo',
-        authenticated: true,
-        clmUser: false
-      });
-      expect(vm.canChangePassword()).toBeFalsy();
+
+    it('doesn\'t log out from the server before the pendo promise completes', function() {
+      var spy = jasmine.createSpy();
+      parentScope.$on('logout', spy);
+
+      expect(vm.logout).not.toBeUndefined();
+      vm.logout();
+
+      // not setting this up until after `logout` is called, to ensure that the test fails if the request occurs too
+      // early
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
+
+      pendoFlushDeferred.resolve();
+      scope.$digest();
+
+      $httpBackend.flush();
+
+      expect(spy).toHaveBeenCalled();
     });
   });
 
   describe('Change Password Dialog', function () {
-    var shouldDisplayDefaultPasswordWarningDeferred,
-        $httpBackend,
-        CLMLocations,
-        telemetryService;
-
-    beforeEach(inject(
-        function($q, _$httpBackend_, _CLMLocations_, _telemetryService_, defaultAdminPasswordChangedService) {
-          $httpBackend = _$httpBackend_;
-          CLMLocations = _CLMLocations_;
-          telemetryService = _telemetryService_;
-
-          shouldDisplayDefaultPasswordWarningDeferred = $q.defer();
-
-          spyOn(telemetryService, 'submitData');
-          spyOn(defaultAdminPasswordChangedService, 'shouldDisplayDefaultPasswordWarning')
-              .and.returnValue(shouldDisplayDefaultPasswordWarningDeferred.promise);
-        }
-    ));
-
     function doPasswordChange(originalPassword, newPassword) {
-      currentUserSuccess({
-        username: 'foo',
-        authenticated: true,
-        clmUser: true
-      });
       vm.changePassword();
 
       dialogScope.result = {
@@ -230,59 +197,40 @@ describe('userMenu', function() {
       expect(dialogScope.error).toEqual('Super Fail');
     });
 
-    it('submits telemetryData when the password change succeeds, the new and old password values differ, ' +
-        'and the default password service reports true', function() {
+    it('fires the passwordChanged action when the password change succeeds, ' +
+     'and the new and old password values differ', function() {
       doPasswordChange('bar', 'xxx');
-
-      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
       $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
 
       dialogScope.save();
       $httpBackend.flush();
       dialogScope.$digest();
 
-      expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
-        action: 'PASSWORD_CHANGED_FROM_DEFAULT'
-      });
+      expect(vm.passwordChanged).toHaveBeenCalled();
     });
 
-    it('does not submit telemetryData when the default password service reports false', function() {
-      doPasswordChange('bar', 'xxx');
-
-      shouldDisplayDefaultPasswordWarningDeferred.resolve(false);
+    it('does not fires the passwordChanged action when the password change succeeds, ' +
+    'but the new and old password values dont differ', function () {
+      doPasswordChange('bar', 'bar');
       $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
 
       dialogScope.save();
       $httpBackend.flush();
       dialogScope.$digest();
 
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(vm.passwordChanged).not.toHaveBeenCalled();
     });
 
-    it('does not submit telemetryData when the password change fails', function() {
+    it('does not calls passwordChanged when the password change fails', function() {
       doPasswordChange('bar', 'xxx');
 
-      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
       $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
 
       dialogScope.save();
       $httpBackend.flush();
       dialogScope.$digest();
 
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
-    });
-
-    it('does not submit telemetryData when the new password is the same as the old one', function() {
-      doPasswordChange('bar', 'bar');
-
-      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
-      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
-
-      dialogScope.save();
-      $httpBackend.flush();
-      dialogScope.$digest();
-
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(vm.passwordChanged).not.toHaveBeenCalled();
     });
   });
 });

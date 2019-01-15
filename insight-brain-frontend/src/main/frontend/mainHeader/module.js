@@ -9,21 +9,23 @@ import CLMLocationModule from '../util/CLMLocation';
 import permissionServiceModule from '../util/PermissionService';
 import productFeaturesModule from '../util/ProductFeatures';
 import telemetryServiceModule from '../services/telemetryService';
-import defaultAdminPasswordChangedServiceModule from '../services/defaultAdminPasswordChangedService';
 import currentUserService from './userMenu/CurrentUserService';
 import helpMenu from './helpMenu/helpMenu';
 import userMenu from './userMenu/userMenu';
 import notificationsMenu from './notificationsMenu/notificationsMenu';
 import systemConfigurationMenu from './systemConfigurationMenu/systemConfigurationMenu';
 import mainHeader from './mainHeader';
+import userActions from '../user/userActions';
+import userReducer from '../user/userReducer';
 
 export default angular.module('mainHeader',
     [
       'ui.router', 'ui.validate', angularCommonModule.name, CLMLocationModule.name, productFeaturesModule.name,
-      permissionServiceModule.name, 'ngSanitize', utilityServicesModule.name, telemetryServiceModule.name,
-      defaultAdminPasswordChangedServiceModule.name
+      permissionServiceModule.name, 'ngSanitize', utilityServicesModule.name, telemetryServiceModule.name
     ])
     .factory('CurrentUser', currentUserService)
+    .factory('userActions', userActions)
+    .value('userReducer', userReducer)
     .component('helpMenu', helpMenu)
     .component('userMenu', userMenu)
     .component('notificationsMenu', notificationsMenu)

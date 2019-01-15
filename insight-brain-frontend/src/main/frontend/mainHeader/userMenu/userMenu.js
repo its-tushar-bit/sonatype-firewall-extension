@@ -3,93 +3,82 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function UserMenuController($scope, $http, CLMLocations, Modal, messages, CurrentUser, telemetryService,
-                            defaultAdminPasswordChangedService, pendoService) {
+import { pick } from 'ramda';
+
+function UserMenuController($scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
 
-  vm.$onInit = getCurrentUser;
-  vm.logout = logout;
-  vm.canChangePassword = canChangePassword;
-  vm.changePassword = changePassword;
+  Object.assign(vm, {
+    $onInit() {
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
+      vm.loadUser();
+    },
 
-  function getCurrentUser() {
-    CurrentUser.then(function(authenticationStatus) {
-      vm.currentUser = authenticationStatus;
-    }, angular.noop);
-  }
+    $onDestroy() {
+      vm.unsubscribe();
+    },
 
-  function logout() {
-    function serverLogout() {
-      // TODO This ought to perform a dirty check before it simply logs the user out
-      // https://issues.sonatype.org/browse/CLM-1251
-      return $http['delete'](CLMLocations.getSessionLogoutUrl());
-    }
-
-    pendoService.flush()
-        // continue the logout whether the pendo flush succeeds or fails
-        .then(serverLogout, serverLogout)
-        .then(function(response) {
-          $scope.$emit('logout', response.headers('Location'));
-        });
-  }
-
-  function canChangePassword() {
-    return vm.currentUser && vm.currentUser.clmUser;
-  }
-
-  function changePassword() {
-    Modal.open({
-      templateUrl: 'change-password-template',
-      animation: false,
-      backdrop: 'static',
-      keyboard: false,
-      controller: [
-        '$scope', function(scope) {
-          scope.result = {};
-          scope.save = function() {
-            if (this.passwordForm.$valid) {
-              const { newPassword, originalPassword } = scope.result,
-                  actuallyChanged = newPassword !== originalPassword;
-
-              scope.error = null;
-              scope.submitActive = true;
-
-              $http.put(CLMLocations.getChangeMyPasswordUrl(), {
-                oldPassword: originalPassword,
-                newPassword
-              }).then(function() {
-                if (actuallyChanged) {
-                  fireDefaultPasswordChangedTelemetry();
-                }
-
-                scope.$close();
-              }, function(error) {
-                scope.submitActive = false;
-                scope.error = messages.getHttpErrorMessage(error);
-              });
-            }
-          };
-        }
-      ]
-    });
-  }
-
-  // Fire the telemetry event indicating that the default password was changed. Only do so if the password warning
-  // is actually displayed - ie, if the current password (before the change) was actually the default
-  function fireDefaultPasswordChangedTelemetry() {
-    defaultAdminPasswordChangedService.shouldDisplayDefaultPasswordWarning().then(function(passwordIsDefault) {
-      if (passwordIsDefault) {
-        telemetryService.submitData('ADMIN_PASSWORD_CHANGE', {
-          action: 'PASSWORD_CHANGED_FROM_DEFAULT'
-        });
+    logout() {
+      function serverLogout() {
+        // TODO This ought to perform a dirty check before it simply logs the user out
+        // https://issues.sonatype.org/browse/CLM-1251
+        return $http['delete'](CLMLocations.getSessionLogoutUrl());
       }
-    });
-  }
+
+      pendoService.flush()
+          // continue the logout whether the pendo flush succeeds or fails
+          .then(serverLogout, serverLogout)
+          .then(function(response) {
+            $scope.$emit('logout', response.headers('Location'));
+          });
+    },
+
+    changePassword() {
+      Modal.open({
+        templateUrl: 'change-password-template',
+        animation: false,
+        backdrop: 'static',
+        keyboard: false,
+        controller: [
+          '$scope', function(scope) {
+            scope.result = {};
+            scope.save = function() {
+              if (this.passwordForm.$valid) {
+                const { newPassword, originalPassword } = scope.result,
+                    actuallyChanged = newPassword !== originalPassword;
+
+                scope.error = null;
+                scope.submitActive = true;
+
+                $http.put(CLMLocations.getChangeMyPasswordUrl(), {
+                  oldPassword: originalPassword,
+                  newPassword
+                }).then(function() {
+                  if (actuallyChanged) {
+                    vm.passwordChanged();
+                  }
+
+                  scope.$close();
+                }, function(error) {
+                  scope.submitActive = false;
+                  scope.error = messages.getHttpErrorMessage(error);
+                });
+              }
+            };
+          }
+        ]
+      });
+    }
+  });
+}
+
+function mapStateToThis({user}) {
+  return pick(['currentUser', 'shouldDisplayNotice', 'canChangePassword'], user);
 }
 
 UserMenuController.$inject = [
-  '$scope', '$http', 'CLMLocations', 'Modal', 'Messages', 'CurrentUser', 'telemetryService',
-  'defaultAdminPasswordChangedService', 'pendoService'
+  '$scope', '$http', '$ngRedux', 'CLMLocations', 'Modal', 'Messages',
+  'pendoService', 'userActions'
 ];
 
 export default {

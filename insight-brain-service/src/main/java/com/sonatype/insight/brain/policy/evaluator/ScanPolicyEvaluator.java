@@ -189,8 +189,14 @@ public class ScanPolicyEvaluator
                                  boolean forMonitoring)
       throws IOException
   {
+    boolean enableActions = clmLicenseManager.hasEnforcement(stage.getStageTypeId());
+    if (!enableActions) {
+      log.debug("Ignoring actions in report files for application {} and scan {} in stage {}, " +
+              "license does not support enforcement", scanPolicyEvaluatorResults.evaluation.getApplicationId(),
+          scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId());
+    }
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(scanPolicyEvaluatorResults.activeViolations,
-        stage.getStageTypeId(), forMonitoring);
+        stage.getStageTypeId(), forMonitoring, enableActions);
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
 
     PolicyThreats policyThreats = policyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
@@ -547,17 +553,16 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
-      if (clmLicenseManager.hasEnforcement(policyEvaluation.getStageTypeId())) {
         List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
+        boolean enableActions = clmLicenseManager.hasEnforcement(policyEvaluation.getStageTypeId());
+        if (!enableActions) {
+          log.debug("Ignoring actions in policy evaluation result for application {} and scan {} in stage {}, " +
+                  "license does not support enforcement", policyEvaluation.getApplicationId(),
+              policyEvaluation.getScanId(), policyEvaluation.getStageTypeId());
+        }
         List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(activePolicyViolations,
-            policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
+            policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(), enableActions);
         policyEvaluationResult.setAlerts(policyAlerts);
-      }
-      else {
-        log.debug("Not adding policy alerts for application {} and scan {} in stage {}, " +
-                "license does not support enforcement", policyEvaluation.getApplicationId(),
-            policyEvaluation.getScanId(), policyEvaluation.getStageTypeId());
-      }
     }
     return policyEvaluationResult;
   }

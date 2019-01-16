@@ -7,14 +7,18 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -37,7 +41,9 @@ public class PolicyEvaluateResourceTest
     Application app = tempEntity.newApplicationWithParent();
     setLicenseFingerprint(licenseFingerprint);
 
-    tempEntity.newPolicy(app);
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
 
     // Simulate that the report is available
     String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
@@ -61,17 +67,21 @@ public class PolicyEvaluateResourceTest
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
     assertThat(policyEvaluationResult.getAlerts()).isNotEmpty();
+    PolicyAlert alert = policyEvaluationResult.getAlerts().get(0);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
   }
 
   @Test
-  public void testEvaluate_LifecycleFoundation_WithoutEnforcement() throws Exception {
+  public void testEvaluate_LifecycleFoundationLicense() throws Exception {
     getTestProductLicenseManager().setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     getTestProductLicenseManager().installLicense(null);
 
     Application app = tempEntity.newApplicationWithParent();
     setLicenseFingerprint(licenseFingerprint);
 
-    tempEntity.newPolicy(app);
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
 
     // Simulate that the report is available
     String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
@@ -85,6 +95,8 @@ public class PolicyEvaluateResourceTest
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
-    assertThat(policyEvaluationResult.getAlerts()).isEmpty();
+    assertThat(policyEvaluationResult.getAlerts()).isNotEmpty();
+    PolicyAlert alert = policyEvaluationResult.getAlerts().get(0);
+    assertThat(alert.getActions()).isEmpty();
   }
 }

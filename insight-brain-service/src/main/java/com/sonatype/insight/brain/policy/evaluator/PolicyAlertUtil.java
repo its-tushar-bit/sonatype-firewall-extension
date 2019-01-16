@@ -24,7 +24,8 @@ public class PolicyAlertUtil
 {
   public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations,
                                                      String stageTypeId,
-                                                     boolean forMonitoring)
+                                                     boolean forMonitoring,
+                                                     boolean enableActions)
   {
     List<PolicyAlert> result = new ArrayList<>();
     PolicyDAO policyDAO = new PolicyDAO();
@@ -34,7 +35,7 @@ public class PolicyAlertUtil
           policyViolation.getThreatLevel());
       Policy policy = policyDAO.getById(policyId);
       List<? extends Action> actions;
-      if (policy == null) {
+      if (policy == null || !enableActions) {
         actions = Collections.emptyList();
       }
       else {

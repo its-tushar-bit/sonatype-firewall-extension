@@ -235,7 +235,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
     boolean grandfatherViolations = true;
     testEvaluate_GrandfatheredViolations(grandfatherViolations, true);
-    
+
     application = tempEntity.newApplicationWithParent();
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
@@ -250,7 +250,7 @@ public class ScanPolicyEvaluatorTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report.zip");
-    
+
     Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(expectGrandfatheredViolations);
     new PolicyDAO().update(policy);
@@ -565,7 +565,7 @@ public class ScanPolicyEvaluatorTest
         ComponentIdentifier.FORMAT_NUGET, 4, ComponentIdentifier.FORMAT_ANAME, 5, ComponentIdentifier.FORMAT_PYPI, 6,
         ComponentIdentifier.FORMAT_RPM, 7, ComponentIdentifier.FORMAT_RUBYGEMS, 8
     };
-    
+
     scanPolicyEvaluator.sendApplicationStageComponentCounts("applicationId", "stageId", components(formatsAndCounts));
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
@@ -704,7 +704,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
-  
+
   @Test
   public void testEvaluate_BeforeAndAfterAddingConditionTriggerData() throws Exception {
     // Add a policy
@@ -1149,11 +1149,13 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(9);
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.0.28");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.0.28");
     String hashExact = "3102cdd0edd5a05afe00";
     String hashSimilar1 = "d29a75f9056e0b040f09";
     assertContainsPolicyViolation(componentIdentifier, hashExact,
-        policy, constraintLicense, Action.ID_FAIL, LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+        policy, constraintLicense, Action.ID_FAIL, LicenseConditionType.ID,
+        scanPolicyEvaluatorResults.activeViolations);
     assertContainsPolicyViolation(componentIdentifier, hashExact, policy, constraintSV, Action.ID_FAIL,
         SecurityVulnerabilitySeverityConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
     assertContainsPolicyViolation(componentIdentifier, hashSimilar1, policy, constraintLicense, Action.ID_FAIL,
@@ -1233,7 +1235,8 @@ public class ScanPolicyEvaluatorTest
     List<PolicyViolation> policyViolationsBuild = policyViolationDAO
         .getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolationsBuild).hasSize(1);
-    assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID)).isEqualTo("commons-pool");
+    assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID))
+        .isEqualTo("commons-pool");
     assertThat(policyViolationsBuild.get(0).getOpenTime()).isEqualTo(policyEvaluationBuild.getTime());
 
     // Evaluate policy for the Release stage
@@ -1344,7 +1347,8 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report.zip");
 
     // Evaluate policy
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator
+        .evaluate(application, scanId, new Stage(Stage.ID_BUILD));
 
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
@@ -1357,6 +1361,7 @@ public class ScanPolicyEvaluatorTest
         .flatExtracting(PolicyFact::getComponentFacts) //
         .extracting(ComponentFact::getHash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae");
+    assertThat(policyAlerts).flatExtracting(PolicyAlert::getActions).isNotEmpty();
     // Verify the policythreats.json report file
     ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
@@ -1366,17 +1371,67 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LifecycleFoundation_WithoutEnforcement() throws Exception {
+  public void testEvaluate_CreatesReportFiles_LifecycleFoundationLicense() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    // The policy will cause three policy violations.
+    Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
+    // The waiver will waive one policy violation, leaving two active policy violations.
+    tempEntity.newWaiver("f2e35e4a21f07d25710f", policy.getId(), application.getId(), "Waiver comment here");
+    String scanId = simulateReportIsAvailable("report.zip");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator
+        .evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
+
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    // Verify the policyalerts.json report file
+    ReportEntry policyAlertsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils.parse(policyAlertsReportEntry.buf, PolicyAlert[].class));
+    assertThat(policyAlerts).extracting(PolicyAlert::getTrigger) //
+        .flatExtracting(PolicyFact::getComponentFacts) //
+        .extracting(ComponentFact::getHash) //
+        .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae");
+    assertThat(policyAlerts).flatExtracting(PolicyAlert::getActions).isEmpty();
+    // Verify the policythreats.json report file
+    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
+    assertThat(policyThreats.aaData) //
+        .extracting(component -> component.hash) //
+        .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
+  }
+
+  @Test
+  public void testEvaluate() throws Exception {
     newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 
-    // Evaluate policy for the Build stage
+    String scanBuildId = simulateReportIsAvailable("report.zip");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
+    PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
+        results.allViolations, true);
+    assertThat(evaluationResult.getAlerts()).hasSize(1);
+    PolicyAlert alert = evaluationResult.getAlerts().get(0);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
+  }
+
+  @Test
+  public void testEvaluate_LifecycleFoundationLicense() throws Exception {
+    newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
+
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
     String scanBuildId = simulateReportIsAvailable("report.zip");
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
     PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
-    assertThat(evaluationResult.getAlerts()).isEmpty();
+    assertThat(evaluationResult.getAlerts()).hasSize(1);
+    PolicyAlert alert = evaluationResult.getAlerts().get(0);
+    assertThat(alert.getActions()).isEmpty();
   }
 
   private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,

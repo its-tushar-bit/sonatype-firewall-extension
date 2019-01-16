@@ -10,12 +10,14 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -39,7 +41,7 @@ public class PolicyAlertUtilTest
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring());
+        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
     assertThat(alert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
@@ -65,7 +67,7 @@ public class PolicyAlertUtilTest
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring());
+        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
 
@@ -101,7 +103,7 @@ public class PolicyAlertUtilTest
         reason2);
 
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation1, policyViolation2),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring());
+        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(2);
 
@@ -118,5 +120,52 @@ public class PolicyAlertUtilTest
     assertThat(alert2.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
         .getReason()).isEqualTo(reason2);
     assertThat(alert2.getActions()).isEmpty();
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_ActionsEnabled() {
+    Application app = tempEntity.newApplicationWithParent("app-id");
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
+    ConditionFact conditionFact0 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "some summary", "some reason");
+    conditionFact0.setTriggerJson("trigger 0");
+    ConstraintFact constraintFact = new ConstraintFact("someConstraintId", "some constraint name", "and");
+    constraintFact.addConditionFact(conditionFact0);
+    policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
+
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
+
+    assertThat(alerts).hasSize(1);
+    PolicyAlert alert = alerts.get(0);
+    assertThat(alert.getActions()).hasSize(1);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_ActionsDisabled() {
+    Application app = tempEntity.newApplicationWithParent("app-id");
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
+    ConditionFact conditionFact0 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "some summary", "some reason");
+    conditionFact0.setTriggerJson("trigger 0");
+    ConstraintFact constraintFact = new ConstraintFact("someConstraintId", "some constraint name", "and");
+    constraintFact.addConditionFact(conditionFact0);
+    policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
+
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+        policyEval.getStageTypeId(), policyEval.isForMonitoring(), false);
+
+    assertThat(alerts).hasSize(1);
+    PolicyAlert alert = alerts.get(0);
+    assertThat(alert.getActions()).isEmpty();
   }
 }

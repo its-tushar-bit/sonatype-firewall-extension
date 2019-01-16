@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.io.IOException;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 /**
  * @since 1.59
  */
+@Named
 public class CspHeaderFilter
     implements Filter
 {

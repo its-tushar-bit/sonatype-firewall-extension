@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import javax.inject.Named;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -28,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  * @since 1.21
  */
+@Named
 public class HttpHeaderValidatorFilter
     implements Filter
 {

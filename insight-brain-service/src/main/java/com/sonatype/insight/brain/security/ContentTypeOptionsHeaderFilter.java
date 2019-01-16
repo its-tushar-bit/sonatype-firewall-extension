@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
 
+import javax.inject.Named;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -16,10 +17,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @since 1.57
  * Adds the X-Content-Type-Options: nosniff header to the response, which forces the browser to respect the
  * Content-Type on the response, protecting against some types of security vulnerabilities
+ * 
+ * @since 1.57
  */
+@Named
 public class ContentTypeOptionsHeaderFilter
     implements Filter
 {

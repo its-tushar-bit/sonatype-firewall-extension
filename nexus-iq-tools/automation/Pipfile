@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-python-language-server = {version = "*", extras = ["all"]}
 awscli = "*"
 "boto3" = "*"
 botocore = "*"
@@ -12,4 +11,4 @@ botocore = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"

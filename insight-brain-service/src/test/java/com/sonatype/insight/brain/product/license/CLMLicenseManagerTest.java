@@ -119,43 +119,6 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasDashboard_NexusProPlusLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
-    installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isFalse();
-  }
-
-  @Test
-  public void testHasDashboard_NexusAuditorLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-  }
-
-  @Test
-  public void testHasQuality_NexusLifecycleLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    installLicense();
-    assertThat(clmLicenseManager.hasQuality()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
-    assertThat(clmLicenseManager.hasNotifications()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
-    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
-  }
-
-  @Test
-  public void testHasQuality_NoNexusLifecycle() throws Exception {
-    Set<String> productSet = new HashSet<>(ProductLicenseDetails.PRODUCTS);
-    productSet.remove(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    String[] products = productSet.toArray(new String[ProductLicenseDetails.PRODUCTS.size()]);
-    licenseManager.setProducts(products);
-    installLicense();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-  }
-
-  @Test
   public void testHasQuality_LegacyNoBuildStage() throws Exception {
     licenseManager.setVersion(0);
     licenseManager.setProducts();
@@ -191,25 +154,14 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasPolicyMonitoring_NexusProPlusLicense() throws Exception {
+  public void testHasFeatures_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
+    assertThat(clmLicenseManager.hasDashboard()).isFalse();
     assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-  }
-
-  @Test
-  public void testHasPolicyMonitoring_NexusAuditorLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-  }
-
-  @Test
-  public void testHasRepositoryFirewall_NexusLifecycleLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
+    assertThat(clmLicenseManager.hasCLIScanning()).isFalse();
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
     assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
     assertThat(clmLicenseManager.hasEnforcement()).isTrue();
     assertThat(clmLicenseManager.hasNotifications()).isTrue();
@@ -218,24 +170,88 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasRepositoryFirewall_NexusProPlusLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
-  }
-
-  @Test
-  public void testHasRepositoryFirewall_NexusAuditorLicense() throws Exception {
+  public void testHasFeatures_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
+    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
     assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
+    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
+    assertThat(clmLicenseManager.hasNotifications()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
+    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
   }
 
   @Test
-  public void testHasRepositoryFirewall_NexusFirewallLicense() throws Exception {
+  public void testHasFeatures_NexusLifecycleLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
+    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
+    assertThat(clmLicenseManager.hasQuality()).isTrue();
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
+    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
+    assertThat(clmLicenseManager.hasNotifications()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
+    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
+  }
+
+  @Test
+  public void testHasQuality_NoNexusLifecycle() throws Exception {
+    Set<String> productSet = new HashSet<>(ProductLicenseDetails.PRODUCTS);
+    productSet.remove(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    String[] products = productSet.toArray(new String[ProductLicenseDetails.PRODUCTS.size()]);
+    licenseManager.setProducts(products);
+    installLicense();
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
+  }
+
+  @Test
+  public void testHasFeatures_NexusFirewallLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
+    assertThat(clmLicenseManager.hasDashboard()).isFalse();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
+    assertThat(clmLicenseManager.hasCLIScanning()).isFalse();
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
     assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
+    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
+    assertThat(clmLicenseManager.hasNotifications()).isFalse();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
+    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+  }
+
+  @Test
+  public void testHasFeatures_FoundationLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
+    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
+    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
+    assertThat(clmLicenseManager.hasNotifications()).isFalse();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
+    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+  }
+
+  @Test
+  public void testHasFeatures_FoundationLicenseWithFirewall() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    clmLicenseManager.installLicense(null);
+    assertThat(clmLicenseManager.hasDashboard()).isTrue();
+    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
+    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
+    assertThat(clmLicenseManager.hasQuality()).isFalse();
+    assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
+    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
+    assertThat(clmLicenseManager.hasNotifications()).isFalse();
+    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
+    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
   }
 
   @Test(expected = LicensingException.class)
@@ -576,32 +592,5 @@ public class CLMLicenseManagerTest
     }).isInstanceOf(LicensingException.class);
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
-  }
-
-  @Test
-  public void testFoundationLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
-    assertThat(clmLicenseManager.hasNotifications()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
-    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
-    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-  }
-
-  @Test
-  public void testFoundationLicense_Firewall() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
-    assertThat(clmLicenseManager.hasNotifications()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
-    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
-    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
   }
 }

@@ -597,6 +597,12 @@ public class CLMLicenseManager
         features.add(FEATURE_POLICY_GRANDFATHERING);
         features.add(FEATURE_WEBHOOKS);
       }
+      if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
+        features.add(FEATURE_ENFORCEMENT);
+        features.add(FEATURE_NOTIFICATIONS);
+        features.add(FEATURE_POLICY_GRANDFATHERING);
+        features.add(FEATURE_WEBHOOKS);
+      }
       if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
         features.add(FEATURE_DASHBOARD);
         features.add(FEATURE_CLI_SCAN);

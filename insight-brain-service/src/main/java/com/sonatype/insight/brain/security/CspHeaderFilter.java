@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 /**
- * @since 1.57
+ * @since 1.59
  */
 public class CspHeaderFilter
     implements Filter

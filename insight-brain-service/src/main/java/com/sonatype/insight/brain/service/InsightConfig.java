@@ -244,7 +244,7 @@ public class InsightConfig
   private boolean externalHyperlinksAllowed = true;
 
   /**
-   * @since 1.57
+   * @since 1.59
    * This configuration disables the HTTP CSP header. It only exists because that header breaks the Geb functional
    * tests
    */

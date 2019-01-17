@@ -65,12 +65,16 @@ public class PolicyViolationGrandfatheringService
     this.clmLicenseManager = clmLicenseManager;
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public void revokeGrandfathering(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+  private void validateGrandfatheringIsLicensed() {
     if (!clmLicenseManager.hasPolicyGrandfathering()) {
       log.debug("Policy violation grandfathering is not supported by the current license.");
       throw new InvalidLicenseException();
     }
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void revokeGrandfathering(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    validateGrandfatheringIsLicensed();
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     log.info("Revoking grandfathered policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
 
@@ -94,10 +98,7 @@ public class PolicyViolationGrandfatheringService
 
   @Authorize(permission = Permission.WRITE)
   public void grandfather(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
-    if (!clmLicenseManager.hasPolicyGrandfathering()) {
-      log.debug("Policy violation grandfathering is not supported by the current license.");
-      throw new InvalidLicenseException();
-    }
+    validateGrandfatheringIsLicensed();
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     if (!isPolicyViolationGrandfatheringEnabled(app.getId())) {
@@ -181,10 +182,7 @@ public class PolicyViolationGrandfatheringService
                                                             @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                                             PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
   {
-    if (!clmLicenseManager.hasPolicyGrandfathering()) {
-      log.debug("Policy violation grandfathering is not supported by the current license.");
-      throw new InvalidLicenseException();
-    }
+    validateGrandfatheringIsLicensed();
 
     switch (ownerType) {
       case APPLICATION:

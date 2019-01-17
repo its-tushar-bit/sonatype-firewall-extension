@@ -245,6 +245,34 @@ class UserManagementSpec
       currentUsers.text() == 'ADMIN (ADMIN BUILTIN)'
   }
 
+  def "Closing the accordion will close the edit form"() {
+    when: 'hovering over the header of the user in the list'
+      interact {
+        moveToElement(header(0))
+      }
+
+    then: 'we can now see the edit symbol'
+      editUserButton(0).displayed
+
+    when: 'clicking on edit'
+      editUserButton(0).click()
+
+    then: 'we are shown the edit form'
+      waitFor { editPanelForm(0).displayed }
+
+    and: 'the edit button is disabled'
+      editUserButton(0).@disabled == 'true'
+
+    when: 'clicking on the header of the user in the list'
+      header(0).click()
+
+    then: 'the edit form is hidden'
+      waitFor { !editPanelForm(0).displayed }
+
+    and: 'the edit button is re-enabled'
+      editUserButton(0).@disabled == ''
+  }
+
   def "The newly added user can be deleted"() {
     when: 'hovering over the header of the user in the list'
       interact {

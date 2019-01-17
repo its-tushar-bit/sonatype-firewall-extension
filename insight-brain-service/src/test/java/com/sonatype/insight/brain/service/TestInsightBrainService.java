@@ -228,8 +228,8 @@ public class TestInsightBrainService
     applicationConnector.setPort(testPort);
     HttpConnectorFactory adminConnector = (HttpConnectorFactory) defaultServerFactory.getAdminConnectors().get(0);
     adminConnector.setPort(testAdminPort);
-    // Don't wait 2 seconds after each brain service test, 1 millisecond seems to be enough
-    defaultServerFactory.setShutdownGracePeriod(Duration.milliseconds(1));
+    // disable graceful shutdown, i.e. don't waste time waiting nor risk timeout errors
+    defaultServerFactory.setShutdownGracePeriod(Duration.milliseconds(0));
     config.setSonatypeWork(getWorkDir().getPath());
     if (testHdsUrl != null) {
       config.setHdsUrl(testHdsUrl);

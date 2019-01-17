@@ -18,7 +18,7 @@
     on-change | callback expression | called with the Set of ids of currently selected options and an Id of toggled option. Context: {selected:Set, toggledId:String}
     filter-placeholder | String | Placeholder to be used in options filter input
     filter-threshold   | Number | optional - default is 10. If number of options is greater then filter-threshold - allows filtering the options.
-    name | String | name to be used in disabled tooltip and in "select all" option label
+    name | String | name used in disabled tooltip and in generated checkbox id
     tooltip-generator | expression | optional - expression to generate tooltip text. Context: {entity: Object} - object provided in 'available' parameter
     sort-entities | boolean | optional
 
@@ -30,7 +30,7 @@
 <item-example-html>
   <div ng-controller="iqTreeViewMultiSelectExampleController as vm">
 
-    <iq-tree-view-multi-select available="[]">
+    <iq-tree-view-multi-select available="[]" name="applications">
       No Applications
     </iq-tree-view-multi-select>
 

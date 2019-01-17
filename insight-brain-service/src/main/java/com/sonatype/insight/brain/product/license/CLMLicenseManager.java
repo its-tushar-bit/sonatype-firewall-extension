@@ -30,8 +30,6 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -316,7 +314,7 @@ public class CLMLicenseManager
    * @since 1.59
    */
   public boolean hasEnforcement(String stageTypeId) {
-    return  hasEnforcement() || (hasRepositoryFirewall() && stageTypeId.equals(ProxyStageType.ID));
+    return hasEnforcement() || (hasRepositoryFirewall() && Stage.ID_PROXY.equals(stageTypeId));
   }
 
   /**
@@ -331,8 +329,8 @@ public class CLMLicenseManager
    *
    * @since 1.59
    */
-  public boolean hasNotifications(StageType stageType) {
-    return hasNotifications() || (hasRepositoryFirewall() && stageType.getId() == Stage.ID_PROXY);
+  public boolean hasNotifications(String stageTypeId) {
+    return hasNotifications() || (hasRepositoryFirewall() && Stage.ID_PROXY.equals(stageTypeId));
   }
 
   /**

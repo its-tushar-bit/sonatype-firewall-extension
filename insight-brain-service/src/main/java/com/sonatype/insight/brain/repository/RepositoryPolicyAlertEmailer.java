@@ -20,8 +20,6 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyAlertEmailer;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
@@ -62,7 +60,7 @@ public class RepositoryPolicyAlertEmailer
   }
 
   public void sendNotifications(Repository repository, List<PolicyNotification> notifications) {
-    if (!clmLicenseManager.hasNotifications(StageTypes.getById(ProxyStageType.ID))) {
+    if (!clmLicenseManager.hasNotifications(Stage.ID_PROXY)) {
       log.debug("Not sending notifications for repository {}" + ", license does not support notifications",
           repository.getPublicId());
       return;
@@ -92,7 +90,7 @@ public class RepositoryPolicyAlertEmailer
 
   protected Map<String, Object> createPolicyMailModel(Repository repository, List<PolicyFact> policyFacts)
   {
-    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, new Stage(ProxyStageType.ID),
+    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, new Stage(Stage.ID_PROXY),
         policyFacts);
 
     model.put("detailedReportUrl",

@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -96,7 +95,7 @@ public class JiraPolicyAlertNotifier
                                 final Stage stage,
                                 final List<PolicyNotification> policyNotifications)
   {
-    if (!clmLicenseManager.hasNotifications(StageTypes.getById(stage.getStageTypeId()))) {
+    if (!clmLicenseManager.hasNotifications(stage.getStageTypeId())) {
       log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}" +
           ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
       return;

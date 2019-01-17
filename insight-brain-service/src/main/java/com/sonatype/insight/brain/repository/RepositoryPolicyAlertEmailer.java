@@ -46,6 +46,8 @@ public class RepositoryPolicyAlertEmailer
 
   private final AuditRecorder auditRecorder;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final PolicyAlertEmailResolver policyAlertEmailResolver,

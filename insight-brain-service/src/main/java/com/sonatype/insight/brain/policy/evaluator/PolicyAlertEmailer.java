@@ -48,6 +48,8 @@ public class PolicyAlertEmailer
   
   private final AuditRecorder auditRecorder;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
   public PolicyAlertEmailer(final InsightMail mail,
                             final BaseUrl baseUrl,

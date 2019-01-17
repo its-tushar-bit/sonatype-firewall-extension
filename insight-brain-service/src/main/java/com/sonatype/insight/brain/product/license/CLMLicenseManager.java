@@ -306,21 +306,21 @@ public class CLMLicenseManager
   }
 
   /**
-   * @since 1.58
+   * @since 1.59
    */
   public boolean hasEnforcement() {
     return hasFeature(FEATURE_ENFORCEMENT);
   }
 
   /**
-   * @since 1.58
+   * @since 1.59
    */
   public boolean hasEnforcement(String stageTypeId) {
     return  hasEnforcement() || (hasRepositoryFirewall() && stageTypeId.equals(ProxyStageType.ID));
   }
 
   /**
-   * @since 1.58
+   * @since 1.59
    */
   public boolean hasNotifications() {
     return hasFeature(FEATURE_NOTIFICATIONS);
@@ -329,21 +329,21 @@ public class CLMLicenseManager
   /**
    * For lifecycle foundation notifications are turned off, except when hasFirewall and is proxy stage
    *
-   * @since 1.58
+   * @since 1.59
    */
   public boolean hasNotifications(StageType stageType) {
     return hasNotifications() || (hasRepositoryFirewall() && stageType.getId() == Stage.ID_PROXY);
   }
 
   /**
-   * @since 1.58
+   * @since 1.59
    */
   public boolean hasPolicyGrandfathering() {
     return hasFeature(FEATURE_POLICY_GRANDFATHERING);
   }
 
   /**
-   * @since 1.58
+   * @since 1.59
    */
   public boolean hasWebhooks() {
     return hasFeature(FEATURE_WEBHOOKS);

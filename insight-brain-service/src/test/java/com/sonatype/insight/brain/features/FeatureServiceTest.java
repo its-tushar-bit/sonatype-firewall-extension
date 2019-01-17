@@ -18,12 +18,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.google.inject.Binder;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +47,7 @@ public class FeatureServiceTest
   @Test
   public void testGetFeatures_Unlicensed() {
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(features, is(empty()));
+    assertThat(features).isEmpty();
   }
 
   @Test
@@ -62,11 +57,9 @@ public class FeatureServiceTest
     when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
     enableLifecycleFeatures();
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
-            Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
+    assertThat(features).containsExactlyInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY,
+        Feature.POLICY_VIOLATIONS, Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG,
+        Feature.ALLOW_EXTERNAL_HYPERLINKS, Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT);
   }
 
   @Test
@@ -80,7 +73,7 @@ public class FeatureServiceTest
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.DASHBOARD);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
-    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   @Test
@@ -90,11 +83,9 @@ public class FeatureServiceTest
     when(licenseManager.hasDashboard()).thenReturn(false);
     enableLifecycleFeatures();
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
-            Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
+    assertThat(features).containsExactlyInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY,
+        Feature.POLICY_VIOLATIONS, Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG,
+        Feature.ALLOW_EXTERNAL_HYPERLINKS, Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT);
   }
 
   @Test
@@ -108,7 +99,7 @@ public class FeatureServiceTest
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.POLICY_MONITORING);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
-    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   @Test
@@ -116,8 +107,7 @@ public class FeatureServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
-    assertTrue(features.contains(Feature.ROOT_ORG));
-    assertFalse(features.contains(Feature.ROOT_ORG_MIGRATE));
+    assertThat(features).contains(Feature.ROOT_ORG).doesNotContain(Feature.ROOT_ORG_MIGRATE);
   }
 
   @Test
@@ -125,8 +115,7 @@ public class FeatureServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     when(licenseManager.isValid()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
-    assertTrue(features.contains(Feature.ROOT_ORG_MIGRATE));
-    assertFalse(features.contains(Feature.ROOT_ORG));
+    assertThat(features).contains(Feature.ROOT_ORG_MIGRATE).doesNotContain(Feature.ROOT_ORG);
   }
 
   @Test
@@ -135,8 +124,7 @@ public class FeatureServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
-    assertFalse(features.contains(Feature.ROOT_ORG_MIGRATE));
-    assertFalse(features.contains(Feature.ROOT_ORG));
+    assertThat(features).doesNotContain(Feature.ROOT_ORG_MIGRATE, Feature.ROOT_ORG);
   }
 
   @Test
@@ -147,11 +135,9 @@ public class FeatureServiceTest
     enableLifecycleFeatures();
 
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.WEBHOOKS, 
-            Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
+    assertThat(features).containsExactlyInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY,
+        Feature.POLICY_VIOLATIONS, Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.WEBHOOKS,
+        Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT);
   }
 
   @Test
@@ -166,7 +152,7 @@ public class FeatureServiceTest
     expectedFeatures.remove(Feature.POLICY_MONITORING);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
     expectedFeatures.remove(Feature.DASHBOARD);
-    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   @Test
@@ -180,7 +166,7 @@ public class FeatureServiceTest
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.DASHBOARD);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
-    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   @Test
@@ -190,10 +176,9 @@ public class FeatureServiceTest
     when(licenseManager.hasDashboard()).thenReturn(true);
 
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.POLICY, Feature.POLICY_VIOLATIONS, Feature.REEVALUATE_POLICY, 
-            Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS, Feature.DASHBOARD));
+    assertThat(features).containsExactlyInAnyOrder(Feature.LABELS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
+        Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
+        Feature.DASHBOARD);
   }
 
   @Test
@@ -202,11 +187,9 @@ public class FeatureServiceTest
     when(licenseManager.isValid()).thenReturn(true);
     enableLifecycleFeatures();
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.ALLOW_EXTERNAL_HYPERLINKS,
-            Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT));
+    assertThat(features).containsExactlyInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY,
+        Feature.POLICY_VIOLATIONS, Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG,
+        Feature.ALLOW_EXTERNAL_HYPERLINKS, Feature.WEBHOOKS, Feature.POLICY_GRANDFATHERING, Feature.ENFORCEMENT);
   }
 
   @Test
@@ -223,7 +206,7 @@ public class FeatureServiceTest
     expectedFeatures.remove(Feature.NOTIFICATIONS);
     expectedFeatures.remove(Feature.POLICY_GRANDFATHERING);
     expectedFeatures.remove(Feature.WEBHOOKS);
-    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   private void enableLifecycleFeatures() {

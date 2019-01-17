@@ -53,9 +53,8 @@ public class PendoCache
 
   public File getJs() {
     try {
-      CustomerTelemetryProperties customerTelemetryProperties = propertiesCache.getIfPresent(CUSTOMER_TELEMETRY_KEY);
-      if (customerTelemetryProperties == null || customerTelemetryProperties.disabled == null
-          || !customerTelemetryProperties.disabled) {
+      CustomerTelemetryProperties customerTelemetryProperties = getCustomerTelemetryProperties();
+      if (customerTelemetryProperties.disabled == null || !customerTelemetryProperties.disabled) {
         return jsCache.get(HDS_PENDO_JS_PATH);
       }
     }

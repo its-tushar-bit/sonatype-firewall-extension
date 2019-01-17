@@ -39,7 +39,9 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testJsCache() {
+  public void testGetJs() {
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
+        .thenReturn(new CustomerTelemetryProperties(false));
     when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
@@ -48,10 +50,9 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testJsCache_telemetryDisabled() {
+  public void testGetJs_telemetryDisabled() {
     CustomerTelemetryProperties properties = new CustomerTelemetryProperties(true);
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(properties);
-    pendoCache.getCustomerTelemetryProperties();
 
     File file = pendoCache.getJs();
     assertThat(file).isNull();
@@ -59,10 +60,23 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testJsCache_error() {
+  public void testGetJs_FailToGetTelemetryProperties() {
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
+        .thenThrow(new BadGatewayException(""));
+    when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH))
+        .thenReturn(new ByteArrayInputStream("test".getBytes()));
+
+    assertThat(pendoCache.getJs()).hasContent("test");
+  }
+
+  @Test
+  public void testGetJs_FailToGetJsFile() {
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
+        .thenReturn(new CustomerTelemetryProperties(false));
     when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH)).thenThrow(new NotFoundException(""));
 
     assertThat(pendoCache.getJs()).isNull();
+    verify(hdsClient).get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH);
   }
 
   @Test

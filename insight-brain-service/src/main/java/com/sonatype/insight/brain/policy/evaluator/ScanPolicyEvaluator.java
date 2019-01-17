@@ -183,20 +183,29 @@ public class ScanPolicyEvaluator
     return scanPolicyEvaluatorResults;
   }
 
+  private List<PolicyAlert> createPolicyAlerts(String applicationId,
+                                               String scanId,
+                                               String stageTypeId,
+                                               boolean forMonitoring,
+                                               List<PolicyViolation> activeViolations)
+  {
+    boolean enableActions = clmLicenseManager.hasEnforcement(stageTypeId);
+    if (!enableActions) {
+      log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
+          + "license does not support enforcement", applicationId, scanId, stageTypeId);
+    }
+    return PolicyAlertUtil.createPolicyAlerts(activeViolations, stageTypeId, forMonitoring, enableActions);
+  }
+
   private void createReportFiles(File reportFile,
                                  ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
                                  Stage stage,
                                  boolean forMonitoring)
       throws IOException
   {
-    boolean enableActions = clmLicenseManager.hasEnforcement(stage.getStageTypeId());
-    if (!enableActions) {
-      log.debug("Ignoring actions in report files for application {} and scan {} in stage {}, " +
-              "license does not support enforcement", scanPolicyEvaluatorResults.evaluation.getApplicationId(),
-          scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId());
-    }
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(scanPolicyEvaluatorResults.activeViolations,
-        stage.getStageTypeId(), forMonitoring, enableActions);
+    List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getApplicationId(),
+        scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
+        scanPolicyEvaluatorResults.activeViolations);
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
 
     PolicyThreats policyThreats = policyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
@@ -553,16 +562,11 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
-        List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
-        boolean enableActions = clmLicenseManager.hasEnforcement(policyEvaluation.getStageTypeId());
-        if (!enableActions) {
-          log.debug("Ignoring actions in policy evaluation result for application {} and scan {} in stage {}, " +
-                  "license does not support enforcement", policyEvaluation.getApplicationId(),
-              policyEvaluation.getScanId(), policyEvaluation.getStageTypeId());
-        }
-        List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(activePolicyViolations,
-            policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(), enableActions);
-        policyEvaluationResult.setAlerts(policyAlerts);
+      List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
+      List<PolicyAlert> policyAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
+          policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
+          activePolicyViolations);
+      policyEvaluationResult.setAlerts(policyAlerts);
     }
     return policyEvaluationResult;
   }

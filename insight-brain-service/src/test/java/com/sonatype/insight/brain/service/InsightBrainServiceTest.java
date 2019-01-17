@@ -89,20 +89,21 @@ public class InsightBrainServiceTest
   }
 
   @Test
+  @ManualServerInit
   public void testRun_TelemetryIsCalled() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
-    TelemetryId telemetryId = getCLMServer().getInjector().getInstance(TelemetryId.class);
 
     Date expectedMinCreateTime = new Date();
-    getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
-      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-    }, 204);
-    getCLMServer().stop();
-    getCLMServer().start();
+    initServer(config -> {
+      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+      }, 204);
+    });
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(3));
     Date expectedMaxCreateTime = new Date();
 
+    VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
+    TelemetryId telemetryId = getCLMServer().getInjector().getInstance(TelemetryId.class);
     List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();
     for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
       Integer status = response.getValue();
@@ -163,14 +164,15 @@ public class InsightBrainServiceTest
   }
 
   @Test
+  @ManualServerInit
   public void testRun_TelemetryFail() throws Exception {
     final HttpServletResponse[] responses = new HttpServletResponse[1];
-    getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
-      responses[0] = response;
-      throw new RuntimeException();
-    }, 204);
-    getCLMServer().stop();
-    getCLMServer().start();
+    initServer(config -> {
+      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+        responses[0] = response;
+        throw new RuntimeException();
+      }, 204);
+    });
     await().atMost(5, SECONDS).until(() -> responses[0] != null);
     HttpResponse response = adminRequest().path("/healthcheck").get();
     assertResponseStatus(200, response);

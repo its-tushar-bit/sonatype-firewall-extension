@@ -34,6 +34,7 @@
 
     &:hover,
     &:focus {
+      color: $iq-slate;
       text-decoration: none;
     }
   }
@@ -107,7 +108,6 @@
     background: $iq-off-white;
     border-top: 1px solid $iq-grey-4;
     border-bottom: 1px solid $iq-grey-4;
-    color: $iq-off-black;
     cursor: default;
   }
 

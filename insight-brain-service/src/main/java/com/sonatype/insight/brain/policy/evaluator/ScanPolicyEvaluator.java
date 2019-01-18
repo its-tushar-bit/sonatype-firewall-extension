@@ -387,6 +387,11 @@ public class ScanPolicyEvaluator
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
     if (policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId())
         && isFirstEvaluation(tx, app)) {
+      if (!clmLicenseManager.hasPolicyGrandfathering()) {
+        log.debug("Not grandfathering violations in the first evaluation for application {}, " +
+            "license does not support policy violation grandfathering.", app.getId());
+        return;
+      }
       Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
       // Only policy violations with threat level <= 8 should be grandfathered.
       policyViolations.stream() //

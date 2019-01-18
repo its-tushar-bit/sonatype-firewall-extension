@@ -38,7 +38,6 @@ describe('userReducer', function() {
         type: 'UNKNOWN'
       };
       const newState = reduce(undefined, action);
-      debugger;
       expect(newState.currentUser).toBe(null);
       expect(newState.isDefaultUser).toBe(false);
       expect(newState.shouldDisplayNotice).toBe(false);

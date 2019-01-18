@@ -343,17 +343,6 @@ public class ScanPolicyEvaluatorTest
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(results1.activeViolations).hasSize(36);
-
-    // Evaluate again with foundation license. No policy violations should be grandfathered.
-    String scanId2 = simulateReportIsAvailable("report.zip");
-    ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage1);
-    assertThat(results2.activeViolations).hasSize(36);
-
-    // Evaluate for a different stage with foundation license. No policy violations should be grandfathered.
-    String scanId3 = simulateReportIsAvailable("report.zip");
-    Stage stage2 = new Stage(Stage.ID_RELEASE);
-    ScanPolicyEvaluatorResults results3 = scanPolicyEvaluator.evaluate(application, scanId3, stage2);
-    assertThat(results3.activeViolations).hasSize(36);
   }
 
   @Test
@@ -370,8 +359,8 @@ public class ScanPolicyEvaluatorTest
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(results1.activeViolations).hasSize(0);
-    List<PolicyViolation> inactiveViolationsStage1 = getInactiveViolations(results1);
-    assertThat(inactiveViolationsStage1).hasSize(36).allSatisfy(inactiveViolation -> {
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results1);
+    assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
       assertThat(inactiveViolation.getGrandfatherTime()).isEqualTo(results1.evaluation.getTime());
       assertThat(inactiveViolation.isWaived()).isFalse();
     });
@@ -383,32 +372,11 @@ public class ScanPolicyEvaluatorTest
     String scanId2 = simulateReportIsAvailable("report.zip");
     ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage1);
     assertThat(results2.activeViolations).hasSize(0);
-    inactiveViolationsStage1 = getInactiveViolations(results2);
-    assertThat(inactiveViolationsStage1).hasSize(36).allSatisfy(inactiveViolation -> {
+    inactiveViolations = getInactiveViolations(results2);
+    assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
       assertThat(inactiveViolation.getGrandfatherTime()).isEqualTo(results1.evaluation.getTime());
       assertThat(inactiveViolation.isWaived()).isFalse();
     });
-
-    // Evaluate for a different stage with foundation license. Policy violations continue to be grandfathered.
-    String scanId3 = simulateReportIsAvailable("report.zip");
-    Stage stage2 = new Stage(Stage.ID_RELEASE);
-    ScanPolicyEvaluatorResults results3 = scanPolicyEvaluator.evaluate(application, scanId3, stage2);
-    assertThat(results3.activeViolations).hasSize(0);
-    List<PolicyViolation> inactiveViolationsStage2 = getInactiveViolations(results3);
-    assertThat(inactiveViolationsStage2).hasSize(36).allSatisfy(inactiveViolation -> {
-      assertThat(inactiveViolation.getGrandfatherTime()).isEqualTo(results1.evaluation.getTime());
-      assertThat(inactiveViolation.isWaived()).isFalse();
-    });
-
-    // Delete all violations
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    inactiveViolationsStage1.forEach(inactiveViolation -> policyViolationDAO.delete(inactiveViolation));
-    inactiveViolationsStage2.forEach(inactiveViolation -> policyViolationDAO.delete(inactiveViolation));
-
-    // Evaluate again with foundation license.  No policy violations should be grandfathered.
-    String scanId4 = simulateReportIsAvailable("report.zip");
-    ScanPolicyEvaluatorResults results4 = scanPolicyEvaluator.evaluate(application, scanId4, stage1);
-    assertThat(results4.activeViolations).hasSize(36);
   }
 
   @Test

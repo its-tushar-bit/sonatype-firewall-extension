@@ -95,7 +95,7 @@ public interface AuditTestSupport
     assertThat(auditDTO.domain).isEqualTo(auditEvent.getDomain());
     assertThat(auditDTO.type).isEqualTo(auditEvent.getType());
     assertThat(auditDTO.error).isEqualTo(error);
-    assertThat(auditDTO.timestamp).isNotEmpty();
+    assertThat(auditDTO.timestamp).matches("2[0-9]{3}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[-+0-9Z.:]+");
     assertThat(auditDTO.requestMethod).isNull();
     assertThat(auditDTO.requestUri).isNull();
     assertThat(auditDTO.forwarded).isNull();

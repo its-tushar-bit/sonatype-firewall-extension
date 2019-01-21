@@ -115,12 +115,6 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         options: {
           name: 'fonts/[name].[ext]'
         }
-      }, {
-        test: /\.swf$/,
-        loader: 'file-loader',
-        options: {
-          name: '[name].[ext]'
-        }
       }]
     },
     plugins: plugins,

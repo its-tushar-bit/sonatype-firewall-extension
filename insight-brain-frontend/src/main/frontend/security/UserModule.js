@@ -9,8 +9,8 @@ import resourceModule from '../Resource';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
+import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import permissionServiceModule from '../util/PermissionService';
-import ZeroClipboard from '../lib/ZeroClipboardLoader';
 import ApplicationSecurityModule from '../policy/AppSecurityController';
 import UserListController from './user.list.controller';
 import userForm from './userForm/userForm';
@@ -45,7 +45,7 @@ export const SecurityModule = angular.module('SecurityModule', ['ui.router', ang
     }]);
 
 export const UserModule = angular.module('UserModule', ['ui.router', SecurityModule.name, CLMLocationModule.name, resourceModule.name,
-  utilityModule.name],
+  utilityModule.name, utilityDirectivesModule.name],
         ['$stateProvider', function($stateProvider) {
           $stateProvider.state('users', {
             url: '/users',
@@ -122,19 +122,6 @@ UserModule.directive('expandUserOnEvent', function() {
     link: function(scope, element, attrs) {
       scope.$on(attrs.expandUserOnEvent, function(event, data) {
         $('#collapse' + data.userId).collapse('show');
-      });
-    }
-  };
-});
-
-UserModule.directive('zeroClipboard', function() {
-  return {
-    restrict: 'A',
-    link: function(scope, element, attrs) {
-      var clip = new ZeroClipboard(element);
-
-      clip.on('dataRequested', function () {
-        clip.setText($('#' + attrs.zeroClipboard).val());
       });
     }
   };

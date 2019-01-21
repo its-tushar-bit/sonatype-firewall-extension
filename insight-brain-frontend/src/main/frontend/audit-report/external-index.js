@@ -11,7 +11,6 @@ import '@uirouter/angularjs/release/stateEvents';
 import 'angular-vs-repeat';
 import 'angular-xeditable';
 import 'ngUpload/ng-upload';
-import 'zeroclipboard';
 import 'fuse.js';
 import pv from '../lib/protovis/protovis.min';
 

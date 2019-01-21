@@ -33,14 +33,6 @@ module.exports = {
             attrs: false
           }
         }
-      }, {
-        // ZeroClipboard includes a swf file in an import statement, so webpack needs to know what to do about that,
-        // even in tests
-        test: /\.swf$/,
-        loader: 'file-loader',
-        options: {
-          name: '[name].[ext]'
-        }
       }
     ]
   },

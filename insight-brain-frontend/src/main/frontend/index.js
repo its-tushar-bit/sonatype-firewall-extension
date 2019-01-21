@@ -34,7 +34,6 @@ import 'es6-collections';
 import * as d3 from 'd3/index.js';
 import pv from './lib/protovis/protovis.min';
 
-import 'zeroclipboard';
 import Fuse from 'fuse.js';
 import 'jquery-ui/ui/effect';
 import ClassyBrew from 'classybrew/src/classybrew';

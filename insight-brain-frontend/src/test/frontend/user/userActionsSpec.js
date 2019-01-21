@@ -24,15 +24,29 @@ describe('userActions', function() {
   }));
 
   describe('passwordChanged', () => {
-    it('should dispatch action if the password was changed from default', () => {
-      // ShouldDisplayNotice means that the user is admin and has the default passwd
+    it('should dispatch action if the password was changed from default' +
+    'and the user is *the* default admin', () => {
+      // ShouldDisplayNotice means that the default admin has the default passwd.
       initialState.user.shouldDisplayNotice = true;
+      // isDefaultUser means that the user is *THE* default admin
+      initialState.user.isDefaultUser = true;
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChanged());
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({ type: 'ADMIN_PASSWORD_CHANGED' });
+      expect(store.getActions()[0]).toEqual({ type: 'DEFAULT_ADMIN_PASSWORD_CHANGED' });
+    });
+
+    it('should not dispatch action if the password changed from default' +
+    'and the user is NOT the default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      initialState.user.isDefaultUser = false;
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChanged());
+
+      expect(store.getActions().length).toBe(0);
     });
 
     it('should NOT dispatch the action if the password was not the default', () => {
@@ -44,8 +58,10 @@ describe('userActions', function() {
       expect(store.getActions().length).toBe(0);
     });
 
-    it('should fire telemetry if the password was changed from default', () => {
+    it('should fire telemetry if the password was changed from default' +
+    'and the user is THE default admin', () => {
       initialState.user.shouldDisplayNotice = true;
+      initialState.user.isDefaultUser = true;
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChanged());
@@ -53,6 +69,17 @@ describe('userActions', function() {
       expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
         action: 'PASSWORD_CHANGED_FROM_DEFAULT'
       });
+    });
+
+    it('should not fire telemetry if the password was changed from default' +
+    'and the user is not THE default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      initialState.user.isDefaultUser = false;
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChanged());
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
     });
 
     it('should not fire telemetry if the password was not changed from default', () => {

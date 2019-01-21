@@ -5,7 +5,7 @@
  */
 import { propEq, always } from 'ramda';
 
-export const ADMIN_PASSWORD_CHANGED = 'ADMIN_PASSWORD_CHANGED';
+export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
 export const LOAD_USER_FAILED = 'LOAD_USER_FAILED';
@@ -63,9 +63,9 @@ function userActions($q, $http, CurrentUser, CLMLocations, telemetryService) {
   function passwordChanged() {
     return (dispatch, getState) => {
       const {user} = getState();
-      if (user.shouldDisplayNotice) {
+      if (user.shouldDisplayNotice && user.isDefaultUser) {
         fireTelemetryEventPasswordChanged();
-        dispatch({ type: ADMIN_PASSWORD_CHANGED });
+        dispatch({ type: DEFAULT_ADMIN_PASSWORD_CHANGED });
       }
     };
   }

@@ -7,7 +7,7 @@
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import {
   LOAD_USER_FULFILLED,
-  ADMIN_PASSWORD_CHANGED
+  DEFAULT_ADMIN_PASSWORD_CHANGED
 } from './userActions';
 
 // Initial User state
@@ -22,7 +22,7 @@ const initialState = Object.freeze({
  * Maps ActionTypes to Reducer functions
  */
 const reducerActionMap = {
-  [ADMIN_PASSWORD_CHANGED]: propSetConst('shouldDisplayNotice', false),
+  [DEFAULT_ADMIN_PASSWORD_CHANGED]: propSetConst('shouldDisplayNotice', false),
   [LOAD_USER_FULFILLED]: loadCurrentUser
 };
 

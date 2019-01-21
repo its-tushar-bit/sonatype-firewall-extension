@@ -45,7 +45,7 @@ describe('userReducer', function() {
     });
   });
 
-  describe('ADMIN_PASSWORD_CHANGED action', () => {
+  describe('DEFAULT_ADMIN_PASSWORD_CHANGED action', () => {
     it('sets shouldDisplayNotice to false', () => {
       const state = Object.freeze({
         shouldDisplayNotice: true,
@@ -54,7 +54,7 @@ describe('userReducer', function() {
         }
       });
       const action = {
-        type: 'ADMIN_PASSWORD_CHANGED'
+        type: 'DEFAULT_ADMIN_PASSWORD_CHANGED'
       };
       const newState = reduce(state, action);
       expect(newState.shouldDisplayNotice).toBe(false);

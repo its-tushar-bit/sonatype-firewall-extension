@@ -1,6 +1,6 @@
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 
-describe('applicationReport', function() {
+describe('applicationReport component', function() {
   let controller,
       scope,
       modalScope,
@@ -144,6 +144,15 @@ describe('applicationReport', function() {
     expect(ids).toContain(false);
   });
 
+  it('sets the availableMatchStateFilterOptions', function() {
+    const ids = controller.availableMatchStateFilterOptions.map(({ id }) => id);
+    expect(ids.length).toBe(3);
+
+    expect(ids).toContain('exact');
+    expect(ids).toContain('similar');
+    expect(ids).toContain('unknown');
+  });
+
   describe('setProprietaryFilterOptions', function() {
     it('calls setExactValueFilter with a fieldName of "proprietary"', function() {
       const selectedIds = new Set([true]);
@@ -151,6 +160,16 @@ describe('applicationReport', function() {
       controller.setProprietaryFilterOptions(selectedIds);
 
       expect(controller.setExactValueFilter).toHaveBeenCalledWith('proprietary', selectedIds);
+    });
+  });
+
+  describe('setMatchStateFilterOptions', function() {
+    it('calls setExactValueFilter with a fieldName of "matchState"', function() {
+      const selectedIds = new Set([true]);
+
+      controller.setMatchStateFilterOptions(selectedIds);
+
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('matchState', selectedIds);
     });
   });
 });

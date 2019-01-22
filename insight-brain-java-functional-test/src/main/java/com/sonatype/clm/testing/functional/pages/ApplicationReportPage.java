@@ -96,6 +96,10 @@ public class ApplicationReportPage
     return new ProprietaryFilter("#proprietary-filter");
   }
 
+  public MatchStateFilter matchStateFilter() {
+    return new MatchStateFilter("#match-state-filter");
+  }
+
   public AppReportHeaders headers() {
     return new AppReportHeaders();
   }
@@ -355,6 +359,26 @@ public class ApplicationReportPage
 
     public IqCheckbox proprietary() {
       return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
+    }
+  }
+
+  public static class MatchStateFilter
+      extends IqTreeViewMultiSelect
+  {
+    public MatchStateFilter(String selector) {
+      super(selector);
+    }
+
+    public IqCheckbox exact() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
+    }
+
+    public IqCheckbox similar() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
+    }
+
+    public IqCheckbox unknown() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(4)));
     }
   }
 }

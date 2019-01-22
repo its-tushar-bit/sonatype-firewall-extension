@@ -25,6 +25,12 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
       { id: true, name: 'proprietary' }
     ],
 
+    availableMatchStateFilterOptions: [
+      { id: 'exact', name: 'Exact' },
+      { id: 'similar', name: 'Similar' },
+      { id: 'unknown', name: 'Unknown' }
+    ],
+
     $onInit() {
       const actions = pick(
           ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport', 'reevaluateReportCancelled'],
@@ -84,6 +90,10 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
     setProprietaryFilterOptions(selectedIds) {
       vm.setExactValueFilter('proprietary', selectedIds);
+    },
+
+    setMatchStateFilterOptions(selectedIds) {
+      vm.setExactValueFilter('matchState', selectedIds);
     }
   });
 }

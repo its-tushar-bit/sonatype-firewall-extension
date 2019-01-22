@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.MatchStateFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
@@ -367,6 +368,31 @@ public class ApplicationReportTest
     proprietaryFilter.proprietary().shouldNotBe(selected);
     proprietaryFilter.nonProprietary().shouldBe(selected);
 
+    violations.shouldHaveSize(60);
+
+    // match state filter
+    MatchStateFilter matchStateFilter = reportPage.matchStateFilter();
+    matchStateFilter.counter().shouldHave(exactText("3"));
+    matchStateFilter.multiSelectList().shouldBe(empty);
+    matchStateFilter.twisty().click();
+    matchStateFilter.multiSelectList().shouldHaveSize(4);
+
+    matchStateFilter.similar().click();
+    matchStateFilter.similar().shouldBe(selected);
+    matchStateFilter.counter().shouldHave(exactText("1 of 3"));
+    violations.shouldHaveSize(1);
+    violations.first().shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
+
+    matchStateFilter.unknown().click();
+    matchStateFilter.unknown().shouldBe(selected);
+    matchStateFilter.counter().shouldHave(exactText("2 of 3"));
+    violations.shouldHaveSize(2);
+    violations.shouldHave(texts("apache-httpclient : commons-httpclient : 3.1", "RegexMatch.dll"));
+    eyesWatcher.eyesCheck("Test Component Match State Filter");
+
+    matchStateFilter.exact().click();
+    matchStateFilter.exact().shouldBe(selected);
+    matchStateFilter.counter().shouldHave(exactText("3 of 3"));
     violations.shouldHaveSize(60);
   }
 

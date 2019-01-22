@@ -50,6 +50,8 @@ public class InsightConfigurationFactory
 
   static final Duration DEFAULT_IDLE_TIMEOUT = Duration.minutes(15);
 
+  static final String POLICY_VIOLATION_BASE_LOGGER_NAME = "com.sonatype.insight.policy.violation";
+
   public InsightConfigurationFactory(final Class<InsightConfig> klass,
                                      final Validator validator,
                                      final ObjectMapper objectMapper,
@@ -110,36 +112,44 @@ public class InsightConfigurationFactory
         new TextNode(Level.INFO.toString()));
 
     setAuditLogSettings(newLoggerLevels);
+    setPolicyViolationLogSettings(newLoggerLevels);
     loggingFactory.setLoggers(newLoggerLevels);
   }
 
   private void setAuditLogSettings(Map<String, JsonNode> loggers) {
     JsonNode auditLogger = loggers.putIfAbsent(AuditRecorder.BASE_LOGGER_NAME, createDefaultAuditLogger());
     if (auditLogger instanceof ObjectNode) {
-      setRequiredAuditLogSettings((ObjectNode) auditLogger);
+      setRequiredLogSettings((ObjectNode) auditLogger);
     }
   }
 
-  private void setRequiredAuditLogSettings(ObjectNode auditLogger) {
-    if (!auditLogger.has("additive")) {
-      auditLogger.put("additive", false);
+  private void setPolicyViolationLogSettings(Map<String, JsonNode> loggers) {
+    JsonNode policyViolationLogger = loggers.putIfAbsent(POLICY_VIOLATION_BASE_LOGGER_NAME, new TextNode("OFF"));
+    if (policyViolationLogger instanceof ObjectNode) {
+      setRequiredLogSettings((ObjectNode) policyViolationLogger);
     }
-    JsonNode auditLogAppenders = auditLogger.get("appenders");
-    if (!(auditLogAppenders instanceof ArrayNode)) {
+  }
+
+  private void setRequiredLogSettings(ObjectNode logger) {
+    if (!logger.has("additive")) {
+      logger.put("additive", false);
+    }
+    JsonNode logAppenders = logger.get("appenders");
+    if (!(logAppenders instanceof ArrayNode)) {
       return;
     }
-    for (int index = 0; index < auditLogAppenders.size(); index++) {
-      if (!(auditLogAppenders.get(index) instanceof ObjectNode)) {
+    for (int index = 0; index < logAppenders.size(); index++) {
+      if (!(logAppenders.get(index) instanceof ObjectNode)) {
         continue;
       }
-      ObjectNode auditLogAppender = (ObjectNode) auditLogAppenders.get(index);
-      String type = auditLogAppender.path("type").asText();
+      ObjectNode logAppender = (ObjectNode) logAppenders.get(index);
+      String type = logAppender.path("type").asText();
       if (!type.equals("file") && !type.equals("console") && !type.equals("syslog")) {
         continue;
       }
-      auditLogAppender.put("discardingThreshold", 0);
-      if (!auditLogAppender.has("logFormat")) {
-        auditLogAppender.put("logFormat", "%message%n");
+      logAppender.put("discardingThreshold", 0);
+      if (!logAppender.has("logFormat")) {
+        logAppender.put("logFormat", "%message%n");
       }
     }
   }
@@ -153,7 +163,7 @@ public class InsightConfigurationFactory
     auditLogAppender.put("archivedLogFilenamePattern", "./log/audit-%d.log.gz");
     auditLogAppender.put("archivedFileCount", 50);
     auditLogAppenders.add(auditLogAppender);
-    setRequiredAuditLogSettings(auditLogger);
+    setRequiredLogSettings(auditLogger);
     return auditLogger;
   }
 }

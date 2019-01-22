@@ -23,6 +23,9 @@ logging:
     "com.sonatype.insight.audit":
       appenders:
       - type: console
+    "com.sonatype.insight.policy.violation":
+      appenders:
+        - type: console
   appenders:
     - type: console
       logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"

@@ -194,6 +194,19 @@ logging:
         archivedLogFilenamePattern: ./log/audit-%d.log.gz
         # The number of archived audit log files to keep.
         archivedFileCount: 50
+    #"com.sonatype.insight.policy.violation":
+      #appenders:
+        #- type: file
+          # The file to which policy violations will be logged.
+          #currentLogFilename: ./log/policy-violation.log
+          # When the policy violation log file rotates, the archived policy violation log will be renamed to this 
+          # and gzipped. The %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
+          # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
+          #
+          # If archive is true, this must be specified.
+          #archivedLogFilenamePattern: ./log/policy-violation-%d.log.gz
+          # The number of archived policy violation log files to keep.
+          #archivedFileCount: 5
 
   appenders:
   

@@ -1,0 +1,17 @@
+logging:
+  loggers:
+    "com.sonatype.insight.policy.violation":
+      additive: true
+      appenders:
+      - type: console
+        logFormat: "logFormat"
+        discardingThreshold: 100
+      - type: file
+        currentLogFilename: ./log/policy-violation.log
+        logFormat: "logFormat"
+        discardingThreshold: 100
+        archivedLogFilenamePattern: ./log/policy-violation-%d.log.gz
+        archivedFileCount: 5
+      - type: syslog
+        logFormat: "logFormat"
+        discardingThreshold: 100

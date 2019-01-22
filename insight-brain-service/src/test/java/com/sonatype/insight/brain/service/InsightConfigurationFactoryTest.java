@@ -52,6 +52,7 @@ public class InsightConfigurationFactoryTest
   public static void resetLogging() throws Exception {
     build("/config-test.yml");
     new File("log/audit.log").delete();
+    new File("log/policy-violation.log").delete();
   }
 
   @Test
@@ -233,13 +234,34 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
+  public void testBuild_NoPolicyViolationLogSettings_NotEnabled() throws Exception {
+    InsightConfig insightConfig = build("config-no-server.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode policyViolationLogger = defaultLoggingFactory.getLoggers()
+        .get(InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+    assertThat(policyViolationLogger).isNotNull();
+    assertThat(policyViolationLogger.asText()).isEqualTo("OFF");
+  }
+
+  @Test
   public void testBuild_AuditLogOnlyLevelSetting_NoError() throws Exception {
     build("config-audit-text-node.yml");
   }
 
   @Test
+  public void testBuild_PolicyViolationLogOnlyLevelSetting_NoError() throws Exception {
+    build("config-policy-violation-log-text-node.yml");
+  }
+
+  @Test
   public void testBuild_AuditLogSettings_Empty() throws Exception {
     build("config-audit-empty.yml");
+  }
+
+  @Test
+  public void testBuild_PolicyViolationLogSettings_Empty() throws Exception {
+    build("config-policy-violation-log-empty.yml");
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -248,8 +270,18 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test(expected = IllegalArgumentException.class)
+  public void testBuild_PolicyViolationLogSettings_NonObjectAppender() throws Exception {
+    build("config-policy-violation-log-non-object-appender.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void testBuild_AuditLogSettings_EmptyObjectAppender() throws Exception {
     build("config-audit-empty-appender.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBuild_PolicyViolationLogSettings_EmptyObjectAppender() throws Exception {
+    build("config-policy-violation-log-empty-appender.yml");
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -258,18 +290,35 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test(expected = IllegalArgumentException.class)
+  public void testBuild_PolicyViolationLogSettings_NonTextType() throws Exception {
+    build("config-policy-violation-log-non-text-type.yml");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void testBuild_AuditLogSettings_NonStandardAppender() throws Exception {
     build("config-audit-non-standard-appender.yml");
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testBuild_PolicyViolationLogSettings_NonStandardAppender() throws Exception {
+    build("config-policy-violation-log-non-standard-appender.yml");
+  }
+
   @Test
   public void testBuild_AuditLogSettings_MissingRequired() throws Exception {
-    InsightConfig insightConfig = build("config-audit-missing-required.yml");
+    assertRequiredLogSettings(build("config-audit-missing-required.yml"), AuditRecorder.BASE_LOGGER_NAME);
+  }
 
+  @Test
+  public void testBuild_PolicyViolationLogSettings_MissingRequired() throws Exception {
+    assertRequiredLogSettings(build("config-policy-violation-log-missing-required.yml"),
+        InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+  }
+
+  private void assertRequiredLogSettings(InsightConfig insightConfig, String baseLoggerName) throws Exception {
     DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
-    JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
-    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
-        .treeToValue(auditLogger, LoggerConfiguration.class);
+    JsonNode logger = defaultLoggingFactory.getLoggers().get(baseLoggerName);
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper().treeToValue(logger, LoggerConfiguration.class);
     assertThat(loggerConfiguration.isAdditive()).isFalse();
     assertThat(loggerConfiguration.getAppenders()).hasSize(3);
     for (AppenderFactory<ILoggingEvent> appenderFactory : loggerConfiguration.getAppenders()) {
@@ -283,12 +332,20 @@ public class InsightConfigurationFactoryTest
 
   @Test
   public void testBuild_AuditLogSettings_OverridesDiscardingThreshold() throws Exception {
-    InsightConfig insightConfig = build("config-audit-overrides-discarding-threshold.yml");
+    assertOverridesDiscardingThreshold(build("config-audit-overrides-discarding-threshold.yml"),
+        AuditRecorder.BASE_LOGGER_NAME);
+  }
 
+  @Test
+  public void testBuild_PolicyViolationLogSettings_OverridesDiscardingThreshold() throws Exception {
+    assertOverridesDiscardingThreshold(build("config-policy-violation-log-overrides-discarding-threshold.yml"),
+        InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+  }
+
+  private void assertOverridesDiscardingThreshold(InsightConfig insightConfig, String baseLoggerName) throws Exception {
     DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
-    JsonNode auditLogger = defaultLoggingFactory.getLoggers().get(AuditRecorder.BASE_LOGGER_NAME);
-    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
-        .treeToValue(auditLogger, LoggerConfiguration.class);
+    JsonNode logger = defaultLoggingFactory.getLoggers().get(baseLoggerName);
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper().treeToValue(logger, LoggerConfiguration.class);
     assertThat(loggerConfiguration.isAdditive()).isTrue();
     assertThat(loggerConfiguration.getAppenders()).hasSize(3);
     for (AppenderFactory<ILoggingEvent> appenderFactory : loggerConfiguration.getAppenders()) {
@@ -298,6 +355,23 @@ public class InsightConfigurationFactoryTest
       assertThat(abstractAppenderFactory.getDiscardingThreshold()).isEqualTo(0);
       assertThat(abstractAppenderFactory.getLogFormat()).isEqualTo("logFormat");
     }
+  }
+
+  @Test
+  public void testBuild_PolicyViolationLogSettings_DefaultConfiguration() throws Exception {
+    InsightConfig insightConfig = build("config-policy-violation-log-default.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode logger = defaultLoggingFactory.getLoggers()
+        .get(InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper().treeToValue(logger, LoggerConfiguration.class);
+    assertThat(loggerConfiguration.getAppenders()).hasSize(1);
+    assertThat(loggerConfiguration.getAppenders().get(0)).isInstanceOf(FileAppenderFactory.class);
+    FileAppenderFactory<ILoggingEvent> fileAppenderFactory = (FileAppenderFactory<ILoggingEvent>) loggerConfiguration
+        .getAppenders().get(0);
+    assertThat(fileAppenderFactory.getCurrentLogFilename()).isEqualTo("./log/policy-violation.log");
+    assertThat(fileAppenderFactory.getArchivedLogFilenamePattern()).isEqualTo("./log/policy-violation-%d.log.gz");
+    assertThat(fileAppenderFactory.getArchivedFileCount()).isEqualTo(5);
   }
 
   private static InsightConfig build(String filename) throws Exception {

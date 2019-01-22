@@ -1,0 +1,8 @@
+logging:
+  loggers:
+    "com.sonatype.insight.policy.violation":
+      appenders:
+        - type: file
+          currentLogFilename: ./log/policy-violation.log
+          archivedLogFilenamePattern: ./log/policy-violation-%d.log.gz
+          archivedFileCount: 5

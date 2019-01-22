@@ -5,7 +5,7 @@
  */
 import { pick } from 'ramda';
 
-function UserMenuController($scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
+function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
 
   Object.assign(vm, {
@@ -56,6 +56,7 @@ function UserMenuController($scope, $http, $ngRedux, CLMLocations, Modal, messag
                 }).then(function() {
                   if (actuallyChanged) {
                     vm.passwordChanged();
+                    $rootScope.$broadcast('recalculateContainerHeights');
                   }
 
                   scope.$close();
@@ -77,7 +78,7 @@ function mapStateToThis({user}) {
 }
 
 UserMenuController.$inject = [
-  '$scope', '$http', '$ngRedux', 'CLMLocations', 'Modal', 'Messages',
+  '$rootScope', '$scope', '$http', '$ngRedux', 'CLMLocations', 'Modal', 'Messages',
   'pendoService', 'userActions'
 ];
 

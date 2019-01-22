@@ -11,7 +11,8 @@ describe('userMenu', function() {
       $httpBackend,
       $componentController,
       mockPendoService,
-      mockActions;
+      mockActions,
+      $rootScope;
 
   beforeEach(angular.mock.module(mainHeaderModule.name, function($provide) {
     mockActions = jasmine.createSpyObj('userActions', ['loadUser', 'passwordChanged']);
@@ -19,7 +20,8 @@ describe('userMenu', function() {
     SpecUtil.mockNgRedux($provide);
   }));
 
-  beforeEach(inject(function($q, $rootScope, _$componentController_, _$httpBackend_, _CLMLocations_) {
+  beforeEach(inject(function($q, _$rootScope_, _$componentController_, _$httpBackend_, _CLMLocations_) {
+    $rootScope = _$rootScope_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     $componentController = _$componentController_;
@@ -48,7 +50,10 @@ describe('userMenu', function() {
       }
     };
 
+    spyOn($rootScope, '$broadcast').and.callThrough();
+
     vm = $componentController('userMenu', {
+      $rootScope,
       $scope: scope,
       pendoService: mockPendoService,
       Modal: modal
@@ -231,6 +236,42 @@ describe('userMenu', function() {
       dialogScope.$digest();
 
       expect(vm.passwordChanged).not.toHaveBeenCalled();
+    });
+
+    it('fires the recalculateContainerHeights event when the password change succeeds, ' +
+     'and the new and old password values differ', function() {
+      doPasswordChange('bar', 'xxx');
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect($rootScope.$broadcast).toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+
+    it('does not fires the recalculateContainerHeights event when the password change succeeds, ' +
+    'but the new and old password values dont differ', function () {
+      doPasswordChange('bar', 'bar');
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+
+    it('does not fires recalculateContainerHeights event when the password change fails', function() {
+      doPasswordChange('bar', 'xxx');
+
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
     });
   });
 });

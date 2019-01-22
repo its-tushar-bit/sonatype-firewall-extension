@@ -741,6 +741,8 @@ angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maxi
         }, 20);
       }
 
+      scope.$on('recalculateContainerHeights', debounce);
+
       scope.$on('$destroy', function() {
         if (timerId) {
           $timeout.cancel(timerId);

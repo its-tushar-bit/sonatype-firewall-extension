@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, AngularUtils*/
+import { pick } from 'ramda';
+
 export default function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope,
-                                           DeleteModalService, Modal, $q, isAuthorized, $state) {
+                                           DeleteModalService, Modal, $q, isAuthorized, $state, $ngRedux, userActions) {
   var username = null;
 
   $scope.context = {
@@ -14,6 +16,9 @@ export default function UserListController($http, clmLocations, UserStore, messa
   };
 
   $scope.isAuthorized = isAuthorized;
+  const actions = pick(['passwordChangedForUser'], userActions);
+  const unsubscribe = $ngRedux.connect(undefined, actions)($scope);
+  $scope.$on('$destroy', unsubscribe);
 
   $scope.doLoad = function() {
     if (isAuthorized) {
@@ -58,6 +63,7 @@ export default function UserListController($http, clmLocations, UserStore, messa
           $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').then(function(response) {
             scope.newPassword = response.data.newPassword;
             scope.state = 'complete';
+            $scope.passwordChangedForUser(scope.user);
           }, function(error) {
             scope.state = 'failed';
             scope.error = messages.getHttpErrorMessage(error);
@@ -109,5 +115,5 @@ export default function UserListController($http, clmLocations, UserStore, messa
 
 UserListController.$inject = [
   '$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-  'DeleteModalService', 'Modal', '$q', 'isAuthorized', '$state'
+  'DeleteModalService', 'Modal', '$q', 'isAuthorized', '$state', '$ngRedux', 'userActions'
 ];

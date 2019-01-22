@@ -46,6 +46,7 @@ describe('UserModuleSpec.js', function() {
       }
     });
     SpecUtil.mockPermissionService($provide);
+    SpecUtil.mockNgRedux($provide);
   }));
 
   beforeEach(inject(function($rootScope) {
@@ -124,6 +125,7 @@ describe('UserModuleSpec.js', function() {
 
     expect(dialogScope.newPassword).toEqual('1234567890ab');
     expect(dialogScope.state).toEqual('complete');
+    expect(listScope.passwordChangedForUser).toHaveBeenCalled();
     // server failure
     $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset')).respond(500, 'Error resetting');
     dialogScope.resetClick();

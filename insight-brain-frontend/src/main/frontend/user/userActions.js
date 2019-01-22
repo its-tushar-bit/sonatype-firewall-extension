@@ -10,7 +10,7 @@ export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
 export const LOAD_USER_FAILED = 'LOAD_USER_FAILED';
 
-function userActions($q, $http, CurrentUser, CLMLocations, telemetryService) {
+function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetryService) {
 
   function fetchUser() {
     const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning();
@@ -60,12 +60,29 @@ function userActions($q, $http, CurrentUser, CLMLocations, telemetryService) {
     };
   }
 
+  function dispatchDefaultAdminPasswordChanged(dispatch) {
+    fireTelemetryEventPasswordChanged();
+    dispatch({ type: DEFAULT_ADMIN_PASSWORD_CHANGED });
+    //Notify all interested scopes that a height recalculation is needed.
+    $rootScope.$broadcast('recalculateContainerHeights');
+  }
+
   function passwordChanged() {
     return (dispatch, getState) => {
       const {user} = getState();
       if (user.shouldDisplayNotice && user.isDefaultUser) {
-        fireTelemetryEventPasswordChanged();
-        dispatch({ type: DEFAULT_ADMIN_PASSWORD_CHANGED });
+        dispatchDefaultAdminPasswordChanged(dispatch);
+      }
+    };
+  }
+
+  function passwordChangedForUser(selectedUser) {
+    return (dispatch, getState) => {
+      const {user} = getState();
+      const isSelectedDefaultUser = selectedUser.username === 'admin';
+      //Only fire the events if the flag was shown AND passwd was changed FOR the default admin
+      if (user.shouldDisplayNotice && isSelectedDefaultUser) {
+        dispatchDefaultAdminPasswordChanged(dispatch);
       }
     };
   }
@@ -84,8 +101,9 @@ function userActions($q, $http, CurrentUser, CLMLocations, telemetryService) {
 
   return {
     loadUser,
-    passwordChanged
+    passwordChanged,
+    passwordChangedForUser
   };
 }
-userActions.$inject = ['$q', '$http', 'CurrentUser', 'CLMLocations', 'telemetryService'];
+userActions.$inject = ['$rootScope', '$q', '$http', 'CurrentUser', 'CLMLocations', 'telemetryService'];
 export default userActions;

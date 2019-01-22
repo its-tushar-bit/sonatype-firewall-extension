@@ -56,7 +56,6 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
                 }).then(function() {
                   if (actuallyChanged) {
                     vm.passwordChanged();
-                    $rootScope.$broadcast('recalculateContainerHeights');
                   }
 
                   scope.$close();

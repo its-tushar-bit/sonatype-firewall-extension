@@ -1,17 +1,19 @@
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 
 describe('userActions', function() {
-  let userActions, initialState, CLMLocations, telemetryService, $httpBackend;
+  let userActions, initialState, CLMLocations, telemetryService, $httpBackend, $rootScope;
 
   beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
 
-  beforeEach(inject((_$httpBackend_, _CLMLocations_, _userActions_, _telemetryService_) => {
+  beforeEach(inject((_$httpBackend_, _CLMLocations_, _userActions_, _telemetryService_, _$rootScope_) => {
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     userActions = _userActions_;
     telemetryService = _telemetryService_;
+    $rootScope = _$rootScope_;
 
     spyOn(telemetryService, 'submitData');
+    spyOn($rootScope, '$broadcast').and.callThrough();
 
     initialState = {
       user: {
@@ -88,6 +90,162 @@ describe('userActions', function() {
       store.dispatch(userActions.passwordChanged());
 
       expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
+
+    it('should broadcast recalculateContainerHeights if the password was changed from default' +
+    'and the user is *the* default admin', () => {
+      // ShouldDisplayNotice means that the default admin has the default passwd.
+      initialState.user.shouldDisplayNotice = true;
+      initialState.user.isDefaultUser = true;
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChanged());
+
+      expect($rootScope.$broadcast).toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+
+    it('should not broadcast recalculateContainerHeights if the password changed from default' +
+    'and the user is NOT the default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      initialState.user.isDefaultUser = false;
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChanged());
+
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+
+    it('should not broadcast recalculateContainerHeights if the password was not the default', () => {
+      initialState.user.shouldDisplayNotice = false;
+      initialState.user.isDefaultUser = true;
+      let store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChanged());
+
+      //No action is dispatched.
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
+
+      initialState.user.isDefaultUser = false;
+      store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChanged());
+
+      //No action is dispatched.
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+  });
+
+  describe('passwordChangedForUser', () => {
+    it('should dispatch action if the password was changed from default' +
+    'and the user is *the* default admin', () => {
+      // ShouldDisplayNotice means that the default admin has the default passwd.
+      initialState.user.shouldDisplayNotice = true;
+      const selectedUser = { username: 'admin' };
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({ type: 'DEFAULT_ADMIN_PASSWORD_CHANGED' });
+    });
+
+    it('should not dispatch action if the password changed from default' +
+    'and the user is NOT the default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      const selectedUser = { username: 'foo' };
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect(store.getActions().length).toBe(0);
+    });
+
+    it('should NOT dispatch the action if the password was not the default', () => {
+      initialState.user.shouldDisplayNotice = false;
+      let selectedUser = { username: 'admin' };
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      //No action is dispatched.
+      expect(store.getActions().length).toBe(0);
+
+      selectedUser = { username: 'foo' };
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      //No action is dispatched.
+      expect(store.getActions().length).toBe(0);
+    });
+
+    it('should fire telemetry if the password was changed from default' +
+    'and the user is THE default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      const selectedUser = { username: 'admin' };
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
+        action: 'PASSWORD_CHANGED_FROM_DEFAULT'
+      });
+    });
+
+    it('should not fire telemetry if the password was changed from default' +
+    'and the user is not THE default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      const selectedUser = { username: 'foo' };
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
+
+    it('should not fire telemetry if the password was not changed from default', () => {
+      initialState.user.shouldDisplayNotice = false;
+      let selectedUser = { username: 'foo' };
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
+
+      selectedUser = { username: 'admin' };
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
+
+    it('should broadcast recalculateContainerHeights if the password was changed from default' +
+    'and the user is *the* default admin', () => {
+      // ShouldDisplayNotice means that the default admin has the default passwd.
+      initialState.user.shouldDisplayNotice = true;
+      const selectedUser = { username: 'admin' };
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect($rootScope.$broadcast).toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+
+    it('should not broadcast recalculateContainerHeights if the password changed from default' +
+    'and the user is NOT the default admin', () => {
+      initialState.user.shouldDisplayNotice = true;
+      const selectedUser = { username: 'foo' };
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
+    });
+
+    it('should not broadcast recalculateContainerHeights if the password was not the default', () => {
+      initialState.user.shouldDisplayNotice = false;
+      let selectedUser = { username: 'admin' };
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      //No action is dispatched.
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
+
+      selectedUser = { username: 'foo' };
+      store.dispatch(userActions.passwordChangedForUser(selectedUser));
+
+      //No action is dispatched.
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('recalculateContainerHeights');
     });
   });
 

@@ -14,6 +14,9 @@ import permissionServiceModule from '../util/PermissionService';
 import ApplicationSecurityModule from '../policy/AppSecurityController';
 import UserListController from './user.list.controller';
 import userForm from './userForm/userForm';
+import telemetryServiceModule from '../services/telemetryService';
+import userActions from '../user/userActions';
+import userReducer from '../user/userReducer';
 
 export const SecurityModule = angular.module('SecurityModule', ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name,
   permissionServiceModule.name], ['$stateProvider',
@@ -45,7 +48,7 @@ export const SecurityModule = angular.module('SecurityModule', ['ui.router', ang
     }]);
 
 export const UserModule = angular.module('UserModule', ['ui.router', SecurityModule.name, CLMLocationModule.name, resourceModule.name,
-  utilityModule.name, utilityDirectivesModule.name],
+  utilityModule.name, utilityDirectivesModule.name, telemetryServiceModule.name],
         ['$stateProvider', function($stateProvider) {
           $stateProvider.state('users', {
             url: '/users',
@@ -71,7 +74,9 @@ export const UserModule = angular.module('UserModule', ['ui.router', SecurityMod
           });
         }])
     .controller('UserListController', UserListController)
-    .component('userForm', userForm);
+    .component('userForm', userForm)
+    .factory('userActions', userActions)
+    .value('userReducer', userReducer);
 
 export default UserModule;
 

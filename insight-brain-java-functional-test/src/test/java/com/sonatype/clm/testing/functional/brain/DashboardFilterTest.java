@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponents.Componen
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
-import com.sonatype.clm.testing.functional.elements.DashboardFilters.DashboardFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFiltersDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFilters;
@@ -26,6 +25,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.IqTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -948,7 +948,7 @@ public class DashboardFilterTest
   }
 
   private void assertInitialFilterState(final String savedFilterName) {
-    DashboardFilter appFilter = DashboardFilters.applicationFilter();
+    IqTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
 
     appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
     appFilter.multiSelectList().shouldBe(empty);
@@ -1065,7 +1065,7 @@ public class DashboardFilterTest
     DashboardFilters.policyThreatLevelFilter().counter().shouldHave(text("2 – 7"));
   }
 
-  private void assertFilterDisabled(DashboardFilter filter, String filterType) {
+  private void assertFilterDisabled(IqTreeViewMultiSelect filter, String filterType) {
     filter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("0"));
 
     filter.anchor().shouldBe(DISABLED);

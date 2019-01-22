@@ -20,8 +20,14 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
   let reevaluationErrorModal = undefined;
 
   Object.assign(vm, {
+    availableProprietaryFilterOptions: [
+      { id: false, name: 'non proprietary' },
+      { id: true, name: 'proprietary' }
+    ],
+
     $onInit() {
-      const actions = pick(['setAggregateReportEntries', 'reevaluateReport', 'reevaluateReportCancelled'],
+      const actions = pick(
+          ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport', 'reevaluateReportCancelled'],
           applicationReportActions);
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
@@ -74,12 +80,16 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
         reevaluationErrorModal.dismiss();
         reevaluationErrorModal = undefined;
       }
+    },
+
+    setProprietaryFilterOptions(selectedIds) {
+      vm.setExactValueFilter('proprietary', selectedIds);
     }
   });
 }
 
 function mapStateToThis(state) {
-  return pick(['aggregate', 'reevaluating', 'reevaluationError'], state.applicationReport || {});
+  return pick(['aggregate', 'reevaluating', 'reevaluationError', 'exactValueFilters'], state.applicationReport || {});
 }
 
 ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions', 'Modal'];

@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -43,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
@@ -324,9 +326,48 @@ public class ApplicationReportTest
     violations.shouldHave(texts("None", "None"));
     violations.shouldHave(texts("org.slf4j : slf4j-api", "org.slf4j : slf4j-log4j12"));
 
+    ProprietaryFilter proprietaryFilter = reportPage.proprietaryFilter();
+
+    proprietaryFilter.counter().shouldHave(text("2"));
+    proprietaryFilter.multiSelectList().shouldBe(empty);
+    proprietaryFilter.twisty().click();
+    proprietaryFilter.multiSelectList().shouldHaveSize(3);
+    proprietaryFilter.proprietary().click();
+
+    proprietaryFilter.counter().shouldHave(text("1 of 2"));
+    proprietaryFilter.proprietary().shouldBe(selected);
+    proprietaryFilter.nonProprietary().shouldNotBe(selected);
+
+    eyesWatcher.eyesCheck("Test Proprietary Filter");
+
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("No Results"));
+
     headers.componentNameFilterInput().clear();
 
+    violations.shouldHaveSize(3);
+    violations.shouldHave(texts("full.jar", "org.apache.tiles : tiles-api", "org.apache.tiles : tiles-core"));
+
+    proprietaryFilter.allItems().click();
+    proprietaryFilter.counter().shouldHave(text("2 of 2"));
+    proprietaryFilter.proprietary().shouldBe(selected);
+    proprietaryFilter.nonProprietary().shouldBe(selected);
+
     violations.shouldHaveSize(63);
+
+    proprietaryFilter.allItems().click();
+    proprietaryFilter.counter().shouldHave(text("2"));
+    proprietaryFilter.proprietary().shouldNotBe(selected);
+    proprietaryFilter.nonProprietary().shouldNotBe(selected);
+
+    violations.shouldHaveSize(63);
+
+    proprietaryFilter.nonProprietary().click();
+    proprietaryFilter.counter().shouldHave(text("1 of 2"));
+    proprietaryFilter.proprietary().shouldNotBe(selected);
+    proprietaryFilter.nonProprietary().shouldBe(selected);
+
+    violations.shouldHaveSize(60);
   }
 
   @Test

@@ -83,7 +83,11 @@ $iq-form-element-wide: 395px;
 
 .iq-form-group {
   margin-bottom: 20px;
-    
+
+  .iq-label {
+    line-height: 20px;
+  }
+
   .iq-checkbox__label {
     display: block;
     padding-left: 24px;
@@ -144,7 +148,6 @@ fieldset {
       border-style: none;
       color: $iq-off-black;
       font-size: 16px;
-      line-height: 20px;
       margin-bottom: 7px;
     }
   }

@@ -26,12 +26,12 @@ public class DashboardFilters
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
-  public static DashboardFilter organizationFilter() {
-    return new DashboardFilter("#org-app-filters iq-tree-view-multi-select:nth-child(1)");
+  public static IqTreeViewMultiSelect organizationFilter() {
+    return new IqTreeViewMultiSelect("#org-app-filters iq-tree-view-multi-select:nth-child(1)");
   }
 
-  public static DashboardFilter applicationFilter() {
-    return new DashboardFilter("#org-app-filters iq-tree-view-multi-select:nth-child(2)");
+  public static IqTreeViewMultiSelect applicationFilter() {
+    return new IqTreeViewMultiSelect("#org-app-filters iq-tree-view-multi-select:nth-child(2)");
   }
 
   public static CategoryFilter applicationCategoryFilter() {
@@ -216,53 +216,8 @@ public class DashboardFilters
     }
   }
 
-  public static class DashboardFilter
-      extends BasicElement<DashboardFilter>
-  {
-
-    public DashboardFilter(final String selector) {
-      super(selector);
-    }
-
-    public SelenideElement twisty() {
-      return child(".iq-tree-view__trigger");
-    }
-
-    public ElementsCollection multiSelectList() {
-      return children(".iq-tree-view__child");
-    }
-
-    public ElementsCollection singleSelectList() {
-      return children("iq-radio.iq-tree-view__child");
-    }
-
-    public IqCheckbox checkboxItem(int index) {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(index)));
-    }
-
-    public IqRadio radioItem(int index) {
-      return new IqRadio(child(".iq-tree-view__children iq-radio.iq-tree-view__child", nthChild(index)));
-    }
-
-    public IqCheckbox allItems() {
-      return checkboxItem(1);
-    }
-
-    public SelenideElement counter() {
-      return child(".iq-counter");
-    }
-
-    public SelenideElement anchor() {
-      return child("a");
-    }
-
-    public SelenideElement tooltip() {
-      return $(".tooltip-inner");
-    }
-  }
-
   public static class CategoryFilter
-      extends DashboardFilter
+      extends IqTreeViewMultiSelect
   {
     public CategoryFilter(final String selector) {
       super(selector);
@@ -274,7 +229,7 @@ public class DashboardFilters
   }
 
   public static class PolicyTypeFilter
-      extends DashboardFilter
+      extends IqTreeViewMultiSelect
   {
 
     public PolicyTypeFilter(final String selector) {
@@ -299,7 +254,7 @@ public class DashboardFilters
   }
 
   public static class AgeFilter
-      extends DashboardFilter
+      extends IqTreeViewMultiSelect
   {
 
     public AgeFilter(final String selector) {
@@ -316,7 +271,7 @@ public class DashboardFilters
   }
 
   public static class PolicyThreatLevelFilter
-      extends DashboardFilter
+      extends IqTreeViewMultiSelect
   {
 
     public PolicyThreatLevelFilter(final String selector) {
@@ -329,7 +284,7 @@ public class DashboardFilters
   }
 
   public static class StageFilter
-      extends DashboardFilter
+      extends IqTreeViewMultiSelect
   {
 
     public StageFilter(final String selector) {
@@ -355,7 +310,7 @@ public class DashboardFilters
   }
 
   public static class PolicyViolationStateFilter
-      extends DashboardFilter
+      extends IqTreeViewMultiSelect
   {
     public PolicyViolationStateFilter() {
       super("#policy-violation-state-filter");

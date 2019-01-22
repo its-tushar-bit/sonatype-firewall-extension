@@ -102,7 +102,7 @@ describe('applicationReportReducer', function() {
             selectedReport: null,
             aggregate: true,
             exactValueFilters: {
-              policyThreatLevel: [1, 4, 5, 6]
+              policyThreatLevel: new Set([1, 4, 5, 6])
             },
             sortFields: ['-policyThreatLevel']
           }),
@@ -519,6 +519,86 @@ describe('applicationReportReducer', function() {
       }, {
         policyThreatLevel: 10
       }]);
+    });
+  });
+
+  describe('SET_EXACT_VALUE_FILTER', function() {
+    it('sets the specified property on the exactValueFilters to the specified value', function() {
+      const otherFieldFilter = new Set(['asdf']),
+          fooFieldFilter = new Set(['bar']),
+          state = Object.freeze({
+            exactValueFilters: Object.freeze({
+              otherField: otherFieldFilter
+            }),
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_EXACT_VALUE_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              allowedValues: fooFieldFilter
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        exactValueFilters: {
+          fooField: fooFieldFilter,
+          otherField: otherFieldFilter
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('filters the displayedEntries based on the resulting exactValueFilters', function() {
+      const state = Object.freeze({
+            exactValueFilters: Object.freeze({
+              otherField: new Set(['asdf'])
+            }),
+            selectedReport: Object.freeze({
+              allEntries: Object.freeze([{
+                fooField: 'bar'
+              }, {
+                fooField: 'bar',
+                otherField: 'asdf'
+              }, {
+                fooField: 'bar',
+                otherField: 'baz'
+              }, {
+                fooField: 'asdf',
+                otherField: 'asdf'
+              }, {
+                fooField: 'baz',
+                otherField: 'asdf'
+              }, {
+                fooField: 'bar',
+                otherField: 'asdf'
+              }])
+            })
+          }),
+          action = {
+            type: 'SET_EXACT_VALUE_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              allowedValues: new Set(['bar', 'baz'])
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState.selectedReport.displayedEntries).toEqual([{
+        fooField: 'bar',
+        otherField: 'asdf'
+      }, {
+        fooField: 'baz',
+        otherField: 'asdf'
+      }, {
+        fooField: 'bar',
+        otherField: 'asdf'
+      }]);
+
+      expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
     });
   });
 

@@ -219,6 +219,21 @@ describe('applicationReportActions', function() {
     });
   });
 
+  describe('setExactValueFilter', function() {
+    it('returns a SET_EXACT_VALUE_FILTER action with payload having the specified fieldName and allowedValues',
+        function() {
+          const allowedValues = new Set(['foo', 'bar']),
+              action = applicationReportActions.setExactValueFilter('fooField', allowedValues);
+
+          expect(action.type).toBe('SET_EXACT_VALUE_FILTER');
+          expect(action.payload).toEqual({
+            fieldName: 'fooField',
+            allowedValues
+          });
+        }
+    );
+  });
+
   describe('setStringFieldFilter', function() {
     it('returns a SET_SUBSTRING_FIELD_FILTER action with payload having the specified fieldName and filterString',
         function() {

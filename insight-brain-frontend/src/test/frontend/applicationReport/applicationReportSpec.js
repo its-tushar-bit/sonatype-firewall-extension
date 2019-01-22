@@ -135,4 +135,22 @@ describe('applicationReport', function() {
     expect(controller.reevaluateReportCancelled).toHaveBeenCalled();
     expect(controller.reevaluateReport).not.toHaveBeenCalled();
   });
+
+  it('sets the availableProprietaryFilterOptions', function() {
+    const ids = controller.availableProprietaryFilterOptions.map(({ id }) => id);
+    expect(ids.length).toBe(2);
+
+    expect(ids).toContain(true);
+    expect(ids).toContain(false);
+  });
+
+  describe('setProprietaryFilterOptions', function() {
+    it('calls setExactValueFilter with a fieldName of "proprietary"', function() {
+      const selectedIds = new Set([true]);
+
+      controller.setProprietaryFilterOptions(selectedIds);
+
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('proprietary', selectedIds);
+    });
+  });
 });

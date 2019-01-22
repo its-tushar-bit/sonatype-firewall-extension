@@ -833,8 +833,8 @@ describe('applicationReportService', function() {
     describe('filterReportEntries', function() {
       it('filters based on exact values and substring matching and can be partially applied', function() {
         const exactValueFilters = {
-              policyThreatLevel: [2, 4, 5, 6],
-              waived: [false]
+              policyThreatLevel: new Set([2, 4, 5, 6]),
+              waived: new Set([false])
             },
             substringFilters = {
               derivedComponentName: 'j'
@@ -885,6 +885,15 @@ describe('applicationReportService', function() {
               derivedComponentName: ''
             },
             result = applicationReportService.filterReportEntries(undefined, substringFilters)(input);
+
+        expect(result).toEqual(input);
+      });
+
+      it('treats empty exact value filters as no filter', function() {
+        const exactValueFilters = {
+              waived: new Set([])
+            },
+            result = applicationReportService.filterReportEntries(exactValueFilters, undefined)(input);
 
         expect(result).toEqual(input);
       });

@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  __,
+  always,
   apply,
   complement,
   compose,
@@ -31,7 +33,7 @@ import {
   values
 } from 'ramda';
 
-import { isNilOrEmpty } from '../util/jsUtil';
+import { isNilOrEmpty, setToArray } from '../util/jsUtil';
 
 const flatMap = pipe(map, flatten),
     toKey = component => component.hash || (component.pathnames || []).join('\t'),
@@ -197,7 +199,7 @@ export const aggregateReportEntries = pipe(
 /**
  * Take a list of all report entries and return a new list of only entries that have allowed values for all properties
  * in the exactValueFilters and substringFilters
- * @param exactValueFilters an object mapping from property name to list of allowed values
+ * @param exactValueFilters an object mapping from property name to Set of allowed values
  * @param substringFilters an object mapping from property name to substring to match.
  */
 export const filterReportEntries = curry(function filterReportEntries(exactValueFilters, substringFilters, entries) {
@@ -233,7 +235,11 @@ const makeFilterTransducer = curry(function makeFilterTransducer(checkBuilder, f
 
 // `contains` can do both substring matching and exact-value-in-array matching, which are the two kinds we need. The
 // first arg of contains is the thing to search for and the second is the thing within which to search for it.
-const filterByExactValues = makeFilterTransducer(flip(contains));
+const filterByExactValues = makeFilterTransducer(allowedValues =>
+  // if `allowedValues` is empty, do no filtering
+  allowedValues.size ? contains(__, setToArray(allowedValues)) : always(true)
+);
+
 const filterBySubstring = makeFilterTransducer(filterString => {
   const lowerCasedFilterString = toLower(filterString);
 

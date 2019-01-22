@@ -7,8 +7,10 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
+import com.sonatype.clm.testing.functional.elements.IqTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -88,6 +90,10 @@ public class ApplicationReportPage
 
   public IqRadio showAllViolationsRadio() {
     return new IqRadio(child("#no-aggregation-radio"));
+  }
+
+  public ProprietaryFilter proprietaryFilter() {
+    return new ProprietaryFilter("#proprietary-filter");
   }
 
   public AppReportHeaders headers() {
@@ -333,6 +339,22 @@ public class ApplicationReportPage
 
     public SelenideElement componentNameFilterInput() {
       return child(".iq-cell--application-report-component-name-filter input");
+    }
+  }
+
+  public static class ProprietaryFilter
+      extends IqTreeViewMultiSelect
+  {
+    public ProprietaryFilter(String selector) {
+      super(selector);
+    }
+
+    public IqCheckbox nonProprietary() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
+    }
+
+    public IqCheckbox proprietary() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
     }
   }
 }

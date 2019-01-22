@@ -17,6 +17,7 @@ export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 
 // To be used for filters that are done by substring matching, as opposed to matchings a discreet set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
+export const SET_EXACT_VALUE_FILTER = 'SET_EXACT_VALUE_FILTER';
 export const SET_SORTING = 'SET_SORTING';
 
 export default function applicationReportActions($http, $q, CLMLocations, Messages) {
@@ -119,6 +120,13 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
+  function setExactValueFilter(fieldName, allowedValues) {
+    return {
+      type: SET_EXACT_VALUE_FILTER,
+      payload: { fieldName, allowedValues }
+    };
+  }
+
   function selectComponent(index) {
     return {
       type: SELECT_COMPONENT,
@@ -174,6 +182,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     reevaluateReportCancelled,
     setAggregateReportEntries,
     setStringFieldFilter,
+    setExactValueFilter,
     setSorting,
     selectComponent
   };

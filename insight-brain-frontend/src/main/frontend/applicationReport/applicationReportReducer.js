@@ -24,6 +24,7 @@ import {
   LOAD_REPORT_REQUESTED,
   SET_AGGREGATE_REPORT_ENTRIES,
   SET_SUBSTRING_FIELD_FILTER,
+  SET_EXACT_VALUE_FILTER,
   REEVALUATE_REPORT_REQUESTED,
   REEVALUATE_REPORT_FULFILLED,
   REEVALUATE_REPORT_FAILED,
@@ -43,8 +44,8 @@ const initState = {
   aggregate: true,
   sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
 
-  // map from field name to array of allowed values
-  // example: { policyThreatLevel: [1, 5, 6, 7] }
+  // map from field name to Set of allowed values
+  // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
   exactValueFilters: {},
 
   // map from field name to string to use for substring matching
@@ -78,6 +79,12 @@ export default function(state = initState, {type, payload}) {
 
     case SET_AGGREGATE_REPORT_ENTRIES:
       return updateDisplayedEntries({...state, aggregate: payload});
+
+    case SET_EXACT_VALUE_FILTER: {
+      const { fieldName, allowedValues } = payload;
+
+      return updateDisplayedEntries(pathSet(['exactValueFilters', fieldName], allowedValues, state));
+    }
 
     case SET_SUBSTRING_FIELD_FILTER: {
       const { fieldName, filterString } = payload;

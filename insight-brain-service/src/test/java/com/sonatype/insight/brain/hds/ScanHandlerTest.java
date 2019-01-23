@@ -219,7 +219,7 @@ public class ScanHandlerTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("test-scan-Id");
 
-    HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forApplication(app.getId());
+    HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forOwner(app);
 
     ServletInputStream stream = mock(ServletInputStream.class);
     when(stream.read(any(byte[].class))).thenReturn(-1);

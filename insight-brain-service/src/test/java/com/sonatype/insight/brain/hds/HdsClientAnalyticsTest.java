@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
@@ -17,21 +17,21 @@ public class HdsClientAnalyticsTest
 {
   @Test
   public void testApplicationIdIsObfuscated() throws Exception {
-    String appId = "test-app-id";
-    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
+    Application app = new Application();
+    app.setId("test-app-id");
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(app);
 
-    assertThat(analytics.getOwnerId()).isNotNull();
-    assertThat(analytics.getOwnerId()).isNotEqualTo(appId);
+    assertThat(analytics.getOwnerId()).matches("[0-9a-fA-F]{40}");
     assertThat(analytics.getOwnerType()).isEqualTo(OwnerType.APPLICATION);
   }
 
   @Test
   public void testRepositoryIdIsObfuscated() throws Exception {
-    Owner owner = new Repository("my-repo-man-id", "central");
-    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(owner);
+    Repository repo = new Repository();
+    repo.setId("test-repo-id");
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(repo);
 
-    assertThat(analytics.getOwnerId()).isNotNull();
-    assertThat(analytics.getOwnerId()).isNotEqualTo("central");
+    assertThat(analytics.getOwnerId()).matches("[0-9a-fA-F]{40}");
     assertThat(analytics.getOwnerType()).isEqualTo(OwnerType.REPOSITORY);
   }
 
@@ -43,10 +43,11 @@ public class HdsClientAnalyticsTest
    */
   @Test
   public void testObfuscationUsesSha1() {
-    String appId = "test-app-id";
+    Application app = new Application();
+    app.setId("test-app-id");
     String appIdAsSha1 = "932742edc45df7e2d66eee12b3fb751621660dcb";
 
-    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(app);
 
     assertThat(analytics.getOwnerId()).isEqualTo(appIdAsSha1);
   }

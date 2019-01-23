@@ -26,13 +26,6 @@ public class HdsClientAnalytics
     // outside callers should use the factory methods
   }
 
-  public static HdsClientAnalytics forApplication(String appId) {
-    HdsClientAnalytics analytics = new HdsClientAnalytics();
-    analytics.ownerType = OwnerType.APPLICATION;
-    analytics.ownerId = obfuscate(appId);
-    return analytics;
-  }
-
   /**
    * @since 1.43
    */

@@ -55,7 +55,7 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
 
-    HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forApplication(app.getId());
+    HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forOwner(app);
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
     when(

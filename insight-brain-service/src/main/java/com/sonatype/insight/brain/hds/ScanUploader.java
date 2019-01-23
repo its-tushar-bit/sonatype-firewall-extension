@@ -46,8 +46,7 @@ public class ScanUploader
   {
     request.setAttribute(HdsClient.UPLOAD_FILE_ATTRIBUTE, scanFile);
 
-    String appId = application.getId();
-    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
     final ScanReceipt receipt = client.relay(request, analytics, ScanReceipt.class, HDS_PATH, null);
 
     augmentScanReceipt(application.getPublicId(), receipt);
@@ -61,7 +60,7 @@ public class ScanUploader
    * @since 1.8
    */
   public ScanReceipt upload(File scanFile, Application application) throws IOException {
-    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(application.getId());
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
 
     ScanReceipt receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile);
 

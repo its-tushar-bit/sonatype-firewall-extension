@@ -29,6 +29,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -419,7 +420,9 @@ public class HdsClientTest
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.<String> emptyList()));
     when(request.getMethod()).thenReturn("GET");
 
-    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication("test-app-id");
+    Application app = new Application();
+    app.setId("test-app-id");
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(app);
 
     client.relay(request, analytics, InputStream.class, testPath, null, new String[] {});
     assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())

@@ -17,6 +17,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.hasAnyPermission = hasAnyPermission;
   vm.isLoggedIn = isLoggedIn;
   vm.isLicensed = isLicensed;
+  vm.isWebhooksSupported = undefined;
 
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
@@ -49,6 +50,10 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
         });
     systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(data) {
       vm.isSuccessMetricsEnabled = data;
+    });
+
+    ProductFeatures.load().then(function() {
+      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks');
     });
   }
 

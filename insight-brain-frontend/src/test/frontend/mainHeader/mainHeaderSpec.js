@@ -7,20 +7,22 @@ describe('mainHeaderSpec', function() {
 
   var $scope,
       $rootScope,
+      $httpBackend,
       mockSystemConfigurationPropertyService,
       isSuccessMetricsEnabledDeferred,
       vm,
       clmServerVersion;
 
-  beforeEach(inject(function(_$rootScope_, $q, $componentController) {
+  beforeEach(inject(function(_$rootScope_, $q, $componentController, _$httpBackend_, _CLMLocations_) {
     clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
+    $httpBackend = _$httpBackend_;
     isSuccessMetricsEnabledDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
       isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise)
     };
-
+    $httpBackend.expectGET(_CLMLocations_.getProductFeaturesUrl()).respond(['']);
     vm = $componentController('mainHeader', {
       PermissionService: { getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve())},
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService
@@ -35,7 +37,7 @@ describe('mainHeaderSpec', function() {
   it('properly loads on enabled success metrics', function() {
     vm.$onInit();
     isSuccessMetricsEnabledDeferred.resolve(true);
-    $scope.$digest();
+    $httpBackend.flush();
 
     expect(vm.isSuccessMetricsEnabled).toBe(true);
   });
@@ -43,7 +45,7 @@ describe('mainHeaderSpec', function() {
   it('properly loads on disabled success metrics', function() {
     vm.$onInit();
     isSuccessMetricsEnabledDeferred.reject('disabled');
-    $scope.$digest();
+    $httpBackend.flush();
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
@@ -51,7 +53,7 @@ describe('mainHeaderSpec', function() {
   it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function() {
     vm.$onInit();
     isSuccessMetricsEnabledDeferred.resolve(false);
-    $scope.$digest();
+    $httpBackend.flush();
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
 

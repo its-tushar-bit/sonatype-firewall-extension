@@ -15,6 +15,7 @@ export default {
   controller: SystemConfigurationMenuController,
   controllerAs: 'vm',
   bindings: {
-    permissions: '<'
+    permissions: '<',
+    isWebhooksSupported: '<'
   }
 };

@@ -38,6 +38,7 @@ describe('webhook.edit.controller.spec.js', function() {
       });
 
       $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       $httpBackend.flush();
     }));
 
@@ -66,6 +67,7 @@ describe('webhook.edit.controller.spec.js', function() {
       mockWebhookStore.rejectGetById('invalid');
 
       $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       $httpBackend.flush();
     }));
 
@@ -98,6 +100,7 @@ describe('webhook.edit.controller.spec.js', function() {
 
       vm.webhookEditorMask = {wrap: SpecUtil.promiseWrapper(_$q_)};
       $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       $httpBackend.flush();
       $timeout.flush();
     }));

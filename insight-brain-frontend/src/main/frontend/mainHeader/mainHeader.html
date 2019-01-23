@@ -60,7 +60,10 @@
       </div>
       <!-- Each of these div's represents a button set. They must be listed in inverse order -->
       <help-menu></help-menu>
-      <system-configuration-menu ng-if="vm.hasAnyPermission()" permissions="vm.permissions"></system-configuration-menu>
+      <system-configuration-menu 
+              ng-if="vm.hasAnyPermission()"
+              permissions="vm.permissions"
+              is-webhooks-supported="vm.isWebhooksSupported"></system-configuration-menu>
       <notifications-menu></notifications-menu>
       <user-menu></user-menu>
     </div>

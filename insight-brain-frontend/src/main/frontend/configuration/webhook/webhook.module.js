@@ -6,12 +6,14 @@
 import angularCommonModule from '../../util/AngularCommon';
 import permissionServiceModule from '../../util/PermissionService';
 import storesModule from '../../util/Stores';
+import ProductFeaturesModule from '../../util/ProductFeatures';
 import WebhookViewController from './webhook.view.controller';
 import WebhookListController from './webhook.list.controller';
 import WebhookEditController from './webhook.edit.controller';
 
 export default angular.module('webhook.module', [
-  storesModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name, permissionServiceModule.name
+  storesModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name, permissionServiceModule.name,
+  ProductFeaturesModule.name
 ], webhookModuleConfiguration)
     .controller('webhook.view.controller', WebhookViewController)
     .controller('webhook.list.controller', WebhookListController)

@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function WebhookListController($state, WebhookStore) {
+export default function WebhookListController($state, WebhookStore, ProductFeatures) {
   var vm = this;
   vm.newWebhook = newWebhook;
   vm.doLoad = doLoad;
+  vm.isWebhooksSupported = undefined;
 
   vm.doLoad();
 
@@ -21,10 +22,14 @@ export default function WebhookListController($state, WebhookStore) {
       vm.loadError = error;
     });
 
+    ProductFeatures.load().then(function() {
+      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks');
+    });
+
     delete vm.loadError;
   }
 }
 
 WebhookListController.$inject = [
-  '$state', 'WebhookStore'
+  '$state', 'WebhookStore', 'ProductFeatures'
 ];

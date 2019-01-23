@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain.configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -18,6 +19,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -45,6 +47,8 @@ public class WebhookConfigurationTest
   private WebhookDAO webhookDAO = new WebhookDAO();
   private WebhookEditPage webhookEditPage = new WebhookEditPage();
   private WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
+  
+  private List<Webhook> webhookList = new ArrayList<>();
 
   @BeforeClass
   public static void startup() {
@@ -186,9 +190,23 @@ public class WebhookConfigurationTest
     webhookConfigurationPage.should(appear);
   }
 
+  @Test
+  public void testWebhooks_Foundation() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    
+    // make sure we display an error when navigating directly to webhooks pages
+    String notLicensedText = "Webhooks is not supported by your license.";
+
+    refreshOrOpen(WebhookConfigurationPage.URL);
+    webhookConfigurationPage.shouldHave(text(notLicensedText));
+    
+    refreshOrOpen(WebhookEditPage.url(webhookList.get(0).getId()));
+    webhookEditPage.shouldHave(text(notLicensedText));
+  }
+
   private void insertWebhooks() {
     for (int i = 0; i < 3; i++) {
-      tempEntity.newWebhook("http://localhost" + i, Sets.newSet(WebhookEventType.POLICY_MANAGEMENT));
+      webhookList.add(tempEntity.newWebhook("http://localhost" + i, Sets.newSet(WebhookEventType.POLICY_MANAGEMENT)));
     }
   }
 }

@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.IqCheckbox;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -16,6 +17,10 @@ import com.codeborne.selenide.SelenideElement;
 public class WebhookEditPage
     extends BasicElement<WebhookEditPage>
 {
+  public static String url(String id) {
+    return BaseUrl.resolvePageUrl("/webhooks/{id}", id);
+  }
+
   private static String ROOT_SELECTOR = "#webhook-editor";
 
   public WebhookEditPage() {

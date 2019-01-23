@@ -4,13 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default function WebhookEditController($q, $scope, $http, $stateParams, $state, CLMLocations, WebhookStore,
-                                              DeleteModalService) {
+                                              DeleteModalService, ProductFeatures) {
   var vm = this;
 
   vm.dirtyWebhook = undefined;
   vm.loadError = undefined;
   vm.submitError = undefined;
   vm.webhookEditorMask = undefined;
+  vm.isWebhooksSupported = undefined;
 
   vm.doLoad = doLoad;
   vm.deleteWebhook = deleteWebhook;
@@ -28,7 +29,8 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
 
   function doLoad() {
     var promises = [
-      $http.get(CLMLocations.getWebhookEventTypesUrl())
+      $http.get(CLMLocations.getWebhookEventTypesUrl()),
+      ProductFeatures.load()
     ];
 
     if ($stateParams.webhookId) {
@@ -42,12 +44,14 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
         vm.dirtyWebhook = WebhookStore.create();
       }
       else {
-        vm.dirtyWebhook = results[1].$clone();
+        vm.dirtyWebhook = results[2].$clone();
       }
 
       if (!vm.dirtyWebhook) {
         vm.loadError = 'Unable to locate webhook.';
       }
+
+      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks');
     }, function(error) {
       vm.loadError = error;
     });
@@ -87,5 +91,6 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
 }
 
 WebhookEditController.$inject = [
-  '$q', '$scope', '$http', '$stateParams', '$state', 'CLMLocations', 'WebhookStore', 'DeleteModalService'
+  '$q', '$scope', '$http', '$stateParams', '$state', 'CLMLocations', 'WebhookStore', 'DeleteModalService',
+  'ProductFeatures'
 ];

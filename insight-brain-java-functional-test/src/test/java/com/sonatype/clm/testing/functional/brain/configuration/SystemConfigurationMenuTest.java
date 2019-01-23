@@ -8,12 +8,15 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
@@ -21,7 +24,9 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class SystemConfigurationMenuTest
     extends AbstractFunctionalTest
@@ -132,5 +137,32 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.systemNotice().shouldBe(hidden);
     systemConfigMenu.successMetrics().shouldBe(hidden);
     systemConfigMenu.automaticApplications().shouldBe(visible);
+  }
+
+  @Test
+  public void testMenu_Foundation() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+
+    refreshOrOpen(ReportListPage.URL);
+    loginAsAdmin();
+
+    systemConfigMenu.shouldBe(visible);
+    systemConfigMenu.dropdownToggle().click();
+
+    systemConfigMenu.users().shouldBe(visible);
+    systemConfigMenu.roles().shouldBe(visible);
+    systemConfigMenu.administrators().shouldBe(visible);
+    systemConfigMenu.productLicense().shouldBe(visible);
+    systemConfigMenu.ldap().shouldBe(visible);
+    systemConfigMenu.webhooks().parent().shouldBe(visible, DISABLED).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Webhooks is not supported by your license"));
+    systemConfigMenu.systemNotice().shouldBe(visible);
+    systemConfigMenu.successMetrics().shouldBe(visible);
+    systemConfigMenu.automaticApplications().shouldBe(visible);
+
+    systemConfigMenu.webhooks().click();
+    WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
+    webhookConfigurationPage.shouldNotBe(visible);
   }
 }

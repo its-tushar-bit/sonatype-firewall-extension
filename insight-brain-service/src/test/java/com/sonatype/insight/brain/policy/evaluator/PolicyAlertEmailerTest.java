@@ -267,7 +267,7 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testSendNotifications_FoundationWithFirewall_ProxyStage() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
     Application app = tempEntity.newApplicationWithParent("test");
@@ -289,7 +289,7 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testSendNotifications_FoundationWithFirewall_NotProxyStage() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
     Application app = tempEntity.newApplicationWithParent("test");

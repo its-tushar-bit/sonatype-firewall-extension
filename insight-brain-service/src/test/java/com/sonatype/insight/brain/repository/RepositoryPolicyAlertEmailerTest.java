@@ -200,7 +200,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testSendNotifications_FoundationAndFirewall() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
     when(mail.getCdnUrl()).thenReturn("http://cdnUrl");

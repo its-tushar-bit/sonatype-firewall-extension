@@ -85,7 +85,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   @Test
   public void testNotLicensed_Foundation_Firewall() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     assertNotLicensed(false);
   }
   

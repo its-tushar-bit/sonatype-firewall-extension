@@ -273,7 +273,7 @@ public class JiraPolicyAlertNotifierTest
 
   @Test
   public void testSendNotifications_FoundationAndFirewall_NotProxy() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
     Application application = tempEntity.newApplicationWithParent("app");
@@ -300,7 +300,7 @@ public class JiraPolicyAlertNotifierTest
 
   @Test
   public void testSendNotifications_FoundationAndFirewall_Proxy() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.FEATURE_FIREWALL);
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
     Application application = tempEntity.newApplicationWithParent("app");

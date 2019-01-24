@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
@@ -67,27 +66,6 @@ public class StageTypeServiceTest
   @Test
   public void testGetLicensedStageTypes_Nexus() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.STAGE_RELEASE,
-        StageTypes.RELEASE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_Legacy() throws Exception {
-    productLicenseManager.setProducts("");
-    productLicenseManager.setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop,
-        CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_LegacyNexus() throws Exception {
-    productLicenseManager.setProducts("");
-    productLicenseManager.setEnforcementPoints(CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.STAGE_RELEASE,

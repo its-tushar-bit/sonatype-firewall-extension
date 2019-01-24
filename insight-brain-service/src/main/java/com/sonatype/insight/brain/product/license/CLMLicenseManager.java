@@ -605,17 +605,6 @@ public class CLMLicenseManager
     notifyListeners();
   }
 
-  public boolean isLegacyNexusClmLicense() {
-    return isLegacyNexusClmLicense(getEnforcementPoints());
-  }
-
-  private boolean isLegacyNexusClmLicense(Set<CLMEnforcementPoint> enforcementPoints) {
-    enforcementPoints = EnumSet.copyOf(enforcementPoints);
-    enforcementPoints.remove(CLMEnforcementPoint.StageRelease);
-    enforcementPoints.remove(CLMEnforcementPoint.Release);
-    return enforcementPoints.isEmpty();
-  }
-
   private String getPropertyNotNull(ProductLicenseKey key, String property) throws LicensingException {
     String value = getProperty(key, property);
     if (value == null) {

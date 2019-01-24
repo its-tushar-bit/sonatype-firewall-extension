@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 /**
@@ -114,24 +113,6 @@ public class StageTypeService
       allowed.add(StageTypes.RELEASE);
     }
 
-    if (allowed.isEmpty()) {
-      // if no product is defined, we are dealing with legacy license
-      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Build)) {
-        allowed.add(StageTypes.BUILD);
-      }
-      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Develop)) {
-        allowed.add(StageTypes.DEVELOP);
-      }
-      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Release)) {
-        allowed.add(StageTypes.RELEASE);
-      }
-      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.StageRelease)) {
-        allowed.add(StageTypes.STAGE_RELEASE);
-      }
-      if (!licenseManager.isLegacyNexusClmLicense()) {
-        allowed.add(StageTypes.OPERATE);
-      }
-    }
     allowed.add(StageTypes.PROXY);
 
     return allowed;

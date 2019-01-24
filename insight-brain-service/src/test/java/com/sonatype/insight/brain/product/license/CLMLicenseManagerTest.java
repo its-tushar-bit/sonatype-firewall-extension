@@ -102,58 +102,6 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasDashboard_NexusClmLicense_Legacy() throws Exception {
-    licenseManager.setVersion(0);
-    licenseManager.setProducts();
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
-    installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isFalse();
-  }
-
-  @Test
-  public void testHasDashboard_FullClmLicense_Legacy() throws Exception {
-    licenseManager.setVersion(0);
-    licenseManager.setProducts();
-    installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-  }
-
-  @Test
-  public void testHasQuality_LegacyNoBuildStage() throws Exception {
-    licenseManager.setVersion(0);
-    licenseManager.setProducts();
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.Release);
-    installLicense();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-  }
-
-  @Test
-  public void testHasQuality_LegacyWithBuildStage() throws Exception {
-    licenseManager.setVersion(0);
-    licenseManager.setProducts();
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.Build);
-    installLicense();
-    assertThat(clmLicenseManager.hasQuality()).isTrue();
-  }
-
-  @Test
-  public void testHasPolicyMonitoring_NexusClmLicense_Legacy() throws Exception {
-    licenseManager.setVersion(0);
-    licenseManager.setProducts();
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
-    installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-  }
-
-  @Test
-  public void testHasPolicyMonitoring_FullClmLicense_Legacy() throws Exception {
-    licenseManager.setVersion(0);
-    licenseManager.setProducts();
-    installLicense();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-  }
-
-  @Test
   public void testHasFeatures_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
@@ -252,6 +200,14 @@ public class CLMLicenseManagerTest
     assertThat(clmLicenseManager.hasNotifications()).isFalse();
     assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
     assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_LegacyVersion() throws Exception {
+    licenseManager.setVersion(0);
+    assertThatThrownBy(() -> {
+      installLicense();
+    }).isInstanceOf(LicensingException.class).hasMessage("Invalid license version: 0");
   }
 
   @Test(expected = LicensingException.class)

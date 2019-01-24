@@ -11,6 +11,7 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
@@ -40,6 +42,7 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -47,6 +50,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,16 +72,22 @@ public class WebhookDispatcherTest
   @Inject
   private AsyncEventBus asyncEventBus;
 
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
+
   @Mock
   private WebhookClientUtil webhookClientUtil;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     webhookDispatcher.start();
   }
 
   @After
-  public void after() throws Exception {
+  public void after() {
     webhookDispatcher.stop();
   }
 
@@ -129,6 +139,57 @@ public class WebhookDispatcherTest
     assertThat(applicationEvaluationDTO.severeComponentCount).isEqualTo(5);
     assertThat(applicationEvaluationDTO.moderateComponentCount).isEqualTo(7);
     assertThat(applicationEvaluationDTO.outcome).isEqualTo("outcome");
+  }
+
+  @Test
+  public void test_DispatcherDoesNotStart_LifecycleFoundationLicense() throws Exception {
+    // manually stop dispatcher that was started via the @Before.
+    webhookDispatcher.stop();
+
+    // manually starting dispatcher should not start with Foundation license
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    webhookDispatcher.start();
+
+    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
+    asyncEventBus.post(new ApplicationEvaluationEvent());
+
+    verify(webhookClientUtil, Mockito.after(EVENT_TIMEOUT_MS).never())
+        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
+            any(WebhookPayload.class));
+
+    // dispatcher should start back up with Lifecycle license change
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    asyncEventBus.post(new ApplicationEvaluationEvent());
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
+            any(WebhookPayload.class));
+  }
+
+  @Test
+  public void test_DispatcherStops_LifecycleFoundationLicense() throws Exception {
+    // dispatcher should stop with Foundation license change
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
+    asyncEventBus.post(new ApplicationEvaluationEvent());
+
+    verify(webhookClientUtil, Mockito.after(EVENT_TIMEOUT_MS).never())
+        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
+            any(WebhookPayload.class));
+
+    // dispatcher should start back up with Lifecycle license change
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    asyncEventBus.post(new ApplicationEvaluationEvent());
+
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
+            any(WebhookPayload.class));
   }
 
   @Test

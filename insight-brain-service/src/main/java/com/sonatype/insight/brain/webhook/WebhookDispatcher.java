@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -39,6 +41,8 @@ import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePaylo
 
 import com.google.common.eventbus.Subscribe;
 import io.dropwizard.lifecycle.Managed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.25.0
@@ -46,7 +50,7 @@ import io.dropwizard.lifecycle.Managed;
 @Named
 @Singleton
 public class WebhookDispatcher
-    implements Managed
+    implements Managed, LicenseListener
 {
   public static final String APPLICATION_EVALUATION_ID = "iq:applicationEvaluation";
 
@@ -55,6 +59,8 @@ public class WebhookDispatcher
   public static final String SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID = "iq:securityVulnerabilityOverrideManagement";
 
   public static final String POLICY_MANAGEMENT_ID = "iq:policyManagement";
+
+  private static final Logger log = LoggerFactory.getLogger(WebhookDispatcher.class);
 
   private final WebhookService webhookService;
 
@@ -66,18 +72,23 @@ public class WebhookDispatcher
 
   private final AuditRecorder auditRecorder;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
   public WebhookDispatcher(final AsyncEventBus asyncEventBus,
                            final WebhookService webhookService,
                            final WebhookClientUtil webhookClientUtil,
                            final OwnerDTOUtil ownerDTOUtil,
-                           final AuditRecorder auditRecorder)
+                           final AuditRecorder auditRecorder,
+                           final CLMLicenseManager clmLicenseManager)
   {
     this.webhookService = webhookService;
     this.webhookClientUtil = webhookClientUtil;
     this.asyncEventBus = asyncEventBus;
     this.ownerDTOUtil = ownerDTOUtil;
     this.auditRecorder = auditRecorder;
+    this.clmLicenseManager = clmLicenseManager;
+    clmLicenseManager.addListener(this);
   }
 
   @Subscribe
@@ -265,12 +276,27 @@ public class WebhookDispatcher
   }
 
   @Override
-  public void start() throws Exception {
+  public void start() {
+    if (!clmLicenseManager.hasWebhooks()) {
+      log.debug("Webhooks dispatcher not supported by license.");
+      return;
+    }
     asyncEventBus.register(this);
   }
 
   @Override
-  public void stop() throws Exception {
+  public void stop() {
     asyncEventBus.unregister(this);
+  }
+
+  @Override
+  public void licenseChanged() {
+    if (clmLicenseManager.hasWebhooks()) {
+      log.debug("Webhooks dispatcher supported by license.");
+      start();
+    } else {
+      log.debug("Webhooks dispatcher not supported by license.");
+      stop();
+    }
   }
 }

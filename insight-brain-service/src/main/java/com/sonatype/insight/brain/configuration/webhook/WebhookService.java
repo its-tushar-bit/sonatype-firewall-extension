@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -44,10 +46,16 @@ public class WebhookService
 
   private final PlexusCipher plexusCipher;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
-  public WebhookService(final InsightConfig insightConfig, final PlexusCipher plexusCipher) {
+  public WebhookService(final InsightConfig insightConfig,
+                        final PlexusCipher plexusCipher,
+                        final CLMLicenseManager clmLicenseManager)
+  {
     this.insightConfig = insightConfig;
     this.plexusCipher = plexusCipher;
+    this.clmLicenseManager = clmLicenseManager;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -82,6 +90,10 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook addWebhook(Webhook webhook) {
+    if (!clmLicenseManager.hasWebhooks()) {
+      log.debug("Not adding Webhook, license does not support Webhooks.");
+      throw new InvalidLicenseException();
+    }
     encryptWebhookSecretKey(webhook);
     webhookDao.insert(webhook);
     auditWebhook(webhook);
@@ -91,6 +103,10 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook updateWebhook(Webhook webhook) {
+    if (!clmLicenseManager.hasWebhooks()) {
+      log.debug("Not updating Webhook, license does not support Webhooks.");
+      throw new InvalidLicenseException();
+    }
     if (FAKE_SECRET_KEY.equals(webhook.getSecretKey())) {
       Webhook savedWebhook = webhookDao.getByIdNotNull(webhook.getId());
       webhook.setSecretKey(savedWebhook.getSecretKey());
@@ -107,6 +123,10 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteWebhook(String webhookId) {
+    if (!clmLicenseManager.hasWebhooks()) {
+      log.debug("Not deleting Webhook, license does not support Webhooks.");
+      throw new InvalidLicenseException();
+    }
     Webhook webhook = webhookDao.getByIdNotNull(webhookId);
     webhookDao.delete(webhook);
     auditWebhook(webhook);

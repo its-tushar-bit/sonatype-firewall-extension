@@ -9,10 +9,14 @@ import java.util.EnumSet;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -23,6 +27,7 @@ import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECR
 import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class WebhookServiceTest
     extends AbstractComponentTest
@@ -35,6 +40,12 @@ public class WebhookServiceTest
 
   @Inject
   private PlexusCipher plexusCipher;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   @Test
   public void testAddWebhook_EncryptsSecretKey() throws PlexusCipherException {
@@ -64,6 +75,20 @@ public class WebhookServiceTest
   }
 
   @Test
+  public void testAddWebhook_LifecycleFoundationLicense() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    final String secretKey = "some secret key";
+    final Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> webhookService.addWebhook(webhook));
+  }
+
+  @Test
   public void testUpdateWebhook_EncryptsSecretKey() throws PlexusCipherException {
     WebhookDAO webhookDAO = new WebhookDAO();
 
@@ -84,6 +109,17 @@ public class WebhookServiceTest
           .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
       assertThat(decryptedSecretKey).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
     }
+  }
+
+  @Test
+  public void testUpdateWebhook_LifecycleFoundationLicense() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> webhookService.updateWebhook(webhook));
   }
 
   @Test
@@ -116,5 +152,16 @@ public class WebhookServiceTest
     assertThat(result.getId()).isEqualTo(webhook.getId());
     assertThat(result.getUrl()).isEqualTo(webhook.getUrl());
     assertThat(result.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
+  }
+
+  @Test
+  public void testDeleteWebhook_LifecycleFoundationLicense() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> webhookService.deleteWebhook(webhook.getId()));
   }
 }

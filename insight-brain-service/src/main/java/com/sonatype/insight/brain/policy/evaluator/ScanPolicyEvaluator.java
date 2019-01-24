@@ -192,7 +192,7 @@ public class ScanPolicyEvaluator
     boolean enableActions = clmLicenseManager.hasEnforcement(stageTypeId);
     if (!enableActions) {
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
-          + "license does not support enforcement", applicationId, scanId, stageTypeId);
+          + "license does not support enforcement.", applicationId, scanId, stageTypeId);
     }
     return PolicyAlertUtil.createPolicyAlerts(activeViolations, stageTypeId, forMonitoring, enableActions);
   }

@@ -396,8 +396,8 @@ public class IdeResourceTest
 
   @Test
   public void testDoScan_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
+    // note these enforcement points should not apply to this request
+    setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     HttpResponse response = simpleScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
@@ -430,8 +430,8 @@ public class IdeResourceTest
 
   @Test
   public void testDoScan_enhanced_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
+    // note these enforcement points should not apply to this request
+    setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     HttpResponse response = enhancedScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
@@ -605,8 +605,8 @@ public class IdeResourceTest
 
   @Test
   public void testGetComponentVersions_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
+    // note these enforcement points should not apply to this request
+    setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     HttpResponse response = versionsRequest("ulg", "ula").get();
     assertResponseStatus(402, response);

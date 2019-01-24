@@ -17,8 +17,8 @@ public class CIResourceTest
 
   @Test
   public void testScan_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
+    // note these enforcement points should not apply to this request
+    setEnforcementPoints(CLMEnforcementPoint.Develop, CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);

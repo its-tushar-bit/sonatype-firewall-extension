@@ -410,10 +410,6 @@ public class CLMLicenseManager
       }
     }
 
-    if (enforcementPoints.size() == 1) {
-      throw new InvalidLicenseException();
-    }
-
     throw new InvalidLicenseException();
   }
 

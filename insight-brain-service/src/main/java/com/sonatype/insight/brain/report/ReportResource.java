@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -370,7 +371,7 @@ public class ReportResource
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils
         .parse(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
 
-    File updatedFile = File.createTempFile("report", "zip");
+    File updatedFile = File.createTempFile("report", ".zip");
     try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile,
         new ReportBundleUpdater.FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
       updater.remove("detail.rptdesign");
@@ -440,9 +441,24 @@ public class ReportResource
         }
       }
     }
+    catch (IOException | RuntimeException e) {
+      updatedFile.delete();
+      throw e;
+    }
 
     final ResponseBuilder response = Response.ok();
-    response.entity(updatedFile);
+    response.entity(new FileInputStream(updatedFile)
+    {
+      @Override
+      public void close() throws IOException {
+        try {
+          super.close();
+        }
+        finally {
+          updatedFile.delete();
+        }
+      }
+    });
     response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
     return response.build();
   }

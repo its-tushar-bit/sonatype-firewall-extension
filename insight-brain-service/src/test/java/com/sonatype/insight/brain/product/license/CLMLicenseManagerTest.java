@@ -102,9 +102,56 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetEnforcementPoints_StagePropertyFromLicenseIsIgnored() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build,Procure");
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Develop,
+        CLMEnforcementPoint.Build, CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
+  }
+
+  @Test
+  public void testGetEnforcementPoints_NexusProPlus() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.StageRelease,
+        CLMEnforcementPoint.Release);
+  }
+
+  @Test
+  public void testGetEnforcementPoints_Auditor() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Release);
+  }
+
+  @Test
+  public void testGetEnforcementPoints_Lifecycle() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Develop,
+        CLMEnforcementPoint.Build, CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
+  }
+
+  @Test
+  public void testGetEnforcementPoints_Firewall() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.StageRelease,
+        CLMEnforcementPoint.Release);
+  }
+
+  @Test
+  public void testGetEnforcementPoints_Foundation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Build,
+        CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
+  }
+
+  @Test
   public void testHasFeatures_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
     assertThat(clmLicenseManager.hasDashboard()).isFalse();
     assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
@@ -236,20 +283,6 @@ public class CLMLicenseManagerTest
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, "Invalid");
       installLicense();
     }).isInstanceOf(LicensingException.class).hasMessage("Invalid value for max users: Invalid");
-  }
-
-  @Test
-  public void testInstallLicense_UnknownEnforcementPointIsIgnored() throws Exception {
-    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build");
-    installLicense();
-    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Build);
-  }
-
-  @Test
-  public void testInstallLicense_DeprecatedEnforcementPointIsIgnored() throws Exception {
-    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Build,Procure");
-    installLicense();
-    assertThat(clmLicenseManager.getEnforcementPoints()).containsExactlyInAnyOrder(CLMEnforcementPoint.Build);
   }
 
   @Test

@@ -8,13 +8,12 @@ package com.sonatype.insight.brain;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -110,6 +109,10 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setEnforcementPoints(enforcementPoints);
   }
 
+  public Set<CLMEnforcementPoint> getEnforcementPoints() {
+    return mockProductLicenseManager.enforcementPoints;
+  }
+
   public Date getExpirationDate() {
     return mockProductLicenseManager.expirationDate;
   }
@@ -162,7 +165,7 @@ public class TestProductLicenseManager
     private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
         ProductLicenseDetails.PRODUCT_FIREWALL };
 
-    private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<>();
+    private Set<CLMEnforcementPoint> enforcementPoints;
 
     private Map<String, String> properties = new HashMap<>();
 
@@ -173,19 +176,7 @@ public class TestProductLicenseManager
     private boolean forceVerificationFailure;
 
     public MockProductLicenseManager() {
-      resetEnforcementPoints();
-    }
-
-    public void resetEnforcementPoints() {
-      enforcementPoints.clear();
-      enforcementPoints.add(CLMEnforcementPoint.Build);
-      enforcementPoints.add(CLMEnforcementPoint.Develop);
-      enforcementPoints.add(CLMEnforcementPoint.Release);
-      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
-
-      if (valid) {
-        createKey();
-      }
+      createKey();
     }
 
     @Override
@@ -209,8 +200,6 @@ public class TestProductLicenseManager
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
       properties.put(ProductLicenseDetails.PROPERTY_MAX_USERS, Integer.toString(50));
-      properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS,
-          enforcementPoints.stream().map(CLMEnforcementPoint::name).collect(Collectors.joining(",")));
 
       if (applicationLimit != null) {
         properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit.toString());
@@ -274,7 +263,7 @@ public class TestProductLicenseManager
 
     public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
       if (valid) {
-        this.enforcementPoints.clear();
+        this.enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
 
         for (CLMEnforcementPoint enforcementPoint : enforcementPoints) {
           this.enforcementPoints.add(enforcementPoint);

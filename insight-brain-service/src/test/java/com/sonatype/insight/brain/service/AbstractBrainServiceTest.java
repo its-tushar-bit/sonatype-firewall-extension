@@ -29,11 +29,13 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -167,7 +169,9 @@ public abstract class AbstractBrainServiceTest
     {
       @Override
       protected void configure() {
-        bind(ProductLicenseManager.class).toInstance(licenseManager);
+        bind(CLMLicenseManager.class).to(TestLicenseManager.class);
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+        bind(TestProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         mockHdsProductNotificationService = mock(HdsProductNotificationService.class);
         bind(HdsProductNotificationService.class).toInstance(mockHdsProductNotificationService);

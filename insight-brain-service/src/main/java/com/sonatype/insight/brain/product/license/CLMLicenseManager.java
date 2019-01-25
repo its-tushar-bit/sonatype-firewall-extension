@@ -546,25 +546,9 @@ public class CLMLicenseManager
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
 
-    Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
-    String[] enforcementPointIds = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS)
-        .split(",");
-    for (String enforcementPointId : enforcementPointIds) {
-      enforcementPointId = enforcementPointId.trim();
-      if ("Procure".equals(enforcementPointId)) {
-        // ignore, unsupported
-        continue;
-      }
-      try {
-        enforcementPoints.add(CLMEnforcementPoint.valueOf(enforcementPointId));
-      }
-      catch (IllegalArgumentException e) {
-        log.warn("License enables unknown enforcement point {}, ignored", enforcementPointId);
-      }
-    }
-
     Set<String> products = getProducts(key);
 
+    Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     Set<String> features = new LinkedHashSet<>();
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       features.add(FEATURE_POLICY_MONITORING);
@@ -574,6 +558,7 @@ public class CLMLicenseManager
       features.add(FEATURE_NOTIFICATIONS);
       features.add(FEATURE_POLICY_GRANDFATHERING);
       features.add(FEATURE_WEBHOOKS);
+      enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       features.add(FEATURE_QUALITY);
@@ -584,33 +569,36 @@ public class CLMLicenseManager
       features.add(FEATURE_NOTIFICATIONS);
       features.add(FEATURE_POLICY_GRANDFATHERING);
       features.add(FEATURE_WEBHOOKS);
+      enforcementPoints.add(CLMEnforcementPoint.Develop);
+      enforcementPoints.add(CLMEnforcementPoint.Build);
+      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
+      enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
       features.add(FEATURE_ENFORCEMENT);
       features.add(FEATURE_NOTIFICATIONS);
       features.add(FEATURE_POLICY_GRANDFATHERING);
       features.add(FEATURE_WEBHOOKS);
+      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
+      enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
       features.add(FEATURE_DASHBOARD);
       features.add(FEATURE_CLI_SCAN);
+      enforcementPoints.add(CLMEnforcementPoint.Build);
+      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
+      enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       features.add(FEATURE_REPOSITORY_FIREWALL);
+      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
+      enforcementPoints.add(CLMEnforcementPoint.Release);
     }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, version, applicationCount, products,
         features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime(), maxUsers,
         maxFirewallUsers, key.getContactName(), key.getContactCompany(), key.getContactEmailAddress());
     notifyListeners();
-  }
-
-  private String getPropertyNotNull(ProductLicenseKey key, String property) throws LicensingException {
-    String value = getProperty(key, property);
-    if (value == null) {
-      throw new LicensingException(key, "License lacks property " + property, null);
-    }
-    return value;
   }
 
   private String getProperty(ProductLicenseKey key, String property) {

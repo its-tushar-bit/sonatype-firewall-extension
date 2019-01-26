@@ -95,7 +95,7 @@ public class JiraPolicyAlertNotifier
                                 final Stage stage,
                                 final List<PolicyNotification> policyNotifications)
   {
-    if (!clmLicenseManager.hasNotifications(stage.getStageTypeId())) {
+    if (!clmLicenseManager.hasNotifications()) {
       log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}" +
           ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
       return;

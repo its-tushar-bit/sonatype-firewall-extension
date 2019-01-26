@@ -25,7 +25,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -247,15 +246,6 @@ public class CLMLicenseManager
    */
   public boolean hasNotifications() {
     return hasFeature(FEATURE_NOTIFICATIONS);
-  }
-
-  /**
-   * For lifecycle foundation notifications are turned off, except when hasFirewall and is proxy stage
-   *
-   * @since 1.59
-   */
-  public boolean hasNotifications(String stageTypeId) {
-    return hasNotifications() || (hasRepositoryFirewall() && Stage.ID_PROXY.equals(stageTypeId));
   }
 
   /**

@@ -254,7 +254,7 @@ public class JiraPolicyAlertNotifierTest
     final String projectKey = "projectKey";
     final Long issueTypeId = 1L;
 
-    Stage stage = new Stage(Stage.ID_PROXY, "PROXY");
+    Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);
@@ -272,7 +272,7 @@ public class JiraPolicyAlertNotifierTest
   }
 
   @Test
-  public void testSendNotifications_FoundationAndFirewall_NotProxy() throws Exception {
+  public void testSendNotifications_FoundationAndFirewall() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
@@ -296,43 +296,5 @@ public class JiraPolicyAlertNotifierTest
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any());
-  }
-
-  @Test
-  public void testSendNotifications_FoundationAndFirewall_Proxy() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
-
-    Application application = tempEntity.newApplicationWithParent("app");
-
-    final String projectKey = "projectKey";
-    final Long issueTypeId = 1L;
-
-    Stage stage = new Stage(Stage.ID_PROXY, "PROXY");
-    String scanId = "scan-id";
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application);
-    policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
-
-    List<PolicyViolation> policyViolations = new ArrayList<>();
-    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
-
-    jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
-
-    ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
-        .forClass(JiraIssueCreateRequest.class);
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(1)).createIssue(createRequestArgumentCaptor.capture());
-
-    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
-    assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
-    Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
-    assertThat(projectMeta).containsEntry("key", projectKey);
-    Map<String, Long> issueMeta = jiraIssueCreateRequest.getField(JiraField.ISSUETYPE);
-    assertThat(issueMeta).containsEntry("id", issueTypeId);
-    String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
-    assertThat(summary).isEqualTo("Nexus IQ: Application " + application.getName() + "; PROXY stage; 1 Policy alerts");
   }
 }

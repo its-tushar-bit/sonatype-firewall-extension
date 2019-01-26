@@ -249,7 +249,7 @@ public class PolicyAlertEmailerTest
     clmLicenseManager.installLicense(null);
 
     Application app = tempEntity.newApplicationWithParent("test");
-    Stage stage = new Stage(Stage.ID_PROXY);
+    Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
@@ -266,29 +266,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void testSendNotifications_FoundationWithFirewall_ProxyStage() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
-
-    Application app = tempEntity.newApplicationWithParent("test");
-    Stage stage = new Stage(Stage.ID_PROXY);
-    String scanId = "scan-id";
-    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(app);
-    String emailAddress1 = "test1@sonatype.com";
-    policy.getNotifications().add(new UserNotification(emailAddress1, Stage.ID_PROXY));
-    policyDAO.update(policy);
-    List<PolicyViolation> policyViolations = new ArrayList<>();
-    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
-
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    assertEmailAddresses(emailAddress1);
-  }
-
-  @Test
-  public void testSendNotifications_FoundationWithFirewall_NotProxyStage() throws Exception {
+  public void testSendNotifications_FoundationWithFirewall() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 

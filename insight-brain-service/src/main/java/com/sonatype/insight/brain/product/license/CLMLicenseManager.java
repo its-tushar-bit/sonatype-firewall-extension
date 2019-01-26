@@ -245,13 +245,6 @@ public class CLMLicenseManager
   /**
    * @since 1.59
    */
-  public boolean hasEnforcement(String stageTypeId) {
-    return hasEnforcement() || (hasRepositoryFirewall() && Stage.ID_PROXY.equals(stageTypeId));
-  }
-
-  /**
-   * @since 1.59
-   */
   public boolean hasNotifications() {
     return hasFeature(FEATURE_NOTIFICATIONS);
   }

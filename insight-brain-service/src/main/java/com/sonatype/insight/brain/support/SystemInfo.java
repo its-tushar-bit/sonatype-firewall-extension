@@ -36,7 +36,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
+import com.sonatype.insight.brain.product.license.LicenseSummary;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;

@@ -24,8 +24,6 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 

@@ -28,7 +28,7 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
+import com.sonatype.insight.brain.product.license.LicenseInfo;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;

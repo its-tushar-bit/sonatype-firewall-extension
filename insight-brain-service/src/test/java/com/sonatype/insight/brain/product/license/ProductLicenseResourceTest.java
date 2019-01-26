@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.product.license;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 

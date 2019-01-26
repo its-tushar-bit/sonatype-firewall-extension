@@ -12,8 +12,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
 

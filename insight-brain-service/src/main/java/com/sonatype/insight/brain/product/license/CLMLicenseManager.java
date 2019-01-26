@@ -420,19 +420,19 @@ public class CLMLicenseManager
 
   private String getProductEdition() {
     if (hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
-      return (PRODUCT_LIFECYCLE);
+      return PRODUCT_LIFECYCLE;
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
-      return (PRODUCT_LIFECYCLE_FOUNDATION);
+      return PRODUCT_LIFECYCLE_FOUNDATION;
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
-      return (PRODUCT_FIREWALL);
+      return PRODUCT_FIREWALL;
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
-      return (PRODUCT_PRO_PLUS);
+      return PRODUCT_PRO_PLUS;
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
-      return (PRODUCT_AUDITOR);
+      return PRODUCT_AUDITOR;
     }
 
     return "";
@@ -595,8 +595,8 @@ public class CLMLicenseManager
   }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String> emptySet(), new String[0],
-        Collections.<CLMEnforcementPoint> emptySet(), 0, 0, null, null, null, null);
+    licenseCache = new CachedLicenseData(null, 0, 0, Collections.emptySet(), new String[0], Collections.emptySet(), 0,
+        0, null, null, null, null);
     notifyListeners();
   }
 

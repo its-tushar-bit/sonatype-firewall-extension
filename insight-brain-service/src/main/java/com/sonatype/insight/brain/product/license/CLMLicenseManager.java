@@ -74,7 +74,6 @@ public class CLMLicenseManager
   public static final String PRODUCT_AUDITOR = "Auditor";
 
   private final class CachedLicenseData
-      extends ProductLicenseDetails
   {
     private final String fingerprint;
 
@@ -86,36 +85,41 @@ public class CLMLicenseManager
 
     private final String contactEmail;
 
-    public CachedLicenseData(final String fingerprint,
-                             final int version,
+    private final Set<String> products;
+
+    private final Set<String> features;
+
+    private final Set<CLMEnforcementPoint> enforcementPoints;
+
+    private final Integer applicationLimit;
+
+    private final Integer maxUsers;
+
+    private final Integer maxFirewallUsers;
+
+    public CachedLicenseData(String fingerprint,
+                             long expirationTimestamp,
+                             String contactName,
+                             String contactCompany,
+                             String contactEmail,
+                             Set<String> products,
+                             Set<String> features,
+                             Set<CLMEnforcementPoint> enforcementPoints,
                              Integer applicationLimit,
-                             final Set<String> products,
-                             final String[] features,
-                             final Set<CLMEnforcementPoint> enforcementPoints,
-                             final long expirationTimestamp,
-                             final Integer maxUsers,
-                             final Integer maxFirewallUsers,
-                             final String contactName,
-                             final String contactCompany,
-                             final String contactEmail)
+                             Integer maxUsers,
+                             Integer maxFirewallUsers)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
       this.contactName = contactName;
       this.contactCompany = contactCompany;
       this.contactEmail = contactEmail;
-
-      setVersion(version);
-      super.setApplicationLimit(applicationLimit);
-      super.setMaxFirewallUsers(maxFirewallUsers);
-      super.setMaxUsers(maxUsers);
-      super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[enforcementPoints.size()]));
-      super.setFeatures(features);
-      setProducts(products);
-    }
-
-    public String getFingerprint() {
-      return fingerprint;
+      this.products = products;
+      this.features = features;
+      this.enforcementPoints = enforcementPoints;
+      this.applicationLimit = applicationLimit;
+      this.maxUsers = maxUsers;
+      this.maxFirewallUsers = maxFirewallUsers;
     }
   }
 
@@ -193,14 +197,14 @@ public class CLMLicenseManager
    * Get a license fingerprint, if there is no license, null will be returned
    */
   public String getLicenseFingerprint() {
-    return licenseCache.getFingerprint();
+    return licenseCache.fingerprint;
   }
 
   /**
    * Get the application limit in the license, if no license, 0 will be returned
    */
   public Integer getApplicationCountLimit() {
-    return licenseCache.getApplicationLimit();
+    return licenseCache.applicationLimit;
   }
 
   public boolean hasPolicyMonitoring() {
@@ -276,24 +280,11 @@ public class CLMLicenseManager
   }
 
   private boolean hasFeature(String feature) {
-    String[] licensedFeatures = licenseCache.getFeatures();
-    if (licensedFeatures != null) {
-      for (String licensedFeature : licensedFeatures) {
-        if (licensedFeature.equals(feature)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return licenseCache.features.contains(feature);
   }
 
   public boolean hasProduct(String productId) {
-    Set<String> products = licenseCache.getProducts();
-    return products != null && products.contains(productId);
-  }
-
-  public boolean hasEnforcementPoint(CLMEnforcementPoint enforcementPoint) {
-    return getEnforcementPoints().contains(enforcementPoint);
+    return licenseCache.products.contains(productId);
   }
 
   /**
@@ -341,10 +332,6 @@ public class CLMLicenseManager
     throw new InvalidLicenseException();
   }
 
-  public Set<String> getProducts() {
-    return licenseCache.getProducts();
-  }
-
   /**
    * A function to map from product names stored in the license to product names suitable for
    * display to the end-user
@@ -375,10 +362,8 @@ public class CLMLicenseManager
     return "Nexus " + marketingNameSuffix;
   }
 
-  public Set<CLMEnforcementPoint> getEnforcementPoints() {
-    Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
-    Collections.addAll(enforcementPoints, licenseCache.getEnforcementPoints());
-    return enforcementPoints;
+  protected Set<CLMEnforcementPoint> getEnforcementPoints() {
+    return EnumSet.copyOf(licenseCache.enforcementPoints);
   }
 
   public LicenseSummary getLicenseSummary() {
@@ -386,7 +371,7 @@ public class CLMLicenseManager
   }
 
   public LicenseInfo getLicenseInfo() {
-    String[] products = licenseCache.getProducts().stream() //
+    String[] products = licenseCache.products.stream() //
         .map(CLMLicenseManager::getProductMarketingName) //
         .filter(Objects::nonNull) //
         .toArray(String[]::new);
@@ -398,22 +383,22 @@ public class CLMLicenseManager
 
     switch (productEdition) {
       case PRODUCT_AUDITOR:
-        applicationLimitToDisplay = licenseCache.getApplicationLimit();
+        applicationLimitToDisplay = licenseCache.applicationLimit;
         break;
       case PRODUCT_PRO_PLUS:
-        licensedUsersToDisplay = licenseCache.getMaxUsers();
+        licensedUsersToDisplay = licenseCache.maxUsers;
         break;
       case PRODUCT_LIFECYCLE:
         // no break
       case PRODUCT_LIFECYCLE_FOUNDATION:
-        licensedUsersToDisplay = licenseCache.getMaxUsers();
+        licensedUsersToDisplay = licenseCache.maxUsers;
         // no break
       case PRODUCT_FIREWALL:
-        firewallUsersToDisplay = licenseCache.getMaxFirewallUsers();
+        firewallUsersToDisplay = licenseCache.maxFirewallUsers;
         break;
     }
 
-    return new LicenseInfo(licenseCache.getFingerprint(), licenseCache.expirationTimestamp, licensedUsersToDisplay,
+    return new LicenseInfo(licenseCache.fingerprint, licenseCache.expirationTimestamp, licensedUsersToDisplay,
         firewallUsersToDisplay, applicationLimitToDisplay, licenseCache.contactName, licenseCache.contactCompany,
         licenseCache.contactEmail, products, productEdition);
   }
@@ -519,9 +504,9 @@ public class CLMLicenseManager
       enforcementPoints.add(CLMEnforcementPoint.Release);
     }
 
-    licenseCache = new CachedLicenseData(licenseFingerprint, version, applicationCount, products,
-        features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime(), maxUsers,
-        maxFirewallUsers, key.getContactName(), key.getContactCompany(), key.getContactEmailAddress());
+    licenseCache = new CachedLicenseData(licenseFingerprint, key.getExpirationDate().getTime(), key.getContactName(),
+        key.getContactCompany(), key.getContactEmailAddress(), products, features, enforcementPoints, applicationCount,
+        maxUsers, maxFirewallUsers);
     notifyListeners();
   }
 
@@ -531,10 +516,6 @@ public class CLMLicenseManager
 
   private int getVersion(ProductLicenseKey key) throws LicensingException {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_VERSION);
-    if (prop == null) {
-      // legacy license
-      return 0;
-    }
     try {
       return Integer.parseInt(prop);
     }
@@ -564,39 +545,27 @@ public class CLMLicenseManager
 
   private Integer getMaxUsers(ProductLicenseKey key) throws LicensingException {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_USERS);
-
-    if (prop != null) {
-      try {
-        return Integer.decode(prop);
-      }
-      catch (IllegalArgumentException e) {
-        throw new LicensingException("Invalid value for max users: " + prop, e);
-      }
+    try {
+      return prop != null ? Integer.decode(prop) : null;
     }
-    else {
-      return null;
+    catch (IllegalArgumentException e) {
+      throw new LicensingException("Invalid value for max users: " + prop, e);
     }
   }
 
   private Integer getMaxFirewallUsers(ProductLicenseKey key) throws LicensingException {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS);
-
-    if (prop != null) {
-      try {
-        return Integer.decode(prop);
-      }
-      catch (IllegalArgumentException e) {
-        throw new LicensingException("Invalid value for max firewall users: " + prop, e);
-      }
+    try {
+      return prop != null ? Integer.decode(prop) : null;
     }
-    else {
-      return null;
+    catch (IllegalArgumentException e) {
+      throw new LicensingException("Invalid value for max firewall users: " + prop, e);
     }
   }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, 0, Collections.emptySet(), new String[0], Collections.emptySet(), 0,
-        0, null, null, null, null);
+    licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(),
+        Collections.emptySet(), 0, 0, 0);
     notifyListeners();
   }
 

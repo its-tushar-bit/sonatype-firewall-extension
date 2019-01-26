@@ -417,7 +417,7 @@ public class SystemInfoTest
   @Test
   public void testGetProduceLicense() {
     final LicenseInfo licenseInfo = new LicenseInfo("fprint", -1, -2, -3, -4, "Contact Name",
-        "Contact Company", "contact@example.com", null, new String[]{"Pro+"}, "edition");
+        "Contact Company", "contact@example.com", new String[]{"Pro+"}, "edition");
 
     final String json = systemInfo.getProductLicense(licenseInfo);
     assertThat(json).isEqualTo("{" + lineSeparator +
@@ -430,7 +430,6 @@ public class SystemInfoTest
         "  \"contactName\" : \"Contact Name\"," + lineSeparator +
         "  \"contactCompany\" : \"Contact Company\"," + lineSeparator +
         "  \"contactEmail\" : \"contact@example.com\"," + lineSeparator +
-        "  \"features\" : null," + lineSeparator +
         "  \"products\" : [ \"Pro+\" ]" + lineSeparator +
         "}");
   }

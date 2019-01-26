@@ -157,8 +157,6 @@ public class CLMLicenseManager
 
     public String contactEmail;
 
-    public String[] features;
-
     public String[] products;
 
     public LicenseInfo() {
@@ -172,7 +170,6 @@ public class CLMLicenseManager
                        String contactName,
                        String contactCompany,
                        String contactEmail,
-                       String[] features,
                        String[] products,
                        String productEdition)
     {
@@ -186,7 +183,6 @@ public class CLMLicenseManager
       this.contactName = contactName;
       this.contactCompany = contactCompany;
       this.contactEmail = contactEmail;
-      this.features = features;
       this.products = products;
     }
   }
@@ -487,7 +483,7 @@ public class CLMLicenseManager
 
     return new LicenseInfo(licenseCache.getFingerprint(), licenseCache.expirationTimestamp, licensedUsersToDisplay,
         firewallUsersToDisplay, applicationLimitToDisplay, licenseCache.contactName, licenseCache.contactCompany,
-        licenseCache.contactEmail, licenseCache.getFeatures(), products, productEdition);
+        licenseCache.contactEmail, products, productEdition);
   }
 
   private String getProductEdition() {

@@ -216,12 +216,11 @@ public class CLMLicenseManager
    */
   public void validate() throws InvalidLicenseException {
     if (!isValid()) {
-      String msg = "Nexus IQ license has expired!";
+      String msg = "The product license has expired.";
       if (getLicenseFingerprint() == null) {
-        msg = "Nexus IQ is not licensed!";
+        msg = "No valid product license installed.";
       }
-      log.error(msg);
-      throw new InvalidLicenseException();
+      throw new InvalidLicenseException(msg);
     }
   }
 

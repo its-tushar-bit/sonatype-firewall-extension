@@ -12,8 +12,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -34,13 +34,13 @@ public class TestLicenseManager
   }
 
   @Override
-  public Set<CLMEnforcementPoint> getEnforcementPoints() {
-    // enforcement points are normally derived based on the products
+  public Set<Feature> getFeatures() {
+    // features are normally derived based on the products
     // for precise testing, we allow them to be manually overridden to a specific set
-    Set<CLMEnforcementPoint> enforcementPoints = licenseManager.getEnforcementPoints();
-    if (enforcementPoints != null) {
-      return enforcementPoints;
+    Set<Feature> features = licenseManager.getFeatures();
+    if (features != null) {
+      return features;
     }
-    return super.getEnforcementPoints();
+    return super.getFeatures();
   }
 }

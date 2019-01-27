@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -46,14 +47,13 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
 @Path(IdeResource.RESOURCE_PATH)
-@ProductLicenseEnforcementPoint(CLMEnforcementPoint.Develop)
+@ProductLicenseEnforcementPoint(Feature.IDE_INTEGRATION)
 public class IdeResource
 {
   public static final String RESOURCE_PATH = "rest/ide";

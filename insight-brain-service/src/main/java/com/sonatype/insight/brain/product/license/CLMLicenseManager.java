@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.features.Feature;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.licensing.LicensingException;
@@ -71,8 +70,6 @@ public class CLMLicenseManager
 
     private final Set<Feature> features;
 
-    private final Set<CLMEnforcementPoint> enforcementPoints;
-
     private final Integer applicationLimit;
 
     private final Integer maxUsers;
@@ -86,7 +83,6 @@ public class CLMLicenseManager
                              String contactEmail,
                              Set<String> products,
                              Set<Feature> features,
-                             Set<CLMEnforcementPoint> enforcementPoints,
                              Integer applicationLimit,
                              Integer maxUsers,
                              Integer maxFirewallUsers)
@@ -98,7 +94,6 @@ public class CLMLicenseManager
       this.contactEmail = contactEmail;
       this.products = products;
       this.features = features;
-      this.enforcementPoints = enforcementPoints;
       this.applicationLimit = applicationLimit;
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
@@ -194,7 +189,7 @@ public class CLMLicenseManager
   }
 
   public boolean hasFeature(Feature feature) {
-    return licenseCache.features.contains(feature);
+    return getFeatures().contains(feature);
   }
 
   public Set<Feature> getFeatures() {
@@ -230,24 +225,10 @@ public class CLMLicenseManager
     }
   }
 
-  /**
-   * Validates that the license is installed and contains any of the requested enforcement points.
-   *
-   * @throws InvalidLicenseException If none of the enforcement points is licensed.
-   */
-  public void validateAnyEnforcementPoint(Set<CLMEnforcementPoint> enforcementPoints) {
-    if (enforcementPoints.isEmpty()) {
-      return;
+  public void validateFeature(Feature feature) {
+    if (!hasFeature(feature)) {
+      throw new InvalidLicenseException();
     }
-
-    Set<CLMEnforcementPoint> licensed = getEnforcementPoints();
-    for (CLMEnforcementPoint requested : enforcementPoints) {
-      if (licensed.contains(requested)) {
-        return;
-      }
-    }
-
-    throw new InvalidLicenseException();
   }
 
   /**
@@ -278,10 +259,6 @@ public class CLMLicenseManager
     }
 
     return "Nexus " + marketingNameSuffix;
-  }
-
-  protected Set<CLMEnforcementPoint> getEnforcementPoints() {
-    return EnumSet.copyOf(licenseCache.enforcementPoints);
   }
 
   public LicenseSummary getLicenseSummary() {
@@ -375,7 +352,6 @@ public class CLMLicenseManager
 
     Set<String> products = getProducts(key);
 
-    Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     Set<Feature> features = EnumSet.noneOf(Feature.class);
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       features.add(Feature.POLICY_MONITORING);
@@ -385,7 +361,7 @@ public class CLMLicenseManager
       features.add(Feature.NOTIFICATIONS);
       features.add(Feature.POLICY_GRANDFATHERING);
       features.add(Feature.WEBHOOKS);
-      enforcementPoints.add(CLMEnforcementPoint.Release);
+      features.add(Feature.RM_STAGING_INTEGRATION);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       features.add(Feature.QUALITY);
@@ -396,35 +372,31 @@ public class CLMLicenseManager
       features.add(Feature.NOTIFICATIONS);
       features.add(Feature.POLICY_GRANDFATHERING);
       features.add(Feature.WEBHOOKS);
-      enforcementPoints.add(CLMEnforcementPoint.Develop);
-      enforcementPoints.add(CLMEnforcementPoint.Build);
-      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
-      enforcementPoints.add(CLMEnforcementPoint.Release);
+      features.add(Feature.IDE_INTEGRATION);
+      features.add(Feature.CI_INTEGRATION);
+      features.add(Feature.RM_STAGING_INTEGRATION);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
       features.add(Feature.ENFORCEMENT);
       features.add(Feature.NOTIFICATIONS);
       features.add(Feature.POLICY_GRANDFATHERING);
       features.add(Feature.WEBHOOKS);
-      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
-      enforcementPoints.add(CLMEnforcementPoint.Release);
+      features.add(Feature.RM_STAGING_INTEGRATION);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
       features.add(Feature.DASHBOARD);
       features.add(Feature.CLI_INTEGRATION);
-      enforcementPoints.add(CLMEnforcementPoint.Build);
-      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
-      enforcementPoints.add(CLMEnforcementPoint.Release);
+      features.add(Feature.CI_INTEGRATION);
+      features.add(Feature.RM_STAGING_INTEGRATION);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       features.add(Feature.FIREWALL);
-      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
-      enforcementPoints.add(CLMEnforcementPoint.Release);
+      features.add(Feature.RM_STAGING_INTEGRATION);
     }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, key.getExpirationDate().getTime(), key.getContactName(),
-        key.getContactCompany(), key.getContactEmailAddress(), products, features, enforcementPoints, applicationCount,
-        maxUsers, maxFirewallUsers);
+        key.getContactCompany(), key.getContactEmailAddress(), products, features, applicationCount, maxUsers,
+        maxFirewallUsers);
     notifyListeners();
   }
 
@@ -482,8 +454,8 @@ public class CLMLicenseManager
   }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(),
-        Collections.emptySet(), 0, 0, 0);
+    licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(), 0,
+        0, 0);
     notifyListeners();
   }
 

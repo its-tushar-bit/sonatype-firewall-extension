@@ -73,12 +73,12 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   @Before
-  public void clearEnforcementPointsFromLicense() throws Exception {
+  public void before() throws Exception {
     /*
      * License restrictions on enforcement points are checked when uploading scan data, report data retrieval is
-     * permitted with any valid license, so these tests should not require any enforcement point in the license.
+     * permitted with any valid license, so these tests should not require any special feature in the license.
      */
-    setEnforcementPoints();
+    setFeatures();
 
     application = tempEntity.newApplicationWithParent("AbstractComponentInfoResourceTest");
   }

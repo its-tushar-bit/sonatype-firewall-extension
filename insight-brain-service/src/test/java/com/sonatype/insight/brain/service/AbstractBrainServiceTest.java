@@ -18,6 +18,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -40,7 +42,6 @@ import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.Authentication;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -334,8 +335,13 @@ public abstract class AbstractBrainServiceTest
     assertThat(licenseManager.isValid()).isFalse();
   }
 
-  protected void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) throws Exception {
-    licenseManager.setEnforcementPoints(enforcementPoints);
+  protected void setFeatures(Feature... features) throws Exception {
+    licenseManager.setFeatures(features);
+    installLicense();
+  }
+
+  protected void setMissingFeature(Feature feature) throws Exception {
+    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new Feature[0]));
     installLicense();
   }
 

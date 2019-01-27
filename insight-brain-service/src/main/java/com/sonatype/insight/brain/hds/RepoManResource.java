@@ -18,15 +18,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Path(RepoManResource.RESOURCE_PATH)
-@ProductLicenseEnforcementPoint({ CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release })
+@ProductLicenseEnforcementPoint(Feature.RM_STAGING_INTEGRATION)
 @Named
 @Timed
 public class RepoManResource

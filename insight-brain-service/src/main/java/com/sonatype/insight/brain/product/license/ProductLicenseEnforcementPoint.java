@@ -11,12 +11,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.brain.features.Feature;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Inherited
 public @interface ProductLicenseEnforcementPoint
 {
-  CLMEnforcementPoint[] value();
+  Feature value();
 }

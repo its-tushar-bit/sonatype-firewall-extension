@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.product.license;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,9 +18,9 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +42,12 @@ public class LicenseAwareContainerDynamicFeature
   private class Filter
       implements ContainerRequestFilter
   {
-    private final Set<CLMEnforcementPoint> enforcementPoints;
-
     private final Logger log = LoggerFactory.getLogger(Filter.class);
 
-    public Filter(Set<CLMEnforcementPoint> enforcementPoints) {
-      this.enforcementPoints = enforcementPoints;
+    private final Feature feature;
+
+    public Filter(Feature feature) {
+      this.feature = feature;
     }
 
     @Override
@@ -59,7 +56,9 @@ public class LicenseAwareContainerDynamicFeature
 
       try {
         licenseManager.validate();
-        licenseManager.validateAnyEnforcementPoint(enforcementPoints);
+        if (feature != null) {
+          licenseManager.validateFeature(feature);
+        }
       }
       catch (InvalidLicenseException e) {
         log.error(e.getMessage(), e);
@@ -92,23 +91,12 @@ public class LicenseAwareContainerDynamicFeature
       return;
     }
 
-    Set<CLMEnforcementPoint> enforcementPoints = new HashSet<>();
-
     ProductLicenseEnforcementPoint ep = resourceMethod.getAnnotation(ProductLicenseEnforcementPoint.class);
-
-    if (ep != null) {
-      enforcementPoints.addAll(Arrays.asList(ep.value()));
-    }
-
-    // method level enforcement annos will override whatever is in the resource, so dont check unless necessary
-    if (enforcementPoints.isEmpty()) {
+    if (ep == null) {
+      // method level enforcement annos will override whatever is in the resource, so don't check unless necessary
       ep = resourceClass.getAnnotation(ProductLicenseEnforcementPoint.class);
-
-      if (ep != null) {
-        enforcementPoints.addAll(Arrays.asList(ep.value()));
-      }
     }
 
-    featureContext.register(new Filter(enforcementPoints));
+    featureContext.register(new Filter(ep != null ? ep.value() : null));
   }
 }

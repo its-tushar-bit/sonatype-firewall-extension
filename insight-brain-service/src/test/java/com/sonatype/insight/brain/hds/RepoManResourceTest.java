@@ -5,18 +5,17 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.EnumSet;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
 import com.sonatype.insight.brain.telemetry.PendoCache;
 import com.sonatype.insight.brain.telemetry.PendoService;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
 
 import org.junit.Test;
 
@@ -63,21 +62,11 @@ public class RepoManResourceTest
   }
 
   @Test
-  public void testUploadScan_EnforcementPointUnlicensed() throws Exception {
-    // note these enforcement points should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop);
+  public void testUploadScan_FeatureUnlicensed() throws Exception {
+    setMissingFeature(Feature.RM_STAGING_INTEGRATION);
 
     HttpResponse response = scanRequest("unlicensedappid").put();
     assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testUploadScan_EnforcementPointLicensed() throws Exception {
-    for (CLMEnforcementPoint ep : EnumSet.of(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release)) {
-      setEnforcementPoints(ep);
-      HttpResponse response = scanRequest("unknownappid").put();
-      assertResponseStatus(404, response);
-    }
   }
 
   @Test

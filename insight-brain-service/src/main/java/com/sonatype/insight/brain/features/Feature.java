@@ -18,6 +18,8 @@ public enum Feature
 {
   ALLOW_EXTERNAL_HYPERLINKS,
 
+  CI_INTEGRATION,
+
   CLI_INTEGRATION,
 
   DASHBOARD,
@@ -25,6 +27,8 @@ public enum Feature
   ENFORCEMENT,
 
   FIREWALL,
+
+  IDE_INTEGRATION,
 
   LABELS,
 
@@ -43,6 +47,8 @@ public enum Feature
   REEVALUATE_POLICY,
 
   RELEASE_GRAPH,
+
+  RM_STAGING_INTEGRATION,
 
   ROOT_ORG,
 

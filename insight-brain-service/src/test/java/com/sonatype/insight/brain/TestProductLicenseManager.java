@@ -18,12 +18,11 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.CLMFeature;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.licensing.LicensingException;
-import org.sonatype.licensing.feature.Feature;
 import org.sonatype.licensing.feature.Features;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -67,12 +66,14 @@ public class TestProductLicenseManager
   }
 
   @Override
-  public void verifyFeature(ProductLicenseKey key, Feature feature) throws LicensingException {
+  public void verifyFeature(ProductLicenseKey key, org.sonatype.licensing.feature.Feature feature)
+      throws LicensingException
+  {
     mockProductLicenseManager.verifyFeature(key, feature);
   }
 
   @Override
-  public void verifyLicenseAndFeature(Feature feature) throws LicensingException {
+  public void verifyLicenseAndFeature(org.sonatype.licensing.feature.Feature feature) throws LicensingException {
     mockProductLicenseManager.verifyLicenseAndFeature(feature);
   }
 
@@ -104,13 +105,13 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setMaxFirewallUsers(maxFirewallUsers);
   }
 
-  public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
+  public void setFeatures(Feature... features) {
     wasChanged = true;
-    mockProductLicenseManager.setEnforcementPoints(enforcementPoints);
+    mockProductLicenseManager.setFeatures(features);
   }
 
-  public Set<CLMEnforcementPoint> getEnforcementPoints() {
-    return mockProductLicenseManager.enforcementPoints;
+  public Set<Feature> getFeatures() {
+    return mockProductLicenseManager.features;
   }
 
   public Date getExpirationDate() {
@@ -165,7 +166,7 @@ public class TestProductLicenseManager
     private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
         ProductLicenseDetails.PRODUCT_FIREWALL };
 
-    private Set<CLMEnforcementPoint> enforcementPoints;
+    private Set<Feature> features;
 
     private Map<String, String> properties = new HashMap<>();
 
@@ -194,7 +195,7 @@ public class TestProductLicenseManager
     }
 
     private void createKey() {
-      Map<String, Feature> featureMap = new HashMap<>();
+      Map<String, org.sonatype.licensing.feature.Feature> featureMap = new HashMap<>();
       featureMap.put(CLMFeature.ID, new CLMFeature());
       Properties properties = new Properties();
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
@@ -246,12 +247,15 @@ public class TestProductLicenseManager
     }
 
     @Override
-    public void verifyLicenseAndFeature(final Feature feature) throws LicensingException {
-      // TODO
+    public void verifyLicenseAndFeature(final org.sonatype.licensing.feature.Feature feature)
+        throws LicensingException
+    {
     }
 
     @Override
-    public void verifyFeature(final ProductLicenseKey key, final Feature feature) throws LicensingException {
+    public void verifyFeature(final ProductLicenseKey key, final org.sonatype.licensing.feature.Feature feature)
+        throws LicensingException
+    {
       if (forceVerificationFailure) {
         throw new LicensingException("License does not permit use of feature '" + feature.getId() + "'");
       }
@@ -261,12 +265,12 @@ public class TestProductLicenseManager
       return valid;
     }
 
-    public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
+    public void setFeatures(Feature... features) {
       if (valid) {
-        this.enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
+        this.features = EnumSet.noneOf(Feature.class);
 
-        for (CLMEnforcementPoint enforcementPoint : enforcementPoints) {
-          this.enforcementPoints.add(enforcementPoint);
+        for (Feature feature : features) {
+          this.features.add(feature);
         }
 
         createKey();

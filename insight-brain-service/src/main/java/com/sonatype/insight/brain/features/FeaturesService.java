@@ -75,32 +75,6 @@ public class FeaturesService
   }
 
   private void addLicenseSpecificFeatures(Set<Feature> features) {
-    if (licenseManager.hasPolicyMonitoring()) {
-      features.add(Feature.POLICY_MONITORING);
-    }
-
-    if (licenseManager.hasDashboard()) {
-      features.add(Feature.DASHBOARD);
-    }
-    
-    if (licenseManager.hasRepositoryFirewall()) {
-      features.add(Feature.FIREWALL);
-    }
-
-    if (licenseManager.hasEnforcement()) {
-      features.add(Feature.ENFORCEMENT);
-    }
-
-    if (licenseManager.hasNotifications()) {
-      features.add(Feature.NOTIFICATIONS);
-    }
-
-    if (licenseManager.hasPolicyGrandfathering()) {
-      features.add(Feature.POLICY_GRANDFATHERING);
-    }
-
-    if (licenseManager.hasWebhooks()) {
-      features.add(Feature.WEBHOOKS);
-    }
+    features.addAll(licenseManager.getFeatures());
   }
 }

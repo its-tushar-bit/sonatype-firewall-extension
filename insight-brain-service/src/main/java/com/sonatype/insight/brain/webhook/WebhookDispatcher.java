@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -277,7 +278,7 @@ public class WebhookDispatcher
 
   @Override
   public void start() {
-    if (!clmLicenseManager.hasWebhooks()) {
+    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
       log.debug("Webhooks dispatcher not supported by license.");
       return;
     }
@@ -291,7 +292,7 @@ public class WebhookDispatcher
 
   @Override
   public void licenseChanged() {
-    if (clmLicenseManager.hasWebhooks()) {
+    if (clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
       log.debug("Webhooks dispatcher supported by license.");
       start();
     } else {

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -44,24 +45,6 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class CLMLicenseManager
 {
-  private static final String FEATURE_POLICY_MONITORING = "PolicyMonitoring";
-
-  private static final String FEATURE_DASHBOARD = "DASHBOARD";
-
-  private static final String FEATURE_CLI_SCAN = "CLI_SCAN";
-
-  private static final String FEATURE_QUALITY = "QUALITY";
-
-  private static final String FEATURE_REPOSITORY_FIREWALL = "REPOSITORY_FIREWALL";
-
-  private static final String FEATURE_ENFORCEMENT = "ENFORCEMENT";
-
-  private static final String FEATURE_NOTIFICATIONS = "NOTIFICATIONS";
-
-  private static final String FEATURE_POLICY_GRANDFATHERING = "POLICY_GRANDFATHERING";
-
-  private static final String FEATURE_WEBHOOKS = "WEBHOOKS";
-
   public static final String PRODUCT_PRO_PLUS = "Pro+";
 
   public static final String PRODUCT_LIFECYCLE = "Lifecycle";
@@ -86,7 +69,7 @@ public class CLMLicenseManager
 
     private final Set<String> products;
 
-    private final Set<String> features;
+    private final Set<Feature> features;
 
     private final Set<CLMEnforcementPoint> enforcementPoints;
 
@@ -102,7 +85,7 @@ public class CLMLicenseManager
                              String contactCompany,
                              String contactEmail,
                              Set<String> products,
-                             Set<String> features,
+                             Set<Feature> features,
                              Set<CLMEnforcementPoint> enforcementPoints,
                              Integer applicationLimit,
                              Integer maxUsers,
@@ -206,64 +189,16 @@ public class CLMLicenseManager
     return licenseCache.applicationLimit;
   }
 
-  public boolean hasPolicyMonitoring() {
-    return hasFeature(FEATURE_POLICY_MONITORING);
-  }
-
-  public boolean hasDashboard() {
-    return hasFeature(FEATURE_DASHBOARD);
-  }
-
-  public boolean hasCLIScanning() {
-    return hasFeature(FEATURE_CLI_SCAN);
-  }
-
-  /**
-   * Checks to see if the license enables the quality feature
-   *
-   * @since 1.11.0
-   */
-  public boolean hasQuality() {
-    return hasFeature(FEATURE_QUALITY);
-  }
-
-  /**
-   * @since 1.17
-   */
-  public boolean hasRepositoryFirewall() {
-    return hasFeature(FEATURE_REPOSITORY_FIREWALL);
-  }
-
-  /**
-   * @since 1.59
-   */
   public boolean hasEnforcement() {
-    return hasFeature(FEATURE_ENFORCEMENT);
+    return hasFeature(Feature.ENFORCEMENT);
   }
 
-  /**
-   * @since 1.59
-   */
-  public boolean hasNotifications() {
-    return hasFeature(FEATURE_NOTIFICATIONS);
-  }
-
-  /**
-   * @since 1.59
-   */
-  public boolean hasPolicyGrandfathering() {
-    return hasFeature(FEATURE_POLICY_GRANDFATHERING);
-  }
-
-  /**
-   * @since 1.59
-   */
-  public boolean hasWebhooks() {
-    return hasFeature(FEATURE_WEBHOOKS);
-  }
-
-  private boolean hasFeature(String feature) {
+  public boolean hasFeature(Feature feature) {
     return licenseCache.features.contains(feature);
+  }
+
+  public Set<Feature> getFeatures() {
+    return EnumSet.copyOf(licenseCache.features);
   }
 
   public boolean hasProduct(String productId) {
@@ -441,48 +376,48 @@ public class CLMLicenseManager
     Set<String> products = getProducts(key);
 
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
-    Set<String> features = new LinkedHashSet<>();
+    Set<Feature> features = EnumSet.noneOf(Feature.class);
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
-      features.add(FEATURE_POLICY_MONITORING);
-      features.add(FEATURE_DASHBOARD);
-      features.add(FEATURE_CLI_SCAN);
-      features.add(FEATURE_ENFORCEMENT);
-      features.add(FEATURE_NOTIFICATIONS);
-      features.add(FEATURE_POLICY_GRANDFATHERING);
-      features.add(FEATURE_WEBHOOKS);
+      features.add(Feature.POLICY_MONITORING);
+      features.add(Feature.DASHBOARD);
+      features.add(Feature.CLI_INTEGRATION);
+      features.add(Feature.ENFORCEMENT);
+      features.add(Feature.NOTIFICATIONS);
+      features.add(Feature.POLICY_GRANDFATHERING);
+      features.add(Feature.WEBHOOKS);
       enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
-      features.add(FEATURE_QUALITY);
-      features.add(FEATURE_POLICY_MONITORING);
-      features.add(FEATURE_DASHBOARD);
-      features.add(FEATURE_CLI_SCAN);
-      features.add(FEATURE_ENFORCEMENT);
-      features.add(FEATURE_NOTIFICATIONS);
-      features.add(FEATURE_POLICY_GRANDFATHERING);
-      features.add(FEATURE_WEBHOOKS);
+      features.add(Feature.QUALITY);
+      features.add(Feature.POLICY_MONITORING);
+      features.add(Feature.DASHBOARD);
+      features.add(Feature.CLI_INTEGRATION);
+      features.add(Feature.ENFORCEMENT);
+      features.add(Feature.NOTIFICATIONS);
+      features.add(Feature.POLICY_GRANDFATHERING);
+      features.add(Feature.WEBHOOKS);
       enforcementPoints.add(CLMEnforcementPoint.Develop);
       enforcementPoints.add(CLMEnforcementPoint.Build);
       enforcementPoints.add(CLMEnforcementPoint.StageRelease);
       enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
-      features.add(FEATURE_ENFORCEMENT);
-      features.add(FEATURE_NOTIFICATIONS);
-      features.add(FEATURE_POLICY_GRANDFATHERING);
-      features.add(FEATURE_WEBHOOKS);
+      features.add(Feature.ENFORCEMENT);
+      features.add(Feature.NOTIFICATIONS);
+      features.add(Feature.POLICY_GRANDFATHERING);
+      features.add(Feature.WEBHOOKS);
       enforcementPoints.add(CLMEnforcementPoint.StageRelease);
       enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
-      features.add(FEATURE_DASHBOARD);
-      features.add(FEATURE_CLI_SCAN);
+      features.add(Feature.DASHBOARD);
+      features.add(Feature.CLI_INTEGRATION);
       enforcementPoints.add(CLMEnforcementPoint.Build);
       enforcementPoints.add(CLMEnforcementPoint.StageRelease);
       enforcementPoints.add(CLMEnforcementPoint.Release);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
-      features.add(FEATURE_REPOSITORY_FIREWALL);
+      features.add(Feature.FIREWALL);
       enforcementPoints.add(CLMEnforcementPoint.StageRelease);
       enforcementPoints.add(CLMEnforcementPoint.Release);
     }

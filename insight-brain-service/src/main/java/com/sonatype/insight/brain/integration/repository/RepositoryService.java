@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -108,7 +109,7 @@ public class RepositoryService
   }
 
   private void checkLicenseFeature() {
-    if (!licenseManager.hasRepositoryFirewall()) {
+    if (!licenseManager.hasFeature(Feature.FIREWALL)) {
       throw new InvalidLicenseException();
     }
   }

@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.security.SystemRunnable;
@@ -66,7 +67,7 @@ public class PolicyMonitorScheduler
       @Override
       public void run() {
         policyMonitor.run();
-        if (licenseManager.hasPolicyMonitoring()) {
+        if (licenseManager.hasFeature(Feature.POLICY_MONITORING)) {
           log.info("Next Policy Monitor execution scheduled for {}", determineNextExecutionTime());
         }
       }
@@ -101,7 +102,7 @@ public class PolicyMonitorScheduler
 
   @Override
   public void licenseChanged() {
-    if (licenseManager.hasPolicyMonitoring()) {
+    if (licenseManager.hasFeature(Feature.POLICY_MONITORING)) {
       startMonitoring();
     }
     else {
@@ -111,7 +112,7 @@ public class PolicyMonitorScheduler
 
   @Override
   public void start() {
-    if (licenseManager.hasPolicyMonitoring()) {
+    if (licenseManager.hasFeature(Feature.POLICY_MONITORING)) {
       startMonitoring();
     }
   }

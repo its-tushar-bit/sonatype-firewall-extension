@@ -20,6 +20,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -42,7 +43,7 @@ public class DashboardUtils
   }
 
   void validateDashboardLicensed() {
-    if (!licenseManager.hasDashboard()) {
+    if (!licenseManager.hasFeature(Feature.DASHBOARD)) {
       throw new InvalidLicenseException();
     }
   }

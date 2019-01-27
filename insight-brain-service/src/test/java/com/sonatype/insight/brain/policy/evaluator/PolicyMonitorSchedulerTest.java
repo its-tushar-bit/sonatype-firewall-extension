@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -61,14 +62,14 @@ public class PolicyMonitorSchedulerTest
 
   @Test
   public void testStartServer_PolicyMonitoringUnlicensed() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(false);
     scheduler.start();
     verifyZeroInteractions(executor);
   }
 
   @Test
   public void testStartServer_PolicyMonitoringLicensed() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(true);
     scheduler.start();
     verify(executor).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
         eq(TimeUnit.MILLISECONDS));
@@ -76,7 +77,7 @@ public class PolicyMonitorSchedulerTest
 
   @Test
   public void testStopServer() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(true);
     scheduler.start();
     scheduler.stop();
     verify(executor).shutdown();
@@ -84,9 +85,9 @@ public class PolicyMonitorSchedulerTest
 
   @Test
   public void testLicenseChanged_MonitoringWasAdded() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(false);
     scheduler.start();
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(true);
     scheduler.licenseChanged();
     verify(executor).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
         eq(TimeUnit.MILLISECONDS));
@@ -94,16 +95,16 @@ public class PolicyMonitorSchedulerTest
 
   @Test
   public void testLicenseChanged_MonitoringWasRemoved() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(true);
     scheduler.start();
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(false);
     scheduler.licenseChanged();
     verify(executor).shutdown();
   }
 
   @Test
   public void testLicenseChanged_MonitoringStillAvailable() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(true);
     scheduler.start();
     reset(executor);
     scheduler.licenseChanged();
@@ -112,7 +113,7 @@ public class PolicyMonitorSchedulerTest
 
   @Test
   public void testLicenseChanged_MonitoringStillUnavailable() {
-    when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
+    when(licenseManager.hasFeature(Feature.POLICY_MONITORING)).thenReturn(false);
     scheduler.start();
     reset(executor);
     scheduler.licenseChanged();

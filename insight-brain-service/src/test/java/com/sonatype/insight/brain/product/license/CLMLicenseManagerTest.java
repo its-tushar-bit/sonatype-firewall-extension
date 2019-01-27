@@ -10,13 +10,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -80,23 +79,23 @@ public class CLMLicenseManagerTest
   public void testLicenseCache() throws Exception {
     assertThat(clmLicenseManager.isValid()).isTrue();
     assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-    assertThat(clmLicenseManager.hasQuality()).isTrue();
+    assertThat(clmLicenseManager.hasFeature(Feature.POLICY_MONITORING)).isTrue();
+    assertThat(clmLicenseManager.hasFeature(Feature.DASHBOARD)).isTrue();
+    assertThat(clmLicenseManager.hasFeature(Feature.QUALITY)).isTrue();
 
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
     assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
     licenseManager.setProducts("");
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-    assertThat(clmLicenseManager.hasQuality()).isTrue();
+    assertThat(clmLicenseManager.hasFeature(Feature.POLICY_MONITORING)).isTrue();
+    assertThat(clmLicenseManager.hasFeature(Feature.DASHBOARD)).isTrue();
+    assertThat(clmLicenseManager.hasFeature(Feature.QUALITY)).isTrue();
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
     assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(10);
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
+    assertThat(clmLicenseManager.hasFeature(Feature.POLICY_MONITORING)).isFalse();
   }
 
   @Test
@@ -148,103 +147,43 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasFeatures_NexusProPlusLicense() throws Exception {
+  public void testGetFeatures_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-    assertThat(clmLicenseManager.hasCLIScanning()).isFalse();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
-    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
-    assertThat(clmLicenseManager.hasNotifications()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
-    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.ENFORCEMENT, Feature.NOTIFICATIONS,
+        Feature.POLICY_GRANDFATHERING, Feature.WEBHOOKS);
   }
 
   @Test
-  public void testHasFeatures_NexusAuditorLicense() throws Exception {
+  public void testGetFeatures_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
-    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
-    assertThat(clmLicenseManager.hasNotifications()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
-    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.DASHBOARD, Feature.POLICY_MONITORING,
+        Feature.CLI_INTEGRATION, Feature.ENFORCEMENT, Feature.NOTIFICATIONS, Feature.POLICY_GRANDFATHERING,
+        Feature.WEBHOOKS);
   }
 
   @Test
-  public void testHasFeatures_NexusLifecycleLicense() throws Exception {
+  public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isTrue();
-    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
-    assertThat(clmLicenseManager.hasQuality()).isTrue();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
-    assertThat(clmLicenseManager.hasEnforcement()).isTrue();
-    assertThat(clmLicenseManager.hasNotifications()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isTrue();
-    assertThat(clmLicenseManager.hasWebhooks()).isTrue();
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.DASHBOARD, Feature.POLICY_MONITORING,
+        Feature.CLI_INTEGRATION, Feature.QUALITY, Feature.ENFORCEMENT, Feature.NOTIFICATIONS,
+        Feature.POLICY_GRANDFATHERING, Feature.WEBHOOKS);
   }
 
   @Test
-  public void testHasQuality_NoNexusLifecycle() throws Exception {
-    Set<String> productSet = new HashSet<>(ProductLicenseDetails.PRODUCTS);
-    productSet.remove(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    String[] products = productSet.toArray(new String[ProductLicenseDetails.PRODUCTS.size()]);
-    licenseManager.setProducts(products);
-    installLicense();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-  }
-
-  @Test
-  public void testHasFeatures_NexusFirewallLicense() throws Exception {
+  public void testGetFeatures_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
-    assertThat(clmLicenseManager.hasDashboard()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-    assertThat(clmLicenseManager.hasCLIScanning()).isFalse();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
-    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
-    assertThat(clmLicenseManager.hasNotifications()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
-    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.FIREWALL);
   }
 
   @Test
-  public void testHasFeatures_FoundationLicense() throws Exception {
+  public void testGetFeatures_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isFalse();
-    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
-    assertThat(clmLicenseManager.hasNotifications()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
-    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
-  }
-
-  @Test
-  public void testHasFeatures_FoundationLicenseWithFirewall() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
-    assertThat(clmLicenseManager.hasDashboard()).isTrue();
-    assertThat(clmLicenseManager.hasPolicyMonitoring()).isFalse();
-    assertThat(clmLicenseManager.hasCLIScanning()).isTrue();
-    assertThat(clmLicenseManager.hasQuality()).isFalse();
-    assertThat(clmLicenseManager.hasRepositoryFirewall()).isTrue();
-    assertThat(clmLicenseManager.hasEnforcement()).isFalse();
-    assertThat(clmLicenseManager.hasNotifications()).isFalse();
-    assertThat(clmLicenseManager.hasPolicyGrandfathering()).isFalse();
-    assertThat(clmLicenseManager.hasWebhooks()).isFalse();
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.DASHBOARD, Feature.CLI_INTEGRATION);
   }
 
   @Test

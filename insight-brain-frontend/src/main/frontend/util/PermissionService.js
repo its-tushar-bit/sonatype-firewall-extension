@@ -56,7 +56,7 @@ module.directive('authorizationWrapper', function () {
     replace: true,
     template: '<div>' +
                  '<div ng-if="authed" ng-transclude></div>' +
-                 '<div ng-if="!authed" class="container">' +
+                 '<div ng-if="!authed">' +
                    '<div class="iq-alert iq-alert--error">' +
                      '<strong>Error</strong> It appears you do not have permission to access this page.  If you ' +
                      'believe this to be incorrect please contact your administrator.' +

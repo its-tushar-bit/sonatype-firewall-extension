@@ -195,15 +195,20 @@ form.form-horizontal .control-label {
   font-size: 14px;
 }
 
-#add-proprietary-matchers-modal .alert-info {
+#path-matchers .checkbox {
+  display: block;
+  padding-left: 40px;
+}
+
+#add-proprietary-matchers-modal .iq-alert--info {
   margin-bottom: 8px;
 }
 
-#add-proprietary-matchers-modal .alert-info i.clm-icon-info {
+#add-proprietary-matchers-modal .iq-alert--info i.clm-icon-info {
   float: left;
 }
 
-#add-proprietary-matchers-modal .alert-info i + div {
+#add-proprietary-matchers-modal .iq-alert--info i + div {
   margin-left: 25px;
 }
 
@@ -212,11 +217,7 @@ form.form-horizontal .control-label {
   overflow: auto;
 }
 
-#regex-matcher {
-  width: 524px;
-}
-
-#add-proprietary-matchers-modal .alert-info i.clm-icon-external-link {
+#add-proprietary-matchers-modal .iq-alert--info i.clm-icon-external-link {
   margin-left: 2px;
 }
 

@@ -3,7 +3,7 @@ i.clm-icon-proprietary-component-20px {
   width: 24px;
   height: 20px;
   vertical-align: text-top;
-  background: url(img/icon-proprietary_component_20px.png) no-repeat;
+  background: url(../cip/img/icon-proprietary_component_20px.png) no-repeat;
 }
 
 i.clm-icon-info {
@@ -11,7 +11,7 @@ i.clm-icon-info {
   width: 16px;
   height: 16px;
   vertical-align: text-top;
-  background: url(img/icon-info.png) no-repeat;
+  background: url(../cip/img/icon-info.png) no-repeat;
 }
 
 i.clm-icon-error {
@@ -19,7 +19,7 @@ i.clm-icon-error {
   width: 16px;
   height: 15px;
   vertical-align: text-top;
-  background: url(img/icon-error.png) no-repeat;
+  background: url(../cip/img/icon-error.png) no-repeat;
 }
 
 i.clm-icon-retry {
@@ -28,7 +28,7 @@ i.clm-icon-retry {
   height: 13px;
   vertical-align: middle;
   margin-bottom: 3px;
-  background: url(img/icon-retry.png) no-repeat;
+  background: url(../cip/img/icon-retry.png) no-repeat;
 }
 
 i.clm-icon-external-link {
@@ -38,5 +38,5 @@ i.clm-icon-external-link {
   vertical-align: middle;
   margin-bottom: 2px;
   text-decoration: none;
-  background: url(img/icon-external_link.png) no-repeat;
+  background: url(../cip/img/icon-external_link.png) no-repeat;
 }

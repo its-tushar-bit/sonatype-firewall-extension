@@ -34,7 +34,7 @@ public class AddProprietaryMatchersDialog
   }
 
   public SelenideElement addButton() {
-    return child(FOOTER_SELECTOR, ".clm-btn-primary");
+    return child(FOOTER_SELECTOR, ".iq-btn--primary");
   }
 
   public SelenideElement cancelButton() {
@@ -42,10 +42,10 @@ public class AddProprietaryMatchersDialog
   }
 
   public SelenideElement retryButton() {
-    return child(FOOTER_SELECTOR, ".clm-btn-error");
+    return child(FOOTER_SELECTOR, ".iq-btn--error");
   }
 
   public SelenideElement linkToAppConfig() {
-    return child(".alert-info", "a[target=_blank]");
+    return child(".iq-alert--info", "a[target=_blank]");
   }
 }

@@ -54,7 +54,12 @@ $iq-form-element-wide: 395px;
 
 // styles for a form that is the entirety of a modal
 .iq-form--modal-form {
+  border-top-style: none;
   padding-top: 0;
+
+  .iq-form-group:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .iq-form-row {
@@ -129,6 +134,12 @@ $iq-form-element-wide: 395px;
   .fa {
     margin-right: 6px;
   }
+}
+
+// when using iq-label--optional, the sub-label must be placed outside of the main label
+.iq-label--optional + .iq-sub-label {
+  margin-bottom: 7px;
+  margin-top: -7px;
 }
 
 // Defining labels for groups of radio buttons or checkboxes is tricky - each individual radio has a <label>

@@ -25,8 +25,8 @@ describe('applicationReportResults', function() {
   }));
 
   describe('$onInit()', function() {
-    it('loads correct report', function() {
-      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
     });
 
     it('watches vm.selectedReport and sets OwnerId in OwnerContext', function() {
@@ -53,6 +53,13 @@ describe('applicationReportResults', function() {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
       vm.$onDestroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('reload', function() {
+    it('calls loadReport action with proper params', function() {
+      vm.reload();
+      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
     });
   });
 

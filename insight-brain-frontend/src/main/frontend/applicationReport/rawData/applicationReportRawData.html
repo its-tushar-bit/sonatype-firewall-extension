@@ -1,0 +1,25 @@
+<div id="application-report-raw-data"
+     class="iq-root-container"
+     maximize-container-height>
+  <main class="iq-body-container iq-body-container--single-pane">
+    <div class="iq-tile-container" load-wrapper="vm.loadError" reload="vm.reload()" loading="vm.loading">
+      <div class="iq-tile iq-tile--back-button">
+        <iq-back-button state="applicationReport.policy"></iq-back-button>
+      </div>
+      
+      <div class="iq-tile iq-tile--top-tile iq-tile--application-report-raw">
+        <div class="iq-tile-header">
+          <div class="iq-tile-header__title" id="raw-data-report-title">
+            <h1>
+              Raw Data for {{::vm.selectedReport.application.name}} {{::vm.selectedReport.reportTitle}}
+              - {{::vm.selectedReport.reportTime | date: 'yyyy-MM-dd'}}
+            </h1>
+          </div>
+          <div class="iq-tile-header__subtitle">
+            Please note that the data appearing on this page is the raw data and not the result of policy evaluation
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

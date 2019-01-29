@@ -14,6 +14,8 @@ import applicationReportResults from './results/applicationReportResults';
 import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
 import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorModal';
+import applicationReportRoot from './applicationReportRoot';
+import applicationReportRawData from './rawData/applicationReportRawData';
 
 export default angular.module('applicationReportModule',
     [
@@ -21,20 +23,38 @@ export default angular.module('applicationReportModule',
       ComponentDisplayModule.name
     ])
     .component('applicationReport', applicationReport)
+    .component('applicationReportRoot', applicationReportRoot)
     .component('applicationReportResults', applicationReportResults)
     .component('reevaluationErrorModal', reevaluationErrorModal)
+    .component('applicationReportRawData', applicationReportRawData)
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)
     .config(routes);
 
-function routes($stateProvider) {
-  $stateProvider.state('applicationReport', {
-    url: '/applicationReport/{publicId}/{scanId}?unknownjs',
-    component: 'applicationReport',
-    data: {
-      title: 'Application Report'
-    }
-  });
+function routes($stateProvider, $urlRouterProvider) {
+  $stateProvider
+      .state('applicationReport', {
+        url: '/applicationReport/{publicId}/{scanId}?unknownjs',
+        abstract: true,
+        component: 'applicationReportRoot'
+      })
+      .state('applicationReport.policy', {
+        url: '/policy',
+        component: 'applicationReport',
+        data: {
+          title: 'Application Report'
+        }
+      })
+      .state('applicationReport.rawData', {
+        url: '/raw',
+        component: 'applicationReportRawData',
+        data: {
+          title: 'Application Report Raw Data'
+        }
+      });
+
+  $urlRouterProvider.when('/applicationReport/{publicId}/{scanId}?unknownjs',
+      '/applicationReport/{publicId}/{scanId}/policy?unknownjs');
 }
 
-routes.$inject = ['$stateProvider'];
+routes.$inject = ['$stateProvider', '$urlRouterProvider'];

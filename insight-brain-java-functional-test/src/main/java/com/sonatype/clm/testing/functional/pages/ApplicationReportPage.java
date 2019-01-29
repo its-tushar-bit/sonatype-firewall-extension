@@ -29,7 +29,7 @@ public class ApplicationReportPage
   private final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
 
   public static String url(Application app, String scanId) {
-    return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}", app.getPublicId(), scanId);
+    return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy", app.getPublicId(), scanId);
   }
 
   public ApplicationReportPage() {

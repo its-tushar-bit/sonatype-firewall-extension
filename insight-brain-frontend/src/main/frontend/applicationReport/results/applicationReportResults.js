@@ -18,19 +18,18 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
   Object.assign(vm, {
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
-      vm.doLoad();
+      $scope.$watch('vm.selectedReport', function(selectedReport) {
+        if (selectedReport) {
+          OwnerContext.setOwnerId(selectedReport.application.publicId);
+        }
+      });
     },
 
     $onDestroy() {
       vm.unsubscribe();
     },
 
-    doLoad() {
-      $scope.$watch('vm.selectedReport', function(selectedReport) {
-        if (selectedReport) {
-          OwnerContext.setOwnerId(selectedReport.application.publicId);
-        }
-      });
+    reload() {
       vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
     },
 

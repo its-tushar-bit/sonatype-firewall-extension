@@ -21,8 +21,8 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
   Object.assign(vm, {
     availableProprietaryFilterOptions: [
-      { id: false, name: 'non proprietary' },
-      { id: true, name: 'proprietary' }
+      { id: false, name: 'Non-Proprietary' },
+      { id: true, name: 'Proprietary' }
     ],
 
     availableMatchStateFilterOptions: [

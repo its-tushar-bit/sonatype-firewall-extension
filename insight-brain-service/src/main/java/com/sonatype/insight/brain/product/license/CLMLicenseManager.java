@@ -383,6 +383,7 @@ public class CLMLicenseManager
       features.add(Feature.CLI_INTEGRATION);
       features.add(Feature.CI_INTEGRATION);
       features.add(Feature.RM_STAGING_INTEGRATION);
+      features.add(Feature.QUALITY);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       features.add(Feature.FIREWALL);

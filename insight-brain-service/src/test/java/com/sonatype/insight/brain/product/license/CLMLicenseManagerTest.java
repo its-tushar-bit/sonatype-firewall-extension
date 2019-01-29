@@ -141,7 +141,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.DASHBOARD, Feature.CI_INTEGRATION,
-        Feature.CLI_INTEGRATION, Feature.RM_STAGING_INTEGRATION);
+        Feature.CLI_INTEGRATION, Feature.RM_STAGING_INTEGRATION, Feature.QUALITY);
   }
 
   @Test

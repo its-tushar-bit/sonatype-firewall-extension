@@ -184,10 +184,6 @@ public class CLMLicenseManager
     return licenseCache.applicationLimit;
   }
 
-  public boolean hasEnforcement() {
-    return hasFeature(Feature.ENFORCEMENT);
-  }
-
   public boolean hasFeature(Feature feature) {
     return getFeatures().contains(feature);
   }

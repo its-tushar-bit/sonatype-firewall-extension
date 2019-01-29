@@ -24,10 +24,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -240,5 +242,28 @@ public class ApplicationSummaryServiceTest
       assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
           .isLessThanOrEqualTo(after.getTime());
     }
+  }
+
+  @Test
+  public void testGetApplications_Foundation() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+    Application app1 = tempEntity.newApplicationWithParent("y", "AA");
+    Application app0 = tempEntity.newApplicationWithParent("z", "a b");
+    Application app2 = tempEntity.newApplicationWithParent("x", "c");
+
+    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION);
+    assertThat(applicationListDTO).isNotNull();
+    assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app0.getId(), app1.getId(), app2.getId());
+  }
+
+  @Test
+  public void testGetApplications_Foundation_FromIDE() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> service.getApplications(Goal.EVALUATE_COMPONENT));
   }
 }

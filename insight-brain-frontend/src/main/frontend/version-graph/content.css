@@ -198,6 +198,7 @@ form.form-horizontal .control-label {
 #path-matchers .checkbox {
   display: block;
   padding-left: 40px;
+  word-break: break-all;
 }
 
 #add-proprietary-matchers-modal .iq-alert--info {

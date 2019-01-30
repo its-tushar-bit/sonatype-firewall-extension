@@ -40,7 +40,9 @@ public class PolicyViolationLogger
 
   public PolicyViolationLogger(Application application) {
     this.application = application;
-    this.organization = new OrganizationDAO().getById(application.getOrganizationId());
+    if (POLICY_VIOLATION_LOGGER.isInfoEnabled()) {
+      organization = new OrganizationDAO().getById(application.getOrganizationId());
+    }
   }
 
   public void add(PolicyViolationLogEvent policyViolationLogEvent, PolicyViolation policyViolation) {

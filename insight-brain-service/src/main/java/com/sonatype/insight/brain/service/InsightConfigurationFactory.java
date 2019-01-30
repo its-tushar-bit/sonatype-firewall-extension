@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.validation.Validator;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.access.spi.IAccessEvent;
@@ -49,8 +50,6 @@ public class InsightConfigurationFactory
   static final int DEFAULT_ADMIN_PORT = 8071;
 
   static final Duration DEFAULT_IDLE_TIMEOUT = Duration.minutes(15);
-
-  static final String POLICY_VIOLATION_BASE_LOGGER_NAME = "com.sonatype.insight.policy.violation";
 
   public InsightConfigurationFactory(final Class<InsightConfig> klass,
                                      final Validator validator,
@@ -124,7 +123,8 @@ public class InsightConfigurationFactory
   }
 
   private void setPolicyViolationLogSettings(Map<String, JsonNode> loggers) {
-    JsonNode policyViolationLogger = loggers.putIfAbsent(POLICY_VIOLATION_BASE_LOGGER_NAME, new TextNode("OFF"));
+    JsonNode policyViolationLogger = loggers
+        .putIfAbsent(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME, new TextNode("OFF"));
     if (policyViolationLogger instanceof ObjectNode) {
       setRequiredLogSettings((ObjectNode) policyViolationLogger);
     }

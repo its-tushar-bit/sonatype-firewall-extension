@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.classic.Level;
@@ -239,7 +240,7 @@ public class InsightConfigurationFactoryTest
 
     DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
     JsonNode policyViolationLogger = defaultLoggingFactory.getLoggers()
-        .get(InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+        .get(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     assertThat(policyViolationLogger).isNotNull();
     assertThat(policyViolationLogger.asText()).isEqualTo("OFF");
   }
@@ -312,7 +313,7 @@ public class InsightConfigurationFactoryTest
   @Test
   public void testBuild_PolicyViolationLogSettings_MissingRequired() throws Exception {
     assertRequiredLogSettings(build("config-policy-violation-log-missing-required.yml"),
-        InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+        PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
   }
 
   private void assertRequiredLogSettings(InsightConfig insightConfig, String baseLoggerName) throws Exception {
@@ -339,7 +340,7 @@ public class InsightConfigurationFactoryTest
   @Test
   public void testBuild_PolicyViolationLogSettings_OverridesDiscardingThreshold() throws Exception {
     assertOverridesDiscardingThreshold(build("config-policy-violation-log-overrides-discarding-threshold.yml"),
-        InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+        PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
   }
 
   private void assertOverridesDiscardingThreshold(InsightConfig insightConfig, String baseLoggerName) throws Exception {
@@ -363,7 +364,7 @@ public class InsightConfigurationFactoryTest
 
     DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
     JsonNode logger = defaultLoggingFactory.getLoggers()
-        .get(InsightConfigurationFactory.POLICY_VIOLATION_BASE_LOGGER_NAME);
+        .get(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper().treeToValue(logger, LoggerConfiguration.class);
     assertThat(loggerConfiguration.getAppenders()).hasSize(1);
     assertThat(loggerConfiguration.getAppenders().get(0)).isInstanceOf(FileAppenderFactory.class);

@@ -48,6 +48,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -296,6 +298,8 @@ public class ScanPolicyEvaluator
 
         setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
 
+        PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(app);
+
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
         if (isForLatestScan) {
@@ -310,6 +314,7 @@ public class ScanPolicyEvaluator
               results.notifiableViolations.add(newPolicyViolation);
             }
             policyViolationDAO.insert(tx, newPolicyViolation);
+            policyViolationLogger.add(PolicyViolationLogEvent.CREATED, newPolicyViolation);
           }
           // Fixed policy violations.
           for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
@@ -356,6 +361,8 @@ public class ScanPolicyEvaluator
         }
 
         tx.commit();
+
+        policyViolationLogger.log();
 
         results.activeViolations = filterActivePolicyViolations(results.allViolations);
 

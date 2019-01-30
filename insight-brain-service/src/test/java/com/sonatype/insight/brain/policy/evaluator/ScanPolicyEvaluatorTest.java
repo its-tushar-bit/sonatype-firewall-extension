@@ -25,8 +25,8 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -63,6 +63,9 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
@@ -79,12 +82,15 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -99,6 +105,9 @@ import static org.mockito.Mockito.verify;
 public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+  
   private Organization organization;
 
   private Application application;
@@ -1485,6 +1494,87 @@ public class ScanPolicyEvaluatorTest
     assertThat(evaluationResult.getAlerts()).hasSize(1);
     PolicyAlert alert = evaluationResult.getAlerts().get(0);
     assertThat(alert.getActions()).isEmpty();
+  }
+
+  @Test
+  public void testEvaluate_LogsCreatedPolicyViolationsForLatestScan() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report.zip");
+    Policy policy = newSecurityPolicy();
+
+    // First evaluation, all policy violations are new, all logged
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertPolicyViolationsLogged(results.allViolations);
+    logOutput.clear();
+
+    // Second evaluation, all policy violations are the same, none logged
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertPolicyViolationLogDTOObjectNodes(0);
+
+    new PolicyDAO().delete(policy);
+    // Third evaluation, all policy violations are fixed, none logged
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertPolicyViolationLogDTOObjectNodes(0);
+  }
+
+  @Test
+  public void testEvaluate_LogsWaivedPolicyViolationsAsCreated() throws Exception {
+    tempEntity.newWaiver(newSecurityPolicy().getId(), application.getId());
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
+
+    assertThat(results.allViolations).anyMatch(PolicyViolation::isWaived);
+    assertPolicyViolationsLogged(results.allViolations);
+  }
+
+  @Test
+  public void testEvaluate_LogsGrandfatheredPolicyViolationsAsCreated() throws Exception {
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    Policy policy = newSecurityPolicy();
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
+
+    assertThat(results.allViolations).anyMatch(PolicyViolation::isGrandfathered);
+    assertPolicyViolationsLogged(results.allViolations);
+  }
+
+  @Test
+  public void testEvaluate_DoesNotLogPolicyViolationsForNonLatestScan() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report.zip");
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+    // Make sure we don't have two evaluations at exactly the same time
+    waitForTimeAdvance();
+    scanPolicyEvaluator.evaluate(application, simulateReportIsAvailable("report.zip"), stage);
+    newSecurityPolicy();
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(results.allViolations).isNotEmpty();
+    assertPolicyViolationLogDTOObjectNodes(0);
+  }
+
+  private void assertPolicyViolationsLogged(List<PolicyViolation> policyViolations) throws Exception {
+    List<ObjectNode> policyViolationLogDTOObjectNodes = assertPolicyViolationLogDTOObjectNodes(policyViolations.size());
+    for (PolicyViolation policyViolation : policyViolations) {
+      PolicyViolationLogDTOAssert
+          .assertApplicationPolicyViolationData(policyViolationLogDTOObjectNodes, PolicyViolationLogEvent.CREATED,
+              organization, application, policyViolation);
+    }
+  }
+
+  private List<ObjectNode> assertPolicyViolationLogDTOObjectNodes(int expected) throws Exception {
+    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOObjectNodes(logOutput, expected);
   }
 
   private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,

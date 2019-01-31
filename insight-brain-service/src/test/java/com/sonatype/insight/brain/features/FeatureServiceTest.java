@@ -37,11 +37,11 @@ public class FeatureServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     licenseManager = mock(CLMLicenseManager.class);
     rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
     binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
     binder.bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
+    super.configure(binder);
   }
 
   @Test

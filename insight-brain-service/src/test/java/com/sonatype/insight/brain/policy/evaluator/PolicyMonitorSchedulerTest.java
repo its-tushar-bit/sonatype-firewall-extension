@@ -45,8 +45,8 @@ public class PolicyMonitorSchedulerTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
+    super.configure(binder);
   }
 
   @Before

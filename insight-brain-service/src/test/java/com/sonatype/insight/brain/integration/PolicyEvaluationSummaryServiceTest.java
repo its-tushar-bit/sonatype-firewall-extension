@@ -36,9 +36,9 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     licenseManager = mock(CLMLicenseManager.class);
     binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
+    super.configure(binder);
   }
 
   @Test

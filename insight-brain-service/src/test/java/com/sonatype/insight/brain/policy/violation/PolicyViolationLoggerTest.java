@@ -50,7 +50,7 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog() throws Exception {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(application);
+    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(true, application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
     PolicyViolation policyViolationOne = createPolicyViolation();
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
@@ -68,7 +68,7 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(application);
+    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(true, application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setComponentIdentifier(null);
@@ -82,7 +82,7 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(application);
+    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(true, application);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
@@ -97,6 +97,16 @@ public class PolicyViolationLoggerTest
     finally {
       logger.setLevel(level);
     }
+  }
+
+  @Test
+  public void testLog_NoLogMessagesWithoutLicensedFeature() {
+    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(false, application);
+    policyViolationLogger.add(PolicyViolationLogEvent.CREATED, createPolicyViolation());
+
+    policyViolationLogger.log();
+
+    assertThat(logOutput.getInfoMessages(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
   }
 
   private PolicyViolation createPolicyViolation() {

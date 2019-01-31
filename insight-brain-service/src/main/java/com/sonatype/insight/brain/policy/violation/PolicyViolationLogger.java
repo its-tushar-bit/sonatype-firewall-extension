@@ -32,21 +32,24 @@ public class PolicyViolationLogger
 
   private static final ObjectMapper POLICY_VIOLATION_OBJECT_MAPPER = new ObjectMapper();
 
+  private final boolean enabled;
+
   private List<PolicyViolationData> policyViolationData = new LinkedList<>();
 
   private Organization organization;
 
   private Application application;
 
-  public PolicyViolationLogger(Application application) {
-    this.application = application;
-    if (POLICY_VIOLATION_LOGGER.isInfoEnabled()) {
+  PolicyViolationLogger(boolean licensed, Application application) {
+    enabled = licensed && POLICY_VIOLATION_LOGGER.isInfoEnabled();
+    if (enabled) {
+      this.application = application;
       organization = new OrganizationDAO().getById(application.getOrganizationId());
     }
   }
 
   public void add(PolicyViolationLogEvent policyViolationLogEvent, PolicyViolation policyViolation) {
-    if (POLICY_VIOLATION_LOGGER.isInfoEnabled()) {
+    if (enabled) {
       policyViolationData.add(new PolicyViolationData(policyViolationLogEvent, policyViolation));
     }
   }

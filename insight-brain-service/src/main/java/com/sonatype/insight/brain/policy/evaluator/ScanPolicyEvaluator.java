@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -104,6 +105,8 @@ public class ScanPolicyEvaluator
 
   private final CLMLicenseManager clmLicenseManager;
 
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
   @Inject
   public ScanPolicyEvaluator(final InsightWork insightWork,
                              final ReportService reportService,
@@ -113,6 +116,7 @@ public class ScanPolicyEvaluator
                              final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
                              final TelemetrySender telemetrySender,
                              final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
+                             final PolicyViolationLoggerFactory policyViolationLoggerFactory,
                              final CLMLicenseManager clmLicenseManager)
   {
     this.work = insightWork;
@@ -123,6 +127,7 @@ public class ScanPolicyEvaluator
     this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
     this.telemetrySender = telemetrySender;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.clmLicenseManager = clmLicenseManager;
   }
 
@@ -298,7 +303,7 @@ public class ScanPolicyEvaluator
 
         setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
 
-        PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(app);
+        PolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(app);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.

@@ -105,34 +105,53 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.RM_STAGING_INTEGRATION,
-        Feature.ENFORCEMENT, Feature.NOTIFICATIONS, Feature.POLICY_GRANDFATHERING, Feature.WEBHOOKS);
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+        Feature.RM_STAGING_INTEGRATION, //
+        Feature.ENFORCEMENT, //
+        Feature.NOTIFICATIONS, //
+        Feature.POLICY_GRANDFATHERING, //
+        Feature.WEBHOOKS);
   }
 
   @Test
   public void testGetFeatures_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.RM_STAGING_INTEGRATION,
-        Feature.DASHBOARD, Feature.POLICY_MONITORING, Feature.CLI_INTEGRATION, Feature.ENFORCEMENT,
-        Feature.NOTIFICATIONS, Feature.POLICY_GRANDFATHERING, Feature.WEBHOOKS);
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+        Feature.RM_STAGING_INTEGRATION, //
+        Feature.DASHBOARD, //
+        Feature.POLICY_MONITORING, //
+        Feature.CLI_INTEGRATION, //
+        Feature.ENFORCEMENT, //
+        Feature.NOTIFICATIONS, //
+        Feature.POLICY_GRANDFATHERING, //
+        Feature.WEBHOOKS);
   }
 
   @Test
   public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.IDE_INTEGRATION,
-        Feature.CI_INTEGRATION, Feature.RM_STAGING_INTEGRATION, Feature.DASHBOARD, Feature.POLICY_MONITORING,
-        Feature.CLI_INTEGRATION, Feature.QUALITY, Feature.ENFORCEMENT, Feature.NOTIFICATIONS,
-        Feature.POLICY_GRANDFATHERING, Feature.WEBHOOKS);
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+        Feature.IDE_INTEGRATION, //
+        Feature.CI_INTEGRATION, //
+        Feature.RM_STAGING_INTEGRATION, //
+        Feature.DASHBOARD, //
+        Feature.POLICY_MONITORING, //
+        Feature.CLI_INTEGRATION, //
+        Feature.QUALITY, //
+        Feature.ENFORCEMENT, //
+        Feature.NOTIFICATIONS, //
+        Feature.POLICY_GRANDFATHERING, //
+        Feature.WEBHOOKS);
   }
 
   @Test
   public void testGetFeatures_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.FIREWALL,
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+        Feature.FIREWALL, //
         Feature.RM_STAGING_INTEGRATION);
   }
 
@@ -140,8 +159,12 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder(Feature.DASHBOARD, Feature.CI_INTEGRATION,
-        Feature.CLI_INTEGRATION, Feature.RM_STAGING_INTEGRATION, Feature.QUALITY);
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+        Feature.DASHBOARD, //
+        Feature.CI_INTEGRATION, //
+        Feature.CLI_INTEGRATION, //
+        Feature.RM_STAGING_INTEGRATION, //
+        Feature.QUALITY);
   }
 
   @Test

@@ -21,10 +21,12 @@ class ReportViolationsPage
     mainModule { module MainModule }
     nav { module NavListModule }
 
-    emptyMessage { $('#clm-welcome-message') }
+    emptyMessage { $('#no-reports-message') }
 
     filter(required: false) { $('input') }
-    reportViolationRows(required: false) { $('#report-list-table tbody tr').moduleList(ReportViolationsRowModule) }
+    reportViolationRows(required: false) {
+      $('#report-list-table tbody.iq-report-list-results tr').moduleList(ReportViolationsRowModule)
+    }
     tableHeaders(required: false) { $('#report-list-headers > th') }
     appNameHeader(required: false) { $('#report-list-header-app') }
     orgNameHeader(required: false) { $('#report-list-header-org') }

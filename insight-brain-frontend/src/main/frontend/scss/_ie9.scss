@@ -24,7 +24,8 @@
   .iq-table--dashboard-violations,
   .iq-table--dashboard-components,
   .iq-table--dashboard-applications,
-  .iq-table--application-report {
+  .iq-table--application-report,
+  .iq-table--fixed {
     display: table;
   
     thead {
@@ -55,6 +56,10 @@
     }
   }
   
+  .iq-scrollable--fixed-table {
+    overflow-x: scroll;
+  }
+
   .tooltip-inner {
     width: 100%;
   }

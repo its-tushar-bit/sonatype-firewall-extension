@@ -18,6 +18,8 @@ export default reportViolationsModule;
 
 reportViolationsModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations', '$filter',
   function($scope, $http, $q, clmLocations, $filter) {
+    const vm = this;
+
     let allApplications = undefined;
 
     const isVisible = appFilter => item => {
@@ -26,10 +28,19 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
           item.organizationName.toLowerCase().indexOf(appFilter.toLowerCase()) > -1;
     };
 
-    $scope.encodeURIComponent = window.encodeURIComponent;
+    vm.encodeURIComponent = window.encodeURIComponent;
+    vm.appFilter = '';
 
-    $scope.doLoad = function() {
-      $scope.error = null;
+    vm.applicationHasViolationsForStage = function(application, stage) {
+      const stageTypeId = stage.stageTypeId,
+          results = application.policyEvaluationsResults,
+          counts = results[stageTypeId];
+
+      return !!(counts.criticalComponentCount + counts.severeComponentCount + counts.moderateComponentCount);
+    };
+
+    vm.doLoad = function() {
+      vm.error = null;
 
       var promises = [];
 
@@ -37,20 +48,20 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
       promises.push($http.get(clmLocations.getApplicationSummariesUrl()));
 
       $q.all(promises).then(function(results) {
-        $scope.stages = results[0].data;
+        vm.stages = results[0].data;
         allApplications = results[1].data;
-        $scope.noReports = allApplications.length === 0;
-        $scope.showReports = allApplications.length > 0;
-        $scope.applications = sortAndIndex(allApplications);
+        vm.noReports = allApplications.length === 0;
+        vm.showReports = allApplications.length > 0;
+        vm.applications = sortAndIndex(allApplications);
       }, function() {
-        $scope.error = arguments[0];
+        vm.error = arguments[0];
       });
     };
-    $scope.doLoad();
+    vm.doLoad();
 
-    $scope.$watch('[appFilter, getSortField()[0]]', () => {
+    $scope.$watchGroup(['vm.appFilter', 'getSortField()[0]'], () => {
       if (allApplications) {
-        $scope.applications = sortAndIndex(filter(allApplications));
+        vm.applications = sortAndIndex(filter(allApplications));
       }
     });
 
@@ -59,10 +70,11 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
     }
 
     function filter(apps) {
-      return apps.filter(isVisible($scope.appFilter));
+      return apps.filter(isVisible(vm.appFilter));
     }
 
     function sort(apps) {
+      // getSortField is populated onto the scope by the `sortable` directive
       return $filter('orderBy')(apps, $scope.getSortField());
     }
 

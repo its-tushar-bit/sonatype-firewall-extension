@@ -14,6 +14,7 @@ export default angular.module('ReportModule',
         url: '/reports/violations',
         templateUrl: 'report/violations/report-list.html?' + clmBuildTimestamp,
         controller: 'ReportViolationsController',
+        controllerAs: 'vm',
         data: {
           title: 'Report Violations'
         }

@@ -17,6 +17,6 @@ public class ReportListPage
   public static String URL = BaseUrl.resolvePageUrl("/reports/violations");
 
   public static SelenideElement listContainer() {
-    return $(".report-list-container");
+    return $(".iq-report-list-container");
   }
 }

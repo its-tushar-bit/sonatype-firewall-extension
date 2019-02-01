@@ -15,7 +15,7 @@ describe('reportApp', function() {
   beforeEach(inject(function($rootScope, $state, _$controller_, _$httpBackend_, _CLMLocations_) {
     $rootScope.licensed = true;
     scope = $rootScope.$new();
-    scope.getSortField = jasmine.createSpy('getSortField').and.returnValue(['name']);
+    scope.getSortField = () => ['name'];
     state = $state;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
@@ -33,24 +33,24 @@ describe('reportApp', function() {
       var mockStageData = MockData.getActionStageData();
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
       $httpBackend.expectGET('/rest/application/services/summary').respond([]);
-      $controller('ReportViolationsController', { $scope: scope, $state: state });
+      const vm = $controller('ReportViolationsController', { $scope: scope, $state: state });
 
-      expect(scope.stages).toBeUndefined();
-      expect(scope.applications).toBeUndefined();
-      expect(scope.noReports).toBeUndefined();
-      expect(scope.showReports).toBeUndefined();
+      expect(vm.stages).toBeUndefined();
+      expect(vm.applications).toBeUndefined();
+      expect(vm.noReports).toBeUndefined();
+      expect(vm.showReports).toBeUndefined();
 
       $httpBackend.flush();
 
-      expect(scope.stages).toBeDefined();
-      expect(scope.stages.length).toEqual(mockStageData.length);
-      expect(scope.stages[0].id).toEqual(mockStageData[0].id);
-      expect(scope.stages[scope.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
+      expect(vm.stages).toBeDefined();
+      expect(vm.stages.length).toEqual(mockStageData.length);
+      expect(vm.stages[0].id).toEqual(mockStageData[0].id);
+      expect(vm.stages[vm.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
 
-      expect(scope.applications).toBeDefined();
-      expect(scope.applications.length).toBe(0);
-      expect(scope.noReports).toBe(true);
-      expect(scope.showReports).toBe(false);
+      expect(vm.applications).toBeDefined();
+      expect(vm.applications.length).toBe(0);
+      expect(vm.noReports).toBe(true);
+      expect(vm.showReports).toBe(false);
     });
 
     it('loads reports, sorts and assigns index', function() {
@@ -59,98 +59,101 @@ describe('reportApp', function() {
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
       $httpBackend.expectGET('/rest/application/services/summary').respond(
           mockApplicationSummaryData);
-      $controller('ReportViolationsController', { $scope: scope, $state: state });
+      const vm = $controller('ReportViolationsController', { $scope: scope, $state: state });
 
-      expect(scope.stages).toBeUndefined();
-      expect(scope.applications).toBeUndefined();
-      expect(scope.noReports).toBeUndefined();
-      expect(scope.showReports).toBeUndefined();
+      expect(vm.stages).toBeUndefined();
+      expect(vm.applications).toBeUndefined();
+      expect(vm.noReports).toBeUndefined();
+      expect(vm.showReports).toBeUndefined();
 
       $httpBackend.flush();
 
-      expect(scope.stages).toBeDefined();
-      expect(scope.stages.length).toEqual(mockStageData.length);
-      expect(scope.stages[0].id).toEqual(mockStageData[0].id);
-      expect(scope.stages[scope.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
+      expect(vm.stages).toBeDefined();
+      expect(vm.stages.length).toEqual(mockStageData.length);
+      expect(vm.stages[0].id).toEqual(mockStageData[0].id);
+      expect(vm.stages[vm.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
 
-      expect(scope.applications).toBeDefined();
-      expect(scope.applications.length).toBe(mockApplicationSummaryData.length);
+      expect(vm.applications).toBeDefined();
+      expect(vm.applications.length).toBe(mockApplicationSummaryData.length);
       // should ne sorted by name
-      expect(scope.applications[0].id).toBe(mockApplicationSummaryData[2].id);
+      expect(vm.applications[0].id).toBe(mockApplicationSummaryData[2].id);
       // should index
-      expect(scope.applications[0].index).toBe(0);
+      expect(vm.applications[0].index).toBe(0);
 
-      expect(scope.noReports).toBe(false);
-      expect(scope.showReports).toBe(true);
+      expect(vm.noReports).toBe(false);
+      expect(vm.showReports).toBe(true);
     });
   });
 
   describe('$watch', function () {
+    let vm;
+
     beforeEach(function() {
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
       $httpBackend.expectGET('/rest/application/services/summary').respond(
           applicationMockData.getApplicationSummaryData());
-      $controller('ReportViolationsController', { $scope: scope, $state: state });
+      vm = $controller('ReportViolationsController', { $scope: scope, $state: state });
+      scope.vm = vm;
       $httpBackend.flush();
     });
 
     describe('when filter changes', function () {
       it('filters by Application Name, sorts and assigns index', function() {
-        scope.appFilter = 'appl';
+        vm.appFilter = 'appl';
         scope.$digest();
-        expect(scope.applications.length).toBe(2);
-        expect(scope.applications[0].name).toBe('application2');
-        expect(scope.applications[0].index).toBe(0);
-        expect(scope.applications[1].name).toBe('application3');
-        expect(scope.applications[1].index).toBe(1);
-        scope.appFilter = 'foobar';
+        expect(vm.applications.length).toBe(2);
+        expect(vm.applications[0].name).toBe('application2');
+        expect(vm.applications[0].index).toBe(0);
+        expect(vm.applications[1].name).toBe('application3');
+        expect(vm.applications[1].index).toBe(1);
+        vm.appFilter = 'foobar';
         scope.$digest();
-        expect(scope.applications.length).toBe(0);
+        expect(vm.applications.length).toBe(0);
       });
 
       it('filters by Organization Name, sorts and assigns index', function() {
-        scope.appFilter = 'big'; // case insensitive
+        vm.appFilter = 'big'; // case insensitive
         scope.$digest();
-        expect(scope.applications.length).toBe(2);
-        expect(scope.applications[0].name).toBe('app1');
-        expect(scope.applications[0].index).toBe(0);
-        expect(scope.applications[1].name).toBe('application2');
-        expect(scope.applications[1].index).toBe(1);
-        scope.appFilter = 'foobar';
+        expect(vm.applications.length).toBe(2);
+        expect(vm.applications[0].name).toBe('app1');
+        expect(vm.applications[0].index).toBe(0);
+        expect(vm.applications[1].name).toBe('application2');
+        expect(vm.applications[1].index).toBe(1);
+        vm.appFilter = 'foobar';
         scope.$digest();
-        expect(scope.applications.length).toBe(0);
+        expect(vm.applications.length).toBe(0);
       });
 
       it('does not filter if app filter is Null', function() {
-        scope.appFilter = null;
+        vm.appFilter = null;
         scope.$digest();
-        expect(scope.applications.length).toBe(3);
+        expect(vm.applications.length).toBe(3);
       });
 
       it('does not filter if app filter is Empty', function() {
-        scope.appFilter = '';
+        vm.appFilter = '';
         scope.$digest();
-        expect(scope.applications.length).toBe(3);
+        expect(vm.applications.length).toBe(3);
       });
     });
 
     describe('when sort field changes', function() {
       it('filters, sorts and assigns index', function() {
         var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
-        scope.appFilter = 'big';
+        vm.appFilter = 'big';
         scope.$digest();
-        expect(scope.applications.length).toBe(2);
-        expect(scope.applications[0].id).toBe(mockApplicationSummaryData[2].id);
-        expect(scope.applications[0].index).toBe(0);
-        expect(scope.applications[1].index).toBe(1);
+        expect(vm.applications.length).toBe(2);
+        expect(vm.applications[0].id).toBe(mockApplicationSummaryData[2].id);
+        expect(vm.applications[0].index).toBe(0);
+        expect(vm.applications[1].index).toBe(1);
 
-        scope.getSortField.and.returnValue(['-name']);
+        scope.getSortField = () => ['-name'];
         scope.$digest();
 
-        expect(scope.applications.length).toBe(2);
-        expect(scope.applications[0].id).toBe(mockApplicationSummaryData[1].id);
-        expect(scope.applications[0].index).toBe(0);
-        expect(scope.applications[1].index).toBe(1);
+        expect(vm.applications.length).toBe(2);
+        expect(vm.applications[0].id).toBe(mockApplicationSummaryData[1].id);
+        expect(vm.applications[0].index).toBe(0);
+        expect(vm.applications[1].index).toBe(1);
       });
     });
   });

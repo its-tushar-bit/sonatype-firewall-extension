@@ -298,18 +298,18 @@ angularCommon.directive('chiclets', function() {
       moderate: '=',
       none: '='
     },
-    template: '<span ng-show="critical || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-critical\': critical }" ' +
+    template: '<span ng-show="critical || alwaysShow" class="{{baseClass}}" ng-class="{\'critical\': critical }" ' +
       'ng-style="style">{{ critical || "" }}</span>' +
-      '<span ng-show="severe || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-severe\': severe }" ' +
+      '<span ng-show="severe || alwaysShow" class="{{baseClass}}" ng-class="{\'severe\': severe }" ' +
       'ng-style="style">{{ severe || "" }}</span>' +
-      '<span ng-show="moderate || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-moderate\': moderate }" ' +
+      '<span ng-show="moderate || alwaysShow" class="{{baseClass}}" ng-class="{\'moderate\': moderate }" ' +
       'ng-style="style">{{ moderate || "" }}</span>' +
-      '<span ng-show="none || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-none\': none }" ' +
+      '<span ng-show="none || alwaysShow" class="{{baseClass}}" ng-class="{\'none\': none }" ' +
       'ng-style="style">{{ none || "" }}</span>',
     link: function(scope, element, attrs) {
       scope.style = {margin: attrs.margin || '2px'};
       scope.alwaysShow = attrs.alwaysShow || false;
-      scope.baseClass = attrs.baseClass || 'threat-chiclet';
+      scope.baseClass = attrs.baseClass || 'iq-threat-indicator';
     }
   };
 });

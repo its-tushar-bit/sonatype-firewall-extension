@@ -1,76 +1,107 @@
-<div class='dashboard-root-container' maximize-container-height>
-  <div class='marginless-alert' clm-alerts='syncAlerts'></div>
+<div class="iq-body-container iq-body-container--single-pane" sortable="name">
   <root-organization-migrate></root-organization-migrate>
-  <div load-error='error' reload='doLoad()'></div>
-  <div class="report-list-container" ng-hide='error'>
-    <div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-    <div ng-show='noReports'>
-      <h5 id="clm-welcome-message">
-        No reports available yet. <a class="link" ui-sref="management.view">Configure an organization and an application</a>, then evaluate the application to create a report.
-      </h5>
-    </div>
-    <div ng-show='showReports'>
-      <div class="scrollable-container-header">
-        <div class='input-prepend'>
-          <span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
-          <input type='text' ng-model='appFilter' autocomplete="off" placeholder='Filter Applications' />
+    <div class="iq-report-list-container">
+      <div class="iq-tile iq-tile--report-list-filter">
+        <div class="iq-tile-header">
+          <div class="iq-tile-header__title">
+            <i class="fa fa-file-text-o iq-tile-header__icon"></i>
+            <h1>Reporting</h1>
+          </div>
+        </div>
+        <div class="input-prepend">
+          <span class="add-on">
+            <i ng-class="{'icon-search': !vm.appFilter, 'icon-remove': vm.appFilter}" ng-click="vm.appFilter = ''"></i>
+          </span>
+          <input type="text" ng-model="vm.appFilter" autocomplete="off" placeholder="Filter Applications" />
         </div>
       </div>
-      <div class='scrollable-container border-top' maximize-height>
-        <div class='scrollable-container-inner'>
-          <table id='report-list-table' class='table' sortable="name">
-            <thead>
-              <tr id='report-list-headers'>
-                <th id='report-list-header-app'>
-                  <div sort-columns='name'>Application Name</div>
-                </th>
-                <th id='report-list-header-{{::stage.stageTypeId}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
-                  <div>{{::stage.stageName}} Violations</div>
-                </th>
-                <th id='report-list-header-contact'><div>Contact</div></th>
-                <th id='report-list-header-org'>
-                  <div sort-columns='organizationName'>Organization</div>
+      <div class="iq-tile iq-tile--report-list">
+        <div class="iq-scrollable iq-scrollable--fixed-table"
+             maximize-container-height
+             detect-scrollbar="vm.applications">
+          <table id="report-list-table"
+                 class="iq-table iq-table--fixed iq-table--report-list"
+                 load-wrapper="vm.error"
+                 loading="!vm.stages"
+                 reload="vm.doLoad()">
+            <thead class="iq-table--fixed__header">
+              <tr id="report-list-headers" class="iq-table-row">
+                <th id="report-list-header-app" class="iq-cell iq-cell--header">
+                  <div sort-columns="name">Application Name</div>
+                </th><!--
+             --><th id="report-list-header-contact" class="iq-cell iq-cell--header">Contact</th><!--
+             --><th id="report-list-header-org" class="iq-cell iq-cell--header">
+                  <div sort-columns="organizationName">Organization</div>
+                </th><!--
+             --><th id="report-list-header-{{::stage.stageTypeId}}"
+                    ng-repeat="stage in vm.stages | filterReportColumns"
+                    class="iq-cell iq-cell--header">
+                  {{::stage.stageName}} Violations
                 </th>
               </tr>
             </thead>
-            <tbody vs-repeat vs-scroll-parent=".scrollable-container-inner">
-            <tr ng-repeat='application in applications' ng-class="application.index % 2 == 0? 'even' : 'odd'">
-              <td class="tm-report-list-application">
-                <a ui-sref="management.view.application({applicationPublicId: application.publicId})">
-                  <img ng-src='../rest/application/icon/{{::encodeURIComponent(application.publicId)}}'
-                    onerror="this.src='img/defaulticon_application.png';"
-                    class='image-thumbnail'/>{{::application.name}}
-                </a>
-              </td>
-              <td ng-repeat='stage in stages | filterReportColumns' class='tm-report-list-stage-{{::stage.stageTypeId}}'>
-                <div ng-if='application.policyEvaluationsResults[stage.stageTypeId]'>
-                  <div>
-                    <a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
-                        href='#/reports/{{::encodeURIComponent(application.publicId)}}/{{::application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
-                      <div chiclets critical="application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount"
-                        severe="application.policyEvaluationsResults[stage.stageTypeId].severeComponentCount"
-                        moderate="application.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount"></div>
-                      <span ng-show='!(application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount + application.policyEvaluationsResults[stage.stageTypeId].severeComponentCount + application.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount)' style="color:#000000;">No violations</span>
-                    </a>
+            <tbody ng-show="vm.noReports" class="iq-table--fixed__content">
+              <tr class="iq-table-row">
+                <td colspan="6" id="no-reports-message" class="iq-cell iq-cell--empty">
+                  No reports available yet.
+                  <a class="link" ui-sref="management.view">Configure an organization and an application</a>,
+                  then evaluate the application to create a report.
+                </td>
+              </tr>
+            </tbody>
+            <tbody class="iq-report-list-results iq-table--fixed__content"
+                   ng-show="vm.showReports"
+                   vs-repeat
+                   vs-scroll-parent=".iq-scrollable">
+              <tr ng-repeat="application in vm.applications" class="iq-table-row">
+                <td class="tm-report-list-application iq-cell">
+                  <a ui-sref="management.view.application({applicationPublicId: application.publicId})">
+                    <img ng-src="../rest/application/icon/{{::vm.encodeURIComponent(application.publicId)}}"
+                         onerror="this.src='img/defaulticon_application.png';"
+                         class="image-thumbnail"/><!--
+                 -->{{::application.name}}
+                  </a>
+                </td><!--
+             --><td class="iq-cell">
+                  <span ng-if="application.contact.error">
+                    <i class="icon-warning-sign" tooltip="{{::application.contact.error}}" tooltip-placement="left"></i>
+                  </span>
+                  <span>{{::application.contact.displayName || application.contact.internalName}}</span>
+                </td><!--
+             --><td class="tm-report-list-organization iq-cell">
+                  <a ui-sref="management.view.organization({organizationId: application.organizationId})">
+                    {{::application.organizationName}}
+                  </a>
+                </td><!--
+             --><td ng-repeat="stage in vm.stages | filterReportColumns"
+                    class="tm-report-list-stage-{{::stage.stageTypeId}} iq-cell">
+                  <div ng-if="application.policyEvaluationsResults[stage.stageTypeId]"
+                       class="iq-report-list__stage-links">
+                    <div class="iq-report-list__violation-links"
+                         ng-show="applicationHasViolationsForStage(application, stage)">
+                      <a title="View Report"
+                         ui-sref="report({publicId: application.publicId, scanId: application.policyEvaluations[stage.stageTypeId].scanId})">
+                        <div class="iq-threat-indicators">
+                          <div chiclets
+                               critical="application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount"
+                               severe="application.policyEvaluationsResults[stage.stageTypeId].severeComponentCount"
+                               moderate="application.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount">
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                    <div class="iq-report-list__violation-links"
+                         ng-hide="vm.applicationHasViolationsForStage(application, stage)">
+                      No violations
+                    </div>
+                    <div class="iq-report-list__report-links">
+                      <a title="View Report"
+                         ui-sref="report({publicId: application.publicId, scanId: application.policyEvaluations[stage.stageTypeId].scanId})">
+                        View Report ({{::application.policyEvaluations[stage.stageTypeId].time | ago}})</a>
+                    </div>
                   </div>
-                  <div>
-                    <a title='View Report' href='#/reports/{{::encodeURIComponent(application.publicId)}}/{{::application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
-                      {{::application.policyEvaluations[stage.stageTypeId].time | ago}}</a>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <span ng-if='application.contact.error'>
-                  <i class='icon-warning-sign' tooltip='{{::application.contact.error}}' tooltip-placement='left'></i>
-                </span>
-                <span>{{::application.contact.displayName || application.contact.internalName}}</span>
-              </td>
-              <td class="tm-report-list-organization">
-                <a ui-sref="management.view.organization({organizationId: application.organizationId})">
-                  {{::application.organizationName}}
-                </a>
-              </td>
-            </tr>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

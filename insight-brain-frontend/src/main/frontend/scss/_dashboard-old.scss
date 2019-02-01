@@ -3,56 +3,7 @@
 $dashboard-border-width: 2px;
 $dashboard-border: $dashboard-border-width solid #CCC;
 
-// used by report-list.html
-.scrollable-container-header {
-  border-bottom: $dashboard-border !important;
-  width: 100%;
-}
-
-// used by report-list.html
-.scrollable-container {
-  border-bottom: $dashboard-border;
-  border-left: $dashboard-border;
-  border-right: $dashboard-border;
-  height: 500px;
-  padding-top: 30px;
-  position: relative;
-
-  th {
-    padding: 0 5px;
-  }
-
-  th > div {
-    line-height: 30px;
-    position: absolute;
-    top: 0;
-
-    // c.f. insight-brain-service/src/main/frontend/scss/_content.scss:82
-    -webkit-transform: translate3d(0, 0, 0);
-  }
-
-  th:first-child > div {
-    padding-left: 5px;
-  }
-}
-
-// used by report-list.html
-.scrollable-container-inner {
-  border-top: $dashboard-border;
-  height: 100%;
-  height: calc(100% - #{$dashboard-border-width});
-  overflow-x: hidden;
-  overflow-y: auto;
-
-  table {
-    margin-bottom: 0px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    width: 100%;
-  }
-}
-
-// used by report-list.html and by component details
+// used by component details
 .dashboard-root-container, .component-container {
     white-space: normal;
 
@@ -498,14 +449,6 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     @media (min-width: 1250px) {
       width: 1110px;
     }
-  }
-}
-
-@media (min-width: 1250px) {
-  // used by report-list.html
-  .stage-column {
-    min-width: 70px;
-    width: 70px;
   }
 }
 

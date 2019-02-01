@@ -57,7 +57,7 @@ class ReportViolationsSpec
       at ReportViolationsPage
 
     then: "the table header lists the stages in proper order"
-      tableHeaders[1..3]*.@id ==
+      tableHeaders[3..5]*.@id ==
           ['report-list-header-build', 'report-list-header-stage-release', 'report-list-header-release']
   }
 }

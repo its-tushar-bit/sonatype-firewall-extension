@@ -18,31 +18,6 @@
   }
 }
 
-// begin styles from report-list.css
-#report-list-table {
-  .stage-column {
-    min-width: 155px;
-  }
-
-  #report-list-header-contact {
-    min-width: 44px;
-  }
-
-  #report-list-header-org {
-    min-width: 87px;
-  }
-
-  td {
-    vertical-align: middle;
-    height: 68px;
-  }
-}
-
-#report-list-header-app {
-  min-width: 114px
-}
-// end styles from report-list.css
-
 // Begin styles from /application/application.css
 .report__title {
   @include bold();
@@ -71,16 +46,5 @@
 // Begin CSS from insight.css
 .no-hover-underline:hover {
   text-decoration: none;
-}
-
-#report-list-table > tbody {
-
-  > tr.even {
-    background-color: $iq-grey-1;
-  }
-
-  > tr.odd {
-    background-color: $iq-grey-2;
-  }
 }
 // End CSS from insight.css

@@ -26,11 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PolicyViolationLoggerTest
+public class ApplicationPolicyViolationLoggerTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+  public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   private Organization organization;
 
@@ -50,7 +50,7 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog() throws Exception {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
     PolicyViolation policyViolationOne = createPolicyViolation();
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
@@ -68,7 +68,7 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setComponentIdentifier(null);
@@ -82,9 +82,9 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
-        .getLogger(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+        .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
     try {
       logger.setLevel(Level.OFF);
@@ -92,7 +92,7 @@ public class PolicyViolationLoggerTest
 
       policyViolationLogger.log();
 
-      assertThat(logOutput.getInfoMessages(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
+      assertThat(logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
     }
     finally {
       logger.setLevel(level);
@@ -101,12 +101,12 @@ public class PolicyViolationLoggerTest
 
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
-    PolicyViolationLogger policyViolationLogger = new PolicyViolationLogger(false, application);
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(false, application);
     policyViolationLogger.add(PolicyViolationLogEvent.CREATED, createPolicyViolation());
 
     policyViolationLogger.log();
 
-    assertThat(logOutput.getInfoMessages(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
+    assertThat(logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
   }
 
   private PolicyViolation createPolicyViolation() {

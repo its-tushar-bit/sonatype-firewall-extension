@@ -26,7 +26,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @since 1.17
  */
 @MappedSuperclass
-abstract class AbstractPolicyViolation
+public abstract class AbstractPolicyViolation
     extends HasComponentId
     implements PolicyViolationComparable
 {

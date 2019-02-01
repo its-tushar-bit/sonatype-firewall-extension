@@ -48,8 +48,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.Report;
@@ -303,7 +303,7 @@ public class ScanPolicyEvaluator
 
         setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
 
-        PolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(app);
+        ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(app);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.

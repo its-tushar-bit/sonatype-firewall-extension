@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -77,6 +78,9 @@ public class RepositoryReevaluationTaskTest
 
   @Inject
   private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
+
+  @Inject
+  private PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -122,7 +126,7 @@ public class RepositoryReevaluationTaskTest
 
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
         repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null, componentDetailsLoader,
-        pendingRepositoryPolicyNotifications), executorService, activeReevaluations);
+        pendingRepositoryPolicyNotifications, policyViolationLoggerFactory), executorService, activeReevaluations);
     createHdsResponse();
   }
 

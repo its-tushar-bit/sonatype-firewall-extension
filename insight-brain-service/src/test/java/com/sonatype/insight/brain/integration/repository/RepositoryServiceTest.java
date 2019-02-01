@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -62,6 +63,9 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.PendingRepositoryPolicyNotifications;
@@ -74,10 +78,13 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -130,6 +137,10 @@ public class RepositoryServiceTest
 
   @Mock
   private FirewallQuarantineHdsClient quarantineHdsClient;
+
+  @Rule
+  public LogOutput policyViolationLoggerOutput =
+      new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   @Override
   public void configure(Binder binder) {
@@ -2153,5 +2164,63 @@ public class RepositoryServiceTest
     FirewallIgnorePatterns firewallIgnorePatterns = repositoryService.getIgnorePatterns();
 
     assertThat(firewallIgnorePatterns).isEqualTo(hdsResult);
+  }
+
+  @Test
+  public void testEvaluateComponents_PolicyViolationLogger() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    tempEntity.newPolicy(repository.getParentOwnerId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    int componentCount = 2;
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    for (int i = 0; i < componentCount; i++) {
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i, "c" + i, "e" + i);
+      componentEvaluationDataRequestList.components
+          .add(new RepositoryComponentEvaluationDataRequest("maven2", "path" + i, "h" + i));
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h" + i, MatchState.EXACT,
+          i /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */, securityVulnerabilities,
+          i /* popularity */));
+    }
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies. All policy violations should be logged.
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false, null);
+    List<RepositoryPolicyViolation> policyViolations =
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    assertThat(policyViolations).hasSize(2);
+    assertPolicyViolationsLogged(repository, policyViolations);
+
+    policyViolationLoggerOutput.clear();
+
+    // Add a new policy and evaluate again. Only the new policy violations should be logged.
+    Policy newPolicy = tempEntity.newPolicy(repository.getParentOwnerId());
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false, null);
+    policyViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    assertThat(policyViolations).hasSize(4);
+    List<RepositoryPolicyViolation> newPolicyViolations =
+        policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
+            .collect(Collectors.toList());
+    assertPolicyViolationsLogged(repository, newPolicyViolations);
+  }
+
+  private void assertPolicyViolationsLogged(Repository repository,
+                                            List<RepositoryPolicyViolation> policyViolations) throws Exception
+  {
+    List<ObjectNode> policyViolationLogDTOObjectNodes = PolicyViolationLogDTOAssert
+        .assertPolicyViolationLogDTOObjectNodes(policyViolationLoggerOutput, policyViolations.size());
+    for (RepositoryPolicyViolation policyViolation : policyViolations) {
+      PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNodes,
+          PolicyViolationLogEvent.CREATED, repository, policyViolation);
+    }
   }
 }

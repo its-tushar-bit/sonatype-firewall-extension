@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy.violation;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
+import com.sonatype.insight.json.store.UncheckedIOException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViolation>
+{
+  public static final String POLICY_VIOLATION_LOGGER_NAME = "com.sonatype.insight.policy.violation";
+
+  private static final Logger POLICY_VIOLATION_LOGGER = LoggerFactory.getLogger(POLICY_VIOLATION_LOGGER_NAME);
+
+  private static final ObjectMapper POLICY_VIOLATION_OBJECT_MAPPER = new ObjectMapper();
+
+  private final boolean enabled;
+
+  private List<PolicyViolationData<T>> policyViolationData = new LinkedList<>();
+
+  protected AbstractPolicyViolationLogger(boolean licensed) {
+    enabled = licensed && POLICY_VIOLATION_LOGGER.isInfoEnabled();
+  }
+
+  public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
+    if (enabled) {
+      policyViolationData.add(new PolicyViolationData<>(policyViolationLogEvent, policyViolation));
+    }
+  }
+
+  public void log() {
+    policyViolationData.forEach(policyViolationData -> POLICY_VIOLATION_LOGGER.info(toString(policyViolationData)));
+    policyViolationData = new LinkedList<>();
+  }
+
+  private String toString(PolicyViolationData<T> policyViolationData) {
+    try {
+      return POLICY_VIOLATION_OBJECT_MAPPER.writeValueAsString(createPolicyViolationLogDTO(
+          policyViolationData.policyViolationLogEvent, policyViolationData.policyViolation));
+    }
+    catch (JsonProcessingException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationLogEvent policyViolationLogEvent,
+                                                              T policyViolation)
+  {
+    PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
+    policyViolationLogDTO.eventType = policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
+    policyViolationLogDTO.policyId = policyViolation.getPolicyId();
+    policyViolationLogDTO.policyName = policyViolation.getPolicyName();
+    policyViolationLogDTO.policyThreatCategory = policyViolation.getThreatCategory().getName();
+    policyViolationLogDTO.policyThreatLevel = policyViolation.getThreatLevel();
+    policyViolationLogDTO.stagePolicyAction =
+        policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
+    policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
+    policyViolationLogDTO.componentHash = policyViolation.getHash();
+    return policyViolationLogDTO;
+  }
+
+  private static class PolicyViolationData<T extends AbstractPolicyViolation>
+  {
+    public PolicyViolationLogEvent policyViolationLogEvent;
+
+    public T policyViolation;
+
+    public PolicyViolationData(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
+      this.policyViolationLogEvent = policyViolationLogEvent;
+      this.policyViolation = policyViolation;
+    }
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  protected String formatTimestamp(Date date) {
+    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(date.getTime()), ZoneId.systemDefault())
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+  }
+}

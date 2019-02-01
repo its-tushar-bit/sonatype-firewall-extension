@@ -48,6 +48,11 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
+import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
@@ -79,6 +84,8 @@ public class RepositoryPolicyEvaluator
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
   @Inject
   public RepositoryPolicyEvaluator(ComponentPolicyEvaluator componentPolicyEvaluator,
                                    RepositoryComponentDAO repositoryComponentDAO,
@@ -86,7 +93,8 @@ public class RepositoryPolicyEvaluator
                                    FirewallAuditHdsClient auditHdsClient,
                                    FirewallQuarantineHdsClient quarantineHdsClient,
                                    ComponentDetailsLoader componentDetailsLoader,
-                                   PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications)
+                                   PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications,
+                                   PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -95,6 +103,7 @@ public class RepositoryPolicyEvaluator
     this.quarantineHdsClient = quarantineHdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
     this.pendingRepositoryPolicyNotifications = pendingRepositoryPolicyNotifications;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   public RepositoryComponentEvaluationDataList evaluate(Repository repository,
@@ -167,10 +176,13 @@ public class RepositoryPolicyEvaluator
 
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
           canBeQuarantined, policyResults);
-      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults);
+
+      RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(repository);
+      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
 
       tx.commit();
       AuditData.get().commitSubEvents();
+      policyViolationLogger.log();
     }
     return repositoryComponent;
   }
@@ -227,17 +239,19 @@ public class RepositoryPolicyEvaluator
                                        Repository repository,
                                        Date evaluationTime,
                                        Component component,
-                                       PolicyResults policyResults)
+                                       PolicyResults policyResults,
+                                       RepositoryPolicyViolationLogger policyViolationLogger)
   {
     String pathname = component.getPathnames().get(0);
-    // Update the current last RepositoryPolicyViolations for this component
-    List<RepositoryPolicyViolation> lastPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
-    for (RepositoryPolicyViolation policyViolation : lastPolicyViolations) {
+    // Update the current RepositoryPolicyViolations for this component
+    List<RepositoryPolicyViolation> oldPolicyViolations =
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
+    for (RepositoryPolicyViolation policyViolation : oldPolicyViolations) {
       policyViolation.setActive(false);
       repositoryPolicyViolationDAO.update(tx, policyViolation);
     }
     // Insert new RepositoryPolicyViolations for this component
+    List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();
     List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
     allPolicyAlerts.addAll(policyResults.getActiveAlerts());
     allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
@@ -249,6 +263,16 @@ public class RepositoryPolicyEvaluator
       RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, componentFact, pathname,
           repository, evaluationTime, policyResults.getPolicyWaiver(componentFact) != null);
       repositoryPolicyViolationDAO.insert(tx, policyViolation);
+      newPolicyViolations.add(policyViolation);
+    }
+
+    if (policyViolationLogger.isEnabled()) {
+      PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
+          PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
+      // New policy violations.
+      for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
+        policyViolationLogger.add(PolicyViolationLogEvent.CREATED, newPolicyViolation);
+      }
     }
   }
 

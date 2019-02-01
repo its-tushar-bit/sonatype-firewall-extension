@@ -65,7 +65,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
@@ -106,7 +106,7 @@ public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(PolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+  public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
   
   private Organization organization;
 

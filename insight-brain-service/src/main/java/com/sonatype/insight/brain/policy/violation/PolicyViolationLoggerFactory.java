@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
 @Named
@@ -21,8 +22,12 @@ public class PolicyViolationLoggerFactory
     this.licenseManager = licenseManager;
   }
 
-  public PolicyViolationLogger newLogger(Application application) {
+  public ApplicationPolicyViolationLogger newLogger(Application application) {
     // consult license manager for feature state and configure logger appropriately
-    return new PolicyViolationLogger(licenseManager != null, application);
+    return new ApplicationPolicyViolationLogger(licenseManager != null, application);
+  }
+
+  public RepositoryPolicyViolationLogger newLogger(Repository repository) {
+    return new RepositoryPolicyViolationLogger(licenseManager != null, repository);
   }
 }

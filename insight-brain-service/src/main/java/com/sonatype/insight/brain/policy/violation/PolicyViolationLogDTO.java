@@ -41,6 +41,10 @@ public class PolicyViolationLogDTO
 
   public String applicationName;
 
+  public String repositoryId;
+
+  public String repositoryPublicId;
+
   public ComponentIdentifier componentIdentifier;
 
   public String componentHash;

@@ -79,6 +79,13 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-support</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- help confliction resolution pick newer version referenced by mockito -->
+          <groupId>net.bytebuddy</groupId>
+          <artifactId>byte-buddy</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

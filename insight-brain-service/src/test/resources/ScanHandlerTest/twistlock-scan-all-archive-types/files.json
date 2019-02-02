@@ -19,6 +19,7 @@
 {"sha1":"3a24fab22c7e38597ca0ba0fb2a11ee53d306a0f","path":"/opt/foo.tgz"},
 {"sha1":"3a24fab22c7e38597ca0ba0fb2a11ee53d306a0f","path":"/opt/foo.txz"},
 {"sha1":"3a24fab22c7e38597ca0ba0fb2a11ee53d306a0f","path":"/opt/foo.war"},
+{"sha1":"3a24fab22c7e38597ca0ba0fb2a11ee53d306a0f","path":"/opt/foo.whl"},
 {"sha1":"3a24fab22c7e38597ca0ba0fb2a11ee53d306a0f","path":"/opt/foo.wsr"},
 {"sha1":"3a24fab22c7e38597ca0ba0fb2a11ee53d306a0f","path":"/opt/foo.zip"}
 ]

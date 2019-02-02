@@ -47,7 +47,7 @@
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>6.1.0.Final</drools.version>
-    <geb.version>2.2</geb.version>
+    <geb.version>2.3.1</geb.version>
     <selenium.version>3.8.1</selenium.version>
     <failsafe.version>2.19</failsafe.version>
     <httpcomponents.version>4.5.3</httpcomponents.version>
@@ -799,7 +799,7 @@
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-all</artifactId>
-        <version>2.4.15</version>
+        <version>2.4.16</version>
       </dependency>
       <dependency>
         <groupId>org.spockframework</groupId>

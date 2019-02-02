@@ -81,7 +81,7 @@
       <artifactId>selenium-support</artifactId>
       <exclusions>
         <exclusion>
-          <!-- help confliction resolution pick newer version referenced by mockito -->
+          <!-- help conflict resolution pick newer version referenced by mockito -->
           <groupId>net.bytebuddy</groupId>
           <artifactId>byte-buddy</artifactId>
         </exclusion>

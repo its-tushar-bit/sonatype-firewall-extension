@@ -22,8 +22,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.google.common.annotations.VisibleForTesting;
-
 public class DbModifier
 {
   private final String schemaName;

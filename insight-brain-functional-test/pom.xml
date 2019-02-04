@@ -153,11 +153,6 @@
       <artifactId>spock-core</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
     <!-- Geb browser automation -->
     <dependency>
       <groupId>org.gebish</groupId>

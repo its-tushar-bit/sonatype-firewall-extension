@@ -13,11 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.tools.dbmodifier.ScrubberInsertMods.h2OdsTable;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScrubberInsertModsTest
 {
@@ -36,9 +32,9 @@ public class ScrubberInsertModsTest
             .setLineVals("'test'", "'abcdef'")
             .build()
     );
-    assertThat(scrubbed1, hasSize(1));
-    assertThat(scrubbed1.get(0).columnValue("nontargeted"), is("'test'"));
-    assertThat(scrubbed1.get(0).columnValue("name"), is("'qfLPbb'"));
+    assertThat(scrubbed1).hasSize(1);
+    assertThat(scrubbed1.get(0).columnValue("nontargeted")).isEqualTo("'test'");
+    assertThat(scrubbed1.get(0).columnValue("name")).isEqualTo("'qfLPbb'");
 
     // demonstrate consistent replacement for same source value, abcdef
     List<SQLLine> scrubbed2 = ScrubberInsertMods.scrubInputLine(
@@ -48,8 +44,8 @@ public class ScrubberInsertModsTest
             .setLineVals("STRINGDECODE('abcdef')")
             .build()
     );
-    assertThat(scrubbed2, hasSize(1));
-    assertThat(scrubbed2.get(0).columnValue("comment"), is("STRINGDECODE('qfLPbb')"));
+    assertThat(scrubbed2).hasSize(1);
+    assertThat(scrubbed2.get(0).columnValue("comment")).isEqualTo("STRINGDECODE('qfLPbb')");
   }
 
   @Test
@@ -69,13 +65,9 @@ public class ScrubberInsertModsTest
             .setLineVals("'abcdef'", "'com/jcraft/jsch/0.1.53/jsch-0.1.53.jar'")
             .build()
     );
-    System.out.println(scrubbed1.get(0).columnValue("pathnames"));
-    System.out.println(scrubbed2.get(0).columnValue("pathnames"));
-    System.out
-        .println(scrubbed1.get(0).columnValue("pathnames").equalsIgnoreCase(scrubbed2.get(0).columnValue("pathnames")));
-    assertThat(scrubbed1.get(0).columnValue("pathnames"), is(not(scrubbed2.get(0).columnValue("pathnames"))));
-    assertThat(scrubbed1.get(0).columnValue("pathnames").equalsIgnoreCase(scrubbed2.get(0).columnValue("pathnames")),
-        is(false));
+    assertThat(scrubbed1.get(0).columnValue("pathnames")).isNotEqualTo(scrubbed2.get(0).columnValue("pathnames"));
+    assertThat(scrubbed1.get(0).columnValue("pathnames"))
+        .isNotEqualToIgnoringCase(scrubbed2.get(0).columnValue("pathnames"));
   }
 
   @Test
@@ -87,9 +79,9 @@ public class ScrubberInsertModsTest
             .setLineVals("'abcdef'", "'C:\\\\some\\\\path\\\\One.txt;D:\\\\other\\\\path\\\\file_name-1.12.50.txt'")
             .build()
     );
-    assertThat(scrubbed1, hasSize(1));
-    assertThat(scrubbed1.get(0).columnValue("pathnames"),
-        is("'q:\\\\fLPb\\\\bXOw\\\\P0ghpzs;B:\\\\14BNe\\\\bXOw\\\\19yjysSDMzBI2ncpICWTz'"));
+    assertThat(scrubbed1).hasSize(1);
+    assertThat(scrubbed1.get(0).columnValue("pathnames"))
+        .isEqualTo("'q:\\\\fLPb\\\\bXOw\\\\P0ghpzs;B:\\\\14BNe\\\\bXOw\\\\19yjysSDMzBI2ncpICWTz'");
 
     List<SQLLine> scrubbed2 = ScrubberInsertMods.scrubInputLine(
         SQLLine.builder()
@@ -98,9 +90,8 @@ public class ScrubberInsertModsTest
             .setLineVals("'abcdef'", "STRINGDECODE('/other/path/One.txt')")
             .build()
     );
-    assertThat(scrubbed2, hasSize(1));
-    assertThat(scrubbed2.get(0).columnValue("pathnames"),
-        is("STRINGDECODE('/14BNe/bXOw/P0ghpzs')"));
+    assertThat(scrubbed2).hasSize(1);
+    assertThat(scrubbed2.get(0).columnValue("pathnames")).isEqualTo("STRINGDECODE('/14BNe/bXOw/P0ghpzs')");
   }
 
   @Test
@@ -126,12 +117,12 @@ public class ScrubberInsertModsTest
             .setLineVals("'test'", "'wxyz'", "SYSTEM_COMBINE_CLOB(0)")
             .build()
     );
-    assertThat(scrubbed1, hasSize(0));
-    assertThat(scrubbed2, hasSize(0));
-    assertThat(scrubbed3, hasSize(3));
-    assertThat(scrubbed3.get(0).vals.get(2), is("STRINGDECODE('qfLPbbX OwP0 gh')"));
-    assertThat(scrubbed3.get(1).vals.get(2), is("STRINGDECODE('pzsB14B OwP0 Ne')"));
-    assertThat(scrubbed3.get(2).columnValue("pathnames"), is("SYSTEM_COMBINE_CLOB(0)"));
+    assertThat(scrubbed1).hasSize(0);
+    assertThat(scrubbed2).hasSize(0);
+    assertThat(scrubbed3).hasSize(3);
+    assertThat(scrubbed3.get(0).vals.get(2)).isEqualTo("STRINGDECODE('qfLPbbX OwP0 gh')");
+    assertThat(scrubbed3.get(1).vals.get(2)).isEqualTo("STRINGDECODE('pzsB14B OwP0 Ne')");
+    assertThat(scrubbed3.get(2).columnValue("pathnames")).isEqualTo("SYSTEM_COMBINE_CLOB(0)");
   }
 
   @Test
@@ -143,8 +134,8 @@ public class ScrubberInsertModsTest
             .setLineVals("'admin'", "'admin'", "'oldpass'", "'ad'", "'min'", "'admin@test.com'")
             .build()
     );
-    assertThat(scrubbed1, hasSize(1));
-    assertThat(scrubbed1.get(0).columnValue("username"), is("'admin'"));
+    assertThat(scrubbed1).hasSize(1);
+    assertThat(scrubbed1.get(0).columnValue("username")).isEqualTo("'admin'");
 
     List<SQLLine> scrubbed2 = ScrubberInsertMods.scrubInputLine(
         SQLLine.builder()
@@ -153,9 +144,9 @@ public class ScrubberInsertModsTest
             .setLineVals("'Newton'", "'newton'", "'oldpass'", "'Isaac'", "'Newton'", "'newton@testdemo.com'")
             .build()
     );
-    assertThat(scrubbed2, hasSize(1));
-    assertThat(scrubbed2.get(0).columnValue("password"), is("'" + ScrubberInsertMods.DEFAULT_PASS + "'"));
-    assertThat(scrubbed2.get(0).columnValue("username"), is("'BNe19y'"));
+    assertThat(scrubbed2).hasSize(1);
+    assertThat(scrubbed2.get(0).columnValue("password")).isEqualTo("'" + ScrubberInsertMods.DEFAULT_PASS + "'");
+    assertThat(scrubbed2.get(0).columnValue("username")).isEqualTo("'BNe19y'");
   }
 
   @Test
@@ -205,14 +196,13 @@ public class ScrubberInsertModsTest
         "}";
 
     String randomized = ScrubberInsertMods.jsonRandomizer(samplePolicyJson);
-    assertThat(randomized.endsWith(ScrubberInsertMods.NOTIFICATIONS_EMPTY_CLOSING_JSON), is(true));
+    assertThat(randomized).endsWith(ScrubberInsertMods.NOTIFICATIONS_EMPTY_CLOSING_JSON);
     List<String> original = Arrays.stream(samplePolicyJson.split("\n"))
         .filter(s -> s.contains(ScrubberInsertMods.NAME_OPEN_JSON)).collect(Collectors.toList());
     List<String> mutated = Arrays.stream(randomized.split("\n"))
         .filter(s -> s.contains(ScrubberInsertMods.NAME_OPEN_JSON)).collect(Collectors.toList());
 
-    assertThat(mutated.size(), is(original.size()));
-    assertThat(mutated, hasItem("  \"name\" : \"qfLPbbXOwP0g\","));
-    assertThat(mutated, hasItem("    \"name\" : \"hpzsB14BNe19yjys\","));
+    assertThat(mutated).hasSameSizeAs(original);
+    assertThat(mutated).contains("  \"name\" : \"qfLPbbXOwP0g\",","    \"name\" : \"hpzsB14BNe19yjys\",");
   }
 }

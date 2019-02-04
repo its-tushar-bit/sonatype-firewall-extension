@@ -100,6 +100,20 @@ public class RepositoryPolicyViolationLoggerTest
     assertThat(logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
   }
 
+  @Test
+  public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
+    RepositoryPolicyViolationLogger policyViolationLogger = new RepositoryPolicyViolationLogger(true, repository);
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
+    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    policyViolation.setWaived(true);
+    policyViolationLogger.add(policyViolationLogEvent, policyViolation);
+
+    policyViolationLogger.log();
+
+    assertPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
+        policyViolation);
+  }
+
   private List<ObjectNode> assertPolicyViolationLogDTOObjectNodes(int expected) throws Exception {
     return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOObjectNodes(logOutput, expected);
   }

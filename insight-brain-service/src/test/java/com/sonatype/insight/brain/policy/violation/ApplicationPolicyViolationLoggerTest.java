@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.Application;
@@ -107,6 +108,34 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertThat(logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).isEmpty();
+  }
+
+  @Test
+  public void testLog_NoStagePolicyActionForCreateEventWithGrandfatheredViolation() throws Exception {
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
+    PolicyViolation policyViolation = createPolicyViolation();
+    policyViolation.setGrandfatherTime(new Date());
+    policyViolationLogger.add(policyViolationLogEvent, policyViolation);
+
+    policyViolationLogger.log();
+
+    assertApplicationPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
+        policyViolation);
+  }
+
+  @Test
+  public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
+    PolicyViolation policyViolation = createPolicyViolation();
+    policyViolation.setWaiveTime(new Date());
+    policyViolationLogger.add(policyViolationLogEvent, policyViolation);
+
+    policyViolationLogger.log();
+
+    assertApplicationPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
+        policyViolation);
   }
 
   private PolicyViolation createPolicyViolation() {

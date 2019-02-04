@@ -68,11 +68,17 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     policyViolationLogDTO.policyName = policyViolation.getPolicyName();
     policyViolationLogDTO.policyThreatCategory = policyViolation.getThreatCategory().getName();
     policyViolationLogDTO.policyThreatLevel = policyViolation.getThreatLevel();
-    policyViolationLogDTO.stagePolicyAction =
-        policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
+    if (shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation)) {
+      policyViolationLogDTO.stagePolicyAction =
+          policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
+    }
     policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
     policyViolationLogDTO.componentHash = policyViolation.getHash();
     return policyViolationLogDTO;
+  }
+
+  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
+    return PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent);
   }
 
   private static class PolicyViolationData<T extends AbstractPolicyViolation>

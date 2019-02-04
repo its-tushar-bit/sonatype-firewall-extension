@@ -43,4 +43,12 @@ public class ApplicationPolicyViolationLogger
     policyViolationLogDTO.organizationName = organization.getName();
     return policyViolationLogDTO;
   }
+
+  @Override
+  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent,
+                                                   PolicyViolation policyViolation)
+  {
+    return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
+        !policyViolation.isGrandfathered() && !policyViolation.isWaived();
+  }
 }

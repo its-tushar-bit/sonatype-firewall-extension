@@ -71,7 +71,8 @@ public class PolicyViolationLogDTOAssert
     assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getOpenTime());
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
-    assertStagePolicyActionData(policyViolationLogDTO, policyViolation);
+    assertStagePolicyActionData(policyViolationLogDTOObjectNode, policyViolationLogDTO, policyViolationLogEvent,
+        policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
     assertOrganizationData(policyViolationLogDTO, organization);
     assertApplicationData(policyViolationLogDTO, application);
@@ -89,7 +90,8 @@ public class PolicyViolationLogDTOAssert
     assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getTime());
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(StageTypes.PROXY.getId());
-    assertStagePolicyActionData(policyViolationLogDTO, policyViolation);
+    assertStagePolicyActionData(policyViolationLogDTOObjectNode, policyViolationLogDTO, policyViolationLogEvent,
+        policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
     assertRepositoryData(policyViolationLogDTO, repository);
     assertComponentData(policyViolationLogDTOObjectNode, policyViolationLogDTO,
@@ -121,11 +123,35 @@ public class PolicyViolationLogDTOAssert
     assertThat(parsed).isEqualTo(open);
   }
 
-  private static void assertStagePolicyActionData(PolicyViolationLogDTO policyViolationLogDTO,
-                                                  AbstractPolicyViolation policyViolation)
+  private static void assertStagePolicyActionData(ObjectNode policyViolationLogDTOObjectNode,
+                                                  PolicyViolationLogDTO policyViolationLogDTO,
+                                                  PolicyViolationLogEvent policyViolationLogEvent,
+                                                  PolicyViolation policyViolation)
   {
-    assertThat(policyViolationLogDTO.stagePolicyAction)
-        .isEqualTo(policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId());
+    if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent) && !policyViolation.isGrandfathered() &&
+        !policyViolation.isWaived()) {
+      assertThat(policyViolationLogDTO.stagePolicyAction)
+          .isEqualTo(policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId());
+    }
+    else {
+      assertThat(policyViolationLogDTOObjectNode.has("stagePolicyAction")).isFalse();
+      assertThat(policyViolationLogDTO.stagePolicyAction).isNull();
+    }
+  }
+
+  private static void assertStagePolicyActionData(ObjectNode policyViolationLogDTOObjectNode,
+                                                  PolicyViolationLogDTO policyViolationLogDTO,
+                                                  PolicyViolationLogEvent policyViolationLogEvent,
+                                                  RepositoryPolicyViolation policyViolation)
+  {
+    if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent) && !policyViolation.isWaived()) {
+      assertThat(policyViolationLogDTO.stagePolicyAction)
+          .isEqualTo(policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId());
+    }
+    else {
+      assertThat(policyViolationLogDTOObjectNode.has("stagePolicyAction")).isFalse();
+      assertThat(policyViolationLogDTO.stagePolicyAction).isNull();
+    }
   }
 
   private static void assertPolicyData(PolicyViolationLogDTO policyViolationLogDTO,

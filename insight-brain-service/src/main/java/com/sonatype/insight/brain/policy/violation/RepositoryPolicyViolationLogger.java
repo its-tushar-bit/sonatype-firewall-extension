@@ -34,4 +34,12 @@ public class RepositoryPolicyViolationLogger
     policyViolationLogDTO.repositoryPublicId = repository.getPublicId();
     return policyViolationLogDTO;
   }
+
+  @Override
+  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent,
+                                                   RepositoryPolicyViolation policyViolation)
+  {
+    return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
+        !policyViolation.isWaived();
+  }
 }

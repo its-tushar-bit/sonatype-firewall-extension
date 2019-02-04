@@ -34,7 +34,7 @@ public class DbModifier
 
   private final String password;
 
-  @VisibleForTesting
+  // visible for testing
   static class TableAndColumns
   {
     String table;
@@ -42,7 +42,7 @@ public class DbModifier
     final List<String> columns = new ArrayList<>();
   }
 
-  @VisibleForTesting
+  // visible for testing
   static class TableDateMinMax
   {
     String table;
@@ -52,7 +52,7 @@ public class DbModifier
     Timestamp max;
   }
 
-  @VisibleForTesting
+  // visible for testing
   DbModifier(final String dbConnectionString, final String username, final String password, final String schemaName)
   {
     this.dbConnectionString = dbConnectionString + ";SCHEMA=" + schemaName;
@@ -142,12 +142,12 @@ public class DbModifier
     return tableAndColumnsList.stream().map(timestampEval).filter(Objects::nonNull).max(sortOrder).orElse(null);
   }
 
-  @VisibleForTesting
+  // visible for testing
   Timestamp getMinTimestampInTable(final TableAndColumns tableAndColumns) {
     return getTimestampInTable(tableAndColumns, false);
   }
 
-  @VisibleForTesting
+  // visible for testing
   Timestamp getMaxTimestampInTable(final TableAndColumns tableAndColumns) {
     return getTimestampInTable(tableAndColumns, true);
   }
@@ -193,7 +193,7 @@ public class DbModifier
     return getAllTimestampColumns(allTables);
   }
 
-  @VisibleForTesting
+  // visible for testing
   List<TableAndColumns> getAllTimestampColumns(final List<String> tableNames) {
     List<TableAndColumns> tablesList = new ArrayList<>();
     for (String tableName : tableNames) {
@@ -230,7 +230,11 @@ public class DbModifier
     }
   }
 
-  @VisibleForTesting
+  public void scrub(boolean rebuild, boolean keepFiles) {
+    DbScrubber.scrubDb(dbConnectionString, rebuild, keepFiles);
+  }
+
+  // visible for testing
   List<String> getAllTables() {
     List<String> tableNames = new ArrayList<>();
     String getTablesSql =

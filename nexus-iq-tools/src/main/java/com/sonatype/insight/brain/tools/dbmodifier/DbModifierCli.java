@@ -55,6 +55,17 @@ public final class DbModifierCli
   @Parameter(names = {"-c", "-compact"}, description = "Compact db, can be run alone or with date change")
   private boolean compact;
 
+  @Parameter(names = {"-s", "-scrub"}, description = "Extract sql, scrub, rebuild & compact db")
+  private boolean scrub;
+
+  @Parameter(names = {
+      "-sn", "-scrub-no-build"
+  }, description = "Extract and scrub db sql.  Do not rebuild. (implies -scrub-keep)")
+  private boolean scrubNoBuild;
+
+  @Parameter(names = {"-sk", "-scrub-keep"}, description = "Keep files used during scrub operations.")
+  private boolean scrubKeep;
+
   private static void noArgsCheck(int argCount) {
     if (argCount == 0) {
       printUsage();
@@ -160,6 +171,9 @@ public final class DbModifierCli
     }
     else if (compact) {
       dbmod.compact();
+    }
+    else if (scrub || scrubNoBuild) {
+      dbmod.scrub(!scrubNoBuild, scrubNoBuild || scrubKeep);
     }
     else {
       printUsage();

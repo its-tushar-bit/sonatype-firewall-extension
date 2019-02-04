@@ -77,7 +77,9 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     return policyViolationLogDTO;
   }
 
-  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
+  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent,
+                                                   @SuppressWarnings("unused") T policyViolation)
+  {
     return PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent);
   }
 

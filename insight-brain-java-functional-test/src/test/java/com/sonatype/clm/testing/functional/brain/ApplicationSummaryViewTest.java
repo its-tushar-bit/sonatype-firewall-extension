@@ -51,16 +51,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.focused;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.textCaseSensitive;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -411,10 +402,11 @@ public class ApplicationSummaryViewTest
         stageDropdown.selectedItem().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
 
         if (!isNotificationsAllowed) {
-          modal.disabledNotificationsMessage().shouldBe(text("Notifications are not supported by your license."));
+          EvaluateApplicationModal.disabledNotificationsMessage()
+              .shouldBe(text("Notifications are not supported by your license."));
         }
         else {
-          modal.disabledNotificationsMessage().shouldBe(hidden);
+          EvaluateApplicationModal.disabledNotificationsMessage().shouldBe(hidden);
         }
         Condition disabledOrEnabled = !isNotificationsAllowed ? disabled : enabled;
         modal.notifyRadioButtons().yes().shouldBe(visible, selected, disabledOrEnabled);

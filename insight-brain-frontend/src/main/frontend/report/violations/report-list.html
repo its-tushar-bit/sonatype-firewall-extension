@@ -78,7 +78,7 @@
                   <div ng-if="application.policyEvaluationsResults[stage.stageTypeId]"
                        class="iq-report-list__stage-links">
                     <div class="iq-report-list__violation-links"
-                         ng-show="applicationHasViolationsForStage(application, stage)">
+                         ng-show="vm.applicationHasViolationsForStage(application, stage)">
                       <a title="View Report"
                          ui-sref="report({publicId: application.publicId, scanId: application.policyEvaluations[stage.stageTypeId].scanId})">
                         <div class="iq-threat-indicators">

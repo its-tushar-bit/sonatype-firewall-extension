@@ -13,9 +13,16 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
+import io.dropwizard.lifecycle.Managed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class PolicyViolationLoggerFactory
+    implements Managed
 {
+  private static final Logger log = LoggerFactory.getLogger(PolicyViolationLoggerFactory.class);
+
   private final CLMLicenseManager licenseManager;
 
   @Inject
@@ -31,5 +38,22 @@ public class PolicyViolationLoggerFactory
   public RepositoryPolicyViolationLogger newLogger(Repository repository) {
     return new RepositoryPolicyViolationLogger(
         licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), repository);
+  }
+
+  @Override
+  public void start() {
+    if (LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME).isInfoEnabled()
+        && !licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS)
+        && !licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES)) {
+      log.warn(
+          "Disabling policy violation logging for logger {}."
+              + " Installed license does not support policy violation logging.",
+          AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+    }
+  }
+
+  @Override
+  public void stop() {
+    // noop
   }
 }

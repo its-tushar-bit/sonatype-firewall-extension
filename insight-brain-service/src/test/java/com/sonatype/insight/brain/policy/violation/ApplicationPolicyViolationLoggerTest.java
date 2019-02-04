@@ -51,7 +51,7 @@ public class ApplicationPolicyViolationLoggerTest
   @Test
   public void testLog() throws Exception {
     ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
-    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolationOne = createPolicyViolation();
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
     PolicyViolation policyViolationTwo = createPolicyViolation();
@@ -69,7 +69,7 @@ public class ApplicationPolicyViolationLoggerTest
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
     ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
-    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setComponentIdentifier(null);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
@@ -88,7 +88,7 @@ public class ApplicationPolicyViolationLoggerTest
     Level level = logger.getLevel();
     try {
       logger.setLevel(Level.OFF);
-      policyViolationLogger.add(PolicyViolationLogEvent.CREATED, createPolicyViolation());
+      policyViolationLogger.add(PolicyViolationLogEvent.CREATE, createPolicyViolation());
 
       policyViolationLogger.log();
 
@@ -102,7 +102,7 @@ public class ApplicationPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(false, application);
-    policyViolationLogger.add(PolicyViolationLogEvent.CREATED, createPolicyViolation());
+    policyViolationLogger.add(PolicyViolationLogEvent.CREATE, createPolicyViolation());
 
     policyViolationLogger.log();
 

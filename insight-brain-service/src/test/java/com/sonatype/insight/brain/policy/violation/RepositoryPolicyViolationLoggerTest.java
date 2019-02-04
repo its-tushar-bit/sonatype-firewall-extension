@@ -39,7 +39,7 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog() throws Exception {
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true /* licensed */, repository);
-    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     RepositoryPolicyViolation policyViolationOne = tempEntity.newRepositoryPolicyViolation(repository.getId());
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
     RepositoryPolicyViolation policyViolationTwo = tempEntity.newRepositoryPolicyViolation(repository.getId());
@@ -56,7 +56,7 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog_NoComponentIdentifier() throws Exception {
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true /* licensed */, repository);
-    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATED;
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
     policyViolation.setComponentIdentifier(null);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
@@ -76,7 +76,7 @@ public class RepositoryPolicyViolationLoggerTest
     Level level = logger.getLevel();
     try {
       logger.setLevel(Level.OFF);
-      policyViolationLogger.add(PolicyViolationLogEvent.CREATED,
+      policyViolationLogger.add(PolicyViolationLogEvent.CREATE,
           tempEntity.newRepositoryPolicyViolation(repository.getId()));
 
       policyViolationLogger.log();
@@ -92,7 +92,7 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(false /* licensed */, repository);
-    policyViolationLogger.add(PolicyViolationLogEvent.CREATED,
+    policyViolationLogger.add(PolicyViolationLogEvent.CREATE,
         tempEntity.newRepositoryPolicyViolation(repository.getId()));
 
     policyViolationLogger.log();

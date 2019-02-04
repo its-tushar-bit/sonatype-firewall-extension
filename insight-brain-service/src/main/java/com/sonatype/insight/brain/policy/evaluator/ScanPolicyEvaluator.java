@@ -319,7 +319,7 @@ public class ScanPolicyEvaluator
               results.notifiableViolations.add(newPolicyViolation);
             }
             policyViolationDAO.insert(tx, newPolicyViolation);
-            policyViolationLogger.add(PolicyViolationLogEvent.CREATED, newPolicyViolation);
+            policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
           }
           // Fixed policy violations.
           for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {

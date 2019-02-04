@@ -1568,7 +1568,7 @@ public class ScanPolicyEvaluatorTest
     List<ObjectNode> policyViolationLogDTOObjectNodes = assertPolicyViolationLogDTOObjectNodes(policyViolations.size());
     for (PolicyViolation policyViolation : policyViolations) {
       PolicyViolationLogDTOAssert
-          .assertApplicationPolicyViolationData(policyViolationLogDTOObjectNodes, PolicyViolationLogEvent.CREATED,
+          .assertApplicationPolicyViolationData(policyViolationLogDTOObjectNodes, PolicyViolationLogEvent.CREATE,
               organization, application, policyViolation);
     }
   }

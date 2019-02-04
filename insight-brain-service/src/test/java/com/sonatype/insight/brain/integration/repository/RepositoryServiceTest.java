@@ -2220,7 +2220,7 @@ public class RepositoryServiceTest
         .assertPolicyViolationLogDTOObjectNodes(policyViolationLoggerOutput, policyViolations.size());
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
       PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNodes,
-          PolicyViolationLogEvent.CREATED, repository, policyViolation);
+          PolicyViolationLogEvent.CREATE, repository, policyViolation);
     }
   }
 }

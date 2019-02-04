@@ -271,7 +271,7 @@ public class RepositoryPolicyEvaluator
           PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
       // New policy violations.
       for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
-        policyViolationLogger.add(PolicyViolationLogEvent.CREATED, newPolicyViolation);
+        policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
       }
     }
   }

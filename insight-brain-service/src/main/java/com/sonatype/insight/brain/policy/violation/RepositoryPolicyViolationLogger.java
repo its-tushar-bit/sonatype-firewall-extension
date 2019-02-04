@@ -28,7 +28,6 @@ public class RepositoryPolicyViolationLogger
         super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
 
     policyViolationLogDTO.eventTimestamp = formatTimestamp(policyViolation.getTime());
-    policyViolationLogDTO.policyViolationId = policyViolation.getId();
     policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
     policyViolationLogDTO.repositoryId = repository.getId();
     policyViolationLogDTO.repositoryPublicId = repository.getPublicId();

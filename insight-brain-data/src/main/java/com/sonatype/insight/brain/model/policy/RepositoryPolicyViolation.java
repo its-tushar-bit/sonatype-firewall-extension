@@ -15,7 +15,6 @@ import javax.persistence.Table;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.model.HasStringId;
 
 /**
  * @since 1.17
@@ -24,7 +23,6 @@ import com.sonatype.insight.model.HasStringId;
 @Table(name = "repository_policy_violation")
 public class RepositoryPolicyViolation
     extends AbstractPolicyViolation
-    implements HasStringId
 {
   @Id
   @Column(name = "repository_policy_violation_id")

@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.model.HasStringId;
 
 import org.codehaus.plexus.util.StringUtils;
 
@@ -28,7 +29,7 @@ import org.codehaus.plexus.util.StringUtils;
 @MappedSuperclass
 public abstract class AbstractPolicyViolation
     extends HasComponentId
-    implements PolicyViolationComparable
+    implements PolicyViolationComparable, HasStringId
 {
   @Column(name = "policy_id")
   private String policyId;

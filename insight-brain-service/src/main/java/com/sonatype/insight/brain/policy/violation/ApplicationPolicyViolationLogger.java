@@ -34,7 +34,6 @@ public class ApplicationPolicyViolationLogger
         super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
 
     policyViolationLogDTO.eventTimestamp = formatTimestamp(policyViolation.getOpenTime());
-    policyViolationLogDTO.policyViolationId = policyViolation.getId();
     policyViolationLogDTO.stageTypeId = policyViolation.getStageTypeId();
     policyViolationLogDTO.applicationId = policyViolation.getApplicationId();
     policyViolationLogDTO.applicationPublicId = application.getPublicId();

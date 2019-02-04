@@ -350,6 +350,7 @@ public class CLMLicenseManager
     Set<Feature> features = EnumSet.noneOf(Feature.class);
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       features.add(Feature.POLICY_MONITORING);
+      features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(Feature.DASHBOARD);
       features.add(Feature.CLI_INTEGRATION);
       features.add(Feature.ENFORCEMENT);
@@ -361,6 +362,7 @@ public class CLMLicenseManager
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       features.add(Feature.QUALITY);
       features.add(Feature.POLICY_MONITORING);
+      features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(Feature.DASHBOARD);
       features.add(Feature.CLI_INTEGRATION);
       features.add(Feature.ENFORCEMENT);
@@ -388,6 +390,7 @@ public class CLMLicenseManager
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       features.add(Feature.FIREWALL);
       features.add(Feature.RM_STAGING_INTEGRATION);
+      features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, key.getExpirationDate().getTime(), key.getContactName(),

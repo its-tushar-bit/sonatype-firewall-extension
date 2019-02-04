@@ -121,6 +121,7 @@ public class CLMLicenseManagerTest
         Feature.RM_STAGING_INTEGRATION, //
         Feature.DASHBOARD, //
         Feature.POLICY_MONITORING, //
+        Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
         Feature.CLI_INTEGRATION, //
         Feature.ENFORCEMENT, //
         Feature.NOTIFICATIONS, //
@@ -138,6 +139,7 @@ public class CLMLicenseManagerTest
         Feature.RM_STAGING_INTEGRATION, //
         Feature.DASHBOARD, //
         Feature.POLICY_MONITORING, //
+        Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
         Feature.CLI_INTEGRATION, //
         Feature.QUALITY, //
         Feature.ENFORCEMENT, //
@@ -152,6 +154,7 @@ public class CLMLicenseManagerTest
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
         Feature.FIREWALL, //
+        Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         Feature.RM_STAGING_INTEGRATION);
   }
 

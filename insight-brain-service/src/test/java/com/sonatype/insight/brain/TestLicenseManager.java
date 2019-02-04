@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain;
 
+import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -15,6 +17,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
+import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 @Named
@@ -33,6 +36,15 @@ public class TestLicenseManager
     this.licenseManager = licenseManager;
   }
 
+  private void reloadLicenseData() {
+    try {
+      installLicense(null);
+    }
+    catch (IOException | LicensingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Override
   public Set<Feature> getFeatures() {
     // features are normally derived based on the products
@@ -42,5 +54,15 @@ public class TestLicenseManager
       return features;
     }
     return super.getFeatures();
+  }
+
+  public void setFeatures(Feature... features) {
+    licenseManager.setFeatures(features);
+    reloadLicenseData();
+  }
+
+  public void setMissingFeatures(Feature feature, Feature... features) {
+    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature, features)).toArray(new Feature[0]));
+    reloadLicenseData();
   }
 }

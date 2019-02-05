@@ -100,6 +100,10 @@ public class ApplicationReportPage
     return new MatchStateFilter("#match-state-filter");
   }
 
+  public ViolationStateFilter violationStateFilter() {
+    return new ViolationStateFilter("#violation-state-filter");
+  }
+
   public AppReportHeaders headers() {
     return new AppReportHeaders();
   }
@@ -379,6 +383,30 @@ public class ApplicationReportPage
 
     public IqCheckbox unknown() {
       return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(4)));
+    }
+  }
+
+  public static class ViolationStateFilter
+      extends IqTreeViewMultiSelect
+  {
+    public ViolationStateFilter(String selector) {
+      super(selector);
+    }
+
+    public IqCheckbox notViolating() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
+    }
+
+    public IqCheckbox open() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
+    }
+
+    public IqCheckbox waived() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(4)));
+    }
+
+    public IqCheckbox grandfathered() {
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(5)));
     }
   }
 }

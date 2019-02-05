@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { pick } from 'ramda';
+import { equals, map, pick, reduce, reject } from 'ramda';
+
+import { lookup, setToArray, union } from '../util/jsUtil';
 
 import template from './applicationReport.html';
 import reevaluationErrorModalWrapperTemplate from './reevaluationErrorModal/reevaluationErrorModalWrapper.html';
@@ -12,6 +14,14 @@ export default {
   template: template,
   controllerAs: 'vm',
   controller: ApplicationReportController
+};
+
+// Map from checkbox option id to violationState filter set
+const violationStateCheckboxFilterMapping = {
+  notViolating: new Set(['notViolating']),
+  open: new Set(['open']),
+  waived: new Set(['waived', 'waived+grandfathered']),
+  grandfathered: new Set(['grandfathered', 'waived+grandfathered'])
 };
 
 function ApplicationReportController($scope, $ngRedux, applicationReportActions, Modal) {
@@ -30,6 +40,15 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
       { id: 'similar', name: 'Similar' },
       { id: 'unknown', name: 'Unknown' }
     ],
+
+    availableViolationStateFilterOptions: [
+      { id: 'notViolating', name: 'Not Violating' },
+      { id: 'open', name: 'Open' },
+      { id: 'waived', name: 'Waived' },
+      { id: 'grandfathered', name: 'Grandfathered' }
+    ],
+
+    violationStateCheckedIds: new Set(),
 
     $onInit() {
       const actions = pick(
@@ -57,6 +76,16 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
         else if (!reevaluationError) {
           vm.dismissReevaluationErrorModal();
         }
+      });
+
+      $scope.$watch('vm.exactValueFilters.derivedViolationState', function(derivedViolationState) {
+        const violationStateFilter = derivedViolationState || new Set(),
+
+            // the 'waived+grandfathered' value is redundant for these purposes, and the other possible values
+            // all map perfectly to the checkbox ids
+            checkedIds = reject(equals('waived+grandfathered'), setToArray(violationStateFilter));
+
+        vm.violationStateCheckedIds = new Set(checkedIds);
       });
     },
 
@@ -94,6 +123,13 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
     setMatchStateFilterOptions(selectedIds) {
       vm.setExactValueFilter('matchState', selectedIds);
+    },
+
+    setViolationStateFilterOptions(selectedIds) {
+      const selectedFilters = map(lookup(violationStateCheckboxFilterMapping), setToArray(selectedIds)),
+          mergedFilter = reduce(union, new Set(), selectedFilters);
+
+      vm.setExactValueFilter('derivedViolationState', mergedFilter);
     }
   });
 }

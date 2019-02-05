@@ -93,7 +93,8 @@ describe('applicationReportActions', function() {
               policyName: 'None',
               waived: false,
               grandfathered: false,
-              derivedComponentName: 'foo.js'
+              derivedComponentName: 'foo.js',
+              derivedViolationState: 'notViolating'
             }],
             scanId: 'scanId'
           },
@@ -189,7 +190,8 @@ describe('applicationReportActions', function() {
               policyName: 'None',
               waived: false,
               grandfathered: false,
-              derivedComponentName: 'foo.js'
+              derivedComponentName: 'foo.js',
+              derivedViolationState: 'notViolating'
             }],
             scanId: 'scanId'
           },
@@ -327,7 +329,8 @@ describe('applicationReportActions', function() {
               policyName: 'None',
               waived: false,
               grandfathered: false,
-              derivedComponentName: 'foo.js'
+              derivedComponentName: 'foo.js',
+              derivedViolationState: 'notViolating'
             }],
             scanId: 'scanId'
           },

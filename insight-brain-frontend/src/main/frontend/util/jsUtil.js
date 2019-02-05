@@ -69,3 +69,5 @@ const pairToURIParam = compose(join('='), map(encodeURIComponent));
 export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);
 
 export const isNilOrEmpty = either(isNil, isEmpty);
+
+export const union = (set1, set2) => new Set(setToArray(set1).concat(setToArray(set2)));

@@ -153,6 +153,16 @@ describe('applicationReport component', function() {
     expect(ids).toContain('unknown');
   });
 
+  it('sets the availableViolationStateFilterOptions', function() {
+    const ids = controller.availableViolationStateFilterOptions.map(({ id }) => id);
+    expect(ids.length).toBe(4);
+
+    expect(ids).toContain('notViolating');
+    expect(ids).toContain('open');
+    expect(ids).toContain('waived');
+    expect(ids).toContain('grandfathered');
+  });
+
   describe('setProprietaryFilterOptions', function() {
     it('calls setExactValueFilter with a fieldName of "proprietary"', function() {
       const selectedIds = new Set([true]);
@@ -170,6 +180,70 @@ describe('applicationReport component', function() {
       controller.setMatchStateFilterOptions(selectedIds);
 
       expect(controller.setExactValueFilter).toHaveBeenCalledWith('matchState', selectedIds);
+    });
+  });
+
+  describe('setViolatonStateFilterOptions', function() {
+    function doTest(selectedIds, expectedFilter) {
+      return function() {
+        controller.setViolationStateFilterOptions(new Set(selectedIds));
+
+        expect(controller.setExactValueFilter).toHaveBeenCalledWith('derivedViolationState', new Set(expectedFilter));
+      };
+    }
+
+    it('calls setExactValueFilter with a fieldName of "derivedViolationState"', doTest([], []));
+
+    it('passes a filter that includes "notViolating" when the notViolating id is selected',
+        doTest(['notViolating'], ['notViolating']));
+
+    it('passes a filter that includes "open" when the open id is selected',
+        doTest(['open'], ['open']));
+
+    it('passes a filter that includes "waived" and "waived+grandfathered" when the waived id is selected',
+        doTest(['waived'], ['waived', 'waived+grandfathered']));
+
+    it('passes a filter that includes "grandfathered" and "waived+grandfathered" when the grandfathered id is selected',
+        doTest(['grandfathered'], ['grandfathered', 'waived+grandfathered']));
+
+    it('combines filters using set union',
+        doTest(['open', 'waived', 'grandfathered'], ['open', 'waived', 'grandfathered', 'waived+grandfathered']));
+  });
+
+  describe('vm.exactValueFilters.derivedViolationState watcher', function() {
+    it('sets violationStateCheckedIds based on the derivedViolationState value', function() {
+      controller.exactValueFilters = {
+        derivedViolationState: new Set()
+      };
+
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set());
+
+      controller.exactValueFilters.derivedViolationState = new Set(['notViolating', 'waived', 'waived+grandfathered']);
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['notViolating', 'waived']));
+
+      controller.exactValueFilters.derivedViolationState = new Set(['notViolating', 'open']);
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['notViolating', 'open']));
+
+      controller.exactValueFilters.derivedViolationState = new Set(['waived', 'waived+grandfathered', 'grandfathered']);
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['waived', 'grandfathered']));
+    });
+
+    it('sets violationStateCheckedIds to the empty set when derivedViolationState is undefined', function () {
+      controller.exactValueFilters = {};
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set());
+
+      controller.exactValueFilters.derivedViolationState = new Set(['notViolating']);
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['notViolating']));
+
+      controller.exactValueFilters = {};
+      scope.$digest();
+      expect(controller.violationStateCheckedIds).toEqual(new Set());
     });
   });
 });

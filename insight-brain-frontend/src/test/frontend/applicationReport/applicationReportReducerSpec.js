@@ -393,39 +393,45 @@ describe('applicationReportReducer', function() {
             policyThreatLevel: 10,
             policyName: 'P1',
             grandfathered: false,
-            waived: false
+            waived: false,
+            derivedViolationState: 'open'
           }, {
             hash: '4',
             policyThreatLevel: 8,
             policyName: 'P2',
             grandfathered: false,
             waived: true,
-            displayName: {parts: []}
+            displayName: {parts: []},
+            derivedViolationState: 'open'
           }, {
             hash: '1',
             policyThreatLevel: 6,
             policyName: 'P3',
             grandfathered: false,
             waived: true,
-            displayName: {parts: []}
+            displayName: {parts: []},
+            derivedViolationState: 'open'
           }, {
             hash: '5',
             policyThreatLevel: 4,
             policyName: 'P4',
             grandfathered: false,
-            waived: false
+            waived: false,
+            derivedViolationState: 'open'
           }, {
             hash: '2',
             policyThreatLevel: 3,
             policyName: 'P5',
             grandfathered: false,
-            waived: false
+            waived: false,
+            derivedViolationState: 'open'
           }, {
             hash: '1',
             policyThreatLevel: 1,
             policyName: 'P6',
             grandfathered: false,
-            waived: false
+            waived: false,
+            derivedViolationState: 'open'
           }],
           state = Object.freeze({
             selectedReport: {
@@ -445,32 +451,37 @@ describe('applicationReportReducer', function() {
         policyThreatLevel: 10,
         policyName: 'P1',
         grandfathered: false,
-        waived: false
+        waived: false,
+        derivedViolationState: 'open'
       }, {
         hash: '5',
         policyThreatLevel: 4,
         policyName: 'P4',
         grandfathered: false,
-        waived: false
+        waived: false,
+        derivedViolationState: 'open'
       }, {
         hash: '2',
         policyThreatLevel: 3,
         policyName: 'P5',
         grandfathered: false,
-        waived: false
+        waived: false,
+        derivedViolationState: 'open'
       }, {
         hash: '1',
         policyThreatLevel: 1,
         policyName: 'P6',
         grandfathered: false,
-        waived: false
+        waived: false,
+        derivedViolationState: 'open'
       }, {
         hash: '4',
         policyThreatLevel: 0,
         policyName: 'None',
         waived: true,
         grandfathered: false,
-        displayName: {parts: []}
+        displayName: {parts: []},
+        derivedViolationState: 'waived'
       }]);
     });
   });

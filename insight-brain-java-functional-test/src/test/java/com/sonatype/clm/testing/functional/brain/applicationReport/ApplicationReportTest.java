@@ -13,11 +13,15 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.MatchStateFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ViolationStateFilter;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -394,6 +398,97 @@ public class ApplicationReportTest
     matchStateFilter.exact().shouldBe(selected);
     matchStateFilter.counter().shouldHave(exactText("3 of 3"));
     violations.shouldHaveSize(60);
+
+  }
+
+  @Test
+  public void testFiltering_violationState() throws Exception {
+    ElementsCollection violations = reportPage.resultRows();
+
+    ViolationStateFilter violationStateFilter = reportPage.violationStateFilter();
+    violationStateFilter.counter().shouldHave(exactText("4"));
+    violationStateFilter.multiSelectList().shouldBe(empty);
+    violationStateFilter.twisty().click();
+    violationStateFilter.multiSelectList().shouldHaveSize(5);
+
+    violationStateFilter.open().click();
+    violationStateFilter.open().shouldBe(selected);
+    violationStateFilter.counter().shouldHave(exactText("1 of 4"));
+    violations.shouldHaveSize(27);
+    violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+
+    // waive the first violation
+    violations.first().click();
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.shouldBe(visible);
+    cipModal.tabLink(2).shouldHave(text("Policy")).click();
+    WaiverCip.row(0).waiveButton().click();
+    AddWaiverDialog.saveButton().click();
+    cipModal.closeButton().click();
+    reportPage.reevaluateButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // waived violation filtered out
+    violations.shouldHaveSize(26);
+
+    // now add waived violations
+    violationStateFilter.waived().click();
+    violationStateFilter.waived().shouldBe(selected);
+    violationStateFilter.counter().shouldHave(exactText("2 of 4"));
+    violations.shouldHaveSize(27);
+
+    // at this point, the mycila violation is visible but is way down at the "None" part of the list because we are
+    // in the aggregated view
+    violations.first().shouldHave(text("com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1"));
+
+    // switch to non-aggregated view to get the actual waived violation, back in its original place at the top of the
+    // list
+    reportPage.showAllViolationsRadio().click();
+    violations.shouldHaveSize(65);
+    violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+
+    eyesWatcher.eyesCheck("Test Violation State Filter");
+
+    activateGrandfathering();
+
+    // activateGrandfathering refreshes the page so we need to put the filter back how we had it
+    reportPage.showAllViolationsRadio().click();
+    violationStateFilter.twisty().click();
+    violationStateFilter.open().click();
+    violationStateFilter.waived().click();
+
+    // grandfathered violations not visible
+    violations.shouldHaveSize(21);
+
+    // grandfathered violations now visible
+    violationStateFilter.grandfathered().click();
+    violationStateFilter.grandfathered().shouldBe(selected);
+    violationStateFilter.counter().shouldHave(exactText("3 of 4"));
+    violations.shouldHaveSize(65);
+
+    // the waived violation is also grandfathered, so no difference.
+    violationStateFilter.waived().click();
+    violations.shouldHaveSize(65);
+
+    violationStateFilter.notViolating().click();
+    violationStateFilter.notViolating().shouldBe(selected);
+    violationStateFilter.counter().shouldHave(exactText("3 of 4"));
+    violations.shouldHaveSize(101);
+
+    // all boxes checked - again no difference in count because the waived violation is also grandfathered
+    violationStateFilter.waived().click();
+    violationStateFilter.counter().shouldHave(exactText("4 of 4"));
+    violations.shouldHaveSize(101);
+
+    // no boxes checked
+    violationStateFilter.allItems().shouldBe(selected).click();
+    violationStateFilter.allItems().shouldNotBe(selected);
+    violationStateFilter.notViolating().shouldNotBe(selected);
+    violationStateFilter.open().shouldNotBe(selected);
+    violationStateFilter.waived().shouldNotBe(selected);
+    violationStateFilter.grandfathered().shouldNotBe(selected);
+    violationStateFilter.counter().shouldHave(exactText("4"));
+    violations.shouldHaveSize(101);
   }
 
   @Test

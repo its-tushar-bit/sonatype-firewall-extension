@@ -45,7 +45,8 @@ const flatMap = pipe(map, flatten),
       policyName: 'None',
       waived: false,
       grandfathered: false,
-      derivedComponentName: deriveComponentName(component)
+      derivedComponentName: deriveComponentName(component),
+      derivedViolationState: 'notViolating'
     });
 
 /**
@@ -56,11 +57,18 @@ function makeViolationEntriesV3(policyResult, bomDataByKey) {
   function makeEntriesForComponent(component) {
     const key = toKey(component),
         bomComponent = bomDataByKey[key],
-        makeEntryForViolation = violation => ({
-          ...pick(['policyThreatLevel', 'policyName', 'waived', 'grandfathered'], violation),
-          ...bomComponent,
-          derivedComponentName: deriveComponentName(bomComponent)
-        });
+        makeEntryForViolation = violation => {
+          const { waived, grandfathered } = violation;
+
+          return {
+            ...pick(['policyThreatLevel', 'policyName'], violation),
+            ...bomComponent,
+            waived,
+            grandfathered,
+            derivedComponentName: deriveComponentName(bomComponent),
+            derivedViolationState: deriveViolationState(waived, grandfathered)
+          };
+        };
 
     return map(makeEntryForViolation, component.allViolations);
   }
@@ -81,7 +89,8 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
           grandfathered: false,
           ...pick(['policyThreatLevel', 'policyName'], violation),
           ...bomComponent,
-          derivedComponentName: deriveComponentName(bomComponent)
+          derivedComponentName: deriveComponentName(bomComponent),
+          derivedViolationState: deriveViolationState(waived, false)
         });
 
     return concat(
@@ -106,7 +115,8 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
       grandfathered: false,
       ...pick(['policyThreatLevel', 'policyName'], violation),
       ...bomComponent,
-      derivedComponentName: deriveComponentName(bomComponent)
+      derivedComponentName: deriveComponentName(bomComponent),
+      derivedViolationState: deriveViolationState(false, false)
     };
   }
 
@@ -120,6 +130,14 @@ const deriveComponentName = ({ displayName, filenames }) =>
 
 const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''), toLower);
 const deriveComponentNameFromFilenames = pipe(join(', '), toLower);
+
+// Violation state is a combination of Waived and Grandfathered.  These two values need to be stored in the same
+// field so that OR-based filtering can be performed on them.  If only their separate-field values were used, the
+// current filtering engine could only do AND-based filtering on them.
+const deriveViolationState = (waived, grandfathered) => waived && grandfathered ? 'waived+grandfathered' :
+  waived ? 'waived' :
+    grandfathered ? 'grandfathered' :
+      'open';
 
 // A map of makeViolationEntries functions, indexed by policyResult version
 const makeViolationEntriesMap = new window.Map([
@@ -171,13 +189,23 @@ function highestViolationReducer(highestViolationSoFar, violation) {
         activeViolations[0] : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
 
   // return the highest active violation, or if there isn't one, merge the inactive violations
-  return highestActiveViolation || {
-    ...violation,
-    policyThreatLevel: 0,
-    policyName: 'None',
-    waived: (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
-    grandfathered: (highestViolationSoFar && highestViolationSoFar.grandfathered) || violation.grandfathered
-  };
+  if (highestActiveViolation) {
+    return highestActiveViolation;
+  }
+  else {
+    const waived = (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
+        grandfathered = (highestViolationSoFar && highestViolationSoFar.grandfathered) || violation.grandfathered;
+
+    return {
+      ...violation,
+      policyThreatLevel: 0,
+      policyName: 'None',
+      waived,
+      grandfathered,
+      derivedViolationState: deriveViolationState(waived, grandfathered)
+    };
+  }
+
 }
 
 const unsetWaivedAndGrandfatheredOnViolatingEntry = entry =>

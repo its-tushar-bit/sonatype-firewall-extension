@@ -23,16 +23,25 @@
     <fieldset class="iq-form-group">
       <legend class="iq-label">Filters</legend>
       <iq-tree-view-multi-select id="proprietary-filter"
+                                 name="proprietary-filter"
                                  available="vm.availableProprietaryFilterOptions"
                                  selected="vm.exactValueFilters.proprietary"
                                  on-change="vm.setProprietaryFilterOptions(selected)">
         Proprietary
       </iq-tree-view-multi-select>
       <iq-tree-view-multi-select id="match-state-filter"
+                                 name="match-state-filter"
                                  available="vm.availableMatchStateFilterOptions"
                                  selected="vm.exactValueFilters.matchState"
                                  on-change="vm.setMatchStateFilterOptions(selected)">
         Component Match State
+      </iq-tree-view-multi-select>
+      <iq-tree-view-multi-select id="violation-state-filter"
+                                 name="violation-state-filter"
+                                 available="vm.availableViolationStateFilterOptions"
+                                 selected="vm.violationStateCheckedIds"
+                                 on-change="vm.setViolationStateFilterOptions(selected)">
+        Violation State
       </iq-tree-view-multi-select>
     </fieldset>
   </aside><!--

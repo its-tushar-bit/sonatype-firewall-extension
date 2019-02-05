@@ -93,7 +93,7 @@ describe('applicationReportService', function() {
                 policyName: 'License-High',
                 policyThreatLevel: 8,
                 waived: true,
-                grandfathered: false
+                grandfathered: true
               }]
             }, {
               hash: 'barHash',
@@ -140,6 +140,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -156,10 +157,11 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'waived+grandfathered',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: true,
-        grandfathered: false
+        grandfathered: true
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -173,6 +175,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'bargroup : bar : 2',
+        derivedViolationState: 'grandfathered',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -184,6 +187,7 @@ describe('applicationReportService', function() {
         hash: 'bazHash',
         otherProp: 'baz',
         derivedComponentName: 'baz.js, bazzzz.js',
+        derivedViolationState: 'notViolating',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
@@ -257,6 +261,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -273,6 +278,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'waived',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: true,
@@ -290,6 +296,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'bargroup : bar : 2',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -301,6 +308,7 @@ describe('applicationReportService', function() {
         hash: 'bazHash',
         otherProp: 'baz',
         derivedComponentName: 'baz.js, bazzzz.js',
+        derivedViolationState: 'notViolating',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
@@ -368,6 +376,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -384,6 +393,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: false,
@@ -401,6 +411,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'bargroup : bar : 2',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -412,6 +423,7 @@ describe('applicationReportService', function() {
         hash: 'bazHash',
         otherProp: 'baz',
         derivedComponentName: 'baz.js, bazzzz.js',
+        derivedViolationState: 'notViolating',
         policyName: 'None',
         policyThreatLevel: 0,
         waived: false,
@@ -476,6 +488,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,
@@ -492,6 +505,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
         policyName: 'License-High',
         policyThreatLevel: 8,
         waived: false,
@@ -509,6 +523,7 @@ describe('applicationReportService', function() {
           }
         },
         derivedComponentName: 'bargroup : bar : 2',
+        derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
         waived: false,

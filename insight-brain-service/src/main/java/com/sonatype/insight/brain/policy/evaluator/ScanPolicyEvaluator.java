@@ -325,6 +325,7 @@ public class ScanPolicyEvaluator
           for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
             oldPolicyViolation.setFixTime(policyEvaluation.getTime());
             policyViolationDAO.update(tx, oldPolicyViolation);
+            policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
           }
           // Existing policy violations.
           for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {

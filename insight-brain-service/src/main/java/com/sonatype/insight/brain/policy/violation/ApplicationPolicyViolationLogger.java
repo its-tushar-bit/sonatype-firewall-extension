@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -33,7 +35,7 @@ public class ApplicationPolicyViolationLogger
     PolicyViolationLogDTO policyViolationLogDTO =
         super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
 
-    policyViolationLogDTO.eventTimestamp = formatTimestamp(policyViolation.getOpenTime());
+    policyViolationLogDTO.eventTimestamp = formatTimestamp(getDate(policyViolationLogEvent, policyViolation));
     policyViolationLogDTO.stageTypeId = policyViolation.getStageTypeId();
     policyViolationLogDTO.applicationId = policyViolation.getApplicationId();
     policyViolationLogDTO.applicationPublicId = application.getPublicId();
@@ -49,5 +51,17 @@ public class ApplicationPolicyViolationLogger
   {
     return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
         !policyViolation.isGrandfathered() && !policyViolation.isWaived();
+  }
+
+  private Date getDate(PolicyViolationLogEvent policyViolationLogEvent,
+                       PolicyViolation policyViolation)
+  {
+    switch (policyViolationLogEvent) {
+      case CREATE:
+        return policyViolation.getOpenTime();
+      case FIX:
+        return policyViolation.getFixTime();
+    }
+    throw new RuntimeException();
   }
 }

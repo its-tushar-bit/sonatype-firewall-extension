@@ -138,6 +138,20 @@ public class ApplicationPolicyViolationLoggerTest
         policyViolation);
   }
 
+  @Test
+  public void testLog_NoStagePolicyActionForFixEvent() throws Exception {
+    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
+    PolicyViolation policyViolation = createPolicyViolation();
+    policyViolation.setFixTime(new Date());
+    policyViolationLogger.add(policyViolationLogEvent, policyViolation);
+
+    policyViolationLogger.log();
+
+    assertApplicationPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
+        policyViolation);
+  }
+
   private PolicyViolation createPolicyViolation() {
     return tempEntity.newPolicyViolation(policyEvaluation, policy, "g", "a", "v", "componentHash");
   }

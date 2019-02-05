@@ -68,7 +68,8 @@ public class PolicyViolationLogDTOAssert
   {
     PolicyViolationLogDTO policyViolationLogDTO = JsonUtils
         .asPojo(policyViolationLogDTOObjectNode, PolicyViolationLogDTO.class);
-    assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getOpenTime());
+    assertEventData(policyViolationLogDTO, policyViolationLogEvent,
+        assertTime(policyViolationLogEvent, policyViolation));
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
     assertStagePolicyActionData(policyViolationLogDTOObjectNode, policyViolationLogDTO, policyViolationLogEvent,
@@ -78,6 +79,22 @@ public class PolicyViolationLogDTOAssert
     assertApplicationData(policyViolationLogDTO, application);
     assertComponentData(policyViolationLogDTOObjectNode, policyViolationLogDTO,
         policyViolation.getComponentIdentifier(), policyViolation.getHash());
+  }
+
+  private static Date assertTime(PolicyViolationLogEvent policyViolationLogEvent, PolicyViolation policyViolation) {
+    Date time = null;
+    switch (policyViolationLogEvent) {
+      case CREATE: {
+        time = policyViolation.getOpenTime();
+        break;
+      }
+      case FIX: {
+        time = policyViolation.getFixTime();
+        break;
+      }
+    }
+    assertThat(time).isNotNull();
+    return time;
   }
 
   public static void assertRepositoryPolicyViolationData(ObjectNode policyViolationLogDTOObjectNode,
@@ -119,8 +136,8 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.eventType).isEqualTo(policyViolationLogEvent.name().toLowerCase(Locale.ROOT));
     ZonedDateTime parsed = ZonedDateTime
         .parse(policyViolationLogDTO.eventTimestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    ZonedDateTime open = ZonedDateTime.ofInstant(Instant.ofEpochMilli(eventTime.getTime()), ZoneId.systemDefault());
-    assertThat(parsed).isEqualTo(open);
+    ZonedDateTime time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(eventTime.getTime()), ZoneId.systemDefault());
+    assertThat(parsed).isEqualTo(time);
   }
 
   private static void assertStagePolicyActionData(ObjectNode policyViolationLogDTOObjectNode,

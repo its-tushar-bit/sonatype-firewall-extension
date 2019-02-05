@@ -63,9 +63,9 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
@@ -1497,7 +1497,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LogsCreatedPolicyViolationsForLatestScan() throws Exception {
+  public void testEvaluate_LogsPolicyViolationsForLatestScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report.zip");
     Policy policy = newSecurityPolicy();
@@ -1505,7 +1505,7 @@ public class ScanPolicyEvaluatorTest
     // First evaluation, all policy violations are new, all logged
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
-    assertPolicyViolationsLogged(results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.allViolations);
     logOutput.clear();
 
     // Second evaluation, all policy violations are the same, none logged
@@ -1514,10 +1514,11 @@ public class ScanPolicyEvaluatorTest
     assertPolicyViolationLogDTOObjectNodes(0);
 
     new PolicyDAO().delete(policy);
-    // Third evaluation, all policy violations are fixed, none logged
+    // Third evaluation, all policy violations are fixed, all logged
     scanPolicyEvaluator.evaluate(application, scanId, stage);
 
-    assertPolicyViolationLogDTOObjectNodes(0);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX,
+        new PolicyViolationDAO().getByApplicationId(application.getId()));
   }
 
   @Test
@@ -1528,7 +1529,7 @@ public class ScanPolicyEvaluatorTest
         .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
 
     assertThat(results.allViolations).anyMatch(PolicyViolation::isWaived);
-    assertPolicyViolationsLogged(results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.allViolations);
   }
 
   @Test
@@ -1545,7 +1546,7 @@ public class ScanPolicyEvaluatorTest
         .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
 
     assertThat(results.allViolations).anyMatch(PolicyViolation::isGrandfathered);
-    assertPolicyViolationsLogged(results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.allViolations);
   }
 
   @Test
@@ -1564,12 +1565,14 @@ public class ScanPolicyEvaluatorTest
     assertPolicyViolationLogDTOObjectNodes(0);
   }
 
-  private void assertPolicyViolationsLogged(List<PolicyViolation> policyViolations) throws Exception {
+  private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
+                                            List<PolicyViolation> policyViolations) throws Exception
+  {
     List<ObjectNode> policyViolationLogDTOObjectNodes = assertPolicyViolationLogDTOObjectNodes(policyViolations.size());
     for (PolicyViolation policyViolation : policyViolations) {
       PolicyViolationLogDTOAssert
-          .assertApplicationPolicyViolationData(policyViolationLogDTOObjectNodes, PolicyViolationLogEvent.CREATE,
-              organization, application, policyViolation);
+          .assertApplicationPolicyViolationData(policyViolationLogDTOObjectNodes, policyViolationLogEvent, organization,
+              application, policyViolation);
     }
   }
 

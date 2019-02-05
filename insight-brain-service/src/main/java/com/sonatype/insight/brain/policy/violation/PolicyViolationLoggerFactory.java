@@ -43,12 +43,19 @@ public class PolicyViolationLoggerFactory
   @Override
   public void start() {
     if (LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME).isInfoEnabled()
-        && !licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS)
-        && !licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES)) {
-      log.warn(
-          "Disabling policy violation logging for logger {}."
-              + " Installed license does not support policy violation logging.",
-          AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+        && !licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS)) {
+      if (!licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES)) {
+        log.warn(
+            "Disabling policy violation logging for logger {}."
+                + " Installed license does not support policy violation logging.",
+            AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+      }
+      else {
+        log.info(
+            "Disabling application policy violation logging for logger {}."
+                + " Installed license does not support policy violation logging for applications.",
+            AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+      }
     }
   }
 

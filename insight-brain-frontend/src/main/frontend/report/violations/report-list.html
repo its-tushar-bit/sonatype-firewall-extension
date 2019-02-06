@@ -15,15 +15,11 @@
           <input type="text" ng-model="vm.appFilter" autocomplete="off" placeholder="Filter Applications" />
         </div>
       </div>
-      <div class="iq-tile iq-tile--report-list">
+      <div class="iq-tile iq-tile--report-list" load-wrapper="vm.error" loading="!vm.stages" reload="vm.doLoad()">
         <div class="iq-scrollable iq-scrollable--fixed-table"
              maximize-container-height
              detect-scrollbar="vm.applications">
-          <table id="report-list-table"
-                 class="iq-table iq-table--fixed iq-table--report-list"
-                 load-wrapper="vm.error"
-                 loading="!vm.stages"
-                 reload="vm.doLoad()">
+          <table id="report-list-table" class="iq-table iq-table--fixed iq-table--report-list">
             <thead class="iq-table--fixed__header">
               <tr id="report-list-headers" class="iq-table-row">
                 <th id="report-list-header-app" class="iq-cell iq-cell--header">

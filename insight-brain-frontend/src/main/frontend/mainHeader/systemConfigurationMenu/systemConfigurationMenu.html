@@ -33,7 +33,7 @@
     </div>
     <div id="system-configuration-webhooks"
         ng-if="vm.permissions.CONFIGURE_SYSTEM"
-        tooltip="{{vm.isWebhooksSupported ? undefined : 'Webhooks is not supported by your license'}}"
+        tooltip="{{vm.isWebhooksSupported ? undefined : 'Webhooks feature is not supported by your license'}}"
         ng-class="{'active': vm.state.includes('webhooks.list'), 'disabled': !vm.isWebhooksSupported}">
       <a ui-sref="webhooks.list"
          class="iq-dropdown-menu__link--main-header"

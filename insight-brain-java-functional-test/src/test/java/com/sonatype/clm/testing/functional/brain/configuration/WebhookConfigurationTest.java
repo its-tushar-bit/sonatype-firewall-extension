@@ -195,7 +195,7 @@ public class WebhookConfigurationTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     
     // make sure we display an error when navigating directly to webhooks pages
-    String notLicensedText = "Webhooks is not supported by your license.";
+    String notLicensedText = "Webhooks feature is not supported by your license.";
 
     refreshOrOpen(WebhookConfigurationPage.URL);
     webhookConfigurationPage.shouldHave(text(notLicensedText));

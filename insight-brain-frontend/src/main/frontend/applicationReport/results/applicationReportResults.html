@@ -21,24 +21,27 @@
       <button id="reevaluate-button" class="iq-btn iq-btn--tertiary" ng-click="vm.reevaluateReport()">
         <i class="fa fa-refresh fa-fw"/>Re-Evaluate Report
       </button>
-      <!--
       <div class="iq-dropdown dropdown" id="options-dropdown">
         <button class="btn dropdown-toggle btn-tertiary" type="button" id="options-menu" data-toggle="dropdown">
           Options <span class="caret"></span>
         </button>
         <div class="dropdown-menu iq-dropdown-menu">
           <div class="iq-dropdown-menu__actions">
-            <a id="generate-pdf-link" class="btn iq-btn--dropdown" ng-click="">
+            <a id="generate-pdf-link"
+               class="btn iq-btn--dropdown"
+               target="_blank"
+               ng-href="{{::vm.getReportPdfDownloadUrl()}}">
               <i class="fa fa-file-pdf-o fa-fw"/>Generate PDF
             </a>
+            <!--
             <div class="divider"></div>
             <a id="raw-data-link" class="link iq-dropdown-menu__link" ng-click="">
               <i class="fa fa-external-link fa-fw"/>View raw data
             </a>
+            -->
           </div>
         </div>
       </div>
-      -->
     </div>
     <div class="iq-tile-header">
       <div class="iq-tile-header__title">

@@ -369,6 +369,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getReportReevaluateUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
           '/reevaluatePolicy',
 
+      getReportPdfDownloadUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+          '/printReport',
+
       getClaimComponentUrl: () => `${baseUrl.get()}/rest/component/identified`
     };
   }

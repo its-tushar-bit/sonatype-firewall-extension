@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.brain.applicationReport;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 
@@ -46,9 +48,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.exactText;
@@ -105,8 +107,7 @@ public class ApplicationReportTest
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
 
-    // Options menu has been temporarily hidden until it has working entries - CLM-11460
-    //reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
+    reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("22"));
     reportPage.threatIndicators().severe().shouldHave(text("38"));
     reportPage.threatIndicators().moderate().shouldHave(text("4"));
@@ -128,15 +129,39 @@ public class ApplicationReportTest
   }
 
   @Test
-  @Ignore // Options menu has been temporarily hidden until it has working entries - CLM-11460
   public void testOptionsMenu() {
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries()
-        .shouldHave(texts("Generate PDF", "View raw data"));
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(1); // increase to 2 after CLM-11857
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testDownloadPdf() throws Exception {
+    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    optionsDropdown.button().click();
+
+    long currentTimeout = Configuration.timeout;
+    File downloadedPdf;
+    try {
+      // generating the PDF takes awhile; increase the timeout to 20 seconds
+      Configuration.timeout = 20000;
+
+      downloadedPdf = optionsDropdown.menu().entries().first().shouldHave(text("Generate PDF")).download();
+    }
+    finally {
+      Configuration.timeout = currentTimeout;
+    }
+
+    byte[] fileBeginning = new byte[4];
+    try (FileInputStream stream = new FileInputStream(downloadedPdf)) {
+      stream.read(fileBeginning);
+    }
+
+    // detect PDF magic number ("%PDF")
+    assertThat(fileBeginning).isEqualTo(new byte[] { 0x25, 0x50, 0x44, 0x46 });
   }
 
   @Test

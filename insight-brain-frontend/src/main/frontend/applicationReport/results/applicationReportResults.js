@@ -12,7 +12,8 @@ export default {
   controller: ApplicationReportResultsController
 };
 
-function ApplicationReportResultsController($state, $ngRedux, $scope, applicationReportActions, Modal, OwnerContext) {
+function ApplicationReportResultsController($state, $ngRedux, $scope, applicationReportActions, Modal, OwnerContext,
+                                            CLMLocations) {
   const vm = this;
 
   Object.assign(vm, {
@@ -54,6 +55,10 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
 
     onPolicyNameFilterChange() {
       vm.setStringFieldFilter('policyName', vm.substringFilters.policyName);
+    },
+
+    getReportPdfDownloadUrl: function() {
+      return CLMLocations.getReportPdfDownloadUrl(vm.selectedReport.application.publicId, vm.selectedReport.scanId);
     }
   });
 }
@@ -63,5 +68,5 @@ function mapStateToThis({applicationReport}) {
 }
 
 ApplicationReportResultsController.$inject = [
-  '$state', '$ngRedux', '$scope', 'applicationReportActions', 'Modal', 'OwnerContext'
+  '$state', '$ngRedux', '$scope', 'applicationReportActions', 'Modal', 'OwnerContext', 'CLMLocations'
 ];

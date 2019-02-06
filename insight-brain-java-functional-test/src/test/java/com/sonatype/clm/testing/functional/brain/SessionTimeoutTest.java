@@ -193,28 +193,28 @@ public class SessionTimeoutTest
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
     // set session timeout to 6 seconds
-    sessionManager.setGlobalSessionTimeout(6000);
+    sessionManager.setGlobalSessionTimeout(8000);
 
     // Current Time: 0; Timeout Time: N/A
     loginAsAdmin();
     Thread.sleep(2000);
 
     // Perform an interaction that will cause a server request
-    // Current Time: 2000; Timeout Time: 6000
+    // Current Time: 2000; Timeout Time: 8000
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
     // wait until after the initial timeout would've expired, but not after the timeout from the most recent
     // interaction would've expired
-    Thread.sleep(4500);
+    Thread.sleep(7000);
 
-    // Current Time: 6500; Timeout Time: 8000
+    // Current Time: 9000; Timeout Time: 10000
     new WebhookConfigurationPage().newWebhook().shouldBe(visible);
 
     // wait until after the new timeout should expire
-    Thread.sleep(2000);
+    Thread.sleep(3000);
 
-    // Current Time: 8500; Timeout Time: 8000
+    // Current Time: 12000; Timeout Time: 10000
     assertUiCleared();
   }
 

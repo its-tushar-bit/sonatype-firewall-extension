@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -84,7 +85,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
@@ -1511,7 +1511,7 @@ public class ScanPolicyEvaluatorTest
     // Second evaluation, all policy violations are the same, none logged
     scanPolicyEvaluator.evaluate(application, scanId, stage);
 
-    assertPolicyViolationLogDTOObjectNodes(0);
+    assertPolicyViolationLogDTOs(0);
 
     new PolicyDAO().delete(policy);
     // Third evaluation, all policy violations are fixed, all logged
@@ -1562,22 +1562,21 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
     assertThat(results.allViolations).isNotEmpty();
-    assertPolicyViolationLogDTOObjectNodes(0);
+    assertPolicyViolationLogDTOs(0);
   }
 
   private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
                                             List<PolicyViolation> policyViolations) throws Exception
   {
-    List<ObjectNode> policyViolationLogDTOObjectNodes = assertPolicyViolationLogDTOObjectNodes(policyViolations.size());
+    List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(policyViolations.size());
     for (PolicyViolation policyViolation : policyViolations) {
-      PolicyViolationLogDTOAssert
-          .assertApplicationPolicyViolationData(policyViolationLogDTOObjectNodes, policyViolationLogEvent, organization,
-              application, policyViolation);
+      PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
+          organization, application, policyViolation);
     }
   }
 
-  private List<ObjectNode> assertPolicyViolationLogDTOObjectNodes(int expected) throws Exception {
-    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOObjectNodes(logOutput, expected);
+  private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {
+    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(logOutput, expected);
   }
 
   private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,

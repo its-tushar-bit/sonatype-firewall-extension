@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -80,7 +81,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.lang.time.DateUtils;
 import org.awaitility.Awaitility;
@@ -2271,11 +2271,11 @@ public class RepositoryServiceTest
                                             Date after,
                                             List<RepositoryPolicyViolation> policyViolations) throws Exception
   {
-    List<ObjectNode> policyViolationLogDTOObjectNodes = PolicyViolationLogDTOAssert
-        .assertPolicyViolationLogDTOObjectNodes(policyViolationLoggerOutput, policyViolations.size());
+    List<PolicyViolationLogDTO> policyViolationLogDTOs =
+        PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolations.size());
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
-      PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNodes,
-          policyViolationLogEvent, repository, before, after, policyViolation);
+      PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
+          repository, before, after, policyViolation);
     }
   }
 }

@@ -15,7 +15,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,9 +51,9 @@ public class RepositoryPolicyViolationLoggerTest
 
     policyViolationLogger.log();
 
-    List<ObjectNode> policyViolationLogDTOObjectNodes = assertPolicyViolationLogDTOObjectNodes(2);
-    assertPolicyViolationData(policyViolationLogDTOObjectNodes.get(0), policyViolationLogEvent, policyViolationOne);
-    assertPolicyViolationData(policyViolationLogDTOObjectNodes.get(1), policyViolationLogEvent, policyViolationTwo);
+    List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(2);
+    assertPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent, policyViolationOne);
+    assertPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent, policyViolationTwo);
   }
 
   @Test
@@ -69,8 +68,7 @@ public class RepositoryPolicyViolationLoggerTest
 
     policyViolationLogger.log();
 
-    assertPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
-        policyViolation);
+    assertPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent, policyViolation);
   }
 
   @Test
@@ -120,8 +118,7 @@ public class RepositoryPolicyViolationLoggerTest
 
     policyViolationLogger.log();
 
-    assertPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
-        policyViolation);
+    assertPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent, policyViolation);
   }
 
   @Test
@@ -135,19 +132,18 @@ public class RepositoryPolicyViolationLoggerTest
 
     policyViolationLogger.log();
 
-    assertPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
-        policyViolation);
+    assertPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent, policyViolation);
   }
 
-  private List<ObjectNode> assertPolicyViolationLogDTOObjectNodes(int expected) throws Exception {
-    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOObjectNodes(logOutput, expected);
+  private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {
+    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(logOutput, expected);
   }
 
-  private void assertPolicyViolationData(ObjectNode policyViolationLogDTOObjectNode,
+  private void assertPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                          PolicyViolationLogEvent policyViolationLogEvent,
                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
-    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNode,
-        policyViolationLogEvent, repository, evaluationTime, evaluationTime, policyViolation);
+    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
+        repository, evaluationTime, evaluationTime, policyViolation);
   }
 }

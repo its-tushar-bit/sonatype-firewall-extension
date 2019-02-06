@@ -32,53 +32,50 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationLogDTOAssert
 {
-  public static List<ObjectNode> assertPolicyViolationLogDTOObjectNodes(LogOutput logOutput, int expected)
+  public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(LogOutput logOutput, int expected)
       throws Exception
   {
     List<String> infoMessages = logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     assertThat(infoMessages).hasSize(expected);
     ObjectMapper objectMapper = new ObjectMapper();
-    List<ObjectNode> policyViolationLogDTOObjectNodes = new ArrayList<>();
+    List<PolicyViolationLogDTO> policyViolationLogDTOs = new ArrayList<>();
     for (String infoMessage : infoMessages) {
-      policyViolationLogDTOObjectNodes.add((ObjectNode) objectMapper.readTree(infoMessage));
+      PolicyViolationLogDTO policyViolationLogDTO =
+          JsonUtils.asPojo((ObjectNode) objectMapper.readTree(infoMessage), PolicyViolationLogDTO.class);
+      policyViolationLogDTOs.add(policyViolationLogDTO);
     }
-    return policyViolationLogDTOObjectNodes;
+    return policyViolationLogDTOs;
   }
 
-  public static void assertApplicationPolicyViolationData(List<ObjectNode> policyViolationLogDTOObjectNodes,
+  public static void assertApplicationPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
                                                           PolicyViolationLogEvent policyViolationLogEvent,
                                                           Organization organization,
                                                           Application application,
                                                           PolicyViolation policyViolation) throws Exception
   {
-    ObjectNode policyViolationLogDTOObjectNode = policyViolationLogDTOObjectNodes.stream()
-        .filter(objectNode -> objectNode.get("policyViolationId").asText().equals(policyViolation.getId())).findFirst()
-        .orElse(null);
-    assertThat(policyViolationLogDTOObjectNode)
+    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream()
+        .filter(dto -> dto.policyViolationId.equals(policyViolation.getId())).findFirst().orElse(null);
+    assertThat(policyViolationLogDTO)
         .as("No policy violation log DTO found with policyViolationId=" + policyViolation.getId()).isNotNull();
-    assertApplicationPolicyViolationData(policyViolationLogDTOObjectNode, policyViolationLogEvent, organization,
-        application, policyViolation);
+    assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
+        policyViolation);
   }
 
-  public static void assertApplicationPolicyViolationData(ObjectNode policyViolationLogDTOObjectNode,
+  public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                           PolicyViolationLogEvent policyViolationLogEvent,
                                                           Organization organization,
                                                           Application application,
                                                           PolicyViolation policyViolation) throws Exception
   {
-    PolicyViolationLogDTO policyViolationLogDTO = JsonUtils
-        .asPojo(policyViolationLogDTOObjectNode, PolicyViolationLogDTO.class);
     assertEventData(policyViolationLogDTO, policyViolationLogEvent,
         assertTime(policyViolationLogEvent, policyViolation));
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
-    assertStagePolicyActionData(policyViolationLogDTOObjectNode, policyViolationLogDTO, policyViolationLogEvent,
-        policyViolation);
+    assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
     assertOrganizationData(policyViolationLogDTO, organization);
     assertApplicationData(policyViolationLogDTO, application);
-    assertComponentData(policyViolationLogDTOObjectNode, policyViolationLogDTO,
-        policyViolation.getComponentIdentifier(), policyViolation.getHash());
+    assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
   }
 
   private static Date assertTime(PolicyViolationLogEvent policyViolationLogEvent, PolicyViolation policyViolation) {
@@ -97,15 +94,13 @@ public class PolicyViolationLogDTOAssert
     return time;
   }
 
-  public static void assertRepositoryPolicyViolationData(ObjectNode policyViolationLogDTOObjectNode,
+  public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
                                                          Date before,
                                                          Date after,
                                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
-    PolicyViolationLogDTO policyViolationLogDTO =
-        JsonUtils.asPojo(policyViolationLogDTOObjectNode, PolicyViolationLogDTO.class);
     if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent)) {
       assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getTime());
     }
@@ -114,28 +109,25 @@ public class PolicyViolationLogDTOAssert
     }
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(StageTypes.PROXY.getId());
-    assertStagePolicyActionData(policyViolationLogDTOObjectNode, policyViolationLogDTO, policyViolationLogEvent,
-        policyViolation);
+    assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
     assertRepositoryData(policyViolationLogDTO, repository);
-    assertComponentData(policyViolationLogDTOObjectNode, policyViolationLogDTO,
-        policyViolation.getComponentIdentifier(), policyViolation.getHash());
+    assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
   }
 
-  public static void assertRepositoryPolicyViolationData(List<ObjectNode> policyViolationLogDTOObjectNodes,
+  public static void assertRepositoryPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
                                                          Date before,
                                                          Date after,
                                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
-    ObjectNode policyViolationLogDTOObjectNode = policyViolationLogDTOObjectNodes.stream()
-        .filter(objectNode -> objectNode.get("policyViolationId").asText().equals(policyViolation.getId())).findFirst()
-        .orElse(null);
-    assertThat(policyViolationLogDTOObjectNode)
+    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream()
+        .filter(dto -> dto.policyViolationId.equals(policyViolation.getId())).findFirst().orElse(null);
+    assertThat(policyViolationLogDTO)
         .as("No policy violation log DTO found with policyViolationId=" + policyViolation.getId()).isNotNull();
-    assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNode, policyViolationLogEvent, repository, before,
-        after, policyViolation);
+    assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, repository, before, after,
+        policyViolation);
   }
 
   private static void assertEventData(PolicyViolationLogDTO policyViolationLogDTO,
@@ -165,8 +157,7 @@ public class PolicyViolationLogDTOAssert
     assertThat(parsed).isBeforeOrEqualTo(afterZonedDateTime);
   }
 
-  private static void assertStagePolicyActionData(ObjectNode policyViolationLogDTOObjectNode,
-                                                  PolicyViolationLogDTO policyViolationLogDTO,
+  private static void assertStagePolicyActionData(PolicyViolationLogDTO policyViolationLogDTO,
                                                   PolicyViolationLogEvent policyViolationLogEvent,
                                                   PolicyViolation policyViolation)
   {
@@ -176,13 +167,11 @@ public class PolicyViolationLogDTOAssert
           .isEqualTo(policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId());
     }
     else {
-      assertThat(policyViolationLogDTOObjectNode.has("stagePolicyAction")).isFalse();
       assertThat(policyViolationLogDTO.stagePolicyAction).isNull();
     }
   }
 
-  private static void assertStagePolicyActionData(ObjectNode policyViolationLogDTOObjectNode,
-                                                  PolicyViolationLogDTO policyViolationLogDTO,
+  private static void assertStagePolicyActionData(PolicyViolationLogDTO policyViolationLogDTO,
                                                   PolicyViolationLogEvent policyViolationLogEvent,
                                                   RepositoryPolicyViolation policyViolation)
   {
@@ -191,7 +180,6 @@ public class PolicyViolationLogDTOAssert
           .isEqualTo(policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId());
     }
     else {
-      assertThat(policyViolationLogDTOObjectNode.has("stagePolicyAction")).isFalse();
       assertThat(policyViolationLogDTO.stagePolicyAction).isNull();
     }
   }
@@ -221,13 +209,11 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.repositoryPublicId).isEqualTo(repository.getPublicId());
   }
 
-  private static void assertComponentData(ObjectNode policyViolationLogDTOObjectNode,
-                                          PolicyViolationLogDTO policyViolationLogDTO,
+  private static void assertComponentData(PolicyViolationLogDTO policyViolationLogDTO,
                                           ComponentIdentifier componentIdentifier,
                                           String componentHash)
   {
     if (componentIdentifier == null) {
-      assertThat(policyViolationLogDTOObjectNode.has("componentIdentifier")).isFalse();
       assertThat(policyViolationLogDTO.componentIdentifier).isNull();
     }
     else {

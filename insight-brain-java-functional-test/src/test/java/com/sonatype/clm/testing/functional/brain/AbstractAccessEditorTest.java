@@ -168,6 +168,7 @@ public abstract class AbstractAccessEditorTest
 
     AccessEditorPage.searchBox().val("Admin*");
     AccessEditorPage.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
     picker.availableItem(0).shouldHave(exactText("Admin BuiltIn")).hover();
     Tooltip.get().shouldNot(exist);
     picker.availableItem(0).click();
@@ -175,6 +176,7 @@ public abstract class AbstractAccessEditorTest
 
     AccessEditorPage.searchBox().val("JohnJohn*");
     AccessEditorPage.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
     picker.availableItem(0).shouldHave(exactText("JohnJohnJohnJohnJohnJohn DoeDoeDoeDoeDoeDoeDoeDoe")).hover();
     Tooltip.get().shouldHave(exactText("IQ Server longname@example.com"));
 

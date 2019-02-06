@@ -177,7 +177,8 @@ public class RepositoryPolicyEvaluator
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
           canBeQuarantined, policyResults);
 
-      RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(repository);
+      RepositoryPolicyViolationLogger policyViolationLogger =
+          policyViolationLoggerFactory.newLogger(evaluationTime, repository);
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
 
       tx.commit();
@@ -266,12 +267,17 @@ public class RepositoryPolicyEvaluator
       newPolicyViolations.add(policyViolation);
     }
 
+    // Log policy violations
     if (policyViolationLogger.isEnabled()) {
       PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
           PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
       // New policy violations.
       for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
         policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+      }
+      // Fixed policy violations.
+      for (RepositoryPolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
+        policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
       }
     }
   }

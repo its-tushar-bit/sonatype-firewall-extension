@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseManager;
@@ -39,25 +41,25 @@ public class PolicyViolationLoggerFactoryTest
   @Test
   public void testNewLogger_ForApplication_FeatureLicensed() {
     licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
-    assertThat(policyViolationLoggerFactory.newLogger(new Application()).isEnabled()).isTrue();
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Application()).isEnabled()).isTrue();
   }
 
   @Test
   public void testNewLogger_ForApplication_FeatureUnlicensed() {
     licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
-    assertThat(policyViolationLoggerFactory.newLogger(new Application()).isEnabled()).isFalse();
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Application()).isEnabled()).isFalse();
   }
 
   @Test
   public void testNewLogger_ForRepository_FeatureLicensed() {
     licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
-    assertThat(policyViolationLoggerFactory.newLogger(new Repository()).isEnabled()).isTrue();
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Repository()).isEnabled()).isTrue();
   }
 
   @Test
   public void testNewLogger_ForRepository_FeatureUnlicensed() {
     licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
-    assertThat(policyViolationLoggerFactory.newLogger(new Repository()).isEnabled()).isFalse();
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Repository()).isEnabled()).isFalse();
   }
 
   @Test

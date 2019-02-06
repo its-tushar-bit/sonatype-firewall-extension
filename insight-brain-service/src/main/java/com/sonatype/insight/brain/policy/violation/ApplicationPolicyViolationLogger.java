@@ -19,8 +19,8 @@ public class ApplicationPolicyViolationLogger
 
   private Application application;
 
-  public ApplicationPolicyViolationLogger(boolean licensed, Application application) {
-    super(licensed);
+  public ApplicationPolicyViolationLogger(boolean licensed, Date logTimestamp, Application application) {
+    super(licensed, logTimestamp);
 
     if (isEnabled()) {
       this.application = application;
@@ -35,7 +35,6 @@ public class ApplicationPolicyViolationLogger
     PolicyViolationLogDTO policyViolationLogDTO =
         super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
 
-    policyViolationLogDTO.eventTimestamp = formatTimestamp(getDate(policyViolationLogEvent, policyViolation));
     policyViolationLogDTO.stageTypeId = policyViolation.getStageTypeId();
     policyViolationLogDTO.applicationId = policyViolation.getApplicationId();
     policyViolationLogDTO.applicationPublicId = application.getPublicId();
@@ -51,17 +50,5 @@ public class ApplicationPolicyViolationLogger
   {
     return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
         !policyViolation.isGrandfathered() && !policyViolation.isWaived();
-  }
-
-  private Date getDate(PolicyViolationLogEvent policyViolationLogEvent,
-                       PolicyViolation policyViolation)
-  {
-    switch (policyViolationLogEvent) {
-      case CREATE:
-        return policyViolation.getOpenTime();
-      case FIX:
-        return policyViolation.getFixTime();
-    }
-    throw new RuntimeException();
   }
 }

@@ -303,7 +303,8 @@ public class ScanPolicyEvaluator
 
         setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
 
-        ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(app);
+        ApplicationPolicyViolationLogger policyViolationLogger =
+            policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
 
         // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.

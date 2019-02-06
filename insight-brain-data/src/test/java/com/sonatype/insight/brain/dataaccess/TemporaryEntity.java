@@ -1432,7 +1432,11 @@ public class TemporaryEntity
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
+    return newRepositoryPolicyViolation(repositoryId, new Date());
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, Date time) {
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", time,
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
     repositoryPolicyViolationDAO.insert(policyViolation);

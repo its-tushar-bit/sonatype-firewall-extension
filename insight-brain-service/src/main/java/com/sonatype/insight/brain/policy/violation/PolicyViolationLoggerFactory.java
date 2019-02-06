@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -30,14 +32,14 @@ public class PolicyViolationLoggerFactory
     this.licenseManager = licenseManager;
   }
 
-  public ApplicationPolicyViolationLogger newLogger(Application application) {
+  public ApplicationPolicyViolationLogger newLogger(Date logTimestamp, Application application) {
     return new ApplicationPolicyViolationLogger(
-        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), application);
+        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp, application);
   }
 
-  public RepositoryPolicyViolationLogger newLogger(Repository repository) {
+  public RepositoryPolicyViolationLogger newLogger(Date logTimestamp, Repository repository) {
     return new RepositoryPolicyViolationLogger(
-        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), repository);
+        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository);
   }
 
   @Override

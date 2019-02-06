@@ -32,10 +32,18 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
   private final boolean enabled;
 
+  /**
+   * This timestamp will be used for all events logged by this logger instance.
+   */
+  private String formattedLogTimestamp;
+
   private List<PolicyViolationData<T>> policyViolationData = new LinkedList<>();
 
-  protected AbstractPolicyViolationLogger(boolean licensed) {
+  protected AbstractPolicyViolationLogger(boolean licensed, Date logTimestamp) {
     enabled = licensed && POLICY_VIOLATION_LOGGER.isInfoEnabled();
+    formattedLogTimestamp =
+        ZonedDateTime.ofInstant(Instant.ofEpochMilli(logTimestamp.getTime()), ZoneId.systemDefault())
+            .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   }
 
   public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
@@ -65,6 +73,7 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
     policyViolationLogDTO.policyViolationId = policyViolation.getId();
     policyViolationLogDTO.eventType = policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
+    policyViolationLogDTO.eventTimestamp = formattedLogTimestamp;
     policyViolationLogDTO.policyId = policyViolation.getPolicyId();
     policyViolationLogDTO.policyName = policyViolation.getPolicyName();
     policyViolationLogDTO.policyThreatCategory = policyViolation.getThreatCategory().getName();
@@ -86,9 +95,9 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
   private static class PolicyViolationData<T extends AbstractPolicyViolation>
   {
-    public PolicyViolationLogEvent policyViolationLogEvent;
+    public final PolicyViolationLogEvent policyViolationLogEvent;
 
-    public T policyViolation;
+    public final T policyViolation;
 
     public PolicyViolationData(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
       this.policyViolationLogEvent = policyViolationLogEvent;
@@ -98,10 +107,5 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
   public boolean isEnabled() {
     return enabled;
-  }
-
-  protected String formatTimestamp(Date date) {
-    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(date.getTime()), ZoneId.systemDefault())
-        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -30,6 +31,8 @@ public class RepositoryPolicyViolationLoggerTest
 
   private Repository repository;
 
+  private Date evaluationTime = new Date();
+
   @Before
   public void before() {
     repository = tempEntity.newRepository();
@@ -38,11 +41,13 @@ public class RepositoryPolicyViolationLoggerTest
   @Test
   public void testLog() throws Exception {
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, repository);
+        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
-    RepositoryPolicyViolation policyViolationOne = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    RepositoryPolicyViolation policyViolationOne =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
-    RepositoryPolicyViolation policyViolationTwo = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    RepositoryPolicyViolation policyViolationTwo =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolationTwo);
 
     policyViolationLogger.log();
@@ -55,9 +60,10 @@ public class RepositoryPolicyViolationLoggerTest
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, repository);
+        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    RepositoryPolicyViolation policyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolation.setComponentIdentifier(null);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
 
@@ -70,14 +76,15 @@ public class RepositoryPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, repository);
+        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
     try {
       logger.setLevel(Level.OFF);
-      policyViolationLogger.add(PolicyViolationLogEvent.CREATE,
-          tempEntity.newRepositoryPolicyViolation(repository.getId()));
+      RepositoryPolicyViolation policyViolation =
+          tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
+      policyViolationLogger.add(PolicyViolationLogEvent.CREATE, policyViolation);
 
       policyViolationLogger.log();
 
@@ -91,9 +98,10 @@ public class RepositoryPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(false /* licensed */, repository);
-    policyViolationLogger.add(PolicyViolationLogEvent.CREATE,
-        tempEntity.newRepositoryPolicyViolation(repository.getId()));
+        new RepositoryPolicyViolationLogger(false /* licensed */, evaluationTime, repository);
+    RepositoryPolicyViolation policyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
+    policyViolationLogger.add(PolicyViolationLogEvent.CREATE, policyViolation);
 
     policyViolationLogger.log();
 
@@ -102,10 +110,27 @@ public class RepositoryPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
-    RepositoryPolicyViolationLogger policyViolationLogger = new RepositoryPolicyViolationLogger(true, repository);
+    RepositoryPolicyViolationLogger policyViolationLogger =
+        new RepositoryPolicyViolationLogger(true, evaluationTime, repository);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    RepositoryPolicyViolation policyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolation.setWaived(true);
+    policyViolationLogger.add(policyViolationLogEvent, policyViolation);
+
+    policyViolationLogger.log();
+
+    assertPolicyViolationData(assertPolicyViolationLogDTOObjectNodes(1).get(0), policyViolationLogEvent,
+        policyViolation);
+  }
+
+  @Test
+  public void testLog_NoStagePolicyActionForFixEvent() throws Exception {
+    RepositoryPolicyViolationLogger policyViolationLogger =
+        new RepositoryPolicyViolationLogger(true, evaluationTime, repository);
+    PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
+    RepositoryPolicyViolation policyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
 
     policyViolationLogger.log();
@@ -123,6 +148,6 @@ public class RepositoryPolicyViolationLoggerTest
                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
     PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNode,
-        policyViolationLogEvent, repository, policyViolation);
+        policyViolationLogEvent, repository, evaluationTime, evaluationTime, policyViolation);
   }
 }

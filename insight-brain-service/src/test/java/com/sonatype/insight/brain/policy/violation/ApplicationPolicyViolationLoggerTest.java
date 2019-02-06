@@ -51,7 +51,8 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog() throws Exception {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolationOne = createPolicyViolation();
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
@@ -69,7 +70,8 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setComponentIdentifier(null);
@@ -83,7 +85,8 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
@@ -102,7 +105,8 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(false, application);
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(false, policyEvaluation.getTime(), application);
     policyViolationLogger.add(PolicyViolationLogEvent.CREATE, createPolicyViolation());
 
     policyViolationLogger.log();
@@ -112,7 +116,8 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoStagePolicyActionForCreateEventWithGrandfatheredViolation() throws Exception {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setGrandfatherTime(new Date());
@@ -126,7 +131,8 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setWaiveTime(new Date());
@@ -140,10 +146,12 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoStagePolicyActionForFixEvent() throws Exception {
-    ApplicationPolicyViolationLogger policyViolationLogger = new ApplicationPolicyViolationLogger(true, application);
+    Date fixTime = new Date();
+    ApplicationPolicyViolationLogger policyViolationLogger =
+        new ApplicationPolicyViolationLogger(true, fixTime, application);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
     PolicyViolation policyViolation = createPolicyViolation();
-    policyViolation.setFixTime(new Date());
+    policyViolation.setFixTime(fixTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
 
     policyViolationLogger.log();

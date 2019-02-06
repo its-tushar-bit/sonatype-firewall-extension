@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -14,8 +16,8 @@ public class RepositoryPolicyViolationLogger
 {
   private final Repository repository;
 
-  public RepositoryPolicyViolationLogger(boolean licensed, Repository repository) {
-    super(licensed);
+  public RepositoryPolicyViolationLogger(boolean licensed, Date logTimestamp, Repository repository) {
+    super(licensed, logTimestamp);
 
     this.repository = repository;
   }
@@ -27,7 +29,6 @@ public class RepositoryPolicyViolationLogger
     PolicyViolationLogDTO policyViolationLogDTO =
         super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
 
-    policyViolationLogDTO.eventTimestamp = formatTimestamp(policyViolation.getTime());
     policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
     policyViolationLogDTO.repositoryId = repository.getId();
     policyViolationLogDTO.repositoryPublicId = repository.getPublicId();

@@ -100,11 +100,18 @@ public class PolicyViolationLogDTOAssert
   public static void assertRepositoryPolicyViolationData(ObjectNode policyViolationLogDTOObjectNode,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
+                                                         Date before,
+                                                         Date after,
                                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
     PolicyViolationLogDTO policyViolationLogDTO =
         JsonUtils.asPojo(policyViolationLogDTOObjectNode, PolicyViolationLogDTO.class);
-    assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getTime());
+    if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent)) {
+      assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getTime());
+    }
+    else {
+      assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
+    }
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(StageTypes.PROXY.getId());
     assertStagePolicyActionData(policyViolationLogDTOObjectNode, policyViolationLogDTO, policyViolationLogEvent,
@@ -118,6 +125,8 @@ public class PolicyViolationLogDTOAssert
   public static void assertRepositoryPolicyViolationData(List<ObjectNode> policyViolationLogDTOObjectNodes,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
+                                                         Date before,
+                                                         Date after,
                                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
     ObjectNode policyViolationLogDTOObjectNode = policyViolationLogDTOObjectNodes.stream()
@@ -125,8 +134,8 @@ public class PolicyViolationLogDTOAssert
         .orElse(null);
     assertThat(policyViolationLogDTOObjectNode)
         .as("No policy violation log DTO found with policyViolationId=" + policyViolation.getId()).isNotNull();
-    assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNode, policyViolationLogEvent, repository,
-        policyViolation);
+    assertRepositoryPolicyViolationData(policyViolationLogDTOObjectNode, policyViolationLogEvent, repository, before,
+        after, policyViolation);
   }
 
   private static void assertEventData(PolicyViolationLogDTO policyViolationLogDTO,
@@ -138,6 +147,22 @@ public class PolicyViolationLogDTOAssert
         .parse(policyViolationLogDTO.eventTimestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     ZonedDateTime time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(eventTime.getTime()), ZoneId.systemDefault());
     assertThat(parsed).isEqualTo(time);
+  }
+
+  private static void assertEventData(PolicyViolationLogDTO policyViolationLogDTO,
+                                      PolicyViolationLogEvent policyViolationLogEvent,
+                                      Date before,
+                                      Date after)
+  {
+    assertThat(policyViolationLogDTO.eventType).isEqualTo(policyViolationLogEvent.name().toLowerCase(Locale.ROOT));
+    ZonedDateTime parsed =
+        ZonedDateTime.parse(policyViolationLogDTO.eventTimestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    ZonedDateTime beforeZonedDateTime =
+        ZonedDateTime.ofInstant(Instant.ofEpochMilli(before.getTime()), ZoneId.systemDefault());
+    ZonedDateTime afterZonedDateTime =
+        ZonedDateTime.ofInstant(Instant.ofEpochMilli(after.getTime()), ZoneId.systemDefault());
+    assertThat(parsed).isAfterOrEqualTo(beforeZonedDateTime);
+    assertThat(parsed).isBeforeOrEqualTo(afterZonedDateTime);
   }
 
   private static void assertStagePolicyActionData(ObjectNode policyViolationLogDTOObjectNode,

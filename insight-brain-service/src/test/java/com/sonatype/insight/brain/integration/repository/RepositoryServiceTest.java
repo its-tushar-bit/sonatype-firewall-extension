@@ -145,10 +145,10 @@ public class RepositoryServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
+    super.configure(binder);
   }
 
   @After

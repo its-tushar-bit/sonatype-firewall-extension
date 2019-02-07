@@ -53,8 +53,8 @@ public class HashComponentIdentifierServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    super.configure(binder);
   }
 
   @Test

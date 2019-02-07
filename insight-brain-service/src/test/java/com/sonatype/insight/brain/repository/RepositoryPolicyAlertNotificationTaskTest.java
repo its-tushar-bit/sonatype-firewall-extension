@@ -39,8 +39,8 @@ public class RepositoryPolicyAlertNotificationTaskTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(RepositoryPolicyAlertEmailer.class).toInstance(emailer);
+    super.configure(binder);
   }
 
   @Test

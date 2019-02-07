@@ -62,9 +62,8 @@ public class JiraPolicyAlertNotifierAuditTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
-
     binder.bind(JiraService.class).toInstance(mockJiraService);
+    super.configure(binder);
   }
 
   @Before

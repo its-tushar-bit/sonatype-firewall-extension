@@ -60,9 +60,9 @@ public class PendoServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(UserTelemetryHdsClient.class).toInstance(userTelemetryHdsClient);
+    super.configure(binder);
   }
 
   @Before

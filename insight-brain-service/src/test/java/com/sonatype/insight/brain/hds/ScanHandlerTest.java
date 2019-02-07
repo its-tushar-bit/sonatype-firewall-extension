@@ -62,8 +62,8 @@ public class ScanHandlerTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsClient.class).toInstance(hdsClient);
+    super.configure(binder);
   }
 
   @Test

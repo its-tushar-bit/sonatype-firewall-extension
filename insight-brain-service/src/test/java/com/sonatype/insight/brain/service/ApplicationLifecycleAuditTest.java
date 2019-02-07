@@ -43,10 +43,10 @@ public class ApplicationLifecycleAuditTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(DataMigrator.class).toInstance(mock(DataMigrator.class));
     binder.bind(DefaultLicenseDataUpdater.class).toInstance(mock(DefaultLicenseDataUpdater.class));
     binder.bind(NewInstancePopulator.class).toInstance(mock(NewInstancePopulator.class));
+    super.configure(binder);
   }
 
   @Test

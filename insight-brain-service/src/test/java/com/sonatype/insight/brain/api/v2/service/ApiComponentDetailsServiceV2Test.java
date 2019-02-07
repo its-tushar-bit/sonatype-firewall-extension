@@ -60,8 +60,8 @@ public class ApiComponentDetailsServiceV2Test
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsClient.class).toInstance(client);
+    super.configure(binder);
   }
 
   @Before

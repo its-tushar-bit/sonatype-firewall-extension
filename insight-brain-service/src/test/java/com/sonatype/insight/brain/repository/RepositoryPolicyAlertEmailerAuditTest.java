@@ -58,8 +58,8 @@ public class RepositoryPolicyAlertEmailerAuditTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(InsightMail.class).toInstance(mockInsightMail);
+    super.configure(binder);
   }
 
   @Before

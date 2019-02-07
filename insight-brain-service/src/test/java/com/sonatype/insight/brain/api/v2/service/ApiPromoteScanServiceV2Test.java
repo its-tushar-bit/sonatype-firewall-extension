@@ -89,11 +89,11 @@ public class ApiPromoteScanServiceV2Test
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(ScanUploader.class).toInstance(scanUploader);
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
     binder.bind(PolicyAlertNotifier.class).toInstance(policyAlertNotifier);
     binder.bind(ScanPolicyEvaluator.class).toInstance(scanPolicyEvaluator);
+    super.configure(binder);
   }
 
   @Test

@@ -38,9 +38,9 @@ public class SidebarServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
     binder.bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
+    super.configure(binder);
   }
 
   @Test

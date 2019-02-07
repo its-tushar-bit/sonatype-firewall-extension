@@ -71,9 +71,8 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
-
     binder.bind(InsightMail.class).toInstance(mail);
+    super.configure(binder);
   }
 
   @Before

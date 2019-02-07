@@ -33,10 +33,10 @@ public class LandingServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     baseUrl = mock(BaseUrl.class);
     binder.bind(BaseUrl.class).toInstance(baseUrl);
     when(baseUrl.redirect()).thenReturn(UriBuilder.fromUri(BASE_URL));
+    super.configure(binder);
   }
 
   @Test

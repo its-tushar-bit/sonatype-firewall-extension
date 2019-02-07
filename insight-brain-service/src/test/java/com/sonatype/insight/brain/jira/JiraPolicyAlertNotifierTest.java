@@ -82,11 +82,11 @@ public class JiraPolicyAlertNotifierTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     lenient().when(jiraService.client()).thenReturn(jiraClient);
     lenient().when(jiraService.isEnabled()).thenReturn(true);
 
     binder.bind(JiraService.class).toInstance(jiraService);
+    super.configure(binder);
   }
 
   @Before

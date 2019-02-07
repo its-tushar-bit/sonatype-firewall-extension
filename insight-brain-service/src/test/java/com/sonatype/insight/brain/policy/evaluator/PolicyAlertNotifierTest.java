@@ -45,8 +45,8 @@ public class PolicyAlertNotifierTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(PolicyAlertEmailer.class).toInstance(policyAlertEmailer);
+    super.configure(binder);
   }
 
   @Test

@@ -37,9 +37,9 @@ public class TelemetryServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     mockTelemetrySender = mock(TelemetrySender.class);
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
+    super.configure(binder);
   }
 
   @Test

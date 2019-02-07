@@ -35,8 +35,8 @@ public class ProductNotificationServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsProductNotificationService.class).toInstance(hdsNotificationService);
+    super.configure(binder);
   }
 
   @Test

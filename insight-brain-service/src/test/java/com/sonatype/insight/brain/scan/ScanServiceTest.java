@@ -57,9 +57,9 @@ public class ScanServiceTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(ScanUploader.class).toInstance(scanUploader);
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
+    super.configure(binder);
   }
 
   @Before

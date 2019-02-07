@@ -120,10 +120,10 @@ public class PolicyAlertEmailerTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     lenient().when(mailer.getServer()).thenReturn("localhost:587");
     lenient().when(mailer.getCdnUrl()).thenReturn("http://localhost");
     binder.bind(InsightMail.class).toInstance(mailer);
+    super.configure(binder);
   }
 
   @Before

@@ -43,9 +43,9 @@ public class ReportDownloaderTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     mockHdsClient = mock(HdsClient.class);
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    super.configure(binder);
   }
 
   @Test

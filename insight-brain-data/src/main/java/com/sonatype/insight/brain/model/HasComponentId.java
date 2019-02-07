@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Map;
 
 import javax.persistence.Column;
@@ -42,7 +43,7 @@ public abstract class HasComponentId
             Map.class));
       }
       catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new UncheckedIOException(e);
       }
     }
     return componentIdentifier;

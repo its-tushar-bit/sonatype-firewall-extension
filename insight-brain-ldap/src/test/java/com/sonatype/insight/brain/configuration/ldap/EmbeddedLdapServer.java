@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.configuration.ldap;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
@@ -246,7 +247,7 @@ public class EmbeddedLdapServer
       new FileCleaner().delete(workingDirectory);
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
 
     log.debug("Stopped EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);

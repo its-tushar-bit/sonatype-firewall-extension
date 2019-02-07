@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.successmetrics;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.Set;
 
@@ -89,7 +90,7 @@ public class SuccessMetricsReportData
       return retval;
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 

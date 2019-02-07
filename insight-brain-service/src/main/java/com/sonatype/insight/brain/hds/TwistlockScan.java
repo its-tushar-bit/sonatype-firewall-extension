@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -74,7 +75,7 @@ public class TwistlockScan
       throw new FileNotFoundException("Cannot find the Twistlock scan file");
     }
     catch (IOException e) {
-      throw new RuntimeException("Error while reading " + scanFile.getAbsolutePath() + ": " + e.getMessage(), e);
+      throw new UncheckedIOException("Error while reading " + scanFile.getAbsolutePath() + ": " + e.getMessage(), e);
     }
   }
 }

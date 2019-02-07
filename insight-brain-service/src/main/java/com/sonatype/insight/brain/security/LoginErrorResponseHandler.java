@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -38,7 +39,7 @@ class LoginErrorResponseHandler
       writer.print(errorResponse.getMessageBody());
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 }

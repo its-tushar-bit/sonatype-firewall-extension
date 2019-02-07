@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -81,7 +82,7 @@ public class ProprietaryConfigMigrator
     }
     catch (IOException e) {
       log.error("Failed to load proprietary component configuration", e);
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 }

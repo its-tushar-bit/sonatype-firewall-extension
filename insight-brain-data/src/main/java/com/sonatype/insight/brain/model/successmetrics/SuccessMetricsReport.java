@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model.successmetrics;
 
 import java.io.IOException;
-
+import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.Set;
 
@@ -135,7 +135,7 @@ public class SuccessMetricsReport
       return JsonUtils.parse(scopeJson, Scope.class);
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 

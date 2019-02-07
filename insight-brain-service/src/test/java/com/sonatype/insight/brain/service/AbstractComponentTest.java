@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestLicenseManager;
@@ -104,7 +105,7 @@ public class AbstractComponentTest
       config.setSonatypeWork(tempDir.newFolder("sonatype-work").getAbsolutePath());
     }
     catch (IOException e) {
-      throw new IllegalStateException(e);
+      throw new UncheckedIOException(e);
     }
     config.setHdsUrl("http://unknownhost");
     customizeConfig(config);

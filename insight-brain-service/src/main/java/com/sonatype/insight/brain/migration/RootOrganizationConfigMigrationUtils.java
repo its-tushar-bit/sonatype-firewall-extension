@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -62,7 +63,7 @@ public class RootOrganizationConfigMigrationUtils
         return FileUtils.fileRead(getMigrationConfigFile());
       }
       catch (IOException e) {
-        throw new RuntimeException("Cannot load the source organization ID from file: "
+        throw new UncheckedIOException("Cannot load the source organization ID from file: "
             + getMigrationConfigFile().getAbsolutePath(), e);
       }
     }

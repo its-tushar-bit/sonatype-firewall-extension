@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,7 +140,7 @@ public class ApiComponentDetailsServiceV2
             componentEvaluationDataRequestList, purpose);
       }
       catch (IOException e) {
-        throw new RuntimeException("Failed to get component details from HDS: " + e.getMessage(), e);
+        throw new UncheckedIOException("Failed to get component details from HDS: " + e.getMessage(), e);
       }
 
       for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList.components) {

@@ -280,7 +280,7 @@ public abstract class AbstractBrainServiceTest
       return objectMapper.writeValueAsString(object);
     }
     catch (IOException e) {
-      throw new IllegalStateException(e);
+      throw new UncheckedIOException(e);
     }
   }
 

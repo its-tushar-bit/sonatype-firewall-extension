@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -102,7 +103,7 @@ public class H2DatabaseBackup
       }
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
     finally {
       if (!tempFile.delete()) {
@@ -123,7 +124,7 @@ public class H2DatabaseBackup
       FileUtils.fileWrite(restoreInstructionsFile, "UTF-8", instructions.toString());
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 }

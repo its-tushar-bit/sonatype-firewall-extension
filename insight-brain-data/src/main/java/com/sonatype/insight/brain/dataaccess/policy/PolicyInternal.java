@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -160,7 +161,7 @@ public class PolicyInternal
       result = JsonUtils.parse(content, Policy.class);
     }
     catch (IOException e) {
-      throw new RuntimeException("Failed to parse policy content for policy '" + name + "' for owner id " + ownerId
+      throw new UncheckedIOException("Failed to parse policy content for policy '" + name + "' for owner id " + ownerId
           + ": " + e.getMessage(), e);
     }
     result.setId(id);

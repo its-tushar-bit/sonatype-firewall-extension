@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -359,7 +360,7 @@ public class RepositoryPolicyEvaluator
       return result;
     }
     catch (IOException e) {
-      throw new RuntimeException("Failed to get component details from HDS: " + e.getMessage(), e);
+      throw new UncheckedIOException("Failed to get component details from HDS: " + e.getMessage(), e);
     }
   }
 }

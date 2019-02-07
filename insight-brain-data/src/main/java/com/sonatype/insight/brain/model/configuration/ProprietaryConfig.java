@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.configuration;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class ProprietaryConfig
         packages = JsonUtils.parse(packagesJson, List.class);
       }
       catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new UncheckedIOException(e);
       }
     }
     if (packages == null) {
@@ -100,7 +101,7 @@ public class ProprietaryConfig
         regexes = JsonUtils.parse(regexesJson, List.class);
       }
       catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new UncheckedIOException(e);
       }
     }
     if (regexes == null) {

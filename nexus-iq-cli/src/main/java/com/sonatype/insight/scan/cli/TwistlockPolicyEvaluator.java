@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -105,7 +106,7 @@ public class TwistlockPolicyEvaluator
       return scanFile;
     }
     catch (IOException e) {
-      throw new RuntimeException("Error writing scan file: " + e.getMessage(), e);
+      throw new UncheckedIOException("Error writing scan file: " + e.getMessage(), e);
     }
   }
 

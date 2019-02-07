@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.jira;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -87,7 +88,7 @@ public class JiraPolicyAlertNotifier
       this.descriptionTemplate = config.getTemplate("description.ftl");
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 

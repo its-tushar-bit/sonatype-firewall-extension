@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -165,7 +166,7 @@ public abstract class AbstractPolicyViolation
         constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
       }
       catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new UncheckedIOException(e);
       }
     }
     return constraintFacts;

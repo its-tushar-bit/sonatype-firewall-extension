@@ -7,6 +7,7 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -67,7 +68,7 @@ public class TwistlockScanner
       return scannerOutput;
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();

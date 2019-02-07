@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.component;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.SortedMap;
@@ -64,7 +65,7 @@ public class ComponentIdentifierAdapter
       componentIdentifier = JsonUtils.asPojo(componentIdentifierNode, ComponentIdentifier.class);
     }
     catch (IOException e) {
-      throw new RuntimeException("Error deserializing ComponentIdentifier", e);
+      throw new UncheckedIOException("Error deserializing ComponentIdentifier", e);
     }
     componentIdentifier.validate();
     return componentIdentifier;

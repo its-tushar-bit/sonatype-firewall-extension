@@ -978,6 +978,32 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <consoleOutput>true</consoleOutput>
+          <failOnViolation>false</failOnViolation>
+          <failOnError>false</failOnError>
+          <configLocation>sonatype/checkstyle-configuration.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.sonatype</groupId>
+            <artifactId>checkstyle-checks</artifactId>
+            <version>8</version>
+          </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
   </build>
 

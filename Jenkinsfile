@@ -37,5 +37,6 @@ make(
             '**/original-*'
         ]
     ],
-    usePMD: true
+    usePMD: true,
+    useCheckstyle: true
 )

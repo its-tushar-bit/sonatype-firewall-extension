@@ -87,12 +87,6 @@ public class PolicyViolationLogDTOAssert
     assertOrganizationData(policyViolationLogDTO, organization);
     assertApplicationData(policyViolationLogDTO, application);
     assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
-    if (PolicyViolationLogEvent.UNWAIVE.equals(policyViolationLogEvent)) {
-      assertThat(policyViolationLogDTO.newPolicyViolationId).isNotNull();
-    }
-    else {
-      assertThat(policyViolationLogDTO.newPolicyViolationId).isNull();
-    }
   }
 
   public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,

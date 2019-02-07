@@ -1559,21 +1559,14 @@ public class ScanPolicyEvaluatorTest
     policyViolationLoggerOutput.clear();
 
     // Remove the waiver for one of the policies and evaluate policies again.
-    // There should be an active policy violation again, which should have a CREATE event logged.
-    // The unwaived violation should have an UNWAIVE event logged.
+    // There should be an active policy violation again. The unwaived violation should have an UNWAIVE event logged.
     new PolicyWaiverDAO().delete(licensePolicyWaiver);
-    PolicyViolation unwaivedPolicyViolation = newWaivedViolations.get(0);
     scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
     results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
     assertThat(results.allViolations).hasSize(2);
     assertThat(results.activeViolations).hasSize(1);
-    PolicyViolation newPolicyViolation = results.activeViolations.get(0);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(),
-        results.activeViolations);
-    List<PolicyViolationLogDTO> unwaivedPolicyViolationLogDTOs =
-        assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, results.evaluation.getTime(),
-            Collections.singletonList(unwaivedPolicyViolation));
-    assertThat(unwaivedPolicyViolationLogDTOs.get(0).newPolicyViolationId).isEqualTo(newPolicyViolation.getId());
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, results.evaluation.getTime(),
+        Collections.singletonList(results.activeViolations.get(0)));
   }
 
   private List<PolicyViolation> filterPolicyViolationsByPolicyId(List<PolicyViolation> policyViolations,
@@ -1616,9 +1609,9 @@ public class ScanPolicyEvaluatorTest
     assertPolicyViolationLogDTOs(0);
   }
 
-  private List<PolicyViolationLogDTO> assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
-                                                                   Date evaluationTime,
-                                                                   List<PolicyViolation> policyViolations) throws Exception
+  private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
+                                            Date evaluationTime,
+                                            List<PolicyViolation> policyViolations) throws Exception
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs =
         PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent,
@@ -1627,8 +1620,6 @@ public class ScanPolicyEvaluatorTest
       PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
           organization, application, evaluationTime, policyViolation);
     }
-
-    return policyViolationLogDTOs;
   }
 
   private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {

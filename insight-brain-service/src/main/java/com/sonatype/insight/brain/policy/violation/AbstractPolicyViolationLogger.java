@@ -47,13 +47,8 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
   }
 
   public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
-    add(policyViolationLogEvent, policyViolation, null /* newPolicyViolationId */);
-  }
-
-  public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation, String newPolicyViolationId) {
     if (enabled) {
-      policyViolationData
-          .add(new PolicyViolationData<>(policyViolationLogEvent, policyViolation, newPolicyViolationId));
+      policyViolationData.add(new PolicyViolationData<>(policyViolationLogEvent, policyViolation));
     }
   }
 
@@ -77,7 +72,6 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
     policyViolationLogDTO.policyViolationId = policyViolation.getId();
-    policyViolationLogDTO.newPolicyViolationId = policyViolationData.newPolicyViolationId;
     policyViolationLogDTO.eventType = policyViolationData.policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
     policyViolationLogDTO.eventTimestamp = formattedLogTimestamp;
     policyViolationLogDTO.policyId = policyViolation.getPolicyId();
@@ -105,15 +99,11 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
     public final T policyViolation;
 
-    public final String newPolicyViolationId;
-
     public PolicyViolationData(PolicyViolationLogEvent policyViolationLogEvent,
-                               T policyViolation,
-                               String newPolicyViolationId)
+                               T policyViolation)
     {
       this.policyViolationLogEvent = policyViolationLogEvent;
       this.policyViolation = policyViolation;
-      this.newPolicyViolationId = newPolicyViolationId;
     }
   }
 

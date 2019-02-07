@@ -345,9 +345,7 @@ public class ScanPolicyEvaluator
               }
               policyViolationDAO.insert(tx, newPolicyViolation);
 
-              policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, oldPolicyViolation,
-                  newPolicyViolation.getId());
-              policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+              policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
             }
             else {
               if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {

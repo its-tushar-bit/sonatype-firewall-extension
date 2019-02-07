@@ -10,12 +10,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -106,7 +108,8 @@ public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+  public LogOutput policyViolationLoggerOutput =
+      new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
   
   private Organization organization;
 
@@ -1497,7 +1500,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LogsPolicyViolationsForLatestScan() throws Exception {
+  public void testEvaluate_PolicyViolationLogger_CreateAndFixPolicyViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report.zip");
     Policy policy = newSecurityPolicy();
@@ -1505,8 +1508,8 @@ public class ScanPolicyEvaluatorTest
     // First evaluation, all policy violations are new, all logged
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.allViolations);
-    logOutput.clear();
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    policyViolationLoggerOutput.clear();
 
     // Second evaluation, all policy violations are the same, none logged
     scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1515,25 +1518,73 @@ public class ScanPolicyEvaluatorTest
 
     new PolicyDAO().delete(policy);
     // Third evaluation, all policy violations are fixed, all logged
-    scanPolicyEvaluator.evaluate(application, scanId, stage);
+    results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX,
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, results.evaluation.getTime(),
         new PolicyViolationDAO().getByApplicationId(application.getId()));
   }
 
   @Test
-  public void testEvaluate_LogsWaivedPolicyViolationsAsCreated() throws Exception {
-    tempEntity.newWaiver(newSecurityPolicy().getId(), application.getId());
+  public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
+    // Create two policies that will cause policy violations and waive one policy.
+    Policy securityPolicy = newSecurityPolicy();
+    tempEntity.newWaiver(securityPolicy.getId(), application.getId());
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-        .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
+    // Evaluate policies. There should be two policy violations, one active and one waived.
+    // Both violations should have a CREATE event logged. Only one should have a WAIVE event.
+    String scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    assertThat(results.allViolations).hasSize(2);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    List<PolicyViolation> waivedViolations =
+        filterPolicyViolationsByPolicyId(results.allViolations, securityPolicy.getId());
+    assertThat(waivedViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, results.evaluation.getTime(), waivedViolations);
 
-    assertThat(results.allViolations).anyMatch(PolicyViolation::isWaived);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.allViolations);
+    policyViolationLoggerOutput.clear();
+
+    // Waive the other policy and evaluate policies again.
+    // There should be two waived policy violations, one already waived and one newly waived.
+    // Only one should have a WAIVE event logged.
+    PolicyWaiver licensePolicyWaiver = tempEntity.newWaiver(licensePolicy.getId(), application.getId());
+    scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
+    results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    assertThat(results.allViolations).hasSize(2);
+    List<PolicyViolation> newWaivedViolations =
+        filterPolicyViolationsByPolicyId(results.allViolations, licensePolicy.getId());
+    assertThat(newWaivedViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, results.evaluation.getTime(), newWaivedViolations);
+
+    policyViolationLoggerOutput.clear();
+
+    // Remove the waiver for one of the policies and evaluate policies again.
+    // There should be an active policy violation again, which should have a CREATE event logged.
+    // The unwaived violation should have an UNWAIVE event logged.
+    new PolicyWaiverDAO().delete(licensePolicyWaiver);
+    PolicyViolation unwaivedPolicyViolation = newWaivedViolations.get(0);
+    scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
+    results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    assertThat(results.allViolations).hasSize(2);
+    assertThat(results.activeViolations).hasSize(1);
+    PolicyViolation newPolicyViolation = results.activeViolations.get(0);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(),
+        results.activeViolations);
+    List<PolicyViolationLogDTO> unwaivedPolicyViolationLogDTOs =
+        assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, results.evaluation.getTime(),
+            Collections.singletonList(unwaivedPolicyViolation));
+    assertThat(unwaivedPolicyViolationLogDTOs.get(0).newPolicyViolationId).isEqualTo(newPolicyViolation.getId());
+  }
+
+  private List<PolicyViolation> filterPolicyViolationsByPolicyId(List<PolicyViolation> policyViolations,
+                                                                 String policyId)
+  {
+    return policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(policyId))
+        .collect(Collectors.toList());
   }
 
   @Test
-  public void testEvaluate_LogsGrandfatheredPolicyViolationsAsCreated() throws Exception {
+  public void testEvaluate_PolicyViolationLogger_GrandfatherPolicyViolations() throws Exception {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     application.setPolicyViolationGrandfatheringEnabled(true);
@@ -1546,11 +1597,11 @@ public class ScanPolicyEvaluatorTest
         .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
 
     assertThat(results.allViolations).anyMatch(PolicyViolation::isGrandfathered);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
   }
 
   @Test
-  public void testEvaluate_DoesNotLogPolicyViolationsForNonLatestScan() throws Exception {
+  public void testEvaluate_PolicyViolationLogger_DoesNotLogPolicyViolationsForNonLatestScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report.zip");
     scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1565,18 +1616,23 @@ public class ScanPolicyEvaluatorTest
     assertPolicyViolationLogDTOs(0);
   }
 
-  private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
-                                            List<PolicyViolation> policyViolations) throws Exception
+  private List<PolicyViolationLogDTO> assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
+                                                                   Date evaluationTime,
+                                                                   List<PolicyViolation> policyViolations) throws Exception
   {
-    List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(policyViolations.size());
+    List<PolicyViolationLogDTO> policyViolationLogDTOs =
+        PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent,
+            policyViolations.size());
     for (PolicyViolation policyViolation : policyViolations) {
       PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-          organization, application, policyViolation);
+          organization, application, evaluationTime, policyViolation);
     }
+
+    return policyViolationLogDTOs;
   }
 
   private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {
-    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(logOutput, expected);
+    return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, expected);
   }
 
   private static void assertContainsPolicyViolation(ComponentIdentifier expectedComponentIdentifier,

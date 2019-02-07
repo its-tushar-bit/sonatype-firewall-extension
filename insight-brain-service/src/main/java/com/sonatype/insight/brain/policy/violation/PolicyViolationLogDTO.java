@@ -19,6 +19,12 @@ public class PolicyViolationLogDTO
 
   public String policyViolationId;
 
+  /**
+   * When a policy violation is unwaived, it is marked as fixed and a new policy violation is created.
+   * The id of the new policy violation is stored in this field.
+   */
+  public String newPolicyViolationId;
+
   public String policyId;
 
   public String policyName;

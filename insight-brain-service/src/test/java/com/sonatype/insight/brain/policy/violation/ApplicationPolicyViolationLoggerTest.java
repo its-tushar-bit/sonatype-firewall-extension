@@ -61,8 +61,10 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(2);
-    assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent, policyViolationOne);
-    assertApplicationPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent, policyViolationTwo);
+    assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent,
+        policyViolationOne.getOpenTime(), policyViolationOne);
+    assertApplicationPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent,
+        policyViolationTwo.getOpenTime(), policyViolationTwo);
   }
 
   @Test
@@ -77,7 +79,7 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation);
+        policyViolation.getOpenTime(), policyViolation);
   }
 
   @Test
@@ -123,7 +125,7 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation);
+        policyViolation.getOpenTime(), policyViolation);
   }
 
   @Test
@@ -138,7 +140,7 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation);
+        policyViolation.getOpenTime(), policyViolation);
   }
 
   @Test
@@ -154,7 +156,7 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation);
+        fixTime, policyViolation);
   }
 
   private PolicyViolation createPolicyViolation() {
@@ -167,9 +169,10 @@ public class ApplicationPolicyViolationLoggerTest
 
   private void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                     PolicyViolationLogEvent policyViolationLogEvent,
+                                                    Date eventTime,
                                                     PolicyViolation policyViolation) throws Exception
   {
     PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
-        organization, application, policyViolation);
+        organization, application, eventTime, policyViolation);
   }
 }

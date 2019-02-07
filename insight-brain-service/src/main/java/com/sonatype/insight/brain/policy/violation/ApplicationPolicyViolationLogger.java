@@ -29,14 +29,12 @@ public class ApplicationPolicyViolationLogger
   }
 
   @Override
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationLogEvent policyViolationLogEvent,
-                                                              PolicyViolation policyViolation)
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<PolicyViolation> policyViolationData)
   {
-    PolicyViolationLogDTO policyViolationLogDTO =
-        super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
+    PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
-    policyViolationLogDTO.stageTypeId = policyViolation.getStageTypeId();
-    policyViolationLogDTO.applicationId = policyViolation.getApplicationId();
+    policyViolationLogDTO.stageTypeId = policyViolationData.policyViolation.getStageTypeId();
+    policyViolationLogDTO.applicationId = application.getId();
     policyViolationLogDTO.applicationPublicId = application.getPublicId();
     policyViolationLogDTO.applicationName = application.getName();
     policyViolationLogDTO.organizationId = application.getOrganizationId();

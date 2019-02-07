@@ -23,11 +23,9 @@ public class RepositoryPolicyViolationLogger
   }
 
   @Override
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationLogEvent policyViolationLogEvent,
-                                                              RepositoryPolicyViolation policyViolation)
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<RepositoryPolicyViolation> policyViolationData)
   {
-    PolicyViolationLogDTO policyViolationLogDTO =
-        super.createPolicyViolationLogDTO(policyViolationLogEvent, policyViolation);
+    PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
     policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
     policyViolationLogDTO.repositoryId = repository.getId();

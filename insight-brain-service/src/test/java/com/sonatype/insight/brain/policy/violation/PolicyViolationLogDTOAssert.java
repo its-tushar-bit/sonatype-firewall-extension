@@ -32,25 +32,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationLogDTOAssert
 {
-  public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(LogOutput logOutput, int expected)
-      throws Exception
+  public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(LogOutput logOutput,
+                                                                         PolicyViolationLogEvent policyViolationLogEvent,
+                                                                         int expected) throws Exception
   {
     List<String> infoMessages = logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
-    assertThat(infoMessages).hasSize(expected);
     ObjectMapper objectMapper = new ObjectMapper();
     List<PolicyViolationLogDTO> policyViolationLogDTOs = new ArrayList<>();
     for (String infoMessage : infoMessages) {
       PolicyViolationLogDTO policyViolationLogDTO =
           JsonUtils.asPojo((ObjectNode) objectMapper.readTree(infoMessage), PolicyViolationLogDTO.class);
-      policyViolationLogDTOs.add(policyViolationLogDTO);
+      if (policyViolationLogEvent == null
+          || policyViolationLogEvent.name().toLowerCase(Locale.ROOT).equals(policyViolationLogDTO.eventType)) {
+        policyViolationLogDTOs.add(policyViolationLogDTO);
+      }
     }
+    assertThat(policyViolationLogDTOs).hasSize(expected);
     return policyViolationLogDTOs;
+  }
+
+  public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(LogOutput logOutput, int expected)
+      throws Exception
+  {
+    return assertPolicyViolationLogDTOs(logOutput, null /* policyViolationLogEvent */, expected);
   }
 
   public static void assertApplicationPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
                                                           PolicyViolationLogEvent policyViolationLogEvent,
                                                           Organization organization,
                                                           Application application,
+                                                          Date evaluationTime,
                                                           PolicyViolation policyViolation) throws Exception
   {
     PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream()
@@ -58,17 +69,17 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO)
         .as("No policy violation log DTO found with policyViolationId=" + policyViolation.getId()).isNotNull();
     assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
-        policyViolation);
+        evaluationTime, policyViolation);
   }
 
   public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                           PolicyViolationLogEvent policyViolationLogEvent,
                                                           Organization organization,
                                                           Application application,
+                                                          Date evaluationTime,
                                                           PolicyViolation policyViolation) throws Exception
   {
-    assertEventData(policyViolationLogDTO, policyViolationLogEvent,
-        assertTime(policyViolationLogEvent, policyViolation));
+    assertEventData(policyViolationLogDTO, policyViolationLogEvent, evaluationTime);
     assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
     assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
@@ -76,22 +87,12 @@ public class PolicyViolationLogDTOAssert
     assertOrganizationData(policyViolationLogDTO, organization);
     assertApplicationData(policyViolationLogDTO, application);
     assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
-  }
-
-  private static Date assertTime(PolicyViolationLogEvent policyViolationLogEvent, PolicyViolation policyViolation) {
-    Date time = null;
-    switch (policyViolationLogEvent) {
-      case CREATE: {
-        time = policyViolation.getOpenTime();
-        break;
-      }
-      case FIX: {
-        time = policyViolation.getFixTime();
-        break;
-      }
+    if (PolicyViolationLogEvent.UNWAIVE.equals(policyViolationLogEvent)) {
+      assertThat(policyViolationLogDTO.newPolicyViolationId).isNotNull();
     }
-    assertThat(time).isNotNull();
-    return time;
+    else {
+      assertThat(policyViolationLogDTO.newPolicyViolationId).isNull();
+    }
   }
 
   public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,

@@ -47,8 +47,13 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
   }
 
   public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
+    add(policyViolationLogEvent, policyViolation, null /* newPolicyViolationId */);
+  }
+
+  public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation, String newPolicyViolationId) {
     if (enabled) {
-      policyViolationData.add(new PolicyViolationData<>(policyViolationLogEvent, policyViolation));
+      policyViolationData
+          .add(new PolicyViolationData<>(policyViolationLogEvent, policyViolation, newPolicyViolationId));
     }
   }
 
@@ -59,26 +64,27 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
   private String toString(PolicyViolationData<T> policyViolationData) {
     try {
-      return POLICY_VIOLATION_OBJECT_MAPPER.writeValueAsString(createPolicyViolationLogDTO(
-          policyViolationData.policyViolationLogEvent, policyViolationData.policyViolation));
+      return POLICY_VIOLATION_OBJECT_MAPPER.writeValueAsString(createPolicyViolationLogDTO(policyViolationData));
     }
     catch (JsonProcessingException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationLogEvent policyViolationLogEvent,
-                                                              T policyViolation)
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<T> policyViolationData)
   {
+    T policyViolation = policyViolationData.policyViolation;
+
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
     policyViolationLogDTO.policyViolationId = policyViolation.getId();
-    policyViolationLogDTO.eventType = policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
+    policyViolationLogDTO.newPolicyViolationId = policyViolationData.newPolicyViolationId;
+    policyViolationLogDTO.eventType = policyViolationData.policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
     policyViolationLogDTO.eventTimestamp = formattedLogTimestamp;
     policyViolationLogDTO.policyId = policyViolation.getPolicyId();
     policyViolationLogDTO.policyName = policyViolation.getPolicyName();
     policyViolationLogDTO.policyThreatCategory = policyViolation.getThreatCategory().getName();
     policyViolationLogDTO.policyThreatLevel = policyViolation.getThreatLevel();
-    if (shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation)) {
+    if (shouldIncludeStagePolicyAction(policyViolationData.policyViolationLogEvent, policyViolation)) {
       policyViolationLogDTO.stagePolicyAction =
           policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
     }
@@ -93,15 +99,21 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     return PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent);
   }
 
-  private static class PolicyViolationData<T extends AbstractPolicyViolation>
+  protected static class PolicyViolationData<T extends AbstractPolicyViolation>
   {
     public final PolicyViolationLogEvent policyViolationLogEvent;
 
     public final T policyViolation;
 
-    public PolicyViolationData(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
+    public final String newPolicyViolationId;
+
+    public PolicyViolationData(PolicyViolationLogEvent policyViolationLogEvent,
+                               T policyViolation,
+                               String newPolicyViolationId)
+    {
       this.policyViolationLogEvent = policyViolationLogEvent;
       this.policyViolation = policyViolation;
+      this.newPolicyViolationId = newPolicyViolationId;
     }
   }
 

@@ -320,7 +320,11 @@ public class ScanPolicyEvaluator
               results.notifiableViolations.add(newPolicyViolation);
             }
             policyViolationDAO.insert(tx, newPolicyViolation);
+
             policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+            if (newPolicyViolation.isWaived()) {
+              policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+            }
           }
           // Fixed policy violations.
           for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
@@ -340,6 +344,10 @@ public class ScanPolicyEvaluator
                 results.notifiableViolations.add(newPolicyViolation);
               }
               policyViolationDAO.insert(tx, newPolicyViolation);
+
+              policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, oldPolicyViolation,
+                  newPolicyViolation.getId());
+              policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
             }
             else {
               if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -350,10 +358,13 @@ public class ScanPolicyEvaluator
               oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
               oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
               oldPolicyViolation.setPolicyName(newPolicyViolation.getPolicyName());
-              if (!oldPolicyViolation.isWaived()) {
+              if (!oldPolicyViolation.isWaived() && newPolicyViolation.isWaived()) {
+                // The policy violation was waived.
                 oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
                 oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
                 oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
+
+                policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
               }
               oldPolicyViolation.setGrandfatherTime(newPolicyViolation.getGrandfatherTime());
               policyViolationDAO.update(tx, oldPolicyViolation);

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.policy.violation;
 
 public enum PolicyViolationLogEvent
 {
-  CREATE,
-  FIX
+  CREATE, //
+  FIX, //
+  WAIVE, //
+  UNWAIVE
 }

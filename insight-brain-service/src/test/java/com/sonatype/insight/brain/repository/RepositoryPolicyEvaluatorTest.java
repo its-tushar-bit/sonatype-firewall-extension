@@ -132,10 +132,8 @@ public class RepositoryPolicyEvaluatorTest
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
-    for (RepositoryPolicyViolation policyViolation : policyViolations) {
-      PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-          repository, before, after, policyViolation);
-    }
+    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
+        repository, before, after, policyViolations);
   }
 
   @Test

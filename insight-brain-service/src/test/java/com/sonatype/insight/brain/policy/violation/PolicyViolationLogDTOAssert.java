@@ -67,14 +67,18 @@ public class PolicyViolationLogDTOAssert
                                                           Organization organization,
                                                           Application application,
                                                           Date evaluationTime,
-                                                          PolicyViolation policyViolation) throws Exception
+                                                          List<PolicyViolation> policyViolations)
+      throws Exception
   {
-    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream().filter(matchingDTO(policyViolation))
-        .findFirst().orElse(null);
-    assertThat(policyViolationLogDTO)
-        .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId()).isNotNull();
-    assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
-        evaluationTime, policyViolation);
+    for (PolicyViolation policyViolation : policyViolations) {
+      PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream().filter(matchingDTO(policyViolation))
+          .findFirst().orElse(null);
+      assertThat(policyViolationLogDTO)
+          .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId())
+          .isNotNull();
+      assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
+          evaluationTime, policyViolation);
+    }
   }
 
   public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
@@ -120,14 +124,18 @@ public class PolicyViolationLogDTOAssert
                                                          Repository repository,
                                                          Date before,
                                                          Date after,
-                                                         RepositoryPolicyViolation policyViolation) throws Exception
+                                                         List<RepositoryPolicyViolation> policyViolations)
+      throws Exception
   {
-    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream().filter(matchingDTO(policyViolation))
-        .findFirst().orElse(null);
-    assertThat(policyViolationLogDTO)
-        .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId()).isNotNull();
-    assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, repository, before, after,
-        policyViolation);
+    for (RepositoryPolicyViolation policyViolation : policyViolations) {
+      PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream().filter(matchingDTO(policyViolation))
+          .findFirst().orElse(null);
+      assertThat(policyViolationLogDTO)
+          .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId())
+          .isNotNull();
+      assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, repository, before, after,
+          policyViolation);
+    }
   }
 
   private static Predicate<PolicyViolationLogDTO> matchingDTO(PolicyViolation violation) {

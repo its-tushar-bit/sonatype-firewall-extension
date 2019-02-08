@@ -1720,10 +1720,8 @@ public class ScanPolicyEvaluatorTest
     List<PolicyViolationLogDTO> policyViolationLogDTOs =
         PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent,
             policyViolations.size());
-    for (PolicyViolation policyViolation : policyViolations) {
-      PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-          organization, application, evaluationTime, policyViolation);
-    }
+    PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
+        organization, application, evaluationTime, policyViolations);
   }
 
   private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {

@@ -727,6 +727,10 @@ angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maxi
     return function(scope, element) {
       var timerId;
 
+      // This directive can optionally be provided an argument that is taken as an initial height value to be applied
+      // immediately (as opposed to after the page settles down).  This can help avoid certain race conditions
+      const initialHeight = element.attr('maximize-container-height');
+
       function debounce() {
         if (timerId) {
           $timeout.cancel(timerId);
@@ -749,6 +753,10 @@ angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maxi
         }
         $($window).unbind('resize', debounce);
       });
+
+      if (initialHeight) {
+        element.css('height', initialHeight);
+      }
 
       $($window).resize(debounce);
       StableBodyService.whenStable(debounce);

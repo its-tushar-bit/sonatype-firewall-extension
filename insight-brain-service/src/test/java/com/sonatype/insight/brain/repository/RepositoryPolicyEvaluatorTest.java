@@ -23,12 +23,14 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
@@ -44,6 +46,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -128,7 +131,7 @@ public class RepositoryPolicyEvaluatorTest
       throws Exception
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
-        .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolations.size());
+        .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
       PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
           repository, before, after, policyViolation);
@@ -219,5 +222,66 @@ public class RepositoryPolicyEvaluatorTest
     Date after2 = new Date();
     assertThat(repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy2 = tempEntity.newPolicy(repository.getParentOwnerId());
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy2.getId(), repository.getId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    for (int i = 0; i < 1; i++) {
+      componentEvaluationDataRequestList.components
+          .add(new RepositoryComponentEvaluationDataRequest("maven2", "path" + i, "h" + i));
+      hdsResult.components.add(createComponentEvaluationData(
+          ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i, "c" + i, "e" + i), "h" + i,
+          MatchState.EXACT, i /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+          createSecurityVulnerabilities(), i /* popularity */));
+    }
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // perform initial evaluation
+    Date before1 = new Date();
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    final Date after1 = new Date();
+    // ... yielding two active violations, both of which logged as new
+    List<RepositoryPolicyViolation> activeViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryId(repository.getId());
+    assertThat(activeViolations).hasSize(2);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, activeViolations);
+    // ... and one logged as waived
+    List<RepositoryPolicyViolation> waivedViolations = activeViolations.stream()
+        .filter(violation -> violation.isWaived()).collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before1, after1, waivedViolations);
+
+    policyViolationLoggerOutput.clear();
+
+    // remove the original waiver, add a waiver for the other policy and re-evaluate
+    new PolicyWaiverDAO().delete(policyWaiver);
+    tempEntity.newWaiver(policy1.getId(), repository.getId());
+    Date before2 = new Date();
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    final Date after2 = new Date();
+    // ... yielding again two violations, none of which logged as new
+    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    assertThat(activeViolations).hasSize(2);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, Collections.emptyList());
+    // ... but one logged as unwaived
+    List<RepositoryPolicyViolation> unwaivedViolations = activeViolations.stream()
+        .filter(violation -> policy2.getId().equals(violation.getPolicyId())).collect(toList());
+    assertThat(unwaivedViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, repository, before2, after2, unwaivedViolations);
+    // ... and one logged as freshly waived
+    waivedViolations = activeViolations.stream()
+        .filter(violation -> policy1.getId().equals(violation.getPolicyId())).collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before2, after2, waivedViolations);
   }
 }

@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -275,10 +276,27 @@ public class RepositoryPolicyEvaluator
       // New policy violations.
       for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
         policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+        if (newPolicyViolation.isWaived()) {
+          policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+        }
       }
       // Fixed policy violations.
       for (RepositoryPolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
         policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
+      }
+      // Existing policy violations.
+      for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
+          .entrySet()) {
+        RepositoryPolicyViolation oldPolicyViolation = entry.getKey();
+        RepositoryPolicyViolation newPolicyViolation = entry.getValue();
+        if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
+          // The policy violation was un-waived.
+          policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
+        }
+        else if (newPolicyViolation.isWaived() && !oldPolicyViolation.isWaived()) {
+          // The policy violation was waived.
+          policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+        }
       }
     }
   }

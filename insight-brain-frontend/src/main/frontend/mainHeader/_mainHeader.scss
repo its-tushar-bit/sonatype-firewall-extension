@@ -205,7 +205,7 @@ i.iq-navigation-menu__icon {
   }
 }
 
-// This chunk contains customizations to support the notification menu 
+// This chunk contains customizations to support the notification menu
 .iq-dropdown--notifications {
   float: right;
 
@@ -225,7 +225,7 @@ i.iq-navigation-menu__icon {
       left: inherit;
     }
   }
-  
+
   .iq-scrollable {
     max-height: 318px;
   }
@@ -309,7 +309,7 @@ i.iq-navigation-menu__icon {
 
 .iq-dropdown-submenu__title {
   @include regular();
-  
+
   border-bottom: 1px solid $iq-grey-1;
   color: $iq-slate;
   line-height: 18px;
@@ -319,7 +319,7 @@ i.iq-navigation-menu__icon {
 .iq-dropdown-submenu__container {
   overflow: auto;
   padding: 8px 8px 0 8px;
-  
+
   li {
     line-height: 18px;
     list-style: disc;
@@ -335,7 +335,7 @@ i.iq-navigation-menu__icon {
   .iq-dropdown-menu--main-header {
     right: 0;
     left: auto;
-  
+
     &::before {
       right: 9px;
       left: inherit;

@@ -94,47 +94,47 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     &.policy-violation-table tr td:nth-child(2) {
       @include semi-bold();
     }
-    
+
     &.table-risk {
       thead th:nth-child(1n + 2) {
         text-align: center;
       }
-    
+
       tr.stage td:first-child {
         @include semi-bold();
-        
+
         text-align: right;
       }
-    
+
       tbody {
         td:nth-child(1n + 2) {
           text-align: center;
           width: 115px;
         }
-    
+
         tr:first-child td {
           border-top: 1px solid transparent;
         }
       }
-    
+
       thead tr th {
         min-width: 110px;
-    
+
         div {
           min-width: 110px;
         }
       }
-    
+
       .stage td {
         &:first-child {
           background-color: #FCFCFC;
         }
-    
+
         &:not(:first-child) {
           background-color: #FFF;
         }
       }
-    
+
       td.total-risk {
         background-color: #444;
         border-bottom: 1px solid white;
@@ -362,11 +362,11 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     .expandable-row {
       border-top: 1px solid #ddd;
     }
-    
+
     .stage-column, .risk-column {
       width: 84px;
     }
-    
+
     .share-risk-column {
       width: 120px;
     }

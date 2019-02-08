@@ -64,17 +64,17 @@ $iq-form-element-wide: 395px;
 
 .iq-form-row {
   margin-bottom: 24px;
-  
+
   .iq-form-group {
     display: inline-block;
     margin-right: 24px;
     margin-bottom: 0;
     vertical-align: top; // fixes issue where certain form types display lower
-    
+
     &:last-child {
       margin-right: 0;
     }
-    
+
     .iq-btn {
       margin-top: 27px;
     }
@@ -108,7 +108,7 @@ $iq-form-element-wide: 395px;
   display: block;
   font-size: 16px;
   margin-bottom: 7px;
-  
+
   &:not(.iq-radio):not(.iq-checkbox__label).disabled {
     color: #cacaca;
   }
@@ -126,11 +126,11 @@ $iq-form-element-wide: 395px;
 
 .iq-sub-label {
   @include regular();
-  
+
   color: $iq-off-black;
   display: block;
   font-size: 14px;
-  
+
   .fa {
     margin-right: 6px;
   }
@@ -181,11 +181,11 @@ textarea {
     height: 32px;
     padding: 0 8px;
     width: 219px;
-    
+
     // The :focus styling is required to over-ride Bootstrap styles.
     &:focus {
       @include box-shadow(none);
-      
+
       border-color: $iq-grey-3;
     }
 
@@ -200,7 +200,7 @@ textarea {
     &.ng-valid {
       @include iq-valid();
     }
-    
+
     &.ng-pristine {
       @include iq-pristine();
     }
@@ -208,7 +208,7 @@ textarea {
     &.ng-invalid.ng-dirty {
       @include iq-invalid-dirty();
     }
-    
+
     &.ng-invalid:not(.ng-dirty):focus {
       // override bootstrap
       border-color: $iq-grey-4;
@@ -216,7 +216,7 @@ textarea {
       box-shadow: initial;
     }
   }
-  
+
   &.iq-text-input--long, &.iq-textarea--long {
     width: 374px;
   }
@@ -261,14 +261,14 @@ dropdown-selector {
     border-color: $iq-invalid-color;
     border-left-style: solid;
   }
-  
+
   &.no-options {
     border: none;
     color: $iq-fail-color;
     padding: 1px 1px 1px 4px;
     text-align: center;
   }
-  
+
   &.disabled {
     border-color: $iq-grey-3;
     border-left-style: double;
@@ -286,12 +286,12 @@ dropdown-selector {
     .iq-form-select__item:hover {
       color: $iq-grey-4;
     }
-    
+
     .iq-form-select__item:hover .caret {
       border-top-color: $iq-grey-4;
     }
   }
-  
+
   .dropdown-menu {
     background: $iq-off-white;
     border: 1px solid $iq-grey-4;
@@ -307,13 +307,13 @@ dropdown-selector {
 
     > li {
       @extend .truncate-ellipsis;
-      
+
       color: $iq-slate;
       cursor: pointer;
       height: 30px;
       line-height: 30px;
       padding: 0 11px;
-      
+
       &:hover {
         color: $iq-off-black;
       }
@@ -344,11 +344,11 @@ dropdown-selector {
     right: 12px;
     bottom: 12px;
   }
-  
+
   &:hover {
     color: $iq-off-black;
     text-decoration: none;
-    
+
     & .caret {
       border-top: 6px solid $iq-slate;
     }
@@ -406,16 +406,16 @@ dropdown-selector {
 .iq-read-only {
   margin-top: 0;
   margin-bottom: 13px;
-  
+
   > dt, > div > dt {
     @include semi-bold();
-    
+
     color: $iq-off-black;
     display: block;
     font-size: 16px;
     margin-top: 12px;
     margin-bottom: 1px;
-    
+
     &:first-child {
       margin-top: 0;
     }

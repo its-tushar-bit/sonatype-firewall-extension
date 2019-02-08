@@ -5,7 +5,7 @@ owner-policy-list {
 
 .iq-table--policy-list {
   table-layout: fixed;
-  
+
   .iq-cell--chevron {
     padding-left: 0;
   }
@@ -31,7 +31,7 @@ owner-policy-list {
   $iq-cell-develop-width: 77px;
   $iq-cell-release-width: 73px;
   $iq-cell-operate-width: 76px;
-  
+
   .policy-list__stage-column {
     // Proxy, Build, and Stage columns
     &:nth-child(3),
@@ -55,7 +55,7 @@ owner-policy-list {
       width: $iq-cell-operate-width;
     }
   }
-  
+
   .iq-cell--policy-list-name {
     @include semi-bold();
 

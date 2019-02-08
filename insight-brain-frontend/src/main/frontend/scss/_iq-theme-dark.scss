@@ -37,7 +37,7 @@ $iq-theme-dark-box-shadow: $iq-off-black;
       .caret {
         border-top-color: $iq-theme-dark-text;
       }
-    } 
+    }
   }
 
   .dropdown-menu {
@@ -49,7 +49,7 @@ $iq-theme-dark-box-shadow: $iq-off-black;
 
     > li {
       color: $iq-grey-2;
-      
+
       &:hover {
         color: $iq-off-white;
       }
@@ -104,7 +104,7 @@ $iq-theme-dark-box-shadow: $iq-off-black;
       }
     }
   }
-  
+
   .iq-radio__input {
     &:checked + .iq-radio__circle::after {
       background-color: $iq-theme-dark-text;
@@ -114,20 +114,20 @@ $iq-theme-dark-box-shadow: $iq-off-black;
 
   .iq-radio__circle {
     color: $iq-theme-dark-text;
-  
+
     &::before {
       border: 1px solid $iq-theme-dark-text;
     }
   }
-  
+
   .iq-radio--disabled {
-    .iq-radio__circle {  
+    .iq-radio__circle {
       &::before {
         border-color: $iq-grey-4;
       }
     }
   }
-  
+
   .iq-btn--tertiary {
     color: $iq-theme-dark-text;
 
@@ -143,14 +143,14 @@ $iq-theme-dark-box-shadow: $iq-off-black;
       color: $iq-grey-4;
     }
   }
-  
+
   .iq-tree-view, .iq-tree-view__text {
     color: $iq-off-white;
   }
-  
+
   .iq-tree-view__twisty-icon {
     border-left: 5px solid $iq-off-white;
-    
+
     &.expand {
       border-left-color: $iq-off-white;
     }
@@ -159,12 +159,12 @@ $iq-theme-dark-box-shadow: $iq-off-black;
       border-left-color: $iq-off-white;
     }
   }
-  
+
   .iq-tree-view__filter {
     input[type="text"] {
       color: $iq-off-white;
     }
-    
+
     .fa-filter, .fa-times {
       color: $iq-slate;
     }

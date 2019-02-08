@@ -19,7 +19,7 @@
     max-height: 100%;
     width: 100%;
   }
-  
+
   .iq-spinner__wrapper {
     padding-top: 8px;
   }
@@ -41,7 +41,7 @@
   line-height: 21px;
 }
 
-.iq-table--report-list {  
+.iq-table--report-list {
   thead {
     background: $iq-grey-1;
   }
@@ -58,7 +58,7 @@
     .iq-cell {
       border-top: 0;
       // (100% / # of columns) - (column padding + border)
-      width: calc((100% / 6) - (24px + 1px);
+      width: calc((100% / 6) - (24px + 1px));
     }
   }
 
@@ -89,13 +89,13 @@
   }
 }
 
-.scrollbar-present {  
+.scrollbar-present {
   .iq-table--report-list {
     .iq-cell {
       // ((100% + scrollbar ) / # of columns) - (column padding + border)
       width: calc(((100% + #{$iq-scrollbar-width}) / 6) - (24px + 1px));
     }
-  
+
     .iq-cell:last-child {
       // ((100% + scrollbar ) / # of columns) - (column padding + border) - scrollbar
       width: calc(((100% + #{$iq-scrollbar-width}) / 6) - (24px + 1px) - #{$iq-scrollbar-width});

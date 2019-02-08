@@ -2,7 +2,7 @@
   $filter-header-height: #{55px + 16px + 1px};
   $filter-footer-height: #{32px + 12px + 12px + 1px};
   $filter-footer-error-height: 100px;
-  
+
   height: 100%;
   margin: 0;
   position: relative;
@@ -63,21 +63,21 @@
       }
     }
   }
-  
+
   .dashboard-filter.iq-apply-error-present {
     height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height + 12px + 12px + 1px});
   }
 
   .dashboard-filter-footer {
     $footer-side-margin: 8px;
-    
+
     border-top: 1px solid $iq-grey-4;
     box-shadow: 0px 0px 12px 10px $iq-grey-2;
     margin: 0 $footer-side-margin;
     padding: 12px 0;
     position: relative; // needed for box-shadow to render
     width: calc(100% - #{2 * $footer-side-margin});
-    
+
     .btn {
       min-width: auto;
 
@@ -199,7 +199,7 @@
   .fa.loading-spinner {
     margin-left: 12px;
   }
-  
+
   .iq-checkbox__label {
     margin-bottom: 8px !important;
   }

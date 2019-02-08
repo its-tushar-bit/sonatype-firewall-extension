@@ -45,7 +45,7 @@ thead {
         color: $iq-off-black;
       }
     }
-  
+
     .iq-cell--label {
       @include semi-bold();
 
@@ -56,7 +56,7 @@ thead {
 
 .iq-cell {
   @extend .truncate-ellipsis;
-  
+
   border-top: 1px solid $iq-grey-1;
   color: $iq-off-black;
   display: table-cell;
@@ -64,7 +64,7 @@ thead {
   line-height: 40px;
   padding: 0 $iq-cell-side-padding;
   text-align: left;
-  
+
   &.iq-disabled {
     color: $iq-grey-4;
   }
@@ -77,7 +77,7 @@ thead {
   color: $iq-slate;
   position: relative;
   text-align: left;
-  
+
   &:first-child {
     border-left: none;
   }
@@ -89,18 +89,18 @@ thead {
   &.iq-th--selected, &.selected-column {
     background-color: $iq-grey-2;
   }
-  
+
   &.iq-disabled {
     color: $iq-grey-4;
-    
+
     a {
      cursor: default;
     }
-    
+
     .iq-column-sort-trigger {
       color: $iq-grey-4;
     }
-    
+
     .iq-col-sort-icons, .iq-column-sort-icons {
       color: $iq-grey-3;
     }
@@ -228,7 +228,7 @@ thead {
   input {
     width: calc(100% - 48px);
   }
-  
+
   &:first-child {
     padding-left: 8px;
   }
@@ -269,12 +269,12 @@ thead {
   text-transform: uppercase;
   width: calc(100% - 16px);
   z-index: $iq-dashboard-headers-zindex;
-  
+
   .iq-cell--header {
     display: inline-block;
     height: $iq-table-header-height;
     line-height: $iq-table-header-height;
-    // The width value will need to be customized for all applications since 
+    // The width value will need to be customized for all applications since
     // it is dependent on the number of columns in the table
     // Typically it looks like: calc((100% / # of columns) - (column padding + borders))
     width: auto;
@@ -283,7 +283,7 @@ thead {
       border-left: 1px solid $iq-grey-1;
       line-height: 40px;
     }
-    
+
     &:last-child {
       padding-right: 11px;
     }
@@ -303,15 +303,15 @@ thead {
     vertical-align: middle;
     min-width: 0;
 
-    // The width value will need to be customized for all applications since 
+    // The width value will need to be customized for all applications since
     // it is dependent on the number of columns in the table
     // Typically it looks like: calc((100% / # of columns) - (column padding + borders))
     width: auto;
-    
+
     &:last-child {
       padding-right: 11px;
     }
-    
+
     &.iq-cell--empty {
       width: 100%;
     }
@@ -326,7 +326,7 @@ thead {
       // Typically it looks like: calc(((100% + $iq-scrollbar-width) / # of columns) - (column padding + borders))
       width: auto;
     }
-  
+
     .iq-cell:last-child {
       // Then we subtract $iq-scrollbar-width from the last cell.
       // ((100% / # of columns) - (column padding - borders) - $iq-scrollbar-width)

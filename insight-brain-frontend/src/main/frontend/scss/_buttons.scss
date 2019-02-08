@@ -29,7 +29,7 @@
   &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
     border-color: $iq-slate;
   }
-  
+
   &.dropdown-toggle:hover {
     color: #575757;
   }
@@ -98,7 +98,7 @@
     height: 32px;
     padding: 0;
     width: 32px;
-    
+
     .fa {
       margin: 0;
     }

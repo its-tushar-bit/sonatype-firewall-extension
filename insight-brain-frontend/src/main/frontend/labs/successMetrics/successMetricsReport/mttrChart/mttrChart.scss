@@ -1,19 +1,19 @@
 .iq-chart--mttr {
   height: 400px;
-  
+
   .legend {
     text {
       font-size: 16px;
     }
   }
-  
+
   .plottable .axis text {
     @include regular();
-    
+
     color: $iq-slate;
     font-size: 20px;
   }
-  
+
   .plottable .axis-label text {
     font-size: 26px;
   }

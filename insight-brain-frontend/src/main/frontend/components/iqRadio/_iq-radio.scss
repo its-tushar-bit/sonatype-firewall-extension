@@ -10,7 +10,7 @@
   margin-left: 24px;
   padding-left: 24px;
   position: relative;
-  
+
   &:hover:not(.iq-radio--disabled) {
     cursor: pointer;
   }
@@ -24,7 +24,7 @@ iq-radio {
     margin-bottom: 0;
   }
 }
-  
+
 input.iq-radio__input {
   display: none;
 
@@ -69,7 +69,7 @@ input.iq-radio__input {
   .iq-radio__circle {
     color: $iq-slate;
     cursor: default;
-  
+
     &::before {
       border-color: $iq-grey-4;
     }

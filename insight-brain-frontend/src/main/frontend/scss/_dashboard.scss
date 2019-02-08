@@ -67,7 +67,7 @@ $iq-cell-affected-apps-width: 109px;
 
   .iq-table-row {
     display: block;
-    
+
     .iq-cell {
       border-top: none;
     }
@@ -99,7 +99,7 @@ $iq-cell-affected-apps-width: 109px;
   text-transform: uppercase;
   width: calc(100% - 2px);
   z-index: $iq-dashboard-headers-zindex;
-  
+
   .iq-table-row {
     border: none;
   }
@@ -137,7 +137,7 @@ $iq-cell-affected-apps-width: 109px;
       .iq-cell {
         border-top: none;
       }
-      
+
       + .iq-table-row .iq-cell {
         border-top: none;
       }

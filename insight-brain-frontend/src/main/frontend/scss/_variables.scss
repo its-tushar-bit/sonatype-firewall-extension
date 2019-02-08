@@ -95,7 +95,7 @@ $policy-threat-levels:
   ("severe", #FFF, $iq-threat-color-severe, (4, 5, 6, 7)),
   ("critical", #FFF, $iq-threat-color-critical, (8, 9, 10));
 
-$threat-bars: 
+$threat-bars:
   ("ignore", #FFF, $iq-threat-color-ignore),
   ("unspecified", #FFF, $iq-threat-color-unspecified);
 
@@ -125,7 +125,7 @@ $iq-sidebar-zindex: 4;
 // dropdowns to appear above table headers
 $iq-dashboard-summary-zindex: 3;
 
-// box-shadow to appear over scrollable contents 
+// box-shadow to appear over scrollable contents
 $iq-dashboard-headers-zindex: 2;
 
 $iq-dashboard-mask-zindex: 1;

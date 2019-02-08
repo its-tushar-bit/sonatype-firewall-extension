@@ -63,21 +63,21 @@ $iq-modal-bottom-spacing: 8px;
       margin-bottom: -10px;
     }
   }
-  
+
   .iq-alert--system-notice {
     border-width: 1px;
     margin: -12px -4px 12px -4px;
   }
-  
+
   .iq-subsection-header {
     margin-top: 0;
     margin-bottom: 18px;
-    
+
     .disabled {
       color: $iq-grey-4;
     }
   }
-  
+
   > p {
     margin-top: 0;
   }
@@ -87,7 +87,7 @@ $iq-modal-bottom-spacing: 8px;
   background-color: $iq-grey-1;
   border-top: 1px solid $iq-grey-4;
   padding: 12px;
-  
+
   &.error, &.iq-error {
     background-color: $iq-fail-color-bg;
     border: 1px solid $iq-fail-color;
@@ -95,13 +95,13 @@ $iq-modal-bottom-spacing: 8px;
     margin-right: -1px;
     margin-bottom: -1px;
     margin-left: -1px;
-    
+
     > .iq-alert--error {
       border: none;
       padding-top: 0;
     }
   }
-  
+
   .btn {
     margin-right: 12px;
 
@@ -109,16 +109,16 @@ $iq-modal-bottom-spacing: 8px;
       min-width: 100px;
     }
   }
-    
+
   // solves the problem where a tooltip inserts itself between two buttons and breaks the standard + .iq-btn rule
   .iq-btn {
     margin-right: 8px;
-    
+
     + .iq-btn {
       margin-left: 0;
     }
   }
-  
+
   .iq-alert {
     // in case a <span> has been used as the container
     display: block;

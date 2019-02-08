@@ -16,7 +16,7 @@ $iq-tile-header-margin-top: 8px;
   border: 1px solid $iq-grey-2;
   margin: 8px;
   padding: 0 8px 8px 8px;
-  
+
   &.iq-alert {
     background-color: $iq-warn-color-bg;
     border: 1px solid $iq-warn-color;
@@ -33,7 +33,7 @@ $iq-tile-header-margin-top: 8px;
     .iq-tile-header + .iq-tile-content {
       padding-top: 0;
     }
-  
+
     > .iq-tile-content {
       padding-top: 12px;
     }
@@ -100,7 +100,7 @@ $iq-tile-header-margin-top: 8px;
   min-height: $iq-tile-header-height;
   margin: $iq-tile-header-margin-top 0 15px 0;
   overflow: hidden;
-  
+
   .iq-tile__actions {
     margin-top: 1px;
   }
@@ -118,7 +118,7 @@ $iq-tile-header-margin-top: 8px;
     display: inline-block;
     margin: 0;
   }
-  
+
   h1 {
     font-size: 26px;
     margin-left: -1px; // Magic number b/c H1 has mysterious 1px to the left
@@ -154,7 +154,7 @@ $iq-tile-header-margin-top: 8px;
   &.fa-tag {
     padding-left: 2px;
   }
-  
+
   // Application reports title icon
   &.fa-file-text-o {
     font-size: 26px;
@@ -182,7 +182,7 @@ $iq-tile-header-margin-top: 8px;
 .iq-tile__actions {
   float: right;
   margin-top: 0;
-  
+
   .btn {
     margin-right: 8px;
 

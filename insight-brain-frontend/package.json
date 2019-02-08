@@ -72,10 +72,12 @@
     "node-sass": "=4.5.3",
     "resolve-url-loader": "=2.3.0",
     "sass-loader": "=6.0.6",
+    "stylelint": "=9.10.1",
+    "stylelint-webpack-plugin": "=0.10.5",
     "tape": "=3.6.1",
     "time-grunt": "=1.4.0",
     "uglify-js": "=2.8.29",
-    "webpack": "=3.8.1",
+    "webpack": "=3.11.0",
     "webpack-dev-server": "=2.7.1",
     "xmldom": "=0.1.27"
   },

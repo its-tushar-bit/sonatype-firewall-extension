@@ -3,7 +3,7 @@
     border: none;
     padding-bottom: 0;
   }
-  
+
   .toggle-checkbox {
     display: inline-block;
     width: 200px;
@@ -12,6 +12,6 @@
 
 .iq-role-description {
   @include regular();
-  
+
   display: inline-block;
 }

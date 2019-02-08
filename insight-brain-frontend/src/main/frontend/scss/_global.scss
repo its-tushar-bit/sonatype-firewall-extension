@@ -53,7 +53,7 @@ a {
       color: $iq-link-color;
       text-decoration: underline;
     }
-    
+
     &:active {
       color: $iq-link-color-active;
       text-decoration: none;
@@ -101,7 +101,7 @@ input[type="file"] {
 .page-title {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0px 1px 0px rgba(255, 255, 255, .6);
-  
+
   .pull-right {
     margin-bottom : 5px;
   }

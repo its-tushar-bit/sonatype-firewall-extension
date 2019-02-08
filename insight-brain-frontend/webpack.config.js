@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CSSSplitPlugin = require('css-split-webpack-plugin').default;
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const transformRuntime = require('babel-plugin-transform-runtime');
 
@@ -37,7 +38,8 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         new webpack.DefinePlugin({
           CLM_BUILD_TIMESTAMP: new Date().getTime(),
           CLM_SERVER_VERSION: JSON.stringify(env.clmServerVersion)
-        })
+        }),
+        new StyleLintPlugin({ syntax: 'scss' })
       ].concat(
           cssOutputPath ? getCssPlugins() : [],
           productionPlugins

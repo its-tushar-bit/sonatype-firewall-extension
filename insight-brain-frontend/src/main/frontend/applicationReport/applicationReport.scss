@@ -18,7 +18,7 @@ $iq-application-report-policy-name-filter-width:
   .iq-body-container {
     overflow-y: hidden;
   }
-  
+
   .iq-spinner__wrapper {
     padding: 8px;
   }
@@ -39,7 +39,7 @@ $iq-application-report-policy-name-filter-width:
   margin-bottom: 0;
   padding: 0;
   position: relative;
-  
+
   .iq-scrollable {
     background-color: $iq-off-white;
     border-right: 1px solid $iq-grey-2;
@@ -57,20 +57,20 @@ $iq-application-report-policy-name-filter-width:
   display: block;
   margin: 0;
   width: 100%;
-  
+
   tbody, thead {
     display: block;
-  
+
     .iq-table-row {
       display: block;
       width: 100%;
     }
   }
-  
+
   tbody {
     width: 100%;
   }
-  
+
   .iq-cell {
     display: inline-block;
   }
@@ -92,11 +92,11 @@ $iq-application-report-policy-name-filter-width:
   text-transform: uppercase;
   width: calc(100% - 2px);
   z-index: $iq-dashboard-headers-zindex;
-  
+
   .iq-table-row {
     border: none;
   }
-  
+
   .iq-cell--header {
     &:first-child {
       border-left: 8px solid $iq-off-white;

@@ -1,12 +1,12 @@
 .iq-pagination {
   display: block;
   float: right;
-  
+
   .iq-dropdown {
     display: inline-block;
     margin-right: 1px;
   }
-  
+
   .iq-btn + .iq-btn {
     margin-left: 0;
   }
@@ -28,7 +28,7 @@
 
 .iq-pagination__count-text {
   @include semi-bold();
-  
+
   display: inline-block;
   padding-right: 13px;
 }

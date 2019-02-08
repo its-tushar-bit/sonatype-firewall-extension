@@ -6,7 +6,7 @@
   .iq-tile__actions {
     margin-top: 8px;
   }
-  
+
   .iq-tile-content {
     clear: none;
   }
@@ -35,9 +35,9 @@
 
 .iq-ldap-name-editor {
   @include bold();
-  
+
   margin: 8px 0 16px 0;
-  
+
   &.head {
     border: 1px solid $iq-grey-4;
     padding: 0 8px;
@@ -52,11 +52,11 @@
       font-size: 40px;
       width: 460px;
     }
-    
+
     .editable-error {
       font-size: 14px;
     }
-    
+
     input {
       @include bold();
 
@@ -72,24 +72,24 @@
       text-rendering: optimizelegibility;
       width: 460px;
     }
-    
+
     .errors {
       margin-top: -8px;
       margin-bottom: 5px;
     }
-    
+
     a.editable-empty {
       color: $iq-off-black;
       font-style: normal;
       text-decoration: none;
     }
-    
+
     .editable-wrap {
       padding-bottom: 1px;
     }
   }
 
-  .editable-controls { 
+  .editable-controls {
     input {
       @include bold();
 
@@ -104,7 +104,7 @@
       margin: 0;
       padding: 0;
       text-rendering: optimizelegibility;
-      
+
       &:focus {
         outline: none;
         border: 0;
@@ -113,7 +113,7 @@
         box-shadow: none;
       }
     }
-    
+
     &.editable-inline {
       vertical-align: text-bottom;
     }
@@ -121,7 +121,7 @@
 
   .editable {
     @include bold();
-  
+
     -webkit-appearance: none;
     background: transparent;
     border-top: none;
@@ -140,7 +140,7 @@
     vertical-align: text-bottom;
     width: auto;
 
-    &.editable-click, 
+    &.editable-click,
     &.editable-click:hover {
       color: $iq-slate;
     }
@@ -149,19 +149,19 @@
       color: #b94a48;
     }
 
-    &.editable-empty, 
-    &.editable-empty:hover, 
+    &.editable-empty,
+    &.editable-empty:hover,
     &.editable-empty:focus {
       color: #909090;
       font-style: normal;
       text-decoration: none;
     }
-    
+
     &.selected {
       color: #333333;
     }
   }
-  
+
   .editableform .control-group {
     line-height: normal;
   }

@@ -62,7 +62,7 @@
 
 body {
   @include regular();
-  
+
   font-size: 14px;
   line-height: 18px;
 }
@@ -71,7 +71,7 @@ $h1-font-size: 26px;
 
 h1 {
   @include bold();
-  
+
   font-size: $h1-font-size;
   line-height: 28px;
   margin-bottom: 24px;
@@ -79,7 +79,7 @@ h1 {
 
 h2 {
   @include bold();
-  
+
   font-size: 20px;
   line-height: 24px;
   margin-bottom: 16px;
@@ -87,7 +87,7 @@ h2 {
 
 h3 {
   @include bold();
-  
+
   font-size: 18px;
   line-height: 21px;
   margin-bottom: 8px;
@@ -95,7 +95,7 @@ h3 {
 
 h4 {
   @include semi-bold();
-  
+
   font-size: 14px;
   line-height: 16px;
   margin-bottom: 8px;
@@ -108,7 +108,7 @@ li {
 
 form label {
   @include semi-bold();
-  
+
   cursor: default;
   font-size: 16px;
 }
@@ -117,31 +117,31 @@ p {
   margin-top: 16px;
 }
 
-p + h2, 
+p + h2,
 ul + h2 {
   margin-top: 32px;
 }
 
-p + h3, 
-p + h4, 
-ul + h3, 
+p + h3,
+p + h4,
+ul + h3,
 ul + h4 {
   margin-top: 24px;
 }
 
-p + ul, 
+p + ul,
 ul + p {
   margin-top: 20px;
 }
 
 // Form typography
-input[type=text], 
-input[type=number], 
-input[type=email], 
-input[type=password], 
+input[type=text],
+input[type=number],
+input[type=email],
+input[type=password],
 textarea {
   @include regular();
-  
+
   font-size: 14px;
   line-height: 18px;
   margin-bottom: 0px;
@@ -149,14 +149,14 @@ textarea {
 
 label.checkbox, label.radio {
   @include regular();
-  
+
   font-size: 14px;
 }
 
 // see CLM-7344 for details on removing this style
-h1 + div > *:first-child, 
-h2 + div > *:first-child, 
-h3 + div > *:first-child, 
+h1 + div > *:first-child,
+h2 + div > *:first-child,
+h3 + div > *:first-child,
 h4 + div > *:first-child {
   margin-top: 0;
 }

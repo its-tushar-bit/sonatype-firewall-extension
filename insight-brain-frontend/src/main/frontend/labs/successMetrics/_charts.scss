@@ -20,12 +20,12 @@ $iq-chart-horizontal-bar-min-width: 490px;
   height: 200px;
   margin-top: 8px;
   padding: 8px;
-  
+
   .plottable {
     .axis-label {
       text {
         @include regular();
-      
+
         font-size: 14px;
         text-transform: none;
       }
@@ -50,7 +50,7 @@ $iq-chart-horizontal-bar-min-width: 490px;
 
 .iq-chart__display-number {
   @include bold();
-  
+
   font-size: 133%;
   vertical-align: middle;
 }
@@ -58,7 +58,7 @@ $iq-chart-horizontal-bar-min-width: 490px;
 .iq-tile-scroll-container--success-metrics {
   margin: 0;
   width: 100%;
-  
+
   .iq-spinner__wrapper {
     margin-left: 8px;
   }
@@ -105,7 +105,7 @@ $iq-chart-horizontal-bar-min-width: 490px;
 
   span {
     vertical-align: middle;
-      
+
     &:first-child {
       display: inline-block;
       width: 325px;

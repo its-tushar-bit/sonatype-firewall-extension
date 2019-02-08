@@ -47,6 +47,6 @@ public class ApiPolicyAdapterTest
 
     List<ApiPolicyDTO> policyDTOList = apiPolicyAdapter.convert(orgPolicyMap.values(), ApiPolicyOwnerType.ORGANIZATION);
     assertThat(policyDTOList).hasSize(2);
-    PolicyAssertUtils.assertPolicies(policyDTOList, orgPolicyMap, Collections.<String, Policy> emptyMap());
+    PolicyAssertUtils.assertPolicies(policyDTOList, orgPolicyMap, Collections.emptyMap());
   }
 }

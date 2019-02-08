@@ -193,17 +193,17 @@ public class TagServiceAuthzTest
   @Test
   public void testUpdateApplicationUpdateTags_Authorized() throws Exception {
     grantWritePermission(app.getId());
-    tagService.updateApplicationTags(app.getPublicId(), Collections.<Tag> emptyList());
+    tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateApplicationUpdateTags_Unauthorized() throws Exception {
     login();
-    tagService.updateApplicationTags(app.getPublicId(), Collections.<Tag> emptyList());
+    tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateApplicationUpdateTags_Unauthenticated() throws Exception {
-    tagService.updateApplicationTags(app.getPublicId(), Collections.<Tag> emptyList());
+    tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
   }
 }

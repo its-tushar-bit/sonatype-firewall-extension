@@ -131,7 +131,7 @@ public class ApplicationComponentDAOTest
     Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.<String> emptySet(), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.emptySet(), stageTypeIds, date);
     assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
     assertThat(components).isEmpty();
@@ -170,8 +170,7 @@ public class ApplicationComponentDAOTest
     Set<String> appIds = Collections.singleton(application.getId());
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, null, date);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.<String> emptySet(),
-        Collections.<String> emptySet(), date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.emptySet(), Collections.emptySet(), date);
     assertThat(components).isEmpty();
     components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"),
         Collections.singleton("missing"), date);

@@ -530,7 +530,7 @@ public class PolicyDAOTest
     policies = policyDAO.getByOwnerIds(null);
     assertThat(policies).isEmpty();
 
-    policies = policyDAO.getByOwnerIds(Collections.<String> emptySet());
+    policies = policyDAO.getByOwnerIds(Collections.emptySet());
     assertThat(policies).isEmpty();
 
     policies = policyDAO.getByOwnerIds(Arrays.asList(application.getId(), "non-existent"));

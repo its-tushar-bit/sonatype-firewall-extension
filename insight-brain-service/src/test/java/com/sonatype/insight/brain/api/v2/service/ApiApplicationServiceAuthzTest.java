@@ -50,20 +50,20 @@ public class ApiApplicationServiceAuthzTest
   @Test
   public void testGetApplications_Authorized() {
     grantReadPermission(app.getId());
-    List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
     assertThat(applications).hasSize(1);
   }
 
   @Test
   public void testGetApplications_Unauthenticated() {
-    List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
     assertThat(applications).isEmpty();
   }
 
   @Test
   public void testGetApplications_UnauthorizedButAuthenticated() {
     login();
-    List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
     assertThat(applications).isEmpty();
   }
 

@@ -93,8 +93,8 @@ public class ProprietaryConfigMigratorTest
   public void testMigrateWithEmptyJsonFile() throws Exception {
     // setup
     com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
-    obsoleteConfig.setPackages(Collections.<String>emptyList());
-    obsoleteConfig.setRegexes(Collections.<String>emptyList());
+    obsoleteConfig.setPackages(Collections.emptyList());
+    obsoleteConfig.setRegexes(Collections.emptyList());
     writeProprietaryConfigFile(obsoleteConfig);
 
     // execute

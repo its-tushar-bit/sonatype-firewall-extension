@@ -425,7 +425,7 @@ public class ReportResource
                 // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed
                 // components
                 ComponentDetailsList list = new ComponentDetailsList();
-                list.setList(Collections.<ComponentDetails> emptyList());
+                list.setList(Collections.emptyList());
                 updater.add(dataPath + listPath, list);
               }
             }

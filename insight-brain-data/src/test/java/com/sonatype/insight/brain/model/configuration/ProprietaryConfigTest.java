@@ -81,7 +81,7 @@ public class ProprietaryConfigTest
     assertThat(config.getRegexes()).hasSize(0);
     assertThat(config.getRegexesJson()).isNull();
 
-    config.setRegexes(Collections.<String> emptyList());
+    config.setRegexes(Collections.emptyList());
     assertThat(config.getPackages()).hasSize(0);
     assertThat(config.getPackagesJson()).isNull();
     assertThat(config.getRegexes()).hasSize(0);

@@ -114,7 +114,7 @@ public class RestClientFactory
 
     @Override
     public Resource getResource(String path) throws IOException, URISyntaxException {
-      return getResource(path, Collections.<String, String[]>emptyMap());
+      return getResource(path, Collections.emptyMap());
     }
 
     @Override

@@ -225,8 +225,7 @@ public class JiraPolicyAlertNotifierTest
   public void test_sendNotifications_NotEnabled() throws IOException {
     when(jiraService.isEnabled()).thenReturn(false);
 
-    jiraPolicyAlertNotifier
-        .sendNotifications(new Application(), "", new Stage(), Collections.<PolicyNotification>emptyList());
+    jiraPolicyAlertNotifier.sendNotifications(new Application(), "", new Stage(), Collections.emptyList());
 
     assertThat(logOutput).atDebugLevel().contains("JIRA integration is not enabled; skipping issue creation");
 

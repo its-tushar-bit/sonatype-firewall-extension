@@ -44,7 +44,7 @@ public class ApiPolicyViolationServiceV2Test
     createPolicyTestData("scanId1App1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1");
 
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(Collections.<String> emptySet());
+        .getPolicyViolations(Collections.emptySet());
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
   }

@@ -145,7 +145,7 @@ public class ScanHandler
       RegexSelector proprietaryRegexSelector = RegexSelector.forProprietaryRegexes(proprietaryConfig.getRegexes());
 
       TArchiveDetector archiveDetector = TFileUtils
-          .getArchiveDetector(Collections.<TFileUtils.Driver, String> emptyMap(), null /* badExtensions */);
+          .getArchiveDetector(Collections.emptyMap(), null /* badExtensions */);
       ArrayNode scannedFiles = JsonUtils.parse(twistlockScan.getFilesJson());
       for (JsonNode scannedFile : scannedFiles) {
         String hash = scannedFile.get("sha1").asText();

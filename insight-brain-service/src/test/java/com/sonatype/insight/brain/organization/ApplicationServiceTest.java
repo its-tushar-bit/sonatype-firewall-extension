@@ -78,8 +78,8 @@ public class ApplicationServiceTest
   @Test
   public void testGetApplicationsByIdsAndOrganizationsAndTagIds_EmptyParams() {
     List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
-        Collections.<String> emptySet() /* organisationIds */, Collections.<String> emptySet() /* applicationIds */,
-        Collections.<String> emptySet() /* tagIds */);
+        Collections.emptySet() /* organisationIds */, Collections.emptySet() /* applicationIds */,
+        Collections.emptySet() /* tagIds */);
     assertThat(apps).hasSize(2);
   }
 

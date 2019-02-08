@@ -153,8 +153,7 @@ public class ApiComponentEvaluationServiceV2Test
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier, hash,
-        MatchState.EXACT, 0, Collections.<License> emptySet(), Collections.<License> emptySet(),
-        Collections.<SecurityVulnerability> emptyList(), null));
+        MatchState.EXACT, 0, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), null));
     mockHdsRequest(hdsRequest, hdsResult);
 
     ApiComponentEvaluationTicketDTOV2 ticket = apiComponentEvaluationService.evaluateComponents(app.getId(), request);

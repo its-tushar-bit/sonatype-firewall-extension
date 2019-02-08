@@ -28,8 +28,8 @@ public class ProprietaryConfigDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    List<String> packages = Collections.<String> singletonList("foo");
-    List<String> regexes = Collections.<String> singletonList("bar");
+    List<String> packages = Collections.singletonList("foo");
+    List<String> regexes = Collections.singletonList("bar");
     ProprietaryConfig config = new ProprietaryConfig(applicationId, packages, regexes);
     dao.insert(config);
     assertThat(config.getId()).isNotNull();
@@ -39,7 +39,7 @@ public class ProprietaryConfigDAOTest
     assertProprietaryConfig(applicationId, packages, regexes, config);
 
     // Update
-    packages = Collections.<String> singletonList("foo.updated");
+    packages = Collections.singletonList("foo.updated");
     config.setPackages(packages);
     dao.update(config);
 

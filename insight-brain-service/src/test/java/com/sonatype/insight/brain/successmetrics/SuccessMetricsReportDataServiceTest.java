@@ -848,8 +848,8 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_lastUpdatedTimestamp_includingLatestData() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.<String> emptySet(),
-        Collections.<String> emptySet(), "report", true);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.emptySet(),
+        Collections.emptySet(), "report", true);
     Date result = service.getChartData(successMetricsReport.getId()).lastUpdated;
 
     int millisFromNow = (int) (new LocalDate().toDate().getTime() - result.getTime());
@@ -860,8 +860,8 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_lastUpdatedTimestamp_monthlyData() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.<String> emptySet(),
-        Collections.<String> emptySet(), "report", false);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.emptySet(),
+        Collections.emptySet(), "report", false);
     Date result = service.getChartData(successMetricsReport.getId()).lastUpdated;
 
     Date startOfThisMonth = new LocalDate().withDayOfMonth(1).toDate();
@@ -1009,7 +1009,7 @@ public class SuccessMetricsReportDataServiceTest
     Set<String> moreApplicationIds = new HashSet<>(Arrays.asList("1234", "5678", "asdf"));
 
     assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, reportApplicationIds)).isFalse();
-    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.<String> emptySet())).isTrue();
+    assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.emptySet())).isTrue();
     assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.singleton("1234"))).isTrue();
     assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, moreApplicationIds)).isTrue();
 

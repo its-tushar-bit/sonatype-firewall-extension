@@ -548,7 +548,7 @@ public class ApiApplicationResourceV2Test
   {
     assertThat(actualApplications).hasSameSizeAs(expectedApplications);
 
-    Comparator<ApiApplicationDTO> appComparator = Comparator.<ApiApplicationDTO, String>comparing(dto -> dto.id);
+    Comparator<ApiApplicationDTO> appComparator = Comparator.comparing(dto -> dto.id);
     actualApplications.sort(appComparator);
     expectedApplications.sort(appComparator);
 

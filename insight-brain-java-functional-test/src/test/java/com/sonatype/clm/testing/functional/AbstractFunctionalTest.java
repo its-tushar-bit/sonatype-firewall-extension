@@ -228,7 +228,7 @@ public abstract class AbstractFunctionalTest
   }
 
   private static List<Module> getBrainModules() {
-    return Arrays.<Module> asList(new AbstractModule()
+    return Arrays.asList(new AbstractModule()
     {
       @Override
       protected void configure() {

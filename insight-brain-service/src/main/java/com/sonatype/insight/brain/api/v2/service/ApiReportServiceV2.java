@@ -56,7 +56,7 @@ public class ApiReportServiceV2
   public List<ApiApplicationReportDTOV2> getAll() {
     List<ApiApplicationReportDTOV2> reports = new LinkedList<>();
 
-    for (Application application : applicationService.getApplications(Collections.<String> emptySet())) {
+    for (Application application : applicationService.getApplications(Collections.emptySet())) {
       addReports(reports, application);
     }
 

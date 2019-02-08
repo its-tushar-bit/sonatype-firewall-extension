@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -57,7 +56,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   protected void init(Owner currentOwner) {
     tempEntity.newProprietaryConfig(currentOwner.getParentOwnerId(), asList("com.inherited"), asList(".*test\\.zip"));
-    tempEntity.newProprietaryConfig(currentOwner.getId(), asList("com.local"), Collections.<String> emptyList());
+    tempEntity.newProprietaryConfig(currentOwner.getId(), asList("com.local"), asList());
 
     this.currentOwner = currentOwner;
 

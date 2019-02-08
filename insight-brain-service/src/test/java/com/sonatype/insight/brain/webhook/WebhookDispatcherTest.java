@@ -490,7 +490,7 @@ public class WebhookDispatcherTest
     Organization organization = tempEntity.newOrganization();
     ComponentIdentifier mavenCoordinates = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     LicenseOverride givenOverride = tempEntity.newLicenseOverride(organization.getId(), mavenCoordinates,
-        LicenseOverrideStatus.ACKNOWLEDGED, Collections.<String>emptySet());
+        LicenseOverrideStatus.ACKNOWLEDGED, Collections.emptySet());
 
     LicenseOverrideEvent event = new LicenseOverrideEvent();
     event.initiator = "initiator";

@@ -70,7 +70,7 @@ public class ApplicationManagementSummaryDTO
   }
 
   public Map<String, PolicyEvaluation> getPolicyEvaluations() {
-    return (policyEvaluations != null) ? policyEvaluations : Collections.<String, PolicyEvaluation> emptyMap();
+    return (policyEvaluations != null) ? policyEvaluations : Collections.emptyMap();
   }
 
   public void setPolicyEvaluations(Map<String, PolicyEvaluation> policyEvaluations) {
@@ -78,8 +78,7 @@ public class ApplicationManagementSummaryDTO
   }
 
   public Map<String, PolicyEvaluationResult> getPolicyEvaluationsResults() {
-    return (policyEvaluationsResults != null) ? policyEvaluationsResults : Collections
-        .<String, PolicyEvaluationResult> emptyMap();
+    return (policyEvaluationsResults != null) ? policyEvaluationsResults : Collections.emptyMap();
   }
 
   public void setPolicyEvaluationsResults(Map<String, PolicyEvaluationResult> policyEvaluationsResults) {

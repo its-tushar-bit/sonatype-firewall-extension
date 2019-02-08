@@ -54,8 +54,7 @@ public class SearchTestHelper
     {
       this.hash = hash;
       this.componentIdentifier = componentIdentifier;
-      this.policyViolationInfos = policyViolationInfos == null ? Collections.<PolicyViolationInfo> emptyList()
-          : policyViolationInfos;
+      this.policyViolationInfos = policyViolationInfos == null ? Collections.emptyList() : policyViolationInfos;
     }
   }
 

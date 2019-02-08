@@ -227,7 +227,7 @@ public class RepositoryServiceTest
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, repositoryComponent.getHash(),
-        MatchState.EXACT, 0 /* index */, Collections.<License> emptySet(), Collections.<License> emptySet(),
+        MatchState.EXACT, 0 /* index */, Collections.emptySet(), Collections.emptySet(),
         securityVulnerabilities, 0 /* popularity */));
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
@@ -608,7 +608,7 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
-        Collections.<License>emptySet(), Collections.<License>emptySet(), securityVulnerabilities, 0 /* popularity */));
+        Collections.emptySet(), Collections.emptySet(), securityVulnerabilities, 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // call the service
@@ -643,7 +643,7 @@ public class RepositoryServiceTest
     // prepare a hds request with no violations
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
-        Collections.<License>emptySet(), Collections.<License>emptySet(), Collections.<SecurityVulnerability>emptyList(), 0 /* popularity */));
+        Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // evaluate and confirm quarantine state
@@ -681,7 +681,7 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
-        Collections.<License>emptySet(), Collections.<License>emptySet(), Collections.<SecurityVulnerability>emptyList(), 0 /* popularity */));
+        Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // call to evaluate
@@ -703,7 +703,7 @@ public class RepositoryServiceTest
     // prepare hds result with violations
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
-        Collections.<License>emptySet(), Collections.<License>emptySet(), securityVulnerabilities, 0 /* popularity */));
+        Collections.emptySet(), Collections.emptySet(), securityVulnerabilities, 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // call to evaluate
@@ -1489,7 +1489,7 @@ public class RepositoryServiceTest
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.UNKNOWN,
-        0 /* index */, Collections.<License> emptySet(), Collections.<License> emptySet(),
+        0 /* index */, Collections.emptySet(), Collections.emptySet(),
         null /* securityVulnerabilities */, null /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
@@ -1527,7 +1527,7 @@ public class RepositoryServiceTest
     hdsResult.components = new ArrayList<>();
     hdsResult.components
         .add(createComponentEvaluationData(componentIdentifier1, hash, MatchState.EXACT, 0 /* index */,
-            Collections.<License> emptySet(), Collections.<License> emptySet(), null /* securityVulnerabilities */,
+            Collections.emptySet(), Collections.emptySet(), null /* securityVulnerabilities */,
             null /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
@@ -1699,10 +1699,8 @@ public class RepositoryServiceTest
     componentEvaluationData.hash = hash;
     componentEvaluationData.componentIdentifier = componentIdentifier;
     componentEvaluationData.matchState = matchState.getId();
-    componentEvaluationData.declaredLicenses = declaredLicenses == null ? Collections.<License> emptySet()
-        : declaredLicenses;
-    componentEvaluationData.observedLicenses = observedLicenses == null ? Collections.<License> emptySet()
-        : observedLicenses;
+    componentEvaluationData.declaredLicenses = declaredLicenses == null ? Collections.emptySet() : declaredLicenses;
+    componentEvaluationData.observedLicenses = observedLicenses == null ? Collections.emptySet() : observedLicenses;
     componentEvaluationData.catalogDate = (long) index;
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;

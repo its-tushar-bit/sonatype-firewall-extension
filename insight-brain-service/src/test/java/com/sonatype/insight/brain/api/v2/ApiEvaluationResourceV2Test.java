@@ -197,8 +197,7 @@ public class ApiEvaluationResourceV2Test
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 1),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
-            Collections.<SecurityVulnerability> emptyList(), 2));
+            MatchState.UNKNOWN, 1, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 2));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -221,8 +220,8 @@ public class ApiEvaluationResourceV2Test
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 1, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.UNKNOWN.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), 2, Collections.<String, Policy> emptyMap());
+        MatchState.UNKNOWN.getId(), Collections.emptyList(), Collections.emptyList(),
+        Collections.emptyList(), 2, Collections.emptyMap());
   }
 
   @Test
@@ -248,8 +247,7 @@ public class ApiEvaluationResourceV2Test
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 10),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
-            Collections.<SecurityVulnerability> emptyList(), 20));
+            MatchState.UNKNOWN, 1, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 20));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -272,8 +270,8 @@ public class ApiEvaluationResourceV2Test
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 10, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.UNKNOWN.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), 20, Collections.<String, Policy> emptyMap());
+        MatchState.UNKNOWN.getId(), Collections.emptyList(), Collections.emptyList(),
+        Collections.emptyList(), 20, Collections.emptyMap());
   }
 
   @Test
@@ -353,8 +351,7 @@ public class ApiEvaluationResourceV2Test
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 21),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
-            Collections.<SecurityVulnerability> emptyList(), 22));
+            MatchState.UNKNOWN, 1, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 22));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -377,8 +374,8 @@ public class ApiEvaluationResourceV2Test
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 21, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
+        MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
+        Collections.emptyList(), null, Collections.emptyMap());
   }
 
   @Test
@@ -406,12 +403,10 @@ public class ApiEvaluationResourceV2Test
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1"), component1.hash,
-            MatchState.UNKNOWN, 0, Collections.<License> emptySet(), Collections.<License> emptySet(),
-            Collections.<SecurityVulnerability> emptyList(), 1),
+            MatchState.UNKNOWN, 0, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 1),
         componentEvaluationV2Helper.createComponentEvaluationData(
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2"), component1.hash,
-            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
-            Collections.<SecurityVulnerability> emptyList(), 2));
+            MatchState.UNKNOWN, 1, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 2));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -432,12 +427,12 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1",
-        MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
+        MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
+        Collections.emptyList(), null, Collections.emptyMap());
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2",
-        MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
+        MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
+        Collections.emptyList(), null, Collections.emptyMap());
   }
 
   @Test

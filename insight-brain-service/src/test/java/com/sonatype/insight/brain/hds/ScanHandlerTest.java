@@ -198,8 +198,7 @@ public class ScanHandlerTest
   }
 
   private Set<FsScheme> getSupportedFsSchemesForArchives() {
-    TArchiveDetector archiveDetector = TFileUtils.getArchiveDetector(Collections.<TFileUtils.Driver, String> emptyMap(),
-        null /* badExtensions */);
+    TArchiveDetector archiveDetector = TFileUtils.getArchiveDetector(Collections.emptyMap(), null /* badExtensions */);
     Set<FsScheme> supportedFsSchemes = new HashSet<>();
     Map<FsScheme, FsDriver> fsDriversByScheme = archiveDetector.get();
     // truezip considers a file to be an archive only if there is a driver for that file's suffix that returns

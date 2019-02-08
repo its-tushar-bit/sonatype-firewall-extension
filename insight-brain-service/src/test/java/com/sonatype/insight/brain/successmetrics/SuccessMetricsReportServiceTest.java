@@ -88,8 +88,8 @@ public class SuccessMetricsReportServiceTest
 
   @Test
   public void testCreateSuccessMetricsReportForCurrentUser_EmptyAppsAndOrgs() throws Exception {
-    SuccessMetricsReportScopeDTO scopeDTO = new SuccessMetricsReportScopeDTO(Collections.<String> emptySet(),
-        Collections.<String> emptySet());
+    SuccessMetricsReportScopeDTO scopeDTO = new SuccessMetricsReportScopeDTO(Collections.emptySet(),
+        Collections.emptySet());
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);
     SuccessMetricsReportDTO actualDto = successMetricsReportService.createSuccessMetricsReportForCurrentUser(dto);
 
@@ -141,7 +141,7 @@ public class SuccessMetricsReportServiceTest
   @Test
   public void testGetSuccessMetricsReportsForCurrentUser_EmptyApp() throws Exception {
     String metricsName1 = "Metrics1";
-    SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(Collections.<String> emptySet(),
+    SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(Collections.emptySet(),
         new HashSet<>(Arrays.asList(org.getId())));
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
@@ -157,7 +157,7 @@ public class SuccessMetricsReportServiceTest
   public void testGetSuccessMetricsReportsForCurrentUser_EmptyOrg() throws Exception {
     String metricsName1 = "Metrics1";
     SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId())), Collections.<String> emptySet());
+        new HashSet<>(Arrays.asList(app1.getId())), Collections.emptySet());
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     tempEntity.newSuccessMetricsReport(USERNAME, metricsName1, JsonUtils.format(dto1.scope));
@@ -171,8 +171,8 @@ public class SuccessMetricsReportServiceTest
   @Test
   public void testGetSuccessMetricsReportsForCurrentUser_EmptyAppsAndOrgs() throws Exception {
     String metricsName1 = "Metrics1";
-    SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(Collections.<String> emptySet(),
-        Collections.<String> emptySet());
+    SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(Collections.emptySet(),
+        Collections.emptySet());
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     tempEntity.newSuccessMetricsReport(USERNAME, metricsName1, JsonUtils.format(dto1.scope));

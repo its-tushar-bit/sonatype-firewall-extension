@@ -417,7 +417,7 @@ public class HdsClientTest
     };
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.<String> emptyList()));
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
     when(request.getMethod()).thenReturn("GET");
 
     Application app = new Application();
@@ -625,7 +625,7 @@ public class HdsClientTest
     };
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.<String> emptyList()));
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
     when(request.getMethod()).thenReturn("GET");
 
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});

@@ -68,7 +68,7 @@ public class ComponentDisplayNameUtil
    */
   public static ComponentDisplayName fromFilename(String filename, String hash) {
     return fromFilenames(
-        !StringUtils.isBlank(filename) ? Collections.singletonList(filename) : Collections.<String>emptyList(), hash);
+        !StringUtils.isBlank(filename) ? Collections.singletonList(filename) : Collections.emptyList(), hash);
   }
 
   private static ComponentDisplayName fromFilenames(Collection<String> fileNames, String hash) {

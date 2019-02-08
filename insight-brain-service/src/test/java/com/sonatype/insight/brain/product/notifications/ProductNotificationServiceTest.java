@@ -107,7 +107,7 @@ public class ProductNotificationServiceTest
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
-        Collections.<String> emptySet());
+        Collections.emptySet());
     ProductNotificationDTO returnedValue = notificationsService.setNotificationViewed(notificationListDTO.notifications
         .get(0));
     assertNotification(returnedValue, notifications.get(0), true);
@@ -124,7 +124,7 @@ public class ProductNotificationServiceTest
     List<ProductNotification> notifications = createNotification(1);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
-        Collections.<String> emptySet());
+        Collections.emptySet());
     ProductNotificationDTO returnedValue = notificationsService.setNotificationViewed(notificationListDTO.notifications
         .get(0));
     assertNotification(returnedValue, notifications.get(0), true);

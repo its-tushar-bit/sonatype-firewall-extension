@@ -69,6 +69,6 @@ public class ApiOrganizationService
     Organization apiOrganization = new Organization(apiOrganizationDTO.name);
     Organization newOrganization = organizationService.addOrganization(apiOrganization);
 
-    return apiOrganizationAdapter.convert(newOrganization, Collections.<Tag> emptyList());
+    return apiOrganizationAdapter.convert(newOrganization, Collections.emptyList());
   }
 }

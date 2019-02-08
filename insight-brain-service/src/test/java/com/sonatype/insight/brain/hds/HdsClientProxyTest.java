@@ -121,7 +121,7 @@ public class HdsClientProxyTest
     };
 
     try {
-      client.relay(mockedRequest, null, "some/path", Collections.<String, String> emptyMap());
+      client.relay(mockedRequest, null, "some/path", Collections.emptyMap());
     }
     catch (Exception ignore) {
     }

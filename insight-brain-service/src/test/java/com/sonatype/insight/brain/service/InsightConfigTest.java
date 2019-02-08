@@ -76,12 +76,12 @@ public class InsightConfigTest
     assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR));
 
     String relativePath = "abc";
-    assertThat(new File(relativePath).isAbsolute()).isFalse();
+    assertThat(new File(relativePath)).isRelative();
     config.setDbBackupDir(relativePath);
     assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), relativePath));
 
     String absolutePath = new File("abc").getAbsolutePath();
-    assertThat(new File(absolutePath).isAbsolute()).isTrue();
+    assertThat(new File(absolutePath)).isAbsolute();
     config.setDbBackupDir(absolutePath);
     assertThat(config.getDbBackupDir()).isEqualTo(new File(absolutePath));
   }

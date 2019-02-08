@@ -253,11 +253,11 @@ public class SystemInfoTest
 
     final File workDir = new File(entries.get("sonatypeWork").toString());
     assertThat(workDir).isDirectory();
-    assertThat(workDir.isAbsolute()).isTrue();
+    assertThat(workDir).isAbsolute();
     assertThat(entries.get("sonatypeWorkContent")).isNotNull();
 
     final File auditDir = new File(entries.get("auditDir").toString());
-    assertThat(auditDir.isAbsolute()).isTrue();
+    assertThat(auditDir).isAbsolute();
     assertThat(entries.get("auditDirContent")).isNull();
 
     assertThat(entries.get("downloadsDirContent")).isNull();
@@ -265,17 +265,17 @@ public class SystemInfoTest
     final String serverLog = (String) entries.get("serverLog");
     assertThat(serverLog).endsWith(SERVER_LOG_FILENAME);
     final File serverFile = new File(serverLog);
-    assertThat(serverFile.isAbsolute()).isTrue();
+    assertThat(serverFile).isAbsolute();
 
     final String requestValue = (String) entries.get("requestLog");
     assertThat(requestValue).endsWith(REQUEST_LOG_FILENAME);
     final File requestFile = new File(requestValue);
-    assertThat(requestFile.isAbsolute()).isTrue();
+    assertThat(requestFile).isAbsolute();
 
     final String auditLog = (String) entries.get("auditLog");
     assertThat(auditLog).endsWith(AUDIT_LOG_FILENAME);
     final File auditFile = new File(auditLog);
-    assertThat(auditFile.isAbsolute()).isTrue();
+    assertThat(auditFile).isAbsolute();
 
     assertThat(entries).hasSize(12);
   }

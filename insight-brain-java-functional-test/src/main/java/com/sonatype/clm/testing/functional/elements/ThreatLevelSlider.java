@@ -17,6 +17,7 @@ public class ThreatLevelSlider extends BasicElement<ThreatLevelSlider>
   }
 
   public void setValues(int min, int max) {
-    Selenide.executeJavaScript("$('body').find('div[slider]').trigger({type:'slide',value: [" + min + ", " + max + "]});");
+    Selenide.executeJavaScript("$('body').find('" + this.selector +
+        " div[slider]').trigger({type:'slide',value: [" + min + ", " + max + "]});");
   }
 }

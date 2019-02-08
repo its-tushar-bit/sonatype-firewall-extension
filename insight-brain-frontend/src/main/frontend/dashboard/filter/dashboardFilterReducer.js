@@ -10,7 +10,6 @@ import {
   defaultMaxDaysOld,
   policyTypes,
   policyViolationStates,
-  policySliderRangeHighlights,
   uncategorizedCategory
 } from './staticFilterEntries';
 import {
@@ -60,7 +59,6 @@ const initState = Object.freeze({
   ages,
   policyTypes,
   policyViolationStates,
-  policySliderRangeHighlights,
 
   // selected filter items
   appliedFilter: initSelected,

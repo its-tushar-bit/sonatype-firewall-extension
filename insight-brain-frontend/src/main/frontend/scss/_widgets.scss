@@ -818,47 +818,6 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
   }
 }
 
-/*
-  #Policy Threat Level Slider
-*/
-.policy-threat-level-slider {
-  display: inline-block;
-
-  .slider {
-    width: 180px;
-
-    .slider-track {
-      background: $iq-grey-4 none;
-      border-radius: 4px;
-      border-width: 0px;
-      box-shadow: none;
-      filter: none;
-      height: 6px !important;
-      width: inherit !important;
-
-      .slider-selection {
-        background-color: inherit;
-        background-image: inherit !important;
-        border-width: inherit;
-        box-shadow: inherit;
-        filter: inherit;
-      }
-
-      .slider-handle {
-        @include semi-bold();
-
-        background: $iq-slate none;
-        border-width: 0px;
-        box-shadow: none;
-        color: $iq-off-white;
-        font-size: 12px;
-        height: 16px !important;
-        width: 16px;
-      }
-    }
-  }
-}
-
 // Begin from multi-select.css
 /*
  #Multi-select dropdown styles
@@ -1066,57 +1025,6 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
   &.in {
     height: auto;
   }
-}
-
-.slider-handle {
-  background-color: $iq-grey-1;
-  background-image: -moz-linear-gradient(top, #fff, #e6e6e6);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#e6e6e6));
-  background-image: -webkit-linear-gradient(top, #fff, #e6e6e6);
-  background-image: -o-linear-gradient(top, #fff, #e6e6e6);
-  background-image: linear-gradient(to bottom, #fff, #e6e6e6);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe6e6e6', GradientType=0);
-  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
-  background-repeat: repeat-x;
-  border: 1px solid #ccc;
-  border-color: #e6e6e6 #e6e6e6 #bfbfbf;
-  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  border-bottom-color: #b3b3b3;
-  border-radius: 4px;
-  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  height: 18px !important;
-  line-height: 18px;
-  opacity: 1;
-  text-align: center;
-  width: 18px !important;
-}
-
-.slider-selection {
-  background-color: lightgrey;
-  background-image: none !important;
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
-
-.slider-track {
-  border: 1px solid darkgrey;
-}
-
-.slider-label-min {
-  @include bold();
-
-  padding-right: 15px;
-  vertical-align: middle;
-}
-
-.slider-label-max {
-  @include bold();
-
-  padding-left: 15px;
-  vertical-align: middle;
 }
 
 /*

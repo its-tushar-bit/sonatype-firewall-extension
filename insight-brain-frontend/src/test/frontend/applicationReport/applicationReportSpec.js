@@ -30,6 +30,8 @@ describe('applicationReport component', function() {
     controller.formMaskController = jasmine.createSpyObj('formMaskController',
         ['activateMask', 'showSuccessMaskBriefly', 'removeMask']);
 
+    controller.exactValueFilters = {};
+
     controller.$onInit();
   }));
 
@@ -264,6 +266,52 @@ describe('applicationReport component', function() {
       controller.exactValueFilters = {};
       scope.$digest();
       expect(controller.violationStateCheckedIds).toEqual(new Set());
+    });
+  });
+
+  describe('setPolicyThreatLevelFilter', function() {
+    it('calls setExactValueFilter with an empty Set if full range is selected', function() {
+      const expectedFilter = new Set();
+      controller.setPolicyThreatLevelFilter([0, 10]);
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatLevel', expectedFilter);
+    });
+
+    it('calls setExactValueFilter with the Set of all values in the selected range inclusive', function() {
+      const expectedFilter = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      controller.setPolicyThreatLevelFilter([0, 9]);
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatLevel', expectedFilter);
+    });
+
+    it('calls setExactValueFilter with the Set of single value if the range of single threat is selected', function() {
+      const expectedFilter = new Set([9]);
+      controller.setPolicyThreatLevelFilter([9, 9]);
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatLevel', expectedFilter);
+    });
+  });
+
+  describe('watcher for "exactValueFilters.policyThreatLevel"', function() {
+    it('sets selected range to full range if policyThreatLevel filter value is null', function() {
+      const expectedSelectedRange = [0, 10];
+      controller.policyThreatLevelFilterSelectedRange = [5, 6];
+      controller.exactValueFilters.policyThreatLevel = null;
+      scope.$digest();
+      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(expectedSelectedRange);
+    });
+
+    it('sets selected range to full range if policyThreatLevel filter value is an empty Set', function() {
+      const expectedSelectedRange = [0, 10];
+      controller.policyThreatLevelFilterSelectedRange = [5, 6];
+      controller.exactValueFilters.policyThreatLevel = new Set();
+      scope.$digest();
+      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(expectedSelectedRange);
+    });
+
+    it('sets selected range using min and max values in policyThreatLevel filter', function() {
+      const expectedSelectedRange = [0, 7];
+      controller.policyThreatLevelFilterSelectedRange = [5, 6];
+      controller.exactValueFilters.policyThreatLevel = new Set([7, 3, 1, 2, 4, 5, 0]);
+      scope.$digest();
+      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(expectedSelectedRange);
     });
   });
 });

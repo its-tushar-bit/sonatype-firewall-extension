@@ -1,0 +1,14 @@
+<div class="iq-tree-view iq-tree-view--multi-select">
+  <a class="iq-tree-view__trigger" ng-click="vm.isExpanded = !vm.isExpanded">
+    <div class="iq-counter iq-counter--active">{{vm.selectedRange[0]}} &ndash; {{vm.selectedRange[1]}}</div>
+    <div class="iq-tree-view__twisty">
+      <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !vm.isExpanded, collapse: vm.isExpanded }"></span>
+    </div>
+    <div class="iq-tree-view__text">Policy Threat Level</div>
+  </a>
+  <div class="iq-tree-view__children" ng-if="vm.isExpanded">
+    <iq-policy-threat-level-slider selected-range="vm.selectedRange"
+                                   on-change="vm.onChange({value})">
+    </iq-policy-threat-level-slider>
+  </div>
+</div>

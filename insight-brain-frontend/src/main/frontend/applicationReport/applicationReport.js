@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { equals, map, pick, reduce, reject } from 'ramda';
+import { equals, head, last, map, pick, range, reduce, reject } from 'ramda';
 
 import { lookup, setToArray, union } from '../util/jsUtil';
 
@@ -53,6 +53,8 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
     violationStateCheckedIds: new Set(),
 
+    policyThreatLevelFilterSelectedRange: undefined,
+
     $onInit() {
       const actions = pick(
           ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport', 'reevaluateReportCancelled'],
@@ -89,6 +91,10 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
             checkedIds = reject(equals('waived+grandfathered'), setToArray(violationStateFilter));
 
         vm.violationStateCheckedIds = new Set(checkedIds);
+      });
+
+      $scope.$watch('vm.exactValueFilters.policyThreatLevel', function(allowedValues) {
+        vm.policyThreatLevelFilterSelectedRange = toSelectedRange(allowedValues);
       });
     },
 
@@ -137,6 +143,10 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
     setPolicyTypeFilterOptions(selectedIds) {
       vm.setExactValueFilter('threatCategory', selectedIds);
+    },
+
+    setPolicyThreatLevelFilter(selectedRange) {
+      vm.setExactValueFilter('policyThreatLevel', fromSelectedRange(selectedRange));
     }
   });
 }
@@ -146,3 +156,19 @@ function mapStateToThis(state) {
 }
 
 ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions', 'Modal'];
+
+function toSelectedRange(allowedValues) {
+  if (allowedValues && allowedValues.size) {
+    const rangeArray = setToArray(allowedValues);
+    return [Math.min(...rangeArray), Math.max(...rangeArray)];
+  }
+  // if filter is empty - set slider to full range
+  return [0, 10];
+}
+
+function fromSelectedRange(selectedRange) {
+  // if whole range is selected - don't do any filtering
+  return equals([0, 10], selectedRange)
+    ? new Set()
+    : new Set(range(head(selectedRange), last(selectedRange) + 1));
+}

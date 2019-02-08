@@ -1,0 +1,40 @@
+<item-description>
+  <marked>
+    `&lt;iq-policy-threat-level-slider&gt;`
+
+
+    This components provides one-directional bindings only.
+    Updates to selected-range state are notified via `on-change` callback.
+
+    Arguments:
+
+    Params| Type | Details|
+    :--- | :--- | :---
+    selected-range | [number, number] | Array of two values - min Threat and max Threat
+    on-change | callback expression | called with the changed selected-range. Context: {value: [number, number]}
+
+    In the example below, triggered on-change callback is logged to console.
+
+  </marked>
+</item-description>
+
+<item-example-html>
+  <div ng-controller="iqPolicyThreatLevelSliderController as vm">
+    <iq-policy-threat-level-slider selected-range="vm.selectedRange"
+                                   on-change="vm.onChange(value)">
+    </iq-policy-threat-level-slider>
+    <div>Selected range: {{vm.selectedRange | json}}</div>
+  </div>
+</item-example-html>
+
+<div class="iq-tile">
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <h2>Controller</h2>
+    </div>
+  </div>
+  <div hljs
+       hljs-language="js"
+       hljs-include="'components/iqPolicyThreatLevelSlider/iqPolicyThreatLevelSliderController.js'">
+  </div>
+</div>

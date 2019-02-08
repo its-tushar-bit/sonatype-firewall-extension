@@ -8,6 +8,8 @@ import iqRadio from './iqRadio/iqRadio';
 import iqBackButton from './iqBackButton/iqBackButton';
 import iqTreeViewMultiSelect from './iqTreeViewMultiSelect/iqTreeViewMultiSelect';
 import iqTreeViewRadioSelect from './iqTreeViewRadioSelect/iqTreeViewRadioSelect';
+import iqPolicyThreatLevelSlider from './iqPolicyThreatLevelSlider/iqPolicyThreatLevelSlider';
+import iqTreeViewPolicyThreatLevelSlider from './iqTreeViewPolicyThreatLevelSlider/iqTreeViewPolicyThreatLevelSlider';
 import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import iqOrgAppPicker from './iqOrgAppPicker/iqOrgAppPicker';
@@ -19,8 +21,10 @@ export default angular.module('components', [utilityModule.name, utilityDirectiv
     .component('iqCheckbox', iqCheckbox)
     .component('iqRadio', iqRadio)
     .component('iqBackButton', iqBackButton)
+    .component('iqPolicyThreatLevelSlider', iqPolicyThreatLevelSlider)
     .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
     .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
+    .component('iqTreeViewPolicyThreatLevelSlider', iqTreeViewPolicyThreatLevelSlider)
     .component('iqOrgAppPicker', iqOrgAppPicker)
     .component('externalLink', externalLink)
     .directive('iqRenderPlottable', iqRenderPlottable)

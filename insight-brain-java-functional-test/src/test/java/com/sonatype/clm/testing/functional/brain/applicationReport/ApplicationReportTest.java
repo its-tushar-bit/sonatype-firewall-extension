@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -60,6 +62,7 @@ import static com.codeborne.selenide.Condition.matchesText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 
 public class ApplicationReportTest
     extends AbstractFunctionalTest
@@ -458,6 +461,33 @@ public class ApplicationReportTest
     policyTypeFilter.security().shouldBe(selected);
     policyTypeFilter.counter().shouldHave(exactText("4 of 4"));
     violations.shouldHaveSize(60);
+    
+    // policy threat level filter
+    PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
+    threatLevelFilter.counter().shouldBe(visible).shouldBe(ACTIVE).shouldHave(text("0 – 10"));
+    threatLevelFilter.slider().shouldBe(hidden);
+    threatLevelFilter.twisty().click();
+    threatLevelFilter.slider().shouldBe(visible);
+    threatLevelFilter.slider().setValues(1, 10);
+    violations.shouldHaveSize(27);
+    threatLevelFilter.slider().setValues(1, 9);
+    violations.shouldHaveSize(25);
+    eyesWatcher.eyesCheck("Test Policy Threat Level Filter");
+    threatLevelFilter.slider().setValues(2, 9);
+    violations.shouldHaveSize(24);
+    threatLevelFilter.slider().setValues(7, 9);
+    violations.shouldHaveSize(23);
+    threatLevelFilter.slider().setValues(9, 9);
+    violations.shouldHaveSize(15);
+    threatLevelFilter.slider().setValues(10, 10);
+    violations.shouldHaveSize(2);
+    threatLevelFilter.slider().setValues(3, 6);
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("No Results"));
+    threatLevelFilter.slider().setValues(0, 10);
+    violations.shouldHaveSize(60);
+    threatLevelFilter.twisty().click();
+    threatLevelFilter.slider().shouldBe(hidden);
   }
 
   @Test

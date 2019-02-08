@@ -3,7 +3,6 @@ import './webpackGlobals.js';
 import 'components-font-awesome/css/font-awesome.min.css';
 import './lib/glyphicon/glyphicons.css';
 import './lib/bootstrap.scss';
-import './lib/bootstrap/bootstrap-slider-2.0.0.css';
 import 'bootstrap-toggle/css/bootstrap2-toggle.css';
 import './lib/glyphicon/halflings.css';
 import 'angular-xeditable/dist/css/xeditable.css';

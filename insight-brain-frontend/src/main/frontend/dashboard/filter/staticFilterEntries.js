@@ -44,14 +44,6 @@ export const policyViolationStates = [
   }
 ];
 
-export const policySliderRangeHighlights = [
-  { start: 0, end: 0.5, cls: 'threat-none' },
-  { start: 0.5, end: 1.5, cls: 'threat-low' },
-  { start: 1.5, end: 3.5, cls: 'threat-moderate' },
-  { start: 3.5, end: 7.5, cls: 'threat-severe' },
-  { start: 7.5, end: 10, cls: 'threat-critical' }
-];
-
 export const uncategorizedCategory = {
   id: null, // NOTE that in this case null specifically means include uncategorized apps
   name: 'uncategorized applications',

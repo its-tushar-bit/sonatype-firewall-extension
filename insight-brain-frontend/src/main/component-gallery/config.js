@@ -6,10 +6,13 @@
 import componentsModule from '../frontend/components/module';
 import directivesModule from '../frontend/directives/module';
 import utilityModule from '../frontend/utility/utility.module';
+import bootstrapAddonsModule from '../frontend/util/BootstrapAddonsModule';
 import charts from './charts/module';
 import iqModalModule from './styles/iq-modal/module';
 import iqTreeViewMultiSelectModule from './components/iqTreeViewMultiSelect/module';
 import iqTreeViewRadioSelectModule from './components/iqTreeViewRadioSelect/module';
+import iqPolicyThreatLevelSliderModule from './components/iqPolicyThreatLevelSlider/module';
+import iqTreeViewPolicyThreatLevelSliderModule from './components/iqTreeViewPolicyThreatLevelSlider/module';
 import iqOrgAppPickerModule from './components/iq-org-app-picker/module';
 import submitValidationModule from './directives/submit-validation/module';
 import iqFormLayoutModule from './styles/iq-form-layout/module';
@@ -18,7 +21,8 @@ export default angular.module('config',
     [
       componentsModule.name, directivesModule.name, charts.name, utilityModule.name, iqModalModule.name,
       iqTreeViewMultiSelectModule.name, iqOrgAppPickerModule.name, submitValidationModule.name, iqFormLayoutModule.name,
-      iqTreeViewRadioSelectModule.name
+      iqTreeViewRadioSelectModule.name, bootstrapAddonsModule.name, iqPolicyThreatLevelSliderModule.name,
+      iqTreeViewPolicyThreatLevelSliderModule.name
     ])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
@@ -26,8 +30,10 @@ export default angular.module('config',
       'iq-back-button': 'components/iq-back-button.html',
       'color-picker': 'components/color-picker.html',
       'dropdown-selector': 'components/dropdown-selector.html',
+      'iq-policy-threat-level-slider': 'components/iqPolicyThreatLevelSlider/iqPolicyThreatLevelSlider.html',
       'iq-tree-view-multi-select': 'components/iqTreeViewMultiSelect/iq-tree-view-multi-select.html',
       'iq-tree-view-radio-select': 'components/iqTreeViewRadioSelect/iq-tree-view-radio-select.html',
+      'iq-tree-view-policy-threat-level-slider': 'components/iqTreeViewPolicyThreatLevelSlider/iqTreeViewPolicyThreatLevelSlider.html',
       'iq-org-app-picker': 'components/iq-org-app-picker/iq-org-app-picker.html'
     })
 

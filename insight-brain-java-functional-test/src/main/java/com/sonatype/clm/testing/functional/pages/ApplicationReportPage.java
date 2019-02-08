@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
 import com.sonatype.clm.testing.functional.elements.IqTreeViewMultiSelect;
+import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -436,5 +437,9 @@ public class ApplicationReportPage
     public IqCheckbox other() {
       return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(5)));
     }
+  }
+
+  public static PolicyThreatLevelFilter policyThreatLevelFilter() {
+    return new PolicyThreatLevelFilter("#threat-level-filter");
   }
 }

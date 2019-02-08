@@ -270,19 +270,6 @@ public class DashboardFilters
     }
   }
 
-  public static class PolicyThreatLevelFilter
-      extends IqTreeViewMultiSelect
-  {
-
-    public PolicyThreatLevelFilter(final String selector) {
-      super(selector);
-    }
-
-    public ThreatLevelSlider slider() {
-      return new ThreatLevelSlider(childSelector(".policy-threat-level-slider"));
-    }
-  }
-
   public static class StageFilter
       extends IqTreeViewMultiSelect
   {

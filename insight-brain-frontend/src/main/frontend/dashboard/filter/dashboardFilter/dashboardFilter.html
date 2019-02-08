@@ -85,32 +85,11 @@
         Age
       </iq-tree-view-radio-select>
 
-      <div class="iq-tree-view iq-tree-view--multi-select" id="threat-level-filter">
-        <a class="iq-tree-view__trigger" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
-          <div class="iq-counter iq-counter--active">{{vm.selected.policyThreatLevels[0]}} &ndash;
-            {{vm.selected.policyThreatLevels[1]}}
-          </div>
-          <div class="iq-tree-view__twisty">
-            <span class="iq-tree-view__twisty-icon"
-                  ng-class="{ expand: !vm.policyThreatLevelState.isExpanded,
-                              collapse: vm.policyThreatLevelState.isExpanded }">
-            </span>
-          </div>
-          <div class="iq-tree-view__text">Policy Threat Level</div>
-        </a>
-        <div class="iq-tree-view__children" ng-if="vm.policyThreatLevelState.isExpanded">
-          <div class="policy-threat-level-slider">
-            <div slider
-                 value="vm.selected.policyThreatLevels"
-                 min="0"
-                 max="10"
-                 range-highlights="vm.policySliderRangeHighlights"
-                 hide-labels="true"
-                 on-change="vm.toggleFilter('policyThreatLevels', value)">
-            </div>
-          </div>
-        </div>
-      </div>
+      <iq-tree-view-policy-threat-level-slider id="threat-level-filter"
+                                               selected-range="vm.selected.policyThreatLevels"
+                                               on-change="vm.toggleFilter('policyThreatLevels', value)">
+      </iq-Tree-View-Policy-Threat-Level-slider>
+
     </div>
   </div>
   <div class="dashboard-filter-footer" ng-class="{'iq-apply-error-present': vm.saveError}" submit-wrapper="vm.saveError" retry="vm.applyCurrentFilter()">

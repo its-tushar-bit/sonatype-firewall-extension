@@ -13,55 +13,6 @@
     overflow-x: visible;
     overflow-y: auto;
     padding: 7px 0 0 8px;
-
-    .policy-threat-level-slider {
-      padding-top: 6px;
-      padding-left: 16px;
-
-      .slider-handle {
-        &.threat-none {
-          background-color: $iq-threat-color-policy-none;
-        }
-
-        &.threat-low {
-          background-color: $iq-threat-color-low;
-        }
-
-        &.threat-moderate {
-          background-color: $iq-threat-color-moderate;
-        }
-
-        &.threat-severe {
-          background-color: $iq-threat-color-severe;
-        }
-
-        &.threat-critical {
-          background-color: $iq-threat-color-critical;
-        }
-      }
-
-      .slider-range-highlight-container {
-        .threat-none {
-          background-color: $iq-threat-color-policy-none-light;
-        }
-
-        .threat-low {
-          background-color: $iq-threat-color-low-light;
-        }
-
-        .threat-moderate {
-          background-color: $iq-threat-color-moderate-light;
-        }
-
-        .threat-severe {
-          background-color: $iq-threat-color-severe-light;
-        }
-
-        .threat-critical {
-          background-color: $iq-threat-color-critical-light;
-        }
-      }
-    }
   }
 
   .dashboard-filter.iq-apply-error-present {

@@ -33,7 +33,9 @@ bootstrapAddons.directive('slider', function() {
         rangeHighlights: scope.rangeHighlights
       }).on('slide', function(event) {
         if (!angular.equals(event.value, scope.model)) {
-          scope.onChange({value: event.value});
+          scope.$apply(function() {
+            scope.onChange({value: event.value});
+          });
         }
       });
 

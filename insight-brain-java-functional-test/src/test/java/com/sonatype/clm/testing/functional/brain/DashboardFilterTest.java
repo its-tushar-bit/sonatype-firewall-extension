@@ -17,7 +17,6 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFil
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFiltersDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFilters;
-import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyViolationStateFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.SaveFilterDialog;
@@ -26,6 +25,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IqTreeViewMultiSelect;
+import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;

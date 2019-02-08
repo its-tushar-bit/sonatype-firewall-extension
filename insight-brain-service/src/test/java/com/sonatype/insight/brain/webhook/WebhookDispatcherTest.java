@@ -7,14 +7,19 @@ package com.sonatype.insight.brain.webhook;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.TestLicenseManager;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.label.Label;
@@ -22,10 +27,10 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
@@ -42,7 +47,6 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -50,7 +54,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,8 +61,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class WebhookDispatcherTest
     extends AbstractComponentTest
@@ -73,10 +80,7 @@ public class WebhookDispatcherTest
   private AsyncEventBus asyncEventBus;
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestLicenseManager testLicenseManager;
 
   @Mock
   private WebhookClientUtil webhookClientUtil;
@@ -94,6 +98,7 @@ public class WebhookDispatcherTest
   @Override
   public void configure(Binder binder) {
     binder.bind(WebhookClientUtil.class).toInstance(webhookClientUtil);
+    super.configure(binder);
   }
 
   @Test
@@ -142,54 +147,94 @@ public class WebhookDispatcherTest
   }
 
   @Test
-  public void test_DispatcherDoesNotStart_LifecycleFoundationLicense() throws Exception {
-    // manually stop dispatcher that was started via the @Before.
-    webhookDispatcher.stop();
+  public void test_WebhooksAppAndRepoLicensed_SendsAllEvents() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
 
-    // manually starting dispatcher should not start with Foundation license
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
-    webhookDispatcher.start();
+    Organization organization = tempEntity.newOrganization();
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Application application = tempEntity.newApplication(organization.getId());
+    Repository repository = tempEntity.newRepository();
 
-    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
-    asyncEventBus.post(new ApplicationEvaluationEvent());
+    tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
 
-    verify(webhookClientUtil, Mockito.after(EVENT_TIMEOUT_MS).never())
-        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
-            any(WebhookPayload.class));
+    testEventTypesWithOwner(rootOrg);
+    verifyEventTypesSent();
 
-    // dispatcher should start back up with Lifecycle license change
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
+    testEventTypesWithOwner(organization);
+    verifyEventTypesSent();
 
-    asyncEventBus.post(new ApplicationEvaluationEvent());
-    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
-            any(WebhookPayload.class));
+    testEventTypesWithOwner(application);
+    verifyEventTypesSent();
+
+    testEventTypesWithOwner(repository);
+    verifyEventTypesSent();
   }
 
   @Test
-  public void test_DispatcherStops_LifecycleFoundationLicense() throws Exception {
-    // dispatcher should stop with Foundation license change
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void test_WebhooksNotLicensed_DoesNotSendEvents() {
+    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
 
-    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
-    asyncEventBus.post(new ApplicationEvaluationEvent());
+    Organization organization = tempEntity.newOrganization();
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Application application = tempEntity.newApplication(organization.getId());
+    Repository repository = tempEntity.newRepository();
 
-    verify(webhookClientUtil, Mockito.after(EVENT_TIMEOUT_MS).never())
-        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
-            any(WebhookPayload.class));
+    tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
 
-    // dispatcher should start back up with Lifecycle license change
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
+    testEventTypesWithOwner(rootOrg);
+    testEventTypesWithOwner(organization);
+    testEventTypesWithOwner(application);
+    testEventTypesWithOwner(repository);
 
-    asyncEventBus.post(new ApplicationEvaluationEvent());
+    verifyZeroInteractions(webhookClientUtil);
+  }
 
-    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
-            any(WebhookPayload.class));
+  @Test
+  public void test_WebhooksRepositoryLicensed_SendsOnlyRepositoryEvents() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_REPOSITORIES);
+
+    Organization organization = tempEntity.newOrganization();
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Application application = tempEntity.newApplication(organization.getId());
+    Repository repository = tempEntity.newRepository();
+
+    tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
+
+    testEventTypesWithOwner(rootOrg);
+    verifyEventTypesSent();
+
+    testEventTypesWithOwner(repository);
+    verifyEventTypesSent();
+
+    testEventTypesWithOwner(organization);
+    verifyNoMoreInteractions(webhookClientUtil);
+
+    testEventTypesWithOwner(application);
+    verifyNoMoreInteractions(webhookClientUtil);
+  }
+
+  @Test
+  public void test_ApplicationWebhooksLicensed_SendsOnlyApplicationEvents() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS);
+
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    Repository repository = tempEntity.newRepository();
+
+    tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
+
+    testEventTypesWithOwner(rootOrg);
+    verifyEventTypesSent();
+
+    testEventTypesWithOwner(organization);
+    verifyEventTypesSent();
+
+    testEventTypesWithOwner(application);
+    verifyEventTypesSent();
+
+    testEventTypesWithOwner(repository);
+    verifyNoMoreInteractions(webhookClientUtil);
   }
 
   @Test
@@ -476,5 +521,74 @@ public class WebhookDispatcherTest
     assertThat(actualOverride.licenseIds).isEmpty();
     assertThat(actualOverride.ownerId).isEqualTo(organization.getId());
     assertThat(actualOverride.status).isEqualTo(LicenseOverrideStatus.ACKNOWLEDGED.name());
+  }
+
+  private void testEventTypesWithOwner(Owner owner) {
+    String ownerId = owner.getId();
+
+    ApplicationEvaluationEvent applicationEvaluationEvent = new ApplicationEvaluationEvent();
+    applicationEvaluationEvent.ownerId = ownerId;
+    webhookDispatcher.on(applicationEvaluationEvent);
+
+    // policy management events
+    OwnerEvent ownerEvent = new OwnerEvent();
+    ownerEvent.ownerId = ownerId;
+    ownerEvent.owner = owner;
+    webhookDispatcher.on(ownerEvent);
+
+    TagEvent tagEvent = new TagEvent();
+    tagEvent.tag = new Tag();
+    tagEvent.ownerId = ownerId;
+    webhookDispatcher.on(tagEvent);
+
+    LabelEvent labelEvent = new LabelEvent();
+    labelEvent.ownerId = ownerId;
+    labelEvent.label = new Label();
+    webhookDispatcher.on(labelEvent);
+
+    LicenseThreatGroupEvent licenseThreatGroupEvent = new LicenseThreatGroupEvent();
+    licenseThreatGroupEvent.ownerId = ownerId;
+    licenseThreatGroupEvent.licenseThreatGroup = new LicenseThreatGroup();
+    webhookDispatcher.on(licenseThreatGroupEvent);
+
+    PolicyEvent policyEvent = new PolicyEvent();
+    policyEvent.ownerId = ownerId;
+    policyEvent.policy = new Policy();
+    webhookDispatcher.on(policyEvent);
+
+    RoleEvent roleEvent = new RoleEvent();
+    roleEvent.ownerId = ownerId;
+    webhookDispatcher.on(roleEvent);
+    // end policy management events
+
+    SecurityVulnerabilityOverrideEvent securityVulnerabilityOverrideEvent = new SecurityVulnerabilityOverrideEvent();
+    securityVulnerabilityOverrideEvent.override = new SecurityVulnerabilityOverride();
+    securityVulnerabilityOverrideEvent.override.setStatus(SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE);
+    securityVulnerabilityOverrideEvent.override.setOwnerId(ownerId);
+    webhookDispatcher.on(securityVulnerabilityOverrideEvent);
+
+    LicenseOverrideEvent licenseOverrideEvent = new LicenseOverrideEvent();
+    licenseOverrideEvent.licenseOverride = new LicenseOverride();
+    licenseOverrideEvent.licenseOverride.setStatus(LicenseOverrideStatus.ACKNOWLEDGED);
+    licenseOverrideEvent.licenseOverride.setOwnerId(ownerId);
+    webhookDispatcher.on(licenseOverrideEvent);
+  }
+
+  private void verifyEventTypesSent() {
+    // we have 6 different events for policy management
+    verify(webhookClientUtil, times(6))
+        .post(any(Webhook.class), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID), any(WebhookPayload.class));
+
+    verify(webhookClientUtil)
+        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID), any(WebhookPayload.class));
+
+    verify(webhookClientUtil)
+        .post(any(Webhook.class), eq(WebhookDispatcher.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID),
+            any(WebhookPayload.class));
+
+    verify(webhookClientUtil)
+        .post(any(Webhook.class), eq(WebhookDispatcher.LICENSE_OVERRIDE_MANAGEMENT_ID), any(WebhookPayload.class));
+
+    reset(webhookClientUtil);
   }
 }

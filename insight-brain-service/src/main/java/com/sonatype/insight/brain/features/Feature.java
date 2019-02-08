@@ -58,7 +58,9 @@ public enum Feature
 
   ROOT_ORG_MIGRATE,
 
-  WEBHOOKS;
+  WEBHOOKS_FOR_APPLICATIONS,
+
+  WEBHOOKS_FOR_REPOSITORIES;
 
   @Override
   @JsonValue

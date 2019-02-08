@@ -51,7 +51,8 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
         vm.loadError = 'Unable to locate webhook.';
       }
 
-      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks');
+      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
+          ProductFeatures.isAvailable('webhooks-for-repositories');
     }, function(error) {
       vm.loadError = error;
     });

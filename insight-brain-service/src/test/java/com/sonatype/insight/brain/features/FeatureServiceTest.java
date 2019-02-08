@@ -61,7 +61,7 @@ public class FeatureServiceTest
   public void testGetFeatures_WithLicenseSpecificFeatures() {
     Set<Feature> features = EnumSet.of(Feature.QUALITY, Feature.POLICY_MONITORING, Feature.DASHBOARD,
         Feature.CLI_INTEGRATION, Feature.ENFORCEMENT, Feature.NOTIFICATIONS, Feature.POLICY_GRANDFATHERING,
-        Feature.WEBHOOKS, Feature.FIREWALL);
+        Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.FIREWALL);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.getFeatures()).thenReturn(features);
     assertThat(featuresService.getFeatures()).containsAll(features);

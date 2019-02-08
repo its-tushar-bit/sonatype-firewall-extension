@@ -9,14 +9,13 @@ import java.util.EnumSet;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -42,10 +41,7 @@ public class WebhookServiceTest
   private PlexusCipher plexusCipher;
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestLicenseManager testLicenseManager;
 
   @Test
   public void testAddWebhook_EncryptsSecretKey() throws PlexusCipherException {
@@ -75,9 +71,8 @@ public class WebhookServiceTest
   }
 
   @Test
-  public void testAddWebhook_LifecycleFoundationLicense() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testAddWebhook_Unlicensed_NotAllowed() {
+    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
 
     final String secretKey = "some secret key";
     final Webhook webhook = new Webhook();
@@ -86,6 +81,34 @@ public class WebhookServiceTest
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> webhookService.addWebhook(webhook));
+  }
+
+  @Test
+  public void testAddAndDeleteWebhook_RepositoryLicensed_Allowed() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_REPOSITORIES);
+
+    final String secretKey = "some secret key";
+    final Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+
+    Webhook addedWebhook = webhookService.addWebhook(webhook);
+    webhookService.deleteWebhook(addedWebhook.getId());
+  }
+
+  @Test
+  public void testAddAndDeleteWebhook_ApplicationLicensed_Allowed() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS);
+
+    final String secretKey = "some secret key";
+    final Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+
+    Webhook addedWebhook = webhookService.addWebhook(webhook);
+    webhookService.deleteWebhook(addedWebhook.getId());
   }
 
   @Test
@@ -112,14 +135,33 @@ public class WebhookServiceTest
   }
 
   @Test
-  public void testUpdateWebhook_LifecycleFoundationLicense() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testUpdateWebhook_Unlicensed_NotAllowed() {
+    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> webhookService.updateWebhook(webhook));
+  }
+
+  @Test
+  public void testUpdateWebhook_ApplicationLicensed_Allowed() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+
+    webhookService.updateWebhook(webhook);
+  }
+
+  @Test
+  public void testUpdateWebhook_RepositoryLicensed_Allowed() {
+    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_REPOSITORIES);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+
+    webhookService.updateWebhook(webhook);
   }
 
   @Test
@@ -155,9 +197,8 @@ public class WebhookServiceTest
   }
 
   @Test
-  public void testDeleteWebhook_LifecycleFoundationLicense() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testDeleteWebhook_Unlicensed_NotAllowed() {
+    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
 

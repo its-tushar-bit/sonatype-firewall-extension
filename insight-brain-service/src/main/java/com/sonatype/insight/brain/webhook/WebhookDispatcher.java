@@ -18,13 +18,15 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -51,7 +53,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class WebhookDispatcher
-    implements Managed, LicenseListener
+    implements Managed
 {
   public static final String APPLICATION_EVALUATION_ID = "iq:applicationEvaluation";
 
@@ -75,13 +77,16 @@ public class WebhookDispatcher
 
   private final CLMLicenseManager clmLicenseManager;
 
+  private final RepositoryDAO repositoryDAO;
+
   @Inject
   public WebhookDispatcher(final AsyncEventBus asyncEventBus,
                            final WebhookService webhookService,
                            final WebhookClientUtil webhookClientUtil,
                            final OwnerDTOUtil ownerDTOUtil,
                            final AuditRecorder auditRecorder,
-                           final CLMLicenseManager clmLicenseManager)
+                           final CLMLicenseManager clmLicenseManager,
+                           final RepositoryDAO repositoryDAO)
   {
     this.webhookService = webhookService;
     this.webhookClientUtil = webhookClientUtil;
@@ -89,13 +94,17 @@ public class WebhookDispatcher
     this.ownerDTOUtil = ownerDTOUtil;
     this.auditRecorder = auditRecorder;
     this.clmLicenseManager = clmLicenseManager;
-    clmLicenseManager.addListener(this);
+    this.repositoryDAO = repositoryDAO;
   }
 
   @Subscribe
   public void on(final ApplicationEvaluationEvent applicationEvaluationEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.APPLICATION_EVALUATION)) {
-      invokeWithAudit(webhook, WebhookEventType.APPLICATION_EVALUATION,
+    WebhookEventType webhookEventType = WebhookEventType.APPLICATION_EVALUATION;
+    if (!checkEventIsLicensed(applicationEvaluationEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendApplicationEvaluationPayload(webhookService.getDecrypted(webhook.getId()),
               applicationEvaluationEvent));
     }
@@ -103,10 +112,14 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final OwnerEvent ownerEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_MANAGEMENT;
+    if (!checkEventIsLicensed(ownerEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
       PolicyManagementType type = ownerEvent.owner.getType() ==
           OwnerType.ORGANIZATION ? PolicyManagementType.ORGANIZATION : PolicyManagementType.APPLICATION;
-      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), type,
               ownerEvent.owner.getId(),
               ownerEvent));
@@ -115,8 +128,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final TagEvent tagEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_MANAGEMENT;
+    if (!checkEventIsLicensed(tagEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
               PolicyManagementType.APPLICATION_CATEGORY, tagEvent.tag.getId(), tagEvent));
     }
@@ -124,8 +141,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final LabelEvent labelEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_MANAGEMENT;
+    if (!checkEventIsLicensed(labelEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.LABEL,
               labelEvent.label.getId(), labelEvent));
     }
@@ -133,8 +154,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final LicenseThreatGroupEvent licenseThreatGroupEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_MANAGEMENT;
+    if (!checkEventIsLicensed(licenseThreatGroupEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
               PolicyManagementType.LICENSE_THREAT_GROUP, licenseThreatGroupEvent.licenseThreatGroup.getId(),
               licenseThreatGroupEvent));
@@ -143,8 +168,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final PolicyEvent policyEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_MANAGEMENT;
+    if (!checkEventIsLicensed(policyEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.POLICY,
               policyEvent.policy.getId(), policyEvent));
     }
@@ -152,8 +181,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final RoleEvent roleEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.POLICY_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_MANAGEMENT;
+    if (!checkEventIsLicensed(roleEvent.ownerId, webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.ACCESS,
               roleEvent.ownerId, roleEvent));
     }
@@ -161,8 +194,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final SecurityVulnerabilityOverrideEvent securityVulnerabilityOverrideEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT;
+    if (!checkEventIsLicensed(securityVulnerabilityOverrideEvent.override.getOwnerId(), webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendSecurityVulnerabilityOverridePayload(webhookService.getDecrypted(webhook.getId()),
               securityVulnerabilityOverrideEvent));
     }
@@ -170,8 +207,12 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final LicenseOverrideEvent licenseOverrideEvent) {
-    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT)) {
-      invokeWithAudit(webhook, WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT,
+    WebhookEventType webhookEventType = WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
+    if (!checkEventIsLicensed(licenseOverrideEvent.licenseOverride.getOwnerId(), webhookEventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
           () -> sendLicenseOverridePayload(webhookService.getDecrypted(webhook.getId()), licenseOverrideEvent));
     }
   }
@@ -278,10 +319,6 @@ public class WebhookDispatcher
 
   @Override
   public void start() {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
-      log.debug("Webhooks dispatcher not supported by license.");
-      return;
-    }
     asyncEventBus.register(this);
   }
 
@@ -290,14 +327,19 @@ public class WebhookDispatcher
     asyncEventBus.unregister(this);
   }
 
-  @Override
-  public void licenseChanged() {
-    if (clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
-      log.debug("Webhooks dispatcher supported by license.");
-      start();
-    } else {
-      log.debug("Webhooks dispatcher not supported by license.");
-      stop();
+  private boolean checkEventIsLicensed(final String ownerId, final WebhookEventType webhookEventType) {
+    boolean eventApplicableToRepos = Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ||
+        RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(ownerId) || repositoryDAO.getById(ownerId) != null;
+    boolean eventApplicableToApps = Organization.ROOT_ORGANIZATION_ID.equals(ownerId) || !eventApplicableToRepos;
+
+    if (eventApplicableToRepos && clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
+      return true;
     }
+    if (eventApplicableToApps && clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS)) {
+      return true;
+    }
+
+    log.debug("Webhooks feature for event {} is not supported by the current license.", webhookEventType);
+    return false;
   }
 }

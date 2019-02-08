@@ -110,7 +110,7 @@ public class CLMLicenseManagerTest
         Feature.ENFORCEMENT, //
         Feature.NOTIFICATIONS, //
         Feature.POLICY_GRANDFATHERING, //
-        Feature.WEBHOOKS);
+        Feature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test
@@ -126,7 +126,7 @@ public class CLMLicenseManagerTest
         Feature.ENFORCEMENT, //
         Feature.NOTIFICATIONS, //
         Feature.POLICY_GRANDFATHERING, //
-        Feature.WEBHOOKS);
+        Feature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test
@@ -145,7 +145,7 @@ public class CLMLicenseManagerTest
         Feature.ENFORCEMENT, //
         Feature.NOTIFICATIONS, //
         Feature.POLICY_GRANDFATHERING, //
-        Feature.WEBHOOKS);
+        Feature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test
@@ -155,7 +155,8 @@ public class CLMLicenseManagerTest
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
         Feature.FIREWALL, //
         Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
-        Feature.RM_STAGING_INTEGRATION);
+        Feature.RM_STAGING_INTEGRATION, //
+        Feature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test

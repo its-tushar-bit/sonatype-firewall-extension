@@ -356,7 +356,7 @@ public class CLMLicenseManager
       features.add(Feature.ENFORCEMENT);
       features.add(Feature.NOTIFICATIONS);
       features.add(Feature.POLICY_GRANDFATHERING);
-      features.add(Feature.WEBHOOKS);
+      features.add(Feature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(Feature.RM_STAGING_INTEGRATION);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
@@ -368,7 +368,7 @@ public class CLMLicenseManager
       features.add(Feature.ENFORCEMENT);
       features.add(Feature.NOTIFICATIONS);
       features.add(Feature.POLICY_GRANDFATHERING);
-      features.add(Feature.WEBHOOKS);
+      features.add(Feature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(Feature.IDE_INTEGRATION);
       features.add(Feature.CI_INTEGRATION);
       features.add(Feature.RM_STAGING_INTEGRATION);
@@ -377,7 +377,7 @@ public class CLMLicenseManager
       features.add(Feature.ENFORCEMENT);
       features.add(Feature.NOTIFICATIONS);
       features.add(Feature.POLICY_GRANDFATHERING);
-      features.add(Feature.WEBHOOKS);
+      features.add(Feature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(Feature.RM_STAGING_INTEGRATION);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
@@ -391,6 +391,7 @@ public class CLMLicenseManager
       features.add(Feature.FIREWALL);
       features.add(Feature.RM_STAGING_INTEGRATION);
       features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+      features.add(Feature.WEBHOOKS_FOR_REPOSITORIES);
     }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, key.getExpirationDate().getTime(), key.getContactName(),

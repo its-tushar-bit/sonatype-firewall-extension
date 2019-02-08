@@ -53,7 +53,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
     });
 
     ProductFeatures.load().then(function() {
-      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks');
+      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
+          ProductFeatures.isAvailable('webhooks-for-repositories');
     });
   }
 

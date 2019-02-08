@@ -91,7 +91,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook addWebhook(Webhook webhook) {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
+    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS) &&
+        !clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
       log.debug("Not adding Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -104,7 +105,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook updateWebhook(Webhook webhook) {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
+    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS) &&
+        !clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
       log.debug("Not updating Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -124,7 +126,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteWebhook(String webhookId) {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS)) {
+    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS) &&
+        !clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
       log.debug("Not deleting Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }

@@ -152,6 +152,12 @@ $iq-modal-bottom-spacing: 8px;
   overflow: auto;
 }
 
+.iq-modal--sv {
+  $iq-modal-width: 900px;
+  width: $iq-modal-width;
+  left: calc(50% - (#{$iq-modal-width} / 2));
+}
+
 .modal-ldap-user-list {
   > .iq-table {
     table-layout: fixed;

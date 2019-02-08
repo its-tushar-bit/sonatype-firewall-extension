@@ -13,7 +13,9 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.json.store.UncheckedIOException;
 
@@ -82,9 +84,21 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
       policyViolationLogDTO.stagePolicyAction =
           policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
     }
+    policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts().stream()
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+        .map(ConditionFact::getReason)
+        .distinct()
+        .map(this::createPolicyConditionTriggerDTO)
+        .collect(Collectors.toList());
     policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
     policyViolationLogDTO.componentHash = policyViolation.getHash();
     return policyViolationLogDTO;
+  }
+
+  private PolicyConditionTriggerDTO createPolicyConditionTriggerDTO(String reason) {
+    PolicyConditionTriggerDTO policyConditionTriggerDTO = new PolicyConditionTriggerDTO();
+    policyConditionTriggerDTO.reason = reason;
+    return policyConditionTriggerDTO;
   }
 
   protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent,

@@ -13,8 +13,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -84,6 +87,7 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
     assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
+    assertPolicyConditionTriggerData(policyViolationLogDTO, policyViolation);
     assertOrganizationData(policyViolationLogDTO, organization);
     assertApplicationData(policyViolationLogDTO, application);
     assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
@@ -106,6 +110,7 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(StageTypes.PROXY.getId());
     assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
+    assertPolicyConditionTriggerData(policyViolationLogDTO, policyViolation);
     assertRepositoryData(policyViolationLogDTO, repository);
     assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
   }
@@ -186,6 +191,24 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.policyName).isEqualTo(policyViolation.getPolicyName());
     assertThat(policyViolationLogDTO.policyThreatCategory).isEqualTo(policyViolation.getThreatCategory().getName());
     assertThat(policyViolationLogDTO.policyThreatLevel).isEqualTo(policyViolation.getThreatLevel());
+  }
+
+  private static void assertPolicyConditionTriggerData(PolicyViolationLogDTO policyViolationLogDTO,
+                                                       AbstractPolicyViolation policyViolation)
+  {
+    Set<String> expectedReasons = policyViolation.getConstraintFacts().stream()
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+        .map(ConditionFact::getReason)
+        .collect(Collectors.toSet());
+    if (expectedReasons.isEmpty()) {
+      assertThat(policyViolationLogDTO.policyConditionTriggers).isNull();
+    }
+    else {
+      Set<String> actualReasons = policyViolationLogDTO.policyConditionTriggers.stream()
+          .map(policyConditionTrigger -> policyConditionTrigger.reason)
+          .collect(Collectors.toSet());
+      assertThat(actualReasons).isEqualTo(expectedReasons);
+    }
   }
 
   private static void assertOrganizationData(PolicyViolationLogDTO policyViolationLogDTO, Organization organization) {

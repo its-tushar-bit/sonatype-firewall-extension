@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -46,7 +47,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -55,12 +58,18 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DeprecatedSecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
@@ -97,6 +106,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -1607,6 +1617,100 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results.allViolations).isNotEmpty();
     assertPolicyViolationLogDTOs(0);
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForAllConditionTypes() throws Exception {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), "964cd74171f427720480", "sonatype",
+        "sonatype-2007-0004", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+
+    Condition ageCondition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    Condition coordinatesCondition = new Condition(CoordinatesConditionType.ID, "match", "maven:*:*:*:*:*");
+    Condition identificationSourceCondition = new Condition(IdentificationSourceConditionType.ID, "is", "Sonatype");
+    Condition labelCondition = new Condition(LabelConditionType.ID, "is not", label.getId());
+    Condition licenseCondition = new Condition(LicenseConditionType.ID, "is not", "Beerware");
+    Condition licenseStatusCondition = new Condition(LicenseStatusConditionType.ID, "is not", "ACKNOWLEDGED");
+    Condition licenseThreatGroupCondition = new Condition(LicenseThreatGroupConditionType.ID, "is not",
+        licenseThreatGroup.getId());
+    Condition licenseThreatGroupLevelCondition = new Condition(LicenseThreatGroupLevelConditionType.ID, "<=", "0");
+    Condition matchStateCondition = new Condition(MatchStateConditionType.ID, "is not", "unknown");
+    Condition proprietaryCondition = new Condition(ProprietaryConditionType.ID, "is false");
+    Condition relativePopularityCondition = new Condition(RelativePopularityConditionType.ID, ">=", "0");
+    Condition securityVulnerabilitySeverityCondition = new Condition(SecurityVulnerabilitySeverityConditionType.ID,
+        ">=", "7");
+    Condition securityVulnerabilityStatusCondition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
+        "ACKNOWLEDGED");
+    List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
+        labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
+        licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
+        securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition);
+
+    Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
+        .collect(Collectors.toSet());
+    expectedConditionTypeIds.remove(DeprecatedSecurityVulnerabilityConditionType.ID);
+    assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
+        .isEqualTo(expectedConditionTypeIds);
+
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
+    constraint.setConditions(conditions);
+
+    tempEntity.newPolicy("policyName", constraint);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
+            new Stage(Stage.ID_BUILD));
+
+    assertThat(results.allViolations).hasSize(conditions.size());
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_LogsUniquePolicyConditionTriggers() throws Exception {
+    Condition securityVulnerabilitySeverityCondition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID,
+        ">=", "0");
+    Condition securityVulnerabilitySeverityCondition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID,
+        "<=", "10");
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
+    constraint
+        .setConditions(Arrays.asList(securityVulnerabilitySeverityCondition1, securityVulnerabilitySeverityCondition2));
+    tempEntity.newPolicy("policy", constraint);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
+            new Stage(Stage.ID_BUILD));
+
+    assertThat(results.allViolations).isNotEmpty();
+    List<String> exampleDuplicateReasons = results.allViolations.get(0).getConstraintFacts().stream()
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+        .map(ConditionFact::getReason).collect(toList());
+    assertThat(exampleDuplicateReasons.get(0)).isEqualTo(exampleDuplicateReasons.get(1));
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForMultipleConstraintsConditions()
+      throws Exception
+  {
+    Condition ageCondition1 = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    Condition ageCondition2 = new Condition(AgeInDaysConditionType.ID, "younger than", "999999");
+    Constraint constraint1 = new Constraint(null, "constraintName1", LogicalOperator.AND);
+    constraint1.setConditions(Arrays.asList(ageCondition1, ageCondition2));
+
+    Condition relativePopularityCondition1 = new Condition(RelativePopularityConditionType.ID, ">=", "0");
+    Condition relativePopularityCondition2 = new Condition(RelativePopularityConditionType.ID, "<=", "100");
+    Constraint constraint2 = new Constraint(null, "constraintName2", LogicalOperator.AND);
+    constraint2.setConditions(Arrays.asList(relativePopularityCondition1, relativePopularityCondition2));
+
+    tempEntity.newPolicy("policyName", constraint1, constraint2);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+        .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
+            new Stage(Stage.ID_BUILD));
+
+    assertThat(results.allViolations).isNotEmpty();
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
   }
 
   private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,

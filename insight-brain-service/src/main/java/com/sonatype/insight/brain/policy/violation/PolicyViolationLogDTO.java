@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-@JsonInclude(Include.NON_NULL)
+@JsonInclude(Include.NON_EMPTY)
 public class PolicyViolationLogDTO
 {
   public String eventType;
@@ -26,6 +28,8 @@ public class PolicyViolationLogDTO
   public String policyThreatCategory;
 
   public int policyThreatLevel;
+
+  public List<PolicyConditionTriggerDTO> policyConditionTriggers;
 
   public String stageTypeId;
 

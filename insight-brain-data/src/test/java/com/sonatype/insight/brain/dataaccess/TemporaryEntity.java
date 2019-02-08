@@ -897,11 +897,11 @@ public class TemporaryEntity
     return newPolicy(policy);
   }
 
-  public Policy newPolicy(String name, Constraint constraint) {
+  public Policy newPolicy(String name, Constraint... constraints) {
     Policy policy = new Policy(null, name);
     policy.setThreatLevel(5);
     policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    policy.addConstraint(constraint);
+    Arrays.stream(constraints).forEach(policy::addConstraint);
     return newPolicy(policy);
   }
 

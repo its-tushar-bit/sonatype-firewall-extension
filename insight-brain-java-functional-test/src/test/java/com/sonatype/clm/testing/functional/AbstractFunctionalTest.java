@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
@@ -255,6 +256,7 @@ public abstract class AbstractFunctionalTest
     loginModal.username().setValue(username);
     loginModal.password().setValue(password);
     loginModal.loginButton().click();
+    FormMask.seeAndWaitForDismissal();
     loginModal.shouldBe(hidden);
   }
 

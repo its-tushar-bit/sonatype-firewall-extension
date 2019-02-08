@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -31,6 +32,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationLogDTOAssert
@@ -67,10 +69,10 @@ public class PolicyViolationLogDTOAssert
                                                           Date evaluationTime,
                                                           PolicyViolation policyViolation) throws Exception
   {
-    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream()
-        .filter(dto -> dto.policyViolationId.equals(policyViolation.getId())).findFirst().orElse(null);
+    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream().filter(matchingDTO(policyViolation))
+        .findFirst().orElse(null);
     assertThat(policyViolationLogDTO)
-        .as("No policy violation log DTO found with policyViolationId=" + policyViolation.getId()).isNotNull();
+        .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId()).isNotNull();
     assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
         evaluationTime, policyViolation);
   }
@@ -83,7 +85,6 @@ public class PolicyViolationLogDTOAssert
                                                           PolicyViolation policyViolation) throws Exception
   {
     assertEventData(policyViolationLogDTO, policyViolationLogEvent, evaluationTime);
-    assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
     assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
@@ -106,7 +107,6 @@ public class PolicyViolationLogDTOAssert
     else {
       assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
     }
-    assertThat(policyViolationLogDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(StageTypes.PROXY.getId());
     assertStagePolicyActionData(policyViolationLogDTO, policyViolationLogEvent, policyViolation);
     assertPolicyData(policyViolationLogDTO, policyViolation);
@@ -122,12 +122,28 @@ public class PolicyViolationLogDTOAssert
                                                          Date after,
                                                          RepositoryPolicyViolation policyViolation) throws Exception
   {
-    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream()
-        .filter(dto -> dto.policyViolationId.equals(policyViolation.getId())).findFirst().orElse(null);
+    PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream().filter(matchingDTO(policyViolation))
+        .findFirst().orElse(null);
     assertThat(policyViolationLogDTO)
-        .as("No policy violation log DTO found with policyViolationId=" + policyViolation.getId()).isNotNull();
+        .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId()).isNotNull();
     assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, repository, before, after,
         policyViolation);
+  }
+
+  private static Predicate<PolicyViolationLogDTO> matchingDTO(PolicyViolation violation) {
+    return dto -> violation.getApplicationId().equals(dto.applicationId) && isMatching(violation, dto);
+  }
+
+  private static Predicate<PolicyViolationLogDTO> matchingDTO(RepositoryPolicyViolation violation) {
+    return dto -> violation.getRepositoryId().equals(dto.repositoryId) && isMatching(violation, dto);
+  }
+
+  private static boolean isMatching(AbstractPolicyViolation violation, PolicyViolationLogDTO dto) {
+    return violation.getPolicyId().equals(dto.policyId) && violation.getHash().equals(dto.componentHash)
+        && violation.getConstraintFacts().stream()
+            .flatMap(constraintFact -> constraintFact.getConditionFacts().stream()).map(ConditionFact::getReason)
+            .collect(toSet())
+            .equals(dto.policyConditionTriggers.stream().map(trigger -> trigger.reason).collect(toSet()));
   }
 
   private static void assertEventData(PolicyViolationLogDTO policyViolationLogDTO,

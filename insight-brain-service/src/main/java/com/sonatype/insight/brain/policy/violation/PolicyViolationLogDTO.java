@@ -19,8 +19,6 @@ public class PolicyViolationLogDTO
 
   public String eventTimestamp;
 
-  public String policyViolationId;
-
   public String policyId;
 
   public String policyName;

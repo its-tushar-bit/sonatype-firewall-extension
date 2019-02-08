@@ -73,7 +73,6 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     T policyViolation = policyViolationData.policyViolation;
 
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
-    policyViolationLogDTO.policyViolationId = policyViolation.getId();
     policyViolationLogDTO.eventType = policyViolationData.policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
     policyViolationLogDTO.eventTimestamp = formattedLogTimestamp;
     policyViolationLogDTO.policyId = policyViolation.getPolicyId();

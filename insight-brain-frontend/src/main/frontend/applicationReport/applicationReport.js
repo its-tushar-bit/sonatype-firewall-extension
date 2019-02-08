@@ -9,6 +9,7 @@ import { lookup, setToArray, union } from '../util/jsUtil';
 
 import template from './applicationReport.html';
 import reevaluationErrorModalWrapperTemplate from './reevaluationErrorModal/reevaluationErrorModalWrapper.html';
+import { policyTypes } from '../dashboard/filter/staticFilterEntries';
 
 export default {
   template: template,
@@ -47,6 +48,8 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
       { id: 'waived', name: 'Waived' },
       { id: 'grandfathered', name: 'Grandfathered' }
     ],
+
+    availablePolicyTypeFilterOptions: policyTypes,
 
     violationStateCheckedIds: new Set(),
 
@@ -130,6 +133,10 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
           mergedFilter = reduce(union, new Set(), selectedFilters);
 
       vm.setExactValueFilter('derivedViolationState', mergedFilter);
+    },
+
+    setPolicyTypeFilterOptions(selectedIds) {
+      vm.setExactValueFilter('threatCategory', selectedIds);
     }
   });
 }

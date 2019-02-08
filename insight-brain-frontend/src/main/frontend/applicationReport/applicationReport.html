@@ -43,6 +43,12 @@
                                  on-change="vm.setViolationStateFilterOptions(selected)">
         Violation State
       </iq-tree-view-multi-select>
+      <iq-tree-view-multi-select id="policy-type-filter"
+                                 available="vm.availablePolicyTypeFilterOptions"
+                                 selected="vm.exactValueFilters.threatCategory"
+                                 on-change="vm.setPolicyTypeFilterOptions(selected)">
+        Policy Types
+      </iq-tree-view-multi-select>
     </fieldset>
   </aside><!--
 --><main class="iq-body-container">

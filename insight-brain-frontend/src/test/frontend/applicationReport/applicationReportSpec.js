@@ -163,6 +163,16 @@ describe('applicationReport component', function() {
     expect(ids).toContain('grandfathered');
   });
 
+  it('sets the availablePolicyTypeFilterOptions', function() {
+    const ids = controller.availablePolicyTypeFilterOptions.map(({ id }) => id);
+    expect(ids.length).toBe(4);
+
+    expect(ids).toContain('SECURITY');
+    expect(ids).toContain('LICENSE');
+    expect(ids).toContain('QUALITY');
+    expect(ids).toContain('OTHER');
+  });
+
   describe('setProprietaryFilterOptions', function() {
     it('calls setExactValueFilter with a fieldName of "proprietary"', function() {
       const selectedIds = new Set([true]);
@@ -208,6 +218,16 @@ describe('applicationReport component', function() {
 
     it('combines filters using set union',
         doTest(['open', 'waived', 'grandfathered'], ['open', 'waived', 'grandfathered', 'waived+grandfathered']));
+  });
+
+  describe('setPolicyTypeFilterOptions', function() {
+    it('calls setPolicyTypeFilterOptions with a fieldName of "threatCategory"', function() {
+      const selectedIds = new Set(['SECURITY', 'LICENSE']);
+
+      controller.setPolicyTypeFilterOptions(selectedIds);
+
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('threatCategory', selectedIds);
+    });
   });
 
   describe('vm.exactValueFilters.derivedViolationState watcher', function() {

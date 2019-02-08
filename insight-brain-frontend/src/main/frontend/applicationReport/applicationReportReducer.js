@@ -122,6 +122,7 @@ function setSelectedReport(state, {report, isUnknownJs}) {
       return {...newState, selectedComponentIndex};
     }
   }
+  mockPolicyTypes(newState.selectedReport.allEntries);
   return newState;
 }
 
@@ -157,4 +158,27 @@ function getViolationCountsPerThreatLevel(entries) {
   const nonZeroCounts = pipe(rejectIgnored, reduceToCountsByThreatLevel)(entries);
   const nonLowViolationCount = sum(values(nonZeroCounts));
   return {...zeroCounts, ...nonZeroCounts, nonLowViolationCount};
+}
+
+/**
+ * TODO: Remove this mock (CLM-11582)
+ * The reason for this is to mock the `threatCategory` property
+ * that currently is not being returned by the backend.
+ */
+function mockPolicyTypes(entries) {
+  entries.forEach(entry => {
+    const { policyName } = entry;
+    if (policyName && policyName.indexOf('Security') !== -1) {
+      entry.threatCategory = 'SECURITY';
+    }
+    else if (policyName && policyName.indexOf('Quality') !== -1) {
+      entry.threatCategory = 'QUALITY';
+    }
+    else if (policyName && policyName.indexOf('License') !== -1) {
+      entry.threatCategory = 'LICENSE';
+    }
+    else {
+      entry.threatCategory = 'OTHER';
+    }
+  });
 }

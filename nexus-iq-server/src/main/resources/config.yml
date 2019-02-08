@@ -110,24 +110,39 @@ server:
 # the baseUrl configuration setting is also enabled and correct, because generated tickets contain links to the server.
 #jira:
   # The JIRA server address
-  #url: "https://127.0.0.1/"
+  #url: "https://jira.example.org"
 
   # The username used to connect to the JIRA server
-  #username: "anonymous"
+  #username: "exampleuser"
 
   # The password used to connect to the JIRA server
-  #password: "guest"
+  #password: "examplepassword"
 
-  # Any custom fields that you wish to populate in the JIRA notification. Any
-  # required fields must have default values configured here. Examples are shown below.
-  #customFields:
-  #   reporter:
-  #     name: "username"
-  #   labels:
-  #     - test
-  #     - bug
-  #   environment: "dev"
-  #   duedate: "2016-11-01"
+    # Any JIRA project issue type required fields without default values defined in JIRA must have their initial
+    # field values defined here in order for that project and issue type to be available for policy notifications
+    #customFields:
+    # Example 'user' type system field
+    #reporter:
+    #  name: "username"
+
+    # Example 'array' type system field
+    #labels:
+    #  - test
+    #  - bug
+
+    # Example 'version' type custom field
+    #customfield_12001:
+    #  name: "Example"
+
+    # Example 'option' type custom field
+    #customfield_10050:
+    #  value: "P1"
+
+    # Example 'number' type custom field
+    #customfield_13001: 10
+
+    # Example 'datetime' type custom field
+    #customfield_14000: "2016-11-01"
 
 # Proxy settings.
 #proxy:

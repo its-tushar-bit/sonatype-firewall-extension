@@ -33,7 +33,7 @@ public class NgUploadResponseGeneratorTest
 {
   private final AntiCsrfFilter antiCsrfFilter = mock(AntiCsrfFilter.class);
 
-  private final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
+  private final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator();
 
   private final String csrfToken = "csrfToken";
 

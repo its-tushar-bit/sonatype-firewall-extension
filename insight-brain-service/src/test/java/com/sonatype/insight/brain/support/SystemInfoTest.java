@@ -416,7 +416,7 @@ public class SystemInfoTest
 
   @Test
   public void testGetProduceLicense() {
-    final LicenseInfo licenseInfo = new LicenseInfo("fprint", -1, -2, -3, -4, "Contact Name",
+    final LicenseInfo licenseInfo = new LicenseInfo("fprint", -1, -2, -3, -4, -5, "Contact Name",
         "Contact Company", "contact@example.com", new String[]{"Pro+"}, "edition");
 
     final String json = systemInfo.getProductLicense(licenseInfo);
@@ -425,8 +425,9 @@ public class SystemInfoTest
         "  \"fingerprint\" : \"fprint\"," + lineSeparator +
         "  \"expiryTimestamp\" : -1," + lineSeparator +
         "  \"licensedUsersToDisplay\" : -2," + lineSeparator +
-        "  \"applicationLimitToDisplay\" : -4," + lineSeparator +
+        "  \"applicationLimitToDisplay\" : -5," + lineSeparator +
         "  \"firewallUsersToDisplay\" : -3," + lineSeparator +
+        "  \"firewallForArtifactoryServersToDisplay\" : -4," + lineSeparator +
         "  \"contactName\" : \"Contact Name\"," + lineSeparator +
         "  \"contactCompany\" : \"Contact Company\"," + lineSeparator +
         "  \"contactEmail\" : \"contact@example.com\"," + lineSeparator +

@@ -160,6 +160,16 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_FirewallForArtifactory() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    installLicense();
+    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+        Feature.FIREWALL_FOR_ARTIFACTORY, //
+        Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        Feature.RM_STAGING_INTEGRATION);
+  }
+
+  @Test
   public void testGetFeatures_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);

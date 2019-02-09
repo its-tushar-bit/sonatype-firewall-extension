@@ -31,10 +31,6 @@ public class ErrorResponseGenerator
 
   static final String MSG_LDAP_TIMEOUT = "Authentication failed due to LDAP timeout. Please try again.";
 
-  public ErrorResponseGenerator() {
-    super(false);
-  }
-
   @Override
   protected ErrorResponse buildErrorResponse(final Throwable e) {
     if (e instanceof AuthenticationException) {

@@ -25,6 +25,8 @@ public class LicenseInfo
 
   public Integer firewallUsersToDisplay;
 
+  public Integer firewallForArtifactoryServersToDisplay;
+
   public String contactName;
 
   public String contactCompany;
@@ -40,6 +42,7 @@ public class LicenseInfo
                      long expiryTimestamp,
                      Integer licensedUsersToDisplay,
                      Integer firewallUsersToDisplay,
+                     Integer firewallForArtifactoryServersToDisplay,
                      Integer applicationLimitToDisplay,
                      String contactName,
                      String contactCompany,
@@ -53,6 +56,7 @@ public class LicenseInfo
     this.expiryTimestamp = expiryTimestamp;
     this.licensedUsersToDisplay = licensedUsersToDisplay;
     this.firewallUsersToDisplay = firewallUsersToDisplay;
+    this.firewallForArtifactoryServersToDisplay = firewallForArtifactoryServersToDisplay;
     this.applicationLimitToDisplay = applicationLimitToDisplay;
     this.contactName = contactName;
     this.contactCompany = contactCompany;

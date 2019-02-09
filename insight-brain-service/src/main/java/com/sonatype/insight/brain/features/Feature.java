@@ -28,6 +28,8 @@ public enum Feature
 
   FIREWALL,
 
+  FIREWALL_FOR_ARTIFACTORY,
+
   IDE_INTEGRATION,
 
   LABELS,

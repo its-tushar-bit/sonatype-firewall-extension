@@ -52,6 +52,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_FIREWALL = "Firewall";
 
+  public static final String PRODUCT_FIREWALL_FOR_ARTIFACTORY = "Firewall for Artifactory";
+
   public static final String PRODUCT_AUDITOR = "Auditor";
 
   private final class CachedLicenseData
@@ -76,6 +78,8 @@ public class CLMLicenseManager
 
     private final Integer maxFirewallUsers;
 
+    private final Integer maxFirewallForArtifactoryServers;
+
     public CachedLicenseData(String fingerprint,
                              long expirationTimestamp,
                              String contactName,
@@ -85,7 +89,8 @@ public class CLMLicenseManager
                              Set<Feature> features,
                              Integer applicationLimit,
                              Integer maxUsers,
-                             Integer maxFirewallUsers)
+                             Integer maxFirewallUsers,
+                             Integer maxFirewallForArtifactoryServers)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
@@ -97,6 +102,7 @@ public class CLMLicenseManager
       this.applicationLimit = applicationLimit;
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
+      this.maxFirewallForArtifactoryServers = maxFirewallForArtifactoryServers;
     }
   }
 
@@ -243,6 +249,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_FIREWALL:
         marketingNameSuffix = PRODUCT_FIREWALL;
         break;
+      case ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY:
+        marketingNameSuffix = PRODUCT_FIREWALL_FOR_ARTIFACTORY;
+        break;
       case ProductLicenseDetails.PRODUCT_NEXUS:
         marketingNameSuffix = PRODUCT_PRO_PLUS;
         break;
@@ -270,6 +279,7 @@ public class CLMLicenseManager
     Integer applicationLimitToDisplay = null;
     Integer licensedUsersToDisplay = null;
     Integer firewallUsersToDisplay = null;
+    Integer firewallForArtifactoryServersToDisplay = null;
 
     switch (productEdition) {
       case PRODUCT_AUDITOR:
@@ -285,12 +295,14 @@ public class CLMLicenseManager
         // no break
       case PRODUCT_FIREWALL:
         firewallUsersToDisplay = licenseCache.maxFirewallUsers;
+      case PRODUCT_FIREWALL_FOR_ARTIFACTORY:
+        firewallForArtifactoryServersToDisplay = licenseCache.maxFirewallForArtifactoryServers;
         break;
     }
 
     return new LicenseInfo(licenseCache.fingerprint, licenseCache.expirationTimestamp, licensedUsersToDisplay,
-        firewallUsersToDisplay, applicationLimitToDisplay, licenseCache.contactName, licenseCache.contactCompany,
-        licenseCache.contactEmail, products, productEdition);
+        firewallUsersToDisplay, firewallForArtifactoryServersToDisplay, applicationLimitToDisplay,
+        licenseCache.contactName, licenseCache.contactCompany, licenseCache.contactEmail, products, productEdition);
   }
 
   private String getProductEdition() {
@@ -302,6 +314,9 @@ public class CLMLicenseManager
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       return PRODUCT_FIREWALL;
+    }
+    else if (hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
+      return PRODUCT_FIREWALL_FOR_ARTIFACTORY;
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
       return PRODUCT_PRO_PLUS;
@@ -343,6 +358,7 @@ public class CLMLicenseManager
 
     Integer applicationCount = getApplicationLimit(key);
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
+    Integer maxFirewallForArtifactoryServers = getMaxFirewallForArtifactoryServers(key);
     Integer maxUsers = getMaxUsers(key);
 
     Set<String> products = getProducts(key);
@@ -393,10 +409,15 @@ public class CLMLicenseManager
       features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(Feature.WEBHOOKS_FOR_REPOSITORIES);
     }
+    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
+      features.add(Feature.FIREWALL_FOR_ARTIFACTORY);
+      features.add(Feature.RM_STAGING_INTEGRATION);
+      features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+    }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, key.getExpirationDate().getTime(), key.getContactName(),
         key.getContactCompany(), key.getContactEmailAddress(), products, features, applicationCount, maxUsers,
-        maxFirewallUsers);
+        maxFirewallUsers, maxFirewallForArtifactoryServers);
     notifyListeners();
   }
 
@@ -453,9 +474,19 @@ public class CLMLicenseManager
     }
   }
 
+  private Integer getMaxFirewallForArtifactoryServers(ProductLicenseKey key) throws LicensingException {
+    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_FIREWALL_FOR_ARTIFACTORY_SERVERS);
+    try {
+      return prop != null ? Integer.decode(prop) : null;
+    }
+    catch (IllegalArgumentException e) {
+      throw new LicensingException("Invalid value for max firewall for artifactory servers: " + prop, e);
+    }
+  }
+
   private void clearLicenseCache() {
     licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(), 0,
-        0, 0);
+        0, 0, 0);
     notifyListeners();
   }
 

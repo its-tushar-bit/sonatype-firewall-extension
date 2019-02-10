@@ -15,6 +15,7 @@
   <artifactId>insight-brain-java-functional-test</artifactId>
 
   <properties>
+    <checkstyle.failOnViolation>false</checkstyle.failOnViolation>
     <skip.functional.tests>false</skip.functional.tests>
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>

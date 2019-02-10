@@ -19,6 +19,10 @@
   <artifactId>insight-brain-db</artifactId>
   <name>Insight Brain Database</name>
 
+  <properties>
+    <checkstyle.failOnViolation>false</checkstyle.failOnViolation>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>

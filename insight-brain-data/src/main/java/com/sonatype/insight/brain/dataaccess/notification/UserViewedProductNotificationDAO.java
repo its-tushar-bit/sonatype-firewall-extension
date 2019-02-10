@@ -17,7 +17,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class UserViewedProductNotificationDAO
     extends AbstractOperationalSqlDAO<UserViewedProductNotification>
 {
-
   public List<UserViewedProductNotification> getByUsername(final TransactionContext tx, final String username) {
     String sQuery = "SELECT entity FROM UserViewedProductNotification entity WHERE entity.username=?1";
     return getList(tx, sQuery, username);
@@ -29,7 +28,8 @@ public class UserViewedProductNotificationDAO
     }
   }
 
-  public UserViewedProductNotification getByUsernameAndNotificationId(final String username, final String notificationId)
+  public UserViewedProductNotification getByUsernameAndNotificationId(final String username,
+                                                                      final String notificationId)
   {
     String sQuery = "SELECT entity FROM UserViewedProductNotification entity WHERE entity.username=?1" + //
         " AND entity.notificationId=?2";

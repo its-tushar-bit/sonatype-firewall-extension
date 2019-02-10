@@ -154,31 +154,31 @@ public class MultiLicenseDAO
       @SuppressWarnings({ "unchecked", "rawtypes" })
       List<MultiLicenseLicenseInternal> mappings = (List) getList(sQuery);
 
-      Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<>();
+      Map<String, Set<License>> newLicenseSetsById = new LinkedHashMap<>();
 
-      Map<String, MultiLicense> _licensesById = new LinkedHashMap<>();
+      Map<String, MultiLicense> newMultiLicensesById = new LinkedHashMap<>();
       for (MultiLicense license : multiLicenses) {
-        _licensesById.put(license.getId(), license);
-        _licenseSetsById.put(license.getId(), new LinkedHashSet<License>());
+        newMultiLicensesById.put(license.getId(), license);
+        newLicenseSetsById.put(license.getId(), new LinkedHashSet<License>());
       }
-      multiLicensesById = _licensesById;
+      multiLicensesById = newMultiLicensesById;
 
-      Map<String, MultiLicense> _licensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+      Map<String, MultiLicense> newMultiLicensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
       for (MultiLicense license : multiLicenses) {
-        _licensesByName.put(license.getShortDisplayName(), license);
+        newMultiLicensesByName.put(license.getShortDisplayName(), license);
       }
-      multiLicensesByName = _licensesByName;
+      multiLicensesByName = newMultiLicensesByName;
 
       LicenseDAO licenseDAO = new LicenseDAO();
       for (MultiLicenseLicenseInternal mapping : mappings) {
         License license = licenseDAO.getByIdNotNull(mapping.getLicenseId());
-        _licenseSetsById.get(mapping.getMultiLicenseId()).add(license);
+        newLicenseSetsById.get(mapping.getMultiLicenseId()).add(license);
       }
 
-      for (Map.Entry<String, Set<License>> entry : _licenseSetsById.entrySet()) {
+      for (Map.Entry<String, Set<License>> entry : newLicenseSetsById.entrySet()) {
         entry.setValue(Collections.unmodifiableSet(entry.getValue()));
       }
-      licenseSetsById = _licenseSetsById;
+      licenseSetsById = newLicenseSetsById;
 
       log.debug("Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start);
     }

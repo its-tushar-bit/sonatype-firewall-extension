@@ -13,9 +13,11 @@ package com.sonatype.insight.brain.model.security;
 public enum Permission
 {
   // The order of permissions here determines the order in the UI
-  CONFIGURE_SYSTEM("Edit", PermissionCategory.ADMINISTRATOR, "System Configuration and Users", true /* global */, false /* allowedInCustomRoles */),
+  CONFIGURE_SYSTEM("Edit", PermissionCategory.ADMINISTRATOR, "System Configuration and Users", true /* global */,
+      false /* allowedInCustomRoles */),
 
-  EDIT_ROLES("Edit", PermissionCategory.ADMINISTRATOR, "Custom Roles", true /* global */, false /* allowedInCustomRoles */),
+  EDIT_ROLES("Edit", PermissionCategory.ADMINISTRATOR, "Custom Roles", true /* global */,
+      false /* allowedInCustomRoles */),
 
   VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
 
@@ -28,9 +30,11 @@ public enum Permission
 
   READ("View", PermissionCategory.IQ, "IQ Elements", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_APPLICATION("Evaluate", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */),
+  EVALUATE_APPLICATION("Evaluate", PermissionCategory.IQ, "Applications", false /* global */,
+      true /* allowedInCustomRoles */),
 
-  EVALUATE_COMPONENT("Evaluate", PermissionCategory.IQ, "Individual Components", false /* global */, true /* allowedInCustomRoles */),
+  EVALUATE_COMPONENT("Evaluate", PermissionCategory.IQ, "Individual Components", false /* global */,
+      true /* allowedInCustomRoles */),
 
   ADD_APPLICATION("Add", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */),
   

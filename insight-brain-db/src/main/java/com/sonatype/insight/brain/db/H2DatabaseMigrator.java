@@ -92,9 +92,8 @@ public class H2DatabaseMigrator
       File backupDir = new File(databaseDir, "backup");
       if (backupDir.exists()) {
         throw new IllegalStateException(
-            "Cannot migrate database. The backup directory '"
-                + backupDir.getAbsolutePath()
-                + "' already exists, indicating that a previous migration failed. Please contact support for further assistance.");
+            "Cannot migrate database. The backup directory '" + backupDir.getAbsolutePath() + "' already exists"
+                + ", indicating that a previous migration failed. Please contact support for further assistance.");
       }
       log.info("Creating backup of database {} in {}", databaseFilename, backupDir);
       backup(databaseDir, databaseFilename, backupDir);
@@ -135,8 +134,7 @@ public class H2DatabaseMigrator
     return 1;
   }
 
-  void runPostIncrementalMigrator(String postIncrementalMigratorFileName, DataSource dataSource)
-  {
+  void runPostIncrementalMigrator(String postIncrementalMigratorFileName, DataSource dataSource) {
     try (InputStream is = getClass().getResourceAsStream(postIncrementalMigratorFileName)) {
       if (is != null) {
         Class<?> c = Class.forName(IOUtil.toString(is, "UTF-8").trim());
@@ -161,9 +159,8 @@ public class H2DatabaseMigrator
 
   // Package visibility for tests only.
   void backup(File databaseDir, String databaseName, File backupDir) throws IOException {
-    File[] targets = databaseDir.listFiles((file) ->
-                                           (file.isFile() && file.getName().startsWith(databaseName)
-                                            && !file.getName().equals(databaseName + ".lock.db")));
+    File[] targets = databaseDir.listFiles(file -> file.isFile() && file.getName().startsWith(databaseName)
+        && !file.getName().equals(databaseName + ".lock.db"));
 
     if (targets.length > 0) {
       backupDir.mkdirs();

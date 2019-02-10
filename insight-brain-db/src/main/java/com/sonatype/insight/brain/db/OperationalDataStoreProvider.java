@@ -39,15 +39,15 @@ public class OperationalDataStoreProvider
   private OperationalDataStoreProvider() {
   }
 
-  public static void init(DatabaseConfig _databaseConfig, boolean migrateToNewViolationModel) {
-    init(_databaseConfig, true /* migrateDatabase */, migrateToNewViolationModel);
+  public static void init(DatabaseConfig databaseConfig, boolean migrateToNewViolationModel) {
+    init(databaseConfig, true /* migrateDatabase */, migrateToNewViolationModel);
   }
 
-  public static void initWithoutMigration(DatabaseConfig _databaseConfig) {
-    init(_databaseConfig, false /* migrateDatabase */, false);
+  public static void initWithoutMigration(DatabaseConfig databaseConfig) {
+    init(databaseConfig, false /* migrateDatabase */, false);
   }
 
-  private static synchronized void init(DatabaseConfig _databaseConfig,
+  private static synchronized void init(DatabaseConfig databaseConfig,
                                         boolean migrateDatabase,
                                         boolean migrateToNewViolationModel)
   {
@@ -58,7 +58,7 @@ public class OperationalDataStoreProvider
     log.info("Initializing the {} data store.", ID);
     long start = System.currentTimeMillis();
 
-    databaseConfig = _databaseConfig;
+    OperationalDataStoreProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
       new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, currentVersion -> {

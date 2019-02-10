@@ -161,7 +161,8 @@ public class PolicyEvaluationDAO
     String appId = policyEvaluation.getApplicationId();
     String stageTypeId = policyEvaluation.getStageTypeId();
     PolicyEvaluation lastPolicyEvaluation = getLastByApplicationIdAndStageId(tx, appId, stageTypeId);
-    if (lastPolicyEvaluation == null || lastPolicyEvaluation.getTime().getTime() < policyEvaluation.getTime().getTime()) {
+    if (lastPolicyEvaluation == null
+        || lastPolicyEvaluation.getTime().getTime() < policyEvaluation.getTime().getTime()) {
       LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 
       // Delete the current last policy evaluation record for this app and stage type
@@ -218,7 +219,9 @@ public class PolicyEvaluationDAO
     delete(tx, policyEvaluation, true /* updateLastPolicyEvaluation */);
   }
 
-  private void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation)
+  private void delete(final TransactionContext tx,
+                      PolicyEvaluation policyEvaluation,
+                      boolean updateLastPolicyEvaluation)
   {
     final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 

@@ -378,7 +378,6 @@ public class HdsMockServer
   class ProxyHandler
       extends AbstractHandler
   {
-
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
@@ -425,5 +424,4 @@ public class HdsMockServer
     // server.setProxyAuthentication("proxyuser", "proxypass");
     server.start();
   }
-
 }

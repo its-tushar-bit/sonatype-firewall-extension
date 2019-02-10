@@ -20,7 +20,6 @@ import com.sonatype.insight.model.HasStringId;
 public class LastPolicyEvaluation
     implements HasStringId
 {
-
   @Id
   @Column(name = "policy_evaluation_id")
   private String policyEvaluationId;
@@ -32,7 +31,6 @@ public class LastPolicyEvaluation
   private String stageTypeId;
 
   public LastPolicyEvaluation() {
-
   }
 
   public LastPolicyEvaluation(final String policyEvaluationId, final String applicationId, final String stageTypeId) {
@@ -72,5 +70,4 @@ public class LastPolicyEvaluation
     return "LastPolicyEvaluation{" + "policyEvaluationId='" + policyEvaluationId + '\'' + ", applicationId='"
         + applicationId + '\'' + ", stageTypeId='" + stageTypeId + '\'' + '}';
   }
-
 }

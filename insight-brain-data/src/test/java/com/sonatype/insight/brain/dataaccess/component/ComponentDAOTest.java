@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.component;
 import java.util.List;
 import java.util.Set;
 
-import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -16,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -31,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ComponentDAOTest
     extends AbstractDbDAOTest
 {
-
   private static final String COMP_HASH = "12345678901234567890";
 
   private ComponentDAO componentDAO = new ComponentDAO();
@@ -47,29 +46,24 @@ public class ComponentDAOTest
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
   }
 
-  private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId,
-                                                                                 String source,
-                                                                                 Float severity,
-                                                                                 SecurityVulnerabilityOverrideStatus status)
+  private SecurityVulnerability newSV(String refId,
+                                      String source,
+                                      Float severity,
+                                      SecurityVulnerabilityOverrideStatus status)
   {
-    com.sonatype.insight.brain.model.component.SecurityVulnerability sv = new com.sonatype.insight.brain.model.component.SecurityVulnerability(
-        source, refId, severity);
+    SecurityVulnerability sv = new SecurityVulnerability(source, refId, severity);
     sv.setStatus(status);
     return sv;
   }
 
-  private void assertSecurityVulnerabilities(List<com.sonatype.insight.brain.model.component.SecurityVulnerability> actual,
-                                             com.sonatype.insight.brain.model.component.SecurityVulnerability... expected)
-  {
+  private void assertSecurityVulnerabilities(List<SecurityVulnerability> actual, SecurityVulnerability... expected) {
     assertThat(actual).hasSameSizeAs(expected);
     for (int i = 0, n = expected.length; i < n; i++) {
       assertSecurityVulnerability(expected[i], actual.get(i));
     }
   }
 
-  private void assertSecurityVulnerability(com.sonatype.insight.brain.model.component.SecurityVulnerability expected,
-                                           com.sonatype.insight.brain.model.component.SecurityVulnerability actual)
-  {
+  private void assertSecurityVulnerability(SecurityVulnerability expected, SecurityVulnerability actual) {
     assertThat(actual.getRefId()).isEqualTo(expected.getRefId());
     assertThat(actual.getSource()).isEqualTo(expected.getSource());
     assertThat(actual.getSeverity()).isEqualTo(expected.getSeverity());
@@ -104,7 +98,8 @@ public class ComponentDAOTest
     matchedComponent.setRelativePopularity(42);
     matchedComponent.addDeclaredLicenseId("Apache-2.0");
     matchedComponent.addObservedLicenseId("MIT");
-    matchedComponent.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
+    matchedComponent
+        .addSecurityVulnerability(new com.sonatype.clm.dto.model.SecurityVulnerability("12345", "osvdb", 4f));
     Component component = componentDAO.getComponent(application, matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getHash()).isEqualTo(matchedComponent.getHash());

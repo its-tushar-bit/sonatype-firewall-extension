@@ -9,8 +9,43 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Color
 {
-  @Deprecated white, @Deprecated grey, @Deprecated black, @Deprecated green, yellow, orange, @Deprecated red, @Deprecated blue,
-  light_red, light_green, light_blue, light_purple, dark_red, dark_green, dark_blue, dark_purple;
+  @Deprecated
+  white,
+
+  @Deprecated
+  grey,
+
+  @Deprecated
+  black,
+
+  @Deprecated
+  green,
+
+  yellow,
+
+  orange,
+
+  @Deprecated
+  red,
+
+  @Deprecated
+  blue,
+
+  light_red,
+
+  light_green,
+
+  light_blue,
+
+  light_purple,
+
+  dark_red,
+
+  dark_green,
+
+  dark_blue,
+
+  dark_purple;
 
   @JsonValue
   public String toValue() {

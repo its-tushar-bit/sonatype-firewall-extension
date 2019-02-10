@@ -30,7 +30,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
 {
-
   public static final int MAX_NAME_SIZE = 50;
 
   public static final int MAX_DESC_SIZE = 255;

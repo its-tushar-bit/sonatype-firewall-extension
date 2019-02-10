@@ -943,7 +943,12 @@ public class PolicyViolationAggregationDAOTest
     }
   }
 
-  private void assertAverages(AverageThreatCategoryMonth actual, double low, double moderate, double severe, double critical) {
+  private void assertAverages(AverageThreatCategoryMonth actual,
+                              double low,
+                              double moderate,
+                              double severe,
+                              double critical)
+  {
     assertThat(actual.averageDiscoveredLowThreat).isCloseTo(low, offset(TOLERANCE));
     assertThat(actual.averageDiscoveredModerateThreat).isCloseTo(moderate, offset(TOLERANCE));
     assertThat(actual.averageDiscoveredSevereThreat).isCloseTo(severe, offset(TOLERANCE));

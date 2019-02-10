@@ -71,12 +71,14 @@ public class LicenseThreatGroupConditionType
 
   @Override
   public String generateDroolsConditionValue(TransactionContext tx, String value) {
-    return asDroolsString(value) + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(tx, value));
+    return asDroolsString(value)
+        + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(tx, value));
   }
 
   @Override
   public String explainCondition(final Condition condition) {
-    return getName() + ' ' + condition.getOperator() + " '" + getLicenseThreatGroupName(null, condition.getValue()) + '\'';
+    return getName() + ' ' + condition.getOperator() + " '" + getLicenseThreatGroupName(null, condition.getValue())
+        + '\'';
   }
 
   private String getLicenseThreatGroupName(TransactionContext tx, String licenseThreatGroupId) {

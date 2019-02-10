@@ -28,7 +28,6 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 public class Component
 {
-
   private String hash;
 
   private Set<String> declaredLicenseIds = new LinkedHashSet<>();

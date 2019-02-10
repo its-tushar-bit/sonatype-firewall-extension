@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-import com.sonatype.insight.brain.utils.ExecutorThreadPools.THREAD_POOLS;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,7 +203,7 @@ public class NewestRiskService
             allUniqueAppPolicyViolations.addAll(diff.getAppeared());
           }
           return localDTOs;
-        }, getThreadPool(THREAD_POOLS.GENERAL))).collect(toList());
+        }, getThreadPool(ThreadPools.GENERAL))).collect(toList());
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
 

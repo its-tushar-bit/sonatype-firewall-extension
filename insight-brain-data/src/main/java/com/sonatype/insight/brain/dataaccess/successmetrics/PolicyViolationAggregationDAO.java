@@ -66,13 +66,19 @@ public class PolicyViolationAggregationDAO
 
     // in milliseconds
     public final Long mttrLowThreat;
+
     public final Long mttrModerateThreat;
+
     public final Long mttrSevereThreat;
+
     public final Long mttrCriticalThreat;
 
     public final int resolvedCountLowThreat;
+
     public final int resolvedCountModerateThreat;
+
     public final int resolvedCountSevereThreat;
+
     public final int resolvedCountCriticalThreat;
 
     MttrMonth(Date monthStart,
@@ -104,8 +110,11 @@ public class PolicyViolationAggregationDAO
     public Date timePeriodStart;
 
     public AverageThreatCategoryMonth security;
+
     public AverageThreatCategoryMonth license;
+
     public AverageThreatCategoryMonth quality;
+
     public AverageThreatCategoryMonth other;
 
     public final int evaluationCount;
@@ -130,8 +139,11 @@ public class PolicyViolationAggregationDAO
   public static class AverageThreatCategoryMonth
   {
     public final double averageDiscoveredLowThreat;
+
     public final double averageDiscoveredModerateThreat;
+
     public final double averageDiscoveredSevereThreat;
+
     public final double averageDiscoveredCriticalThreat;
 
     public AverageThreatCategoryMonth(double averageDiscoveredLowThreat,
@@ -200,7 +212,7 @@ public class PolicyViolationAggregationDAO
 
     String sQuery = "SELECT agg.timePeriodStart, " + //
         " SUM(agg.mttrLowThreat * " + resolvedCountLow + ") / SUM(" + resolvedCountLow + ")," + //
-        " SUM(agg.mttrModerateThreat * " + resolvedCountModerate +") / SUM(" + resolvedCountModerate + ")," + //
+        " SUM(agg.mttrModerateThreat * " + resolvedCountModerate + ") / SUM(" + resolvedCountModerate + ")," + //
         " SUM(agg.mttrSevereThreat * " + resolvedCountSevere + ") / SUM(" + resolvedCountSevere + ")," + //
         " SUM(agg.mttrCriticalThreat * " + resolvedCountCritical + ") / SUM(" + resolvedCountCritical + ")," + //
         " SUM(" + resolvedCountLow + "), SUM(" + resolvedCountModerate + "), " + //
@@ -353,20 +365,25 @@ public class PolicyViolationAggregationDAO
 
   public static class ApplicationCountsByThreat
   {
-    public int countAnyThreat = 0;
-    public int countAnyCriticalThreat = 0;
+    public int countAnyThreat;
 
-    public int countSecurityThreat = 0;
-    public int countSecurityCriticalThreat = 0;
+    public int countAnyCriticalThreat;
 
-    public int countLicenseThreat = 0;
-    public int countLicenseCriticalThreat = 0;
+    public int countSecurityThreat;
 
-    public int countQualityThreat = 0;
-    public int countQualityCriticalThreat = 0;
+    public int countSecurityCriticalThreat;
 
-    public int countOtherThreat = 0;
-    public int countOtherCriticalThreat = 0;
+    public int countLicenseThreat;
+
+    public int countLicenseCriticalThreat;
+
+    public int countQualityThreat;
+
+    public int countQualityCriticalThreat;
+
+    public int countOtherThreat;
+
+    public int countOtherCriticalThreat;
   }
 
   public ApplicationCountsByThreat getApplicationCountsByThreatByApplicationIds(Set<String> applicationIds,

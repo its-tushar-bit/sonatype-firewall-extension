@@ -22,7 +22,7 @@ public abstract class LicenseDataUpdater
     LicenseDataUpdater.updater = updater;
   }
 
-  public final synchronized static void update() {
+  public static final synchronized void update() {
     if (updater == null) {
       log.warn("Cannot update license data because there is no license updater.");
       return;

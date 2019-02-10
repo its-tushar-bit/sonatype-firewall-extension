@@ -37,9 +37,9 @@ public class MembershipMappingDAOTest
 
   private RoleDAO roleDAO = new RoleDAO();
 
-  private Comparator<MembershipMapping> MEMBERSHIP_COMPARATOR = Comparator.comparing(MembershipMapping::getContextId)
-      .thenComparing(MembershipMapping::getRoleId).thenComparing(MembershipMapping::getMemberName)
-      .thenComparing(MembershipMapping::getMemberType);
+  private static final Comparator<MembershipMapping> MEMBERSHIP_COMPARATOR =
+      Comparator.comparing(MembershipMapping::getContextId).thenComparing(MembershipMapping::getRoleId)
+          .thenComparing(MembershipMapping::getMemberName).thenComparing(MembershipMapping::getMemberType);
 
   @After
   public void cleanup() {

@@ -82,7 +82,8 @@ public class PolicyDAOTest
     assertThatThrownBy(() -> {
       policyDAO.insert(policy);
     }
-    ).isInstanceOf(InvalidPolicyException.class).hasMessage("A policy with name 'PolicyDAOTest new policy' already exists");
+    ).isInstanceOf(InvalidPolicyException.class)
+        .hasMessage("A policy with name 'PolicyDAOTest new policy' already exists");
 
     // Add another policy with a case-/whitespace-equivalent name
     policy.setName(policyName.replace("\\s", "").toLowerCase(Locale.ENGLISH));

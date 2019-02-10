@@ -142,7 +142,8 @@ public class TemporaryEntity
 {
   public static final String USER_PASSWORD_CLEAR = "secret";
 
-  private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
+  private static final String USER_PASSWORD_HASH =
+      "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
 
   public static final String WEBHOOK_SECRET_KEY_CLEAR = "secret_key";
 
@@ -196,7 +197,8 @@ public class TemporaryEntity
 
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
-  private final UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
+  private final UserViewedProductNotificationDAO userViewedNotificationMappingDAO =
+      new UserViewedProductNotificationDAO();
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
@@ -208,7 +210,8 @@ public class TemporaryEntity
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
-  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
+      new SecurityVulnerabilityOverrideDAO();
 
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
@@ -222,7 +225,8 @@ public class TemporaryEntity
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
-  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+      new AutomaticApplicationsConfigurationDAO();
 
   private Collection<Application> apps;
 
@@ -1132,7 +1136,7 @@ public class TemporaryEntity
                                             String actionTypeId)
   {
     return newPolicyViolation(evaluation, policy, threatLevel, category,
-        (groupId != null ? ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version) : null), hash,
+        groupId != null ? ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version) : null, hash,
         actionTypeId);
   }
 
@@ -1335,9 +1339,11 @@ public class TemporaryEntity
                                                                 ComponentIdentifier componentIdentifier,
                                                                 Date time)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time,
-        policyId, policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
-        "[{\"constraintId\":\"acdb7a00d0914415802b5faa131bc058\",\"constraintName\":\"aa c\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\",\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
+        policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
+        "[{\"constraintId\":\"acdb7a00d0914415802b5faa131bc058\",\"constraintName\":\"aa c\",\"operatorName\":\"OR\","
+            + "\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\","
+            + "\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
     policyViolation.setWaived(isWaived);
     policyViolation.setActive(isActive);
     policyViolation.setActionTypeId(actionId);
@@ -1510,6 +1516,7 @@ public class TemporaryEntity
     return newWebhook("http://localhost/" + uuid, events);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
                                                                   Date timePeriodStart,
                                                                   TimePeriod timePeriod,
@@ -1521,12 +1528,14 @@ public class TemporaryEntity
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
-                                                                  int evaluationCount) {
+                                                                  int evaluationCount)
+  {
     return newPolicyViolationAggregation(applicationId, timePeriodStart, null, timePeriod, mttrLowThreatStats,
         mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats, discoveredCounts, fixedCounts,
         waivedCounts, openCounts, evaluationCount);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
                                                                   Date timePeriodStart,
                                                                   Date timePeriodEnd,
@@ -1539,7 +1548,8 @@ public class TemporaryEntity
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
                                                                   Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
-                                                                  int evaluationCount) {
+                                                                  int evaluationCount)
+  {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
         timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, 
         mttrCriticalThreatStats, discoveredCounts, fixedCounts, waivedCounts, openCounts, evaluationCount);

@@ -22,12 +22,13 @@ public class LdapUtils
 
   private static final String[] ESCAPED_LDAP_QUERY_CHARACTERS = new String[] { "\\5c", "\\28", "\\29", "\\2a", "\\00" };
 
-  private static final String[] UNSAFE_LDAP_QUERY_CHARACTERS_WITHOUT_ASTERISK = new String[] { "\\", "(", ")", "\u0000" };
+  private static final String[] UNSAFE_LDAP_QUERY_CHARACTERS_WITHOUT_ASTERISK = new String[]{"\\", "(", ")", "\u0000"};
 
   private static final String[] ESCAPED_LDAP_QUERY_CHARACTERS_WITHOUT_ASTERISK = new String[] { "\\5c", "\\28", "\\29",
       "\\00" };
 
   private static final String ESCAPED_COMMA = "%2C";
+
   private static final String BINDNAME_URL_EXTENSION = "bindname";
 
   /**

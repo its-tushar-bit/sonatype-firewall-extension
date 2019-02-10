@@ -23,7 +23,7 @@ public class ExecutorThreadPools
 {
   private static final Logger log = LoggerFactory.getLogger(ExecutorThreadPools.class);
 
-  public static enum THREAD_POOLS
+  public static enum ThreadPools
   {
     DAO, GENERAL
   }
@@ -52,7 +52,8 @@ public class ExecutorThreadPools
   private static final ForkJoinPool DAO_FORK_JOIN_POOL;
 
   static {
-    int utilThreads = Math.max(SINGLE_THREAD_COUNT, Integer.getInteger("insight.threads.utility", DEFAULT_UTILITY_THREADS));
+    int utilThreads =
+        Math.max(SINGLE_THREAD_COUNT, Integer.getInteger("insight.threads.utility", DEFAULT_UTILITY_THREADS));
     GENERAL_UTILITY_THREADS = namedForkJoinPool(utilThreads, "insight-thread-utility-");
     log.info("insight.threads.utility pool-size: {}", utilThreads);
   }
@@ -81,7 +82,7 @@ public class ExecutorThreadPools
     return new ForkJoinPool(threadCount, factory, null, false);
   }
 
-  public static Executor getThreadPool(THREAD_POOLS pool) {
+  public static Executor getThreadPool(ThreadPools pool) {
     if (THREADING_DISABLED) {
       return SINGLE_THREADED_POOL_CACHE.getUnchecked(Thread.currentThread());
     }

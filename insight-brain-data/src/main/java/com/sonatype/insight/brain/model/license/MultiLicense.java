@@ -22,7 +22,6 @@ import com.sonatype.insight.model.HasStringId;
 public class MultiLicense
     implements HasStringId
 {
-
   @Id
   @Column(name = "multi_license_id")
   private String id;
@@ -136,5 +135,4 @@ public class MultiLicense
       return l1.getShortDisplayName().compareTo(l2.getShortDisplayName());
     }
   }
-
 }

@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LastPolicyEvaluationDAOTest
     extends AbstractDbDAOTest
 {
-
   final LastPolicyEvaluationDAO dao = new LastPolicyEvaluationDAO();
 
   final PolicyEvaluationDAO peDao = new PolicyEvaluationDAO();
@@ -88,5 +87,4 @@ public class LastPolicyEvaluationDAOTest
     final LastPolicyEvaluation fifthPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
     assertThat(fifthPolicyEvaluation.getId()).isEqualTo(eval1.getId());
   }
-
 }

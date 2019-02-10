@@ -90,7 +90,9 @@ public class MembershipMappingDAO
   /**
    * Sets the membership mappings for a given context and role.
    */
-  public void setMembershipMappingsForContextAndRole(String contextId, String roleId, List<MembershipMapping> mappings)
+  public void setMembershipMappingsForContextAndRole(String contextId,
+                                                     String roleId,
+                                                     List<MembershipMapping> mappings)
   {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();

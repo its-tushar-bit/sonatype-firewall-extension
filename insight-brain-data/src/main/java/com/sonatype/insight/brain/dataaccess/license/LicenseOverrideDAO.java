@@ -166,7 +166,8 @@ public class LicenseOverrideDAO
   }
 
   private void validate(LicenseOverride entity) {
-    if (entity.getStatus() == LicenseOverrideStatus.OVERRIDDEN || entity.getStatus() == LicenseOverrideStatus.SELECTED) {
+    if (entity.getStatus() == LicenseOverrideStatus.OVERRIDDEN
+        || entity.getStatus() == LicenseOverrideStatus.SELECTED) {
       if (entity.getLicenseIds().isEmpty()) {
         throw new BadRequestException("Expected at least one license ID for license override.");
       }

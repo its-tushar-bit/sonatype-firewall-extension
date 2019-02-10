@@ -15,7 +15,8 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 public class ConstraintFactsListComparator
     implements Comparator<List<ConstraintFact>>
 {
-  public static final Comparator<List<ConstraintFact>> CONSTRAINT_FACTS_LIST_COMPARATOR = new ConstraintFactsListComparator();
+  public static final Comparator<List<ConstraintFact>> CONSTRAINT_FACTS_LIST_COMPARATOR =
+      new ConstraintFactsListComparator();
 
   static final Comparator<ConstraintFact> CONSTRAINT_FACT_COMPARATOR = new ConstraintFactComparator();
 

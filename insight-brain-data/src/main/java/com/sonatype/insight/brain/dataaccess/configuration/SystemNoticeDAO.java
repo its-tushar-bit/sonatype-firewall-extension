@@ -15,7 +15,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SystemNoticeDAO
     extends AbstractOperationalSqlDAO<SystemNotice>
 {
-  private final static String SYSTEM_NOTICE_ID = "system-notice";
+  private static final String SYSTEM_NOTICE_ID = "system-notice";
 
   public SystemNotice get() {
     String sQuery = "SELECT entity FROM SystemNotice entity WHERE entity.id=?1";

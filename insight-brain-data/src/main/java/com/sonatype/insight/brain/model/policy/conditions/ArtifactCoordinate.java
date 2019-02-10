@@ -56,7 +56,7 @@ public class ArtifactCoordinate
     }
 
     if (otherComponentIdentifier.isMaven()) {
-      return (matchesGroup(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
+      return matchesGroup(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
           otherComponentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID))
           && matches(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
               otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
@@ -65,7 +65,7 @@ public class ArtifactCoordinate
           && matches(componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION),
               otherComponentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION)) && matches(
             componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER),
-            otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER)));
+            otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
     }
 
     for (Entry<String, String> coord : componentIdentifier.getCoordinates().entrySet()) {

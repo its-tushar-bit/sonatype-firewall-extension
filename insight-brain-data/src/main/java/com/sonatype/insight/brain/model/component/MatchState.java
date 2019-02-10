@@ -13,11 +13,11 @@ import java.util.Map;
 
 public class MatchState
 {
-  private final static Map<String, MatchState> stateByName = new LinkedHashMap<>();
+  private static final Map<String, MatchState> stateByName = new LinkedHashMap<>();
 
-  private final static Map<String, MatchState> stateById = new LinkedHashMap<>();
+  private static final Map<String, MatchState> stateById = new LinkedHashMap<>();
 
-  private final static List<MatchState> all = new ArrayList<>();
+  private static final List<MatchState> all = new ArrayList<>();
 
   // Note: The order the statuses are defined here determines the order they are displayed in the UI
   public static final MatchState EXACT = new MatchState("exact", "Exact");

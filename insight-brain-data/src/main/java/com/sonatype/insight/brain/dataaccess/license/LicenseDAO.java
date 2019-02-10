@@ -71,25 +71,25 @@ public class LicenseDAO
       long start = System.currentTimeMillis();
 
       String sQuery = "SELECT license FROM License license";
-      List<License> _licenses = new ArrayList<>();
-      _licenses.addAll(getList(sQuery));
-      _licenses.sort((license1, license2) -> {
+      List<License> newLicenses = new ArrayList<>();
+      newLicenses.addAll(getList(sQuery));
+      newLicenses.sort((license1, license2) -> {
         return license1.getShortDisplayName().compareToIgnoreCase(license2.getShortDisplayName());
       });
 
-      Map<String, License> _licensesById = new LinkedHashMap<>();
-      for (License license : _licenses) {
-        _licensesById.put(license.getId(), license);
+      Map<String, License> newlicensesById = new LinkedHashMap<>();
+      for (License license : newLicenses) {
+        newlicensesById.put(license.getId(), license);
       }
 
-      Map<String, License> _licensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-      for (License license : _licenses) {
-        _licensesByName.put(license.getShortDisplayName(), license);
+      Map<String, License> newLicensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+      for (License license : newLicenses) {
+        newLicensesByName.put(license.getShortDisplayName(), license);
       }
 
-      licenses = Collections.unmodifiableList(_licenses);
-      licensesById = Collections.unmodifiableMap(_licensesById);
-      licensesByName = _licensesByName;
+      licenses = Collections.unmodifiableList(newLicenses);
+      licensesById = Collections.unmodifiableMap(newlicensesById);
+      licensesByName = newLicensesByName;
 
       log.debug("Loaded all licenses in {} ms.", System.currentTimeMillis() - start);
     }

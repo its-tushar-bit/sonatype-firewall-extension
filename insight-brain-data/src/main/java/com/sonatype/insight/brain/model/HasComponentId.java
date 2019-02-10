@@ -23,7 +23,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 @MappedSuperclass
 public abstract class HasComponentId
 {
-
   @Column(name = "component_id_format")
   private String componentIdFormat;
 

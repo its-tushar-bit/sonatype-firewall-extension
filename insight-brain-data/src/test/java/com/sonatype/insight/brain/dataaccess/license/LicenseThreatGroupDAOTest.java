@@ -270,7 +270,8 @@ public class LicenseThreatGroupDAOTest
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.insert(group);
     }
-    ).isInstanceOf(InvalidLicenseThreatGroupException.class).hasMessage("The threat level must be a number between 0 and 10.");
+    ).isInstanceOf(InvalidLicenseThreatGroupException.class)
+        .hasMessage("The threat level must be a number between 0 and 10.");
 
     group.setThreatLevel(11);
     assertThatThrownBy(() -> {
@@ -290,7 +291,8 @@ public class LicenseThreatGroupDAOTest
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.update(group);
     }
-    ).isInstanceOf(InvalidLicenseThreatGroupException.class).hasMessage("The threat level must be a number between 0 and 10.");
+    ).isInstanceOf(InvalidLicenseThreatGroupException.class)
+        .hasMessage("The threat level must be a number between 0 and 10.");
 
     group.setThreatLevel(11);
     assertThatThrownBy(() -> {

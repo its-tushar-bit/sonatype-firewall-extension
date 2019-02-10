@@ -27,24 +27,31 @@ public class ConditionTypes
 
   public static final LicenseStatusConditionType LicenseStatusConditionType = new LicenseStatusConditionType();
 
-  public static final LicenseThreatGroupConditionType LicenseThreatGroupConditionType = new LicenseThreatGroupConditionType();
+  public static final LicenseThreatGroupConditionType LicenseThreatGroupConditionType =
+      new LicenseThreatGroupConditionType();
 
-  public static final LicenseThreatGroupLevelConditionType LicenseThreatGroupLevelConditionType = new LicenseThreatGroupLevelConditionType();
+  public static final LicenseThreatGroupLevelConditionType LicenseThreatGroupLevelConditionType =
+      new LicenseThreatGroupLevelConditionType();
 
-  public static final RelativePopularityConditionType RelativePopularityConditionType = new RelativePopularityConditionType();
+  public static final RelativePopularityConditionType RelativePopularityConditionType =
+      new RelativePopularityConditionType();
 
   public static final MatchStateConditionType MatchStateConditionType = new MatchStateConditionType();
 
   @SuppressWarnings("deprecation")
-  public static final DeprecatedSecurityVulnerabilityConditionType DeprecatedSecurityVulnerabilityConditionType = new DeprecatedSecurityVulnerabilityConditionType();
+  public static final DeprecatedSecurityVulnerabilityConditionType DeprecatedSecurityVulnerabilityConditionType =
+      new DeprecatedSecurityVulnerabilityConditionType();
 
-  public static final SecurityVulnerabilitySeverityConditionType SecurityVulnerabilitySeverityConditionType = new SecurityVulnerabilitySeverityConditionType();
+  public static final SecurityVulnerabilitySeverityConditionType SecurityVulnerabilitySeverityConditionType =
+      new SecurityVulnerabilitySeverityConditionType();
 
-  public static final SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType = new SecurityVulnerabilityStatusConditionType();
+  public static final SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType =
+      new SecurityVulnerabilityStatusConditionType();
 
   public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
 
-  public static final IdentificationSourceConditionType IdentificationSourceConditionType = new IdentificationSourceConditionType();
+  public static final IdentificationSourceConditionType IdentificationSourceConditionType =
+      new IdentificationSourceConditionType();
 
   static {
     add(AgeInDaysConditionType);

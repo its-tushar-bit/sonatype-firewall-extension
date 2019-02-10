@@ -141,7 +141,8 @@ public class OrganizationDAO
       throw new BadRequestException("Cannot delete the root organization: " + organization.getName());
     }
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
     if (organization.getId().equals(automaticApplicationsConfigurationDAO.getOrganizationId(tx))) {
       if (automaticApplicationsConfigurationDAO.isEnabled(tx)) {
         // Do not allow the deletion of the parent organization for automatic application creation if enabled

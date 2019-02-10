@@ -80,8 +80,9 @@ public class RepositoryComponentDAO
   }
 
   public int getQuarantinedComponentCountByRepositoryId(String repositoryId) {
-    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" + //
-        " WHERE component.repositoryId=?1 AND component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL";
+    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" //
+        + " WHERE component.repositoryId=?1"
+        + " AND component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL";
 
     return getSingle(Number.class, sQuery, repositoryId).intValue();
   }

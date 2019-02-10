@@ -25,11 +25,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentIdentifierAdapterTest
 {
-
-  private static final String ANY_CONTENT = "{\"componentIdentifier\": {\"format\": \"any\", \"coordinates\":{\"a\":\"a\", "
-      + "\"v\":\"v\"}}}";
+  private static final String ANY_CONTENT =
+      "{\"componentIdentifier\": {\"format\": \"any\", \"coordinates\":{\"a\":\"a\", \"v\":\"v\"}}}";
 
   private static final ComponentIdentifier ANY_COMPONENT_ID;
+
   static {
     LinkedHashMap<String, String> coordinates = new LinkedHashMap<>();
     coordinates.put("a", "a");
@@ -37,13 +37,14 @@ public class ComponentIdentifierAdapterTest
     ANY_COMPONENT_ID = new ComponentIdentifier("any", coordinates);
   }
 
-  private static final String MAVEN_CONTENT = "{\"componentIdentifier\": {\"format\": \"maven\", \"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\", "
-      + "\"version\":\"v\"}}}";
+  private static final String MAVEN_CONTENT =
+      "{\"componentIdentifier\": {\"format\": \"maven\", \"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\", "
+          + "\"version\":\"v\"}}}";
 
   private static final ComponentIdentifier MAVEN_COMPONENT = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
 
-  private static final String NUGET_CONTENT = "{\"componentIdentifier\": {\"format\": \"nuget\", \"coordinates\":{\"packageId\":\"a\", "
-      + "\"version\":\"v\"}}}";
+  private static final String NUGET_CONTENT =
+      "{\"componentIdentifier\": {\"format\": \"nuget\", \"coordinates\":{\"packageId\":\"a\", \"version\":\"v\"}}}";
 
   private static final ComponentIdentifier NUGET_COMPONENT = ComponentIdentifier.createNugetCoordinates("a", "v");
 

@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class LicenseOverrideStatus
 {
-  private final static List<LicenseOverrideStatus> all = new ArrayList<>();
+  private static final List<LicenseOverrideStatus> all = new ArrayList<>();
 
   static {
     for (com.sonatype.insight.brain.model.license.LicenseOverrideStatus licenseOverrideStatus : com.sonatype.insight.brain.model.license.LicenseOverrideStatus

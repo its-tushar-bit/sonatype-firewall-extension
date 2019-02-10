@@ -25,7 +25,6 @@ import org.codehaus.plexus.util.StringUtils;
 public class LdapConnection
     implements HasStringId, HasLdapServerId
 {
-
   /**
    * Internal id used to identify this LDAP configuration
    * 

@@ -530,7 +530,8 @@ public class OrganizationDAOTest
 
   @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_SameOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
@@ -546,7 +547,8 @@ public class OrganizationDAOTest
 
   @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_DifferentOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
@@ -560,7 +562,8 @@ public class OrganizationDAOTest
 
   @Test
   public void testDelete_AutomaticApplicationsCreationEnabled_SameOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
@@ -580,7 +583,8 @@ public class OrganizationDAOTest
 
   @Test
   public void testDelete_AutomaticApplicationsCreationEnabled_DifferentOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 

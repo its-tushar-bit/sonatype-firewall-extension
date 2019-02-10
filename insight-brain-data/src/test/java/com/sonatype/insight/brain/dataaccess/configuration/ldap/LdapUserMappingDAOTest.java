@@ -19,21 +19,35 @@ public class LdapUserMappingDAOTest
     extends AbstractDbDAOTest
 {
   private final String userBaseDN = "userBaseDN";
+
   private final boolean userSubtree = true;
+
   private final String userObjectClass = "userObjectClass";
+
   private final String userFilter = "userFilter";
+
   private final String userIDAttribute = "userIDAttribute";
+
   private final String realNameAttribute = "realNameAttribute";
+
   private final String emailAttribute = "emailAttribute";
+
   private final String passwordAttribute = "passwordAttribute";
 
   private final LdapGroupMappingType groupMappingType = LdapGroupMappingType.STATIC;
+
   private final String groupBaseDN = "groupBaseDN";
+
   private final boolean groupSubtree = true;
+
   private final String groupObjectClass = "groupObjectClass";
+
   private final String groupIDAttribute = "groupIDAttribute";
+
   private final String groupMemberAttribute = "groupMemberAttribute";
+
   private final String groupMemberFormat = "groupMemberFormat";
+
   private final String userMemberOfGroupAttribute = "userMemberOfGroupAttribute";
 
   private LdapUserMappingDAO dao = new LdapUserMappingDAO();
@@ -77,11 +91,11 @@ public class LdapUserMappingDAOTest
     assertThat(dao.getByServerId(server.getId())).isNotNull();
 
     // update
-    String userBaseDN_changed = userBaseDN + "-changed";
-    umap.setUserBaseDN(userBaseDN_changed);
+    String userBaseDnChanged = userBaseDN + "-changed";
+    umap.setUserBaseDN(userBaseDnChanged);
     dao.update(umap);
     umap = dao.getById(umap.getId());
-    assertThat(umap.getUserBaseDN()).isEqualTo(userBaseDN_changed);
+    assertThat(umap.getUserBaseDN()).isEqualTo(userBaseDnChanged);
 
     // delete
     dao.delete(umap);

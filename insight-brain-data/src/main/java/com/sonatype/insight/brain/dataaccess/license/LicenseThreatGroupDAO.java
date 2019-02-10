@@ -99,7 +99,8 @@ public class LicenseThreatGroupDAO
     super.insert(tx, licenseThreatGroup);
   }
 
-  public LicenseThreatGroup getInheritedByName(final TransactionContext tx, final LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup getInheritedByName(final TransactionContext tx,
+                                               final LicenseThreatGroup licenseThreatGroup)
   {
     String name = licenseThreatGroup.getName();
     Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());

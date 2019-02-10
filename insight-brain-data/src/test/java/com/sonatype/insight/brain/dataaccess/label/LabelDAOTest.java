@@ -387,8 +387,8 @@ public class LabelDAOTest
       label2.setColor(Color.dark_blue);
       labelDAO.insert(label2);
     }
-    ).isInstanceOf(InvalidLabelException.class).hasMessage("A label with name '%s' already exists in application(s) '%s'.",
-          label1.getLabel(), application.getName());
+    ).isInstanceOf(InvalidLabelException.class).hasMessage(
+        "A label with name '%s' already exists in application(s) '%s'.", label1.getLabel(), application.getName());
 
     // rename label to become a duplicate
     Label label2 = new Label();

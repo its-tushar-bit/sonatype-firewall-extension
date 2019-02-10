@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 // Copied from com.sonatype.nexus.procurement.ArtifactCoordinateTest
 public class ArtifactCoordinateTest
 {
-
   @Test
   public void testSimple() throws Exception {
     // one fixed coord

@@ -23,7 +23,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LdapServerDAO
     extends AbstractOperationalSqlDAO<LdapServer>
 {
-
   @Override
   public LdapServer getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LdapServer entity" + //

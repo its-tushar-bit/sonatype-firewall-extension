@@ -26,11 +26,8 @@ public class H2DatabaseMigratorTest
   @Test
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseDir = tempDir.newFolder("db");
-    FileUtils
-        .copyDirectory(
-            new File(
-                "target/test-classes/H2DatabaseMigratorTest/testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"),
-            databaseDir);
+    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/"
+        + "testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"), databaseDir);
     File databaseVersionFile = new File(databaseDir, "dm.ver");
     assertThat(databaseVersionFile).isFile();
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("3");

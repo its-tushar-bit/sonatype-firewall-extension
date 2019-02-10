@@ -56,8 +56,8 @@ public class DatabaseAccessTest
 
     DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
     odsDatabaseConfig.setDriverClassName("org.h2.Driver");
-    odsDatabaseConfig
-        .setUrl("jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    odsDatabaseConfig.setUrl("jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/ods"
+        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
     odsDatabaseConfig.setUsername("sa");
     odsDatabaseConfig.setPassword("");
     odsDatabaseConfig.setMaxConnections(50);
@@ -68,8 +68,8 @@ public class DatabaseAccessTest
 
     DatabaseConfig dmDatabaseConfig = new DatabaseConfig();
     dmDatabaseConfig.setDriverClassName("org.h2.Driver");
-    dmDatabaseConfig
-        .setUrl("jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/dm;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    dmDatabaseConfig.setUrl("jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/dm"
+        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
     dmDatabaseConfig.setUsername("sa");
     dmDatabaseConfig.setPassword("");
     dmDatabaseConfig.setMaxConnections(50);

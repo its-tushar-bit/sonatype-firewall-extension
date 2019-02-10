@@ -200,8 +200,8 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity
         .newRepository(repoManager, "SomePublicID", true /* enabled */, true /* quarantineEnabled */);
-    tempEntity
-        .newRepositoryComponent(repository.getId(), "pathname", new Date() /* quarantineTime */, null /* unquarantineTime */);
+    tempEntity.newRepositoryComponent(repository.getId(), "pathname", new Date() /* quarantineTime */,
+        null /* unquarantineTime */);
     RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), "pathname");
 
     repository.setEnabled(false);

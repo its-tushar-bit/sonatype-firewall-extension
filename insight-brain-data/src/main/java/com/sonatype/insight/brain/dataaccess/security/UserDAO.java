@@ -27,7 +27,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class UserDAO
     extends AbstractOperationalSqlDAO<User>
 {
-
   public static final int MAX_FIRST_NAME_SIZE = 100;
 
   public static final int MAX_LAST_NAME_SIZE = 100;

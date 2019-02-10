@@ -113,7 +113,8 @@ public class ComponentLabelDAO
   private void validate(TransactionContext tx, ComponentLabel entity) {
     LabelDAO labelDAO = new LabelDAO();
     Label label = labelDAO.getByIdNotNull(tx, entity.getLabelId());
-    ComponentLabel other = getByOwnerIdAndHashAndLabelId(tx, entity.getOwnerId(), entity.getHash(), entity.getLabelId());
+    ComponentLabel other =
+        getByOwnerIdAndHashAndLabelId(tx, entity.getOwnerId(), entity.getHash(), entity.getLabelId());
     if (other != null && !other.getId().equals(entity.getId())) {
       throw new BadRequestException("The label '" + label.getLabel() + "' is already applied to the component "
           + entity.getHash() + ".");

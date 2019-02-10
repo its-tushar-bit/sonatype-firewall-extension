@@ -1133,8 +1133,7 @@ public class PolicyViolationAggregationDataHelper
    * in whether they have different types of threats, and is therefore more suitable for testing the application count
    * parts of the Success Metrics charts
    */
-  private static void createMonthlyApplicationCountAggregationHistory(TemporaryEntity tempEntity)
-  {
+  private static void createMonthlyApplicationCountAggregationHistory(TemporaryEntity tempEntity) {
     LocalDate today = new LocalDate();
 
     LocalDate beginningOfMonth;
@@ -1543,8 +1542,7 @@ public class PolicyViolationAggregationDataHelper
    * in whether they have different types of threats, and is therefore more suitable for testing the application count
    * parts of the Success Metrics charts
    */
-  private static void createWeeklyApplicationCountAggregationHistory(TemporaryEntity tempEntity)
-  {
+  private static void createWeeklyApplicationCountAggregationHistory(TemporaryEntity tempEntity) {
     LocalDate today = new LocalDate();
 
     LocalDate beginningOfWeek;
@@ -1968,7 +1966,6 @@ public class PolicyViolationAggregationDataHelper
     return new CountsBuilder().security(1, 0, 1, 1).license(0, 3, 2, 1).quality(5, 0, 0, 0).other(0, 3, 0, 2);
   }
 
-
   public static class CountsBuilder
   {
     private final Table<PolicyThreatCategory, ThreatLevel, Integer> table = new EnumIntegerTable<>(
@@ -2015,7 +2012,8 @@ public class PolicyViolationAggregationDataHelper
   public static OpenCountsBuilder openCounts(int countSecurity,
                                              int countLicense,
                                              int countQuality,
-                                             int countOther) {
+                                             int countOther)
+  {
     return new OpenCountsBuilder(countSecurity, countLicense, countQuality, countOther);
   }
 

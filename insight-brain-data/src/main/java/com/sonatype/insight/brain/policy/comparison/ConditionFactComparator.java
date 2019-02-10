@@ -9,11 +9,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Comparator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 class ConditionFactComparator implements Comparator<ConditionFact>
 {

@@ -16,7 +16,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LdapConnectionDAO
     extends AbstractOperationalSqlDAO<LdapConnection>
 {
-
   @Override
   public LdapConnection getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LdapConnection entity" + //
@@ -50,5 +49,4 @@ public class LdapConnectionDAO
       delete(tx, conn);
     }
   }
-
 }

@@ -16,7 +16,6 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings("boxing")
 public class AuditingTest
 {
   @Rule
@@ -31,12 +30,16 @@ public class AuditingTest
 
   @Test
   public void testFilteredNamedAuditFeed() throws IOException {
-    final String addition1 = "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
+    final String addition1 =
+        "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
 
     final String addition2 = "[ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" } ]";
 
-    final String result = "{ \"aaData\" : [ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\", \"ip\" : \"192.168.1.8\", \"where\" : \"home\", \"filename\" : \"sample.json\" }, "
-        + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" } ] }";
+    final String result = "{ \"aaData\" : [ "
+        + "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\","
+        + " \"ip\" : \"192.168.1.8\", \"where\" : \"home\"," + " \"filename\" : \"sample.json\" }, "
+        + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\","
+        + " \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" } ] }";
 
     store.commit("sample.json",
         JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes(StandardCharsets.UTF_8))));
@@ -53,17 +56,20 @@ public class AuditingTest
 
   @Test
   public void testFilteredAuditFeed() throws IOException {
-    final String addition1 = "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
+    final String addition1 =
+        "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
 
     final String addition2 = "[ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" } ]";
 
     final String addition3 = "[ { \"id\" : \"B\", \"confirmed\" : true, \"comment\" : \"Must fix\" } ]";
 
     final String result = "{ \"aaData\" : [ "
-        + "{ \"id\" : \"B\", \"confirmed\" : true, \"comment\" : \"Must fix\", \"time\" : 0, \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"cafe\", \"filename\" : \"another.json\" }, "
-        + "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\", \"ip\" : \"192.168.1.8\", \"where\" : \"home\", \"filename\" : \"sample.json\" }, "
-        + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" }"
-        + " ] }";
+        + "{ \"id\" : \"B\", \"confirmed\" : true, \"comment\" : \"Must fix\", \"time\" : 0, \"user\" : \"test\","
+        + " \"ip\" : \"127.0.0.1\", \"where\" : \"cafe\", \"filename\" : \"another.json\" }, "
+        + "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\","
+        + " \"ip\" : \"192.168.1.8\", \"where\" : \"home\", \"filename\" : \"sample.json\" }, "
+        + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\","
+        + " \"where\" : \"office\", \"filename\" : \"sample.json\" }" + " ] }";
 
     store.commit("sample.json",
         JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes(StandardCharsets.UTF_8))));
@@ -83,18 +89,22 @@ public class AuditingTest
 
   @Test
   public void testAuditFeed() throws IOException {
-    final String addition1 = "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
+    final String addition1 =
+        "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
 
     final String addition2 = "[ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" } ]";
 
     final String addition3 = "[ { \"id\" : \"B\", \"confirmed\" : true, \"comment\" : \"Must fix\" } ]";
 
     final String result = "{ \"aaData\" : [ "
-        + "{ \"id\" : \"B\", \"confirmed\" : true, \"comment\" : \"Must fix\", \"time\" : 0, \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"cafe\", \"filename\" : \"another.json\" }, "
-        + "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\", \"ip\" : \"192.168.1.8\", \"where\" : \"home\", \"filename\" : \"sample.json\" }, "
-        + "{ \"id\" : \"A\", \"override\" : \"EPL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" }, "
-        + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" }"
-        + " ] }";
+        + "{ \"id\" : \"B\", \"confirmed\" : true, \"comment\" : \"Must fix\", \"time\" : 0, \"user\" : \"test\","
+        + " \"ip\" : \"127.0.0.1\", \"where\" : \"cafe\", \"filename\" : \"another.json\" }, "
+        + "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\","
+        + " \"ip\" : \"192.168.1.8\", \"where\" : \"home\", \"filename\" : \"sample.json\" }, "
+        + "{ \"id\" : \"A\", \"override\" : \"EPL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\","
+        + " \"where\" : \"office\", \"filename\" : \"sample.json\" }, "
+        + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\","
+        + " \"where\" : \"office\", \"filename\" : \"sample.json\" }" + " ] }";
 
     store.commit("sample.json",
         JsonUtils.stamp("anon", "127.0.0.1", "office", JsonUtils.parse(addition1.getBytes(StandardCharsets.UTF_8))));

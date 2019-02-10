@@ -47,5 +47,4 @@ public class LdapUserMappingDAO
     String sQuery = "SELECT entity FROM LdapUserMapping entity";
     return getList(sQuery);
   }
-
 }

@@ -40,7 +40,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class ComponentDAO
 {
-
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();

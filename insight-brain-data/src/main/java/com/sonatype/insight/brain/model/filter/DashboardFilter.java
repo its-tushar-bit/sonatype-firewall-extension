@@ -21,7 +21,6 @@ import com.sonatype.insight.model.HasStringId;
 public class DashboardFilter
     implements HasStringId
 {
-
   @Id
   @Column(name = "dashboard_filter_id")
   private String id;

@@ -33,7 +33,6 @@ import static org.assertj.core.api.Assertions.fail;
 public class LicenseOverrideDAOTest
     extends AbstractDbDAOTest
 {
-
   private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("gid", "aid",
       "1.0");
 

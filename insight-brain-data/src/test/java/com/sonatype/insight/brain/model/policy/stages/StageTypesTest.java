@@ -13,7 +13,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class StageTypesTest
 {
-
   @Test
   public void testIsIgnoredForDashboard() {
     for (StageType stageType : StageTypes.getAll()) {

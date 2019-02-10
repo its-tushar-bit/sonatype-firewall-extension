@@ -157,7 +157,7 @@ public class RepositoryComponent
 
   @Transient
   public boolean isQuarantined() {
-    return (quarantineTime != null && unquarantineTime == null);
+    return quarantineTime != null && unquarantineTime == null;
   }
 
   @Override

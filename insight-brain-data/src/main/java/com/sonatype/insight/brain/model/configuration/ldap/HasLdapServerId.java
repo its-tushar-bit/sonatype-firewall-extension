@@ -10,5 +10,4 @@ public interface HasLdapServerId
   public String getServerId();
 
   public void setServerId(String serverId);
-
 }

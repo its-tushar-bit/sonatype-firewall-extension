@@ -94,6 +94,7 @@ public class ApplicationComponentDAO
     }
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSinceManualApplicationFilter(Set<String> applicationIds,
                                                                                                     Set<String> stageTypeIds,
                                                                                                     Date date)

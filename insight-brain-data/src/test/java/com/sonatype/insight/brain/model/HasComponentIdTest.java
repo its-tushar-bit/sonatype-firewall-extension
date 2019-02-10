@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class HasComponentIdTest
 {
-
   @Test
   public void testJsonFormattingForMaven() {
     HasComponentId hasComponentId = new PolicyViolation();

@@ -95,7 +95,8 @@ public class RepositoryDAO
   public void insert(TransactionContext tx, Repository repository) {
     validateNotEmptyPublicId(repository.getPublicId());
 
-    if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(), repository.getPublicId()) != null) {
+    if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
+        repository.getPublicId()) != null) {
       throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
     }
@@ -217,7 +218,8 @@ public class RepositoryDAO
 
     long duration = System.currentTimeMillis() - start;
     if (duration > 1000) {
-      log.debug("Deleted owned entities of repository {} with id {} in {} ms.", repository.getName(), repository.getId(), duration);
+      log.debug("Deleted owned entities of repository {} with id {} in {} ms.", repository.getName(),
+          repository.getId(), duration);
     }
   }
 

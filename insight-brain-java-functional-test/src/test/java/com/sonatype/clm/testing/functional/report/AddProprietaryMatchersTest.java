@@ -113,7 +113,8 @@ public class AddProprietaryMatchersTest
     modal.pathMatcherCheckboxes().last().shouldBe(selected);
 
     // test link to app config
-    String expectedHref = Configuration.baseUrl + "assets/index.html#/management/edit/application/AddProprietaryMatchersTest/proprietary";
+    String expectedHref = Configuration.baseUrl + "assets/index.html"
+        + "#/management/edit/application/AddProprietaryMatchersTest/proprietary";
     modal.linkToAppConfig().shouldBe(visible).shouldHave(attribute("href", expectedHref));
 
     // submit all pathNames plus regex

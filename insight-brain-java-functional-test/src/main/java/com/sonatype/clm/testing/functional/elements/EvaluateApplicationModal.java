@@ -24,7 +24,6 @@ public class EvaluateApplicationModal
     super(ROOT);
   }
 
-
   public SelenideElement fileInput() {
     return $("#bundle-file");
   }

@@ -86,9 +86,11 @@ public class DashboardFilterTest
   private static ApplicationDAO appDAO = new ApplicationDAO();
 
   private static Organization org;
+
   private static Application firstApp;
 
   private static Tag firstAppCategory1;
+
   private static Tag firstAppCategory2;
 
   private static Application secondApp;
@@ -200,8 +202,8 @@ public class DashboardFilterTest
     refreshOrOpen(VIOLATIONS_URL);
     ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
-    ageFilter.singleSelectList().shouldHaveSize(6)
-        .shouldHave(texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
+    ageFilter.singleSelectList().shouldHaveSize(6).shouldHave(
+        texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
     ageFilter.past30days().shouldBe(selected);
     ageFilter.past90days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldBe(selected);
@@ -412,7 +414,6 @@ public class DashboardFilterTest
     // components tab should have only waived component
     DashboardPage.componentsView().results().components().shouldHaveSize(1);
     DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact2"));
-
 
     // violations tab should have only waived violation
     DashboardPage.violationsTab().click();
@@ -1075,5 +1076,4 @@ public class DashboardFilterTest
 
     filter.hover().tooltip().shouldHave(text("There are no " + filterType + " to filter."));
   }
-
 }

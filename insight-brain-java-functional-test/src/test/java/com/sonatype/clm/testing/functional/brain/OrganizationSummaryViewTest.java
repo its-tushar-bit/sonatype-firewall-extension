@@ -46,7 +46,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrganizationSummaryViewTest
     extends AbstractSummaryViewTest
 {
-
   private Organization organization;
 
   @Before

@@ -11,7 +11,6 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class MainView
 {
-
   public static SelenideElement mainView() {
     return $(".iq-main-view");
   }

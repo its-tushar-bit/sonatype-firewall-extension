@@ -62,6 +62,4 @@ public class ProprietaryConfigEditorPage
   public static ProprietaryComponentMatcher localMatcher(MatcherType type, String name) {
     return new ProprietaryComponentMatcher(".local-proprietary-component-matchers", type, name);
   }
-
-
 }

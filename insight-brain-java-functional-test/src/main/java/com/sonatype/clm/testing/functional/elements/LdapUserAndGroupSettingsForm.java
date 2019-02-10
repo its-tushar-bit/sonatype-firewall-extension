@@ -174,7 +174,11 @@ public class LdapUserAndGroupSettingsForm
       return child("#verify-field-mappings-cancel");
     }
 
-    public CheckUserMappingModal shouldHaveUserEntry(int row, String username, String name, String email, String groups)
+    public CheckUserMappingModal shouldHaveUserEntry(int row,
+                                                     String username,
+                                                     String name,
+                                                     String email,
+                                                     String groups)
     {
       UserRow userRow = new UserRow("tbody", "tr", SelectorUtils.nthChild(row));
 
@@ -189,7 +193,6 @@ public class LdapUserAndGroupSettingsForm
     private static class UserRow
         extends BasicElement<UserRow>
     {
-
       public UserRow(String... selectors) {
         super(selectors);
       }

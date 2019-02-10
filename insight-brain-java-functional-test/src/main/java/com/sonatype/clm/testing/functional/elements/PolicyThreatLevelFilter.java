@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.elements;
 public class PolicyThreatLevelFilter
     extends IqTreeViewMultiSelect
 {
-
   public PolicyThreatLevelFilter(final String selector) {
     super(selector);
   }

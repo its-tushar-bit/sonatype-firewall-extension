@@ -395,7 +395,6 @@ public abstract class AbstractSummaryViewTest
         list.buildHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
         list.buildHeaderColumn().downArrow().shouldHave(DOWN_SELECTED);
 
-
         policyElement1 = list.row(1);
         policyElement2 = list.row(2);
         policyElement3 = list.row(3);
@@ -771,7 +770,8 @@ public abstract class AbstractSummaryViewTest
   @Test
   public void testPolicyTile_LimitedStageLicensing() {
     List<Policy> localPolicies = new ArrayList<>();
-    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, Action.ID_FAIL, Stage.ID_RELEASE, null));
+    localPolicies
+        .add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, Action.ID_FAIL, Stage.ID_RELEASE, null));
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
     

@@ -111,6 +111,7 @@ public class SystemNoticeTest
     loginAsAdmin();
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void checkSystemNoticeVisibilityOnLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,
                                                   final Condition visibility)
   {
@@ -119,6 +120,7 @@ public class SystemNoticeTest
     new LoginModal().systemNotice().shouldBe(visibility);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void checkSystemNoticeVisibilityAfterLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,
                                                      final Condition visibility)
   {
@@ -130,6 +132,7 @@ public class SystemNoticeTest
     }
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private static com.sonatype.insight.brain.model.configuration.SystemNotice createSystemNotice(final String message,
                                                                                                 final boolean enabled)
   {

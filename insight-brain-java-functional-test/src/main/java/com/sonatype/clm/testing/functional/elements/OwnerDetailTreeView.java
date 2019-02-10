@@ -47,7 +47,7 @@ public class OwnerDetailTreeView
     return new OwnerDetailTreeViewGroup("#label-tree-view-group");
   }
 
-  public static OwnerDetailTreeViewGroup LTGGroup() {
+  public static OwnerDetailTreeViewGroup ltgGroup() {
     return new OwnerDetailTreeViewGroup("#license-threat-group-tree-view-group");
   }
 

@@ -28,7 +28,6 @@ import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage
 public class SuccessMetricsChartsNavigationTest
     extends AbstractFunctionalTest
 {
-
   @After
   public void after() {
     Selenide.clearBrowserCookies();

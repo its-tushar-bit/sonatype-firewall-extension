@@ -394,7 +394,7 @@ public class SuccessMetricsChartsTest
   }
 
   private void verifyPlotTooltips(BarPlot plot, String[][] tooltipValuesPerWeek) {
-    for(int i = 0; i < tooltipValuesPerWeek.length; i++) {
+    for (int i = 0; i < tooltipValuesPerWeek.length; i++) {
       // hide tooltip
       ViolationTrendTile.description().hover();
       ViolationTrendTile.guidelineTooltip.shouldNotBe(visible);
@@ -411,8 +411,7 @@ public class SuccessMetricsChartsTest
     }
   }
 
-  private void verifyTooltips(String guidelineTooltip, String[] barTooltips)
-  {
+  private void verifyTooltips(String guidelineTooltip, String[] barTooltips) {
     ViolationTrendTile.guidelineTooltip.shouldBe(visible).shouldHave(text(guidelineTooltip));
     ViolationTrendTile.deltaBarTooltip.shouldBe(visible).shouldHave(text(barTooltips[0]));
     ViolationTrendTile.newBarTooltip.shouldBe(visible).shouldHave(text(barTooltips[1]));

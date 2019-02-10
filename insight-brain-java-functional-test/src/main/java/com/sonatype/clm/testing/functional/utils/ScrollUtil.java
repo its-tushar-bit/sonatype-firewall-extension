@@ -26,7 +26,7 @@ public class ScrollUtil
 {
   // JavaScript creating a few local variables that are needed by several functions in this class
   private static final String JS_LOCAL_VARS = //
-    "var el = $(arguments[0]), parent = el.parent(), parentPadding = parseFloat(parent.css('padding-top')); ";
+      "var el = $(arguments[0]), parent = el.parent(), parentPadding = parseFloat(parent.css('padding-top')); ";
 
   /**
    * Attempts to scroll the parent of `element` such that `element` is at the top of the visible area of the parent
@@ -41,8 +41,8 @@ public class ScrollUtil
     try {
       Selenide.Wait() //
           .withMessage(element.getSearchCriteria() + " did not scroll to destination") //
-          .until(webDriver -> ((JavascriptExecutor) webDriver)
-              .executeScript(JS_LOCAL_VARS + "return Math.abs(parent[0].scrollTop - (el[0].offsetTop - parentPadding)) < 2;", element)
+          .until(webDriver -> ((JavascriptExecutor) webDriver).executeScript(
+              JS_LOCAL_VARS + "return Math.abs(parent[0].scrollTop - (el[0].offsetTop - parentPadding)) < 2;", element)
               .equals(Boolean.TRUE));
     }
     catch (TimeoutException e) {
@@ -101,7 +101,9 @@ public class ScrollUtil
   public static SelenideElement awaitEndOfScrolling(final SelenideElement element) {
     return element.waitUntil(new Condition("done scrolling")
     {
-      Point previousLocation, currentLocation;
+      Point previousLocation;
+
+      Point currentLocation;
 
       @Override
       public boolean apply(WebElement element) {

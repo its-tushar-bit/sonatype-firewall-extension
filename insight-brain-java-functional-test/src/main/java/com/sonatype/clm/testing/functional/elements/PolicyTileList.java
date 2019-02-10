@@ -18,7 +18,6 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class PolicyTileList
     extends GreedyTable<PolicyTileListElement>
 {
-
   public PolicyTileList(String... selectors) {
     super(selectors);
   }

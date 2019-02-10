@@ -77,5 +77,4 @@ public class ActionDropDown
   public static SelenideElement reportLink(int num) {
     return reportLinks().get(num);
   }
-
 }

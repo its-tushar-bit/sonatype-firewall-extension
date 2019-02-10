@@ -68,8 +68,7 @@ public class RepositoriesSummaryViewTest
   }
 
   @Test
-  public void repositorySummaryViewTest()
-  {
+  public void repositorySummaryViewTest() {
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
     summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
     summaryTile.configButton().shouldBe(visible);

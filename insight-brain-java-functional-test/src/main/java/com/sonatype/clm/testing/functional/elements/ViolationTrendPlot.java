@@ -14,7 +14,6 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class ViolationTrendPlot
     extends BasicElement<ViolationTrendPlot>
 {
-
   public ViolationTrendPlot(String selector) {
     super(selector);
   }

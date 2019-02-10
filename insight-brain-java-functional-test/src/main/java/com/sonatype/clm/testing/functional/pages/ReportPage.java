@@ -30,5 +30,4 @@ public class ReportPage
     return BaseUrl.rootUriBuilder().path("rest/report/{applicationPublicId}/{scanId}/browseReport/index.html")
         .build(app.getPublicId(), scanId).toString();
   }
-
 }

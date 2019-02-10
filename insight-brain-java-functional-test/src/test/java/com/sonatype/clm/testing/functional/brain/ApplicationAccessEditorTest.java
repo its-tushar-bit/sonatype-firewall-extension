@@ -34,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationAccessEditorTest
     extends AbstractAccessEditorTest
 {
-
   private String serverId;
 
   @Before

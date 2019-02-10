@@ -80,7 +80,7 @@ public class BaseUrl
       connection.setReadTimeout(2000);
       connection.setRequestMethod("GET");
       int responseCode = connection.getResponseCode();
-      return (200 <= responseCode && responseCode <= 399);
+      return 200 <= responseCode && responseCode <= 399;
     }
     catch (IOException exception) {
       return false;

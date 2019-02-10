@@ -53,5 +53,4 @@ public class LdapServerListPage
   public ActionList ldapServerList() {
     return new ActionList(childSelector(".iq-list"));
   }
-
 }

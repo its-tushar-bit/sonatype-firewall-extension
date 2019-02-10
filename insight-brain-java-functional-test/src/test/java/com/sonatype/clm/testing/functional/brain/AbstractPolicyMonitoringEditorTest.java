@@ -36,6 +36,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     extends AbstractFunctionalTest
 {
   private Owner currentOwner;
+
   private Organization parentOrg;
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";

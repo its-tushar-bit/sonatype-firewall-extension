@@ -23,8 +23,11 @@ public class DashboardPage
   public static final Condition ACTIVE = cssClass("active");
 
   public static final String URL = BaseUrl.resolvePageUrl("/dashboard/violations");
+
   public static final String COMPONENTS_URL = BaseUrl.resolvePageUrl("/dashboard/components");
+
   public static final String VIOLATIONS_URL = BaseUrl.resolvePageUrl("/dashboard/violations");
+
   public static final String APPLICATIONS_URL = BaseUrl.resolvePageUrl("/dashboard/applications");
 
   public static final String ROOT =  ".dashboard-container";

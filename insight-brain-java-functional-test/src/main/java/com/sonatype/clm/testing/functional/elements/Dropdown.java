@@ -41,8 +41,10 @@ public class Dropdown
     scrollIntoView(listItem(option.row), false).shouldBe(visible).shouldHave(text(option.value)).click();
   }
 
-  public static class Option {
+  public static class Option
+  {
     private int row;
+
     private String value;
 
     public Option(final int row, final String value) {

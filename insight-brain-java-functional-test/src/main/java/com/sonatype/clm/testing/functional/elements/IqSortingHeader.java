@@ -13,6 +13,7 @@ public class IqSortingHeader
     extends BasicElement<IqSortingHeader>
 {
   private static Condition UP = Condition.cssClass("up");
+
   private static Condition DOWN = Condition.cssClass("down");
 
   public IqSortingHeader(String selector) {

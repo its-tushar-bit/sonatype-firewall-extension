@@ -29,7 +29,6 @@ import static com.codeborne.selenide.Selenide.$;
 public class AdministratorsTest
     extends AbstractFunctionalTest
 {
-
   @BeforeClass
   public static void initialLogin() {
     refreshOrOpen(AdministratorsPage.URL);

@@ -29,7 +29,7 @@ import static com.sonatype.insight.brain.model.security.MembershipMapping.GLOBAL
 public class ChangeDefaultAdminPasswordNoticeTest
     extends AbstractFunctionalTest
 {
-  private final static String[] URLs = new String[] {
+  private static final String[] URLs = new String[] {
       DashboardPage.URL,
       ReportListPage.URL,
       RoleManagementPage.url()
@@ -71,7 +71,8 @@ public class ChangeDefaultAdminPasswordNoticeTest
       userDAO.update(admin);
       refresh();
       assertNotice(hidden);
-    } finally {
+    }
+    finally {
       admin.setPassword(originalPassword);
       userDAO.update(admin);
     }

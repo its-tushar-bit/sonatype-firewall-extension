@@ -17,8 +17,8 @@ import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
-public abstract class GreedyTable<RowElement>
-    extends BasicElement<GreedyTable<RowElement>>
+public abstract class GreedyTable<RowElementT>
+    extends BasicElement<GreedyTable<RowElementT>>
 {
   public GreedyTable(String... selectors) {
     super(selectors);
@@ -28,7 +28,7 @@ public abstract class GreedyTable<RowElement>
     return children("tr");
   }
 
-  public abstract RowElement row(int i);
+  public abstract RowElementT row(int i);
 
   public ElementsCollection selectedHeaderElements() {
     return $$(createSelector(selector, "thead th .up") + ", " + createSelector(selector, "thead th .down"));

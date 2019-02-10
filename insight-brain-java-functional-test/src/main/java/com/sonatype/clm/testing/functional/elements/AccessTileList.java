@@ -38,7 +38,6 @@ public class AccessTileList
   public static class AccessTileListElement
       extends BasicElement<AccessTileListElement>
   {
-
     public SelenideElement root;
 
     public AccessTileListElement(String... selectors) {

@@ -12,6 +12,8 @@ import com.codeborne.selenide.SelenideElement;
 public interface ILdapForm
 {
   SelenideElement saveButton();
+
   SelenideElement cancelButton();
+
   List<SelenideElement> requiredFields();
 }

@@ -16,7 +16,6 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class VersionsCIP
 {
-
   private static SelenideElement root() {
     return $("#version-graph");
   }

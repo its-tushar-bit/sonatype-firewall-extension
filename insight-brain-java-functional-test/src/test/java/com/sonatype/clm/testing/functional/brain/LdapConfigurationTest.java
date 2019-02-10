@@ -416,5 +416,4 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userMemberOfGroupAttribute()
         .shouldHave(value(persistedUserMapping.getUserMemberOfGroupAttribute()));
   }
-
 }

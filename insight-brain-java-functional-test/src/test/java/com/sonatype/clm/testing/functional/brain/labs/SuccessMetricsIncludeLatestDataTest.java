@@ -69,11 +69,13 @@ public class SuccessMetricsIncludeLatestDataTest
     addSuccessMetricsModal.name().setValue("Test Latest Data");
     addSuccessMetricsModal.byMostRecentWarning().shouldBe(hidden);
     addSuccessMetricsModal.includingMostRecentEvaluations().shouldNotBe(selected).click();
-    addSuccessMetricsModal.byMostRecentWarning().shouldBe(visible).shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
+    addSuccessMetricsModal.byMostRecentWarning().shouldBe(visible)
+        .shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
     addSuccessMetricsModal.createBtn().click();
 
     successMetricsReportListPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
-    successMetricsReportListPage.successMetricsChartActionItems().element(0).shouldHave(text("Test Latest Data")).click();
+    successMetricsReportListPage.successMetricsChartActionItems().element(0).shouldHave(text("Test Latest Data"))
+        .click();
 
     successMetricsChartsPage.shouldBe(visible);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_LATEST);
@@ -89,5 +91,4 @@ public class SuccessMetricsIncludeLatestDataTest
     ViolationAveragesTile.averagePolicyViolations().shouldHave(text("1"));
     MttrTile.root().shouldBe(visible);
   }
-
 }

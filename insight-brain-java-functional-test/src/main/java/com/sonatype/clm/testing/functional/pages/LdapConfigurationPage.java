@@ -51,7 +51,9 @@ public class LdapConfigurationPage
     return new LdapUserAndGroupSettingsForm(ROOT_SELECTOR, "#user-group-mapping-form");
   }
 
-  public static LdapNameEditor ldapNameEditor() {return new LdapNameEditor("#ldap-name");}
+  public static LdapNameEditor ldapNameEditor() {
+    return new LdapNameEditor("#ldap-name");
+  }
 
   public static SelenideElement discardChangesModalButton() {
     return $("#ldap-unsaved-changes .iq-btn--primary");

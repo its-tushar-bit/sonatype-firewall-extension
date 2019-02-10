@@ -12,7 +12,8 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class ActionList extends BasicElement<ActionList>
+public class ActionList
+    extends BasicElement<ActionList>
 {
   public ActionList(String... selectors) {
     super(selectors);
@@ -49,5 +50,4 @@ public class ActionList extends BasicElement<ActionList>
       return child(".fa-chevron-right");
     }
   }
-
 }

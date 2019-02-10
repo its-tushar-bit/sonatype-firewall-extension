@@ -11,7 +11,6 @@ import com.codeborne.selenide.Selenide;
 
 public class ThreatLevelSlider extends BasicElement<ThreatLevelSlider>
 {
-
   public ThreatLevelSlider(String selector) {
     super(selector);
   }

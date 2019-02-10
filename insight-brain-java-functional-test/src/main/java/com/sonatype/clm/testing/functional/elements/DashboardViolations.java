@@ -17,10 +17,14 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class DashboardViolations
 {
   private static final String ROOT = "#dashboard-violations";
-  public static Condition CRITICAL = Condition.cssClass("critical");
-  public static Condition SEVERE = Condition.cssClass("severe");
-  public static Condition MODERATE = Condition.cssClass("moderate");
-  public static Condition LOW = Condition.cssClass("low");
+
+  public static final Condition CRITICAL = Condition.cssClass("critical");
+
+  public static final Condition SEVERE = Condition.cssClass("severe");
+
+  public static final Condition MODERATE = Condition.cssClass("moderate");
+
+  public static final Condition LOW = Condition.cssClass("low");
 
   public ViolationsHeaders headers() {
     return new ViolationsHeaders();
@@ -94,8 +98,9 @@ public class DashboardViolations
     }
   }
 
-  public class ViolationTile extends BasicElement<ViolationTile> {
-
+  public class ViolationTile
+      extends BasicElement<ViolationTile>
+  {
     public ViolationTile(String selector) {
       super(selector);
     }

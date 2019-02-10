@@ -30,7 +30,8 @@ public class AutomaticApplicationsConfigurationTest
 {
   @Test
   public void automaticApplicationsConfigurationTest() {
-    AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage = new AutomaticApplicationsConfigurationPage();
+    AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage =
+        new AutomaticApplicationsConfigurationPage();
 
     refreshOrOpen(AutomaticApplicationsConfigurationPage.URL);
     loginAsAdmin();
@@ -90,7 +91,8 @@ public class AutomaticApplicationsConfigurationTest
   }
 
   private void verifyConfiguration(boolean enabled, Organization organization) {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
 
     assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isEqualTo(enabled);
     assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());

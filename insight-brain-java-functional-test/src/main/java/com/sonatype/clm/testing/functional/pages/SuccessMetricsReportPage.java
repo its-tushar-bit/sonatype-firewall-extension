@@ -211,7 +211,6 @@ public class SuccessMetricsReportPage
       return $(SelectorUtils.createSelector(ROOT, ".iq-chart__bar-label:nth-child(4)", "span:last-child",
           ".iq-chart__highlight"));
     }
-
   }
 
   public static class MttrTile
@@ -276,7 +275,6 @@ public class SuccessMetricsReportPage
       return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
     }
 
-
     public static SelenideElement chart() {
       return $(SelectorUtils.createSelector(ROOT, "iq-render-plottable"));
     }
@@ -292,7 +290,6 @@ public class SuccessMetricsReportPage
     public static ElementsCollection xAxisLabels() {
       return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".x-axis", ".tick-label-container", "text"));
     }
-
   }
 
   public static class ViolationTrendTile
@@ -322,14 +319,21 @@ public class SuccessMetricsReportPage
         .text("Violations and remediation over the past 12 weeks.");
 
     public static final Condition TRENDS_DELTA_UP_CLASS = Condition.cssClass("iq-violation-trends__bar--delta-up");
+
     public static final Condition TRENDS_DELTA_DOWN_CLASS = Condition.cssClass("iq-violation-trends__bar--delta-down");
+
     public static final Condition TRENDS_DISCOVERED_CLASS = Condition.cssClass("iq-violation-trends__bar--discovered");
+
     public static final Condition TRENDS_FIXED_CLASS = Condition.cssClass("iq-violation-trends__bar--fixed");
 
     public static SelenideElement guidelineTooltip = $("#guidelineTooltip");
+
     public static SelenideElement deltaBarTooltip = $("#deltaBarTooltip");
+
     public static SelenideElement newBarTooltip = $("#newBarTooltip");
+
     public static SelenideElement waivedBarTooltip = $("#waivedBarTooltip");
+
     public static SelenideElement fixedBarTooltip = $("#fixedBarTooltip");
 
     public static SelenideElement root() {

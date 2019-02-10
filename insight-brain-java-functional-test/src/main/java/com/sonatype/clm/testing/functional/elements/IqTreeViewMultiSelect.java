@@ -16,7 +16,6 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class IqTreeViewMultiSelect
     extends BasicElement<IqTreeViewMultiSelect>
 {
-
   public IqTreeViewMultiSelect(final String selector) {
     super(selector);
   }

@@ -74,5 +74,4 @@ public class WebhookEditPage
   public SelenideElement form() {
     return child(".iq-form");
   }
-
 }

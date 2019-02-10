@@ -16,7 +16,6 @@ import static com.codeborne.selenide.Selenide.$$;
 public class ReportPolicyPage
     extends ReportPage
 {
-
   public static class PolicyReportRow
   {
     private final SelenideElement element;
@@ -85,5 +84,4 @@ public class ReportPolicyPage
   public static SelenideElement waivedView() {
     return $("#policy-violation-filter li:last-child a");
   }
-
 }

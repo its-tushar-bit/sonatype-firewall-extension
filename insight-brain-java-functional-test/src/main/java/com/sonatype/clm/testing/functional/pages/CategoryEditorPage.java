@@ -18,7 +18,6 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class CategoryEditorPage
 {
-
   private static SelenideElement root = $("#category-editor");
 
   private static final ColorPicker colorPicker = new ColorPicker("#editor-category-color-picker");

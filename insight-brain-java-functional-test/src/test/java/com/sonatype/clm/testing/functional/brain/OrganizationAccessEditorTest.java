@@ -13,7 +13,6 @@ import org.junit.Before;
 public class OrganizationAccessEditorTest
     extends AbstractAccessEditorTest
 {
-
   @Before
   public void init() {
     super.init(tempEntity.newOrganization("OrganizationAccessEditorTest org"));

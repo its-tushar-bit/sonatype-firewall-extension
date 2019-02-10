@@ -24,10 +24,8 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class WaiverCip
     extends ReportCip
 {
-
   public static class AddWaiverDialog
   {
-
     public static SelenideElement root() {
       return $("#add-waiver-modal");
     }
@@ -37,7 +35,7 @@ public class WaiverCip
     }
 
     public static SelenideElement scopedWaiver() {
-     return $("#waiver-scope-scoped");
+      return $("#waiver-scope-scoped");
     }
 
     public static SelenideElement policyName() {

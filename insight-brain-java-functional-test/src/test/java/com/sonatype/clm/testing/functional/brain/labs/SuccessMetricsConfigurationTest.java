@@ -35,8 +35,7 @@ import static com.codeborne.selenide.Condition.visible;
 public class SuccessMetricsConfigurationTest
     extends AbstractFunctionalTest
 {
-
-  private final static String SUCCESS_METRICS_DISABLED_TEXT =
+  private static final String SUCCESS_METRICS_DISABLED_TEXT =
       "Success metrics have been disabled by your system administrator";
 
   private final SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();

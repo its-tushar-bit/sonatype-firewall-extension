@@ -25,7 +25,6 @@ import static com.codeborne.selenide.Condition.visible;
 public class ApplicationLTGEditorTest
     extends AbstractLTGEditorTest
 {
-
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
   private Application application;

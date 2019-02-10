@@ -33,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapServerListTest
     extends AbstractFunctionalTest
 {
-
   @BeforeClass
   public static void startup() {
     refreshOrOpen(LdapServerListPage.URL);

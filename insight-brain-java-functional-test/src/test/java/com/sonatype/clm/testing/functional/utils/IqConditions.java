@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toList;
 
 public class IqConditions
 {
-
   public static CollectionCondition cssValues(String propertyName, String... values) {
     return new Css(propertyName, values);
   }
@@ -139,7 +138,6 @@ public class IqConditions
   private static class IqAssertionError
       extends UIAssertionError
   {
-
     protected IqAssertionError(String message, Throwable cause, long timeoutMs) {
       super(message, cause);
       this.timeoutMs = timeoutMs;

@@ -78,12 +78,12 @@ public class ClaimComponentCIP
   }
 
   public static class ConfirmRevokeClaimDialog
-    extends BasicElement<ConfirmRevokeClaimDialog>
+      extends BasicElement<ConfirmRevokeClaimDialog>
   {
-
     public ConfirmRevokeClaimDialog() {
       super("#confirm-revoke-claim-dialog");
     }
+
     public SelenideElement cancelButton() {
       return child(".btn-cancel");
     }
@@ -94,7 +94,7 @@ public class ClaimComponentCIP
   }
 
   public static class ControlGroup
-    extends BasicElement<ControlGroup>
+      extends BasicElement<ControlGroup>
   {
     public ControlGroup(String... selectors) {
       super(selectors);

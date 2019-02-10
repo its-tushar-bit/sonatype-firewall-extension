@@ -46,9 +46,9 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService = new PolicyViolationGrandfatheringService(
-      new ApplicationDAO(), organizationDAO, new PolicyDAO(), new PolicyViolationDAO(),
-      new PolicyViolationPersistenceLocks(), clmLicenseManager);
+  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
+      new PolicyViolationGrandfatheringService(new ApplicationDAO(), organizationDAO, new PolicyDAO(),
+          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager);
 
   @BeforeClass
   public static void boot() {

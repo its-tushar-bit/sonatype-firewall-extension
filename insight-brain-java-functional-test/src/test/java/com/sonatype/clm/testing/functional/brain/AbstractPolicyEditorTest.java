@@ -250,6 +250,7 @@ public abstract class AbstractPolicyEditorTest
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
   }
+
   @Test
   public void testFoundation_Firewall() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
@@ -349,7 +350,7 @@ public abstract class AbstractPolicyEditorTest
     return null;
   }
 
-  private void testCreatePolicy_navigatingAwayWithUnsavedData(){
+  private void testCreatePolicy_navigatingAwayWithUnsavedData() {
     String editorUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
     UnsavedModal unsavedModal = new UnsavedModal();
 
@@ -910,13 +911,15 @@ public abstract class AbstractPolicyEditorTest
     licenseCondition.value().selectedItem().shouldHave(text("AAL")).click();
     licenseCondition.value().listItem(5).shouldHave(text("AFL-1.2")).click();
 
-    DropdownConditionEditSection licenseStatus = addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 5);
+    DropdownConditionEditSection licenseStatus =
+        addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 5);
     licenseStatus.operator().selectedItem().shouldHave(text("is")).click();
     licenseStatus.operator().listItem(1).shouldHave(text("is not")).click();
     licenseStatus.value().selectedItem().shouldHave(text("Open")).click();
     licenseStatus.value().listItem(4).shouldHave(text("Confirmed")).click();
 
-    DropdownConditionEditSection licenseThreatGroup = addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 6);
+    DropdownConditionEditSection licenseThreatGroup =
+        addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 6);
     licenseThreatGroup.operator().selectedItem().shouldHave(text("is"));
     licenseThreatGroup.value().selectedItem().shouldHave(text("Banned")).click();
     licenseThreatGroup.value().listItem(2).shouldHave(text("Liberal")).click();
@@ -1247,7 +1250,6 @@ public abstract class AbstractPolicyEditorTest
     }
   }
 
-
   private void changeThreatLevel(int threatLevel) {
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
     ThreatLevelSelector.threatLevelListItem(10 - threatLevel).shouldBe(visible).click();
@@ -1266,13 +1268,13 @@ public abstract class AbstractPolicyEditorTest
 
   private InputConditionEditSection addInputCondition(ConstraintEditSection constraint,
                                                       Class<? extends AbstractConditionType> conditionType,
-                                                      int row) {
+                                                      int row)
+  {
     constraint.addConditionButton().click();
     InputConditionEditSection condition = constraint.inputCondition(row);
     condition.type().chooseOption(conditionTypesOptionMap.get(conditionType));
     return condition;
   }
-
 
   protected abstract void assertNewPolicyStateIsCorrect_inheritanceSection();
 

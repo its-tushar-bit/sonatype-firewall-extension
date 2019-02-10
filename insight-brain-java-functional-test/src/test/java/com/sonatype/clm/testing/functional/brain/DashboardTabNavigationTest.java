@@ -82,58 +82,59 @@ public class DashboardTabNavigationTest
           break;
         case 11:
           // introduce 2 new violations
-          PolicyEvaluation twelthWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "twelthWeekEval", time.toDate());
+          PolicyEvaluation twelthWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "twelthWeekEval", time.toDate());
           createViolations(twelthWeekEval, COMPONENTS.subList(0, 5));
           break;
         case 10:
         case 9: // nothing happens these weeks
           break;
         case 8: // fix an issue and introduce 2 new ones
-          PolicyEvaluation ninthWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "ninthWeekEval", time.toDate());
+          PolicyEvaluation ninthWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "ninthWeekEval", time.toDate());
           createViolations(ninthWeekEval, COMPONENTS.subList(1, 7));
           break;
         case 7: // Waive 3 violations
-          PolicyEvaluation eigthWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "eightWeekEval", time.toDate());
+          PolicyEvaluation eigthWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "eightWeekEval", time.toDate());
           createViolations(eigthWeekEval, COMPONENTS.subList(4, 7));
           createWaivedViolations(eigthWeekEval, COMPONENTS.subList(1, 4));
           break;
         case 6: // nothing happens this weeks
           break;
         case 5: // Fix one waived violation
-          PolicyEvaluation fifthWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "fifthWeekEval", time.toDate());
+          PolicyEvaluation fifthWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "fifthWeekEval", time.toDate());
           createViolations(fifthWeekEval, COMPONENTS.subList(4, 7));
           createWaivedViolations(fifthWeekEval, COMPONENTS.subList(2, 4));
           break;
         case 4: // find one, fix one
-          PolicyEvaluation fourthWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "fourthWeekEval", time.toDate());
+          PolicyEvaluation fourthWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "fourthWeekEval", time.toDate());
           createViolations(fourthWeekEval, COMPONENTS.subList(5, 8));
           createWaivedViolations(fourthWeekEval, COMPONENTS.subList(2, 4));
           break;
         case 3: // fix two, fix one waived violation
-          PolicyEvaluation thirdWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "thirdWeekEval", time.toDate());
+          PolicyEvaluation thirdWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "thirdWeekEval", time.toDate());
           createViolations(thirdWeekEval, COMPONENTS.subList(7, 8));
           createWaivedViolations(thirdWeekEval, COMPONENTS.subList(3, 4));
           break;
         case 2: // find one, fix one
-          PolicyEvaluation secondWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "secondWeekEval", time.toDate());
+          PolicyEvaluation secondWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "secondWeekEval", time.toDate());
           createViolations(secondWeekEval, COMPONENTS.subList(8, 9));
           createWaivedViolations(secondWeekEval, COMPONENTS.subList(3, 4));
           break;
         case 1: // nothing happens this week
           break;
         case 0: // find one, fix one
-          PolicyEvaluation thisWeekEval = staticTempEntity.
-              newPolicyEvaluation(app.getId(), BuildStageType.ID, "thisWeekEval", time.toDate());
+          PolicyEvaluation thisWeekEval =
+              staticTempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "thisWeekEval", time.toDate());
           createViolations(thisWeekEval, COMPONENTS.subList(9, 10));
           createWaivedViolations(thisWeekEval, COMPONENTS.subList(3, 4));
           break;
+        default:
       }
     }
   }

@@ -35,6 +35,5 @@ public class ChangeApplicationIdDialog
   public SelenideElement changeButton() {
     return child(FOOTER_SELECTOR, ".iq-btn.iq-btn--primary");
   }
-
 }
 

@@ -38,6 +38,7 @@ public class OwnerTreeViewTest
     extends AbstractFunctionalTest
 {
   private List<Organization> organizations = new ArrayList<>();
+
   private List<Application> applications = new ArrayList<>();
 
   private final String browserName = System.getProperty("browser");
@@ -54,7 +55,9 @@ public class OwnerTreeViewTest
         // At least one name alphabetically before and after Root Organization to test Root Organization is extracted
         .put("Silver Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
         .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
-        .put("Blue Squadron And Some Other Text To Force Overflow", Arrays.asList("Merrick Simms And Some Other Text To Force Overflow")).build();
+        .put("Blue Squadron And Some Other Text To Force Overflow",
+            Arrays.asList("Merrick Simms And Some Other Text To Force Overflow"))
+        .build();
 
     for (Entry<String, List<String>> organizationMeta : organizations.entrySet()) {
       Organization organization = tempEntity.newOrganization(organizationMeta.getKey());
@@ -73,7 +76,8 @@ public class OwnerTreeViewTest
 
   @Test
   public void testInitialLoad() {
-    assertOrganizationLoaded(OwnerTreeView.organization(0), "Blue Squadron And Some Other Text To Force Overflow", "Merrick Simms And Some Other Text To Force Overflow");
+    assertOrganizationLoaded(OwnerTreeView.organization(0), "Blue Squadron And Some Other Text To Force Overflow",
+        "Merrick Simms And Some Other Text To Force Overflow");
     assertOrganizationLoaded(OwnerTreeView.organization(1), "Green Squadron", "Arvel Crynyd", "Jake Farrell");
     assertOrganizationLoaded(OwnerTreeView.organization(2), "Silver Squadron", "Biggs Darklighter", "Garven Dreis",
         "Luke Skywalker");

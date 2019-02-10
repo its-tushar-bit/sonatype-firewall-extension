@@ -12,7 +12,6 @@ import org.junit.Before;
 public class OrganizationOwnerDetailsEditingTest
     extends AbstractOwnerDetailsEditingTest
 {
-
   private static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
   private Organization organization;

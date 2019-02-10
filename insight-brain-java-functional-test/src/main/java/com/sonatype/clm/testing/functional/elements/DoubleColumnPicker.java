@@ -18,7 +18,6 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSele
 public class DoubleColumnPicker
     extends BasicElement<DoubleColumnPicker>
 {
-
   private static final String AVAILABLE_ITEM_LIST = ".list-row .available-list";
 
   private static final String AVAILABLE_ITEM = createSelector(AVAILABLE_ITEM_LIST, "iq-checkbox");

@@ -40,7 +40,8 @@ public class DashboardComponents
     }
 
     public ElementsCollection componentRisks(int index) {
-      return children(".iq-components-results .iq-table-row", nthChild(index + 1), ".iq-cell:nth-child(n+3):nth-child(-n+7)");
+      return children(".iq-components-results .iq-table-row", nthChild(index + 1),
+          ".iq-cell:nth-child(n+3):nth-child(-n+7)");
     }
 
     public ComponentElement firstComponent() {
@@ -73,7 +74,7 @@ public class DashboardComponents
 
     public IqSortingHeader componentNameHeader() {
       return new IqSortingHeader(childSelector(".iq-cell--component-name", "a"));
-  }
+    }
 
     public IqSortingHeader totalRiskHeader() {
       return new IqSortingHeader(childSelector(".iq-cell--total-risk", "a"));

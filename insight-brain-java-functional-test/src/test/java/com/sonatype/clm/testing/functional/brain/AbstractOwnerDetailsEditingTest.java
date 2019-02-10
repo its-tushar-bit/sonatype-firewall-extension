@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest
 {
-  private final static List<Role> ROLES = new RoleDAO().getApplicationRoles();
+  private static final List<Role> ROLES = new RoleDAO().getApplicationRoles();
 
   private Owner currentOwner;
 
@@ -95,7 +95,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
       testRouting_Policies(OwnerDetailTreeView.policyGroup());
       testRouting_ComponentLabels(OwnerDetailTreeView.componentLabelGroup());
-      testRouting_LicenseThreatGroups(OwnerDetailTreeView.LTGGroup());
+      testRouting_LicenseThreatGroups(OwnerDetailTreeView.ltgGroup());
       testRouting_Access(OwnerDetailTreeView.accessGroup());
     }
     else {
@@ -104,7 +104,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       OwnerDetailTreeView.applicationCategoryGroup().shouldBe(hidden);
       OwnerDetailTreeView.policyGroup().shouldBe(hidden);
       OwnerDetailTreeView.componentLabelGroup().shouldBe(hidden);
-      OwnerDetailTreeView.LTGGroup().shouldBe(hidden);
+      OwnerDetailTreeView.ltgGroup().shouldBe(hidden);
       OwnerDetailTreeView.accessGroup().shouldBe(visible);
       testRouting_Access(OwnerDetailTreeView.accessGroup());
     }

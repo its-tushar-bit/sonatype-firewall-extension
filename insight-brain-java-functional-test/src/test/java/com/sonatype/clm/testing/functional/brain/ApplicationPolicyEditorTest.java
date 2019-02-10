@@ -35,7 +35,6 @@ import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSecti
 public class ApplicationPolicyEditorTest
     extends AbstractPolicyEditorTest
 {
-
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
   private Application application;

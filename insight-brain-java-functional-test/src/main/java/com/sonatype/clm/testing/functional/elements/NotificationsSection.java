@@ -37,43 +37,43 @@ public class NotificationsSection
 
   public static class NotificationItem
   {
-
-    private final String ROOT_SELECTOR;
+    private final String rootSelector;
 
     public NotificationItem(String recipient) {
-      this.ROOT_SELECTOR = createSelector(NotificationsSection.ROOT_SELECTOR, "tr[data-recipient=\"" + recipient + "\"]");
+      this.rootSelector =
+          createSelector(NotificationsSection.ROOT_SELECTOR, "tr[data-recipient=\"" + recipient + "\"]");
     }
 
     public IqCheckbox proxy() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(2), "iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(2), "iq-checkbox")));
     }
 
     public IqCheckbox develop() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(3), "iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(3), "iq-checkbox")));
     }
 
     public IqCheckbox build() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(4), "iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(4), "iq-checkbox")));
     }
 
     public IqCheckbox stageRelease() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(5), "iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(5), "iq-checkbox")));
     }
 
     public IqCheckbox release() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(6), "iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(6), "iq-checkbox")));
     }
 
     public IqCheckbox operate() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(7), "iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(7), "iq-checkbox")));
     }
 
     public IqCheckbox continuousMonitoring() {
-      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td:nth-last-child(2) iq-checkbox")));
+      return new IqCheckbox($(createSelector(rootSelector, "td:nth-last-child(2) iq-checkbox")));
     }
 
     public SelenideElement deleteButton() {
-      return $(createSelector(ROOT_SELECTOR, " button"));
+      return $(createSelector(rootSelector, " button"));
     }
   }
 
@@ -115,5 +115,4 @@ public class NotificationsSection
       return new ErrorBox(createSelector(rootSelector, ".iq-alert.iq-alert--error"));
     }
   }
-
 }

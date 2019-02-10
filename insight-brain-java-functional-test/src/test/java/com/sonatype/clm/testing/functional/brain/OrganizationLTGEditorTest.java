@@ -26,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrganizationLTGEditorTest
     extends AbstractLTGEditorTest
 {
-
   private Organization organization;
 
   @Before

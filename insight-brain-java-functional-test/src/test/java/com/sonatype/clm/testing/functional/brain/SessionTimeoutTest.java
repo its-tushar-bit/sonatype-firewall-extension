@@ -43,7 +43,6 @@ import static com.codeborne.selenide.Condition.visible;
 public class SessionTimeoutTest
     extends AbstractFunctionalTest
 {
-
   private DefaultWebSessionManager sessionManager;
 
   private long oldSessionTimeout;

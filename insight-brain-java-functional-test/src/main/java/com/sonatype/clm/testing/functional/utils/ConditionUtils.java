@@ -13,7 +13,6 @@ import com.codeborne.selenide.SelenideElement;
 
 public class ConditionUtils
 {
-
   public static void shouldHave(final ElementsCollection elements, final Condition condition) {
     for (Iterator<SelenideElement> iterator = elements.iterator(); iterator.hasNext();) {
       iterator.next().shouldHave(condition);

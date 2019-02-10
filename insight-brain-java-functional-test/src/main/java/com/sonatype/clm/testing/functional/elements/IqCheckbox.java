@@ -79,7 +79,8 @@ public class IqCheckbox
         else {
           label().shouldNotBe(condition);
         }
-      }    }
+      }
+    }
     return this;
   }
 

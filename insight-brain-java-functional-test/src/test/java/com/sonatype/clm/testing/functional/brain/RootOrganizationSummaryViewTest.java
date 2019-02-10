@@ -21,7 +21,6 @@ import static com.codeborne.selenide.Condition.text;
 
 public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
 {
-
   @BeforeClass
   public static void boot() {
     refreshOrOpen(ReportListPage.URL);
@@ -41,5 +40,4 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ActionDropDown.actionButton().click();
     ActionDropDown.deleteOwnerButton().shouldNot(exist);
   }
-
 }

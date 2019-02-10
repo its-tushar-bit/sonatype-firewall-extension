@@ -84,6 +84,7 @@ public class ApplicationReportCipTest
 {
   private static final ComponentIdentifier JAVANCSS_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("javancss",
       "javancss", "29.50");
+
   private static final String JAVANCSS_HASH = "9aba4af169a1a3baa67f";
 
   public static final String SCAN_ID = "306e0a923df34c64b836358182b1b902";
@@ -719,7 +720,7 @@ public class ApplicationReportCipTest
     claimComponentTab.classifier().shouldNotHave(ERROR_CLASS).input().val("classifier");
 
     claimComponentTab.claimBtn().click();
-    claimComponentTab.revokeBtn().waitUntil(visible, 10*1000); // sometimes takes a surprisingly long time
+    claimComponentTab.revokeBtn().waitUntil(visible, 10 * 1000); // sometimes takes a surprisingly long time
     cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));
     claimComponentTab.revokeBtn().shouldBe(enabled);
     claimComponentTab.cancelBtn().shouldBe(disabled);
@@ -770,7 +771,8 @@ public class ApplicationReportCipTest
                               String name,
                               String conditionType,
                               String operator,
-                              String value) {
+                              String value)
+  {
     Policy p = new Policy(null, name);
     p.setThreatLevel(threatLevel);
     p.setOwnerId(ownerId);

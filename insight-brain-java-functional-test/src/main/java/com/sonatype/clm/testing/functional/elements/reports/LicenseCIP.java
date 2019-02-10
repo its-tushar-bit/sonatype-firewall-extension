@@ -90,7 +90,10 @@ public class LicenseCIP
 
       @SuppressWarnings("serial")
       @Override
-      public void fail(WebElementsCollection collection, List<WebElement> elements, Exception lastError, long timeoutMs)
+      public void fail(WebElementsCollection collection,
+                       List<WebElement> elements,
+                       Exception lastError,
+                       long timeoutMs)
       {
         if (missingClassIndex != null) {
           throw new UIAssertionError("Failed to locate CSS class: "

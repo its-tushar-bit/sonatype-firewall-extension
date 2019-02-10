@@ -38,7 +38,6 @@ public class RepositoryConfigurationTile
   public static class ConfigurationTable
       extends GreedyTable<ConfigurationTable.ConfigurationTableRow>
   {
-
     public ConfigurationTable(String... selectors) {
       super(selectors);
     }

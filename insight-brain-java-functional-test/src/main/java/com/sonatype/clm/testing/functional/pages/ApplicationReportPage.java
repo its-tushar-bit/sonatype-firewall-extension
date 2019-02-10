@@ -27,10 +27,11 @@ public class ApplicationReportPage
 {
   public static final String ROOT = "#application-report";
 
-  private final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
+  private static final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
 
   public static String url(Application app, String scanId) {
-    return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy", app.getPublicId(), scanId);
+    return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy", app.getPublicId(),
+        scanId);
   }
 
   public ApplicationReportPage() {
@@ -146,7 +147,7 @@ public class ApplicationReportPage
   }
 
   public static class IQThreatIndicators
-  extends BasicElement<IQThreatIndicators>
+      extends BasicElement<IQThreatIndicators>
   {
     public IQThreatIndicators(String selector) {
       super(selector);

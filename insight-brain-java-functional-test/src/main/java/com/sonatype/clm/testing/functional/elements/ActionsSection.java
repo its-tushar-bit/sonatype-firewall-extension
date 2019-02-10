@@ -14,7 +14,6 @@ import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-
 public class ActionsSection
 {
   public static final String ROOT_SELECTOR = "#edit-policy-actions-table";

@@ -9,9 +9,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 public class OrganizationManagementPage
 {
+  public static final String URL = BaseUrl.resolvePageUrl("/management/view");
 
-  public static String URL = BaseUrl.resolvePageUrl("/management/view");
-
-  public static String ROOT_ORG_URL = BaseUrl.resolvePageUrl("/management/view/organization/ROOT_ORGANIZATION_ID");
-
+  public static final String ROOT_ORG_URL =
+      BaseUrl.resolvePageUrl("/management/view/organization/ROOT_ORGANIZATION_ID");
 }

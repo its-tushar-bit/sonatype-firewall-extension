@@ -12,7 +12,6 @@ import org.junit.Before;
 public class ApplicationOwnerDetailsEditingTest
     extends AbstractOwnerDetailsEditingTest
 {
-
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
   private Application application;

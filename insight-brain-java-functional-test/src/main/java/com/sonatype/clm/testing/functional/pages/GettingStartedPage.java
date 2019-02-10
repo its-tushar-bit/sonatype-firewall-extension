@@ -51,7 +51,6 @@ public class GettingStartedPage
   public static class ProductLicenseSummaryTile
       extends BasicElement<ProductLicenseSummaryTile>
   {
-
     private static final String ROOT = "product-license-summary";
 
     ProductLicenseSummaryTile() {

@@ -13,7 +13,6 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class ReportListPage
 {
-
   public static String URL = BaseUrl.resolvePageUrl("/reports/violations");
 
   public static SelenideElement listContainer() {

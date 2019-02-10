@@ -12,7 +12,6 @@ import org.junit.Before;
 public class ApplicationProprietaryConfigEditorTest
     extends AbstractProprietaryConfigEditorTest
 {
-
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
   private Application application;
@@ -24,5 +23,4 @@ public class ApplicationProprietaryConfigEditorTest
 
     super.init(application);
   }
-
 }

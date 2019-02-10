@@ -47,6 +47,5 @@ public class MoveApplicationDialog
   public SelenideElement retryButton() {
     return child(FOOTER_SELECTOR, ".iq-btn--error");
   }
-
 }
 

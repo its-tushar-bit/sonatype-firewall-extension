@@ -204,7 +204,7 @@ public class RepositoryReportTest
     // one no violation, unknown
     RepositoryComponent component = tempEntity
         .newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, "thePathname", null, false);
-    UNKNOWN = new ExpectedRow(Table.NO_THREAT, "No violations", component.getPathname(), false, false);
+    unknown = new ExpectedRow(Table.NO_THREAT, "No violations", component.getPathname(), false, false);
 
     // one of each threat level
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
@@ -253,7 +253,7 @@ public class RepositoryReportTest
     RepositoryReportPage.filter().allMatchState().shouldBe(Filter.ACTIVE);
     RepositoryReportPage.filter().summaryViolations().shouldBe(Filter.ACTIVE);
 
-    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, UNKNOWN, NO_VIOLATION_ROW);
+    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, unknown, NO_VIOLATION_ROW);
 
     testExactMatchesFilter();
     testUnknownMatchesFilter();
@@ -427,10 +427,12 @@ public class RepositoryReportTest
     openCip(0, "Labels");
 
     LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.dark_blue)).action().should(exist);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.dark_blue)).action()
+        .should(exist);
 
     LabelsCIP.availableLabels().shouldHaveSize(1);
-    LabelsCIP.availableLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.dark_red)).action().click();
+    LabelsCIP.availableLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.dark_red)).action()
+        .click();
 
     // Modal
     AddLabelModal.root().shouldBe(visible);
@@ -678,7 +680,7 @@ public class RepositoryReportTest
   private void testUnknownMatchesFilter() {
     RepositoryReportPage.filter().unknownMatchState().click().shouldBe(Filter.ACTIVE);
 
-    assertRows(UNKNOWN);
+    assertRows(unknown);
 
     resetFilter();
   }
@@ -695,7 +697,7 @@ public class RepositoryReportTest
     RepositoryReportPage.filter().allViolations().click().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, WAIVED_ROW, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
-        UNKNOWN);
+        unknown);
     resetFilter();
   }
 
@@ -803,31 +805,31 @@ public class RepositoryReportTest
     new RepositoryPolicyViolationDAO().update(violation);
   }
 
-  private ExpectedRow UNKNOWN;
+  private ExpectedRow unknown;
 
-  private final ExpectedRow QUARANTINED = new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad",
-      "quarantined : component : 1.0", false, true);
+  private static final ExpectedRow QUARANTINED =
+      new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad", "quarantined : component : 1.0", false, true);
 
-  private final ExpectedRow CRITICAL_ROW = new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad",
-      "critical : threat : 1.0", false, false);
+  private static final ExpectedRow CRITICAL_ROW =
+      new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad", "critical : threat : 1.0", false, false);
 
-  private final ExpectedRow CRITICAL_ROW_SECONDARY = new ExpectedRow(Table.CRITICAL_THREAT, "Not In Summary",
-      "critical : threat : 1.0", false, false);
+  private static final ExpectedRow CRITICAL_ROW_SECONDARY =
+      new ExpectedRow(Table.CRITICAL_THREAT, "Not In Summary", "critical : threat : 1.0", false, false);
 
-  private final ExpectedRow SEVERE_ROW = new ExpectedRow(Table.SEVERE_THREAT, "Really Bad", "severe : threat : 1.0",
-      false, false);
+  private static final ExpectedRow SEVERE_ROW =
+      new ExpectedRow(Table.SEVERE_THREAT, "Really Bad", "severe : threat : 1.0", false, false);
 
-  private final ExpectedRow MODERATE_ROW = new ExpectedRow(Table.MODERATE_THREAT, "Sorta Bad",
-      "moderate : threat : 1.0", false, false);
+  private static final ExpectedRow MODERATE_ROW =
+      new ExpectedRow(Table.MODERATE_THREAT, "Sorta Bad", "moderate : threat : 1.0", false, false);
 
-  private final ExpectedRow IGNORED_ROW = new ExpectedRow(Table.IGNORED_SCORE, "Meh", "ignored : threat : 1.0", false,
-      false);
+  private static final ExpectedRow IGNORED_ROW =
+      new ExpectedRow(Table.IGNORED_SCORE, "Meh", "ignored : threat : 1.0", false, false);
 
-  private final ExpectedRow WAIVED_ROW = new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad but its cool",
-      "waived : component : 1.0", true, false);
+  private static final ExpectedRow WAIVED_ROW =
+      new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad but its cool", "waived : component : 1.0", true, false);
 
-  private final ExpectedRow NO_VIOLATION_ROW = new ExpectedRow(Table.NO_THREAT, "No violations",
-      "waived : component : 1.0", false, false);
+  private static final ExpectedRow NO_VIOLATION_ROW =
+      new ExpectedRow(Table.NO_THREAT, "No violations", "waived : component : 1.0", false, false);
 
   private static class ExpectedRow
   {

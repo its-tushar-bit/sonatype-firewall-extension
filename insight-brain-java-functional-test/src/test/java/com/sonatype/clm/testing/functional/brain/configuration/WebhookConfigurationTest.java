@@ -45,7 +45,9 @@ public class WebhookConfigurationTest
     extends AbstractFunctionalTest
 {
   private WebhookDAO webhookDAO = new WebhookDAO();
+
   private WebhookEditPage webhookEditPage = new WebhookEditPage();
+
   private WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
   
   private List<Webhook> webhookList = new ArrayList<>();

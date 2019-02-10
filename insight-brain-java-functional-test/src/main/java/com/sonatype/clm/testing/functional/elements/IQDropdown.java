@@ -25,8 +25,8 @@ public class IQDropdown
   }
 
   public class IQDropdownMenu
-      extends BasicElement<IQDropdownMenu> {
-
+      extends BasicElement<IQDropdownMenu>
+  {
     public IQDropdownMenu(String selector) {
       super(selector);
     }

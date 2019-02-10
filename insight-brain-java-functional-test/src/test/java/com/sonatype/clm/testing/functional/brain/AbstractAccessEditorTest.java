@@ -240,18 +240,18 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testDisabledGroupSearchWarning() {
     // start with two LDAP servers, both with dynamic group search disabled
-    String ldap_1 = tempEntity.newLdapServer("LDAP_1").getId();
-    tempEntity.newLdapConnection(ldap_1);
+    String ldap1 = tempEntity.newLdapServer("LDAP_1").getId();
+    tempEntity.newLdapConnection(ldap1);
 
-    LdapUserMapping userMapping1 = tempEntity.newLdapUserMapping(ldap_1);
+    LdapUserMapping userMapping1 = tempEntity.newLdapUserMapping(ldap1);
     userMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     userMapping1.setDynamicGroupSearchEnabled(false);
     new LdapUserMappingDAO().update(userMapping1);
 
-    String ldap_2 = tempEntity.newLdapServer("LDAP_2").getId();
-    tempEntity.newLdapConnection(ldap_2);
+    String ldap2 = tempEntity.newLdapServer("LDAP_2").getId();
+    tempEntity.newLdapConnection(ldap2);
 
-    LdapUserMapping userMapping2 = tempEntity.newLdapUserMapping(ldap_2);
+    LdapUserMapping userMapping2 = tempEntity.newLdapUserMapping(ldap2);
     userMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     userMapping2.setDynamicGroupSearchEnabled(false);
     new LdapUserMappingDAO().update(userMapping2);

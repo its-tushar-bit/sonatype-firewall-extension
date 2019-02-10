@@ -64,7 +64,5 @@ public class TileSimpleList
     public SelenideElement chevron() {
       return root.$(".fa-chevron-right");
     }
-
   }
-
 }

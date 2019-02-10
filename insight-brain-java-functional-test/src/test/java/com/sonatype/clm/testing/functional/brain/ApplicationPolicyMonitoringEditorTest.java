@@ -12,7 +12,6 @@ import org.junit.Before;
 public class ApplicationPolicyMonitoringEditorTest
     extends AbstractPolicyMonitoringEditorTest
 {
-
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
   private Application application;
@@ -25,5 +24,4 @@ public class ApplicationPolicyMonitoringEditorTest
 
     super.init(application);
   }
-
 }

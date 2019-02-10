@@ -32,7 +32,6 @@ import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSecti
 public class OrganizationPolicyEditorTest
     extends AbstractPolicyEditorTest
 {
-
   private Organization organization;
 
   @Before

@@ -49,11 +49,11 @@ public class OwnerEditorDialog
     return new IqRadio($("#owner-editor-icon-robot"));
   }
 
-  public static class RobotIconSelector {
-
+  public static class RobotIconSelector
+  {
     public static final String ROOT = "#robot-icon-selector";
 
-    public static SelenideElement button(){
+    public static SelenideElement button() {
       return $(SelectorUtils.createSelector(ROOT, "button"));
     }
 

@@ -11,7 +11,6 @@ import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 
-
 import org.junit.BeforeClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -126,7 +125,8 @@ public class ProductLicenseTest
     ProductLicensePage.uninstallLicenseBtn().shouldBe(visible).shouldHave(text("Uninstall License"));
     ProductLicensePage.uninstallLicenseBtn().click();
 
-    ProductLicensePage.ProductLicenseUninstallModal uninstallModal = new ProductLicensePage.ProductLicenseUninstallModal();
+    ProductLicensePage.ProductLicenseUninstallModal uninstallModal =
+        new ProductLicensePage.ProductLicenseUninstallModal();
 
     uninstallModal.shouldBe(visible);
     uninstallModal.uninstallBtn().shouldBe(visible);

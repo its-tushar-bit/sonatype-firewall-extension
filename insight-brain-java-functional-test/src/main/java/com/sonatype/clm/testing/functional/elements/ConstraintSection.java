@@ -140,7 +140,6 @@ public class ConstraintSection
     public static class ConditionEditSection<T>
         extends BasicElement<ConditionEditSection<T>>
     {
-
       public ConditionEditSection(String... rootSelectors) {
         super(rootSelectors);
       }
@@ -161,7 +160,6 @@ public class ConstraintSection
     public static class DropdownConditionEditSection
         extends ConditionEditSection<DropdownConditionEditSection>
     {
-
       public DropdownConditionEditSection(final String... rootSelector) {
         super(rootSelector);
       }
@@ -174,7 +172,6 @@ public class ConstraintSection
     public static class AgeConditionEditSection
         extends ConditionEditSection<AgeConditionEditSection>
     {
-
       public AgeConditionEditSection(final String... rootSelector) {
         super(rootSelector);
       }
@@ -187,7 +184,6 @@ public class ConstraintSection
     public static class InputConditionEditSection
         extends ConditionEditSection<InputConditionEditSection>
     {
-
       public InputConditionEditSection(final String... rootSelector) {
         super(rootSelector);
       }

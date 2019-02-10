@@ -18,6 +18,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ApplicationCategoryEditorPage
 {
   private static final String ROOT_ID = "#application-category-editor";
+
   public static final Condition NO_CATEGORIES_DEFINED = Condition.text("No application categories defined.");
 
   public static String urlToEdit(Owner owner) {

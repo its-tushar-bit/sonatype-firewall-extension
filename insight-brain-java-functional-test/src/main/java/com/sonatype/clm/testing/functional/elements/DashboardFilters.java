@@ -21,7 +21,6 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class DashboardFilters
     extends BasicElement<DashboardFilters>
 {
-
   public static final Condition ACTIVE = cssClass("iq-counter--active");
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
@@ -231,7 +230,6 @@ public class DashboardFilters
   public static class PolicyTypeFilter
       extends IqTreeViewMultiSelect
   {
-
     public PolicyTypeFilter(final String selector) {
       super(selector);
     }
@@ -256,7 +254,6 @@ public class DashboardFilters
   public static class AgeFilter
       extends IqTreeViewMultiSelect
   {
-
     public AgeFilter(final String selector) {
       super(selector);
     }
@@ -273,7 +270,6 @@ public class DashboardFilters
   public static class StageFilter
       extends IqTreeViewMultiSelect
   {
-
     public StageFilter(final String selector) {
       super(selector);
     }
@@ -293,7 +289,6 @@ public class DashboardFilters
     public IqCheckbox operate() {
       return checkboxItem(5);
     }
-
   }
 
   public static class PolicyViolationStateFilter

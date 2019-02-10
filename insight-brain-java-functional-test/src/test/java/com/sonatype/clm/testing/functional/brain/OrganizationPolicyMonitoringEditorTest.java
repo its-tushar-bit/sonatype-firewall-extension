@@ -12,7 +12,6 @@ import org.junit.Before;
 public class OrganizationPolicyMonitoringEditorTest
     extends AbstractPolicyMonitoringEditorTest
 {
-
   private Organization organization;
 
   @Before
@@ -20,5 +19,4 @@ public class OrganizationPolicyMonitoringEditorTest
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     super.init(organization);
   }
-
 }

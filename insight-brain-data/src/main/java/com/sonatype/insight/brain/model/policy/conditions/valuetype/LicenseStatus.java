@@ -9,24 +9,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+
 /**
- * Thin wrapper over the {@link com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus}
- * enumeration to be able to serialize it into json as key-value pairs (like: {"id":"OVERRIDDEN","name":"Overridden"}),
- * as expected by the policy UI.
+ * Thin wrapper over the {@link com.sonatype.insight.brain.model.license.LicenseOverrideStatus} enumeration to be able
+ * to serialize it into json as key-value pairs (like: {"id":"OVERRIDDEN","name":"Overridden"}), as expected by the
+ * policy UI.
  * We could use the @JsonFormat(shape = JsonFormat.Shape.OBJECT) annotation on the enumeration to get the same json
  * serialization, but that does not allow json de-serialization and the @JsonCreator annotation does not work with
  * enumerations.
  * 
- * @since 1.20
+ * @since 1.6
  */
-public class SecurityVulnerabilityOverrideStatus
+public class LicenseStatus
 {
-  private static final List<SecurityVulnerabilityOverrideStatus> all = new ArrayList<>();
+  private static final List<LicenseStatus> all = new ArrayList<>();
 
   static {
-    for (com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus overrideStatus : com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus
-        .values()) {
-      all.add(new SecurityVulnerabilityOverrideStatus(overrideStatus.getId(), overrideStatus.getName()));
+    for (LicenseOverrideStatus licenseOverrideStatus : LicenseOverrideStatus.values()) {
+      all.add(new LicenseStatus(licenseOverrideStatus.getId(), licenseOverrideStatus.getName()));
     }
   }
 
@@ -34,12 +35,12 @@ public class SecurityVulnerabilityOverrideStatus
 
   private final String name;
 
-  private SecurityVulnerabilityOverrideStatus(String id, String name) {
+  private LicenseStatus(String id, String name) {
     this.id = id;
     this.name = name;
   }
 
-  public static List<SecurityVulnerabilityOverrideStatus> getAll() {
+  public static List<LicenseStatus> getAll() {
     return Collections.unmodifiableList(all);
   }
 

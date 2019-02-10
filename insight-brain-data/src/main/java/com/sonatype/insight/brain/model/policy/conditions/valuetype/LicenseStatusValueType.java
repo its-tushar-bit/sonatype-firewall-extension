@@ -10,7 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class LicenseStatusValueType
-    implements ConditionValueType<LicenseOverrideStatus>
+    implements ConditionValueType<LicenseStatus>
 {
   public static final String ID = "LicenseStatusValueType";
 
@@ -30,7 +30,7 @@ public class LicenseStatusValueType
   }
 
   @Override
-  public List<LicenseOverrideStatus> getAvailableValues() {
-    return LicenseOverrideStatus.getAll();
+  public List<LicenseStatus> getAvailableValues() {
+    return LicenseStatus.getAll();
   }
 }

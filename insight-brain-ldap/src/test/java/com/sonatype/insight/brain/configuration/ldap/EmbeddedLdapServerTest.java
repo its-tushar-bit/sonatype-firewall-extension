@@ -27,8 +27,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class EmbeddedLdapServerTest
 {
   private static final String AUTH_CRAMMD5 = "CRAM-MD5";
+
   private static final String AUTH_DIGESTMD5 = "DIGEST-MD5";
+
   private static final String AUTH_SIMPLE = "simple";
+
   private static final String AUTH_NONE = "none";
 
   private EmbeddedLdapServer server = new EmbeddedLdapServer();

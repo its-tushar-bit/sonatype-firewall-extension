@@ -14,7 +14,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicySelectorTest
-  extends AbstractSelectorTest
+    extends AbstractSelectorTest
 {
   // VALUES('', '', '', '', '', 0, '', '', TS, TS, TS, false, false);
   private static final String[] POLICY_VIOLATION_COLS = new String[] { "policy_violation_id", "application_id",
@@ -115,5 +115,4 @@ public class PolicySelectorTest
           "p4");
     }
   }
-
 }

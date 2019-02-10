@@ -108,7 +108,8 @@ public class EmbeddedLdapServer
         ldifResourceName, port);
 
     // an example that shows how to create and configure embedded apacheds instance
-    // http://svn.apache.org/repos/asf/directory/apacheds/trunk/core-annotations/src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
+    // http://svn.apache.org/repos/asf/directory/apacheds/trunk/core-annotations/
+    //   src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
 
     directoryService = new DefaultDirectoryService();
 

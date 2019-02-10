@@ -43,5 +43,4 @@ public class ApplicationListSelector
     return new ListReplacer(APPLICATION_LIST_REPLACEMENT_PREFIX,
         loadSelections(conn, params).get(APPLICATION_LIST_REPLACEMENT_PREFIX), params.getMaxApplications());
   }
-
 }

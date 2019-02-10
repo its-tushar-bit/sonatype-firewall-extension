@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.fail;
 public class ResourceClientTest
     extends AbstractBrainServiceTest
 {
-
   @Test
   public void testMissingFile() throws Exception {
     try {

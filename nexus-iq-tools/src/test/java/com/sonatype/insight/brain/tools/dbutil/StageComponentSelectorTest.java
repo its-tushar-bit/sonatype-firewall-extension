@@ -8,12 +8,13 @@ package com.sonatype.insight.brain.tools.dbutil;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StageComponentSelectorTest
-  extends AbstractSelectorTest
+    extends AbstractSelectorTest
 {
   // VALUES('', '', '', '', '', 0, '', '', TS, TS, TS, false, false);
   private static final String[] POLICY_VIOLATION_COLS = new String[] { "policy_violation_id", "application_id",
@@ -27,9 +28,9 @@ public class StageComponentSelectorTest
 
   private void defaults() throws Exception {
     // just used to grab hash counts
-    String OPEN = "2018-01-01 00:00:00";
-    String WAIVED = "2018-02-01 00:00:00";
-    String FIXED = "2018-03-01 00:00:00";
+    final String OPEN = "2018-01-01 00:00:00";
+    final String WAIVED = "2018-02-01 00:00:00";
+    final String FIXED = "2018-03-01 00:00:00";
     // 4 - h444
     insert("policy_violation", POLICY_VIOLATION_COLS, new Object[] { "v1", "a1", "build", "p1", "pn1", 0, "h444",
         "test", "", OPEN, null, null, Boolean.FALSE, Boolean.FALSE });
@@ -66,8 +67,9 @@ public class StageComponentSelectorTest
         new Object[] { "ac6", "a1", "develop", "2018-01-01 00:00:00", "h444", "", "", "", "", "", Boolean.FALSE });
   }
 
-  final static String hKey = StageComponentSelector.COMPONENT_HASH_REPLACEMENT_KEY;
-  final static String sKey = StageComponentSelector.STAGE_REPLACEMENT_KEY;
+  static final String hKey = StageComponentSelector.COMPONENT_HASH_REPLACEMENT_KEY;
+
+  static final String sKey = StageComponentSelector.STAGE_REPLACEMENT_KEY;
 
   @Test
   public void testLoadSelections_Defaults() throws Exception {

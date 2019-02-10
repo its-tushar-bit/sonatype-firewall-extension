@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  */
 public class PolicyEvaluatorCli
 {
-
   static final String PROP_OUTPUT_DIRECTORY = "com.sonatype.insight.scan.outDir";
 
   static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
@@ -78,5 +77,4 @@ public class PolicyEvaluatorCli
       log.setLevel(level);
     }
   }
-
 }

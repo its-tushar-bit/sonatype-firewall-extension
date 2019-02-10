@@ -8,7 +8,6 @@ package com.sonatype.insight.scan.cli;
 public class ExitException
     extends Exception
 {
-
   private static final long serialVersionUID = 1860065432528002161L;
 
   private final int exitCode;
@@ -35,5 +34,4 @@ public class ExitException
   public int getExitCode() {
     return exitCode;
   }
-
 }

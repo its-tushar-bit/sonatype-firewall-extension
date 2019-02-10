@@ -125,5 +125,4 @@ public class ListReplacer
 
     return generated;
   }
-
 }

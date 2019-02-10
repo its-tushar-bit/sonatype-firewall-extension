@@ -36,7 +36,8 @@ import static org.mockito.Mockito.verify;
 public class TwistlockPolicyEvaluatorTest
     extends InjectedTest
 {
-  private static final String DEFAULT_TWISTLOCK_RESULTS_URL = "http://localhost:${twistlockServerPort}/api/v1/scan/scan-2016-10-11T18:38:13.773Z.tar.gz";
+  private static final String DEFAULT_TWISTLOCK_RESULTS_URL =
+      "http://localhost:${twistlockServerPort}/api/v1/scan/scan-2016-10-11T18:38:13.773Z.tar.gz";
 
   private static final String DEFAULT_TWISTLOCK_SCANNER_OUTPUT = "\nScan completed. Results at: "
       + DEFAULT_TWISTLOCK_RESULTS_URL + "\n";
@@ -81,8 +82,7 @@ public class TwistlockPolicyEvaluatorTest
     try (ZipFile scanFileZip = new ZipFile(scanFile)) {
       // Verify the Twistlock scan in the scan zip file
       ZipEntry entry = scanFileZip.getEntry("twistlockScanFile.tar.gz");
-      try (InputStream expected = getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz")
-          .openStream()) {
+      try (InputStream expected = getClass().getResourceAsStream("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz")) {
         assertThat(IOUtil.contentEquals(expected, scanFileZip.getInputStream(entry))).isTrue();
       }
 

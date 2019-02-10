@@ -186,8 +186,8 @@ class LdapQuery
     );
 
     try (LdapContextHolder ctxHolder = getSystemLdapContext()) {
-      try (SearchResults results = searchUsersByUsernames(ctxHolder.ctx, new String[] { notNull(username) }, attributes,
-          1)) {
+      String[] usernames = {notNull(username)};
+      try (SearchResults results = searchUsersByUsernames(ctxHolder.ctx, usernames, attributes, 1)) {
         if (results.hasMoreElements()) {
           SearchResult result = results.nextElement();
           return createUser(ctxHolder.ctx, result.getNameInNamespace(), result.getAttributes(), withMembership);
@@ -767,7 +767,8 @@ class LdapQuery
   // note i have this method here simply to save from having to type the fully qualified LdapUtils classname all over
   // the place
   private String escapeAttribute(String attribute, boolean allowAsterisk) {
-    return com.sonatype.insight.brain.model.configuration.ldap.LdapUtils.escapeLdapQueryAttribute(attribute, allowAsterisk);
+    return com.sonatype.insight.brain.model.configuration.ldap.LdapUtils.escapeLdapQueryAttribute(attribute,
+        allowAsterisk);
   }
 
   private List<String> escapeAttributes(String[] attributes, boolean allowAsterisk) {

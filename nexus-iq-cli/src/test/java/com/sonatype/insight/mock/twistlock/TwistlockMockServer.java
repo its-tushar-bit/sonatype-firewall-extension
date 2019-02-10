@@ -38,7 +38,6 @@ import org.eclipse.jetty.util.security.Password;
 
 public class TwistlockMockServer
 {
-
   static {
     SslProperties.use();
   }

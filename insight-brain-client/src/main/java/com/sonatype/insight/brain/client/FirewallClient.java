@@ -59,9 +59,8 @@ public class FirewallClient
   }
 
   public void setQuarantine(final boolean enabled) throws IOException {
-    Result result = postRequest(
-        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH, Boolean.toString(enabled)),
-        null);
+    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
+        Boolean.toString(enabled)), null);
     verifyStatusCode(result);
   }
 
@@ -82,6 +81,7 @@ public class FirewallClient
     verifyStatusCode(result);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
       throws IOException
   {

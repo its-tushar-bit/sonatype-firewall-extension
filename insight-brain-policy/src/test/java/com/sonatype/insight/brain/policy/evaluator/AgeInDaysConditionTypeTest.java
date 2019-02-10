@@ -59,7 +59,8 @@ public class AgeInDaysConditionTypeTest
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID,
+        policyAlerts);
   }
 
   @Test
@@ -90,7 +91,8 @@ public class AgeInDaysConditionTypeTest
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID,
+        policyAlerts);
   }
 
   @Test

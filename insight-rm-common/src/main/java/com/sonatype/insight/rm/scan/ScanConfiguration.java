@@ -14,7 +14,6 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 
 public class ScanConfiguration
 {
-
   private File workDir;
 
   private Properties scanOptions;
@@ -138,5 +137,4 @@ public class ScanConfiguration
   List<RepositoryItem> getScanItems() {
     return scanItems;
   }
-
 }

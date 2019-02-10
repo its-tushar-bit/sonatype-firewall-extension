@@ -21,7 +21,6 @@ import static org.mockito.Mockito.spy;
 public class UrlRunnerCliTest
     extends AbstractBrainServiceTest
 {
-
   @Test
   public void testRunEndToEnd() throws Exception {
     String serverUrl = getCLMServer().getClientConfiguration().getServerUrl();

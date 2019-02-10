@@ -23,7 +23,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 @Named
 public class RestClientFactory
 {
-
   public RestClient newRestCIClient(Configuration config) {
     return new RestCIClient(config);
   }
@@ -38,7 +37,6 @@ public class RestClientFactory
   public static class RestCLIClient
       extends RestClient
   {
-
     RestCLIClient(Configuration config) {
       super(config);
     }
@@ -65,9 +63,8 @@ public class RestClientFactory
     }
   }
 
-  public static abstract class RestClient
+  public abstract static class RestClient
   {
-
     protected final Configuration config;
 
     RestClient(Configuration config) {

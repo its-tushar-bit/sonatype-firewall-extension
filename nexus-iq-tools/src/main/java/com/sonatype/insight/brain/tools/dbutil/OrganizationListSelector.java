@@ -38,5 +38,4 @@ public class OrganizationListSelector
     return new ListReplacer(REPLACEMENT_PREFIX, loadSelections(conn, params).get(REPLACEMENT_PREFIX),
         params.getMaxOrganizations());
   }
-
 }

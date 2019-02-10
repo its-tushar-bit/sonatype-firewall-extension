@@ -20,7 +20,6 @@ import org.slf4j.MarkerFactory;
 public class MarkerFilter
     extends AbstractMatcherFilter<ILoggingEvent>
 {
-
   private Marker markerToMatch;
 
   /**
@@ -63,5 +62,4 @@ public class MarkerFilter
       addError("The marker property must be set for [" + getName() + "]");
     }
   }
-
 }

@@ -423,7 +423,8 @@ public class ConfigurationClientTest
 
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
     boolean result = client.verifyOrCreateApplication(appPublicId);

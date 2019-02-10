@@ -33,7 +33,7 @@ public class UrlRunnerCli
   }
 
   //default visibility for testing
-  void run(String args[]) throws Exception {
+  void run(String[] args) throws Exception {
     Parameters params = new Parameters(args);
     if (params.getError() != null) {
       params.printUsage();

@@ -25,7 +25,6 @@ public class Stats
 
   private MetricsReport metricsReport;
 
-
   public String getUrl() {
     return url;
   }

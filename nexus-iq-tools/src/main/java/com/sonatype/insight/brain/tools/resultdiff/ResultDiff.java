@@ -245,5 +245,4 @@ public class ResultDiff
       diff.results.forEach(res -> log.info("  {}: {}\t+{}%", res.source, res.ms, res.over));
     });
   }
-
 }

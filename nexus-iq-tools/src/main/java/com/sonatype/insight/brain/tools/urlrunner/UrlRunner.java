@@ -169,21 +169,19 @@ public class UrlRunner
     StatusLine statusLine;
 
     try (CloseableHttpResponse response = http.execute(request)) {
-      responseTime = (System.currentTimeMillis() - currentTime);
+      responseTime = System.currentTimeMillis() - currentTime;
       responseBody = getResponseBody(response);
       logResponseHeaders(response.getAllHeaders());
       statusLine = response.getStatusLine();
     }
     MetricsResult metricsAfter = getMetrics(http);
 
-
     MetricsReport metricsReport = getMetricsReport(metricsBefore, metricsAfter);
     callback.accept(collectStats(url, responseBody, statusLine, responseTime, metricsReport));
     return responseTime;
   }
 
-  private MetricsReport getMetricsReport(MetricsResult metricsBefore, MetricsResult metricsAfter)
-  {
+  private MetricsReport getMetricsReport(MetricsResult metricsBefore, MetricsResult metricsAfter) {
     MetricsReport metricsReport = null;
     if (metricsBefore != null && metricsAfter != null) {
       metricsReport = new MetricsReport(metricsBefore, metricsAfter);

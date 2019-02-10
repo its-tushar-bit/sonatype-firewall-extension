@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScanFactoryTest
 {
-
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -222,5 +221,4 @@ public class ScanFactoryTest
     }
     assertSummary(2, 5, scan.getSummary());
   }
-
 }

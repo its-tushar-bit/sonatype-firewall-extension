@@ -15,15 +15,17 @@ import com.beust.jcommander.Parameter;
 public class TwistlockParameters
     extends AbstractCliParameters
 {
-  @Parameter(description = "The image ID (full or prefix) or the image full name [REPOSITORY[:TAG]] (required). Example: 63a92d0c131d", required = true)
+  @Parameter(description = "The image ID (full or prefix) or the image full name [REPOSITORY[:TAG]] (required)."
+      + " Example: 63a92d0c131d", required = true)
   private List<String> scanTargets;
 
-  @Parameter(names = {
-      "--twistlock-scanner-executable" }, description = "Executable for the Twistlock scanner/CLI. Example: twistlock-2-2-100/twistcli", required = true)
+  @Parameter(names = {"--twistlock-scanner-executable"},
+             description = "Executable for the Twistlock scanner/CLI. Example: twistlock-2-2-100/twistcli",
+             required = true)
   private String twistlockScannerExecutable;
 
-  @Parameter(names = {
-      "--twistlock-console-url" }, description = "URL for the Twistlock console. Example: https://localhost:8083", required = true)
+  @Parameter(names = {"--twistlock-console-url"},
+             description = "URL for the Twistlock console. Example: https://localhost:8083", required = true)
   private String twistlockConsoleUrl;
 
   @Parameter(names = {

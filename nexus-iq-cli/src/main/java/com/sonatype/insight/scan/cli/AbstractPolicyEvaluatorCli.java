@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 abstract class AbstractPolicyEvaluatorCli
 {
-
   static final String PROP_OUTPUT_DIRECTORY = "com.sonatype.insight.scan.outDir";
 
   static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
@@ -72,5 +71,4 @@ abstract class AbstractPolicyEvaluatorCli
       log.setLevel(level);
     }
   }
-
 }

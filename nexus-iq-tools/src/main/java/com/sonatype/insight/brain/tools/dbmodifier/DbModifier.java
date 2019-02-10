@@ -51,16 +51,14 @@ public class DbModifier
   }
 
   // visible for testing
-  DbModifier(final String dbConnectionString, final String username, final String password, final String schemaName)
-  {
+  DbModifier(final String dbConnectionString, final String username, final String password, final String schemaName) {
     this.dbConnectionString = dbConnectionString + ";SCHEMA=" + schemaName;
     this.username = username;
     this.password = password;
     this.schemaName = schemaName;
   }
 
-  public DbModifier(final File file, final String username, final String password, final String schemaName)
-  {
+  public DbModifier(final File file, final String username, final String password, final String schemaName) {
     this(getDbConnectionString(file), username, password, schemaName);
   }
 

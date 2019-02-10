@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 public class TestRepositoryItem
     extends RepositoryItem
 {
-
   private final File basedir;
 
   private final String path;
@@ -86,5 +85,4 @@ public class TestRepositoryItem
     Arrays.sort(files);
     return files;
   }
-
 }

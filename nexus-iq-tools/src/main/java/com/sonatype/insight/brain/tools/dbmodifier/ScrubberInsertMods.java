@@ -197,13 +197,13 @@ class ScrubberInsertMods
   }
 
   private static Function<String, String> userRandomizer(final String targetCol) {
-    List<String> preserve_admin = Arrays.asList("username", "user", "member_name", "contact_internal_name");
+    List<String> preserveAdmin = Arrays.asList("username", "user", "member_name", "contact_internal_name");
 
     return src -> {
       if (targetCol.equals("password")) {
         return DEFAULT_PASS;
       }
-      else if (preserve_admin.contains(targetCol)) {
+      else if (preserveAdmin.contains(targetCol)) {
         if (src.toLowerCase(Locale.ENGLISH).equals("admin")) {
           return src;
         }

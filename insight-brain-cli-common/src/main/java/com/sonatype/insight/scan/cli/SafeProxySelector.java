@@ -20,7 +20,6 @@ import java.util.List;
 class SafeProxySelector
     extends ProxySelector
 {
-
   private final ProxySelector delegate;
 
   public static void install() {
@@ -76,5 +75,4 @@ class SafeProxySelector
       delegate.connectFailed(uri, sa, ioe);
     }
   }
-
 }

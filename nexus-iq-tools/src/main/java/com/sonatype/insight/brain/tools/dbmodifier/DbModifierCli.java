@@ -58,9 +58,8 @@ public final class DbModifierCli
   @Parameter(names = {"-s", "-scrub"}, description = "Extract sql, scrub, rebuild & compact db")
   private boolean scrub;
 
-  @Parameter(names = {
-      "-sn", "-scrub-no-build"
-  }, description = "Extract and scrub db sql.  Do not rebuild. (implies -scrub-keep)")
+  @Parameter(names = {"-sn", "-scrub-no-build"},
+             description = "Extract and scrub db sql.  Do not rebuild. (implies -scrub-keep)")
   private boolean scrubNoBuild;
 
   @Parameter(names = {"-sk", "-scrub-keep"}, description = "Keep files used during scrub operations.")
@@ -179,5 +178,4 @@ public final class DbModifierCli
       printUsage();
     }
   }
-
 }

@@ -119,7 +119,8 @@ public class LdapServiceTest
   @Test
   public void testTestConnection_Timeout() throws Exception {
     try (ServerSocket socket = new ServerSocket(0)) {
-      long begin = 0, end = 0;
+      long begin = 0;
+      long end = 0;
 
       LdapConnection ldapConnection = new LdapConnection();
       ldapConnection.setHostname("localhost");

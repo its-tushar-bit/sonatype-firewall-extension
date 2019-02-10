@@ -41,7 +41,6 @@ import org.apache.http.client.utils.URIBuilder;
 
 public class RestClientFactory
 {
-
   public RestClient.Base forConfiguration(final RestClientConfiguration config) {
     if (config == null) {
       throw new IllegalArgumentException("REST client configuration missing");
@@ -60,8 +59,7 @@ public class RestClientFactory
     return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId);
   }
 
-  FirewallMigrationClient newFirewallMigrationClient(final Configuration config)
-  {
+  FirewallMigrationClient newFirewallMigrationClient(final Configuration config) {
     return new FirewallMigrationClient(config);
   }
 
@@ -72,7 +70,6 @@ public class RestClientFactory
   private class BaseClient
       implements RestClient.Base
   {
-
     protected final Configuration config;
 
     public BaseClient(final Configuration config) {
@@ -196,6 +193,7 @@ public class RestClientFactory
     }
 
     @Override
+    @SuppressWarnings("checkstyle:LineLength")
     public void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException
     {
@@ -204,6 +202,7 @@ public class RestClientFactory
     }
 
     @Override
+    @SuppressWarnings("checkstyle:LineLength")
     public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
         throws IOException
     {
@@ -241,7 +240,6 @@ public class RestClientFactory
       extends BaseClient
       implements RestClient.App
   {
-
     protected final String appId;
 
     public AppSpecificClient(final Configuration config, final String appId) {
@@ -263,14 +261,12 @@ public class RestClientFactory
     public Scan forScan(String scanId) {
       return new ScanSpecificClient(config, appId, scanId);
     }
-
   }
 
   private class ScanSpecificClient
       extends AppSpecificClient
       implements RestClient.Scan
   {
-
     protected final String scanId;
 
     public ScanSpecificClient(final Configuration config, final String appId, final String scanId) {
@@ -296,15 +292,13 @@ public class RestClientFactory
       }
       return new PolicyClient(config, appId).evaluate(scanId, st);
     }
-
   }
 
   private class FirewallMigrationSpecificClient
       extends BaseClient
       implements RestClient.FirewallMigration
   {
-    FirewallMigrationSpecificClient(final Configuration config)
-    {
+    FirewallMigrationSpecificClient(final Configuration config) {
       super(config);
     }
 

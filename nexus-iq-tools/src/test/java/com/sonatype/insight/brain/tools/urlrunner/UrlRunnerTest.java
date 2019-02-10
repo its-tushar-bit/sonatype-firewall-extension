@@ -27,8 +27,8 @@ import static org.mockito.Mockito.verify;
 public class UrlRunnerTest
     extends AbstractBrainServiceTest
 {
-
   private static String serverUrl;
+
   private static String adminUrl;
 
   @Override

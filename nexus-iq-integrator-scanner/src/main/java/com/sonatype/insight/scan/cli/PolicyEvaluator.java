@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 public class PolicyEvaluator
     extends AbstractPolicyEvaluator<Parameters>
 {
-
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
   @Inject
@@ -60,7 +59,8 @@ public class PolicyEvaluator
     }
   }
 
-  private void saveReportBundleFile(Parameters params, RestClient restClient, ScanReceipt receipt) throws ExitException
+  private void saveReportBundleFile(Parameters params, RestClient restClient, ScanReceipt receipt)
+      throws ExitException
   {
     log.info("Downloading report bundle from the IQ Server...");
     try {

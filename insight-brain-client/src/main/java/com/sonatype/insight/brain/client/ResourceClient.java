@@ -22,7 +22,6 @@ import org.apache.http.client.HttpResponseException;
 public class ResourceClient
     extends AbstractClient
 {
-
   public ResourceClient(Configuration config) {
     super(config);
   }

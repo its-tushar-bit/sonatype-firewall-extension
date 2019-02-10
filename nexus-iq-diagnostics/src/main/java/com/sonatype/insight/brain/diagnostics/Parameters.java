@@ -16,7 +16,8 @@ public class Parameters
 
   private Exception error;
 
-  @Parameter(names = { "-w", "--sonatype-work" }, description = "Path to work directory of the Nexus IQ Server, cf. sonatypeWork setting from server's config.yml")
+  @Parameter(names = {"-w", "--sonatype-work"}, description = "Path to work directory of the Nexus IQ Server"
+      + ", cf. sonatypeWork setting from server's config.yml")
   private File workDirectory = new File("sonatype-work/clm-server");
 
   @Parameter(names = { "-c", "--compact-database" }, description = "Compact the database by reclaiming empty space")

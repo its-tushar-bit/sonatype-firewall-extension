@@ -13,7 +13,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 public class RestClientConfiguration
 {
-
   private final Configuration config;
 
   public RestClientConfiguration() {
@@ -83,9 +82,6 @@ public class RestClientConfiguration
 
   public static interface HttpClientProvider
   {
-
     HttpClientBuilder createHttpClient(RestClientConfiguration config);
-
   }
-
 }

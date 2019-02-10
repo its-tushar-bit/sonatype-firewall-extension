@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 @Named
 public class Scanner
 {
-
   private static final Logger log = LoggerFactory.getLogger(Scanner.class);
 
   private final ScanPropertiesLoader configLoader;
@@ -81,5 +80,4 @@ public class Scanner
     configLoader.resolveAliases(props);
     return props;
   }
-
 }

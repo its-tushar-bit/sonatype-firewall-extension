@@ -14,7 +14,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationSelectorTest
-  extends AbstractSelectorTest
+    extends AbstractSelectorTest
 {
   // VALUES("", "", "", "", "", "", "")
   private static final String[] APPLICATION_COLS = new String[] { "application_id", "public_id", "public_id_lowercase",
@@ -82,5 +82,4 @@ public class OrganizationSelectorTest
       assertThat(selections.get(OrganizationSelector.REPLACEMENT_KEY)).containsExactlyInAnyOrder("org1", "org2");
     }
   }
-
 }

@@ -56,7 +56,8 @@ public class MatchStateConditionTypeTest
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
+        policyAlerts);
   }
 
   @Test
@@ -85,8 +86,10 @@ public class MatchStateConditionTypeTest
     assertThat(policyAlerts).hasSize(2);
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
+        policyAlerts);
+    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
+        policyAlerts);
   }
 
   @Test

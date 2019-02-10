@@ -52,7 +52,6 @@ import static org.mockito.Mockito.when;
 public class PolicyEvaluatorTest
     extends InjectedTest
 {
-
   @Rule
   public TestName testName = new TestName();
 
@@ -124,7 +123,7 @@ public class PolicyEvaluatorTest
 
   @Test
   public void testInvalidAppId() throws Exception {
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
@@ -138,7 +137,7 @@ public class PolicyEvaluatorTest
         .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
     assertThat(logOutput).atInfoLevel().contains("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
@@ -157,7 +156,7 @@ public class PolicyEvaluatorTest
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
     assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning")
         .contains("Summary of policy violations: 1 critical, 2 severe, 3 moderate").atWarnLevel()
@@ -182,7 +181,7 @@ public class PolicyEvaluatorTest
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
@@ -198,7 +197,7 @@ public class PolicyEvaluatorTest
   public void testPassWhenIgnoreSystemExceptions() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, ""));
 
-    Parameters params1 = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params1 = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params1);
@@ -229,7 +228,7 @@ public class PolicyEvaluatorTest
         .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
     assertThat(scanFile.getValue()).isNotNull();
     Scan scan = scanReader.read(scanFile.getValue());
@@ -324,7 +323,7 @@ public class PolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     HttpResponseException expectedException = new HttpResponseException(500, "error");
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenThrow(expectedException);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
@@ -352,7 +351,7 @@ public class PolicyEvaluatorTest
         .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
         new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
     verify(restClient).evaluatePolicy("the-app-id", "the-scan-id", Stage.ID_BUILD);
   }

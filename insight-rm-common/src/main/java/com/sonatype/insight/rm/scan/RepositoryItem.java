@@ -11,20 +11,16 @@ import java.io.InputStream;
 
 public abstract class RepositoryItem
 {
-
   public interface Coords
   {
-
     String getId();
 
     String getModuleId();
-
   }
 
   public static class MavenCoords
       implements Coords
   {
-
     private final String id;
 
     private final String moduleId;
@@ -64,7 +60,6 @@ public abstract class RepositoryItem
     public String toString() {
       return getId();
     }
-
   }
 
   public abstract String getPath();
@@ -87,5 +82,4 @@ public abstract class RepositoryItem
   public String toString() {
     return getPath();
   }
-
 }

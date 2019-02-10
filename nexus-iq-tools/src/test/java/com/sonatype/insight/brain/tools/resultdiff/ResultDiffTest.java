@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ResultDiffTest
 {
-
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -86,17 +85,17 @@ public class ResultDiffTest
 
   @Test
   public void testCompareResults_TwoFiles() throws Exception {
-    List<Stats> file_1_Stats = new ArrayList<>();
-    List<Stats> file_2_Stats = new ArrayList<>();
+    List<Stats> file1Stats = new ArrayList<>();
+    List<Stats> file2Stats = new ArrayList<>();
 
-    file_1_Stats.add(makeStats("/xyz/test_01/", 1000L));
-    file_2_Stats.add(makeStats("/xyz/test_01/", 4000L));
+    file1Stats.add(makeStats("/xyz/test_01/", 1000L));
+    file2Stats.add(makeStats("/xyz/test_01/", 4000L));
 
-    file_1_Stats.add(makeStats("/xyz/test_02/", 1000L));
-    file_2_Stats.add(makeStats("/xyz/test_02/", 2000L));
+    file1Stats.add(makeStats("/xyz/test_02/", 1000L));
+    file2Stats.add(makeStats("/xyz/test_02/", 2000L));
 
-    File out1 = logStats("stats_001.log", file_1_Stats);
-    File out2 = logStats("stats_002.log", file_2_Stats);
+    File out1 = logStats("stats_001.log", file1Stats);
+    File out2 = logStats("stats_002.log", file2Stats);
 
     ResultDiff resultDiff = new ResultDiff();
     List<ResultDiff.DiffData> diffDefault2000 = resultDiff.compareResults(out1, out2);
@@ -120,21 +119,21 @@ public class ResultDiffTest
 
   @Test
   public void testCompareResults_ThreeFiles() throws Exception {
-    List<Stats> file_1_Stats = new ArrayList<>();
-    List<Stats> file_2_Stats = new ArrayList<>();
-    List<Stats> file_3_Stats = new ArrayList<>();
+    List<Stats> file1Stats = new ArrayList<>();
+    List<Stats> file2Stats = new ArrayList<>();
+    List<Stats> file3Stats = new ArrayList<>();
 
-    file_1_Stats.add(makeStats("/xyz/test_01/", 1000L));
-    file_2_Stats.add(makeStats("/xyz/test_01/", 4000L));
-    file_3_Stats.add(makeStats("/xyz/test_01/", 7000L));
+    file1Stats.add(makeStats("/xyz/test_01/", 1000L));
+    file2Stats.add(makeStats("/xyz/test_01/", 4000L));
+    file3Stats.add(makeStats("/xyz/test_01/", 7000L));
 
-    file_1_Stats.add(makeStats("/xyz/test_02/", 1000L));
-    file_2_Stats.add(makeStats("/xyz/test_02/", 2000L));
-    file_3_Stats.add(makeStats("/xyz/test_02/", 500L));
+    file1Stats.add(makeStats("/xyz/test_02/", 1000L));
+    file2Stats.add(makeStats("/xyz/test_02/", 2000L));
+    file3Stats.add(makeStats("/xyz/test_02/", 500L));
 
-    File out1 = logStats("stats_001.log", file_1_Stats);
-    File out2 = logStats("stats_002.log", file_2_Stats);
-    File out3 = logStats("stats_003.log", file_3_Stats);
+    File out1 = logStats("stats_001.log", file1Stats);
+    File out2 = logStats("stats_002.log", file2Stats);
+    File out3 = logStats("stats_003.log", file3Stats);
 
     ResultDiff resultDiff = new ResultDiff();
     List<ResultDiff.DiffData> diffDefault2000 = resultDiff.compareResults(out1, out2, out3);
@@ -158,41 +157,40 @@ public class ResultDiffTest
 
   @Test
   public void testValidateFiles_MinimumFiles() throws Exception {
-    List<File> list_0 = new ArrayList<>();
+    List<File> list0 = new ArrayList<>();
 
-    List<File> list_1 = new ArrayList<>();
-    list_1.add(tempDir.newFile());
+    List<File> list1 = new ArrayList<>();
+    list1.add(tempDir.newFile());
 
-    List<File> list_2 = new ArrayList<>();
-    list_2.add(tempDir.newFile());
-    list_2.add(tempDir.newFile());
+    List<File> list2 = new ArrayList<>();
+    list2.add(tempDir.newFile());
+    list2.add(tempDir.newFile());
 
     assertThatThrownBy(() -> {
-      ResultDiff.validateFiles(list_0);
+      ResultDiff.validateFiles(list0);
     }).isInstanceOf(ParameterException.class).hasMessage(ResultDiff.ERROR_MIN_FILES);
 
     assertThatThrownBy(() -> {
-      ResultDiff.validateFiles(list_1);
+      ResultDiff.validateFiles(list1);
     }).isInstanceOf(ParameterException.class).hasMessage(ResultDiff.ERROR_MIN_FILES);
 
-    ResultDiff.validateFiles(list_2);
+    ResultDiff.validateFiles(list2);
   }
 
   @Test
   public void testValidateFiles_InvalidFile() throws Exception {
-    List<File> list_2 = new ArrayList<>();
+    List<File> list2 = new ArrayList<>();
 
     File valid = tempDir.newFile();
     File invalid = new File(valid.getAbsolutePath() + "-invalid");
-    list_2.add(valid);
-    list_2.add(invalid);
+    list2.add(valid);
+    list2.add(invalid);
 
     assertThat(valid).exists();
     assertThat(invalid).doesNotExist();
 
     assertThatThrownBy(() -> {
-      ResultDiff.validateFiles(list_2);
+      ResultDiff.validateFiles(list2);
     }).isInstanceOf(ParameterException.class).hasMessageStartingWith(ResultDiff.ERROR_INVALID_FILE_PREFIX);
   }
-
 }

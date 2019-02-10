@@ -7,7 +7,6 @@ package com.sonatype.insight.scan.cli;
 
 public enum PolicyAction
 {
-
   NONE, WARN, FAIL;
 
   @Override
@@ -19,12 +18,12 @@ public enum PolicyAction
         return "Warning";
       case FAIL:
         return "Failure";
+      default:
+        return super.toString();
     }
-    return super.toString();
   }
 
   public PolicyAction combine(PolicyAction that) {
     return (this.ordinal() < that.ordinal()) ? that : this;
   }
-
 }

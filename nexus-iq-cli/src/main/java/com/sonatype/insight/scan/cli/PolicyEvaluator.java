@@ -17,10 +17,9 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
-    extends AbstractPolicyEvaluator<PARAMETERS>
+abstract class PolicyEvaluator<P extends AbstractCliParameters>
+    extends AbstractPolicyEvaluator<P>
 {
-
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
   PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
@@ -28,7 +27,7 @@ abstract class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
   }
 
   @Override
-  protected void processResults(PARAMETERS params,
+  protected void processResults(P params,
                                 ScanReceipt receipt,
                                 PolicyEvaluationResult eval,
                                 PolicyAction outcome,
@@ -62,7 +61,7 @@ abstract class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
     }
   }
 
-  private void saveResultFile(PARAMETERS params, RestClient restClient, ScanReceipt receipt) throws ExitException {
+  private void saveResultFile(P params, RestClient restClient, ScanReceipt receipt) throws ExitException {
     if (params.getResultFile() != null) {
       try {
         restClient.saveResults(params.getApplicationId(), params.getResultFile(), receipt);
@@ -85,14 +84,15 @@ abstract class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
   }
   
   @Override
-  public void run(PARAMETERS params) throws ExitException {
+  public void run(P params) throws ExitException {
     validateAuthenticationConfig(params);
     super.run(params);
   }
   
-  private void validateAuthenticationConfig(final PARAMETERS params) throws ExitException {
+  private void validateAuthenticationConfig(final P params) throws ExitException {
     if (params.isPkiAuthentication() && params.getServerUser() != null) {
-      String message = "Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.";
+      String message = "Only one mode of authentication can be enabled at a time"
+          + ", --authentication and --pki-authentication are mutually exclusive.";
       log.error(message);
       throw new ExitException(1, message);
     }

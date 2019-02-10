@@ -24,10 +24,8 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 
 public interface RestClient
 {
-
   interface Base
   {
-
     void validateConfiguration() throws IOException;
 
     ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException;
@@ -61,18 +59,14 @@ public interface RestClient
 
   interface App
   {
-
     ScanReceipt uploadScan(File scanFile) throws IOException;
 
     Scan forScan(String scanId);
-
   }
 
   interface Scan
   {
-
     PolicyEvaluationResult evaluatePolicies(Stage stage) throws IOException;
-
   }
 
   interface Repository
@@ -86,6 +80,7 @@ public interface RestClient
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 
+    @SuppressWarnings("checkstyle:LineLength")
     RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest)
         throws IOException;
 

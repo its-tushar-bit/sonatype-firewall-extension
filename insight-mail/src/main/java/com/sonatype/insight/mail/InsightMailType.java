@@ -16,7 +16,6 @@ import org.sonatype.micromailer.imp.AbstractMailType;
 public class InsightMailType
     extends AbstractMailType
 {
-
   public static final String ID = "insight";
 
   public InsightMailType() {
@@ -25,5 +24,4 @@ public class InsightMailType
     getInlineResources().put("<plain-logo@sonatype.com>", // <img src="cid:plain-logo@sonatype.com" ...>
         new ClasspathResource("mail/sonatype.png", "sonatype.png", "image/png", getClass().getClassLoader()));
   }
-
 }

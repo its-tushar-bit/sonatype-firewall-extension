@@ -14,7 +14,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationEvalSelectorTest
-  extends AbstractSelectorTest
+    extends AbstractSelectorTest
 {
   // VALUES("", "", "", "", "", "", "")
   private static final String[] APPLICATION_COLS = new String[] { "application_id", "public_id", "public_id_lowercase",

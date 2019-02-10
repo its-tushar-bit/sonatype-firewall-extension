@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 public class RestClientFactoryTest
 {
-
   @Test
   public void testHdsUnreachable() throws Exception {
     HttpResponseException hre = new HttpResponseException(504, "nobody there");

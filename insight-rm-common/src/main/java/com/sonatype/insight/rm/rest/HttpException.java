@@ -10,7 +10,6 @@ import java.io.IOException;
 public class HttpException
     extends IOException
 {
-
   private static final long serialVersionUID = 3630192531900782143L;
 
   private final int status;
@@ -30,5 +29,4 @@ public class HttpException
   public String getReason() {
     return reason;
   }
-
 }

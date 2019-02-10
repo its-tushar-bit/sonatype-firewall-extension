@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class MailConfig
 {
-
   private static final Logger log = LoggerFactory.getLogger(MailConfig.class);
 
   private String hostname;

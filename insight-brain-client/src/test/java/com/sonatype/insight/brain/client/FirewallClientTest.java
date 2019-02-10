@@ -38,7 +38,6 @@ import static org.assertj.core.api.Assertions.fail;
 public class FirewallClientTest
     extends AbstractBrainServiceTest
 {
-
   private static final String REPOSITORY_PUBLIC_ID = "central";
 
   private String rmInstanceId;
@@ -182,7 +181,8 @@ public class FirewallClientTest
     final FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
     client.setEnabled(true);
 
-    final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     client.evaluateComponents(componentEvaluationDataRequestList);
   }
 
@@ -191,7 +191,8 @@ public class FirewallClientTest
     final FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
     // do not enable repository
 
-    final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     try {
       client.evaluateComponents(componentEvaluationDataRequestList);
@@ -220,11 +221,13 @@ public class FirewallClientTest
     hdsResult.components.add(componentEvaluationData);
     setHdsResponseForURI("/rest/component/details/firewall", hdsResult, 200);
 
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
     repositoryComponentEvaluationDataRequest.format = "maven2";
     repositoryComponentEvaluationDataRequest.pathname = "path";
     repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
@@ -237,7 +240,8 @@ public class FirewallClientTest
   @Test
   public void testEvaluateComponentWithQuarantine_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
 
     try {

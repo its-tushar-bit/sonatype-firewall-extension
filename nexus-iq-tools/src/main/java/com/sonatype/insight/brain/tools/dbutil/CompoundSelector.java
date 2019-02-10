@@ -34,5 +34,4 @@ public class CompoundSelector
 
     return new CompoundReplacer(replacers);
   }
-
 }

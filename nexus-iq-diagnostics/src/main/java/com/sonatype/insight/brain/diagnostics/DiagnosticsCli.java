@@ -107,7 +107,8 @@ public class DiagnosticsCli
 
   private void logDiskSpeed(File dbFile) throws Exception {
     byte[] buffer = new byte[4 * 1024 * 1024];
-    long length = Math.min(dbFile.length(), 1024 * 1024 * 1024), total = 0;
+    long length = Math.min(dbFile.length(), 1024 * 1024 * 1024);
+    long total = 0;
     try (RandomAccessFile raf = new RandomAccessFile(dbFile, "r")) {
       long start = System.nanoTime();
       while (total < length) {

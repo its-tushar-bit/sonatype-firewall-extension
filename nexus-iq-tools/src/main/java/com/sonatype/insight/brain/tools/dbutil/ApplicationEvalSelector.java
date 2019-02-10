@@ -39,7 +39,8 @@ public class ApplicationEvalSelector
 
   protected String buildEvalDetailsQuery(DbUtilParameters params, boolean limit) {
     String appEvalDetails = "" //
-        + "SELECT app.public_id, eval.application_id, eval.policy_evaluation_id, eval.scan_id, eval.stage_type_id, eval.time" //
+        + "SELECT app.public_id,"
+        + " eval.application_id, eval.policy_evaluation_id, eval.scan_id, eval.stage_type_id, eval.time" //
         + " FROM insight_brain_ods.policy_evaluation eval, insight_brain_ods.application app" //
         + " WHERE eval.application_id = app.application_id" //
         + " AND " + getStageClause("eval.stage_type_id", params) //

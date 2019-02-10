@@ -26,7 +26,6 @@ import com.beust.jcommander.converters.StringConverter;
 
 public abstract class AbstractParameters
 {
-
   static {
     String value = System.getProperty("java.net.useSystemProxies");
     if (value == null) {
@@ -53,13 +52,16 @@ public abstract class AbstractParameters
       listConverter = StringConverter.class)
   private List<String> properties = new ArrayList<>();
 
-  @Parameter(names = { "-o", "--output-directory" }, description = "Path to output directory for scan results", hidden = true)
+  @Parameter(names = {"-o", "--output-directory"}, description = "Path to output directory for scan results",
+             hidden = true)
   private File outputDirectory = new File(System.getProperty("java.io.tmpdir", ""), "nexus-iq").getAbsoluteFile();
 
-  @Parameter(names = { "-i", "--application-id" }, description = "ID of the application on the IQ Server", required = true)
+  @Parameter(names = {"-i", "--application-id"}, description = "ID of the application on the IQ Server",
+             required = true)
   private String applicationId;
 
-  @Parameter(names = { "-s", "--server-url" }, description = "URL to the IQ Server to which the scan result should be uploaded", required = true)
+  @Parameter(names = {"-s", "--server-url"},
+             description = "URL to the IQ Server to which the scan result should be uploaded", required = true)
   private String serverUrl;
 
   @Parameter(names = { "-p", "--proxy" }, description = "Proxy to use, format <host[:port]>."
@@ -69,16 +71,10 @@ public abstract class AbstractParameters
   @Parameter(names = { "-U", "--proxy-user" }, description = "Credentials to use for proxy, format <username:password>")
   private String proxyUser;
 
-  @Parameter(names = { "-t", "--stage" }, validateValueWith = StageParameterValidator.class, converter = StageParameterConverter.class, description = "The stage to run analysis against. Accepted values: "
-      + Stage.ID_DEVELOP
-      + "|"
-      + Stage.ID_BUILD
-      + "|"
-      + Stage.ID_STAGE_RELEASE
-      + "|"
-      + Stage.ID_RELEASE
-      + "|"
-      + Stage.ID_OPERATE)
+  @Parameter(names = {"-t", "--stage"}, validateValueWith = StageParameterValidator.class,
+             converter = StageParameterConverter.class,
+             description = "The stage to run analysis against. Accepted values: " + Stage.ID_DEVELOP + "|"
+                 + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE + "|" + Stage.ID_OPERATE)
   private Stage stage = new Stage(Stage.ID_BUILD);
 
   @Parameter(names = { "-X", "--debug" }, description = "Enable debug logs."
@@ -88,7 +84,7 @@ public abstract class AbstractParameters
   @Parameter(names = { "-q", "--quiet" }, description = "Restrict logs to errors", hidden = true)
   private boolean quiet;
 
-  @Parameter(names = { "-e", "--ignore-system-errors" }, description = "Ignore system errors (IO, network, server, etc)")
+  @Parameter(names = {"-e", "--ignore-system-errors"}, description = "Ignore system errors (IO, network, server, etc)")
   private boolean ignoreSystemErrors;
 
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")

@@ -64,7 +64,6 @@ public class TwistlockScanner
             "The Twistlock scanner returned exit code = " + exitCode + ". Output: " + scannerOutput);
       }
 
-
       return scannerOutput;
     }
     catch (IOException e) {
@@ -74,7 +73,6 @@ public class TwistlockScanner
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
-
   }
 
   private List<String> buildTwistlockScannerCommand(String twistlockScannerExecutable,

@@ -111,5 +111,4 @@ class Parameters
   public String getPassword() {
     return password;
   }
-
 }

@@ -247,7 +247,8 @@ public class LicenseConditionTypeTest
         expectedConditionTrigger, policyAlerts);
 
     constraints = new ArrayList<>();
-    Constraint constraint2 = createConstraint("constraintId2", "constraintName2", LicenseConditionType.ID, "is", "AFL-1.2");
+    Constraint constraint2 =
+        createConstraint("constraintId2", "constraintName2", LicenseConditionType.ID, "is", "AFL-1.2");
     constraints.add(constraint2);
 
     policy.setConstraints(constraints);

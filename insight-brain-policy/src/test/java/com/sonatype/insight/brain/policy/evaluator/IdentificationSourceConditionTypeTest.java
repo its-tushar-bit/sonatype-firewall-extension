@@ -29,7 +29,8 @@ public class IdentificationSourceConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
   private Constraint createConstraint(String operator, String value) {
-    return createConstraint("ConstraintId1", "Constraint Name 1", IdentificationSourceConditionType.ID, operator, value);
+    return createConstraint("ConstraintId1", "Constraint Name 1", IdentificationSourceConditionType.ID, operator,
+        value);
   }
 
   @Test
@@ -56,7 +57,8 @@ public class IdentificationSourceConditionTypeTest
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID,
+        policyAlerts);
   }
 
   @Test
@@ -83,7 +85,8 @@ public class IdentificationSourceConditionTypeTest
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID,
+        policyAlerts);
   }
 
   @Test

@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 {
-
   private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
 
   public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.50.0";
@@ -173,8 +172,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  protected void evaluatePolicy(P params, RestClient restClient, ScanReceipt receipt) throws ExitException
-  {
+  protected void evaluatePolicy(P params, RestClient restClient, ScanReceipt receipt) throws ExitException {
     String scanId = receipt.getScanId();
     log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
     PolicyEvaluationResult eval;

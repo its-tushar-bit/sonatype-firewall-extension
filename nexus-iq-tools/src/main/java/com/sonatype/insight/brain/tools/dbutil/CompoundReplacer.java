@@ -35,6 +35,6 @@ public class CompoundReplacer
       }
     }
 
-    return replacementsMade ? source: new ArrayList<>();
+    return replacementsMade ? source : new ArrayList<>();
   }
 }

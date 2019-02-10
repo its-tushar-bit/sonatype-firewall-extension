@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 
 public class ScanFactory
 {
-
   private static final Logger log = LoggerFactory.getLogger(ScanFactory.class);
 
   private static final String CONFIGURATION_RESOURCE = ScanFactory.class.getName().replace('.', '/')
@@ -115,7 +114,9 @@ public class ScanFactory
 
     Selector proprietarySelector = new Config(scan.getConfiguration()).hiddenResourceNamePathSelector;
 
-    int archives = 0, files = 0, classFiles = 0;
+    int archives = 0;
+    int files = 0;
+    int classFiles = 0;
     for (RepositoryItem item : config.getScanItems()) {
       if (!moduleIds.contains(item.getCoordinates().getModuleId())) {
         // no scan-worthy component exists for that module any more, ignore its scan (especially dependencies)
@@ -204,7 +205,8 @@ public class ScanFactory
       if (scannedHashes.contains(normalizeSha1(item.getSha1()))) {
         continue;
       }
-      File file = item.getFile(), tmp = null;
+      File file = item.getFile();
+      File tmp = null;
       try {
         if (file == null) {
           // NOTE: We need to retain the proper file extension for TrueZIP to recognize the archive type
@@ -265,7 +267,6 @@ public class ScanFactory
   private static class HashedRepositoryItem
       extends RepositoryItem
   {
-
     private final RepositoryItem delegate;
 
     private final String sha1;
@@ -299,7 +300,5 @@ public class ScanFactory
     public InputStream newInputStream() throws IOException {
       return delegate.newInputStream();
     }
-
   }
-
 }

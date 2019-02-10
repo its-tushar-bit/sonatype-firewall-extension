@@ -19,7 +19,8 @@ abstract class AbstractCliParameters
       + "of the policy evaluation will be stored in a machine-readable format")
   private File resultFile;
 
-  @Parameter(names = { "-a", "--authentication" }, description = "Authentication credentials to use for the IQ Server, format <username:password> ")
+  @Parameter(names = {"-a", "--authentication"},
+             description = "Authentication credentials to use for the IQ Server, format <username:password> ")
   private String serverUser;
 
   /**

@@ -78,7 +78,8 @@ public class DefaultPolicyEvaluatorTest
     assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
     });
-    assertThat(logOutput).atErrorLevel().contains("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
   }
 
   @Test
@@ -416,7 +417,8 @@ public class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_AutoAppCreationEnabled() throws Exception {
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 

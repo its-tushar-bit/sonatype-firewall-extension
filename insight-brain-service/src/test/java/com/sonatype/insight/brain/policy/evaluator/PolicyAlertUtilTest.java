@@ -37,15 +37,16 @@ public class PolicyAlertUtilTest
   @Test
   public void testCreatePolicyAlerts_DeletedPolicy() {
     Application app = tempEntity.newApplicationWithParent("app-id");
-    Policy policy = new Policy("id", "Deleted Policy");
+    Policy policyDoesNotExist = tempEntity.newPolicy();
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policyDoesNotExist);
+    new PolicyDAO().delete(policyDoesNotExist);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
         policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
-    assertThat(alert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
-    assertThat(alert.getTrigger().getPolicyName()).isEqualTo(policy.getName());
+    assertThat(alert.getTrigger().getPolicyId()).isEqualTo(policyDoesNotExist.getId());
+    assertThat(alert.getTrigger().getPolicyName()).isEqualTo(policyDoesNotExist.getName());
     assertThat(alert.getActions()).isEmpty();
   }
 

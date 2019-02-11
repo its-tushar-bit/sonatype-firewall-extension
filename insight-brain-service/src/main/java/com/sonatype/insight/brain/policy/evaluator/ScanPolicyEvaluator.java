@@ -325,6 +325,9 @@ public class ScanPolicyEvaluator
             if (newPolicyViolation.isWaived()) {
               policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
             }
+            if (newPolicyViolation.isGrandfathered()) {
+              policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
+            }
           }
           // Fixed policy violations.
           for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
@@ -364,7 +367,6 @@ public class ScanPolicyEvaluator
 
                 policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
               }
-              oldPolicyViolation.setGrandfatherTime(newPolicyViolation.getGrandfatherTime());
               policyViolationDAO.update(tx, oldPolicyViolation);
 
               // Update the violation in the list of all violation to be the one actually saved to the db.

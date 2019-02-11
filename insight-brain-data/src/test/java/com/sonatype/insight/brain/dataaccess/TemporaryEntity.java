@@ -1033,8 +1033,16 @@ public class TemporaryEntity
                                                   String hash,
                                                   PolicyWaiver policyWaiver)
   {
+    Constraint constraint = policy.getConstraints().get(0);
+    Condition condition = constraint.getConditions().get(0);
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    ConditionFact conditionFact =
+        new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
+    constraintFact.addConditionFact(conditionFact);
+
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
-        threatCategory, hash, componentIdentifier, "[]", "unknown.jar");
+        threatCategory, hash, componentIdentifier, Collections.singletonList(constraintFact), "unknown.jar");
     policyViolation.setWaiveTime(evaluation.getTime());
     policyViolation.setPolicyWaiverId(policyWaiver.getId());
     policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
@@ -1066,8 +1074,17 @@ public class TemporaryEntity
                                                          ComponentIdentifier componentIdentifier,
                                                          String hash)
   {
+    Constraint constraint = policy.getConstraints().get(0);
+    Condition condition = constraint.getConditions().get(0);
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    ConditionFact conditionFact =
+        new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
+    constraintFact.addConditionFact(conditionFact);
+
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
-        policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier, "[]", "unknown.jar");
+        policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier,
+        Collections.singletonList(constraintFact), "unknown.jar");
     policyViolation.setGrandfatherTime(evaluation.getTime());
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
@@ -1148,8 +1165,16 @@ public class TemporaryEntity
                                             String hash,
                                             String actionTypeId)
   {
+    Constraint constraint = policy.getConstraints().get(0);
+    Condition condition = constraint.getConditions().get(0);
+    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
+        .getOperator().name());
+    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary",
+        "reason");
+    constraintFact.addConditionFact(conditionFact);
+
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
-        category, hash, componentIdentifier, "[]", "unknown.jar");
+        category, hash, componentIdentifier, Collections.singletonList(constraintFact), "unknown.jar");
     policyViolation.setActionTypeId(actionTypeId);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;

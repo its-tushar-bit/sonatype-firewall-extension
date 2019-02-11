@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
@@ -48,7 +49,8 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
       new PolicyViolationGrandfatheringService(new ApplicationDAO(), organizationDAO, new PolicyDAO(),
-          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager);
+          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager,
+          new PolicyViolationLoggerFactory(clmLicenseManager));
 
   @BeforeClass
   public static void boot() {

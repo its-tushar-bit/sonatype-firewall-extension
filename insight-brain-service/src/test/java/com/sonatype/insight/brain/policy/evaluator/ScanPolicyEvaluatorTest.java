@@ -827,73 +827,6 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_UpdateGrandfatheredViolations() throws Exception {
-    newSecurityPolicy();
-
-    // Evaluate policies for two stages.
-    String scanIdStage1 = simulateReportIsAvailable("report.zip");
-    Stage stage1 = new Stage(Stage.ID_BUILD);
-    ScanPolicyEvaluatorResults resultsStage1 = scanPolicyEvaluator.evaluate(application, scanIdStage1,
-        stage1);
-    Date evaluationTimeStage1 = resultsStage1.evaluation.getTime();
-    assertThat(resultsStage1.activeViolations).hasSize(36);
-
-    String scanIdStage2 = simulateReportIsAvailable("report.zip");
-    Stage stage2 = new Stage(Stage.ID_RELEASE);
-    ScanPolicyEvaluatorResults resultsStage2 = scanPolicyEvaluator.evaluate(application, scanIdStage2,
-        stage2);
-    Date evaluationTimeStage2 = resultsStage2.evaluation.getTime();
-    assertThat(resultsStage1.activeViolations).hasSize(36);
-
-    // Grandfather a violation in one stage.
-    PolicyViolation grandfatheredViolation = resultsStage1.activeViolations.get(0);
-    Date grandfatherTime = new Date();
-    grandfatheredViolation.setGrandfatherTime(grandfatherTime);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    policyViolationDAO.update(grandfatheredViolation);
-
-    // Evaluate again for the same stage. The violation should remain grandfathered.
-    String scanIdStage1New = simulateReportIsAvailable("report.zip");
-    ScanPolicyEvaluatorResults resultsStage1New = scanPolicyEvaluator.evaluate(application, scanIdStage1New, stage1);
-    assertThat(resultsStage1New.activeViolations).hasSize(35);
-    List<PolicyViolation> grandfatheredViolations1 = getInactiveViolations(resultsStage1New);
-    assertThat(grandfatheredViolations1).hasSize(1);
-    assertThat(grandfatheredViolations1.get(0).getId()).isEqualTo(grandfatheredViolation.getId());
-    assertThat(grandfatheredViolations1.get(0).getGrandfatherTime()).isEqualTo(grandfatherTime);
-    assertThat(grandfatheredViolations1.get(0).getOpenTime()).isEqualTo(evaluationTimeStage1);
-    assertThat(grandfatheredViolations1.get(0).getFixTime()).isNull();
-
-    // Evaluate again for the other stage.
-    // The violation should be grandfathered (because grandfathering works across stages).
-    String scanIdStage2New = simulateReportIsAvailable("report.zip");
-    ScanPolicyEvaluatorResults resultsStage2New = scanPolicyEvaluator.evaluate(application, scanIdStage2New, stage2);
-    assertThat(resultsStage2New.activeViolations).hasSize(35);
-    List<PolicyViolation> grandfatheredViolations2 = getInactiveViolations(resultsStage2New);
-    assertThat(grandfatheredViolations2).hasSize(1);
-    assertThat(grandfatheredViolations2.get(0)).usingComparator(PolicyViolationComparator.COMPARATOR)
-        .isEqualTo(grandfatheredViolation);
-    assertThat(grandfatheredViolations2.get(0).getId()).isNotEqualTo(grandfatheredViolation.getId());
-    assertThat(grandfatheredViolations2.get(0).getId()).isEqualTo(resultsStage2.activeViolations.get(0).getId());
-    assertThat(grandfatheredViolations2.get(0).getGrandfatherTime()).isEqualTo(grandfatherTime);
-    assertThat(grandfatheredViolations2.get(0).getOpenTime()).isEqualTo(evaluationTimeStage2);
-    assertThat(grandfatheredViolations2.get(0).getFixTime()).isNull();
-
-    // Disable grandfathering and evaluate policies again for the first stage.
-    // The grandfathered violation should remain grandfathered.
-    application.setPolicyViolationGrandfatheringEnabled(false);
-    new ApplicationDAO().update(application);
-    String scanIdStage1New1 = simulateReportIsAvailable("report.zip");
-    ScanPolicyEvaluatorResults resultsStage1New1 = scanPolicyEvaluator.evaluate(application, scanIdStage1New1, stage1);
-    assertThat(resultsStage1New1.activeViolations).hasSize(35);
-    List<PolicyViolation> grandfatheredViolations3 = getInactiveViolations(resultsStage1New1);
-    assertThat(grandfatheredViolations3).hasSize(1);
-    assertThat(grandfatheredViolations3.get(0).getId()).isEqualTo(grandfatheredViolation.getId());
-    grandfatheredViolation = new PolicyViolationDAO().getById(grandfatheredViolation.getId());
-    assertThat(grandfatheredViolation.isFixed()).isFalse();
-    assertThat(grandfatheredViolation.getGrandfatherTime()).isEqualTo(grandfatherTime);
-  }
-
-  @Test
   public void testEvaluate_GrandfatheringNotConfiguredForAppOrOrg() throws Exception {
     organization.setPolicyViolationGrandfatheringEnabled(null);
     organization.setAllowPolicyViolationGrandfatheringOverride(true);
@@ -1592,15 +1525,25 @@ public class ScanPolicyEvaluatorTest
     application = tempEntity.newApplication(organization.getId());
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
-    Policy policy = newSecurityPolicy();
-    policy.setPolicyViolationGrandfatheringAllowed(true);
-    new PolicyDAO().update(policy);
+    // Create two policies that will cause policy violations and allow grandfathering for one policy.
+    Policy securityPolicy = newSecurityPolicy();
+    securityPolicy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(securityPolicy);
+    newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-        .evaluate(application, simulateReportIsAvailable("report.zip"), new Stage(Stage.ID_BUILD));
-
-    assertThat(results.allViolations).anyMatch(PolicyViolation::isGrandfathered);
+    // Evaluate policies. There should be two policy violations, one active and one grandfathered.
+    // Both violations should have a CREATE event logged. Only one should have a GRANDFATHER event.
+    String scanId = simulateReportIsAvailable(
+        "testEvaluate_PolicyViolationLogger_GrandfatherAndUngrandfatherPolicyViolations/report");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    assertThat(results.allViolations).hasSize(2);
+    assertThat(results.activeViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    List<PolicyViolation> grandfatheredViolations =
+        filterPolicyViolationsByPolicyId(results.allViolations, securityPolicy.getId());
+    assertThat(grandfatheredViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, results.evaluation.getTime(),
+        grandfatheredViolations);
   }
 
   @Test

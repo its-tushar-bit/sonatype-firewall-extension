@@ -63,7 +63,9 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     new PolicyViolationDAO().update(policyViolationAlreadyGrandfathered);
 
     // Policy violation for a policy that cannot be found - is counted
-    tempEntity.newPolicyViolation(policyEvaluation, new Policy("doesNotExistId", "doesNotExistName"));
+    Policy policyDoesNotExist = tempEntity.newPolicy();
+    tempEntity.newPolicyViolation(policyEvaluation, policyDoesNotExist);
+    new PolicyDAO().delete(policyDoesNotExist);
 
     // Policy violation for a policy that does not allow grandfathering - is not counted
     tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy());

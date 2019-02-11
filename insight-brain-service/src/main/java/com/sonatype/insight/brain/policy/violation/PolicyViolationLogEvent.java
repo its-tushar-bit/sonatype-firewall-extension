@@ -9,6 +9,8 @@ public enum PolicyViolationLogEvent
 {
   CREATE, //
   FIX, //
+  GRANDFATHER, //
+  UNGRANDFATHER, //
   WAIVE, //
   UNWAIVE
 }

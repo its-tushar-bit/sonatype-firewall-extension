@@ -23,6 +23,9 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
@@ -50,13 +53,16 @@ public class PolicyViolationGrandfatheringService
 
   private final CLMLicenseManager clmLicenseManager;
 
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
   @Inject
   public PolicyViolationGrandfatheringService(ApplicationDAO applicationDAO,
                                               OrganizationDAO organizationDAO,
                                               PolicyDAO policyDAO,
                                               PolicyViolationDAO policyViolationDAO,
                                               PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
-                                              CLMLicenseManager clmLicenseManager)
+                                              CLMLicenseManager clmLicenseManager,
+                                              PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -64,6 +70,7 @@ public class PolicyViolationGrandfatheringService
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.clmLicenseManager = clmLicenseManager;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   private void validateGrandfatheringIsLicensed() {
@@ -81,6 +88,9 @@ public class PolicyViolationGrandfatheringService
 
     Object lock = policyViolationPersistenceLocks.getLock(app.getId());
     synchronized (lock) {
+      Date now = new Date();
+      ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
+
       try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
         tx.begin();
 
@@ -89,9 +99,13 @@ public class PolicyViolationGrandfatheringService
         for (PolicyViolation grandfatheredPolicyViolation : grandfatheredPolicyViolations) {
           grandfatheredPolicyViolation.setGrandfatherTime(null);
           policyViolationDAO.update(tx, grandfatheredPolicyViolation);
+
+          policyViolationLogger.add(PolicyViolationLogEvent.UNGRANDFATHER, grandfatheredPolicyViolation);
         }
 
         tx.commit();
+
+        policyViolationLogger.log();
         auditChangedPolicyViolationCount(grandfatheredPolicyViolations.size());
       }
     }
@@ -112,6 +126,7 @@ public class PolicyViolationGrandfatheringService
     Object lock = policyViolationPersistenceLocks.getLock(app.getId());
     synchronized (lock) {
       Date now = new Date();
+      ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
       try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
         tx.begin();
@@ -124,12 +139,17 @@ public class PolicyViolationGrandfatheringService
             if (policy == null || policy.isPolicyViolationGrandfatheringAllowed()) {
               policyViolation.setGrandfatherTime(now);
               policyViolationDAO.update(tx, policyViolation);
+
+              policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
+
               changedPolicyViolationCount++;
             }
           }
         }
 
         tx.commit();
+
+        policyViolationLogger.log();
         auditChangedPolicyViolationCount(changedPolicyViolationCount);
       }
     }

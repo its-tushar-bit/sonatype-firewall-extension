@@ -24,9 +24,9 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.MatchStat
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ViolationStateFilter;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -38,10 +38,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
-import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
+import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -53,7 +54,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.exactText;
@@ -63,6 +63,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportTest
     extends AbstractFunctionalTest
@@ -81,7 +82,8 @@ public class ApplicationReportTest
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
       new PolicyViolationGrandfatheringService(applicationDAO, new OrganizationDAO(), policyDAO,
-          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager);
+          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager,
+          new PolicyViolationLoggerFactory(clmLicenseManager));
 
   @BeforeClass
   public static void startup() {

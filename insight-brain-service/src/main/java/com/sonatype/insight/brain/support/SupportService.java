@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -132,9 +133,17 @@ class SupportService
   }
 
   static File getAuditLog(final InsightConfig config) {
+    return getLogFile(config, AuditRecorder.BASE_LOGGER_NAME);
+  }
+
+  static File getPolicyViolationLog(final InsightConfig config) {
+    return getLogFile(config, AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+  }
+
+  private static File getLogFile(final InsightConfig config, final String loggerName) {
     DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
     Map<String, JsonNode> loggers = loggingFactory.getLoggers();
-    JsonNode loggerNode = loggers.getOrDefault(AuditRecorder.BASE_LOGGER_NAME, MissingNode.getInstance());
+    JsonNode loggerNode = loggers.getOrDefault(loggerName, MissingNode.getInstance());
     return StreamSupport.stream(loggerNode.path("appenders").spliterator(), false)
         .map(appender -> appender.path("currentLogFilename")).filter(JsonNode::isTextual)
         .map(nameNode -> new File(nameNode.asText())).findFirst().orElse(null);
@@ -232,8 +241,10 @@ class SupportService
     addLogFileIfExists(filesToZip, getServerLog(config), "clm-server.log");
     addLogFileIfExists(filesToZip, getRequestLog(config), "request.log");
 
-    if (includeDb) { // audit log file might have sensitive information, using this flag to control adding
+    // audit and policy violation log files might have sensitive information, using this flag to control adding
+    if (includeDb) {
       addLogFileIfExists(filesToZip, getAuditLog(config), "audit.log");
+      addLogFileIfExists(filesToZip, getPolicyViolationLog(config), "policy-violation.log");
     }
 
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",

@@ -176,6 +176,7 @@ class SystemInfo
     entries.put("serverLog", getAbsoluteLogPath(SupportService.getServerLog(insightConfig)));
     entries.put("requestLog", getAbsoluteLogPath(SupportService.getRequestLog(insightConfig)));
     entries.put("auditLog", getAbsoluteLogPath(SupportService.getAuditLog(insightConfig)));
+    entries.put("policyViolationLog", getAbsoluteLogPath(SupportService.getPolicyViolationLog(insightConfig)));
 
     return wrapEntry("install-info", entries);
   }

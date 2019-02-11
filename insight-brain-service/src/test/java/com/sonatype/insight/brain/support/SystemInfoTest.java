@@ -28,6 +28,7 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.LicenseInfo;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -65,6 +66,8 @@ public class SystemInfoTest
 
   private static final String AUDIT_LOG_FILENAME = "myAuditLogFilename";
 
+  private static final String POLICY_VIOLATION_LOG_FILENAME = "myPolicyViolationLogFilename";
+
   @Inject
   private SystemInfo systemInfo;
 
@@ -83,21 +86,24 @@ public class SystemInfoTest
     requestFileAppenderFactory.setCurrentLogFilename(REQUEST_LOG_FILENAME);
     logbackAccessRequestLogFactory.setAppenders(ImmutableList.of(requestFileAppenderFactory));
 
-    defaultLoggingFactory.setLoggers(getAuditLoggers());
+    defaultLoggingFactory.setLoggers(getLoggers());
   }
 
-  private Map<String, JsonNode> getAuditLoggers() {
-    Map<String, JsonNode> logger = new HashMap<>();
-    String loggerJson =
-        "{ \"appenders\": [{\"type\": \"file\", \"currentLogFilename\": \"" + AUDIT_LOG_FILENAME + "\" }] }";
+  private Map<String, JsonNode> getLoggers() {
+    Map<String, JsonNode> loggers = new HashMap<>();
+    loggers.put(AuditRecorder.BASE_LOGGER_NAME, getLogger(AUDIT_LOG_FILENAME));
+    loggers.put(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME, getLogger(POLICY_VIOLATION_LOG_FILENAME));
+    return loggers;
+  }
+
+  private JsonNode getLogger(String logFileName) {
     try {
-      JsonNode loggerNode = new ObjectMapper().readTree(loggerJson);
-      logger.put(AuditRecorder.BASE_LOGGER_NAME, loggerNode);
+      return new ObjectMapper()
+          .readTree("{ \"appenders\": [{\"type\": \"file\", \"currentLogFilename\": \"" + logFileName + "\" }] }");
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-    return logger;
   }
 
   @Test
@@ -277,7 +283,12 @@ public class SystemInfoTest
     final File auditFile = new File(auditLog);
     assertThat(auditFile).isAbsolute();
 
-    assertThat(entries).hasSize(12);
+    final String policyViolationLog = (String) entries.get("policyViolationLog");
+    assertThat(policyViolationLog).endsWith(POLICY_VIOLATION_LOG_FILENAME);
+    final File policyViolationFile = new File(policyViolationLog);
+    assertThat(policyViolationFile).isAbsolute();
+
+    assertThat(entries).hasSize(13);
   }
 
   @Test

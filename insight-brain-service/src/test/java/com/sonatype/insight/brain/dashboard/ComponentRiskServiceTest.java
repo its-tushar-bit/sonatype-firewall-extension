@@ -22,11 +22,14 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -208,7 +211,7 @@ public class ComponentRiskServiceTest
     assertThat(policyViolationDTOs).isEmpty();
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
-        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null, null);
+        null, new PolicyThreatCategoryFilter(violation.getThreatCategory()), null, null);
 
     assertThat(policyViolationDTOs).hasSize(1);
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
@@ -248,7 +251,7 @@ public class ComponentRiskServiceTest
 
     // Violation out of threat level range and correct threat category.
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
-        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), new PolicyThreatLevelFilter(6, 7), null);
+        null, new PolicyThreatCategoryFilter(violation.getThreatCategory()), new PolicyThreatLevelFilter(6, 7), null);
     assertThat(policyViolationDTOs).isEmpty();
 
     // Violation in range, but wrong threat category.
@@ -258,7 +261,7 @@ public class ComponentRiskServiceTest
 
     // Violation in range and in the correct category.
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
-        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), new PolicyThreatLevelFilter(5, 7), null);
+        null, new PolicyThreatCategoryFilter(violation.getThreatCategory()), new PolicyThreatLevelFilter(5, 7), null);
 
     assertThat(policyViolationDTOs).hasSize(1);
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
@@ -517,11 +520,13 @@ public class ComponentRiskServiceTest
 
   @Test
   public void testGetComponentRisks_FilterPolicyThreatCategory() throws Exception {
-    PolicyViolation violation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 5,
-        PolicyThreatCategory.SECURITY, "gid", "aid", "1");
+    Policy licensePolicy =
+        tempEntity.newPolicy(app1, 5, LogicalOperator.AND, new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    PolicyViolation violation =
+        tempEntity.newPolicyViolation(app1PolicyEvaluation, licensePolicy, "gid", "aid", "1", "hash");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY), null,
+        .getComponentRisks(null, null, null, null, new PolicyThreatCategoryFilter(violation.getThreatCategory()), null,
             null, "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);

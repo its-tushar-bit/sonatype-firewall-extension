@@ -1011,7 +1011,7 @@ public class TemporaryEntity
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy) {
-    return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), PolicyThreatCategory.LICENSE, "Group1",
+    return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), policy.getThreatCategory(), "Group1",
         "Artifact1", "Version1");
   }
 

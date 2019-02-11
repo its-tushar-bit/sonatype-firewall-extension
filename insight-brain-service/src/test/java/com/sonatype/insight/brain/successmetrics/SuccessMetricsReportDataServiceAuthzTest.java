@@ -20,10 +20,13 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -56,7 +59,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
   public void before() {
     ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
         "ababababab", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Policy licensePolicy = tempEntity.newPolicy(org);
+    Policy licensePolicy =
+        tempEntity.newPolicy(org, 5, LogicalOperator.AND, new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "now", new Date());
     tempEntity.newPolicyViolation(buildEval, licensePolicy, 7, LICENSE, buildComponent.getComponentIdentifier(),
         buildComponent.getHash(), FailActionType.ID);
@@ -321,7 +325,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
     Date eval1Date = today.withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date eval2Date = new Date(eval1Date.getTime() + violationResolutionTimeMs);
 
-    Policy policy = tempEntity.newPolicy(app);
+    Policy policy =
+        tempEntity.newPolicy(app, 5, LogicalOperator.AND, new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "eval1", eval1Date);
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "eval2", eval2Date);

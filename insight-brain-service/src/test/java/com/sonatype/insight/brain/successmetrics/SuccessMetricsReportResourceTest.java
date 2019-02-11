@@ -156,8 +156,8 @@ public class SuccessMetricsReportResourceTest
     AverageDiscoveredPolicyViolationsDTO dto = chartDto.averages;
 
     assertThat(dto).isNotNull();
-    assertThat(dto.licenseViolations.averageDiscovered).isCloseTo(1.0, offset(0.0001));
-    assertThat(dto.licenseViolations.averageDiscoveredCritical).isCloseTo(0.0, offset(0.0001));
+    assertThat(dto.securityViolations.averageDiscovered).isCloseTo(1.0, offset(0.0001));
+    assertThat(dto.securityViolations.averageDiscoveredCritical).isCloseTo(0.0, offset(0.0001));
     assertThat(dto.evaluationCount).isCloseTo(2.0, offset(0.0001));
   }
 
@@ -169,9 +169,9 @@ public class SuccessMetricsReportResourceTest
     assertThat(dto.activeApplications).isEqualTo(1);
     assertThat(dto.total.applicationsWithViolations).isEqualTo(1);
     assertThat(dto.total.applicationsWithCriticalViolations).isEqualTo(0);
-    assertThat(dto.security.applicationsWithViolations).isEqualTo(0);
+    assertThat(dto.security.applicationsWithViolations).isEqualTo(1);
     assertThat(dto.security.applicationsWithCriticalViolations).isEqualTo(0);
-    assertThat(dto.license.applicationsWithViolations).isEqualTo(1);
+    assertThat(dto.license.applicationsWithViolations).isEqualTo(0);
     assertThat(dto.license.applicationsWithCriticalViolations).isEqualTo(0);
     assertThat(dto.quality.applicationsWithViolations).isEqualTo(0);
     assertThat(dto.quality.applicationsWithCriticalViolations).isEqualTo(0);

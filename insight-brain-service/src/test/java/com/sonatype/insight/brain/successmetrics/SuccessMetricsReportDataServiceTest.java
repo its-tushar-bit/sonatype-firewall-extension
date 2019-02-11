@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -56,7 +57,6 @@ import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolati
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.fixed;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.openWithSampleData;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsReportDataService.isReportDataOutOfDate;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
@@ -716,10 +716,10 @@ public class SuccessMetricsReportDataServiceTest
     assertAverageDTO(result, firstMonthAverage);
   }
 
-  private ViolationCountsDTO createViolationCountsDTO(String timePeriodName, int discoveredLicenseSevereCount) {
+  private ViolationCountsDTO createViolationCountsDTO(String timePeriodName, int discoveredSecuritySevereCount) {
     ViolationCountsDTO result = new ViolationCountsDTO();
     result.timePeriodName = timePeriodName;
-    result.discoveredCounts.get(LICENSE).put(SEVERE, discoveredLicenseSevereCount);
+    result.discoveredCounts.get(PolicyThreatCategory.SECURITY).put(SEVERE, discoveredSecuritySevereCount);
     return result;
   }
 
@@ -1323,22 +1323,22 @@ public class SuccessMetricsReportDataServiceTest
 
     expectedDTOs = new ArrayList<>(expectedDTOs.subList(3, 12));
     expectedDTOs.add(new ViolationsByCategoryDTO("30 Oct", 0, 0, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("06 Nov", 0, 1, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("13 Nov", 0, 1, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("06 Nov", 1, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("13 Nov", 1, 0, 0, 0));
     assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
 
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan3", now.minusWeeks(3).toDate());
-    tempEntity.newPolicyViolation(eval3, policy, 9, LICENSE, "ano", "ther", "artifact");
+    tempEntity.newPolicyViolation(eval3, policy, 9, PolicyThreatCategory.SECURITY, "ano", "ther", "artifact");
 
     setTimeTo(now);
 
     result = service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks;
 
     expectedDTOs = new ArrayList<>(expectedDTOs.subList(4, 12));
-    expectedDTOs.add(new ViolationsByCategoryDTO("20 Nov", 0, 1, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("27 Nov", 0, 2, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("04 Dec", 0, 2, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("11 Dec", 0, 2, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("20 Nov", 1, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("27 Nov", 2, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("04 Dec", 2, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("11 Dec", 2, 0, 0, 0));
     assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
   }
 
@@ -1380,24 +1380,24 @@ public class SuccessMetricsReportDataServiceTest
 
     expectedDTOs = new ArrayList<>(expectedDTOs.subList(3, 11));
     expectedDTOs.add(new ViolationsByCategoryDTO("30 Oct", 0, 0, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("06 Nov", 0, 1, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("13 Nov", 0, 1, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("now", 0, 1, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("06 Nov", 1, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("13 Nov", 1, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("now", 1, 0, 0, 0));
     assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
 
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan3", now.minusWeeks(3).toDate());
-    tempEntity.newPolicyViolation(eval3, policy, 9, LICENSE, "ano", "ther", "artifact");
+    tempEntity.newPolicyViolation(eval3, policy, 9, PolicyThreatCategory.SECURITY, "ano", "ther", "artifact");
 
     setTimeTo(now);
 
     result = service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks;
 
     expectedDTOs = new ArrayList<>(expectedDTOs.subList(4, 11));
-    expectedDTOs.add(new ViolationsByCategoryDTO("20 Nov", 0, 1, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("27 Nov", 0, 2, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("04 Dec", 0, 2, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("11 Dec", 0, 2, 0, 0));
-    expectedDTOs.add(new ViolationsByCategoryDTO("now", 0, 2, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("20 Nov", 1, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("27 Nov", 2, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("04 Dec", 2, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("11 Dec", 2, 0, 0, 0));
+    expectedDTOs.add(new ViolationsByCategoryDTO("now", 2, 0, 0, 0));
     assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
   }
 
@@ -1426,9 +1426,9 @@ public class SuccessMetricsReportDataServiceTest
     expected.activeApplications = 1;
     expected.total.applicationsWithViolations = 1;
     expected.total.applicationsWithCriticalViolations = 0;
-    expected.security.applicationsWithViolations = 0;
+    expected.security.applicationsWithViolations = 1;
     expected.security.applicationsWithCriticalViolations = 0;
-    expected.license.applicationsWithViolations = 1;
+    expected.license.applicationsWithViolations = 0;
     expected.license.applicationsWithCriticalViolations = 0;
     expected.quality.applicationsWithViolations = 0;
     expected.quality.applicationsWithCriticalViolations = 0;

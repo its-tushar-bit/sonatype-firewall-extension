@@ -25,7 +25,7 @@ public class PolicyViolationLogDTO
 
   public String policyThreatCategory;
 
-  public int policyThreatLevel;
+  public Integer policyThreatLevel;
 
   public List<PolicyConditionTriggerDTO> policyConditionTriggers;
 

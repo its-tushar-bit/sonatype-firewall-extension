@@ -12,5 +12,6 @@ public enum PolicyViolationLogEvent
   GRANDFATHER, //
   UNGRANDFATHER, //
   WAIVE, //
-  UNWAIVE
+  UNWAIVE, //
+  CLEAR
 }

@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
@@ -37,6 +38,18 @@ public class PolicyViolationLoggerFactoryTest
 
   @Inject
   private TestLicenseManager licenseManager;
+
+  @Test
+  public void testNewLogger_ForOrganization_FeatureLicensed() {
+    licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Organization()).isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testNewLogger_ForOrganization_FeatureUnlicensed() {
+    licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Organization()).isEnabled()).isFalse();
+  }
 
   @Test
   public void testNewLogger_ForApplication_FeatureLicensed() {

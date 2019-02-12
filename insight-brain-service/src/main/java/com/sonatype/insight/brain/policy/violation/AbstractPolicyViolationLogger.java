@@ -75,22 +75,24 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
     policyViolationLogDTO.eventType = policyViolationData.policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
     policyViolationLogDTO.eventTimestamp = formattedLogTimestamp;
-    policyViolationLogDTO.policyId = policyViolation.getPolicyId();
-    policyViolationLogDTO.policyName = policyViolation.getPolicyName();
-    policyViolationLogDTO.policyThreatCategory = policyViolation.getThreatCategory().getName();
-    policyViolationLogDTO.policyThreatLevel = policyViolation.getThreatLevel();
-    if (shouldIncludeStagePolicyAction(policyViolationData.policyViolationLogEvent, policyViolation)) {
-      policyViolationLogDTO.stagePolicyAction =
-          policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
+    if (policyViolation != null) {
+      policyViolationLogDTO.policyId = policyViolation.getPolicyId();
+      policyViolationLogDTO.policyName = policyViolation.getPolicyName();
+      policyViolationLogDTO.policyThreatCategory = policyViolation.getThreatCategory().getName();
+      policyViolationLogDTO.policyThreatLevel = policyViolation.getThreatLevel();
+      if (shouldIncludeStagePolicyAction(policyViolationData.policyViolationLogEvent, policyViolation)) {
+        policyViolationLogDTO.stagePolicyAction =
+            policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
+      }
+      policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts().stream()
+          .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+          .map(ConditionFact::getReason)
+          .distinct()
+          .map(this::createPolicyConditionTriggerDTO)
+          .collect(Collectors.toList());
+      policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
+      policyViolationLogDTO.componentHash = policyViolation.getHash();
     }
-    policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts().stream()
-        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
-        .map(ConditionFact::getReason)
-        .distinct()
-        .map(this::createPolicyConditionTriggerDTO)
-        .collect(Collectors.toList());
-    policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
-    policyViolationLogDTO.componentHash = policyViolation.getHash();
     return policyViolationLogDTO;
   }
 

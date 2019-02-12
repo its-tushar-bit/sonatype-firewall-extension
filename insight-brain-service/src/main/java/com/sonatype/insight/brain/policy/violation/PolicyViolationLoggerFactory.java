@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseListener;
@@ -34,6 +35,11 @@ public class PolicyViolationLoggerFactory
   public PolicyViolationLoggerFactory(CLMLicenseManager licenseManager) {
     this.licenseManager = licenseManager;
     licenseManager.addListener(this);
+  }
+
+  public OrganizationPolicyViolationLogger newLogger(Date logTimestamp, Organization organization) {
+    return new OrganizationPolicyViolationLogger(
+        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp, organization);
   }
 
   public ApplicationPolicyViolationLogger newLogger(Date logTimestamp, Application application) {

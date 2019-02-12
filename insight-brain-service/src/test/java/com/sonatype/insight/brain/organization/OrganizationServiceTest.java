@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -15,12 +16,19 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.test.LogOutput;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -34,6 +42,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class OrganizationServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+
   @Inject
   private OrganizationService organizationService;
 
@@ -42,6 +53,9 @@ public class OrganizationServiceTest
 
   @Inject
   private AsyncEventBus eventBus;
+
+  @Inject
+  private PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   /**
    * There's a similar protection at the DAO layer but given the order of operations, the service layer needs to prevent
@@ -72,12 +86,12 @@ public class OrganizationServiceTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
 
     List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(),
-        rootOrganizationConfigMigrationUtils, null).getAll();
+        rootOrganizationConfigMigrationUtils, null, policyViolationLoggerFactory).getAll();
     assertThat(orgs).isEmpty();
 
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(),
-        rootOrganizationConfigMigrationUtils, null);
+        rootOrganizationConfigMigrationUtils, null, policyViolationLoggerFactory);
 
     orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
@@ -118,5 +132,20 @@ public class OrganizationServiceTest
     assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
 
     eventBus.unregister(handler);
+  }
+
+  @Test
+  public void testDeleteOrganization_PolicyViolationLogger_LogsClearEvent() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    Date before = new Date();
+    organizationService.deleteOrganization(organization.getId());
+    Date after = new Date();
+
+    List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
+        .assertPolicyViolationLogDTOs(logOutput, 1);
+    PolicyViolationLogDTOAssert
+        .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR,
+            organization, before, after);
   }
 }

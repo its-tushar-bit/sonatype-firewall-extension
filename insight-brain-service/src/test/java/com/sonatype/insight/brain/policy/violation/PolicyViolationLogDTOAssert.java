@@ -93,6 +93,16 @@ public class PolicyViolationLogDTOAssert
     }
   }
 
+  public static void assertOrganizationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
+                                                           PolicyViolationLogEvent policyViolationLogEvent,
+                                                           Organization organization,
+                                                           Date before,
+                                                           Date after)
+  {
+    assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
+    assertOrganizationData(policyViolationLogDTO, organization);
+  }
+
   public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                           PolicyViolationLogEvent policyViolationLogEvent,
                                                           Organization organization,

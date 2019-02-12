@@ -16,6 +16,6 @@ public class PolicyViolationLogDTOTest
   public void testJsonSerialization_NullFieldsAreMissing() throws Exception {
     PolicyViolationLogDTO dto = new PolicyViolationLogDTO();
     String json = new ObjectMapper().writeValueAsString(dto);
-    assertThat(json).isEqualTo("{\"policyThreatLevel\":0}");
+    assertThat(json).isEqualTo("{}");
   }
 }

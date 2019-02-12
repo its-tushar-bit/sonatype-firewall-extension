@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -23,6 +24,9 @@ import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.violation.OrganizationPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -58,13 +62,16 @@ public class OrganizationService
 
   private final ManagementEventService managementEventService;
 
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
   @Inject
   public OrganizationService(final InsightWork work,
                              final ApplicationCleaner applicationCleaner,
                              final FileCleaner fileCleaner,
                              final OrganizationDAO organizationDAO,
                              final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
-                             final ManagementEventService managementEventService)
+                             final ManagementEventService managementEventService,
+                             final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
@@ -72,6 +79,7 @@ public class OrganizationService
     this.organizationDAO = organizationDAO;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.managementEventService = managementEventService;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -114,9 +122,13 @@ public class OrganizationService
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
       organization = organizationDAO.getByIdNotNull(tx, organizationId);
+      OrganizationPolicyViolationLogger organizationPolicyViolationLogger = policyViolationLoggerFactory
+          .newLogger(new Date(), organization);
       AuditData.get().setOrganization(organization);
       deleteOrganization(tx, organization);
+      organizationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
       tx.commit();
+      organizationPolicyViolationLogger.log();
       AuditData.get().commitSubEvents();
     }
     managementEventService.postEvent(DELETED, organization);

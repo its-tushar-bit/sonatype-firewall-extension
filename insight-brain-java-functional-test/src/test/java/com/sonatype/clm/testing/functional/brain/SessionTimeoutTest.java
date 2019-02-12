@@ -225,8 +225,8 @@ public class SessionTimeoutTest
   public void testRefreshDespiteDirtyPage() throws Exception {
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
-    // set session timeout to 3 seconds
-    sessionManager.setGlobalSessionTimeout(3000);
+    // set session timeout to 6 seconds
+    sessionManager.setGlobalSessionTimeout(6000);
 
     loginAsAdmin();
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
@@ -234,7 +234,7 @@ public class SessionTimeoutTest
     new WebhookConfigurationPage().newWebhook().shouldBe(visible).click();
     new WebhookEditPage().url().shouldBe(visible).setValue("test");
 
-    Thread.sleep(3500);
+    Thread.sleep(6500);
 
     assertUiCleared();
   }

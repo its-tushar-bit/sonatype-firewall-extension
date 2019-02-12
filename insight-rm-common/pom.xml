@@ -16,10 +16,6 @@
   <artifactId>insight-rm-common</artifactId>
   <name>Sonatype CLM Repository Manager Common Integration</name>
 
-  <properties>
-    <checkstyle.failOnViolation>false</checkstyle.failOnViolation>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>

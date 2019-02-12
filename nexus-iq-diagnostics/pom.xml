@@ -18,10 +18,6 @@
 
   <artifactId>nexus-iq-diagnostics</artifactId>
 
-  <properties>
-    <checkstyle.failOnViolation>false</checkstyle.failOnViolation>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.beust</groupId>

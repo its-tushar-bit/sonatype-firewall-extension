@@ -1000,7 +1000,7 @@
           <dependency>
             <groupId>com.sonatype</groupId>
             <artifactId>checkstyle-checks</artifactId>
-            <version>8</version>
+            <version>11</version>
           </dependency>
         </dependencies>
       </plugin>

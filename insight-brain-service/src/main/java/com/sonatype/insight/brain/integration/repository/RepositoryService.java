@@ -256,6 +256,12 @@ public class RepositoryService
       repository = new Repository(null, repositoryPublicId);
     }
     setEnabled(repositoryManagerInstanceId, repository, enable);
+    if (!enable) {
+      RepositoryPolicyViolationLogger repositoryPolicyViolationLogger = policyViolationLoggerFactory
+          .newLogger(new Date(), repository);
+      repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
+      repositoryPolicyViolationLogger.log();
+    }
 
     log.info("{} audit for repository {}:{} ({})", enable ? "Enabled" : "Disabled", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());

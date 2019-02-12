@@ -2215,4 +2215,28 @@ public class RepositoryServiceTest
     PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs.get(0),
         PolicyViolationLogEvent.CLEAR, repository, before, after);
   }
+
+  @Test
+  public void testSetEnabled_PolicyViolationLogger_DisabledLogsClearEvent() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    Date before = new Date();
+    repositoryService.setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), false);
+    Date after = new Date();
+
+    List<PolicyViolationLogDTO> policyViolationLogDTOs =
+        PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 1);
+    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs.get(0),
+        PolicyViolationLogEvent.CLEAR, repository, before, after);
+  }
+
+  @Test
+  public void testSetEnabled_PolicyViolationLogger_EnabledDoesNotLogClearEvent() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    repositoryService.setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), true);
+
+    assertThat(policyViolationLoggerOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME))
+        .isEmpty();
+  }
 }

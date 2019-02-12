@@ -62,8 +62,22 @@ public class PolicyViolationLoggerFactoryTest
     assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Repository()).isEnabled()).isFalse();
   }
 
+  /**
+   * Tweaking the features of the product license causes notifications to any listener. In some tests, we do not want
+   * this callback on the logger factory and solely observe the effects of methods that get explicitly called from the
+   * test themselves.
+   */
+  private void avoidInterferenceFromLicenseChange() {
+    licenseManager.removeListener(policyViolationLoggerFactory);
+  }
+
+  private void disablePolicyViolationLogger() {
+    ((Logger) LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).setLevel(Level.OFF);
+  }
+
   @Test
   public void testStart_FeatureUnlicensed_LoggerEnabled() {
+    avoidInterferenceFromLicenseChange();
     licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
         Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     policyViolationLoggerFactory.start();
@@ -74,9 +88,10 @@ public class PolicyViolationLoggerFactoryTest
 
   @Test
   public void testStart_FeatureUnlicensed_LoggerDisabled() {
+    disablePolicyViolationLogger();
+    avoidInterferenceFromLicenseChange();
     licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
         Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
-    ((Logger) LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).setLevel(Level.OFF);
     policyViolationLoggerFactory.start();
     assertThat(logOutput).atWarnLevel().isEmpty();
     assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
@@ -84,6 +99,7 @@ public class PolicyViolationLoggerFactoryTest
 
   @Test
   public void testStart_FeatureLicensed_ForApplication_LoggerEnabled() {
+    avoidInterferenceFromLicenseChange();
     licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
     policyViolationLoggerFactory.start();
     assertThat(logOutput).atWarnLevel().isEmpty();
@@ -92,6 +108,7 @@ public class PolicyViolationLoggerFactoryTest
 
   @Test
   public void testStart_FeatureLicensed_ForRepository_LoggerEnabled() {
+    avoidInterferenceFromLicenseChange();
     licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     policyViolationLoggerFactory.start();
     assertThat(logOutput).atWarnLevel().isEmpty();
@@ -102,8 +119,9 @@ public class PolicyViolationLoggerFactoryTest
 
   @Test
   public void testStart_FeatureLicensed_ForApplication_LoggerDisabled() {
+    disablePolicyViolationLogger();
+    avoidInterferenceFromLicenseChange();
     licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
-    ((Logger) LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).setLevel(Level.OFF);
     policyViolationLoggerFactory.start();
     assertThat(logOutput).atWarnLevel().isEmpty();
     assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
@@ -111,9 +129,60 @@ public class PolicyViolationLoggerFactoryTest
 
   @Test
   public void testStart_FeatureLicensed_ForRepository_LoggerDisabled() {
+    disablePolicyViolationLogger();
+    avoidInterferenceFromLicenseChange();
     licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
-    ((Logger) LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME)).setLevel(Level.OFF);
     policyViolationLoggerFactory.start();
+    assertThat(logOutput).atWarnLevel().isEmpty();
+    assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
+  }
+
+  @Test
+  public void testLicenseChanged_FeatureUnlicensed_LoggerEnabled() {
+    licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
+        Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+    assertThat(logOutput).atWarnLevel()
+        .contains("Disabling policy violation logging for logger com.sonatype.insight.policy.violation. "
+            + "Installed license does not support policy violation logging.");
+  }
+
+  @Test
+  public void testLicenseChanged_FeatureUnlicensed_LoggerDisabled() {
+    disablePolicyViolationLogger();
+    licenseManager.setMissingFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
+        Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+    assertThat(logOutput).atWarnLevel().isEmpty();
+    assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
+  }
+
+  @Test
+  public void testLicenseChanged_FeatureLicensed_ForApplication_LoggerEnabled() {
+    licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    assertThat(logOutput).atWarnLevel().isEmpty();
+    assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
+  }
+
+  @Test
+  public void testLicenseChanged_FeatureLicensed_ForRepository_LoggerEnabled() {
+    licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+    assertThat(logOutput).atWarnLevel().isEmpty();
+    assertThat(logOutput).atInfoLevel()
+        .contains("Disabling application policy violation logging for logger com.sonatype.insight.policy.violation. "
+            + "Installed license does not support policy violation logging for applications.");
+  }
+
+  @Test
+  public void testLicenseChanged_FeatureLicensed_ForApplication_LoggerDisabled() {
+    disablePolicyViolationLogger();
+    licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    assertThat(logOutput).atWarnLevel().isEmpty();
+    assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
+  }
+
+  @Test
+  public void testLicenseChanged_FeatureLicensed_ForRepository_LoggerDisabled() {
+    disablePolicyViolationLogger();
+    licenseManager.setFeatures(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     assertThat(logOutput).atWarnLevel().isEmpty();
     assertThat(logOutput).atAnyLevel().doesNotContain("Installed license does not support policy violation logging");
   }

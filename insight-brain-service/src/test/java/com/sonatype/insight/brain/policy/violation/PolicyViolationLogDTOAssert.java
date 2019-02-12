@@ -115,6 +115,16 @@ public class PolicyViolationLogDTOAssert
     assertApplicationData(policyViolationLogDTO, application);
   }
 
+  public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
+                                                         PolicyViolationLogEvent policyViolationLogEvent,
+                                                         Repository repository,
+                                                         Date before,
+                                                         Date after)
+  {
+    assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
+    assertRepositoryData(policyViolationLogDTO, repository);
+  }
+
   public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                           PolicyViolationLogEvent policyViolationLogEvent,
                                                           Organization organization,

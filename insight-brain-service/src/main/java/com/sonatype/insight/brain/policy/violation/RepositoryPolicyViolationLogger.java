@@ -27,7 +27,9 @@ public class RepositoryPolicyViolationLogger
   {
     PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
-    policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
+    if (!PolicyViolationLogEvent.CLEAR.equals(policyViolationData.policyViolationLogEvent)) {
+      policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
+    }
     policyViolationLogDTO.repositoryId = repository.getId();
     policyViolationLogDTO.repositoryPublicId = repository.getPublicId();
     return policyViolationLogDTO;

@@ -2201,4 +2201,18 @@ public class RepositoryServiceTest
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs, PolicyViolationLogEvent.FIX, repository, before,
             after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2));
   }
+
+  @Test
+  public void testDeleteRepository_PolicyViolationLogger_LogsClearEvent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    Date before = new Date();
+    repositoryService.deleteRepository(repository.getId());
+    Date after = new Date();
+
+    List<PolicyViolationLogDTO> policyViolationLogDTOs =
+        PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 1);
+    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs.get(0),
+        PolicyViolationLogEvent.CLEAR, repository, before, after);
+  }
 }

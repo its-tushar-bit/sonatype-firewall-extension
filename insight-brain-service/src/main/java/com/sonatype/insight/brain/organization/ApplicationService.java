@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,6 +22,9 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -51,18 +55,22 @@ public class ApplicationService
 
   private final OrganizationDAO organizationDAO;
 
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
   @Inject
   public ApplicationService(ApplicationDAO applicationDAO,
                             final ApplicationCleaner applicationCleaner,
                             final ApplicationHelper applicationHelper,
                             final ManagementEventService managementEventService,
-                            final OrganizationDAO organizationDAO)
+                            final OrganizationDAO organizationDAO,
+                            final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
     this.managementEventService = managementEventService;
     this.organizationDAO = organizationDAO;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -179,18 +187,23 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
+  public void deleteApplicationByPublicId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
       throws IOException
   {
     Application application;
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
+      ApplicationPolicyViolationLogger applicationPolicyViolationLogger = policyViolationLoggerFactory
+          .newLogger(new Date(), application);
       AuditData.get()
           .setApplicationWithDetails(application)
           .setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
       applicationCleaner.delete(tx, application);
+      applicationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
       tx.commit();
+      applicationPolicyViolationLogger.log();
     }
     managementEventService.postEvent(DELETED, application);
   }

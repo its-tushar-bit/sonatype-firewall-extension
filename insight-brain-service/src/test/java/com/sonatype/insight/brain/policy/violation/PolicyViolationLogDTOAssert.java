@@ -108,6 +108,18 @@ public class PolicyViolationLogDTOAssert
                                                           Organization organization,
                                                           Application application,
                                                           Date before,
+                                                          Date after)
+  {
+    assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
+    assertOrganizationData(policyViolationLogDTO, organization);
+    assertApplicationData(policyViolationLogDTO, application);
+  }
+
+  public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
+                                                          PolicyViolationLogEvent policyViolationLogEvent,
+                                                          Organization organization,
+                                                          Application application,
+                                                          Date before,
                                                           Date after,
                                                           PolicyViolation policyViolation) throws Exception
   {

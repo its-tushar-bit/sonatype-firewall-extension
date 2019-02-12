@@ -33,7 +33,8 @@ public class ApplicationPolicyViolationLogger
   {
     PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
-    policyViolationLogDTO.stageTypeId = policyViolationData.policyViolation.getStageTypeId();
+    policyViolationLogDTO.stageTypeId =
+        policyViolationData.policyViolation == null ? null : policyViolationData.policyViolation.getStageTypeId();
     policyViolationLogDTO.applicationId = application.getId();
     policyViolationLogDTO.applicationPublicId = application.getPublicId();
     policyViolationLogDTO.applicationName = application.getName();

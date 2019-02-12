@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -24,14 +25,20 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
@@ -44,6 +51,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ApplicationServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
+
   @Inject
   private ApplicationService applicationService;
 
@@ -269,5 +279,18 @@ public class ApplicationServiceTest
     assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
       applicationService.updateApplication(app1);
     }).withMessageContaining("not change the parent organization of an application");
+  }
+
+  @Test
+  public void testDeleteApplicationByPublicId_PolicyViolationLogger_LogsClearEvent() throws Exception {
+    Date before = new Date();
+    applicationService.deleteApplicationByPublicId(app1.getPublicId());
+    Date after = new Date();
+
+    List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
+        .assertPolicyViolationLogDTOs(logOutput, 1);
+    PolicyViolationLogDTOAssert
+        .assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR, org, app1,
+            before, after);
   }
 }

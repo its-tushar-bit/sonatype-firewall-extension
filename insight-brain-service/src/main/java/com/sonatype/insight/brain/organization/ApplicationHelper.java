@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +23,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.UserDirectory;
@@ -48,6 +52,8 @@ public class ApplicationHelper
 
   private final CurrentUser currentUser;
 
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
   @Inject
   public ApplicationHelper(final ApplicationDAO applicationDAO,
                            final OrganizationDAO organizationDAO,
@@ -55,7 +61,8 @@ public class ApplicationHelper
                            final UserDirectory userDirectory,
                            final ApplicationCleaner applicationCleaner,
                            final CLMLicenseManager licenseManager,
-                           final CurrentUser currentUser)
+                           final CurrentUser currentUser,
+                           final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
     this.licenseManager = licenseManager;
@@ -64,6 +71,7 @@ public class ApplicationHelper
     this.applicationCleaner = applicationCleaner;
     this.currentUser = currentUser;
     this.membershipMappingDAO = membershipMappingDAO;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   public Application getApplicationByIdNotNull(final String applicationId) {
@@ -90,10 +98,14 @@ public class ApplicationHelper
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       final Application app = applicationDAO.getByIdNotNull(tx, applicationId);
+      ApplicationPolicyViolationLogger applicationPolicyViolationLogger = policyViolationLoggerFactory
+          .newLogger(new Date(), app);
       AuditData.get().setApplicationWithDetails(app)
           .setParentOrganization(organizationDAO.getByIdNotNull(app.getParentOwnerId()));
       applicationCleaner.delete(tx, app);
+      applicationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
       tx.commit();
+      applicationPolicyViolationLogger.log();
     }
   }
 

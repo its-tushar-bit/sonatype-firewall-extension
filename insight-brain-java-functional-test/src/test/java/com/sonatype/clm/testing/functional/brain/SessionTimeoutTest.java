@@ -191,29 +191,29 @@ public class SessionTimeoutTest
   public void testRefreshAfterServerTimeoutWithCookieUpdate() throws Exception {
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
-    // set session timeout to 8 seconds
-    sessionManager.setGlobalSessionTimeout(8000);
+    // set session timeout to 10 seconds
+    sessionManager.setGlobalSessionTimeout(10000);
 
     // Current Time: 0; Timeout Time: N/A
     loginAsAdmin();
-    Thread.sleep(4000);
+    Thread.sleep(5000);
 
     // Perform an interaction that will cause a server request
-    // Current Time: 4000; Timeout Time: 8000
+    // Current Time: 5000; Timeout Time: 10000
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
     // wait until after the initial timeout would've expired, but not after the timeout from the most recent
     // interaction would've expired
-    Thread.sleep(5000);
+    Thread.sleep(6000);
 
-    // Current Time: 9000; Timeout Time: 12000
+    // Current Time: 11000; Timeout Time: 15000
     new WebhookConfigurationPage().newWebhook().shouldBe(visible);
 
     // wait until after the new timeout should expire
     Thread.sleep(5000);
 
-    // Current Time: 14000; Timeout Time: 12000
+    // Current Time: 16000; Timeout Time: 15000
     assertUiCleared();
   }
 

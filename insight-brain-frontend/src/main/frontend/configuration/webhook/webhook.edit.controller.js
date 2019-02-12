@@ -12,12 +12,14 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
   vm.submitError = undefined;
   vm.webhookEditorMask = undefined;
   vm.isWebhooksSupported = undefined;
+  vm.isWebhooksForApplicationsSupported = undefined;
 
   vm.doLoad = doLoad;
   vm.deleteWebhook = deleteWebhook;
   vm.saveWebhook = saveWebhook;
   vm.hasEventTypeSelected = hasEventTypeSelected;
   vm.toggleEventTypeSelected = toggleEventTypeSelected;
+  vm.isEventTypeDisabled = isEventTypeDisabled;
 
   vm.doLoad();
 
@@ -53,6 +55,7 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
 
       vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
           ProductFeatures.isAvailable('webhooks-for-repositories');
+      vm.isWebhooksForApplicationsSupported = ProductFeatures.isAvailable('webhooks-for-applications');
     }, function(error) {
       vm.loadError = error;
     });
@@ -88,6 +91,10 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
     else {
       vm.dirtyWebhook.eventTypes.push(eventType);
     }
+  }
+
+  function isEventTypeDisabled(eventType) {
+    return eventType === 'Application Evaluation' && !vm.isWebhooksForApplicationsSupported;
   }
 }
 

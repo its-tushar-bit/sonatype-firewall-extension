@@ -14,6 +14,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
 public class WebhookEditPage
     extends BasicElement<WebhookEditPage>
 {
@@ -73,5 +75,9 @@ public class WebhookEditPage
 
   public SelenideElement form() {
     return child(".iq-form");
+  }
+
+  public static SelenideElement disabledApplicationEvaluationMessage() {
+    return $("#application-evaluation-disabled-message");
   }
 }

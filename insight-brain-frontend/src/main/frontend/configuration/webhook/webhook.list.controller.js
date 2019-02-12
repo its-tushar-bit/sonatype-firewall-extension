@@ -7,6 +7,7 @@ export default function WebhookListController($state, WebhookStore, ProductFeatu
   var vm = this;
   vm.newWebhook = newWebhook;
   vm.doLoad = doLoad;
+  vm.isEventTypeDisabled = isEventTypeDisabled;
   vm.isWebhooksSupported = undefined;
 
   vm.doLoad();
@@ -28,6 +29,10 @@ export default function WebhookListController($state, WebhookStore, ProductFeatu
     });
 
     delete vm.loadError;
+  }
+
+  function isEventTypeDisabled(eventType) {
+    return eventType === 'Application Evaluation' && !ProductFeatures.isAvailable('webhooks-for-applications');
   }
 }
 

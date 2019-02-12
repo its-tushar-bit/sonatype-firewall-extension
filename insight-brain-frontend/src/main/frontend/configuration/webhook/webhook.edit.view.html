@@ -54,6 +54,12 @@
                    ng-maxlength="512"
                    clm-input/>
           </div>
+          <div id="application-evaluation-disabled-message"
+               ng-if="!vm.isWebhooksForApplicationsSupported"
+               class="iq-alert iq-alert--info iq-alert--form-item">
+            <i class="fa fa-info-circle"></i>Webhooks with Application Evaluation event types are not supported by your 
+            license.
+          </div>
           <div class="iq-form-group" id="event-types">
             <label class="iq-label">
               Event Types
@@ -62,7 +68,8 @@
             <div ng-repeat="eventType in ::vm.webhookEventTypes" id="{{::eventType.split(' ').join('-')}}">
               <iq-checkbox label="{{::eventType}}"
                            on-click="vm.toggleEventTypeSelected(eventType)"
-                           is-checked="vm.hasEventTypeSelected(eventType)">
+                           is-checked="vm.hasEventTypeSelected(eventType)"
+                           is-disabled="::vm.isEventTypeDisabled(eventType)">
               </iq-checkbox>
             </div>
           </div>

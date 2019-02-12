@@ -32,7 +32,9 @@
                   <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks">{{::webhook.url}}
                 </span>
                 <p class="iq-list__subtext">
-                  <span ng-repeat="eventType in webhook.eventTypes" class="webhook-event-types">
+                  <span ng-repeat="eventType in webhook.eventTypes"
+                        class="webhook-event-types"
+                        ng-class="{'iq-list__item--disabled': vm.isEventTypeDisabled(eventType)}">
                     <i class="fa fa-circle size-10px" title="{{::eventType}}"/>{{::eventType}}
                   </span>
                 </p>

@@ -32,12 +32,14 @@ import org.mockito.internal.util.collections.Sets;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DeleteModal.bodyText;
 import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
 
@@ -204,6 +206,25 @@ public class WebhookConfigurationTest
     
     refreshOrOpen(WebhookEditPage.url(webhookList.get(0).getId()));
     webhookEditPage.shouldHave(text(notLicensedText));
+  }
+
+  @Test
+  public void testWebhooks_Foundation_Firewall() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+
+    refreshOrOpen(WebhookConfigurationPage.URL);
+    webhookConfigurationPage.should(appear);
+
+    refreshOrOpen(WebhookEditPage.url(webhookList.get(0).getId()));
+
+    webhookEditPage.should(appear);
+    WebhookEditPage.disabledApplicationEvaluationMessage()
+        .shouldBe(text("Webhooks with Application Evaluation event types are not supported by your license."));
+
+    webhookEditPage.applicationEvaluation().shouldBe(visible, disabled).shouldNotBe(selected).click();
+    webhookEditPage.applicationEvaluation().shouldNotBe(selected);
+
+    webhookEditPage.save().shouldHave(text("Update"), DISABLED);
   }
 
   private void insertWebhooks() {

@@ -1134,12 +1134,11 @@ public class TemporaryEntity
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
                                             Policy policy,
-                                            int threatLevel,
-                                            PolicyThreatCategory category,
                                             ComponentIdentifier componentIdentifier,
                                             String hash)
   {
-    return newPolicyViolation(evaluation, policy, threatLevel, category, componentIdentifier, hash, null);
+    return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), policy.getThreatCategory(),
+        componentIdentifier, hash, null);
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,

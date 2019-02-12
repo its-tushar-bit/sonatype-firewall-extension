@@ -146,8 +146,7 @@ public class JiraPolicyAlertNotifierTest
 
     ComponentIdentifier identifier = ComponentIdentifier.createAnameCoordinates("jquery", "", "3.0.0");
     List<PolicyViolation> policyViolations = new ArrayList<>();
-    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy, policy.getThreatLevel(),
-        policy.getThreatCategory(), identifier, "abcd"));
+    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy, identifier, "abcd"));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil.createPolicyNotifications(policyViolations,
         evaluation.getStageTypeId(), evaluation.isForMonitoring());
 

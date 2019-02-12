@@ -265,7 +265,6 @@ public class NewestRiskServiceTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "test scan app2 release id", new Date(app1PolicyEvaluation.getTime().getTime() + 1));
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, app1Policy,
-        app1PolicyViolation.getThreatLevel(), app1PolicyViolation.getThreatCategory(),
         app1PolicyViolation.getComponentIdentifier(), app1PolicyViolation.getHash());
 
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
@@ -444,7 +443,6 @@ public class NewestRiskServiceTest
     PolicyEvaluation releaseEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID,
         "test scan app2 release id", new Date(app2PolicyEvaluation.getTime().getTime() + 1));
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(releaseEvaluation, org1Policy,
-        app2PolicyViolation.getThreatLevel(), app2PolicyViolation.getThreatCategory(),
         app2PolicyViolation.getComponentIdentifier(), app2PolicyViolation.getHash());
 
     result = newestRiskService

@@ -48,6 +48,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
+import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -61,6 +64,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -95,17 +99,21 @@ public class RepositoryService
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   private final HdsClient hdsClient;
+  
+  private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
   public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
                            CLMLicenseManager licenseManager,
                            PolicyThreatsAdapter policyThreatsAdapter,
-                           HdsClient hdsClient)
+                           HdsClient hdsClient,
+                           PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.licenseManager = licenseManager;
     this.policyThreatsAdapter = policyThreatsAdapter;
     this.hdsClient = hdsClient;
+    this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   private void checkLicenseFeature() {
@@ -595,7 +603,22 @@ public class RepositoryService
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     if (repositoryComponent != null) {
-      repositoryComponentDAO.delete(repositoryComponent);
+      RepositoryPolicyViolationLogger repositoryPolicyViolationLogger = policyViolationLoggerFactory
+          .newLogger(new Date(), repository);
+      try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+        tx.begin();
+        // Mark all violations for this component as inactive.
+        for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO
+            .getActiveByRepositoryIdAndPathname(tx, repositoryComponent.getRepositoryId(),
+                repositoryComponent.getPathname())) {
+          policyViolation.setActive(false);
+          repositoryPolicyViolationDAO.update(tx, policyViolation);
+          repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.FIX, policyViolation);
+        }
+        repositoryComponentDAO.delete(tx, repositoryComponent);
+        tx.commit();
+      }
+      repositoryPolicyViolationLogger.log();
       if (repositoryComponent.isQuarantined()) {
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, true)) {
           AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash());

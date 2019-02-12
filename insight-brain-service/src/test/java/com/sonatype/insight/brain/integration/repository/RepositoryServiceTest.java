@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -62,6 +63,10 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.PendingRepositoryPolicyNotifications;
@@ -74,10 +79,12 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -95,6 +102,9 @@ import static org.mockito.Mockito.when;
 public class RepositoryServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput policyViolationLoggerOutput = new LogOutput(
+      AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
 
@@ -2151,5 +2161,44 @@ public class RepositoryServiceTest
     FirewallIgnorePatterns firewallIgnorePatterns = repositoryService.getIgnorePatterns();
 
     assertThat(firewallIgnorePatterns).isEqualTo(hdsResult);
+  }
+
+  @Test
+  public void testRemoveComponent_SetsPolicyViolationsInactive() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
+        new Date() /* quarantineTime */, null /* unquarantineTime */);
+    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), "pathname");
+
+    repositoryService.removeComponent(repository, repositoryComponent.getPathname());
+
+    policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
+    assertThat(policyViolation.isActive()).isFalse();
+  }
+
+  @Test
+  public void testRemoveComponent_PolicyViolationLogger_LogsFixEventForEachInactivatedViolation() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "path1");
+    RepositoryPolicyViolation activeRepositoryPolicyViolation1 = tempEntity
+        .newRepositoryPolicyViolation(repository.getId(), repositoryComponent.getPathname());
+    RepositoryPolicyViolation activeRepositoryPolicyViolation2 = tempEntity
+        .newRepositoryPolicyViolation(repository.getId(), repositoryComponent.getPathname());
+    RepositoryPolicyViolation inactiveRepositoryPolicyViolation = tempEntity
+        .newRepositoryPolicyViolation(repository.getId(), repositoryComponent.getPathname());
+    inactiveRepositoryPolicyViolation.setActive(false);
+    repositoryPolicyViolationDAO.update(inactiveRepositoryPolicyViolation);
+    RepositoryComponent otherRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "path2");
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), otherRepositoryComponent.getPathname());
+
+    Date before = new Date();
+    repositoryService.removeComponent(repository, repositoryComponent.getPathname());
+    Date after = new Date();
+
+    List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
+        .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 2);
+    PolicyViolationLogDTOAssert
+        .assertRepositoryPolicyViolationData(policyViolationLogDTOs, PolicyViolationLogEvent.FIX, repository, before,
+            after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2));
   }
 }

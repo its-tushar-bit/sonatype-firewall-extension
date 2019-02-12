@@ -9,10 +9,8 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
@@ -132,18 +130,6 @@ public class RepositoryComponentDAOTest
     // not a quarantined item, shouldn't add to count
     tempEntity.newRepositoryComponent(repository.getId(), "/notquarantined", null, null);
     assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(2);
-  }
-
-  @Test
-  public void testDelete_SetsPolicyViolationsInactive() {
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
-        new Date() /* quarantineTime */, null /* unquarantineTime */);
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), "pathname");
-
-    dao.delete(repositoryComponent);
-
-    policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
-    assertThat(policyViolation.isActive()).isFalse();
   }
 
   @Test

@@ -207,7 +207,7 @@ public class RepositoryPolicyEvaluator
               .setData("componentPathname", repositoryComponent.getPathname());
         }
       }
-      repositoryComponentDAO.delete(tx, repositoryComponent, false);
+      repositoryComponentDAO.delete(tx, repositoryComponent);
       repositoryComponent = null;
     }
     if (repositoryComponent == null) {

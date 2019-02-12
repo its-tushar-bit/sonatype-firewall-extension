@@ -9,14 +9,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.17
@@ -24,8 +19,6 @@ import org.slf4j.LoggerFactory;
 public class RepositoryComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryComponent>
 {
-  private static final Logger log = LoggerFactory.getLogger(RepositoryComponentDAO.class);
-
   @Override
   public RepositoryComponent getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
@@ -102,40 +95,6 @@ public class RepositoryComponentDAO
 
     // converting from a Timestamp to a Date object for happy comparisons
     return oldest != null ? new Date(oldest.getTime()) : null;
-  }
-
-  @Override
-  public void delete(TransactionContext tx, RepositoryComponent repositoryComponent) {
-    delete(tx, repositoryComponent, true /* updatePolicyViolations */);
-  }
-
-  public void delete(TransactionContext tx, RepositoryComponent repositoryComponent, boolean updatePolicyViolations) {
-    if (updatePolicyViolations) {
-      // Mark all violations for this component as inactive.
-      RepositoryPolicyViolationDAO policyViolationDAO = new RepositoryPolicyViolationDAO();
-      for (RepositoryPolicyViolation policyViolation : policyViolationDAO.getActiveByRepositoryIdAndPathname(tx,
-          repositoryComponent.getRepositoryId(), repositoryComponent.getPathname())) {
-        policyViolation.setActive(false);
-        policyViolationDAO.update(tx, policyViolation);
-      }
-    }
-
-    super.delete(tx, repositoryComponent);
-  }
-
-  public void delete(RepositoryComponent repositoryComponent, boolean updatePolicyViolations) {
-    long start = System.currentTimeMillis();
-
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      delete(tx, repositoryComponent, updatePolicyViolations);
-      tx.commit();
-    }
-
-    long duration = System.currentTimeMillis() - start;
-    if (duration > 1000) {
-      log.debug("Deleted repository component with id {} in {} ms.", repositoryComponent.getId(), duration);
-    }
   }
 
   public List<RepositoryComponent> getUnquarantinedByRepositoryId(String repositoryId, Date sinceUtcTimestamp) {

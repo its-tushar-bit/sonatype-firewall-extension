@@ -155,7 +155,7 @@ public class RepositoryDAO
     RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(tx, repository.getId());
     for (RepositoryComponent repositoryComponent : repositoryComponents) {
-      repositoryComponentDAO.delete(tx, repositoryComponent, false /* updatePolicyViolations */);
+      repositoryComponentDAO.delete(tx, repositoryComponent);
     }
   }
 
@@ -213,7 +213,7 @@ public class RepositoryDAO
     RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     for (RepositoryComponent repositoryComponent : repositoryComponents) {
-      repositoryComponentDAO.delete(repositoryComponent, false /* updatePolicyViolations */);
+      repositoryComponentDAO.delete(repositoryComponent);
     }
 
     long duration = System.currentTimeMillis() - start;

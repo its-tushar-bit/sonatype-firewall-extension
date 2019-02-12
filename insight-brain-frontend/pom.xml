@@ -17,8 +17,8 @@
   <name>Insight Brain Frontend</name>
 
   <properties>
-    <node.version>v6.9.3</node.version>
-    <npm.version>5.6.0</npm.version>
+    <node.version>v11.8.0</node.version>
+    <npm.version>6.7.0</npm.version>
     <saga.version>1.5.2</saga.version>
     <jasmine.version>2.2</jasmine.version>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>

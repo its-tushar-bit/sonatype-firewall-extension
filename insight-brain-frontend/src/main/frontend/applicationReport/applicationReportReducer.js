@@ -9,6 +9,7 @@ import {
   identity,
   inc,
   lensPath,
+  pick,
   pipe,
   propEq,
   reduceBy,
@@ -30,7 +31,8 @@ import {
   REEVALUATE_REPORT_FAILED,
   REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
-  SELECT_COMPONENT
+  SELECT_COMPONENT,
+  RESET_REPORT_VIEW_SETTINGS
 } from './applicationReportActions';
 
 import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService';
@@ -97,6 +99,12 @@ export default function(state = initState, {type, payload}) {
 
     case SELECT_COMPONENT:
       return {...state, selectedComponentIndex: payload};
+
+    case RESET_REPORT_VIEW_SETTINGS:
+      return updateDisplayedEntries({
+        ...state,
+        ...pick(['exactValueFilters', 'substringFilters', 'aggregate', 'sortFields'], initState)
+      });
 
     default:
       return state;

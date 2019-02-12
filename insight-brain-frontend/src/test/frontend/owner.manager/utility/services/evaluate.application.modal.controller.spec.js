@@ -128,7 +128,6 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     });
 
     it('Test submit success', function() {
-      expect(appendSpy).toHaveBeenCalledWith('filename', 'testfile');
       vm.bundle.notify = 'false';
       $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl(mockSelectedApplication.publicId, 'release',
           'false')).respond({
@@ -136,6 +135,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       });
 
       vm.doSubmit();
+      expect(appendSpy).toHaveBeenCalledWith('filename', 'testfile');
       validateInitialState();
 
       $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId,

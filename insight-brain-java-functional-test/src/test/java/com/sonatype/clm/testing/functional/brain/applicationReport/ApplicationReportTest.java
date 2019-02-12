@@ -14,7 +14,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -25,6 +27,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.PolicyTyp
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ViolationStateFilter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
@@ -61,6 +64,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchesText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -594,8 +598,32 @@ public class ApplicationReportTest
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
 
+    reportPage.headers().componentNameFilterInput().shouldHave(value("mycila"));
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+  }
+
+  @Test
+  public void testFilterReset() {
+    AppReportHeaders headers = reportPage.headers();
+
+    reportPage.showAllViolationsRadio().click();
+    reportPage.showAllViolationsRadio().shouldBe(selected);
+    headers.policyNameHeader().click();
+    headers.policyNameHeader().sortArrowUp().shouldBeSelected();
+    reportPage.proprietaryFilter().twisty().click();
+    reportPage.proprietaryFilter().nonProprietary().click();
+    reportPage.proprietaryFilter().nonProprietary().shouldBe(selected);
+
+    // navigate elsewhere and then back to this report, without triggering a full refresh
+    MainHeader.reportingNavigationButton().click();
+    ReportListPage.firstRow().buildReportLink().click();
+    ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
+
+    reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
+    reportPage.showAllViolationsRadio().shouldNotBe(selected);
+    headers.policyNameHeader().sortArrowUp().shouldNotBeSelected();
+    reportPage.proprietaryFilter().nonProprietary().shouldNotBe(selected);
   }
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {

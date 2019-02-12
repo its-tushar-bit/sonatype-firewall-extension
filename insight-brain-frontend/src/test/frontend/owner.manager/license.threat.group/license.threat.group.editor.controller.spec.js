@@ -248,14 +248,14 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     }));
 
     it('clean', function() {
-      spyOn(vm.dirtyLTG, 'isDirty').and.returnValue(false);
+      vm.dirtyLTG.isDirty = jasmine.createSpy('isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();
     });
 
     it('dirty', function() {
-      spyOn(vm.dirtyLTG, 'isDirty').and.returnValue(true);
+      vm.dirtyLTG.isDirty = jasmine.createSpy('isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();

@@ -41,5 +41,9 @@ public class IqSortingHeader
     public SortArrow shouldBeSelected() {
       return this.shouldHave(selectedCondition);
     }
+
+    public SortArrow shouldNotBeSelected() {
+      return this.shouldNotHave(selectedCondition);
+    }
   }
 }

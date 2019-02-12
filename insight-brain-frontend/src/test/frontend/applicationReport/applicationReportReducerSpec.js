@@ -688,4 +688,35 @@ describe('applicationReportReducer', function() {
       expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
     });
   });
+
+  describe('RESET_REPORT_VIEW_SETTINGS', function() {
+    it('resets exactValueFilters, substringFilters, aggregate, and sortFields back to their initial values', () => {
+      const state = Object.freeze({
+            exactValueFilters: Object.freeze({
+              bar: [1, 2],
+              baz: ['asdfasf']
+            }),
+            substringFilters: Object.freeze({
+              foo: 'asdf'
+            }),
+            aggregate: false,
+            sortFields: ['derivedComponentName'],
+            other: otherObject
+          }),
+          action = {
+            type: 'RESET_REPORT_VIEW_SETTINGS'
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        exactValueFilters: {},
+        substringFilters: {},
+        aggregate: true,
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+  });
 });

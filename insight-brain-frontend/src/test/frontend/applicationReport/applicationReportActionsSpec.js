@@ -392,6 +392,15 @@ describe('applicationReportActions', function() {
     });
   });
 
+  describe('resetReportViewSettings', function() {
+    it('returns a RESET_REPORT_VIEW_SETTINGS action with no payload', function() {
+      const action = applicationReportActions.resetReportViewSettings();
+
+      expect(action.type).toBe('RESET_REPORT_VIEW_SETTINGS');
+      expect(action.payload).not.toBeDefined();
+    });
+  });
+
   function mockFetchReportDataSuccess(isUnknownJs) {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
         {reportTitle: 'test'});

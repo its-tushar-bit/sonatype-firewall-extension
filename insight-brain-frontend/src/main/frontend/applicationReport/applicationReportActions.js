@@ -19,6 +19,7 @@ export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
 export const SET_EXACT_VALUE_FILTER = 'SET_EXACT_VALUE_FILTER';
 export const SET_SORTING = 'SET_SORTING';
+export const RESET_REPORT_VIEW_SETTINGS = 'RESET_REPORT_VIEW_SETTINGS';
 
 export default function applicationReportActions($http, $q, CLMLocations, Messages) {
 
@@ -175,6 +176,15 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
+  /**
+   * Reset all filter, sorting, and aggregation settings to the default
+   */
+  function resetReportViewSettings() {
+    return {
+      type: RESET_REPORT_VIEW_SETTINGS
+    };
+  }
+
   return {
     loadReport,
     reloadReport,
@@ -184,7 +194,8 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     setStringFieldFilter,
     setExactValueFilter,
     setSorting,
-    selectComponent
+    selectComponent,
+    resetReportViewSettings
   };
 }
 

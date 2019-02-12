@@ -16,6 +16,7 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
   Object.assign(vm, {
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(null, applicationReportActions)(vm);
+      vm.resetReportViewSettings();
       vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
     },
 

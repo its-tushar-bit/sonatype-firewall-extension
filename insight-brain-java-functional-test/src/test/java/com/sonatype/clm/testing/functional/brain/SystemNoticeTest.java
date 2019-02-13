@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
-import com.sonatype.clm.testing.functional.elements.SystemNotice;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
@@ -19,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.SystemNoticeConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
+import com.sonatype.insight.brain.model.configuration.SystemNotice;
 
 import com.codeborne.selenide.Condition;
 import org.junit.After;
@@ -41,17 +41,13 @@ public class SystemNoticeTest
       + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-  private static final com.sonatype.insight.brain.model.configuration.SystemNotice EMPTY_DISABLED =
-      createSystemNotice("", false);
+  private static final SystemNotice EMPTY_DISABLED = createSystemNotice("", false);
 
-  private static final com.sonatype.insight.brain.model.configuration.SystemNotice FILLED_DISABLED =
-      createSystemNotice(FIVE_HUNDRED_CHARACTERS, false);
+  private static final SystemNotice FILLED_DISABLED = createSystemNotice(FIVE_HUNDRED_CHARACTERS, false);
 
-  private static final com.sonatype.insight.brain.model.configuration.SystemNotice EMPTY_ENABLED =
-      createSystemNotice("", true);
+  private static final SystemNotice EMPTY_ENABLED = createSystemNotice("", true);
 
-  private static final com.sonatype.insight.brain.model.configuration.SystemNotice FILLED_ENABLED =
-      createSystemNotice(FIVE_HUNDRED_CHARACTERS, true);
+  private static final SystemNotice FILLED_ENABLED = createSystemNotice(FIVE_HUNDRED_CHARACTERS, true);
 
   private static final String[] PAGE_URLS = new String[]{
       DashboardPage.URL,
@@ -66,7 +62,8 @@ public class SystemNoticeTest
       SystemNoticeConfigurationPage.URL
   };
 
-  private SystemNotice systemNotice = new SystemNotice();
+  private com.sonatype.clm.testing.functional.elements.SystemNotice systemNotice =
+      new com.sonatype.clm.testing.functional.elements.SystemNotice();
 
   private SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
 
@@ -111,19 +108,13 @@ public class SystemNoticeTest
     loginAsAdmin();
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void checkSystemNoticeVisibilityOnLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,
-                                                  final Condition visibility)
-  {
+  private void checkSystemNoticeVisibilityOnLogin(final SystemNotice systemNotice, final Condition visibility) {
     systemNoticeDAO.update(systemNotice);
     refreshOrOpen(DashboardPage.URL);
     new LoginModal().systemNotice().shouldBe(visibility);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void checkSystemNoticeVisibilityAfterLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,
-                                                     final Condition visibility)
-  {
+  private void checkSystemNoticeVisibilityAfterLogin(final SystemNotice systemNotice, final Condition visibility) {
     systemNoticeDAO.update(systemNotice);
     refresh();
     for (String url : PAGE_URLS) {
@@ -132,11 +123,8 @@ public class SystemNoticeTest
     }
   }
 
-  private static com.sonatype.insight.brain.model.configuration.SystemNotice createSystemNotice(final String message,
-                                                                                                final boolean enabled)
-  {
-    final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice =
-        new com.sonatype.insight.brain.model.configuration.SystemNotice();
+  private static SystemNotice createSystemNotice(final String message, final boolean enabled) {
+    final SystemNotice systemNotice = new SystemNotice();
     systemNotice.setMessage(message);
     systemNotice.setEnabled(enabled);
     return systemNotice;

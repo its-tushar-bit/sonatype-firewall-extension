@@ -24,8 +24,6 @@ import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.violation.OrganizationPolicyViolationLogger;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -122,14 +120,12 @@ public class OrganizationService
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
       organization = organizationDAO.getByIdNotNull(tx, organizationId);
-      OrganizationPolicyViolationLogger organizationPolicyViolationLogger = policyViolationLoggerFactory
-          .newLogger(new Date(), organization);
       AuditData.get().setOrganization(organization);
       deleteOrganization(tx, organization);
-      organizationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
       tx.commit();
-      organizationPolicyViolationLogger.log();
       AuditData.get().commitSubEvents();
+
+      policyViolationLoggerFactory.newLogger(new Date(), organization).logClearEvent();
     }
     managementEventService.postEvent(DELETED, organization);
   }

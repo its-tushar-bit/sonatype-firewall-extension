@@ -257,10 +257,7 @@ public class RepositoryService
     }
     setEnabled(repositoryManagerInstanceId, repository, enable);
     if (!enable) {
-      RepositoryPolicyViolationLogger repositoryPolicyViolationLogger = policyViolationLoggerFactory
-          .newLogger(new Date(), repository);
-      repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
-      repositoryPolicyViolationLogger.log();
+      policyViolationLoggerFactory.newLogger(new Date(), repository).logClearEvent();
     }
 
     log.info("{} audit for repository {}:{} ({})", enable ? "Enabled" : "Disabled", repositoryManagerInstanceId,
@@ -716,13 +713,13 @@ public class RepositoryService
   public void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     checkLicenseFeature();
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-    RepositoryPolicyViolationLogger repositoryPolicyViolationLogger = policyViolationLoggerFactory
-        .newLogger(new Date(), repository);
-    repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
     repositoryDAO.delete(repository);
-    repositoryPolicyViolationLogger.log();
     AuditData.get().setData("repositoryManagerInstanceId",
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
+
+    if (repository.isEnabled()) {
+      policyViolationLoggerFactory.newLogger(new Date(), repository).logClearEvent();
+    }
   }
 
   public RepositoriesDTO getRepositories() {

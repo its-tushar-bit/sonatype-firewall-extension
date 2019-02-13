@@ -22,8 +22,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -195,15 +193,13 @@ public class ApplicationService
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
-      ApplicationPolicyViolationLogger applicationPolicyViolationLogger = policyViolationLoggerFactory
-          .newLogger(new Date(), application);
       AuditData.get()
           .setApplicationWithDetails(application)
           .setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
       applicationCleaner.delete(tx, application);
-      applicationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
       tx.commit();
-      applicationPolicyViolationLogger.log();
+
+      policyViolationLoggerFactory.newLogger(new Date(), application).logClearEvent();
     }
     managementEventService.postEvent(DELETED, application);
   }

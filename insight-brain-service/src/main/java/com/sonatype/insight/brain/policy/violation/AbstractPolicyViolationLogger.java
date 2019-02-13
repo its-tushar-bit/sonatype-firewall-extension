@@ -59,6 +59,11 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     policyViolationData = new LinkedList<>();
   }
 
+  public void logClearEvent() {
+    add(PolicyViolationLogEvent.CLEAR, null);
+    log();
+  }
+
   private String toString(PolicyViolationData<T> policyViolationData) {
     try {
       return POLICY_VIOLATION_OBJECT_MAPPER.writeValueAsString(createPolicyViolationLogDTO(policyViolationData));

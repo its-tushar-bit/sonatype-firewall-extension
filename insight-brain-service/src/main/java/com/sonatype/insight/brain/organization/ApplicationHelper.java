@@ -23,8 +23,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -98,14 +96,13 @@ public class ApplicationHelper
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       final Application app = applicationDAO.getByIdNotNull(tx, applicationId);
-      ApplicationPolicyViolationLogger applicationPolicyViolationLogger = policyViolationLoggerFactory
-          .newLogger(new Date(), app);
       AuditData.get().setApplicationWithDetails(app)
           .setParentOrganization(organizationDAO.getByIdNotNull(app.getParentOwnerId()));
       applicationCleaner.delete(tx, app);
-      applicationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
+
       tx.commit();
-      applicationPolicyViolationLogger.log();
+
+      policyViolationLoggerFactory.newLogger(new Date(), app).logClearEvent();
     }
   }
 

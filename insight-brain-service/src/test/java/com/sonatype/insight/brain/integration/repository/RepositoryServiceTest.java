@@ -2203,7 +2203,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testDeleteRepository_PolicyViolationLogger_LogsClearEvent() throws Exception {
+  public void testDeleteRepository_PolicyViolationLogger_RepositoryEnabled() throws Exception {
     Repository repository = tempEntity.newRepository();
 
     Date before = new Date();
@@ -2214,6 +2214,17 @@ public class RepositoryServiceTest
         PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 1);
     PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs.get(0),
         PolicyViolationLogEvent.CLEAR, repository, before, after);
+  }
+
+  @Test
+  public void testDeleteRepository_PolicyViolationLogger_RepositoryDisabled() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    repository.setEnabled(false);
+    repositoryDAO.update(repository);
+
+    repositoryService.deleteRepository(repository.getId());
+
+    PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 0);
   }
 
   @Test

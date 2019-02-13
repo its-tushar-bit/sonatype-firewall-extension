@@ -43,23 +43,36 @@ import static org.mockito.Mockito.when;
 public class ScanTaskTest
 {
   private Scanner scanner = mock(Scanner.class);
+
   private ScanUploader uploader = mock(ScanUploader.class);
+
   private ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
+
   private PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+
   private InsightWork work = mock(InsightWork.class);
+
   FileCleaner fileCleaner = mock(FileCleaner.class);
 
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
-  private ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-      proprietaryConfigService);
+  private ScanTask task =
+      new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService);
+
   private Application app = newApp("public-app-id");
+
   private Stage stage = new Stage(Stage.ID_BUILD);
+
   private ScanReceipt scanReceipt = new ScanReceipt();
+
   private File bundleFile;
+
   private String bundleFilename;
+
   private File scanDir;
+
   private File scanFile;
+
   private File tmpScanFile;
 
   @Rule

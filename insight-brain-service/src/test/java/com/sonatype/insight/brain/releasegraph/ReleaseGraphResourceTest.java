@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ReleaseGraphResourceTest
     extends AbstractResourceTest
 {
-
   private String appId;
 
   private String scanId;

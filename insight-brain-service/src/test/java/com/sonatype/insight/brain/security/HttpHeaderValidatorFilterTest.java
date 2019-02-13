@@ -33,7 +33,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @RunWith(Parameterized.class)
 public class HttpHeaderValidatorFilterTest
 {
-
   @Mock
   private FilterChain chain;
 
@@ -218,5 +217,4 @@ public class HttpHeaderValidatorFilterTest
       verify(writer).print("Illegal header value detected in '" + invalidHeaderName + "'");
     }
   }
-
 }

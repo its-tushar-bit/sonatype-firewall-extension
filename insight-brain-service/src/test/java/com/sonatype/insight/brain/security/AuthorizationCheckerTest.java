@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthorizationCheckerTest
 {
-
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 

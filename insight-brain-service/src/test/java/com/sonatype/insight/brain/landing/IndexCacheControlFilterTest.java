@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IndexCacheControlFilterTest
     extends AbstractResourceTest
 {
-
   @Test
   public void testCacheBustingForIndexPage() throws Exception {
     HttpResponse response = restRequest().followRedirects().anon().get();
@@ -25,5 +24,4 @@ public class IndexCacheControlFilterTest
     assertThat(response.getHeader(HttpHeaders.CACHE_CONTROL))
         .isEqualTo("no-cache, no-store, max-age=0, must-revalidate");
   }
-
 }

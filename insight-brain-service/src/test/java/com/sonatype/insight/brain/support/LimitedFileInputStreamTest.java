@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class LimitedFileInputStreamTest
 {
-
   static final String CONFIG_YML_FILENAME = "config-support-test.yml";
 
   static final String CONFIG_YML = "/SupportTest/" + CONFIG_YML_FILENAME;
@@ -78,7 +77,6 @@ public class LimitedFileInputStreamTest
     assertThat(limitedInputStream.isReadLimitMet()).isTrue();
     assertThat(limitedInputStream.read(buff)).isEqualTo(-1);
   }
-
 
   @Test
   public void testReadLimit_ReadOffset_ExceededWhenZero() throws Exception {

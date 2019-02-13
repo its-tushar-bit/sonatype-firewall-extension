@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
 public class HdsProductNotificationServiceTest
     extends AbstractComponentTest
 {
-
   @Rule
   public LogOutput logOutput = new LogOutput(HdsProductNotificationService.class);
 

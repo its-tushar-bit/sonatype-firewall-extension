@@ -27,6 +27,7 @@ public class CSVMessageBodyWriterTest
   private static class DTO
   {
     public int foo;
+
     public String bar;
 
     public DTO(int foo, String bar) {

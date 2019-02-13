@@ -95,7 +95,6 @@ public class MemberAttributeResolverTest
     assertMember(userMember1, MemberType.USER, "testuser1_1", "John Doe", "test.user1_1@company.com", "LDAP");
     assertMember(userMember2, MemberType.USER, "testuser1_2", "John Doe", "test.user1_2@company.com", "LDAP2");
 
-
     final Member groupMember1 = new Member();
     groupMember1.setType(MemberType.GROUP);
     groupMember1.setInternalName("Alpha1");
@@ -122,7 +121,6 @@ public class MemberAttributeResolverTest
 
     LdapServer ldapServer1 = tempEntity.newLdapServer("LDAP");
     tempEntity.newLdapConnection(ldapServer1.getId(), embeddedLdapServer1.getPort());
-
 
     LdapServer ldapServer2 = tempEntity.newLdapServer("LDAP2");
     tempEntity.newLdapConnection(ldapServer2.getId(), embeddedLdapServer2.getPort());

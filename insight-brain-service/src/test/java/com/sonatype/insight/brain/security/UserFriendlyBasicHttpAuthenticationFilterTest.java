@@ -27,7 +27,8 @@ import static org.mockito.Mockito.when;
 
 public class UserFriendlyBasicHttpAuthenticationFilterTest
 {
-  private UserFriendlyBasicHttpAuthenticationFilter userFriendlyBasicHttpAuthenticationFilter = new UserFriendlyBasicHttpAuthenticationFilter();
+  private UserFriendlyBasicHttpAuthenticationFilter userFriendlyBasicHttpAuthenticationFilter =
+      new UserFriendlyBasicHttpAuthenticationFilter();
 
   @Test
   public void testOnLoginFailureCallsSendError() throws IOException {

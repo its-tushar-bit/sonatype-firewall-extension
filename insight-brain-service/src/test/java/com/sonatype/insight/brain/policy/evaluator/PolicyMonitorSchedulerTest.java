@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
 public class PolicyMonitorSchedulerTest
     extends AbstractComponentTest
 {
-
   @Inject
   private PolicyMonitorScheduler scheduler;
 

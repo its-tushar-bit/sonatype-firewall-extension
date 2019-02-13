@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RobotImageServiceTest
 {
-
   @Test
   public void testGetImage() throws IOException {
     RobotImageService robotImageService = new RobotImageService();

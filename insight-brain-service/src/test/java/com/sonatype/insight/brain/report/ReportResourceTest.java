@@ -861,7 +861,8 @@ public class ReportResourceTest
     for (JsonNode svJsonNode : svJsonData) {
       if (hash.equals(svJsonNode.get("hash").asText()) && source.equals(svJsonNode.get("source").asText())
           && referenceId.equals(svJsonNode.get("reference").asText())) {
-        assertThat(svJsonNode.get("status").asText()).isEqualTo(SecurityVulnerabilityOverrideStatus.CONFIRMED.getName());
+        assertThat(svJsonNode.get("status").asText())
+            .isEqualTo(SecurityVulnerabilityOverrideStatus.CONFIRMED.getName());
         assertThat(svJsonNode.get("comment").asText()).isEqualTo(comment);
         found++;
       }
@@ -1184,7 +1185,7 @@ public class ReportResourceTest
     ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Expanded Coverage Report");
-    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632l);
+    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632L);
   }
 
   private static ComponentIdentifier identifier(Character c) {

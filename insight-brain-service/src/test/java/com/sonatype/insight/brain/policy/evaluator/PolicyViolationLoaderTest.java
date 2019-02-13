@@ -111,7 +111,8 @@ public class PolicyViolationLoaderTest
         StageTypes.OPERATE };
     Application app = createApplication(evaluatedStageTypes);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), stageTypes, false, violation -> true);
+    Collection<ApplicationView> appViews =
+        loader.getViolations(Arrays.asList(app), stageTypes, false, violation -> true);
 
     assertThat(appViews).hasSize(1);
     ApplicationView appView = appViews.iterator().next();

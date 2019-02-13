@@ -27,15 +27,15 @@ import static org.mockito.Mockito.when;
 
 public class SecureCookiesFilterTest
 {
+  private static final String COOKIE_1_INSECURE = "JSESSIONID=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly";
 
-  private static String COOKIE_1_INSECURE = "JSESSIONID=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly";
+  private static final String COOKIE_2_INSECURE = "simple=cookie";
 
-  private static String COOKIE_2_INSECURE = "simple=cookie";
-
-  private static String COOKIE_3_SECURE = SecurityModule.SESSION_COOKIE_NAME
+  private static final String COOKIE_3_SECURE = SecurityModule.SESSION_COOKIE_NAME
       + "=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
-  private static String COOKIE_4_SECURE = "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
+  private static final String COOKIE_4_SECURE =
+      "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);

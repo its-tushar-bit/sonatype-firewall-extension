@@ -29,7 +29,7 @@ public class LandingServiceTest
 
   private BaseUrl baseUrl;
 
-  private final String BASE_URL = "http://localhost:8070";
+  private static final String BASE_URL = "http://localhost:8070";
 
   @Override
   public void configure(Binder binder) {

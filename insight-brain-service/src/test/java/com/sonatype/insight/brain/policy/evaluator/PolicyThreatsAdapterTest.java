@@ -27,7 +27,6 @@ import static org.assertj.core.api.Assertions.fail;
 
 public class PolicyThreatsAdapterTest
 {
-
   private PolicyThreatsAdapter policyThreatsAdapter = new PolicyThreatsAdapter();
 
   @Test
@@ -373,7 +372,8 @@ public class PolicyThreatsAdapterTest
   {
     for (ConditionFact fact : conditionFacts) {
       if (fact.getConditionTypeId().equals(condition.conditionType)
-          && fact.getReason().equals(condition.conditionReason) && fact.getSummary().equals(condition.conditionSummary)) {
+          && fact.getReason().equals(condition.conditionReason)
+          && fact.getSummary().equals(condition.conditionSummary)) {
         return;
       }
     }

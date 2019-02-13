@@ -16,7 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ContentTypeOptionsHeaderFilterChainTest
     extends AbstractBrainServiceTest
 {
-
   @Test
   public void testHeader() throws Exception {
     assertHeader(restRequest().path(UserSessionResource.RESOURCE_PATH).post());

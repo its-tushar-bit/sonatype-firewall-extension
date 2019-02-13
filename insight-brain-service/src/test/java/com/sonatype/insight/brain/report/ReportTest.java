@@ -63,8 +63,8 @@ public class ReportTest
   public void testAppendCacheBustingParams() throws Exception {
     String indexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js'></script>"
         + "<script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js'></script>";
-    String expectedIndexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js?1.0'></script>"
-        + "<script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js?1.0'></script>";
+    String expectedIndexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js?1.0'>"
+        + "</script><script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js?1.0'></script>";
 
     ReportEntry entry = new ReportEntry("index.html", System.currentTimeMillis(), indexContent.getBytes("UTF-8"));
     entry = Report.appendCacheBustingParams(entry, "1.0");

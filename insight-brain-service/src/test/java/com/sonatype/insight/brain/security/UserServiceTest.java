@@ -127,7 +127,8 @@ public class UserServiceTest
     // Check LDAP for the user
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, "John Doe", false /* groupsEnabled */);
-    assertMember(findMembersDTO, null, MemberType.USER, clmAndLdapUserName, "John Doe", "test.user@company.com", "LDAP");
+    assertMember(findMembersDTO, null, MemberType.USER, clmAndLdapUserName, "John Doe", "test.user@company.com",
+        "LDAP");
 
     // Create the same user in CLM
     final User user = tempEntity.newUser(clmAndLdapUserName);

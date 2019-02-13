@@ -131,7 +131,7 @@ public class ReleaseGraphPerformance
           reportResource.getImage("ReleaseGraphPerformance_AppId", scanId, "fake", "fake", "fake", null);
         }
         catch (Exception e) {
-
+          // ignored
         }
       }
     }

@@ -47,7 +47,9 @@ public class LicenseOverrideResourceAuditTest
     app = tempEntity.newApplicationWithParent();
   }
 
-  private void assertOverrideData(AuditDTO auditDTO, LicenseOverride override, String... selectedOverriddenLicenseNames)
+  private void assertOverrideData(AuditDTO auditDTO,
+                                  LicenseOverride override,
+                                  String... selectedOverriddenLicenseNames)
   {
     assertOverrideData(auditDTO, override, false, selectedOverriddenLicenseNames);
   }

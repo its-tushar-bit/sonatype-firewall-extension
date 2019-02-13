@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 public class TestInsightBrainService
     extends InsightBrainService
 {
-
   static {
     SslProperties.use();
   }
@@ -243,8 +242,8 @@ public class TestInsightBrainService
     new FileCleaner().delete(config.getSonatypeWork());
 
     // Create file indicating the root org is available
-    RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils = new RootOrganizationConfigMigrationUtils(
-        new InsightWork(insightConfig));
+    RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils =
+        new RootOrganizationConfigMigrationUtils(new InsightWork(insightConfig));
     rootOrganizationConfigMigrationUtils.setMigrated();
 
     env.lifecycle().addServerLifecycleListener(new ServerLifecycleListener()
@@ -272,8 +271,7 @@ public class TestInsightBrainService
   }
 
   @Override
-  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName)
-  {
+  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName) {
     // Use in memory db
     return null;
   }

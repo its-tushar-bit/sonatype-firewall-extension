@@ -31,8 +31,11 @@ import static org.mockito.Mockito.when;
 public class AuthenticationLoggingFilterTest
 {
   private final Request jettyRequest = new Request(null, null);
+
   private ServletRequest request = new ServletRequestWrapper(jettyRequest);
+
   private final HttpServletResponse response = mock(HttpServletResponse.class);
+
   private final CurrentUser currentUser = mock(CurrentUser.class);
 
   private AuthenticationLoggingFilter filter;

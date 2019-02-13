@@ -18,7 +18,6 @@ import org.junit.Test;
 public class RootOrganizationConfigMigrationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-
   @Inject
   private RootOrganizationConfigMigrationService service;
 

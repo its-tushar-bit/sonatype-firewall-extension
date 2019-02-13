@@ -70,7 +70,9 @@ public class PolicyEvaluateResourceAuditTest
         app.getPublicId(), app.getName(), null, SCAN_ID, null);
   }
 
-  private HttpResponse evaluate(Consumer<HttpRequest> user, String applicationPublicId, String scanId, String stageId) throws Exception {
+  private HttpResponse evaluate(Consumer<HttpRequest> user, String applicationPublicId, String scanId, String stageId)
+      throws Exception
+  {
     return restRequest().with(user).path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
         .parameter(applicationPublicId).body(new Stage(stageId)).post();
   }

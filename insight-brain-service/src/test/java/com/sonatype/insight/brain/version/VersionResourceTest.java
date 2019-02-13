@@ -39,5 +39,4 @@ public class VersionResourceTest
     uninstallLicense();
     testGetVersionInfo_Licensed();
   }
-
 }

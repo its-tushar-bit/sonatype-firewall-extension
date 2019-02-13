@@ -145,7 +145,8 @@ public class ReportServiceTest
 
   @Test
   public void testGetReportMetadata() throws Exception {
-    final String scanId1 = "ScanId1", scanId2 = "ScanId2";
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
 
     // ReportResource.fetchReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
@@ -196,7 +197,7 @@ public class ReportServiceTest
     assertThat(metadata).isNotNull();
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Expanded Coverage Report");
-    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632l);
+    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632L);
   }
 
   @Test

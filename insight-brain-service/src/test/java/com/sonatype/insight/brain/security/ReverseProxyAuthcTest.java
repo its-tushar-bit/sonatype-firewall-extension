@@ -47,7 +47,7 @@ public class ReverseProxyAuthcTest
 
   private boolean localUser;
 
-  private final Configurator ENABLED = new Configurator()
+  private static final Configurator ENABLED = new Configurator()
   {
     @Override
     public void configure(InsightConfig config) {
@@ -61,7 +61,7 @@ public class ReverseProxyAuthcTest
     this.localUser = localUser;
   }
 
-  @Parameterized.Parameters(name="ldapConfigured={0}, ldapUser={1}, localUser={2}")
+  @Parameterized.Parameters(name = "ldapConfigured={0}, ldapUser={1}, localUser={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
         {false, false, false}, // totally unknown username, no LDAP configured 

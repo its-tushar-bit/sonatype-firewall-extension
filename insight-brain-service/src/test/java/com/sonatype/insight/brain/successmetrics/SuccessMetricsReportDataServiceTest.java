@@ -1766,6 +1766,7 @@ public class SuccessMetricsReportDataServiceTest
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void assertAggregationViolationTotalsByCategoryHistoryIncludeLatestData(List<ViolationsByCategoryDTO> actualDTOs) {
     List<ViolationsByCategoryDTO> expectedDTOs = Arrays.asList(
         new ViolationsByCategoryDTO("02 Oct", 6, 12, 10, 10),
@@ -1803,7 +1804,8 @@ public class SuccessMetricsReportDataServiceTest
   }
 
   private void assertAggregationViolationTotalsByCategoryHistory(List<ViolationsByCategoryDTO> actualDTOs,
-                                                                 List<ViolationsByCategoryDTO> expectedDTOs) {
+                                                                 List<ViolationsByCategoryDTO> expectedDTOs)
+  {
     assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
       assertViolationTotalsByCategoryDTO(expectedDTOs.get(i), actualDTOs.get(i));

@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-
   @Inject
   private ApplicationService applicationService;
 
@@ -177,7 +176,8 @@ public class ApplicationServiceAuthzTest
   @Test
   public void testGetApplicationsByIdsAndOrganizationsAndTagIds_FilteredAuthorized() throws Exception {
     grantReadPermission(app.getId());
-    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
+    List<Application> applications =
+        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
     assertThat(applications).hasSize(1).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
   }
 
@@ -241,7 +241,8 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app.getId());
 
     // request with nothing specified, should only see app1
-    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
+    List<Application> applications =
+        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
     assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
 
     // now app2 permission and it should show up

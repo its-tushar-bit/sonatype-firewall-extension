@@ -14,10 +14,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReleaseGraphModelTest
 {
-
   @Test
   public void test3ImportantVersionsInLastBucket() {
-    long[] catalogDates = new long[] { 100l, 100l, 100l };
+    long[] catalogDates = new long[] { 100, 100, 100 };
     int[] popularity = new int[] { 98, 100, 99 };
 
     ReleaseGraphModel model = ReleaseGraphModel.build(buildGavPopularity(catalogDates, popularity, 0), 0, 100, SLOTS);
@@ -144,7 +143,9 @@ public class ReleaseGraphModelTest
     assertThat(model.getSlotIndices()[24]).isEqualTo(2);
   }
 
-  private static ComponentPopularity buildGavPopularity(long[] catalogDates, int[] popularity, int currentVersionIndex)
+  private static ComponentPopularity buildGavPopularity(long[] catalogDates,
+                                                        int[] popularity,
+                                                        int currentVersionIndex)
   {
     ComponentPopularity gav = new ComponentPopularity();
     gav.setCatalogDates(catalogDates);

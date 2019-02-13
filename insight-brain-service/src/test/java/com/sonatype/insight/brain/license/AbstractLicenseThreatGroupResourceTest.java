@@ -66,7 +66,8 @@ abstract class AbstractLicenseThreatGroupResourceTest
     HttpResponse response = restRequest(ownerPublicId).path(ltg.getId()).delete();
     assertResponseStatus(400, response);
 
-    String error = "Cannot delete the license threat group because it is used in a condition for the 'policyName' policy";
+    String error =
+        "Cannot delete the license threat group because it is used in a condition for the 'policyName' policy";
     if (null != policyLocation) {
       error = error + " " + policyLocation;
     }

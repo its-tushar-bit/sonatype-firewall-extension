@@ -41,12 +41,17 @@ import static org.mockito.Mockito.when;
 public class ScanTaskStateTest
 {
   Scanner scanner = mock(Scanner.class);
+
   ScanUploader uploader = mock(ScanUploader.class);
+
   ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
+
   PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+
   InsightWork work = mock(InsightWork.class);
+
   FileCleaner fileCleaner = mock(FileCleaner.class);
-  
+
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
   
   ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
@@ -72,7 +77,8 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat(captureState.getState()).as("ScanTask state when scanning").isEqualTo(ScanTask.State.SCANNING_COMPONENTS);
+    assertThat(captureState.getState()).as("ScanTask state when scanning")
+        .isEqualTo(ScanTask.State.SCANNING_COMPONENTS);
   }
 
   @Test
@@ -105,7 +111,8 @@ public class ScanTaskStateTest
 
     task.run();
 
-    assertThat(captureState.getState()).as("ScanTask state when evaluating").isEqualTo(ScanTask.State.EVALUATING_POLICY);
+    assertThat(captureState.getState()).as("ScanTask state when evaluating")
+        .isEqualTo(ScanTask.State.EVALUATING_POLICY);
   }
 
   @Test

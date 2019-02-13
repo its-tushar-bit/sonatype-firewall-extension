@@ -16,7 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CspHeaderFilterChainTest
     extends AbstractBrainServiceTest
 {
-
   @Test
   public void testHeaders() throws Exception {
     assertHeaders(restRequest().path("/assets/index.html").get());

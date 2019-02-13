@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TagResourceTest
     extends AbstractResourceTest
 {
-
   @Test
   public void testCRUD() throws Exception {
     Organization org = tempEntity.newOrganization("TagResourceTest");

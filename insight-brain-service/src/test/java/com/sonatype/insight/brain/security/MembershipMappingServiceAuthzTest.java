@@ -19,7 +19,6 @@ import org.junit.Test;
 public class MembershipMappingServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-
   @Inject
   private MembershipMappingService membershipMappingService;
 

@@ -58,7 +58,9 @@ public class ApplicationServiceTest
   private ApplicationService applicationService;
 
   private Organization org;
+
   private Application app1;
+
   private Application app2;
 
   @Inject

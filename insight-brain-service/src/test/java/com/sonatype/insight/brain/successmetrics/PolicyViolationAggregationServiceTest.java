@@ -265,7 +265,7 @@ public class PolicyViolationAggregationServiceTest
     assertThat(monthAggregations).hasSize(12);
     DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
 
-    for(int i = 0; i < weekAggregations.size(); i++) {
+    for (int i = 0; i < weekAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = weekAggregations.get(i);
       assertThat(aggregation.getTimePeriod()).isEqualTo(WEEK);
       assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusWeeks(i).toDate());
@@ -273,7 +273,7 @@ public class PolicyViolationAggregationServiceTest
     }
 
     aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
-    for(int i = 0; i < monthAggregations.size(); i++) {
+    for (int i = 0; i < monthAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = monthAggregations.get(i);
       assertThat(aggregation.getTimePeriod()).isEqualTo(MONTH);
       assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusMonths(i).toDate());
@@ -301,7 +301,7 @@ public class PolicyViolationAggregationServiceTest
 
     DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
 
-    for(int i = 0; i < weekAggregations.size(); i++) {
+    for (int i = 0; i < weekAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = weekAggregations.get(i);
       assertThat(aggregation.getTimePeriod()).isEqualTo(WEEK);
       assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusWeeks(i).toDate());
@@ -309,7 +309,7 @@ public class PolicyViolationAggregationServiceTest
     }
     
     aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
-    for(int i = 0; i < monthAggregations.size(); i++) {
+    for (int i = 0; i < monthAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = monthAggregations.get(i);
       assertThat(aggregation.getTimePeriod()).isEqualTo(MONTH);
       assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusMonths(i).toDate());
@@ -401,7 +401,8 @@ public class PolicyViolationAggregationServiceTest
     }
   }
 
-  private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation, boolean violationExpected)
+  private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation,
+                                                     boolean violationExpected)
   {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
     assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
@@ -484,7 +485,8 @@ public class PolicyViolationAggregationServiceTest
 
   private void assertAllCountsZeroExcept(PolicyThreatCategory category,
                                          ThreatLevel level,
-                                         Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable) {
+                                         Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable)
+  {
     for (Cell<PolicyThreatCategory, ThreatLevel, Integer> cell : countsAsTable.cellSet()) {
       if (!(cell.getRowKey().equals(category) && cell.getColumnKey().equals(level))) {
         assertThat(cell.getValue()).isEqualTo(0);

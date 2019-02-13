@@ -478,8 +478,7 @@ public class PolicyMonitorTest
     return tempEntity.newPolicy(policy);
   }
 
-  private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage)
-  {
+  private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage) {
     HttpResponse response;
     try {
       response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)

@@ -76,7 +76,7 @@ public class ErrorResponseGeneratorTest
         .mapExceptionAndLog(new AuthenticationException(new NamingException("timeout")));
     assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     assertThat(errorResponse.getMessageBody()).startsWith(ErrorResponseGenerator.MSG_LDAP_TIMEOUT + ID_PREFIX)
-        .endsWith((")"));
+        .endsWith(")");
   }
 
   @Test

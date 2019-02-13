@@ -59,8 +59,7 @@ public class ApplicationTagResourceAuditTest
     assertApplicationData(auditDTO, application);
   }
 
-  private void updateApplicationTags(Consumer<HttpRequest> user, List<Tag> newTags) throws Exception
-  {
+  private void updateApplicationTags(Consumer<HttpRequest> user, List<Tag> newTags) throws Exception {
     restRequest().with(user).path(ApplicationTagResource.RESOURCE_PATH).parameter(application.getPublicId())
         .body(newTags).put();
   }

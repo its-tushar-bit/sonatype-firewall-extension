@@ -122,8 +122,8 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo(
-        "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.");
+    assertThat(response.getBodyText()).isEqualTo("defaulticon_application.png is not a valid image."
+        + " Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.");
 
     // Test Get Icon (default icon)
     HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
@@ -266,7 +266,9 @@ public class ApplicationResourceTest
 
     // Create policy
     tempEntity.newPolicy(application);
-    final String scanId1 = "ScanId1", scanId2 = "ScanId2", scanId3 = "ScanId3";
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    final String scanId3 = "ScanId3";
     mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
     mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
     mockReport(scanId3, "/PolicyEvaluateResourceTest/report.zip");
@@ -418,7 +420,6 @@ public class ApplicationResourceTest
   }
 
   private void assertContact(ContactDTO actualContact, ContactDTO expectedContact) {
-
     assertThat(actualContact).isNotNull();
     assertThat(actualContact.getInternalName()).isEqualTo(expectedContact.getInternalName());
     assertThat(actualContact.getDisplayName()).isEqualTo(expectedContact.getDisplayName());

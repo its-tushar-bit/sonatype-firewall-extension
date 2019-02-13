@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HttpHeaderValidatorFilterChainTest
     extends AbstractBrainServiceTest
 {
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(UserSessionResource.RESOURCE_PATH);

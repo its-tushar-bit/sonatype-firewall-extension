@@ -25,7 +25,6 @@ import org.junit.Test;
 public class ReportResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(ReportResource.RESOURCE_PATH);

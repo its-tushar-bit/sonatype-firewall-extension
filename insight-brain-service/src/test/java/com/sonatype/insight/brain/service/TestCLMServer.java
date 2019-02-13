@@ -20,7 +20,6 @@ import com.google.inject.Module;
  */
 public class TestCLMServer
 {
-
   private final HdsMockServerRule hdsMockServer;
 
   private final TestInsightBrainServiceRule brain;

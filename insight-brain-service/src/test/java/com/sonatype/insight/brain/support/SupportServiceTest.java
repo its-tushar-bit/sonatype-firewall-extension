@@ -81,7 +81,7 @@ public class SupportServiceTest
     final int counterValue = Integer.parseInt(firstFilename.substring(zipIndex - 1, zipIndex));
 
     final File secondZip = supportService.createSupportZip(false, null, false);
-    assertThat(secondZip.getName()).startsWith("support-" + nowPrefix).endsWith(("-" + (counterValue + 1) + ".zip"));
+    assertThat(secondZip.getName()).startsWith("support-" + nowPrefix).endsWith("-" + (counterValue + 1) + ".zip");
   }
 
   @Test

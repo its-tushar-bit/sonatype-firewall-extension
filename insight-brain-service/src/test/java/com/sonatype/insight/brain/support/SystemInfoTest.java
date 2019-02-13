@@ -194,7 +194,8 @@ public class SystemInfoTest
 
     assertThat(entryFileHttpRequestAppender).containsEntry("type", "file")
         .containsEntry("currentLogFilename", "./log/request.log")
-        .containsEntry("archivedLogFilenamePattern", "./log/request-%d.log.gz")   .containsEntry("archivedFileCount", 50).hasSize(4);
+        .containsEntry("archivedLogFilenamePattern", "./log/request-%d.log.gz").containsEntry("archivedFileCount", 50)
+        .hasSize(4);
 
     // validate obfuscation
     assertThat(obufscatedMap).containsEntry("testPassword", SystemInfo.MASK);
@@ -249,8 +250,8 @@ public class SystemInfoTest
 
     final SortedMap<String, Object> entries = entry.getValue();
 
-    assertThat(entries.get("application-jar").toString()).
-        endsWith(InsightBrainService.class.getSimpleName() + ".class");
+    assertThat(entries.get("application-jar").toString())
+        .endsWith(InsightBrainService.class.getSimpleName() + ".class");
 
     assertThat(entries.get("configfile").toString()).isEqualTo(expectedConfigFile.getAbsolutePath());
 
@@ -375,6 +376,7 @@ public class SystemInfoTest
         return null;
       }
     }
+
     when(networkInterface.getInetAddresses()).thenReturn(new InetAddressEnumeration());
 
     final TreeMap<String, Object> map = systemInfo.getNetworkInterfaceWithWrapper(networkInterface);
@@ -385,7 +387,7 @@ public class SystemInfoTest
     assertThat(map.get("loopback")).isNotNull();
     assertThat(map.get("ptp")).isNotNull();
     assertThat(map.get("mtu")).isNull();
-    assertThat(((TreeSet<String>) map.get("addresses"))).isEmpty();
+    assertThat((TreeSet<String>) map.get("addresses")).isEmpty();
     assertThat(map).hasSize(7);
 
     when(networkInterface.isUp()).thenThrow(new SocketException("testException2"));
@@ -397,7 +399,7 @@ public class SystemInfoTest
     assertThat(map2.get("loopback")).isNull();
     assertThat(map2.get("ptp")).isNull();
     assertThat(map2.get("mtu")).isNull();
-    assertThat(((TreeSet<String>) map2.get("addresses"))).isEmpty();
+    assertThat((TreeSet<String>) map2.get("addresses")).isEmpty();
     assertThat(map2).hasSize(2);
   }
 

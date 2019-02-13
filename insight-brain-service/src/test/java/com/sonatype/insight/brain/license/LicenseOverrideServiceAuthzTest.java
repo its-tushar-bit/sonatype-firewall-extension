@@ -283,7 +283,8 @@ public class LicenseOverrideServiceAuthzTest
     testGetAppliedLicenseOverrides_Unauthenticated(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId) throws Exception
+  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId)
+      throws Exception
   {
     licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId,
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));

@@ -20,7 +20,6 @@ import org.junit.Test;
 public class ComponentLabelServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-
   @Inject
   private ComponentLabelService componentLabelService;
 

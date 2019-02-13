@@ -473,8 +473,8 @@ public class WebhookDispatcherTest
     assertThat(webhook.getUrl()).isEqualTo("http://localhost");
     assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
-    SecurityVulnerabilityOverridePayload webhookPayload = (SecurityVulnerabilityOverridePayload) webhookPayloadArgumentCaptor
-        .getValue();
+    SecurityVulnerabilityOverridePayload webhookPayload =
+        (SecurityVulnerabilityOverridePayload) webhookPayloadArgumentCaptor.getValue();
     assertThat(webhookPayload.initiator).isEqualTo("initiator");
     assertThat(webhookPayload.action).isEqualTo(EventAction.UPDATED);
     assertThat(webhookPayload.id).isEqualTo(override.getId());

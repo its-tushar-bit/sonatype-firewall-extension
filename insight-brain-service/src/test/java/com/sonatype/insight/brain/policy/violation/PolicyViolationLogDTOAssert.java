@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationLogDTOAssert
 {
+  @SuppressWarnings("checkstyle:LineLength")
   public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(LogOutput logOutput,
                                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                                          int expected) throws Exception

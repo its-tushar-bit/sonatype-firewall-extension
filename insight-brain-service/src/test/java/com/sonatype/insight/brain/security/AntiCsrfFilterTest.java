@@ -26,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AntiCsrfFilterTest
     extends AbstractBrainServiceTest
 {
-
   // a known rest endpoint defined from SecurityModule for AntiCsrfFilter for integrations that also allows anon access
   private static final String REST_PATH = "rest/ci/scan/testApp";
 

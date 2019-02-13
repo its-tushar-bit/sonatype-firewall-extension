@@ -152,7 +152,8 @@ public class PolicyViolationGrandfatheringServiceTest
     Date after = new Date();
 
     assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isGrandfathered()).isFalse();
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).getGrandfatherTime()).isEqualTo(inThePast);
+    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation1.getId()).getGrandfatherTime())
+        .isEqualTo(inThePast);
     unfixedPolicyViolation1 = policyViolationDAO.getById(unfixedPolicyViolation1.getId());
     waivedPolicyViolation1 = policyViolationDAO.getById(waivedPolicyViolation1.getId());
     unfixedPolicyViolation1PolicyDoesNotExist =
@@ -284,9 +285,9 @@ public class PolicyViolationGrandfatheringServiceTest
   public void testGrandfather_LifecycleFoundationLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-      policyViolationGrandfatheringService.grandfather("APPID")
-    );
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      policyViolationGrandfatheringService.grandfather("APPID");
+    });
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {

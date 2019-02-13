@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class VersionServiceTest
 {
-
   private VersionService versionService;
 
   @Before

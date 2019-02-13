@@ -86,7 +86,6 @@ public abstract class AbstractPolicyImportAuditTest
     return policy;
   }
 
-
   protected Label label() {
     Label label = new Label();
     label.setId(tempEntity.uuid());

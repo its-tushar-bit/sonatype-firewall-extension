@@ -126,8 +126,7 @@ public class InsightConfigurationFactoryTest
 
   @SuppressWarnings("rawtypes")
   @Test
-  public void testBuild_ConfigWithServerAppendersWithoutLogFormats_UsesDropwizardLogFormats() throws Exception
-  {
+  public void testBuild_ConfigWithServerAppendersWithoutLogFormats_UsesDropwizardLogFormats() throws Exception {
     InsightConfig insightConfig = build("config-without-server-log-formats.yml");
 
     assertAppenderFactories(((DefaultLoggingFactory) insightConfig.getLoggingFactory()).getAppenders(), Arrays
@@ -144,8 +143,7 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_NoServer_UsesOurDefaultConnectors() throws Exception
-  {
+  public void testBuild_NoServer_UsesOurDefaultConnectors() throws Exception {
     InsightConfig insightConfig = build("config-no-server.yml");
 
     DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
@@ -156,8 +154,7 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_EmptyServer_UsesOurDefaultConnectors() throws Exception
-  {
+  public void testBuild_EmptyServer_UsesOurDefaultConnectors() throws Exception {
     InsightConfig insightConfig = build("config-empty-server.yml");
 
     DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
@@ -168,8 +165,7 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_HttpConnectorsWithoutSettings_UseOurDefaultSettings() throws Exception
-  {
+  public void testBuild_HttpConnectorsWithoutSettings_UseOurDefaultSettings() throws Exception {
     InsightConfig insightConfig = build("config-http-connectors-without-settings.yml");
 
     DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
@@ -180,8 +176,7 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_HttpConnectorsWithSettings_UseGivenSettings() throws Exception
-  {
+  public void testBuild_HttpConnectorsWithSettings_UseGivenSettings() throws Exception {
     InsightConfig insightConfig = build("config-http-connectors-with-settings.yml");
 
     DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
@@ -191,8 +186,7 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_HttpsConnectorsWithoutSettings_UseOurIdleTimeout() throws Exception
-  {
+  public void testBuild_HttpsConnectorsWithoutSettings_UseOurIdleTimeout() throws Exception {
     InsightConfig insightConfig = build("config-https-connectors-without-settings.yml");
 
     DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
@@ -203,8 +197,7 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_HttpsConnectorsWithSettings_UseGivenSettings() throws Exception
-  {
+  public void testBuild_HttpsConnectorsWithSettings_UseGivenSettings() throws Exception {
     InsightConfig insightConfig = build("config-https-connectors-with-settings.yml");
 
     DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
@@ -394,8 +387,7 @@ public class InsightConfigurationFactoryTest
     return insightConfig;
   }
 
-  private void assertAppenderFactories(List<? extends AppenderFactory<?>> appenderFactories, List<String> formats)
-  {
+  private void assertAppenderFactories(List<? extends AppenderFactory<?>> appenderFactories, List<String> formats) {
     assertAppenderFactories(appenderFactories, CONSOLE_FILE_SYSLOG_CLASSES, formats);
   }
 

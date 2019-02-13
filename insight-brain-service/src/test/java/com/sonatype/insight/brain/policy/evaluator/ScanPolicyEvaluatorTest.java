@@ -799,8 +799,9 @@ public class ScanPolicyEvaluatorTest
     Date beforeTime = new Date(System.currentTimeMillis() - 2000);
     PolicyEvaluation policyEvaluationBefore = tempEntity.newPolicyEvaluation(application.getId(),
         stage.getStageTypeId(), "scanIdBefore", beforeTime);
-    String constraintFactsJson = IOUtils.toString(getClass().getResource(
-        "/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/policy-violation-constraint-facts.json"),
+    String constraintFactsJson = IOUtils.toString(
+        getClass().getResource("/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/"
+            + "policy-violation-constraint-facts.json"),
         "UTF-8");
     constraintFactsJson = constraintFactsJson.replace("TestConstraintId", policy.getConstraints().get(0).getId());
     PolicyViolation policyViolationBefore = new PolicyViolation(policyEvaluationBefore, policy.getId(),

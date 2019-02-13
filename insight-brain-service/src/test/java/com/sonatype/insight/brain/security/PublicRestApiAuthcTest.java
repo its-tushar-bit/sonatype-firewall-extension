@@ -26,8 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PublicRestApiAuthcTest
     extends AbstractBrainServiceTest
 {
-
-  private final Configurator REVERSE_PROXY_ENABLED = new Configurator()
+  private static final Configurator REVERSE_PROXY_ENABLED = new Configurator()
   {
     @Override
     public void configure(InsightConfig config) {

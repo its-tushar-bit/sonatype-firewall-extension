@@ -29,6 +29,7 @@ public class PolicyViolationComparatorTest
   private Comparator<PolicyViolationComparable> comparator = PolicyViolationComparator.COMPARATOR;
 
   private ComponentIdentifier componentA = ComponentIdentifier.createMavenCoordinates("A", "A", "A");
+
   private ComponentIdentifier componentB = ComponentIdentifier.createMavenCoordinates("B", "B", "B");
 
   @Test
@@ -302,6 +303,7 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
+  @SuppressWarnings("checkstyle:LineLength")
   public void testCompare_ConditionFactsTriggers_ConditionTypeStoresTriggerData_LegacyPolicyViolationWithoutTriggerData() {
     // Legacy policy violation without trigger data
     ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
@@ -337,18 +339,18 @@ public class PolicyViolationComparatorTest
     // Legacy policy violation with Windows line separators.
     ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
-    conditionFact2.setTriggerJson(
-        "{\r\n  \"conditionIndex\" : 0,\r\n  \"trigger\" : {\r\n    \"refId\" : \"CVE-2013-0329\",\r\n    \"statusId\" : \"OPEN\"\r\n  }\r\n}");
+    conditionFact2.setTriggerJson("{\r\n  \"conditionIndex\" : 0,\r\n  \"trigger\" : {\r\n    "
+        + "\"refId\" : \"CVE-2013-0329\",\r\n    \"statusId\" : \"OPEN\"\r\n  }\r\n}");
     ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact2));
     compareAndAssert(v1, v2, 0);
 
     // Legacy policy violation with unix line separators.
-    ConditionFact conditionFact3 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0 /* conditionIndex */,
-        "test summary", "test reason");
-    conditionFact3.setTriggerJson(
-        "{\n  \"conditionIndex\" : 0,\n  \"trigger\" : {\n    \"refId\" : \"CVE-2013-0329\",\n    \"statusId\" : \"OPEN\"\n  }\n}");
+    ConditionFact conditionFact3 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact3.setTriggerJson("{\n  \"conditionIndex\" : 0,\n  \"trigger\" : {\n    "
+        + "\"refId\" : \"CVE-2013-0329\",\n    \"statusId\" : \"OPEN\"\n  }\n}");
     ConstraintFact constraintFact3 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact3);
     PolicyViolation v3 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact3));

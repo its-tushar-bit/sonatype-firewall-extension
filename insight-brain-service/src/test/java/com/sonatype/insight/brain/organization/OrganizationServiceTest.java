@@ -97,7 +97,6 @@ public class OrganizationServiceTest
     assertThat(orgs).hasSize(1);
   }
 
-
   @Test
   public void testAddUpdateAndDeleteOrganizationPostEvents() throws Exception {
     TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));

@@ -17,10 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PdfTest
 {
-
   private ObjectNode summary;
+
   private String projectName = "test project";
+
   private String stageName = "Build";
+
   private ContactDTO contact;
 
   @Before
@@ -108,5 +110,4 @@ public class PdfTest
     assertThat(email).isEqualTo("email");
     assertThat(summary.get("applicationContactName")).isNull();
   }
-
 }

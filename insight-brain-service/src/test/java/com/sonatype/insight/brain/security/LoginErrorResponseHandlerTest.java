@@ -84,5 +84,4 @@ public class LoginErrorResponseHandlerTest
 
     verifyResponse(response, Response.SC_UNAUTHORIZED, writer, ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
-
 }

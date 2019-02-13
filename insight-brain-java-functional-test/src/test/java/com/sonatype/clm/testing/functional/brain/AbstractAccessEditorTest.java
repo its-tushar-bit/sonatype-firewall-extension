@@ -37,7 +37,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
@@ -69,9 +68,7 @@ public abstract class AbstractAccessEditorTest
     this.currentOwner = owner;
 
     User u1 = tempEntity.newUser();
-    User u2 = tempEntity.newUser("longname", "JohnJohnJohnJohnJohnJohn", "DoeDoeDoeDoeDoeDoeDoeDoe",
-        "longname@example.com");
-
+    User u2 = tempEntity.newUser();
     Role role = APPLICATION_ROLES.get(0);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
@@ -108,7 +105,10 @@ public abstract class AbstractAccessEditorTest
     picker.availableItems().shouldHaveSize(4);
 
     Item availableItem = picker.availableItem(0);
-    availableItem.label().shouldHave(text("Admin Builtin"));
+    availableItem.label().shouldHave(text("Admin Builtin")).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
+    AccessEditorPage.title().hover(); // hide the tooltip
+    Tooltip.get().shouldNot(exist);
     picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
 
     picker.checkAllLeft().click();
@@ -143,7 +143,10 @@ public abstract class AbstractAccessEditorTest
 
     picker.availableItems().shouldHaveSize(2);
     Item availableItem = picker.availableItem(0);
-    availableItem.label().shouldHave(text("Admin Builtin"));
+    availableItem.label().shouldHave(text("Admin Builtin")).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
+    AccessEditorPage.title().hover(); // hide the tooltip
+    Tooltip.get().shouldNot(exist);
     picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
     picker.checkAllLeft().click();
     picker.pickCheckedItemsButton().shouldBe(enabled).click();
@@ -158,38 +161,6 @@ public abstract class AbstractAccessEditorTest
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     picker.pickedItems().shouldHaveSize(4);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).hasSize(4);
-  }
-
-  @Test
-  public void testTooltips() {
-    goFromSummaryToAddRole();
-
-    DoubleColumnPicker picker = AccessEditorPage.picker();
-
-    AccessEditorPage.searchBox().val("Admin*");
-    AccessEditorPage.searchButton().click();
-    FormMask.seeAndWaitForDismissal();
-    picker.availableItem(0).shouldHave(exactText("Admin BuiltIn")).hover();
-    Tooltip.get().shouldNot(exist);
-    picker.availableItem(0).click();
-    picker.pickCheckedItemsButton().hover().click();
-
-    AccessEditorPage.searchBox().val("JohnJohn*");
-    AccessEditorPage.searchButton().click();
-    FormMask.seeAndWaitForDismissal();
-    picker.availableItem(0).shouldHave(exactText("JohnJohnJohnJohnJohnJohn DoeDoeDoeDoeDoeDoeDoeDoe")).hover();
-    Tooltip.get().shouldHave(exactText("IQ Server longname@example.com"));
-
-    eyesWatcher.eyesCheck();
-
-    picker.availableItem(0).click();
-    picker.pickCheckedItemsButton().hover().click();
-
-    // check tooltips in the right side as well
-    picker.pickedItem(0).shouldHave(exactText("Admin BuiltIn")).hover();
-    Tooltip.get().shouldNot(exist);
-    picker.pickedItem(1).shouldHave(exactText("JohnJohnJohnJohnJohnJohn DoeDoeDoeDoeDoeDoeDoeDoe")).hover();
-    Tooltip.get().shouldHave(exactText("IQ Server longname@example.com"));
   }
 
   @Test

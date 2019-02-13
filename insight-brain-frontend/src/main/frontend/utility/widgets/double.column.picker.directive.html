@@ -48,8 +48,8 @@
                        is-checked="item.checked"
                        is-disabled="vm.disabled">
             <span iq-tooltip="!!vm.tooltipFn({item: item})"
-                  tooltip-text="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}"
-                  tooltip-only-on-overflow="true"
+                  tooltip-text="{{vm.tooltipFn({item: item})}}"
+                  tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
                   tooltip-attach-to-body>
               <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
             </span>
@@ -63,8 +63,8 @@
                        is-checked="item.checked"
                        is-disabled="vm.disabled">
             <span iq-tooltip="!!vm.tooltipFn({item: item})"
-                  tooltip-text="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}"
-                  tooltip-only-on-overflow="true"
+                  tooltip-text="{{vm.tooltipFn({item: item})}}"
+                  tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
                   tooltip-attach-to-body>
               <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
             </span>

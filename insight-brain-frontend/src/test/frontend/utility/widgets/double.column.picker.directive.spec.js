@@ -115,4 +115,26 @@ describe('double.column.picker.directive.spec.js', function() {
       {name: 'name1', picked: false, checked: false}, {name: 'name2', picked: true, checked: false}
     ]);
   });
+
+  describe('showTooltipOnlyOnOverflow', function() {
+    const item = {name: 'name1', picked: false, checked: true};
+
+    it('returns false if `vm.tooltipFn` is not set', function() {
+      vm.tooltipFn = undefined;
+
+      expect(vm.showTooltipOnlyOnOverflow(item)).toBe(false);
+    });
+
+    it('returns true if the result of `vm.tooltipFn` is the same as the item\'s itemNameParam value', function() {
+      vm.tooltipFn = () => 'name1';
+
+      expect(vm.showTooltipOnlyOnOverflow(item)).toBe(true);
+    });
+
+    it('returns false if the result of `vm.tooltipFn` is not the same as the item\'s itemNameParam value', function() {
+      vm.tooltipFn = () => 'name2';
+
+      expect(vm.showTooltipOnlyOnOverflow(item)).toBe(false);
+    });
+  });
 });

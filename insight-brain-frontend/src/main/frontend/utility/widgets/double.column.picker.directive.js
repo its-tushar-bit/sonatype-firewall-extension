@@ -66,6 +66,7 @@ function DoubleColumnPickerController($filter) {
   vm.toggleRightSelectAll = toggleRightSelectAll;
   vm.toggleChecked = toggleChecked;
   vm.updateChecksOnFilterHandler = updateChecksOnFilterHandler;
+  vm.showTooltipOnlyOnOverflow = showTooltipOnlyOnOverflow;
 
   function checkAll(isPickedList, isChecked) {
     var filteredList = $filter('filter')(vm.list, vm.search);
@@ -151,6 +152,10 @@ function DoubleColumnPickerController($filter) {
         vm[checkAll] = false;
       }
     };
+  }
+
+  function showTooltipOnlyOnOverflow(item) {
+    return !!vm.tooltipFn && (vm.tooltipFn({ item }) === item[vm.itemNameParam]);
   }
 }
 

@@ -23,7 +23,6 @@
 
   <properties>
     <clm.skip>false</clm.skip>
-    <checkstyle.failOnViolation>true</checkstyle.failOnViolation>
 
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>2.1.1</phantomjs.version>
@@ -985,7 +984,6 @@
         <version>3.0.0</version>
         <configuration>
           <consoleOutput>true</consoleOutput>
-          <failOnViolation>${checkstyle.failOnViolation}</failOnViolation>
           <configLocation>sonatype/checkstyle-configuration.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
         </configuration>

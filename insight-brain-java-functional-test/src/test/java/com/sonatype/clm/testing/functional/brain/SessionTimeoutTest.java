@@ -234,7 +234,7 @@ public class SessionTimeoutTest
     new WebhookConfigurationPage().newWebhook().shouldBe(visible).click();
     new WebhookEditPage().url().shouldBe(visible).setValue("test");
 
-    Thread.sleep(6500);
+    Thread.sleep(9000);
 
     assertUiCleared();
   }

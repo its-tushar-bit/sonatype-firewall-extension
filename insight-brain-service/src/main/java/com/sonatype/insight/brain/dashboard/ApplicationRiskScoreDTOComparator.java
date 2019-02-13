@@ -40,6 +40,9 @@ class ApplicationRiskScoreDTOComparator
           return ob1.totalApplicationRisk.severeRisk - ob2.totalApplicationRisk.severeRisk;
         case TOTAL_RISK:
           return ob1.totalApplicationRisk.totalRisk - ob2.totalApplicationRisk.totalRisk;
+        default:
+          throw new IllegalArgumentException(
+              "unsupported order by " + applicationRiskScoreOrderBy.applicationRiskOrderByEnum);
       }
     }
 
@@ -65,7 +68,7 @@ class ApplicationRiskScoreDTOComparator
 
           ApplicationRiskOrderByEnum orderByEnum = ApplicationRiskOrderByEnum
               .valueOf(isOrderByDesc ? orderByText.substring(1) : orderByText);
-            applicationRiskScoreOrderBy = new ApplicationRiskScoreOrderBy(orderByEnum, !isOrderByDesc);
+          applicationRiskScoreOrderBy = new ApplicationRiskScoreOrderBy(orderByEnum, !isOrderByDesc);
         }
       }
       catch (IllegalArgumentException e) {

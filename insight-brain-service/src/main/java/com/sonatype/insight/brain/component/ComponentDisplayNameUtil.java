@@ -32,6 +32,7 @@ public class ComponentDisplayNameUtil
     extends com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil
 {
   private static final String FILENAMES = "filenames";
+
   private static final String HASH = "hash";
 
   public static ComponentDisplayName fromPolicyViolation(PolicyViolation policyViolation) {

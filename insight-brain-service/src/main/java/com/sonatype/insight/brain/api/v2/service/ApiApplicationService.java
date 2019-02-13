@@ -85,8 +85,8 @@ public class ApiApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiApplicationDTO getApplicationById(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public ApiApplicationDTO getApplicationById(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId) {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
     return convertApplicationToDTO(application);
   }
@@ -204,7 +204,9 @@ public class ApiApplicationService
     return applications;
   }
 
-  private void addTags(final TransactionContext tx, final List<ApplicationTag> applicationTags, Application application)
+  private void addTags(final TransactionContext tx,
+                       final List<ApplicationTag> applicationTags,
+                       Application application)
   {
     List<Tag> tags = new ArrayList<>();
     for (ApplicationTag applicationTag : applicationTags) {

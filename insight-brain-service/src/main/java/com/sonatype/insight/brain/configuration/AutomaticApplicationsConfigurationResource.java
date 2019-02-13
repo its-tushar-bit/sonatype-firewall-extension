@@ -32,6 +32,7 @@ public class AutomaticApplicationsConfigurationResource
   private AutomaticApplicationsConfigurationService automaticApplicationsConfigurationService;
 
   @Inject
+  @SuppressWarnings("checkstyle:LineLength")
   public AutomaticApplicationsConfigurationResource(AutomaticApplicationsConfigurationService automaticApplicationsConfigurationService) {
     this.automaticApplicationsConfigurationService = automaticApplicationsConfigurationService;
   }

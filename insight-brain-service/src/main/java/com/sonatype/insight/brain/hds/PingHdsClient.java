@@ -25,7 +25,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 public class PingHdsClient
     extends HdsClient
 {
-  final static int SOCKET_TIMEOUT = 5000;
+  static final int SOCKET_TIMEOUT = 5000;
 
   static int CONNECT_TIMEOUT = SOCKET_TIMEOUT;
 

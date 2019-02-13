@@ -119,6 +119,8 @@ public class AuditRecorder
         return SERVICE_UNAVAILABLE;
       case 504:
         return GATEWAY_TIMEOUT;
+      default:
+        // fallthrough
     }
     if (httpStatus >= 500) {
       return SERVER_ERROR;
@@ -162,7 +164,7 @@ public class AuditRecorder
 
   @VisibleForTesting
   static ObjectNode toObjectNode(RecordingAuditData recordingAuditData, String error) {
-    return ((ObjectNode) AUDIT_OBJECT_MAPPER.valueToTree(new AuditDTO(recordingAuditData, error)));
+    return (ObjectNode) AUDIT_OBJECT_MAPPER.valueToTree(new AuditDTO(recordingAuditData, error));
   }
 
   @VisibleForTesting

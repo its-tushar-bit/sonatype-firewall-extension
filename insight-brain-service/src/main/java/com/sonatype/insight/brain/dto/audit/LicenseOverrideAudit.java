@@ -22,9 +22,11 @@ public class LicenseOverrideAudit
     extends Auditable
 {
   private String status;
+
   // The overriddenLicenses is declared as List only to be backwards compatible with the existing license override
   // audit logs.
   private List<String> overriddenLicenses;
+
   private String comment;
 
   private LicenseDAO licenseDAO = new LicenseDAO();

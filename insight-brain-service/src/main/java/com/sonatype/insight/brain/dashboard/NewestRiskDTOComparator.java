@@ -62,6 +62,8 @@ class NewestRiskDTOComparator
             return rel;
           }
           break;
+        default:
+          throw new IllegalArgumentException("unsupported order by " + newestRiskOrderBy.newestRiskOrderByEnum);
       }
     }
 

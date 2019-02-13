@@ -134,8 +134,7 @@ public class HdsClient
     return configuration;
   }
 
-  public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams)
-  {
+  public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
     return internalGet(clazz, buildUri(null, path, queryParams, uriParams));
   }
 
@@ -313,7 +312,8 @@ public class HdsClient
   /**
    * @since 1.13.0
    */
-  public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException
+  public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams)
+      throws IOException
   {
     return post(null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject, uriParams);
   }

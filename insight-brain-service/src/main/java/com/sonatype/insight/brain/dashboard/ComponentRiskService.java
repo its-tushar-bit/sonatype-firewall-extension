@@ -41,7 +41,8 @@ public class ComponentRiskService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentRiskService.class);
 
-  private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR = new PolicyViolationDTOComparator();
+  private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR =
+      new PolicyViolationDTOComparator();
 
   private final ApplicationService applicationService;
 
@@ -168,6 +169,7 @@ public class ComponentRiskService
   private static class ComponentViolationRollUp
   {
     Map<String, PolicyViolationDTO> violationsByAppAndPolicyId = new LinkedHashMap<>();
+
     Set<String> applicationIds = new HashSet<>();
 
     void add(PolicyViolationDTO violation) {

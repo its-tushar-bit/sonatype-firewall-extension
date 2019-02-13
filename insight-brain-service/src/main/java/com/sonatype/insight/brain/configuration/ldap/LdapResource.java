@@ -48,7 +48,6 @@ import com.codahale.metrics.annotation.Timed;
 @Path(LdapResource.RESOURCE_PATH)
 public class LdapResource
 {
-
   public static final String RESOURCE_PATH = "rest/config/ldap";
 
   public static final String CONNECTION_PATH = "{ldapServerId}/connection";

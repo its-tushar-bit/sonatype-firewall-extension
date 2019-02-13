@@ -15,5 +15,4 @@ public class ApiLicenseThreatDTOV2
   public int licenseThreatGroupLevel;
 
   public String licenseThreatGroupCategory;
-
 }

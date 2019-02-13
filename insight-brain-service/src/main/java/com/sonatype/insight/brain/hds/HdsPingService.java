@@ -42,7 +42,7 @@ public class HdsPingService
     }
     catch (Exception e) {
       String incidentId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-      errorMessage = (e.getMessage() + " (ID " + incidentId + ").");
+      errorMessage = e.getMessage() + " (ID " + incidentId + ").";
       log.error("{} (ID {})", e.getMessage(), incidentId, e);
     }
 

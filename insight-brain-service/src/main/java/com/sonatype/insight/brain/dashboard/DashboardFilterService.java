@@ -134,6 +134,7 @@ public class DashboardFilterService
   /**
    * @since 1.24.0
    */
+  @SuppressWarnings("checkstyle:LineLength")
   public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO namedDashboardFilterDTO) {
     dashboardUtils.validateDashboardLicensed();
 
@@ -201,6 +202,7 @@ public class DashboardFilterService
   /**
    * @since 1.24.0
    */
+  @SuppressWarnings("checkstyle:LineLength")
   public List<DashboardFilterErrorResponseDTO> deleteDashboardFiltersForCurrentUserByFilterName(List<String> filterNames) {
     dashboardUtils.validateDashboardLicensed();
 

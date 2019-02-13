@@ -21,7 +21,6 @@ import org.codehaus.plexus.util.StringUtils;
 public class PolicyThreatCategoryFilter
     implements Predicate<PolicyThreatCategory>
 {
-
   private Set<PolicyThreatCategory> policyThreatCategories = EnumSet.noneOf(PolicyThreatCategory.class);
 
   public PolicyThreatCategoryFilter() {

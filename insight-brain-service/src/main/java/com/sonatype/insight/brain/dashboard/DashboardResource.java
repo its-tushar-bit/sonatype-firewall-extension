@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -159,6 +158,7 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "createOrUpdateDashboardFilterForCurrentUserExceptionMeter")
   @Audited(AuditEvent.SAVE_DASHBOARD_FILTER)
+  @SuppressWarnings("checkstyle:LineLength")
   public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO dashboardFilterDTO) {
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }
@@ -186,16 +186,8 @@ public class DashboardResource
     return builder.build();
   }
 
-  private int getMaxStatus(final List<DashboardFilterErrorResponseDTO> errorResponseDTOs)
-  {
-    return Collections.max(errorResponseDTOs, new Comparator<DashboardFilterErrorResponseDTO>()
-    {
-      @Override
-      public int compare(DashboardFilterErrorResponseDTO dto1, DashboardFilterErrorResponseDTO dto2)
-      {
-        return Integer.compare(dto1.status, dto2.status);
-      }
-    }).status;
+  private int getMaxStatus(final List<DashboardFilterErrorResponseDTO> errorResponseDTOs) {
+    return Collections.max(errorResponseDTOs, (dto1, dto2) -> Integer.compare(dto1.status, dto2.status)).status;
   }
 
   /**
@@ -209,8 +201,7 @@ public class DashboardResource
   @Produces("text/csv")
   @ExceptionMetered(name = "getNewestRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST)
-  public Response getNewestRisksExport(FormDataMultiPart multiPart) throws IOException
-  {
+  public Response getNewestRisksExport(FormDataMultiPart multiPart) throws IOException {
     String filterJson = multiPart.getField("filter").getValue();
     ObjectMapper mapper = new ObjectMapper();
     RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
@@ -235,8 +226,7 @@ public class DashboardResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @ExceptionMetered(name = "getComponentRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_COMPONENT_LIST)
-  public Response getComponentRisksExport(FormDataMultiPart multiPart) throws IOException
-  {
+  public Response getComponentRisksExport(FormDataMultiPart multiPart) throws IOException {
     String filterJson = multiPart.getField("filter").getValue();
     ObjectMapper mapper = new ObjectMapper();
     RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
@@ -260,8 +250,7 @@ public class DashboardResource
   @Produces("text/csv")
   @ExceptionMetered(name = "getApplicationRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_APPLICATION_LIST)
-  public Response getApplicationRisksExport(FormDataMultiPart multiPart) throws IOException
-  {
+  public Response getApplicationRisksExport(FormDataMultiPart multiPart) throws IOException {
     String filterJson = multiPart.getField("filter").getValue();
     ObjectMapper mapper = new ObjectMapper();
     RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);

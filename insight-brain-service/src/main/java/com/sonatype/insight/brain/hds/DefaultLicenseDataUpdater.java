@@ -93,8 +93,7 @@ public class DefaultLicenseDataUpdater
     log.debug("Updated license data in {} ms.", System.currentTimeMillis() - start);
   }
 
-  private Set<String> getDifference(final Set<String> setOne, final Set<String> setTwo)
-  {
+  private Set<String> getDifference(final Set<String> setOne, final Set<String> setTwo) {
     final Set<String> difference = new HashSet<>(setOne);
     difference.removeAll(setTwo);
     return difference;

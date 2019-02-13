@@ -15,7 +15,6 @@ import com.google.common.base.Joiner;
  */
 public class ComponentRiskDTO implements CsvWritable
 {
-
   private static final Joiner joiner = Joiner.on(",");
 
   public String hash;

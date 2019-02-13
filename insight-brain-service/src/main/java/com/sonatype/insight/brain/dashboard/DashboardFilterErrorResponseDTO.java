@@ -17,11 +17,9 @@ public class DashboardFilterErrorResponseDTO
   public int status;
 
   public DashboardFilterErrorResponseDTO() {
-
   }
 
-  public DashboardFilterErrorResponseDTO(final String name, final String errorMessage, final int status)
-  {
+  public DashboardFilterErrorResponseDTO(final String name, final String errorMessage, final int status) {
     this.name = name;
     this.errorMessage = errorMessage;
     this.status = status;

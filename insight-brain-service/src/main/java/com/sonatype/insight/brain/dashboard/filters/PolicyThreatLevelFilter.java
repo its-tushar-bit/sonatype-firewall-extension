@@ -15,8 +15,8 @@ import org.codehaus.plexus.util.StringUtils;
 public class PolicyThreatLevelFilter
     implements Predicate<Integer>
 {
-
   private int minPolicyThreatLevel = Integer.MIN_VALUE;
+
   private int maxPolicyThreatLevel = Integer.MAX_VALUE;
 
   public PolicyThreatLevelFilter() {

@@ -34,8 +34,7 @@ public class ApiComponentLabelServiceV2
   private final LabelDAO labelDAO;
 
   @Inject
-  public ApiComponentLabelServiceV2(final LabelDAO labelDAO, final ComponentLabelDAO componentLabelDAO)
-  {
+  public ApiComponentLabelServiceV2(final LabelDAO labelDAO, final ComponentLabelDAO componentLabelDAO) {
     this.labelDAO = labelDAO;
     this.componentLabelDAO = componentLabelDAO;
   }
@@ -71,14 +70,14 @@ public class ApiComponentLabelServiceV2
     componentLabelDAO.delete(componentLabel);
   }
 
-  private Label getLabel(final String applicationId, final String labelName)
-  {
+  private Label getLabel(final String applicationId, final String labelName) {
     List<Label> labels = labelDAO.getByOwnerId(applicationId, true);
     for (Label label : labels) {
       if (label.getLabel().equalsIgnoreCase(labelName)) {
         return label;
       }
     }
-    throw new NotFoundException("Could not find a label with name '" + labelName + "' for application with ID " + applicationId + ".");
+    throw new NotFoundException(
+        "Could not find a label with name '" + labelName + "' for application with ID " + applicationId + ".");
   }
 }

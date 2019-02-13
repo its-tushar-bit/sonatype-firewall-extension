@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 @Named
 public class ApiOrganizationAdapter
 {
-
   public ApiOrganizationListDTO convert(List<Organization> organizations, Map<String, List<Tag>> orgTagMap) {
     final List<ApiOrganizationDTO> dtoList = new ArrayList<>(organizations.size());
     for (final Organization organization : organizations) {

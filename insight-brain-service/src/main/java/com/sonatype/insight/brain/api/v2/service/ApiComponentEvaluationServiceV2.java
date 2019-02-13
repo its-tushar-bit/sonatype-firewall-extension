@@ -102,6 +102,7 @@ public class ApiComponentEvaluationServiceV2
   }
 
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ApiComponentEvaluationTicketDTOV2 evaluateComponents(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
                                                               final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
@@ -118,6 +119,7 @@ public class ApiComponentEvaluationServiceV2
   }
 
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
                                                                   final String resultId) throws IOException
   {

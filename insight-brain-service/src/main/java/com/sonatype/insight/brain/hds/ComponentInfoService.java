@@ -94,6 +94,7 @@ public class ComponentInfoService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @SuppressWarnings("checkstyle:LineLength")
   public NamedComponentDetails getComponentDetails_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                                                                                ComponentIdentifier identifier,
                                                                                String matchState,
@@ -110,6 +111,7 @@ public class ComponentInfoService
   }
 
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public NamedComponentDetails getComponentDetails_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                                   @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                                                   ComponentIdentifier componentIdentifier,
@@ -207,6 +209,7 @@ public class ComponentInfoService
    */
   @Deprecated
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                                                                                   ComponentIdentifier identifier,
                                                                                   String matchState,
@@ -227,9 +230,11 @@ public class ComponentInfoService
    * This method is called by the IDE and RM plugins, so it needs to check the EVALUATE_COMPONENT permission.
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_EvaluateComponentPermission(@AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                                                                                                  ComponentIdentifier componentIdentifier,
-                                                                                                 HttpServletRequest httpRequest) throws IOException
+                                                                                                 HttpServletRequest httpRequest)
+      throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentDetailsForAllVersions(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
@@ -244,11 +249,13 @@ public class ComponentInfoService
    */
   @Deprecated
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentDetailsList getComponentDetailsList_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                                      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                                                      ComponentIdentifier componentIdentifier,
                                                                      String matchState,
-                                                                     HttpServletRequest httpRequest) throws IOException
+                                                                     HttpServletRequest httpRequest)
+      throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
@@ -264,10 +271,12 @@ public class ComponentInfoService
    * This method is called by the CIP, so it needs to check the READ permission.
    */
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(@AuthzContext(Key.TYPE) final OwnerType ownerType,
                                                                                     @AuthzContext(Key.ID) final String ownerId,
                                                                                     ComponentIdentifier componentIdentifier,
-                                                                                    HttpServletRequest httpRequest) throws IOException
+                                                                                    HttpServletRequest httpRequest)
+      throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentDetailsForAllVersions(ownerType, ownerId, componentIdentifier, httpRequest);
@@ -276,7 +285,8 @@ public class ComponentInfoService
   private List<ComponentDetailsDTO> getComponentDetailsForAllVersions(OwnerType ownerType,
                                                                       String ownerId,
                                                                       ComponentIdentifier componentIdentifier,
-                                                                      HttpServletRequest httpRequest) throws IOException
+                                                                      HttpServletRequest httpRequest)
+      throws IOException
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     List<ComponentDetails> componentDetailsList = getComponentDetailsList(componentIdentifier, httpRequest).getList();
@@ -409,6 +419,7 @@ public class ComponentInfoService
    * @since 1.18.0
    */
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                                      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                                                      final String hash,
@@ -444,18 +455,18 @@ public class ComponentInfoService
       }
 
       MultiLicense multiLicense = multiLicenseDAO.getById(license.getLicenseId());
-      Set<com.sonatype.insight.brain.model.license.License> _licenses = multiLicenseDAO
+      Set<com.sonatype.insight.brain.model.license.License> dbLicenses = multiLicenseDAO
           .getLicensesByMultiLicenseIdNotNull(multiLicense.getId());
-      for (com.sonatype.insight.brain.model.license.License _license : _licenses) {
-        if (_license.getId().endsWith("-UNSPECIFIED")) {
-          String licenseIdPrefix = _license.getId().substring(0, _license.getId().length() - "UNSPECIFIED".length());
+      for (com.sonatype.insight.brain.model.license.License dbLicense : dbLicenses) {
+        if (dbLicense.getId().endsWith("-UNSPECIFIED")) {
+          String licenseIdPrefix = dbLicense.getId().substring(0, dbLicense.getId().length() - "UNSPECIFIED".length());
           for (com.sonatype.insight.brain.model.license.License otherLicense : licenseDAO.getAll()) {
-            if (otherLicense.getId().startsWith(licenseIdPrefix) && !_license.getId().equals(otherLicense.getId())) {
+            if (otherLicense.getId().startsWith(licenseIdPrefix) && !dbLicense.getId().equals(otherLicense.getId())) {
               result.add(new License(otherLicense.getId(), otherLicense.getShortDisplayName()));
             }
           }
         }
-        result.add(new License(_license.getId(), _license.getShortDisplayName()));
+        result.add(new License(dbLicense.getId(), dbLicense.getShortDisplayName()));
       }
     }
     return result;
@@ -503,6 +514,7 @@ public class ComponentInfoService
   public static class ComponentLicenses
   {
     public List<LicenseWithThreatLevel> declaredlicenses;
+
     public List<LicenseWithThreatLevel> observedlicenses;
 
     /**
@@ -514,7 +526,6 @@ public class ComponentInfoService
      * @since 1.13
      */
     public List<License> selectableLicenses;
-
   }
 
   /**
@@ -523,6 +534,7 @@ public class ComponentInfoService
   public static class LicenseWithThreatLevel
   {
     public License license;
+
     public Integer threatLevel;
   }
 

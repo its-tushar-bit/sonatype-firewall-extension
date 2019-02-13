@@ -89,11 +89,13 @@ public class IdeResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   @Audited(AuditEvent.EVALUATE_PROJECT)
+  @SuppressWarnings("checkstyle:LineLength")
   public IdeMatchedComponent doScan(@PathParam("scanType") String scanType,
                                     @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
                                     @PathParam("path") String path,
                                     @QueryParam("proprietary") boolean proprietary,
-                                    @Context HttpServletRequest req) throws IOException
+                                    @Context HttpServletRequest req)
+      throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();

@@ -42,7 +42,6 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.ORG_RESOURCE_PATH)
 public class ApiOrganizationResourceV2
 {
-
   public static final String ROLE_MEMBERS_PATH = "{organizationId}/roleMembers";
 
   private final ApiOrganizationService apiOrganizationService;
@@ -70,8 +69,8 @@ public class ApiOrganizationResourceV2
   @GET
   @Path(ROLE_MEMBERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(@PathParam("organizationId") final String organizationId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(@PathParam("organizationId") final String organizationId) {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         OwnerType.ORGANIZATION, organizationId);
     return apiMemberMappingAdapter.convert(mappings, OwnerType.ORGANIZATION);

@@ -53,7 +53,8 @@ public class NewestRiskDTO implements CsvWritable
   public long lastOccurrenceTime;
 
   public static String getCsvHeader() {
-    return "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
+    return "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen"
+        + ",Timestamp First Seen";
   }
 
   @Override

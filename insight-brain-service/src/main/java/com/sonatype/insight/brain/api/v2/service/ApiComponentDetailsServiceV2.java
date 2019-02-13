@@ -117,6 +117,7 @@ public class ApiComponentDetailsServiceV2
     }
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   List<ComponentEvaluationData> getComponentDetailsListFromHds(ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO,
                                                                String purpose)
   {

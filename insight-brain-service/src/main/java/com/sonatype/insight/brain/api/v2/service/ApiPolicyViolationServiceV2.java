@@ -74,23 +74,22 @@ public class ApiPolicyViolationServiceV2
     return buildApplicationDTOs(appViews);
   }
   
-  private ApiApplicationViolationListDTOV2 buildApplicationDTOs(Collection<ApplicationView> appViews)
-  {
+  private ApiApplicationViolationListDTOV2 buildApplicationDTOs(Collection<ApplicationView> appViews) {
     ApiApplicationViolationListDTOV2 apiViolationListDTO = new ApiApplicationViolationListDTOV2();
     for (ApplicationView appView : appViews) {
       List<ApiEnhancedPolicyViolationDTOV2> policyViolationDTOs = buildPolicyViolationDTOs(appView);
       if (!policyViolationDTOs.isEmpty()) {
         ApiApplicationViolationDTOV2 apiApplicationViolationDTO = new ApiApplicationViolationDTOV2();
         apiViolationListDTO.applicationViolations.add(apiApplicationViolationDTO);
-        apiApplicationViolationDTO.application = applicationAdapter.convertToApplicationBaseDTO(appView.getApplication());
+        apiApplicationViolationDTO.application =
+            applicationAdapter.convertToApplicationBaseDTO(appView.getApplication());
         apiApplicationViolationDTO.policyViolations = policyViolationDTOs;
       }
     }
     return apiViolationListDTO;
   }
 
-  private List<ApiEnhancedPolicyViolationDTOV2> buildPolicyViolationDTOs(ApplicationView appView)
-  {
+  private List<ApiEnhancedPolicyViolationDTOV2> buildPolicyViolationDTOs(ApplicationView appView) {
     List<ApiEnhancedPolicyViolationDTOV2> apiPolicyViolationDTOs = new ArrayList<>();
     Application application = appView.getApplication();
     for (ApplicationStageView appStageView : appView.getStageViews()) {

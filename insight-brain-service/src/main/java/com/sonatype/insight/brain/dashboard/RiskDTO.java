@@ -32,5 +32,4 @@ public class RiskDTO
     this.moderateRisk = moderateRisk;
     this.lowRisk = lowRisk;
   }
-
 }

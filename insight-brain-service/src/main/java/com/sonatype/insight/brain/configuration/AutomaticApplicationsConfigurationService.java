@@ -37,6 +37,7 @@ public class AutomaticApplicationsConfigurationService
   private final TelemetrySender telemetrySender;
 
   @Inject
+  @SuppressWarnings("checkstyle:LineLength")
   public AutomaticApplicationsConfigurationService(OrganizationDAO organizationDAO,
                                                    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
                                                    TelemetrySender telemetrySender)

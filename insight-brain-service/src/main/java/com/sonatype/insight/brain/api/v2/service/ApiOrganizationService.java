@@ -27,7 +27,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 @Named
 public class ApiOrganizationService
 {
-
   private final TagDAO tagDAO;
 
   private final OrganizationService organizationService;

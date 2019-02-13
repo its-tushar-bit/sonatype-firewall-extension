@@ -42,6 +42,8 @@ class ComponentRiskDTOComparator
           return ob1.scoreSevere - ob2.scoreSevere;
         case TOTAL_RISK:
           return ob1.score - ob2.score;
+        default:
+          throw new IllegalArgumentException("unsupported order by " + componentRiskOrderBy.componentRiskOrderByEnum);
       }
     }
 

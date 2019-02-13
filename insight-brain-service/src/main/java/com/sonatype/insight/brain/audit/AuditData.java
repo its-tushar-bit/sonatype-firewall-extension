@@ -396,6 +396,8 @@ public abstract class AuditData
           return setRepository((Repository) owner);
         case REPOSITORY_CONTAINER:
           return setRepositoryContainer();
+        default:
+          throw new IllegalArgumentException("unsupported owner type " + owner.getType());
       }
     }
     return this;

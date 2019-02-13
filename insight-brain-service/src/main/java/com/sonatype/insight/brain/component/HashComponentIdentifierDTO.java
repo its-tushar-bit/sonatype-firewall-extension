@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
  */
 public class HashComponentIdentifierDTO
 {
-
   public String id;
 
   public String hash;

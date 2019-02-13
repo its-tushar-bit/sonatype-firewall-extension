@@ -10,11 +10,9 @@ package com.sonatype.insight.brain.api.v2.dto;
  */
 public class ApiApplicationTagDTO
 {
-
   public String id;
 
   public String tagId;
 
   public String applicationId;
-
 }

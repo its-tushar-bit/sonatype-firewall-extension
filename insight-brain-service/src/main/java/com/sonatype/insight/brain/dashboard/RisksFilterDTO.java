@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
  */
 public class RisksFilterDTO
 {
-
   public Set<String> applicationIds;
 
   public Set<String> organizationIds;
@@ -41,5 +40,4 @@ public class RisksFilterDTO
   public Integer maxDaysOld = DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD;
 
   public int maxResults = 1000;
-
 }

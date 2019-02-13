@@ -58,6 +58,7 @@ public class CIComponentInfoResource
   @Path(COMPONENT_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public NamedComponentDetails getComponentDetails(@PathParam("ownerType") final OwnerType ownerType,
                                                    @PathParam("ownerId") final String ownerId,
                                                    @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -77,6 +78,7 @@ public class CIComponentInfoResource
   @Path(COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentDetailsList getComponentDetailsList(@PathParam("ownerType") final OwnerType ownerType,
                                                       @PathParam("ownerId") final String ownerId,
                                                       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -93,9 +95,11 @@ public class CIComponentInfoResource
   @Path(COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("ownerType") final OwnerType ownerType,
                                                                      @PathParam("ownerId") final String ownerId,
-                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+      throws IOException
   {
     return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
         componentIdentifier, httpRequest);
@@ -105,6 +109,7 @@ public class CIComponentInfoResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(LICENSES_PATH)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentLicenses getLicenses(@PathParam("ownerType") final OwnerType ownerType,
                                        @PathParam("ownerId") final String ownerId,
                                        @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
@@ -120,6 +125,7 @@ public class CIComponentInfoResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(VULNERABILITIES_PATH)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@PathParam("ownerType") final OwnerType ownerType,
                                                                      @PathParam("ownerId") final String ownerId,
                                                                      @QueryParam("hash") final String hash,

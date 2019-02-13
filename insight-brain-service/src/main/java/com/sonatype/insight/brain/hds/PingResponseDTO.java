@@ -14,8 +14,7 @@ public class PingResponseDTO
   public PingResponseDTO() {
   }
 
-  public PingResponseDTO(String errorMessage, boolean alive)
-  {
+  public PingResponseDTO(String errorMessage, boolean alive) {
     this.errorMessage = errorMessage;
     this.alive = alive;
   }

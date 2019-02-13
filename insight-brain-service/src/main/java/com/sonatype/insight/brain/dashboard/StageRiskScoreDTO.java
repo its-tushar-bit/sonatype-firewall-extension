@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 public class StageRiskScoreDTO
 {
-
   public String stageTypeId;
 
   public String stageTypeName;
@@ -24,5 +23,4 @@ public class StageRiskScoreDTO
     this.stageTypeId = stageTypeId;
     this.risk = risk;
   }
-
 }

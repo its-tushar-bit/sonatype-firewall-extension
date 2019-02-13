@@ -138,6 +138,8 @@ class AuditContainerRequestFilter
         AuditData.get().setGlobal();
         break;
       }
+      default:
+        // left to REST resource
     }
   }
 

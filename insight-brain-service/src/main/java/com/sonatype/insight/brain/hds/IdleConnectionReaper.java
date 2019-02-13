@@ -30,7 +30,8 @@ public class IdleConnectionReaper
 {
   private static final Logger log = LoggerFactory.getLogger(IdleConnectionReaper.class);
 
-  private final Collection<SoftReference<HttpClientConnectionManager>> connectionManagerRefs = new CopyOnWriteArraySet<>();
+  private final Collection<SoftReference<HttpClientConnectionManager>> connectionManagerRefs =
+      new CopyOnWriteArraySet<>();
 
   public IdleConnectionReaper() {
     new Worker(this).start();

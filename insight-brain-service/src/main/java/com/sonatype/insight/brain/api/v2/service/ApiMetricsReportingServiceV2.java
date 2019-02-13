@@ -53,7 +53,7 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
  */
 public class ApiMetricsReportingServiceV2
 {
-  private final static Map<TimePeriod, DateParser> inputDateParsers = new EnumMap<>(TimePeriod.class);
+  private static final Map<TimePeriod, DateParser> inputDateParsers = new EnumMap<>(TimePeriod.class);
 
   static {
     inputDateParsers.put(TimePeriod.WEEK, new WeekParser());
@@ -294,7 +294,7 @@ public class ApiMetricsReportingServiceV2
    * A small wrapper class around a joda DateTimeFormatter that performs parsing and does error handling. Used
    * via its subclasses WeekParser and MonthParser
    */
-  private static abstract class DateParser
+  private abstract static class DateParser
   {
     private final DateTimeFormatter formatter;
 

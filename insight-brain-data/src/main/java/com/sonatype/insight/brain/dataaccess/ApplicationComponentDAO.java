@@ -84,7 +84,20 @@ public class ApplicationComponentDAO
                                                                             Date date)
   {
     if (applicationIds != null && applicationIds.size() >= IN_OPERATOR_THRESHOLD) {
-      return getByApplicationIdsAndStageTypeIdsSinceManualApplicationFilter(applicationIds, stageTypeIds, date);
+      String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+          " WHERE entity.stageTypeId IN (?1) AND entity.time >= ?2" + //
+          " ORDER BY entity.time ASC";
+
+      List<ApplicationComponent> applicationComponents = getList(sQuery, stageTypeIds, date);
+      List<ApplicationComponent> retval = new ArrayList<>();
+
+      for (ApplicationComponent applicationComponent : applicationComponents) {
+        if (applicationIds.contains(applicationComponent.getApplicationId())) {
+          retval.add(applicationComponent);
+        }
+      }
+
+      return retval;
     }
     else {
       String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
@@ -92,26 +105,5 @@ public class ApplicationComponentDAO
           " ORDER BY entity.time ASC";
       return getList(sQuery, applicationIds, stageTypeIds, date);
     }
-  }
-
-  @SuppressWarnings("checkstyle:LineLength")
-  private List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSinceManualApplicationFilter(Set<String> applicationIds,
-                                                                                                    Set<String> stageTypeIds,
-                                                                                                    Date date)
-  {
-    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
-        " WHERE entity.stageTypeId IN (?1) AND entity.time >= ?2" + //
-        " ORDER BY entity.time ASC";
-
-    List<ApplicationComponent> applicationComponents = getList(sQuery, stageTypeIds, date);
-    List<ApplicationComponent> retval = new ArrayList<>();
-
-    for (ApplicationComponent applicationComponent : applicationComponents) {
-      if (applicationIds.contains(applicationComponent.getApplicationId())) {
-        retval.add(applicationComponent);
-      }
-    }
-
-    return retval;
   }
 }

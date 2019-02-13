@@ -269,6 +269,7 @@ public class CLMLicenseManager
     return new LicenseSummary(getProductEdition());
   }
 
+  @SuppressWarnings("checkstyle:FallThrough")
   public LicenseInfo getLicenseInfo() {
     String[] products = licenseCache.products.stream() //
         .map(CLMLicenseManager::getProductMarketingName) //
@@ -298,6 +299,7 @@ public class CLMLicenseManager
       case PRODUCT_FIREWALL_FOR_ARTIFACTORY:
         firewallForArtifactoryServersToDisplay = licenseCache.maxFirewallForArtifactoryServers;
         break;
+      default:
     }
 
     return new LicenseInfo(licenseCache.fingerprint, licenseCache.expirationTimestamp, licensedUsersToDisplay,

@@ -63,7 +63,6 @@ import static org.mockito.Mockito.when;
 public class HdsClientTest
     extends AbstractHdsClientTest
 {
-
   private static final String USER_AGENT_SUFFIX = "test suffix";
 
   @Override
@@ -616,8 +615,7 @@ public class HdsClientTest
     handler = new AbstractHandler()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         headers.put(HdsClient.TELEMETRY_ID_HEADER, request.getHeader(HdsClient.TELEMETRY_ID_HEADER));
         baseRequest.setHandled(true);

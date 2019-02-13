@@ -97,8 +97,8 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
-    assertThat(
-        ideMatchedComponent.getComponentIdentifier()).isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
+    assertThat(ideMatchedComponent.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     assertThat(ideMatchedComponent.getHash()).isEqualTo("abababababababababab");
     assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");

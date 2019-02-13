@@ -39,7 +39,7 @@ public class AuditFilterTest
   @Mock
   private AuditData auditData;
 
-  private final static String MESSAGE = "message";
+  private static final String MESSAGE = "message";
 
   @Mock
   private HttpServletResponse httpServletResponse;

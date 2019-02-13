@@ -8,5 +8,4 @@ package com.sonatype.insight.brain.hds;
 public class EnvironmentResourceProxyTest
     extends EnvironmentResourceTest
 {
-
 }

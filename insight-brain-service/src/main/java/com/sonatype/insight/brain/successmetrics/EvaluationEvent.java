@@ -65,7 +65,9 @@ abstract class ProcessableViolationEvent
     extends ProcessableEvaluationEvent
 {
   protected final PolicyViolation violation;
+
   protected final PolicyThreatCategory threatCategory;
+
   protected final ThreatLevel threatLevel;
 
   ProcessableViolationEvent(PolicyViolation violation, Date time) {
@@ -131,8 +133,7 @@ class ViolationWaivedEvent
   }
 
   @Override
-  void process(ResultsWrapper results, TimePeriod timePeriod)
-  {
+  void process(ResultsWrapper results, TimePeriod timePeriod) {
     super.processResolved(results.mttrStats, results.waivedCounts, results.openCounts);
   }
 }
@@ -145,8 +146,7 @@ class ViolationFixedEvent
   }
 
   @Override
-  void process(ResultsWrapper results, TimePeriod timePeriod)
-  {
+  void process(ResultsWrapper results, TimePeriod timePeriod) {
     super.processResolved(results.mttrStats, results.fixedCounts, results.openCounts);
   }
 }

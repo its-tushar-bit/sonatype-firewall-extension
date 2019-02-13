@@ -132,7 +132,6 @@ public class SystemNoticeTest
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
   private static com.sonatype.insight.brain.model.configuration.SystemNotice createSystemNotice(final String message,
                                                                                                 final boolean enabled)
   {

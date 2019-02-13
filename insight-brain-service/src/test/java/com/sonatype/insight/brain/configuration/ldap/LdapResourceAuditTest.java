@@ -240,8 +240,7 @@ public class LdapResourceAuditTest
     new LdapServerDAO().delete(ldapServer); //to avoid conflicts with other tests relies on order
   }
 
-  private LdapConnection createLdapConnection(LdapAuthenticationMethod ldapAuthenticationMethod)
-  {
+  private LdapConnection createLdapConnection(LdapAuthenticationMethod ldapAuthenticationMethod) {
     LdapConnection conn = new LdapConnection();
     conn.setServerId(ldapServer.getId());
     conn.setProtocol(LdapProtocol.LDAP);

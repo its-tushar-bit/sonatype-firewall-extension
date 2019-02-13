@@ -10,12 +10,16 @@ import java.util.List;
 /**
  * @since 1.35
  */
-public class ComponentCountsDTO {
+public class ComponentCountsDTO
+{
   public int componentsPerApplication;
+
   public List<ComponentCountDTO> componentsInTheMostApplications;
+
   public List<ComponentCountDTO> componentsWithTheMostViolations;
 
-  public static class ComponentCountDTO {
+  public static class ComponentCountDTO
+  {
     public String componentDisplayName;
 
     // componentDisplayName alone isn't enough to key uniqueness off of

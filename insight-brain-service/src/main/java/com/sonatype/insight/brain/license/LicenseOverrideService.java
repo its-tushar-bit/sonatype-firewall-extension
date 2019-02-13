@@ -175,6 +175,7 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public AppliedLicenseOverrides getAppliedLicenseOverrides(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                             @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                                             final JsonEncodedComponentIdentifier componentIdentifier)

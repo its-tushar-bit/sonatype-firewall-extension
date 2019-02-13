@@ -18,14 +18,16 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * Removes an {@link Application} along with related configuration and data.
- * 
+ *
  * @since 1.9
  */
 @Named
 public class ApplicationCleaner
 {
   private final ApplicationDAO applicationDAO;
+
   private final InsightWork work;
+
   private final FileCleaner fileCleaner;
 
   @Inject

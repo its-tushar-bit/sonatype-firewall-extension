@@ -10,10 +10,8 @@ import com.sonatype.insight.brain.HttpRequest;
 public class CIResourceAuthzTest
     extends AbstractScanResourceAuthzTest
 {
-
   @Override
   protected HttpRequest scanRequest() {
     return restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(app.getPublicId());
   }
-
 }

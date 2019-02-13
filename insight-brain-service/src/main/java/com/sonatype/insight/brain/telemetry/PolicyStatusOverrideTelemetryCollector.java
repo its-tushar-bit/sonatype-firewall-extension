@@ -48,5 +48,4 @@ public class PolicyStatusOverrideTelemetryCollector
     attributes.put(POLICY_WAIVER_COUNT, String.valueOf(policyWaiverDAO.getCount()));
     return telemetryData;
   }
-
 }

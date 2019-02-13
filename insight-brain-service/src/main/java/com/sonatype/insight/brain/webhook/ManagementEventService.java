@@ -118,7 +118,6 @@ public class ManagementEventService
     }
   }
 
-
   private <T extends ManagementEvent> T buildOwnerManagementEvent(final EventAction action,
                                                                   final String ownerId,
                                                                   final T event)

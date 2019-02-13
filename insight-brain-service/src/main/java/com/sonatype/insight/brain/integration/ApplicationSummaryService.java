@@ -121,7 +121,8 @@ public class ApplicationSummaryService
   /**
    * @since 1.14.0
    */
-  @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION, 
+      anonymousAllowed = true)
   protected List<Application> getApplicationsForEvaluateApplication() {
     return applicationDAO.getAll();
   }
@@ -204,6 +205,7 @@ public class ApplicationSummaryService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  @SuppressWarnings("checkstyle:LineLength")
   void checkEvaluateApplicationPermissionForOrganization(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
   }
 

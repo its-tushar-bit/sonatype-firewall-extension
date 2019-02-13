@@ -223,6 +223,7 @@ public class InsightConfig
    */
   @NotNull
   @JsonProperty
+  @SuppressWarnings("checkstyle:MemberName")
   private boolean consentToUpgradeToVersion_1_45;
 
   /**
@@ -382,7 +383,6 @@ public class InsightConfig
     }
   }
 
-
   @JsonIgnore
   @ValidationMethod(message = "server.applicationConnectors cannot be empty")
   public boolean isValidApplicationConnectors() {
@@ -533,7 +533,6 @@ public class InsightConfig
     this.eventBus = eventBusConfig;
   }
 
-
   public String getWebhookSecretPassphrase() {
     return webhookSecretPassphrase;
   }
@@ -624,6 +623,7 @@ public class InsightConfig
     return consentToUpgradeToVersion_1_45;
   }
 
+  @SuppressWarnings("checkstyle:ParameterName")
   public void setConsentToUpgradeToVersion_1_45(boolean consentToUpgradeToVersion_1_45) {
     this.consentToUpgradeToVersion_1_45 = consentToUpgradeToVersion_1_45;
   }

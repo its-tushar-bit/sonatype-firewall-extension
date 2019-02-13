@@ -24,7 +24,6 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 public class BaseUrl
     implements RestComponent
 {
-
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
       + "More information at https://links.sonatype.com/products/clm/docs/base-url";
 
@@ -112,5 +111,4 @@ public class BaseUrl
     URI requestUri = uriInfo.getRequestUri();
     return UriBuilder.fromUri(get()).replaceQuery(requestUri.getRawQuery());
   }
-
 }

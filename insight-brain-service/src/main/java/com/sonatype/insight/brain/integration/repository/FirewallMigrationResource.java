@@ -44,18 +44,17 @@ public class FirewallMigrationResource
 
   @POST
   @Path(SUPPORTED_PATH)
-  public void verifyMigrationSupport(@PathParam("protocolVersion") final String protocolVersion)
-  {
+  public void verifyMigrationSupport(@PathParam("protocolVersion") final String protocolVersion) {
     firewallMigrationService.verifyMigrationSupport(protocolVersion);
   }
 
   @POST
   @Path(HISTORY_PATH)
   @Audited(AuditEvent.MIGRATE_REPOSITORY)
+  @SuppressWarnings("checkstyle:LineLength")
   public void migrateRepositoryHistory(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
                                        @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId,
-                                       @QueryParam("sourceRepositoryManagerInstanceId")
-                                           String sourceRepositoryManagerInstanceId,
+                                       @QueryParam("sourceRepositoryManagerInstanceId") String sourceRepositoryManagerInstanceId,
                                        @QueryParam("sourceRepositoryPublicId") String sourceRepositoryPublicId)
   {
     firewallMigrationService.migrateRepositoryHistory(sourceRepositoryManagerInstanceId, sourceRepositoryPublicId,
@@ -65,6 +64,7 @@ public class FirewallMigrationResource
   @GET
   @Path(HISTORY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @SuppressWarnings("checkstyle:LineLength")
   public MigrationDetails getRepositoryMigrationState(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
                                                       @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
   {

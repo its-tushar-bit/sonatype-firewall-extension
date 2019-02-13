@@ -32,8 +32,8 @@ public class ApplicationPolicyViolationLogger
   }
 
   @Override
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<PolicyViolation> policyViolationData)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<PolicyViolation> policyViolationData) {
     PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
     policyViolationLogDTO.stageTypeId =

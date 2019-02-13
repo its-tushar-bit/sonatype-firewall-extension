@@ -54,7 +54,7 @@ public class JiraProject
     this.issueTypes = issueTypes;
   }
 
-  // NOTE: Jackson 2.5+ supports configuring mapper to be case-insensitive, but the version of Jackson used here is too old
+  // NOTE: Jackson 2.5+ supports configuring mapper to be case-insensitive, but Jackson version used here is too old
 
   /**
    * {@link #issueTypes} is used as {@code issuetypes} from some endpoints.

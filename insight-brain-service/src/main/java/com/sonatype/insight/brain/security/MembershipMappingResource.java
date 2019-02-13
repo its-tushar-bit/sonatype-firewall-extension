@@ -91,8 +91,8 @@ public class MembershipMappingResource
   @GET
   @Path(SINGLETON_APPLICABLE_MAPPINGS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final OwnerType ownerType)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final OwnerType ownerType) {
     return getApplicableMembershipMappings(ownerType, null);
   }
 

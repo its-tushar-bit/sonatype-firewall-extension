@@ -186,13 +186,11 @@ public class CIComponentInfoResourceAuditTest
     return detailsRequest(owner, componentIdentifier, hash).path(subpath);
   }
 
-  private HttpRequest detailsRequestForSubpath(String subpath, Owner owner, ComponentIdentifier componentIdentifier)
-  {
+  private HttpRequest detailsRequestForSubpath(String subpath, Owner owner, ComponentIdentifier componentIdentifier) {
     return detailsRequest(owner, componentIdentifier, null).path(subpath);
   }
 
-  private HttpRequest detailsRequest(Owner owner, ComponentIdentifier componentIdentifier, String hash)
-  {
+  private HttpRequest detailsRequest(Owner owner, ComponentIdentifier componentIdentifier, String hash) {
     return restRequest().path(CIComponentInfoResource.RESOURCE_PATH, CIComponentInfoResource.COMPONENT_DETAILS_PATH)
         .parameter(owner.getType(), owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId())
         .query("componentIdentifier", componentIdentifier).query("hash", hash);

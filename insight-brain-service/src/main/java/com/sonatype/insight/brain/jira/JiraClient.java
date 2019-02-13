@@ -72,9 +72,12 @@ public class JiraClient
 
     if (result.status() == HttpStatus.SC_BAD_REQUEST && contentType != null
         && contentType.contains(ContentType.APPLICATION_JSON.getMimeType())) {
-      log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(), result.text());
-    } else {
-      log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(), result.message());
+      log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(),
+          result.text());
+    }
+    else {
+      log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(),
+          result.message());
     }
 
     throw new BadGatewayException("Unexpected error from Jira when trying to " + context);

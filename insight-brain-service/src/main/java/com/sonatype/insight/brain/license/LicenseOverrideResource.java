@@ -75,6 +75,7 @@ public class LicenseOverrideResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @SuppressWarnings("checkstyle:LineLength")
   public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") OwnerType ownerType,
                                                             @PathParam("ownerId") String ownerId,
                                                             @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)

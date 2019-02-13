@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyViolationDTOComparatorTest
 {
   @Test
+  @SuppressWarnings("checkstyle:LocalVariableName")
   public void testPolicyViolationDTOComparison() {
     PolicyViolationDTO dto9AA = buildPolicyViolationDTO(9, "A", "A", null, null);
     PolicyViolationDTO dto8AA = buildPolicyViolationDTO(8, "A", "A", null, null);

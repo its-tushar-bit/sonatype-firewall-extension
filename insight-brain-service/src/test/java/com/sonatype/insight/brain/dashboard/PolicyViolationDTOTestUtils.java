@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.fail;
 
 class PolicyViolationDTOTestUtils
 {
-
   static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos,
                                        PolicyViolation violation,
                                        Application application,
@@ -42,5 +41,4 @@ class PolicyViolationDTOTestUtils
     }
     fail("Unable to match violation with DTOs.");
   }
-
 }

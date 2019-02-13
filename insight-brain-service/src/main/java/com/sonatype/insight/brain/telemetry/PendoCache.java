@@ -41,7 +41,6 @@ public class PendoCache
 
   private final LoadingCache<String, CustomerTelemetryProperties> propertiesCache;
 
-
   @Inject
   public PendoCache(HdsClient hdsClient) {
     propertiesCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.DAYS)

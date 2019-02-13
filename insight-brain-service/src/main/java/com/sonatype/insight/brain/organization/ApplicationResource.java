@@ -133,7 +133,8 @@ public class ApplicationResource
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
     final List<Application> applications = applicationService.getApplications();
 
-    final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(applications);
+    final List<ApplicationManagementSummaryDTO> applicationManagements = 
+        getApplicationManagementSummaries(applications);
 
     return applicationManagements;
   }
@@ -164,8 +165,8 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummaryDTO getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public ApplicationManagementSummaryDTO getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId) {
     final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application);
   }
@@ -242,8 +243,8 @@ public class ApplicationResource
     applicationService.deleteApplicationByPublicId(applicationPublicId);
   }
 
-  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(final List<Application> applications)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(final List<Application> applications) {
 
     // Create the summary DTOs from the applications
     final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs = applicationAdapter

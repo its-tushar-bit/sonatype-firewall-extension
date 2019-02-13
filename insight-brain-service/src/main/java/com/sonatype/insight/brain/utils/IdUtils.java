@@ -33,6 +33,7 @@ public class IdUtils
         return RepositoryContainer.SINGLETON;
       case GLOBAL:
         throw new IllegalArgumentException(MSG_PREFIX_NO_OWNER_INSTANCE + ownerType);
+      default:
     }
 
     throw new IllegalStateException("Unknown owner type: " + ownerType);
@@ -50,6 +51,7 @@ public class IdUtils
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
       case GLOBAL:
         return MembershipMapping.GLOBAL_CONTEXT_ID;
+      default:
     }
 
     throw new IllegalStateException("Unknown owner type: " + ownerType);

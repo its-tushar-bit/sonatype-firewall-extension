@@ -113,6 +113,7 @@ public class OrganizationService
    * @since 1.11.0
    */
   @Authorize(permission = Permission.WRITE)
+  @SuppressWarnings("checkstyle:LineLength")
   public void deleteOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
       throws IOException
   {

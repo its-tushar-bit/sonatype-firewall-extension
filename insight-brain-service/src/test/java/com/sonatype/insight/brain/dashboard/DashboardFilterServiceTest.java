@@ -60,13 +60,21 @@ public class DashboardFilterServiceTest
   private InsightConfig insightConfig;
 
   private Organization org;
+
   private Application app1;
+
   private Application app2;
+
   private Policy orgPolicy;
+
   private Policy app1Policy;
+
   private PolicyEvaluation app1PolicyEvaluation;
+
   private PolicyEvaluation app2PolicyEvaluation;
+
   private Tag tag1;
+
   private Tag tag2;
 
   @Before
@@ -110,7 +118,8 @@ public class DashboardFilterServiceTest
     assertThat(actual.filter.stageTypeFilters).isEmpty();
     assertThat(actual.filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
     assertThat(actual.filter.policyViolationStates).hasSize(1);
-    assertThat(actual.filter.policyViolationStates.get(0)).isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
+    assertThat(actual.filter.policyViolationStates.get(0))
+        .isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
     assertThat(actual.name).isEqualTo(ACTIVE_FILTER_NAME);
     assertThat(actual.basedOnFilterName).isNull();
   }
@@ -183,6 +192,7 @@ public class DashboardFilterServiceTest
     testCreateOrUpdateDashboardFilterForCurrentUser_Update(true);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void testCreateOrUpdateDashboardFilterForCurrentUser_Update(boolean needsAcknowledgementOfInitialDashboardFilter)
       throws Exception
   {
@@ -233,6 +243,7 @@ public class DashboardFilterServiceTest
     testCreateOrUpdateDashboardFilterForCurrentUser_Insert(true);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void testCreateOrUpdateDashboardFilterForCurrentUser_Insert(boolean needsAcknowledgementOfInitialDashboardFilter)
       throws Exception
   {
@@ -279,6 +290,7 @@ public class DashboardFilterServiceTest
     testGetActiveDashboardFilterForCurrentUser_NewFilter(true);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void testGetActiveDashboardFilterForCurrentUser_NewFilter(boolean needsAcknowledgementOfInitialDashboardFilter)
       throws Exception
   {
@@ -455,16 +467,14 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnNullInput()
-  {
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnNullInput() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
     }).withMessage("Filter names cannot be null or empty.");
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnEmptyInput()
-  {
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnEmptyInput() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
     }).withMessage("Filter names cannot be null or empty.");

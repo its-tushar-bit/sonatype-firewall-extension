@@ -33,8 +33,8 @@ public class ComponentDisplayNameUtilTest
   @Test
   public void testInjectDisplayName_Maven() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    ObjectNode jsonNode = (ObjectNode) mapper
-        .readTree("{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}}}");
+    ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"componentIdentifier\":" +
+        "{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}}}");
     injectDisplayName(jsonNode);
 
     ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
@@ -54,8 +54,8 @@ public class ComponentDisplayNameUtilTest
   @Test
   public void testInjectDisplayName_Nuget() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    ObjectNode jsonNode = (ObjectNode) mapper
-        .readTree("{\"componentIdentifier\":{\"format\":\"nuget\",\"coordinates\":{\"packageId\":\"i\",\"version\":\"v\"}}}");
+    ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"componentIdentifier\":" +
+        "{\"format\":\"nuget\",\"coordinates\":{\"packageId\":\"i\",\"version\":\"v\"}}}");
 
     List<ComponentDisplayNamePart> displayFieldValues = fromJsonNode(jsonNode).parts;
     assertThat(displayFieldValues).hasSize(3);

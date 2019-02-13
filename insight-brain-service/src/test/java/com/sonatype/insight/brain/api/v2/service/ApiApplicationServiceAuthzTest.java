@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-
   @Inject
   private ApiApplicationService apiApplicationService;
 

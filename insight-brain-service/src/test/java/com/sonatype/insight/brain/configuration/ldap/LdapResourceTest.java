@@ -35,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapResourceTest
     extends AbstractResourceTest
 {
-
   private static final LdapServerDAO serverDao = new LdapServerDAO();
 
   @Rule

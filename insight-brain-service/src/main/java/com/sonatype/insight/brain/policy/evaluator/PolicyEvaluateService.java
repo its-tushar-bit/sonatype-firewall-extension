@@ -39,6 +39,7 @@ public class PolicyEvaluateService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  @SuppressWarnings("checkstyle:LineLength")
   public PolicyEvaluationResult evaluate(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                                          String scanId,
                                          Stage stage)

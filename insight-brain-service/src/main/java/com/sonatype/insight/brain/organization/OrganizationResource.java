@@ -102,7 +102,8 @@ public class OrganizationResource
 
   @Override
   protected String getDefaultIconFilename(String ownerId) {
-    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? "defaulticon_root_org.png" : "defaulticon_organization.png";
+    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? 
+        "defaulticon_root_org.png" : "defaulticon_organization.png";
   }
 
   /**
@@ -123,6 +124,7 @@ public class OrganizationResource
   @Path(ORGANIZATION_ICON_PATH)
   @Produces("image/png")
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public Response getIcon(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId)
       throws IOException
   {

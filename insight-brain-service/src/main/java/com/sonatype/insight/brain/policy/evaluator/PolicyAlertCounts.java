@@ -18,7 +18,15 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
  */
 public class PolicyAlertCounts
 {
-  private int red, orange, yellow, darkBlue, blue;
+  private int red;
+
+  private int orange;
+
+  private int yellow;
+
+  private int darkBlue;
+
+  private int blue;
 
   public PolicyAlertCounts(final int red, final int orange, final int yellow, final int darkBlue, final int blue) {
     this.red = red;

@@ -31,13 +31,13 @@ import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -486,7 +486,6 @@ public class PolicyViolationAggregationService
             ProcessableViolationEvent outputEvent =
                 event.isWaived ? new ViolationWaivedEvent(violation, firstOccurrence, event.time) :
                     new ViolationFixedEvent(violation, firstOccurrence, event.time);
-
            retval.add(outputEvent);
           }
         }
@@ -600,7 +599,8 @@ public class PolicyViolationAggregationService
     if (aggregationToUpdateId != null) {
       aggregation.setId(aggregationToUpdateId);
       violationAggregationDAO.update(aggregation);
-    } else {
+    }
+    else {
       violationAggregationDAO.insert(aggregation);
     }
     return aggregation;

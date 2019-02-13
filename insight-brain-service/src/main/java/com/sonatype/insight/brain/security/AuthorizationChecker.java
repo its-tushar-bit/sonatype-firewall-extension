@@ -50,7 +50,9 @@ public class AuthorizationChecker
    * Determines whether the given user has the specified permission in the supplied context or any of its ancestor
    * contexts.
    */
-  public boolean isPermitted(UserPrincipal user, Permission permission, Map<AuthzContext.Key, Object> contextParameters)
+  public boolean isPermitted(UserPrincipal user,
+                             Permission permission,
+                             Map<AuthzContext.Key, Object> contextParameters)
   {
     Iterable<String> contextIds = contextResolver.resolveContextIds(contextParameters);
     return isPermitted(user, permission, contextIds);
@@ -93,12 +95,12 @@ public class AuthorizationChecker
     }
     switch (contextEntity) {
       case APPLICATION:
-        return (Collection<T>) filter(user, permission, (Iterable<Application>) entities, contextResolver.APPLICATION);
+        return (Collection<T>) filter(user, permission, (Iterable<Application>) entities, contextResolver.application);
       case ORGANIZATION:
         return (Collection<T>) filter(user, permission, (Iterable<Organization>) entities,
-            contextResolver.ORGANIZATION);
+            contextResolver.organization);
       case REPOSITORY:
-        return (Collection<T>) filter(user, permission, (Iterable<Repository>) entities, contextResolver.REPOSITORY);
+        return (Collection<T>) filter(user, permission, (Iterable<Repository>) entities, contextResolver.repository);
       default:
         throw new IllegalStateException("Cannot check authorization in unknown context " + contextEntity);
     }

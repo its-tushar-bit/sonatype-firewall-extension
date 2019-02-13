@@ -14,7 +14,6 @@ import org.junit.Test;
 public class CIResourceTest
     extends AbstractScanResourceTest
 {
-
   @Test
   public void testScan_FeatureUnlicensed() throws Exception {
     setMissingFeature(Feature.CI_INTEGRATION);

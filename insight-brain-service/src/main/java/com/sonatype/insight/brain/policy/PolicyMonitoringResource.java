@@ -66,6 +66,7 @@ public class PolicyMonitoringResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ApplicablePolicyMonitors getApplicable(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                                 @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {

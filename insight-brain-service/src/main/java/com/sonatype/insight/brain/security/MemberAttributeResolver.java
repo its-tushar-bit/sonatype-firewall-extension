@@ -39,8 +39,8 @@ public class MemberAttributeResolver
     // Get new members based on internal user names.
     UserDirectory.QueryResult result = userDirectory.getMembersByName(unresolvedMembers);
     if (result.hasException()) {
-      log.error(
-          "An exception occurred while trying to resolve user names; attempting to resolve user names using the local Nexus IQ realm.",
+      log.error("An exception occurred while trying to resolve user names; " +
+              "attempting to resolve user names using the local Nexus IQ realm.",
           result.getException());
     }
 
@@ -91,6 +91,7 @@ public class MemberAttributeResolver
   private static class MemberKey
   {
     private final String name;
+
     private final MemberType type;
 
     public MemberKey(final String name, final MemberType type) {

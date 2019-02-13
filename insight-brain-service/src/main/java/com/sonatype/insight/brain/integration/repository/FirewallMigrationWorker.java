@@ -42,7 +42,8 @@ public class FirewallMigrationWorker
 
   private static final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
-  private static final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
+  private static final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO 
+      = new SecurityVulnerabilityOverrideDAO();
 
   private static final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 

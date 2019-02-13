@@ -89,5 +89,4 @@ public class PolicyCoordinatesConditionTypeMigrator
     }
     return migrated;
   }
-
 }

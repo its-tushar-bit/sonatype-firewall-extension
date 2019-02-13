@@ -23,11 +23,11 @@ public class PolicyViolationDigester
     return result;
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public static <T extends PolicyViolationComparable> PolicyViolationDiff<T> digestPolicyViolations(Collection<? extends T> oldViolations,
                                                                                                     Collection<? extends T> newViolations)
   {
     return digestPolicyViolations(oldViolations, newViolations, PolicyViolationComparator.COMPARATOR);
-
   }
 
   public static <T extends PolicyViolationComparable> PolicyViolationDiff<T> digestPolicyViolations(Collection<? extends T> oldViolations,

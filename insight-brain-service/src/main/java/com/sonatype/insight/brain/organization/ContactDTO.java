@@ -12,7 +12,6 @@ package com.sonatype.insight.brain.organization;
  */
 public class ContactDTO
 {
-
   private String internalName;
 
   private String displayName;

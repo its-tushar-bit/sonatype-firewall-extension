@@ -125,7 +125,8 @@ public class ApiPolicyViolationServiceV2Test
     assertPolicyViolation(apiApplicationViolationDTO, policyData);
   }
 
-  private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO, PolicyData appPolicyData)
+  private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO,
+                                     PolicyData appPolicyData)
   {
     assertThat(apiApplicationViolationDTO.application).isNotNull();
     assertThat(apiApplicationViolationDTO.application.id).isEqualTo(appPolicyData.application.getId());

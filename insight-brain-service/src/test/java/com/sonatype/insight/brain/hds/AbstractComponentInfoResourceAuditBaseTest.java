@@ -82,18 +82,15 @@ public abstract class AbstractComponentInfoResourceAuditBaseTest
     assertApplicationData(auditDTO, application);
   }
 
-  private HttpRequest detailsAllVersionsRequest(String applicationId, ComponentIdentifier componentIdentifier)
-  {
+  private HttpRequest detailsAllVersionsRequest(String applicationId, ComponentIdentifier componentIdentifier) {
     return detailsRequest(applicationId, componentIdentifier, null).path("/allVersions");
   }
 
-  private HttpRequest detailsListRequest(String applicationId, ComponentIdentifier componentIdentifier)
-  {
+  private HttpRequest detailsListRequest(String applicationId, ComponentIdentifier componentIdentifier) {
     return detailsRequest(applicationId, componentIdentifier, null).path("/list");
   }
 
-  private HttpRequest detailsRequest(String applicationId, ComponentIdentifier componentIdentifier, String hash)
-  {
+  private HttpRequest detailsRequest(String applicationId, ComponentIdentifier componentIdentifier, String hash) {
     return resourceRequest().parameter(applicationId)
         .query("componentIdentifier", componentIdentifier).query("hash", hash);
   }

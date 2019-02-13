@@ -94,6 +94,7 @@ public class PolicyResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<Policy> getPolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
                                   @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
   {
@@ -111,6 +112,7 @@ public class PolicyResource
   @Path("applicable")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ApplicablePolicies getApplicablePolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
                                                   @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {

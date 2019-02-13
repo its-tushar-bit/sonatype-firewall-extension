@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationTagAdapterTest
 {
-
   private final ApiApplicationTagAdapter apiApplicationTagAdapter = new ApiApplicationTagAdapter();
 
   private static final String ID = "testId";

@@ -40,6 +40,7 @@ public abstract class AbstractPolicyAlertEmailer
     this.policyAlertEmailResolver = policyAlertEmailResolver;
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   protected Map<String, List<PolicyFact>> getPolicyFactsByEmailAddress(Owner owner,
                                                                        final List<PolicyNotification> policyNotifications)
   {
@@ -75,7 +76,7 @@ public abstract class AbstractPolicyAlertEmailer
     return TemplateUtils.render(getPolicyThreatsTemplate(), model);
   }
 
-  private synchronized static Template getPolicyThreatsTemplate() throws IOException {
+  private static synchronized Template getPolicyThreatsTemplate() throws IOException {
     if (policyThreatsTemplate == null) {
       policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate("policythreats.ftl");
     }

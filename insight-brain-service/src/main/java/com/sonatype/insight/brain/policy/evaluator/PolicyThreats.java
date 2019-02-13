@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * DTO describing the contents of the {@code policythreats.json} used to provide information about policy violations
  * specifically for consumption by the report.
- * 
+ *
  * @since 1.9
  */
 public class PolicyThreats
@@ -31,6 +31,7 @@ public class PolicyThreats
   {
     // identification
     public String hash;
+
     /**
      * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
      * {@link PolicyThreats.Component#componentIdentifier}.
@@ -38,6 +39,7 @@ public class PolicyThreats
     @Deprecated
     @JsonInclude(Include.NON_NULL)
     public String groupId;
+
     /**
      * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
      * {@link PolicyThreats.Component#componentIdentifier}.
@@ -45,6 +47,7 @@ public class PolicyThreats
     @Deprecated
     @JsonInclude(Include.NON_NULL)
     public String artifactId;
+
     /**
      * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
      * {@link PolicyThreats.Component#componentIdentifier}.
@@ -52,16 +55,22 @@ public class PolicyThreats
     @Deprecated
     @JsonInclude(Include.NON_NULL)
     public String version;
-    /** @since 1.13.0 */
+
+    /**
+     * @since 1.13.0
+     */
     public ComponentIdentifier componentIdentifier;
 
     // top critical violation among active violations, mostly for backward-compat
     public String policyId;
+
     public String policyName;
+
     public int policyThreatLevel;
 
     // active and waived violations, in no particular order, for backward compatibility
     public List<PolicyViolation> activeViolations = new ArrayList<>();
+
     public List<PolicyViolation> waivedViolations = new ArrayList<>();
 
     /**
@@ -73,14 +82,16 @@ public class PolicyThreats
   public static class PolicyViolation
   {
     public String policyId;
+
     public String policyName;
+
     public int policyThreatLevel;
-    
+
     /**
      * @since 1.50
      */
     public boolean waived;
-    
+
     /**
      * @since 1.50
      */
@@ -99,13 +110,16 @@ public class PolicyThreats
   public static class PolicyAction
   {
     public String actionType;
+
     public String actionSummary;
   }
 
   public static class PolicyConstraint
   {
     public String constraintId;
+
     public String constraintName;
+
     public String constraintOperator;
 
     public List<PolicyCondition> conditions = new ArrayList<>();
@@ -114,7 +128,9 @@ public class PolicyThreats
   public static class PolicyCondition
   {
     public String conditionType;
+
     public String conditionSummary;
+
     public String conditionReason;
   }
 }

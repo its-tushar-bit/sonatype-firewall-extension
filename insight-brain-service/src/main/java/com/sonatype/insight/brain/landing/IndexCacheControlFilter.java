@@ -27,7 +27,6 @@ import javax.ws.rs.core.HttpHeaders;
 public class IndexCacheControlFilter
     implements Filter
 {
-
   public static String URL_PATTERN = "/assets/index.html";
 
   @Override
@@ -46,5 +45,4 @@ public class IndexCacheControlFilter
     resp.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate");
     chain.doFilter(request, response);
   }
-
 }

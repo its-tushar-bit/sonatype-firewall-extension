@@ -11,7 +11,9 @@ public class MDCUsernameScope
     implements AutoCloseable
 {
   public static final String USERNAME = "username";
+
   public static final String SYSTEM = "*SYSTEM";
+
   public static final String ANONYMOUS = "*UNKNOWN";
 
   public static MDCUsernameScope forAnonymous() {

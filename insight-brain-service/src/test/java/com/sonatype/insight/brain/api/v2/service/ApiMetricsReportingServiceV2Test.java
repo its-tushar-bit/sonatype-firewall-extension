@@ -631,7 +631,8 @@ public class ApiMetricsReportingServiceV2Test
   private void assertMonthlyData(List<ApiMetricsReportingDTOV2> results,
                                  Organization organization,
                                  Integer numTimePeriods,
-                                 Set<String> applicationIds) {
+                                 Set<String> applicationIds)
+  {
     if (numTimePeriods == null) {
       numTimePeriods = 3;
     }
@@ -791,8 +792,7 @@ public class ApiMetricsReportingServiceV2Test
                     0
                 )
             ).subList(0, numTimePeriods)
-        )
-        // no aggregations for app 6
+        ) // no aggregations for app 6
     );
 
     assertDTOs(results, expected, applicationIds);
@@ -872,7 +872,6 @@ public class ApiMetricsReportingServiceV2Test
             0, 3, 0, 2  // open other
           )
       ).subList(0, numTimePeriods);
-
 
     List<ApiMetricsReportingFlattenedDTOV2> app2Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
@@ -1006,7 +1005,6 @@ public class ApiMetricsReportingServiceV2Test
         )
     ).subList(0, numTimePeriods);
 
-
     List<ApiMetricsReportingFlattenedDTOV2> app4Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-10-01", //
@@ -1072,7 +1070,6 @@ public class ApiMetricsReportingServiceV2Test
             0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
-
 
     List<ApiMetricsReportingFlattenedDTOV2> app5Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
@@ -1313,17 +1310,17 @@ public class ApiMetricsReportingServiceV2Test
                     0
                 )
             ).subList(0, numTimePeriods)
-        )
-        // no aggregations for app 6
+        ) // no aggregations for app 6
     );
 
     assertDTOs(results, expected, applicationIds);
   }
 
   private void assertFlattenedWeeklyData(List<ApiMetricsReportingFlattenedDTOV2> results,
-                                 Organization organization,
-                                 Integer numTimePeriods,
-                                 Set<String> applicationIds) {
+                                         Organization organization,
+                                         Integer numTimePeriods,
+                                         Set<String> applicationIds)
+  {
     if (numTimePeriods == null) {
       numTimePeriods = 3;
     }
@@ -1393,7 +1390,6 @@ public class ApiMetricsReportingServiceV2Test
             0, 3, 0, 2  // open other
           )
       ).subList(0, numTimePeriods);
-
 
     List<ApiMetricsReportingFlattenedDTOV2> app2Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
@@ -1527,7 +1523,6 @@ public class ApiMetricsReportingServiceV2Test
         )
     ).subList(0, numTimePeriods);
 
-
     List<ApiMetricsReportingFlattenedDTOV2> app4Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-11-27", //
@@ -1593,7 +1588,6 @@ public class ApiMetricsReportingServiceV2Test
             0, 3, 0, 2  // open other
         )
     ).subList(0, numTimePeriods);
-
 
     List<ApiMetricsReportingFlattenedDTOV2> app5Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
@@ -1794,6 +1788,7 @@ public class ApiMetricsReportingServiceV2Test
    * id. This method ensures that that is true and separates the groups by application, returning the separated
    * lists in a map indexed by application id
    */
+  @SuppressWarnings("checkstyle:LineLength")
   private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> getFlattenedDTOGroups(List<ApiMetricsReportingFlattenedDTOV2> dtos) {
     // applicationIds that have already been seen not including the current one
     Set<String> idsAlreadySeen = new HashSet<>();
@@ -1819,6 +1814,7 @@ public class ApiMetricsReportingServiceV2Test
     return retval;
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> buildExpectedDTOGroups(Set<String> applicationIds,
                                                                                       List<ApiMetricsReportingFlattenedDTOV2> app1Expected,
                                                                                       List<ApiMetricsReportingFlattenedDTOV2> app2Expected,

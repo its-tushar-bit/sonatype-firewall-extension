@@ -29,6 +29,7 @@ public class InsightSyslogAppenderFactory
     }
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public InsightSyslogAppenderFactory() {
     // Due to SyslogAppenderFactory setting an initial log format
     // https://github.com/dropwizard/dropwizard/blob/v1.2.3/dropwizard-logging/src/main/java/io/dropwizard/logging/SyslogAppenderFactory.java#L128-L129
@@ -38,6 +39,7 @@ public class InsightSyslogAppenderFactory
   }
 
   @Override
+  @SuppressWarnings("checkstyle:LineLength")
   public Appender<ILoggingEvent> build(LoggerContext context,
                                        String applicationName,
                                        LayoutFactory<ILoggingEvent> layoutFactory,

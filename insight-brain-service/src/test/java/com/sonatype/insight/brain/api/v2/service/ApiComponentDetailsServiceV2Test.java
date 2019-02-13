@@ -132,7 +132,8 @@ public class ApiComponentDetailsServiceV2Test
 
   @Test
   public void testGetComponentDetails_invalidComponentIdentifier_noCoordinates() throws Exception {
-    String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
+    String jsonRequest =
+        "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     ApiComponentEvaluationRequestDTOV2 request = JsonUtils.parse(jsonRequest, ApiComponentEvaluationRequestDTOV2.class);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);

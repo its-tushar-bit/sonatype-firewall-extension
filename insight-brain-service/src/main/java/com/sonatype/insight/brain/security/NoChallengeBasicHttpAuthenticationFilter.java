@@ -21,7 +21,6 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 public class NoChallengeBasicHttpAuthenticationFilter
     extends UserFriendlyBasicHttpAuthenticationFilter
 {
-
   /**
    * This is the method called by the parent class when the access is denied.
    * In our case we don't want to send back a challenge, but only to set the HTTP response status and an error message.

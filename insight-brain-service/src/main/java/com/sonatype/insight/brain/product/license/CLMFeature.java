@@ -34,5 +34,4 @@ public class CLMFeature
   public String getShortName() {
     return "IQ";
   }
-
 }

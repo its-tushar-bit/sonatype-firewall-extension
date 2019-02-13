@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiMemberMappingAdapterTest
 {
-
   private ApiMemberMappingAdapter apiMemberMappingAdapter = new ApiMemberMappingAdapter();
 
   private final String roleId = "testRoleId";

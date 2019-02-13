@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 @Singleton
 public class PolicyThreatsAdapter
 {
-
   public PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations) {
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations);
 

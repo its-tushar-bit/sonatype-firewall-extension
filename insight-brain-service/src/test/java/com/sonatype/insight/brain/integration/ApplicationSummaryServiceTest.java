@@ -94,7 +94,8 @@ public class ApplicationSummaryServiceTest
   {
     String appPublicId = "NoSuchAppPublicID";
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(false);
 
     boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION,
@@ -109,7 +110,8 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -135,7 +137,8 @@ public class ApplicationSummaryServiceTest
   @Test
   public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationDisabled() throws Exception {
     // If auto app creation is disabled, then no telemetry data should be sent.
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(false);
 
     String appPublicId = "NoSuchAppPublicID";
@@ -155,7 +158,8 @@ public class ApplicationSummaryServiceTest
         eq("test_client_user_agent"));
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -185,12 +189,12 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testVerifyOrCreateApplication_License() throws Exception
-  {
+  public void testVerifyOrCreateApplication_License() throws Exception {
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
+        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 

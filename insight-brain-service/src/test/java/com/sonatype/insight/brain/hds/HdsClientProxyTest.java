@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
 
 public class HdsClientProxyTest
 {
-
   static {
     SslProperties.use();
   }
@@ -120,11 +119,7 @@ public class HdsClientProxyTest
       }
     };
 
-    try {
-      client.relay(mockedRequest, null, "some/path", Collections.emptyMap());
-    }
-    catch (Exception ignore) {
-    }
+    client.relay(mockedRequest, null, "some/path", Collections.emptyMap());
 
     assertThat(headers).containsEntry(HttpHeaders.USER_AGENT, UserAgentUtils.getDefaultUserAgent());
   }

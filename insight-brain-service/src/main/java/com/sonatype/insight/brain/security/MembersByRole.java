@@ -26,5 +26,4 @@ public class MembersByRole
     this.roleName = roleName;
     this.roleDescription = roleDescription;
   }
-
 }

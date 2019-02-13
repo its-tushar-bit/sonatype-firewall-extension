@@ -171,8 +171,8 @@ public class ApplicationMoveService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public List<Organization> getDestinationOrganizations(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public List<Organization> getDestinationOrganizations(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId) {
     Application application = applicationDAO.getByIdNotNull(applicationId);
     List<Organization> organizations = new ArrayList<>();
     for (Organization organization : getPermittedDestinationOrganizations()) {
@@ -706,15 +706,16 @@ public class ApplicationMoveService
       return true;
     }
 
-    private boolean isLicenseOverrideForEqualComponent(LicenseOverride effectiveOverride, LicenseOverride otherOverride)
+    private boolean isLicenseOverrideForEqualComponent(LicenseOverride effectiveOverride,
+                                                       LicenseOverride otherOverride)
     {
       ComponentIdentifier effective = effectiveOverride.getComponentIdentifier();
       ComponentIdentifier other = otherOverride.getComponentIdentifier();
       if (effective.equals(other)) {
         return true;
       }
-      if (effective.isMaven() && other.isMaven()
-          && effective.getCoordinates().equals(ComponentIdentifierAdapter.toGavOnlyCoordinates(other.getCoordinates()))) {
+      if (effective.isMaven() && other.isMaven() && effective.getCoordinates()
+          .equals(ComponentIdentifierAdapter.toGavOnlyCoordinates(other.getCoordinates()))) {
         return true;
       }
       return false;

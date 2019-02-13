@@ -8,17 +8,23 @@ package com.sonatype.insight.brain.successmetrics;
 public class ApplicationCountsDTO
 {
   public int totalApplications;
+
   public int activeApplications;
 
   public ThreatCategoryApplicationCount total;
+
   public ThreatCategoryApplicationCount security;
+
   public ThreatCategoryApplicationCount license;
+
   public ThreatCategoryApplicationCount quality;
+
   public ThreatCategoryApplicationCount other;
 
   static class ThreatCategoryApplicationCount
   {
     public int applicationsWithViolations;
+
     public int applicationsWithCriticalViolations;
 
     public ThreatCategoryApplicationCount() {

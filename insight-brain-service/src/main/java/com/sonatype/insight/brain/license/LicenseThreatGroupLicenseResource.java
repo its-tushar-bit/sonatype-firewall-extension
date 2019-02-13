@@ -39,7 +39,8 @@ import static java.util.stream.Collectors.toList;
 @Path(LicenseThreatGroupLicenseResource.RESOURCE_PATH)
 public class LicenseThreatGroupLicenseResource
 {
-  public static final String RESOURCE_PATH = "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
+  public static final String RESOURCE_PATH = 
+      "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
 
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
@@ -50,6 +51,7 @@ public class LicenseThreatGroupLicenseResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                                                        @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                                                        @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
@@ -62,6 +64,7 @@ public class LicenseThreatGroupLicenseResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                                                        @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                                                        @PathParam("licenseThreatGroupId") String licenseThreatGroupId,

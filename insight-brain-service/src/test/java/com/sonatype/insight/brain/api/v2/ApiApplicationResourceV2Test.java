@@ -46,7 +46,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiApplicationResourceV2Test
     extends AbstractResourceTest
 {
-
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private final ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();

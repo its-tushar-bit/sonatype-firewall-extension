@@ -49,7 +49,7 @@ public class HdsIdeResourcePerformance
     List<Long> results = new HdsIdeResourcePerformance(32, 32, "http://localhost:8080/insight-portal", policies)
         .execute("c8e086158a709a128ff5");
 
-    long sum = 0l;
+    long sum = 0L;
     long min = Long.MAX_VALUE;
     long max = Long.MIN_VALUE;
 

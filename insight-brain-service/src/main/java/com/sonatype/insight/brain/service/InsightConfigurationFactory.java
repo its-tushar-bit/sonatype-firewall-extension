@@ -81,6 +81,7 @@ public class InsightConfigurationFactory
     }
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void setAppenderFactoriesLogFormats(Collection<? extends AppenderFactory<?>> appenderFactories,
                                               @SuppressWarnings("rawtypes") Class<? extends AbstractAppenderFactory> appenderFactoryType,
                                               String logFormat)
@@ -91,7 +92,8 @@ public class InsightConfigurationFactory
   }
 
   private void setDefaultRequestLogFilterFactory(Collection<? extends AppenderFactory<IAccessEvent>> appenderFactories,
-                                                 FilterFactory<IAccessEvent> filterFactory) {
+                                                 FilterFactory<IAccessEvent> filterFactory)
+  {
     for (AppenderFactory<IAccessEvent> appenderFac : appenderFactories) {
       AbstractAppenderFactory<IAccessEvent> appenderFactory = (AbstractAppenderFactory<IAccessEvent>) appenderFac;
       ImmutableList<FilterFactory<IAccessEvent>> existingFilters = appenderFactory.getFilterFactories();

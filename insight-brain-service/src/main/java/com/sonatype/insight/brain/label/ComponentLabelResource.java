@@ -29,7 +29,8 @@ import com.codahale.metrics.annotation.Timed;
 @Path(ComponentLabelResource.RESOURCE_PATH)
 public class ComponentLabelResource
 {
-  public static final String RESOURCE_PATH = "rest/label/component/{ownerType: application|organization|repository|repository_container}/{ownerId}/{hash}";
+  public static final String RESOURCE_PATH = 
+      "rest/label/component/{ownerType: application|organization|repository|repository_container}/{ownerId}/{hash}";
 
   private final ComponentLabelService componentLabelService;
 

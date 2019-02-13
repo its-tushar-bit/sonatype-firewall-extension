@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyThreatCategoryFilterTest
 {
-
   @Test
   public void testSinglePolicyThreatCategory() {
     PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE);
@@ -113,7 +112,8 @@ public class PolicyThreatCategoryFilterTest
     v3.setThreatCategory(PolicyThreatCategory.QUALITY);
 
     PolicyThreatCategoryFilter singleCategoryFilter = new PolicyThreatCategoryFilter(singleCategory);
-    PolicyThreatCategoryFilter singleCategoryWithSpacesFilter = new PolicyThreatCategoryFilter(singleCategoryWithSpaces);
+    PolicyThreatCategoryFilter singleCategoryWithSpacesFilter 
+        = new PolicyThreatCategoryFilter(singleCategoryWithSpaces);
     PolicyThreatCategoryFilter singleCategoryWithDanglingCommaFilter = new PolicyThreatCategoryFilter(
         singleCategoryWithDanglingComma);
     PolicyThreatCategoryFilter multiCategoryWithSpacesFilter = new PolicyThreatCategoryFilter(multiCategoryWithSpaces);

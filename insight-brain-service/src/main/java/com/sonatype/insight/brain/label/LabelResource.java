@@ -95,7 +95,9 @@ public class LabelResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_LABEL)
-  public Label addLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId, Label label)
+  public Label addLabel(@PathParam("ownerType") OwnerType ownerType,
+                        @PathParam("ownerId") String ownerId,
+                        Label label)
   {
     return labelService.addLabel(ownerType, ownerId, label);
   }

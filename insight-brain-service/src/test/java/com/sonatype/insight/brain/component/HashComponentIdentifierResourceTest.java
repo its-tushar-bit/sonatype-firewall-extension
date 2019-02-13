@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HashComponentIdentifierResourceTest
     extends AbstractResourceTest
 {
-
   private static final String hash = "ab1234ab1234ab";
 
   private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1",

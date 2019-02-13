@@ -27,7 +27,8 @@ public class ErrorResponseGenerator
 {
   public static final String MSG_LOGIN_FAILURE_DEFAULT = "Invalid credentials. Please try again.";
 
-  static final String MSG_LDAP_FAILURE = "Authentication failed due to LDAP error. Please contact your IT administrator.";
+  static final String MSG_LDAP_FAILURE = 
+      "Authentication failed due to LDAP error. Please contact your IT administrator.";
 
   static final String MSG_LDAP_TIMEOUT = "Authentication failed due to LDAP timeout. Please try again.";
 

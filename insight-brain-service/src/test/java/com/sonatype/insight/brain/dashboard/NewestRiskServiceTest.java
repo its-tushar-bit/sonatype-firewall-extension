@@ -52,14 +52,23 @@ public class NewestRiskServiceTest
   private Organization org1;
 
   private Organization org2;
+
   private Application app1;
+
   private Application app2;
+
   private Policy org1Policy;
+
   private Policy app1Policy;
+
   private PolicyEvaluation app1PolicyEvaluation;
+
   private PolicyEvaluation app2PolicyEvaluation;
+
   private PolicyViolation orgPolicyViolation;
+
   private PolicyViolation app1PolicyViolation;
+
   private PolicyViolation app2PolicyViolation;
 
   @Before

@@ -75,7 +75,8 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier_noCoordinates() throws Exception {
-    String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
+    String jsonRequest = 
+        "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     HttpResponse response = restRequest(app.getId()).body(jsonRequest).post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("A component identifier must have at least one coordinate.");
@@ -167,7 +168,8 @@ public class ApiEvaluationResourceV2Test
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details).isNotNull();
     assertThat(details.isError).isTrue();
-    assertThat(details.errorMessage).startsWith("The Sonatype Data Services returned error 500, please retry in a bit.");
+    assertThat(details.errorMessage)
+        .startsWith("The Sonatype Data Services returned error 500, please retry in a bit.");
     assertThat(details.applicationId).isEqualTo(app.getId());
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
@@ -450,7 +452,8 @@ public class ApiEvaluationResourceV2Test
 
   private void mockHDSInternalServiceError() {
     setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
-        "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION), "Internal Error", 500);
+        "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION), "Internal Error",
+        500);
   }
 
   @Test
@@ -494,8 +497,8 @@ public class ApiEvaluationResourceV2Test
         componentEvaluationDataList, 200);
   }
 
-  private ComponentEvaluationDataList createComponentEvaluationDataList(final ComponentEvaluationData... componentEvaluationData)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  private ComponentEvaluationDataList createComponentEvaluationDataList(final ComponentEvaluationData... componentEvaluationData) {
     ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
     componentEvaluationDataList.components = new ArrayList<>();
     Collections.addAll(componentEvaluationDataList.components, componentEvaluationData);

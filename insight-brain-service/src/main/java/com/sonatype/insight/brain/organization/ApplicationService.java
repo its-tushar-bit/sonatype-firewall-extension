@@ -90,7 +90,8 @@ public class ApplicationService
    * @since 1.14.0
    *        Allows anonymous access. Only for use by the clients that evaluate components.
    */
-  @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION,
+      anonymousAllowed = true)
   protected List<Application> getApplicationsForEvaluateComponent() {
     return applicationDAO.getAll();
   }
@@ -100,8 +101,8 @@ public class ApplicationService
    *        Allows anonymous access. Only for use by the clients.
    */
   @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
-  protected Application getApplicationByPublicIdAllowAnonymous(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  protected Application getApplicationByPublicIdAllowAnonymous(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
@@ -118,14 +119,14 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  public Application getApplicationByPublicIdNotNull(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public Application getApplicationByPublicIdNotNull(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return applicationDAO.getByPublicIdNotNull(applicationPublicId);
   }
 
   @Authorize(permission = Permission.READ)
-  public Application getApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public Application getApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 

@@ -46,6 +46,7 @@ public class ComponentEvaluationV2Helper
 {
   private PolicyDAO policyDAO = new PolicyDAO();
 
+  @SuppressWarnings("checkstyle:LineLength")
   public ComponentEvaluationData createComponentEvaluationData(final ComponentIdentifier componentIdentifier,
                                                                final String hash,
                                                                final MatchState matchState,
@@ -145,8 +146,10 @@ public class ComponentEvaluationV2Helper
   {
     assertThat(resultComponentDTO).isNotNull();
     assertThat(resultComponentDTO.component).isNotNull();
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates()).isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.componentIdentifier.getFormat())
+        .isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
     assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
     assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
     assertThat(resultComponentDTO.relativePopularity).isEqualTo(relativePopularity);
@@ -156,8 +159,8 @@ public class ComponentEvaluationV2Helper
         .containsExactly(declaredLicenses.stream()
             .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
-    .containsExactly(observedLicenses.stream()
-        .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+        .containsExactly(observedLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.overriddenLicenses).isEmpty();
 
     assertThat(resultComponentDTO.securityData).isNotNull();
@@ -165,11 +168,12 @@ public class ComponentEvaluationV2Helper
     for (int i = 0; i < securityVulnerabilities.size(); i++) {
       assertThat(resultComponentDTO.securityData.securityIssues.get(i).source).isEqualTo(securityVulnerabilities.get(i)
           .getSource());
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference).isEqualTo(securityVulnerabilities.get(i)
-          .getRefId());
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity).isEqualTo(securityVulnerabilities.get(i)
-          .getSeverity());
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url).isEqualTo(securityVulnerabilities.get(i).getUrl());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference)
+          .isEqualTo(securityVulnerabilities.get(i).getRefId());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity)
+          .isEqualTo(securityVulnerabilities.get(i).getSeverity());
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url)
+          .isEqualTo(securityVulnerabilities.get(i).getUrl());
     }
 
     assertThat(resultComponentDTO.policyData).isNotNull();

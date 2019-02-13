@@ -24,8 +24,8 @@ public class OrganizationPolicyViolationLogger
   }
 
   @Override
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<PolicyViolation> policyViolationData)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<PolicyViolation> policyViolationData) {
     PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
     policyViolationLogDTO.organizationId = organization.getId();
     policyViolationLogDTO.organizationName = organization.getName();

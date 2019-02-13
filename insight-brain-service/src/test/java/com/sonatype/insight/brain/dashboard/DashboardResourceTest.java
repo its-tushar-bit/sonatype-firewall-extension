@@ -57,6 +57,7 @@ public class DashboardResourceTest
   {
     csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
+
   private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Override
@@ -544,7 +545,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_returnErrorResponseWhenFilterIsNotFound() throws Exception {
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_returnErrorResponseWhenFilterIsNotFound()
+      throws Exception
+  {
     User tempUser = tempEntity.newUser();
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
@@ -593,7 +596,8 @@ public class DashboardResourceTest
     expectedResult.add(new DashboardFilterErrorResponseDTO("NotFoundFilter", "not found error", 404));
 
     DashboardFilterService dashboardFilterServiceMock = Mockito.mock(DashboardFilterService.class);
-    when(dashboardFilterServiceMock.deleteDashboardFiltersForCurrentUserByFilterName(filterNames)).thenReturn(expectedResult);
+    when(dashboardFilterServiceMock.deleteDashboardFiltersForCurrentUserByFilterName(filterNames))
+        .thenReturn(expectedResult);
     
     DashboardResource underTest = new DashboardResource(null, dashboardFilterServiceMock, null, null);
     Response actual = underTest.deleteDashboardFiltersForCurrentUserByFilterName(filterNames);

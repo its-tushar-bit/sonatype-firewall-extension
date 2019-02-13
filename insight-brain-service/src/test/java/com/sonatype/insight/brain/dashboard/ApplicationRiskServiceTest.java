@@ -42,11 +42,17 @@ public class ApplicationRiskServiceTest
   private ApplicationRiskService applicationRiskService;
 
   private Organization org;
+
   private Application app1;
+
   private Application app2;
+
   private Policy orgPolicy;
+
   private Policy app1Policy;
+
   private PolicyEvaluation app1PolicyEvaluation;
+
   private PolicyEvaluation app2PolicyEvaluation;
 
   @Before
@@ -163,7 +169,8 @@ public class ApplicationRiskServiceTest
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel());
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(orgPolicy.getThreatLevel() 
+        + app1Policy.getThreatLevel());
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
@@ -346,6 +353,7 @@ public class ApplicationRiskServiceTest
     assertRisk(releaseStageRisk.risk, 0, 7, 0, 0, 7);
     assertThat(releaseStageRisk.scanId).isEqualTo(policyEvaluation2.getScanId());
   }
+
   @Test
   public void testGetApplicationRisks_TwoStagesTwoApps() {
     Application app1 = tempEntity.newApplication("tsta-app1", "tsta-app1", org.getId());

@@ -45,7 +45,6 @@ import static org.mockito.Mockito.doReturn;
 public class ApiComponentEvaluationServiceV2Test
     extends AbstractComponentTest
 {
-
   private static final long RETRY_INTERVAL = 50;
 
   private static final int NUM_TRIES = 1000;
@@ -170,6 +169,7 @@ public class ApiComponentEvaluationServiceV2Test
         .isEqualTo(componentIdentifier.getCoordinates());
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationTicket)
       throws Exception
   {

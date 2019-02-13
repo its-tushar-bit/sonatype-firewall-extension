@@ -18,7 +18,6 @@ import org.joda.time.format.ISODateTimeFormat;
 public class ISODateSerializer
     extends JsonSerializer<Date>
 {
-
   private final DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
 
   @Override
@@ -32,5 +31,4 @@ public class ISODateSerializer
       jgen.writeNull();
     }
   }
-
 }

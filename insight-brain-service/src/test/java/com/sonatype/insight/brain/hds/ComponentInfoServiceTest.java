@@ -141,8 +141,8 @@ public class ComponentInfoServiceTest
   }
 
   private void mockHdsGetComponentDetailsList(ComponentDetailsList hdsComponentDetailsList) throws IOException {
-    when(hdsClientMock.relay(httpRequestMock, ComponentDetailsList.class, "rest/" + TOOL_NAME + "/componentDetails/list"))
-        .thenReturn(hdsComponentDetailsList);
+    when(hdsClientMock.relay(httpRequestMock, ComponentDetailsList.class, "rest/" + TOOL_NAME + 
+        "/componentDetails/list")).thenReturn(hdsComponentDetailsList);
   }
 
   @Test
@@ -341,6 +341,7 @@ public class ComponentInfoServiceTest
         repository.getId());
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(final OwnerType ownerType,
                                                                                                  final String ownerId)
       throws Exception
@@ -838,7 +839,8 @@ public class ComponentInfoServiceTest
   }
 
   private List<ComponentDetailsDTO> testGetComponentDetailsForAllVersions_ReadPermission(final Owner owner,
-                                                                                         final String ownerId) throws Exception
+                                                                                         final String ownerId)
+      throws Exception
   {
     ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_COORDINATES);
     long timestamp = DateTime.now().getMillis();

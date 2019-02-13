@@ -19,8 +19,12 @@ import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 public class OwnerDetailsDTO
 {
   public List<Tag> tags;
+
   public List<Policy> policies;
+
   public List<Label> labels;
+
   public List<LicenseThreatGroup> licenseThreatGroups;
+
   public ApplicableMembershipMappings roles;
 }

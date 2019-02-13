@@ -19,11 +19,17 @@ import javax.inject.Named;
 public class DataMigrator
 {
   private final SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator;
+
   private final PolicyJsonMigrator policyJsonMigrator;
+
   private final PolicyDroolsCodeMigrator policyDroolsCodeMigrator;
+
   private final RootOrganizationConfigMigrator rootOrganizationConfigMigrator;
+
   private final ProprietaryConfigMigrator proprietaryConfigMigrator;
+
   private final PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator;
+
   private final PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator;
 
   @Inject

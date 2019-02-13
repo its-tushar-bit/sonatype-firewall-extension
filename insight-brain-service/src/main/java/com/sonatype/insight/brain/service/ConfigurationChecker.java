@@ -23,6 +23,7 @@ import io.dropwizard.setup.Bootstrap;
  */
 public class ConfigurationChecker
 {
+  @SuppressWarnings("checkstyle:LineLength")
   static final String SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE =
       "\n=================================================================================================================" +
           "\nYour configuration file contains properties that are only compatible with Nexus IQ Server version 1.42 and lower." +

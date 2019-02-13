@@ -43,17 +43,17 @@ class ContextResolver
 
   private static final OwnerDAO ownerDAO = new OwnerDAO();
 
-  private final ContextIdResolver<Application> INBOUND_APPLICATION = new ContextIdResolver<Application>()
+  private final ContextIdResolver<Application> inboundApplication = new ContextIdResolver<Application>()
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
       // load current entity state and disregard any potential updates expressed in user-supplied data
       app = appDAO.getByIdNotNull(app.getId());
-      return APPLICATION.resolveContextIds(app);
+      return application.resolveContextIds(app);
     }
   };
 
-  final ContextIdResolver<Application> APPLICATION = new ContextIdResolver<Application>()
+  final ContextIdResolver<Application> application = new ContextIdResolver<Application>()
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
@@ -61,25 +61,25 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> APPLICATION_ID = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> applicationId = new ContextIdResolver<String>()
   {
     @Override
     public Iterable<String> resolveContextIds(String appId) {
       Application app = appDAO.getByIdNotNull(appId);
-      return APPLICATION.resolveContextIds(app);
+      return application.resolveContextIds(app);
     }
   };
 
-  private final ContextIdResolver<String> APPLICATION_PUBLIC_ID = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> applicationPublicId = new ContextIdResolver<String>()
   {
     @Override
     public Iterable<String> resolveContextIds(String appPublicId) {
       Application app = appDAO.getByPublicIdNotNull(appPublicId);
-      return APPLICATION.resolveContextIds(app);
+      return application.resolveContextIds(app);
     }
   };
 
-  private final ContextIdResolver<Application> APPLICATION_OWNER = new ContextIdResolver<Application>()
+  private final ContextIdResolver<Application> applicationOwner = new ContextIdResolver<Application>()
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
@@ -87,17 +87,17 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<Organization> INBOUND_ORGANIZATION = new ContextIdResolver<Organization>()
+  private final ContextIdResolver<Organization> inboundOrganization = new ContextIdResolver<Organization>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
       // load current entity state and disregard any potential updates expressed in user-supplied data
       org = orgDAO.getByIdNotNull(org.getId());
-      return ORGANIZATION.resolveContextIds(org);
+      return organization.resolveContextIds(org);
     }
   };
 
-  final ContextIdResolver<Organization> ORGANIZATION = new ContextIdResolver<Organization>()
+  final ContextIdResolver<Organization> organization = new ContextIdResolver<Organization>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
@@ -105,16 +105,16 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> ORGANIZATION_ID = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> organizationId = new ContextIdResolver<String>()
   {
     @Override
     public Iterable<String> resolveContextIds(String orgId) {
       Organization org = orgDAO.getByIdNotNull(orgId);
-      return ORGANIZATION.resolveContextIds(org);
+      return organization.resolveContextIds(org);
     }
   };
 
-  private final ContextIdResolver<Organization> ORGANIZATION_OWNER = new ContextIdResolver<Organization>()
+  private final ContextIdResolver<Organization> organizationOwner = new ContextIdResolver<Organization>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
@@ -126,7 +126,7 @@ class ContextResolver
     }
   };
 
-  final ContextIdResolver<Repository> REPOSITORY = new ContextIdResolver<Repository>()
+  final ContextIdResolver<Repository> repository = new ContextIdResolver<Repository>()
   {
     @Override
     public Iterable<String> resolveContextIds(Repository repository) {
@@ -141,12 +141,12 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> REPOSITORY_ID = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> repositoryId = new ContextIdResolver<String>()
   {
     @Override
     public Iterable<String> resolveContextIds(String repositoryId) {
       Repository repository = repoDAO.getByIdNotNull(repositoryId);
-      return REPOSITORY.resolveContextIds(repository);
+      return ContextResolver.this.repository.resolveContextIds(repository);
     }
   };
 
@@ -202,31 +202,31 @@ class ContextResolver
       switch (parameters.keySet().iterator().next()) {
         case APPLICATION:
           Application app = get(parameters, AuthzContext.Key.APPLICATION, Application.class);
-          return INBOUND_APPLICATION.resolveContextIds(app);
+          return inboundApplication.resolveContextIds(app);
         case APPLICATION_OWNER:
           app = get(parameters, AuthzContext.Key.APPLICATION_OWNER, Application.class);
-          return APPLICATION_OWNER.resolveContextIds(app);
+          return applicationOwner.resolveContextIds(app);
         case APPLICATION_ID:
           String appId = get(parameters, AuthzContext.Key.APPLICATION_ID, String.class);
-          return APPLICATION_ID.resolveContextIds(appId);
+          return applicationId.resolveContextIds(appId);
         case APPLICATION_PUBLIC_ID:
           String appPublicId = get(parameters, AuthzContext.Key.APPLICATION_PUBLIC_ID, String.class);
-          return APPLICATION_PUBLIC_ID.resolveContextIds(appPublicId);
+          return applicationPublicId.resolveContextIds(appPublicId);
         case ORGANIZATION:
           Organization org = get(parameters, AuthzContext.Key.ORGANIZATION, Organization.class);
-          return INBOUND_ORGANIZATION.resolveContextIds(org);
+          return inboundOrganization.resolveContextIds(org);
         case ORGANIZATION_OWNER:
           org = get(parameters, AuthzContext.Key.ORGANIZATION_OWNER, Organization.class);
-          return ORGANIZATION_OWNER.resolveContextIds(org);
+          return organizationOwner.resolveContextIds(org);
         case ORGANIZATION_ID:
           String orgId = get(parameters, AuthzContext.Key.ORGANIZATION_ID, String.class);
-          return ORGANIZATION_ID.resolveContextIds(orgId);
+          return organizationId.resolveContextIds(orgId);
         case REPOSITORY_ID:
           String repositoryId = get(parameters, AuthzContext.Key.REPOSITORY_ID, String.class);
-          return REPOSITORY_ID.resolveContextIds(repositoryId);
+          return this.repositoryId.resolveContextIds(repositoryId);
         case REPOSITORY:
           Repository repository = get(parameters, AuthzContext.Key.REPOSITORY, Repository.class);
-          return REPOSITORY.resolveContextIds(repository);
+          return this.repository.resolveContextIds(repository);
         default:
           throw new IllegalArgumentException("Cannot resolve context from " + parameters);
       }
@@ -237,11 +237,11 @@ class ContextResolver
         case APPLICATION:
           if (parameters.get(Key.ID) != null) {
             String id = get(parameters, Key.ID, String.class);
-            return APPLICATION_PUBLIC_ID.resolveContextIds(id);
+            return applicationPublicId.resolveContextIds(id);
           }
           else {
             String id = get(parameters, Key.INTERNAL_ID, String.class);
-            return APPLICATION_ID.resolveContextIds(id);
+            return applicationId.resolveContextIds(id);
           }
         case ORGANIZATION:
           String id;
@@ -251,13 +251,14 @@ class ContextResolver
           else {
             id = get(parameters, Key.INTERNAL_ID, String.class);
           }
-          return ORGANIZATION_ID.resolveContextIds(id);
+          return organizationId.resolveContextIds(id);
         case REPOSITORY:
-          return REPOSITORY_ID.resolveContextIds(get(parameters, Key.ID, String.class));
+          return repositoryId.resolveContextIds(get(parameters, Key.ID, String.class));
         case GLOBAL:
           return GLOBAL_CONTEXT;
         case REPOSITORY_CONTAINER:
           return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+        default:
       }
     }
     throw new IllegalArgumentException("Cannot resolve context from " + parameters);

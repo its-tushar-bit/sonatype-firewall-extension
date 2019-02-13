@@ -73,6 +73,7 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                                         @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {

@@ -424,5 +424,4 @@ public class FirewallMigrationServiceTest
       .comparing(PolicyWaiver::getId) //
       .thenComparing(PolicyWaiver::getOwnerId) //
       .thenComparing(waiverComparatorIgnoringIds);
-
 }

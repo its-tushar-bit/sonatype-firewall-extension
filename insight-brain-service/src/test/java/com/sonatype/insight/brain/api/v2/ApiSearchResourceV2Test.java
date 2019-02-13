@@ -264,7 +264,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
     
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", null, "jar");
+    ComponentIdentifier componentIdentifier = 
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", null, "jar");
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);

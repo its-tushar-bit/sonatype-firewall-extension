@@ -46,7 +46,8 @@ public class AutomaticApplicationsConfigurationResourceTest
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getParentOrganizationId()).isEqualTo(organization.getId());
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO 
+        = new AutomaticApplicationsConfigurationDAO();
 
     assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isTrue();
     assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());

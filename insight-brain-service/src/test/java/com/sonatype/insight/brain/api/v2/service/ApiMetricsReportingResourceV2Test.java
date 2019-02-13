@@ -60,7 +60,7 @@ public class ApiMetricsReportingResourceV2Test
     assertThat(result.get("applicationId")).isEqualTo(app.getId());
 
     @SuppressWarnings("unchecked")
-    List<Map<String, Object>> aggregations = ((List<Map<String, Object>>) result.get("aggregations"));
+    List<Map<String, Object>> aggregations = (List<Map<String, Object>>) result.get("aggregations");
     assertThat(aggregations).hasSize(1);
     assertThat(aggregations.get(0).get("timePeriodStart")).isEqualTo("2017-11-01");
   }

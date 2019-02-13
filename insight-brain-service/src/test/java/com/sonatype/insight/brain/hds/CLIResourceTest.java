@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CLIResourceTest
     extends AbstractScanResourceTest
 {
-
   @Override
   protected HttpRequest scanRequest(String appId) {
     return restRequest().path(CLIResource.RESOURCE_PATH, CLIResource.SCAN_PATH).parameter(appId);

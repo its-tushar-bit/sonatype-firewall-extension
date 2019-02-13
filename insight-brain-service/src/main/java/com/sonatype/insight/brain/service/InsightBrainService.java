@@ -300,8 +300,7 @@ public class InsightBrainService
     return objectMapper;
   }
 
-  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName)
-  {
+  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName) {
     return databaseConfigProvider.getDatabaseConfig(databaseName);
   }
 

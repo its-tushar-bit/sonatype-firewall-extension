@@ -13,7 +13,6 @@ import org.junit.Test;
 public class EnvironmentResourceTest
     extends AbstractResourceTest
 {
-
   @Test
   public void testSubmitClientEnvironment() throws Exception {
     String queryParams = "p=eclipse&version=2.0.1.qualifier";
@@ -21,5 +20,4 @@ public class EnvironmentResourceTest
     final HttpResponse response = restRequest().path(EnvironmentResource.RESOURCE_PATH).query(queryParams).get();
     assertResponseStatus(200, response);
   }
-
 }

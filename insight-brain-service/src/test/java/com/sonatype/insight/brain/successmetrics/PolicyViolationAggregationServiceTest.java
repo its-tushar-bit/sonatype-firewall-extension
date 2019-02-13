@@ -307,7 +307,7 @@ public class PolicyViolationAggregationServiceTest
       assertThat(aggregation.getTimePeriodStart()).isEqualTo(aggregationStart.plusWeeks(i).toDate());
       assertThat(aggregation.getTimePeriodEnd()).isEqualTo(i < weekAggregations.size() - 1 ? null : now.toDate());
     }
-    
+
     aggregationStart = new LocalDate(now.minusMonths(12).withDayOfMonth(1)).toDateTimeAtStartOfDay();
     for (int i = 0; i < monthAggregations.size(); i++) {
       PolicyViolationAggregation aggregation = monthAggregations.get(i);

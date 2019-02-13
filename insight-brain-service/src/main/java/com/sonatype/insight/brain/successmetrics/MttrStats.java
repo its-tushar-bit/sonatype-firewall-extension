@@ -17,8 +17,11 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 class MttrStats
 {
   final DescriptiveStatistics mttrLowThreatStats = new DescriptiveStatistics();
+
   final DescriptiveStatistics mttrModerateThreatStats = new DescriptiveStatistics();
+
   final DescriptiveStatistics mttrSevereThreatStats = new DescriptiveStatistics();
+
   final DescriptiveStatistics mttrCriticalThreatStats = new DescriptiveStatistics();
 
   void addViolation(PolicyViolationComparable violation,

@@ -347,7 +347,8 @@ public class ComponentInfoServiceAuthzTest
   }
 
   private void testGetComponentDetailsForAllVersions_ReadPermission_Unauthenticated(final Owner owner,
-                                                                                    final String ownerId) throws Exception
+                                                                                    final String ownerId)
+      throws Exception
   {
     componentInfoService.getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId,
         COMPONENT_IDENTIFIER, null /* httpRequest */);

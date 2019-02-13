@@ -76,8 +76,7 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     }
   }
 
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<T> policyViolationData)
-  {
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<T> policyViolationData) {
     T policyViolation = policyViolationData.policyViolation;
 
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();

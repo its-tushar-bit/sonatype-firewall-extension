@@ -19,6 +19,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.service.RestComponent;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;

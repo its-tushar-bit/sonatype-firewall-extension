@@ -27,8 +27,8 @@ import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newC
 public abstract class AbstractComponentInfoResourceAuditTest
     extends AbstractAuditTest
 {
-  protected static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1", "a1",
-      "v1", "", "jar");
+  protected static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1", 
+      "a1", "v1", "", "jar");
 
   protected static final String COMPONENT_HASH = "hash";
 

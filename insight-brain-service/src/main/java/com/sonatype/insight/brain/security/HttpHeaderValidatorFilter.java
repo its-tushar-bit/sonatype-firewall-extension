@@ -49,7 +49,6 @@ public class HttpHeaderValidatorFilter
     }
   }
 
-
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
   }

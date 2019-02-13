@@ -464,8 +464,7 @@ public class SuccessMetricsReportDataService
     return formatter.print(weekStartAsLocalDate.plusWeeks(1));
   }
 
-  private static DateTime latest(DateTime a, DateTime b)
-  {
+  private static DateTime latest(DateTime a, DateTime b) {
     return Ordering.natural().max(a, b);
   }
 
@@ -515,6 +514,7 @@ public class SuccessMetricsReportDataService
       implements Comparable<ComponentInfo>
   {
     private final HasComponentId hasComponentId;
+
     public final String hash;
 
     private final ComponentDisplayFilename componentDisplayFilename = new ComponentDisplayFilename();

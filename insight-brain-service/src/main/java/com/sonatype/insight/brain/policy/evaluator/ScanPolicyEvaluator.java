@@ -245,7 +245,7 @@ public class ScanPolicyEvaluator
         tx.begin();
 
         // Persist the policy evaluation
-        boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null);
+        boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
         AuditData.get().setIsReevaluation(isReevaluation);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
@@ -512,7 +512,8 @@ public class ScanPolicyEvaluator
     }
   }
 
-  private void calculateCounters(PolicyEvaluationResult policyEvaluationResult, List<PolicyViolation> policyViolations)
+  private void calculateCounters(PolicyEvaluationResult policyEvaluationResult,
+                                 List<PolicyViolation> policyViolations)
   {
     final Map<String, Integer> componentThreatLevels = new HashMap<>();
     int criticalPolicyViolationCount = 0;
@@ -542,6 +543,8 @@ public class ScanPolicyEvaluator
           case LOW:
             // We don't count for LOW
             break;
+          default:
+            throw new IllegalArgumentException("Unknown threat level " + policyThreatLevel);
         }
       }
       else if (policyViolation.isGrandfathered()) {
@@ -549,7 +552,9 @@ public class ScanPolicyEvaluator
       }
     }
 
-    int criticalComponentCount = 0, severeComponentCount = 0, moderateComponentCount = 0;
+    int criticalComponentCount = 0;
+    int severeComponentCount = 0;
+    int moderateComponentCount = 0;
     for (final int policyThreatLevelForComponent : componentThreatLevels.values()) {
       ThreatLevel policyThreatLevel = ThreatLevel.from(policyThreatLevelForComponent);
       switch (policyThreatLevel) {
@@ -565,6 +570,8 @@ public class ScanPolicyEvaluator
         case LOW:
           // We don't count for LOW
           break;
+        default:
+          throw new IllegalArgumentException("Unknown threat level " + policyThreatLevel);
       }
     }
 

@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationStateFilterTest
 {
-
   @Test
   public void testSinglePolicyViolationState() {
     PolicyViolationStateFilter filter = new PolicyViolationStateFilter(PolicyViolationState.OPEN);

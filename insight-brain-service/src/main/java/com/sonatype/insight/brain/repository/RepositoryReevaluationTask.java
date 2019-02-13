@@ -86,8 +86,8 @@ public class RepositoryReevaluationTask
     }
   }
 
-  private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(Iterator<RepositoryComponent> components)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(Iterator<RepositoryComponent> components) {
     int limit = 0;
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(
@@ -103,7 +103,6 @@ public class RepositoryReevaluationTask
   private class PolicyEvaluationTask
       implements Runnable
   {
-
     private final RepositoryComponentEvaluationDataRequestList request;
 
     private final AtomicInteger activeTasks;

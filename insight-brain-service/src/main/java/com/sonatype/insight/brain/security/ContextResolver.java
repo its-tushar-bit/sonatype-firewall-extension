@@ -259,6 +259,7 @@ class ContextResolver
         case REPOSITORY_CONTAINER:
           return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
         default:
+          throw new IllegalArgumentException("Unknown owner type " + type);
       }
     }
     throw new IllegalArgumentException("Cannot resolve context from " + parameters);

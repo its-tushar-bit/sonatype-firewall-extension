@@ -93,8 +93,9 @@ public class ReleaseGraphModel
               }
             }
             else {
-              mostPopulous = mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate] ? mostPopulous
-                  : candidate;
+              mostPopulous =
+                  mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate] ? mostPopulous
+                      : candidate;
             }
           }
           slotIndices[i] = mostPopulous;

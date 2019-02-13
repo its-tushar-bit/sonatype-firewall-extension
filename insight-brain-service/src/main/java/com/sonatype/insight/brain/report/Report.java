@@ -403,7 +403,8 @@ public final class Report
     return componentIdentifiers;
   }
 
-  private static void fixComponentIdentifiers(ContainerNode<?> jsonData, Set<ComponentIdentifier> componentIdentifiers)
+  private static void fixComponentIdentifiers(ContainerNode<?> jsonData,
+                                              Set<ComponentIdentifier> componentIdentifiers)
   {
     ArrayNode aaData = (ArrayNode) jsonData.get("aaData");
     Iterator<JsonNode> iterJsonData = aaData.iterator();
@@ -488,6 +489,7 @@ public final class Report
         overrideCount);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private static Set<ComponentIdentifier> addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
                                                                                   Collection<HashComponentIdentifier> hashComponentIdentifiers,
                                                                                   Application application)
@@ -534,6 +536,7 @@ public final class Report
     return componentIdentifiersWithLicenseOverrides;
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private static void removeClaimedComponentsFromPartialMatched(ContainerNode<?> partialmatchedJsonData,
                                                                 Map<String, HashComponentIdentifier> claimedComponentsByHash)
   {
@@ -557,7 +560,8 @@ public final class Report
       }
     }
 
-    log.debug("removeClaimedComponentsFromPartialMatched: {} partial matches, {} removed.", aaData.size(), removedCount);
+    log.debug("removeClaimedComponentsFromPartialMatched: {} partial matches, {} removed.", aaData.size(),
+        removedCount);
   }
 
   /**
@@ -572,7 +576,8 @@ public final class Report
     ContainerNode<?> dataJson = loadReportEntry(reportFile, "data.json");
     ContainerNode<?> summaryJsonData = loadReportEntry(reportFile, "summary.json");
 
-    Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
+    Map<String, HashComponentIdentifier> claimedComponentsByHash =
+        applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
     saveReportEntry(reportFile, "data.json", dataJson);
     saveReportEntry(reportFile, "summary.json", summaryJsonData);
@@ -606,8 +611,7 @@ public final class Report
   }
 
   @VisibleForTesting
-  static void augmentModified(Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides, JsonNode bomJsonData)
-  {
+  static void augmentModified(Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides, JsonNode bomJsonData) {
     ArrayNode components = (ArrayNode) bomJsonData.get("aaData");
     for (int componentIndex = 0; componentIndex < components.size(); componentIndex++) {
       ObjectNode component = (ObjectNode) components.get(componentIndex);

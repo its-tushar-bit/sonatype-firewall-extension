@@ -12,7 +12,6 @@ import com.sonatype.clm.dto.model.notification.ProductNotificationType;
  */
 public class ProductNotificationDTO
 {
-
   public String id;
 
   public ProductNotificationType type;
@@ -26,5 +25,4 @@ public class ProductNotificationDTO
   public long dateCreated;
 
   public Boolean viewed = false;
-
 }

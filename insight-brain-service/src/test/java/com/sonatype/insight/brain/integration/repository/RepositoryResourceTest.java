@@ -28,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryResourceTest
     extends AbstractResourceTest
 {
-
   private static final String REPO_PUBLIC_ID = "publicId";
 
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();

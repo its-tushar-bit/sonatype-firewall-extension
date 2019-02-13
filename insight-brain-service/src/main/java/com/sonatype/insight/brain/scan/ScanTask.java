@@ -159,8 +159,9 @@ class ScanTask
     ticket.scanId = scanId;
 
     if (error != null) {
-      ticket.error = "An error occurred, and the application you uploaded has not been evaluated. Please contact your IT Administrator for troubleshooting options. Error ID "
-          + errorId + " - Access Nexus IQ Server log for details.";
+      ticket.error = "An error occurred, and the application you uploaded has not been evaluated. "
+          + "Please contact your IT Administrator for troubleshooting options. Error ID " + errorId
+          + " - Access Nexus IQ Server log for details.";
     }
 
     touched = System.currentTimeMillis();

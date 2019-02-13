@@ -25,7 +25,6 @@ import com.google.common.cache.CacheLoader;
 public class ReportItemCacheLoader
     extends CacheLoader<ReportItemKey, ReportPopularity>
 {
-
   private final InsightWork work;
 
   private final ReportService reportService;

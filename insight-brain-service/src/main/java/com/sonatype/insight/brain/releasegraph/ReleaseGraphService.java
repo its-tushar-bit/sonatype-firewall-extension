@@ -35,7 +35,9 @@ public class ReleaseGraphService
     this.cache = cache;
   }
 
-  public byte[] getImage(final String applicationPublicId, final String scanId, ComponentIdentifier componentIdentifier)
+  public byte[] getImage(final String applicationPublicId,
+                         final String scanId,
+                         ComponentIdentifier componentIdentifier)
   {
     log.debug("Creating popularity graph for {} for scan {}", componentIdentifier, scanId);
     try {

@@ -346,8 +346,7 @@ class SupportService
     log.info("Created support.zip: {}", supportZip);
   }
 
-  private static void copyLimited(final LimitedFileInputStream input, final OutputStream output) throws IOException
-  {
+  private static void copyLimited(final LimitedFileInputStream input, final OutputStream output) throws IOException {
     if (input.isToBeTruncated()) {
       output.write(TRUNCATED_TOKEN.getBytes("UTF-8"));
       output.write("\n".getBytes("UTF-8"));

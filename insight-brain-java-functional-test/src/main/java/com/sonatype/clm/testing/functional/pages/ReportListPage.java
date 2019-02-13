@@ -27,8 +27,8 @@ public class ReportListPage
   }
 
   public static class ReportListRow
-      extends BasicElement<ReportListRow> {
-
+      extends BasicElement<ReportListRow>
+  {
     public ReportListRow(String... selectors) {
       super(selectors);
     }

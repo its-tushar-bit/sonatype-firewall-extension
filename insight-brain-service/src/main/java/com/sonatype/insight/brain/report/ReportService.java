@@ -162,6 +162,7 @@ public class ReportService
   }
 
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   ReportMetadataDTO getReportMetadata(final @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                                       final String scanId)
       throws IOException

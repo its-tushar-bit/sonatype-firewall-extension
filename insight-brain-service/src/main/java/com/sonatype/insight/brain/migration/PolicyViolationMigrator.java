@@ -231,8 +231,8 @@ public class PolicyViolationMigrator
 
     static PreparedStatement insertStatement(Connection connection) throws SQLException {
       return connection.prepareStatement("INSERT INTO " + SCHEMA + ".new_policy_violation ("
-          + "policy_violation_id, application_id, stage_type_id, policy_id, policy_name, threat_level, threat_category, "
-          + "hash, component_id_format, component_id_coordinates_json, filename, "
+          + "policy_violation_id, application_id, stage_type_id, policy_id, policy_name, threat_level, "
+          + "threat_category, hash, component_id_format, component_id_coordinates_json, filename, "
           + "constraint_facts_json, action_type_id, open_time, waive_time, fix_time, "
           + "policy_waiver_id, policy_waiver_comment, seen_by_primary_evaluation, seen_by_monitoring_evaluation"
           + ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20)");
@@ -615,7 +615,7 @@ public class PolicyViolationMigrator
     MigrationContext context = new MigrationContext(dataSource, applications);
     try (Connection connection = dataSource.getConnection();
         PreparedStatement insertViolation = NewPolicyViolation.insertStatement(connection)) {
-      ViolationMigrator migrators[] = new ViolationMigrator[4];
+      ViolationMigrator[] migrators = new ViolationMigrator[4];
       for (int i = 0; i < migrators.length; i++) {
         migrators[i] = new ViolationMigrator(context);
         migrators[i].start();

@@ -31,6 +31,7 @@ public class ReverseProxyAuthenticationFilter
   private static final Logger log = LoggerFactory.getLogger(ReverseProxyAuthenticationFilter.class);
 
   private final String usernameHeader;
+
   private boolean allowSessionCreation = true;
 
   public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
@@ -38,7 +39,9 @@ public class ReverseProxyAuthenticationFilter
     this.usernameHeader = reverseProxyAuthentication.getUsernameHeader();
   }
 
-  public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication, boolean allowSessionCreation) {
+  public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication,
+                                          boolean allowSessionCreation)
+  {
     this(reverseProxyAuthentication);
     this.allowSessionCreation = allowSessionCreation;
   }
@@ -53,7 +56,8 @@ public class ReverseProxyAuthenticationFilter
     String username = getUsername(request);
     UserPrincipal userPrincipal = (UserPrincipal) getSubject(request, response).getPrincipal();
     if (username != null && userPrincipal != null && !username.equals(userPrincipal.getUsername())) {
-      log.info("Detected mismatch between user specified by reverse proxy authentication ({}) and user specified by session cookie ({})", username, userPrincipal.getUsername());
+      log.info("Detected mismatch between user specified by reverse proxy authentication ({})"
+          + " and user specified by session cookie ({})", username, userPrincipal.getUsername());
       return false;
     }
 

@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 @Named
 public class VersionService
 {
-
   private static final Logger log = LoggerFactory.getLogger(VersionService.class);
 
   private static final String FILE_NAME = "version.properties";

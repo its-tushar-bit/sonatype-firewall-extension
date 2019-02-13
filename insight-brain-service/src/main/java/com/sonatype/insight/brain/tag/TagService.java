@@ -163,8 +163,8 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return tagDAO.getByApplicationId(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId));
   }
 
@@ -182,6 +182,7 @@ class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
+  @SuppressWarnings("checkstyle:LineLength")
   public List<ApplicationTag> updateApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
                                                     final List<Tag> tags)
   {
@@ -280,8 +281,8 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getApplicableTagsByApplicationPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public List<Tag> getApplicableTagsByApplicationPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId) {
     List<Tag> result = new ArrayList<>();
     String organizationId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getOrganizationId();
     while (organizationId != null) {

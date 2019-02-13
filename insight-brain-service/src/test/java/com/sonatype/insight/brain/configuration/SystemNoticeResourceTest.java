@@ -16,7 +16,6 @@ import org.junit.Test;
 public class SystemNoticeResourceTest
     extends AbstractResourceTest
 {
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(SystemNoticeResource.RESOURCE_PATH);

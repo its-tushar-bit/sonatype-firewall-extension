@@ -127,7 +127,8 @@ public class RepositoryService
    */
   @Authorize(permission = Permission.WRITE)
   public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname,
-                                    final String clientUserAgent) {
+                                    final String clientUserAgent)
+  {
     checkLicenseFeature();
     auditComponentPath(pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
@@ -139,7 +140,8 @@ public class RepositoryService
     AuditData.get().setComponentHash(repositoryComponent.getHash());
 
     if (!repositoryComponent.isQuarantined()) {
-      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId + " is not quarantined.");
+      throw new BadRequestException(
+          "Component " + pathname + " in repository " + repositoryId + " is not quarantined.");
     }
 
     reevaluateComponentInternal(repositoryComponent, clientUserAgent);
@@ -168,8 +170,8 @@ public class RepositoryService
                                            final String clientUserAgent)
   {
     Repository repository = repositoryDAO.getById(repositoryComponent.getRepositoryId());
-    RepositoryComponentEvaluationDataRequestList componentRequestList = new RepositoryComponentEvaluationDataRequestList(
-        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+    RepositoryComponentEvaluationDataRequestList componentRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     RepositoryComponentEvaluationDataRequest componentRequest = new RepositoryComponentEvaluationDataRequest();
     componentRequest.format = repository.getFormat();
     componentRequest.pathname = repositoryComponent.getPathname();
@@ -237,8 +239,8 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@AuthzContext(Key.REPOSITORY) final Repository repository)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@AuthzContext(Key.REPOSITORY) final Repository repository) {
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
@@ -320,6 +322,7 @@ public class RepositoryService
     repositoryDAO.update(repository);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public RepositoryComponentEvaluationDataList evaluateComponents(String repositoryManagerInstanceId,
                                                                   String repositoryPublicId,
                                                                   RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -349,6 +352,7 @@ public class RepositoryService
     }
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private void normalizeComponents(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
       truncateHash(componentEvaluationDataRequest);
@@ -360,8 +364,8 @@ public class RepositoryService
     componentEvaluationDataRequest.hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
   }
 
-  private void validateEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  private void validateEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
       validateEvaluateRequest(componentEvaluationDataRequest);
     }
@@ -383,6 +387,7 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @SuppressWarnings("checkstyle:LineLength")
   RepositoryComponentEvaluationDataList evaluateComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
                                                            String repositoryManagerInstanceId,
                                                            RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -540,7 +545,7 @@ public class RepositoryService
     for (final RepositoryComponent component : componentList) {
 
       final List<RepositoryPolicyViolation> componentViolations = repositoryPolicyViolationDAO
-      // violations are sorted by 'ThreatLevel DESC, policyId', so highestThreatLevel per component is first
+          // violations are sorted by 'ThreatLevel DESC, policyId', so highestThreatLevel per component is first
           .getActiveByRepositoryIdAndPathname(repository.getId(), component.getPathname());
       boolean highestThreatLevel = true;
 
@@ -572,19 +577,15 @@ public class RepositoryService
   /**
    * Sort by threatLevel DESC, pathname ASC.
    */
-  static final Comparator<RepositoryReportDetail> THREAT_LEVEL_DESC_PATHNAME_ASC = new Comparator<RepositoryReportDetail>()
-  {
-    @Override
-    public int compare(final RepositoryReportDetail detail1, final RepositoryReportDetail detail2) {
-      // sort ThreatLevel Descending
-      final int cmpThreatLevel = detail2.getThreatLevel() - detail1.getThreatLevel();
-      if (cmpThreatLevel != 0) {
-        return cmpThreatLevel;
-      }
-
-      // sort pathname Ascending
-      return detail1.getPathname().compareTo(detail2.getPathname());
+  static final Comparator<RepositoryReportDetail> THREAT_LEVEL_DESC_PATHNAME_ASC = (detail1, detail2) -> {
+    // sort ThreatLevel Descending
+    final int cmpThreatLevel = detail2.getThreatLevel() - detail1.getThreatLevel();
+    if (cmpThreatLevel != 0) {
+      return cmpThreatLevel;
     }
+
+    // sort pathname Ascending
+    return detail1.getPathname().compareTo(detail2.getPathname());
   };
 
   void removeComponent(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {

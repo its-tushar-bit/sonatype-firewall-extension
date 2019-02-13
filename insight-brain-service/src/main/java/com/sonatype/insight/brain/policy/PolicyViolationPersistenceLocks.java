@@ -15,12 +15,12 @@ import javax.inject.Singleton;
 @Singleton
 public class PolicyViolationPersistenceLocks
 {
-  private final ConcurrentMap<String, String> PERSISTENCE_LOCKS_BY_APPID = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, String> persistenceLocksByAppId = new ConcurrentHashMap<>();
 
   public Object getLock(String appId) {
-    Object lock = PERSISTENCE_LOCKS_BY_APPID.get(appId);
+    Object lock = persistenceLocksByAppId.get(appId);
     if (lock == null) {
-      lock = PERSISTENCE_LOCKS_BY_APPID.putIfAbsent(appId, appId);
+      lock = persistenceLocksByAppId.putIfAbsent(appId, appId);
       if (lock == null) {
         lock = appId;
       }

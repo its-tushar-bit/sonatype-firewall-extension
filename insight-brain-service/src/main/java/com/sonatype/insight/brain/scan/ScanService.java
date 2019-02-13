@@ -75,6 +75,7 @@ class ScanService
    * @throws NotFoundException if there is no ticket for the given ticketId
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public ScanTicket getTicket(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
                               String ticketId)
       throws NotFoundException
@@ -120,7 +121,11 @@ class ScanService
     return ext;
   }
 
-  private ScanTask newScanTask(String appPublicId, File binFile, String filename, Stage stage, boolean sendNotifications)
+  private ScanTask newScanTask(String appPublicId,
+                               File binFile,
+                               String filename,
+                               Stage stage,
+                               boolean sendNotifications)
   {
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
     ScanTask scanTask = taskRepository.newScanTask(app, binFile, filename, stage, sendNotifications);

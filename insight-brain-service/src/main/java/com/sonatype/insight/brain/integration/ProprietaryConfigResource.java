@@ -33,8 +33,7 @@ public class ProprietaryConfigResource
   private ProprietaryConfigService proprietaryConfigService;
 
   @Inject
-  public ProprietaryConfigResource(ProprietaryConfigService proprietaryConfigService)
-  {
+  public ProprietaryConfigResource(ProprietaryConfigService proprietaryConfigService) {
     this.proprietaryConfigService = proprietaryConfigService;
   }
 

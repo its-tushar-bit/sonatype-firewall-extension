@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 
 public class UserTelemetryHdsClientTest extends AbstractHdsClientTest
 {
-
   @Override
   protected void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
@@ -46,7 +45,6 @@ public class UserTelemetryHdsClientTest extends AbstractHdsClientTest
     final Map<String, String> headers = new HashMap<>();
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException, ServletException

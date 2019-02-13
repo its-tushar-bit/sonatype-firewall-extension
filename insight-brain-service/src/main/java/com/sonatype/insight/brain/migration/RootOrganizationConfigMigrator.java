@@ -78,7 +78,8 @@ public class RootOrganizationConfigMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(RootOrganizationConfigMigrator.class);
 
-  static final String ROOT_ORG_NOT_EMPTY_MESSAGE = "Cannot migrate root organization config because the root organization has %s.";
+  static final String ROOT_ORG_NOT_EMPTY_MESSAGE =
+      "Cannot migrate root organization config because the root organization has %s.";
 
   private final InsightConfig config;
 
@@ -126,7 +127,8 @@ public class RootOrganizationConfigMigrator
     }
 
     if (config.isShowRootOrganization()) {
-      log.info("Root organization is visible. No migration for root organization configuration if the root organization is visible.");
+      log.info("Root organization is visible. No migration for root organization configuration"
+          + " if the root organization is visible.");
       migrationUtils.setMigrated();
       return false;
     }
@@ -163,10 +165,9 @@ public class RootOrganizationConfigMigrator
 
     File dbBackupDir = getDbBackupDir();
     if (dbBackupDir.exists()) {
-      throw new IllegalStateException(
-          "Cannot migrate config for root organization. The backup directory '"
-              + dbBackupDir.getAbsolutePath()
-              + "' already exists, indicating that a previous migration failed. Please contact support for further assistance.");
+      throw new IllegalStateException("Cannot migrate config for root organization. The backup directory '"
+          + dbBackupDir.getAbsolutePath() + "' already exists, indicating that a previous migration failed. "
+          + "Please contact support for further assistance.");
     }
 
     H2DatabaseBackup h2DatabaseBackup = new H2DatabaseBackup();

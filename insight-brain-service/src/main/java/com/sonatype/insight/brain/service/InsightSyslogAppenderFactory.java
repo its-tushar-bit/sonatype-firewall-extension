@@ -29,17 +29,16 @@ public class InsightSyslogAppenderFactory
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
   public InsightSyslogAppenderFactory() {
     // Due to SyslogAppenderFactory setting an initial log format
-    // https://github.com/dropwizard/dropwizard/blob/v1.2.3/dropwizard-logging/src/main/java/io/dropwizard/logging/SyslogAppenderFactory.java#L128-L129
+    // https://github.com/dropwizard/dropwizard/blob/v1.2.3/
+    //   dropwizard-logging/src/main/java/io/dropwizard/logging/SyslogAppenderFactory.java#L128-L129
     // this is necessary to allow InsightConfigurationFactory to determine if the user did not set the log format and 
     // thus if it should set the desired default log format
     setLogFormat(null);
   }
 
   @Override
-  @SuppressWarnings("checkstyle:LineLength")
   public Appender<ILoggingEvent> build(LoggerContext context,
                                        String applicationName,
                                        LayoutFactory<ILoggingEvent> layoutFactory,
@@ -47,7 +46,8 @@ public class InsightSyslogAppenderFactory
                                        AsyncAppenderFactory<ILoggingEvent> asyncAppenderFactory)
   {
     // Avoids a NPE at 
-    // https://github.com/dropwizard/dropwizard/blob/v1.2.3/dropwizard-logging/src/main/java/io/dropwizard/logging/SyslogAppenderFactory.java#L210-L211
+    // https://github.com/dropwizard/dropwizard/blob/v1.2.3/
+    //   dropwizard-logging/src/main/java/io/dropwizard/logging/SyslogAppenderFactory.java#L210-L211
     if (getLogFormat() == null) {
       setLogFormat(new SyslogAppenderFactory().getLogFormat());
     }

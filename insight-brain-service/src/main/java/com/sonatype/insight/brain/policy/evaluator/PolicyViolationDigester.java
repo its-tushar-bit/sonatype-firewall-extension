@@ -30,6 +30,7 @@ public class PolicyViolationDigester
     return digestPolicyViolations(oldViolations, newViolations, PolicyViolationComparator.COMPARATOR);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public static <T extends PolicyViolationComparable> PolicyViolationDiff<T> digestPolicyViolations(Collection<? extends T> oldViolations,
                                                                                                     Collection<? extends T> newViolations,
                                                                                                     Comparator<PolicyViolationComparable> comparator)
@@ -43,7 +44,8 @@ public class PolicyViolationDigester
     List<T> newViolationsSorted = sort(newViolations, comparator);
     List<T> oldViolationsSorted = sort(oldViolations, comparator);
 
-    int i = 0, j = 0;
+    int i = 0;
+    int j = 0;
     while (true) {
       if (j >= oldViolationsSorted.size()) {
         if (i >= newViolationsSorted.size()) {

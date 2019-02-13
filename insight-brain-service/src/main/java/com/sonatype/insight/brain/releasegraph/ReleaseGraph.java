@@ -62,7 +62,7 @@ public class ReleaseGraph
     g.setBackground(BG_COLOR);
     g.clearRect(0, 0, WIDTH, HEIGHT);
 
-    final int barWidth = WIDTH / (slots) - SPACER;
+    final int barWidth = WIDTH / slots - SPACER;
     int[] slotIndices = model.getSlotIndices();
     int[] popularityData = model.getPopularity();
     for (int i = 0; i < slotIndices.length; i++) {

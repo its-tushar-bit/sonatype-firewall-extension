@@ -223,10 +223,11 @@ public class RepositoryServiceTest
   {
     // Prepare request and mock the HDS request
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest(
-        "maven2", repositoryComponent.getPathname(), repositoryComponent.getHash());
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
-        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", repositoryComponent.getPathname(),
+            repositoryComponent.getHash());
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
     List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
@@ -511,12 +512,14 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponents_WithQuarantine_EmptyPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
     repositoryComponentEvaluationDataRequest.format = "maven";
     repositoryComponentEvaluationDataRequest.hash = "hash";
     repositoryComponentEvaluationDataRequest.pathname = "";
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
@@ -529,11 +532,13 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponents_WithQuarantine_EmptyHash() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
     repositoryComponentEvaluationDataRequest.format = "maven";
     repositoryComponentEvaluationDataRequest.hash = "";
     repositoryComponentEvaluationDataRequest.pathname = "path";
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
@@ -549,7 +554,8 @@ public class RepositoryServiceTest
 
     Policy policy = createQuarantiningPolicy(repository);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -560,8 +566,8 @@ public class RepositoryServiceTest
     String pathname = "path";
     String hash = "h";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest(
-        "maven2", pathname, hash);
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -750,7 +756,8 @@ public class RepositoryServiceTest
 
     Policy policy = createQuarantiningPolicy(repository);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -760,8 +767,8 @@ public class RepositoryServiceTest
     hdsResult.components = new ArrayList<>();
     String hash = "h";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest(
-        "maven2", "/" + pathname, hash);
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", "/" + pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -801,7 +808,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_WithQuarantine_NoViolations() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -812,8 +820,8 @@ public class RepositoryServiceTest
     String pathname = "path";
     String hash = "h";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest(
-        "maven2", pathname, hash);
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -850,7 +858,8 @@ public class RepositoryServiceTest
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     tempEntity.newWaiver(hash, policy.getId(), repository.getId());
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -860,8 +869,8 @@ public class RepositoryServiceTest
     hdsResult.components = new ArrayList<>();
     String pathname = "path";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest(
-        "maven2", pathname, hash);
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -904,7 +913,8 @@ public class RepositoryServiceTest
     String pathname = "pathname";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("p", "1");
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("nuget", pathname,
         hash));
 
@@ -958,7 +968,8 @@ public class RepositoryServiceTest
     String pathname = "pathname";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("p", "1");
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("nuget", pathname,
         hash));
 
@@ -970,9 +981,9 @@ public class RepositoryServiceTest
 
     // Initial evaluation of component, quarantine enabled
     Date before = new Date();
-    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true /* withQuarantine */,
-            null);
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+            true /* withQuarantine */, null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
 
@@ -1060,7 +1071,8 @@ public class RepositoryServiceTest
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     int componentCount = 2;
@@ -1121,8 +1133,8 @@ public class RepositoryServiceTest
         new Notifications(new UserNotification("waived@sonatype.com", Stage.ID_PROXY)));
     tempEntity.newWaiver(waivedPolicy.getId(), repository.getId());
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
-        RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
 
     String hash1 = "hash1";
     String hash2 = "hash2";
@@ -1176,8 +1188,8 @@ public class RepositoryServiceTest
     tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null, new Notifications(
         new UserNotification("test@sonatype.com", Stage.ID_PROXY)));
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
-        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
     String hash = "hash";
 
@@ -1207,7 +1219,7 @@ public class RepositoryServiceTest
     assertThat(policyNotifications).isNull();
   }
 
-   @Test
+  @Test
   public void testEvaluateComponents_Reevaluation() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
@@ -1226,7 +1238,8 @@ public class RepositoryServiceTest
     Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
         hash));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
@@ -1301,7 +1314,8 @@ public class RepositoryServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     tempEntity.newLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -1336,7 +1350,8 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponents_SecurityVulnerabilityOverridden() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", SecurityVulnerabilityOverrideStatus.CONFIRMED.getId());
+    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
+        SecurityVulnerabilityOverrideStatus.CONFIRMED.getId());
     Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
     constraint.addCondition(condition);
     Policy policy = new Policy("id", "name");
@@ -1351,7 +1366,8 @@ public class RepositoryServiceTest
     tempEntity.newSecurityVulnerabilityOverride(repository.getId(), hash, source, referenceId,
         SecurityVulnerabilityOverrideStatus.CONFIRMED);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     List<SecurityVulnerability> securityVulnerabilities = Collections.singletonList(new SecurityVulnerability(
@@ -1386,7 +1402,8 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponents_ClaimedComponent() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    Condition condition = new Condition(IdentificationSourceConditionType.ID, "is", IdentificationSource.MANUAL.getId());
+    Condition condition =
+        new Condition(IdentificationSourceConditionType.ID, "is", IdentificationSource.MANUAL.getId());
     Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
     constraint.addCondition(condition);
     Policy policy = new Policy("id", "name");
@@ -1398,7 +1415,8 @@ public class RepositoryServiceTest
         "ce");
     tempEntity.newClaimedComponent("h", claimedComponentIdentifier);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -1448,7 +1466,8 @@ public class RepositoryServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     // Prepare request and mock the HDS request
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
         longHash));
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -1493,7 +1512,8 @@ public class RepositoryServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     // Prepare request and mock the HDS request
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven", "path",
         hash));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
@@ -1530,7 +1550,8 @@ public class RepositoryServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNugetCoordinates("p", "v1");
 
     // Prepare request and mock the HDS request
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "/path",
         hash));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
@@ -1558,7 +1579,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_NullPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", null,
         "hash"));
 
@@ -1572,7 +1594,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_EmptyPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", " ",
         "hash"));
 
@@ -1586,7 +1609,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_NullFormat() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(null, "pathname",
         "hash"));
 
@@ -1600,7 +1624,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_EmptyFormat() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(" ", "pathname",
         "hash"));
 
@@ -1616,7 +1641,8 @@ public class RepositoryServiceTest
 
     String hash = null;
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
         hash));
 
@@ -1630,7 +1656,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_EmptyHash() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
         " "));
 

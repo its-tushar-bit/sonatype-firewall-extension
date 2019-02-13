@@ -5,19 +5,22 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import javax.ws.rs.core.UriBuilder;
+
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import io.dropwizard.logging.filter.FilterFactory;
-import javax.ws.rs.core.UriBuilder;
 
 /**
  * Based on the example at https://www.dropwizard.io/1.2.1/docs/manual/core.html#logging-filters
  * @since 1.50
  */
-public class UserTelemetryRequestLoggingFilter implements FilterFactory<IAccessEvent> {
-  private String uriToFilter = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH)
-    .path(UserTelemetryResource.EVENTS).toString();
+public class UserTelemetryRequestLoggingFilter
+    implements FilterFactory<IAccessEvent>
+{
+  private String uriToFilter =
+      UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS).toString();
 
   @Override
   public Filter<IAccessEvent> build() {
@@ -26,7 +29,8 @@ public class UserTelemetryRequestLoggingFilter implements FilterFactory<IAccessE
       public FilterReply decide(IAccessEvent event) {
         if (event.getRequestURI().contains(uriToFilter)) {
           return FilterReply.DENY;
-        } else {
+        }
+        else {
           return FilterReply.NEUTRAL;
         }
       }

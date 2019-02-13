@@ -25,7 +25,10 @@ public class SuccessMetricsReportDTO
     this(name, scope, false);
   }
     
-  public SuccessMetricsReportDTO(final String name, final SuccessMetricsReportScopeDTO scope, final boolean includeLatestData) {
+  public SuccessMetricsReportDTO(final String name,
+                                 final SuccessMetricsReportScopeDTO scope,
+                                 final boolean includeLatestData)
+  {
     this.name = name;
     this.scope = scope;
     this.includeLatestData = includeLatestData;

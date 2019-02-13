@@ -94,5 +94,4 @@ public class ReverseProxyRealm
       throw new AuthenticationException("LDAP naming error while attempting to authenticate user: " + username, e);
     }
   }
-
 }

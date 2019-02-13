@@ -12,10 +12,8 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
  */
 public interface TelemetryCollector
 {
-
   /**
    * Returns the {@code TelemetryData} to send for this particular collector.
    */
   TelemetryData collectData();
-
 }

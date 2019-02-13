@@ -337,18 +337,16 @@ class SystemInfo
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  String getPropertiesJson(final Properties properties, final String parentObjectName)
-  {
+  String getPropertiesJson(final Properties properties, final String parentObjectName) {
     final SortedMap<String, Object> entries = new TreeMap<>();
-    entries.putAll(((Map) properties));
+    entries.putAll((Map) properties);
 
     final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
     mapEntry.put(parentObjectName, entries);
     return JsonUtils.format(mapEntry);
   }
 
-  String getProductLicense(final LicenseSummary licenseSummary)
-  {
+  String getProductLicense(final LicenseSummary licenseSummary) {
     return JsonUtils.format(licenseSummary);
   }
 

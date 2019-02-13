@@ -82,7 +82,6 @@ public class WebhookServiceAuthzTest
     webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
   }
 
-
   @Test
   public void testUpdateWebhook_Authorized() throws Exception {
     grantConfigureSystemPermission();

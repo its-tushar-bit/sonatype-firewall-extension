@@ -59,9 +59,10 @@ public class SecurityModule
 
   @Override
   protected void configureShiro() {
-    TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType = new TypeLiteral<Collection<SessionListener>>()
-    {
-    };
+    TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType =
+        new TypeLiteral<Collection<SessionListener>>()
+      {
+      };
     bind(sessionListenerCollectionType).toProvider(SessionListenerProvider.class);
     bindWebSecurityManager(bind(WebSecurityManager.class));
     expose(WebSecurityManager.class);
@@ -107,8 +108,7 @@ public class SecurityModule
     manager.createChain("/favicon.ico", anonFilters); // favicon for web interface
     manager.createChain("/rest/ide/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
-    manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth, will simply do
-                                                                   // nothing if not authenticated
+    manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth
     manager.createChain("/rest/user-telemetry/javascript", anonFilters); // user-telemetry javascript
     manager.createChain("/rest/product/version", anonFilters); // product version info
     manager.createChain("/rest/version", anonFilters); // product version info
@@ -156,7 +156,7 @@ public class SecurityModule
     manager.createChain("/rest/report/*/*/downloadBundle", filters);
 
     // for backward-compat, these can still support anonymous access
-    filters += (anonymousClientAccessAllowed ? "[permissive]" : "");
+    filters += anonymousClientAccessAllowed ? "[permissive]" : "";
     manager.createChain("/rest/integration/applications", filters);
     manager.createChain("/rest/report/*/*/embedReport/**", filters);
     manager.createChain("/rest/application/services/names", filters);

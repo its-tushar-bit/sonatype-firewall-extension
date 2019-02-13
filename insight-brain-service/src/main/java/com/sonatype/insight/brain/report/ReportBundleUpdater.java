@@ -30,7 +30,6 @@ import org.codehaus.plexus.util.IOUtil;
 class ReportBundleUpdater
     implements Closeable
 {
-
   /**
    * Renames entries from the original report before inclusion in the updated bundle.
    */

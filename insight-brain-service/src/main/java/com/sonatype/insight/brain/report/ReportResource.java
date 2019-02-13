@@ -171,6 +171,7 @@ public class ReportResource
   @GET
   @Path("embedReport/{path:.*}")
   @Authorize(permission = Permission.READ, anonymousAllowed = true)
+  @SuppressWarnings("checkstyle:LineLength")
   public Response embedReport(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
                               @PathParam("scanId") final String scanId,
                               @PathParam("path") final String path)
@@ -205,6 +206,7 @@ public class ReportResource
   @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
+  @SuppressWarnings("checkstyle:LineLength")
   public Response browseReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                                @PathParam("scanId") final String scanId,
                                @PathParam("path") final String path,
@@ -314,6 +316,7 @@ public class ReportResource
   @Produces("application/pdf")
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
+  @SuppressWarnings("checkstyle:LineLength")
   public Response printReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                               @PathParam("scanId") final String scanId) throws IOException
   {
@@ -350,6 +353,7 @@ public class ReportResource
   @Produces("application/zip")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @SuppressWarnings("checkstyle:LineLength")
   public Response downloadBundle(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                                  @PathParam("scanId") final String scanId) throws IOException
   {
@@ -577,6 +581,7 @@ public class ReportResource
   @Path("auditLog/{path}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public Response auditLog(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
                            @PathParam("path") final String path,
                            @QueryParam("key") final String encodedKey) throws IOException

@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.model.security.Role;
  */
 public class RoleDTO
 {
-
   public String id;
 
   public String name;

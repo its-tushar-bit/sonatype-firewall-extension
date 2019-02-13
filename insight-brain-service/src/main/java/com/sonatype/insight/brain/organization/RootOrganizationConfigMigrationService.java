@@ -68,5 +68,4 @@ public class RootOrganizationConfigMigrationService
   private boolean isEligibleForRootMigration() {
     return !migrationUtils.isMigrated() && !migrationUtils.isMigrationScheduled();
   }
-
 }

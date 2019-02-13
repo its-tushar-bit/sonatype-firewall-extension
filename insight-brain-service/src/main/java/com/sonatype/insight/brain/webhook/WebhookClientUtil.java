@@ -58,7 +58,6 @@ public class WebhookClientUtil
 
   private final InsightProxy insightProxy;
 
-
   @Inject
   public WebhookClientUtil(final InsightProxy insightProxy) {
     this.insightProxy = insightProxy;
@@ -107,11 +106,11 @@ public class WebhookClientUtil
   private class WebhookClient
       extends AbstractClient
   {
-    private final String HMAC_SHA1 = "HmacSHA1";
+    private static final String HMAC_SHA1 = "HmacSHA1";
 
-    private final int REQUEST_TIMEOUT = 10000;
+    private static final int REQUEST_TIMEOUT = 10000;
 
-    private final BaseEncoding HEX = BaseEncoding.base16().lowerCase();
+    private final BaseEncoding hex = BaseEncoding.base16().lowerCase();
 
     private final String deliveryId;
 
@@ -172,7 +171,7 @@ public class WebhookClientUtil
       Mac mac = Mac.getInstance(HMAC_SHA1);
       mac.init(key);
       byte[] bytes = mac.doFinal(json.getBytes());
-      return HEX.encode(bytes);
+      return hex.encode(bytes);
     }
   }
 }

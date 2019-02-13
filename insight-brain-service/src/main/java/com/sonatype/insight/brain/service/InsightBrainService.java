@@ -207,10 +207,9 @@ public class InsightBrainService
         }
       }
       else if (!dir.isDirectory()) {
-        log.error(
-            "It appears that the temporary location is not a folder. Please ensure that {} is a folder "
-                + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "
-                + "the server.", dir.getAbsolutePath());
+        log.error("It appears that the temporary location is not a folder. Please ensure that {} is a folder "
+            + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line "
+            + "used for launching the server.", dir.getAbsolutePath());
         return false;
       }
 
@@ -220,18 +219,16 @@ public class InsightBrainService
         new FileCleaner().delete(file);
       }
       catch (FileDeletionException fde) {
-        log.error(
-            "The server is not able to delete from the temporary folder. Please ensure server has access to {} "
-                + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "
-                + "the server.", dir.getAbsolutePath());
+        log.error("The server is not able to delete from the temporary folder. Please ensure server has access to {} "
+            + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line "
+            + "used for launching the server.", dir.getAbsolutePath());
         return false;
       }
     }
     catch (IOException ex) {
-      log.error(
-          "The server is not able to write to the temporary folder. Please ensure server has access to {} "
-              + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "
-              + "the server.", tmp);
+      log.error("The server is not able to write to the temporary folder. Please ensure server has access to {} "
+          + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line "
+          + "used for launching the server.", tmp);
       log.debug("Unable to validate temporary folder", ex);
       return false;
     }
@@ -282,7 +279,8 @@ public class InsightBrainService
 
   private <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {
     // Use an object mapper mostly matching the default for Dropwizard version 1.2.2 i.e.
-    // https://github.com/dropwizard/dropwizard/blob/v1.2.2/dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
+    // https://github.com/dropwizard/dropwizard/blob/v1.2.2/
+    //   dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
     // Register default modules except io.dropwizard.jackson.FuzzyEnumModule so enums using @JsonValue can be
     // deserialized without needing @JsonCreator methods
     objectMapper.registerModule(new GuavaModule());

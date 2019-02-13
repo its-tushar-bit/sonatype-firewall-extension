@@ -35,7 +35,6 @@ import com.codahale.metrics.annotation.Timed;
 @Produces(MediaType.APPLICATION_JSON)
 public class RepositoryResource
 {
-
   public static final String RESOURCE_PATH = "rest/repositories";
 
   static final String REPOSITORY_PATH = "{repositoryId}";

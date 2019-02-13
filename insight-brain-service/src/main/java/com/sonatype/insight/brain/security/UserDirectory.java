@@ -61,6 +61,7 @@ public class UserDirectory
   public static class QueryResult
   {
     private List<Member> members;
+
     private Exception exception;
 
     public QueryResult(List<Member> members) {

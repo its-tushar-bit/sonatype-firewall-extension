@@ -59,7 +59,8 @@ public class WebhookDispatcher
 
   public static final String LICENSE_OVERRIDE_MANAGEMENT_ID = "iq:licenseOverrideManagement";
 
-  public static final String SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID = "iq:securityVulnerabilityOverrideManagement";
+  public static final String SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID =
+      "iq:securityVulnerabilityOverrideManagement";
 
   public static final String POLICY_MANAGEMENT_ID = "iq:policyManagement";
 

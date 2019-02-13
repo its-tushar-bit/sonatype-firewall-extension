@@ -108,6 +108,7 @@ public class RepositoryPolicyEvaluator
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   public RepositoryComponentEvaluationDataList evaluate(Repository repository,
                                                         RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
                                                         final boolean withQuarantine,
@@ -121,8 +122,8 @@ public class RepositoryPolicyEvaluator
         componentEvaluationDataRequestList, clientUserAgent);
     List<Component> components = new ArrayList<>();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
-      RepositoryComponentEvaluationDataRequest componentEvaluationRequest = componentEvaluationDataRequestList.components
-          .get(requestIndex);
+      RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
+          componentEvaluationDataRequestList.components.get(requestIndex);
       ComponentEvaluationData componentEvaluationData = componentEvaluationDataList.components.get(requestIndex);
       if (componentEvaluationData.requestIndex != requestIndex) {
         throw new IllegalStateException("The request index does not match. Expected " + requestIndex + ", but found "
@@ -359,6 +360,7 @@ public class RepositoryPolicyEvaluator
     return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
   }
 
+  @SuppressWarnings("checkstyle:LineLength")
   private ComponentEvaluationDataList getComponentDetailsFromHds(Repository repository,
                                                                  boolean withQuarantine,
                                                                  final RepositoryComponentEvaluationDataRequestList hdsRequest,
@@ -368,9 +370,8 @@ public class RepositoryPolicyEvaluator
       long start = System.currentTimeMillis();
 
       HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
-      ComponentEvaluationDataList result = hdsClient
-          .post(HdsClientAnalytics.forOwner(repository), ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent,
-              hdsRequest);
+      ComponentEvaluationDataList result = hdsClient.post(HdsClientAnalytics.forOwner(repository),
+          ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent, hdsRequest);
 
       log.debug("Got component details from HDS for {} components in {} ms.", hdsRequest.components.size(),
           System.currentTimeMillis() - start);

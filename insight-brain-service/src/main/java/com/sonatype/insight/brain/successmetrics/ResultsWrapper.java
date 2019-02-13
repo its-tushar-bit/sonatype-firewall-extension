@@ -11,8 +11,8 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.collect.Table;
 
-class ResultsWrapper {
-
+class ResultsWrapper
+{
   final MttrStats mttrStats;
 
   int evaluationCount;

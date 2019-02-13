@@ -142,7 +142,8 @@ public class PolicyViolationLoader
       evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds);
     }
     log.debug("Loaded {} policy evaluations for {} applications across {} stages in {} ms", evaluations.size(),
-        applicationIds.size(), stageTypeIds.isEmpty() ? "all" : stageTypeIds.size(), System.currentTimeMillis() - start);
+        applicationIds.size(), stageTypeIds.isEmpty() ? "all" : stageTypeIds.size(),
+        System.currentTimeMillis() - start);
 
     if (minDate != null) {
       start = System.currentTimeMillis();

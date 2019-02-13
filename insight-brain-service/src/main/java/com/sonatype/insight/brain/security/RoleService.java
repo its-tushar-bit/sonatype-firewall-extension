@@ -181,11 +181,6 @@ public class RoleService
   }
 
   // just so happens that alpha sort works for now
-  private static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR = new Comparator<PermissionCategoryDTO>()
-  {
-    @Override
-    public int compare(final PermissionCategoryDTO o1, final PermissionCategoryDTO o2) {
-      return o1.displayName.compareToIgnoreCase(o2.displayName);
-    }
-  };
+  private static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR =
+      (dto1, dto2) -> dto1.displayName.compareToIgnoreCase(dto2.displayName);
 }

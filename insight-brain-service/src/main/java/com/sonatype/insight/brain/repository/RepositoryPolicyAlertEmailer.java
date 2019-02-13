@@ -78,8 +78,7 @@ public class RepositoryPolicyAlertEmailer
     }
   }
 
-  protected Map<String, Object> createPolicyMailModel(Repository repository, List<PolicyFact> policyFacts)
-  {
+  protected Map<String, Object> createPolicyMailModel(Repository repository, List<PolicyFact> policyFacts) {
     Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, new Stage(Stage.ID_PROXY),
         policyFacts);
 

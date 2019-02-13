@@ -108,6 +108,7 @@ public class PolicyWaiverResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  @SuppressWarnings("checkstyle:LineLength")
   public AppliedWaivers getPolicyWaiversByHash(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                                @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                                @PathParam("hash") String hash)
@@ -148,6 +149,7 @@ public class PolicyWaiverResource
   @Path("applicable/context/{policyId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
+  @SuppressWarnings("checkstyle:LineLength")
   public ApplicableContext getApplicableContexts(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                                                  @PathParam("policyId") String policyId)

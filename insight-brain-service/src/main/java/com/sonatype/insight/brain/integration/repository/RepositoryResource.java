@@ -39,7 +39,6 @@ import com.codahale.metrics.annotation.Timed;
 @Path(RepositoryResource.RESOURCE_PATH)
 public class RepositoryResource
 {
-
   public static final String RESOURCE_PATH = "rest/integration/repositories";
 
   private static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
@@ -85,6 +84,7 @@ public class RepositoryResource
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @SuppressWarnings("checkstyle:LineLength")
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
                                                                       @PathParam("repositoryPublicId") final String repositoryPublicId)
   {
@@ -109,6 +109,7 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @SuppressWarnings("checkstyle:LineLength")
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
                                                                                @PathParam("repositoryPublicId") final String repositoryPublicId,
                                                                                final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -144,6 +145,7 @@ public class RepositoryResource
   @GET
   @Path(UNQUARANTINED_COMPONENTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @SuppressWarnings("checkstyle:LineLength")
   public UnquarantinedComponentList getUnquarantinedComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                                                @PathParam("repositoryPublicId") String repositoryPublicId,
                                                                @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp)

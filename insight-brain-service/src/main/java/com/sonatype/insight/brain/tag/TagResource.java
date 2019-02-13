@@ -38,8 +38,11 @@ import com.codahale.metrics.annotation.Timed;
 public class TagResource
 {
   public static final String RESOURCE_PATH = "rest/tag/";
+
   public static final String USED_BY_APPLICATION_PATH = "application";
+
   public static final String APPLICATION_PATH = "application/{applicationPublicId}";
+
   public static final String ORGANIZATION_PATH = "organization/{organizationId}";
 
   private final TagService service;
@@ -73,8 +76,8 @@ public class TagResource
   @GET
   @Path(APPLICATION_PATH + "/applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getApplicableTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationPublicId)
-  {
+  @SuppressWarnings("checkstyle:LineLength")
+  public List<Tag> getApplicableTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationPublicId) {
     return service.getApplicableTagsByApplicationPublicId(applicationPublicId);
   }
 

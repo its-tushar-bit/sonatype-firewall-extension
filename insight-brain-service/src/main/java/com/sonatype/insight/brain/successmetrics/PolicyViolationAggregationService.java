@@ -486,7 +486,7 @@ public class PolicyViolationAggregationService
             ProcessableViolationEvent outputEvent =
                 event.isWaived ? new ViolationWaivedEvent(violation, firstOccurrence, event.time) :
                     new ViolationFixedEvent(violation, firstOccurrence, event.time);
-           retval.add(outputEvent);
+            retval.add(outputEvent);
           }
         }
       }

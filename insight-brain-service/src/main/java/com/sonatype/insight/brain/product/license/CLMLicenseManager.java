@@ -269,7 +269,6 @@ public class CLMLicenseManager
     return new LicenseSummary(getProductEdition());
   }
 
-  @SuppressWarnings("checkstyle:FallThrough")
   public LicenseInfo getLicenseInfo() {
     String[] products = licenseCache.products.stream() //
         .map(CLMLicenseManager::getProductMarketingName) //
@@ -290,16 +289,18 @@ public class CLMLicenseManager
         licensedUsersToDisplay = licenseCache.maxUsers;
         break;
       case PRODUCT_LIFECYCLE:
-        // no break
+        // fallthrough
       case PRODUCT_LIFECYCLE_FOUNDATION:
         licensedUsersToDisplay = licenseCache.maxUsers;
-        // no break
+        // fallthrough
       case PRODUCT_FIREWALL:
         firewallUsersToDisplay = licenseCache.maxFirewallUsers;
+        // fallthrough
       case PRODUCT_FIREWALL_FOR_ARTIFACTORY:
         firewallForArtifactoryServersToDisplay = licenseCache.maxFirewallForArtifactoryServers;
         break;
       default:
+        // no limits to display
     }
 
     return new LicenseInfo(licenseCache.fingerprint, licenseCache.expirationTimestamp, licensedUsersToDisplay,
@@ -334,11 +335,11 @@ public class CLMLicenseManager
     try {
       licenseManager.verifyFeature(key, new CLMFeature());
     }
-    catch (LicensingException e1) {
+    catch (LicensingException ex) {
       try {
         licenseManager.verifyFeature(key, new FirewallFeature());
       }
-      catch (LicensingException e2) {
+      catch (LicensingException nestedEx) {
         throw new LicensingException("License does not permit use of feature '" + CLMFeature.ID + "' or '"
             + FirewallFeature.ID + "'");
       }

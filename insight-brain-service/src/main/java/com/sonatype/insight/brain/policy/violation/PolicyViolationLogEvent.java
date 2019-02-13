@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+/**
+ * @since 1.60
+ */
 public enum PolicyViolationLogEvent
 {
   CREATE, //

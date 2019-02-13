@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @since 1.60
+ */
 public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViolation>
 {
   public static final String POLICY_VIOLATION_LOGGER_NAME = "com.sonatype.insight.policy.violation";

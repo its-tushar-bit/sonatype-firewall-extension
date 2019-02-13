@@ -22,6 +22,9 @@ import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @since 1.60
+ */
 @Named
 @Singleton
 public class PolicyViolationLoggerFactory

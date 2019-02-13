@@ -12,6 +12,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
+/**
+ * @since 1.60
+ */
 public class ApplicationPolicyViolationLogger
     extends AbstractPolicyViolationLogger<PolicyViolation>
 {

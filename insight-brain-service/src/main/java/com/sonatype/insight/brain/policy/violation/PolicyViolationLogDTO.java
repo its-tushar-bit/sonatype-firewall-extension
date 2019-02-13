@@ -12,6 +12,9 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+/**
+ * @since 1.60
+ */
 @JsonInclude(Include.NON_EMPTY)
 public class PolicyViolationLogDTO
 {

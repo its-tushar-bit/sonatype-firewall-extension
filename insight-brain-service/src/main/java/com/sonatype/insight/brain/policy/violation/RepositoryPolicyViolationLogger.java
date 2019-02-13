@@ -11,6 +11,9 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+/**
+ * @since 1.60
+ */
 public class RepositoryPolicyViolationLogger
     extends AbstractPolicyViolationLogger<RepositoryPolicyViolation>
 {

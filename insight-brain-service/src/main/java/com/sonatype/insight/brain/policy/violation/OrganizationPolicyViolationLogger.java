@@ -10,6 +10,9 @@ import java.util.Date;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
+/**
+ * @since 1.60
+ */
 public class OrganizationPolicyViolationLogger
     extends AbstractPolicyViolationLogger<PolicyViolation>
 {

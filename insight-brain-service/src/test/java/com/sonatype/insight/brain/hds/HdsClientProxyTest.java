@@ -119,7 +119,12 @@ public class HdsClientProxyTest
       }
     };
 
-    client.relay(mockedRequest, null, "some/path", Collections.emptyMap());
+    try {
+      client.relay(mockedRequest, null, "some/path", Collections.emptyMap());
+    }
+    catch (Exception ignore) {
+      // noop
+    }
 
     assertThat(headers).containsEntry(HttpHeaders.USER_AGENT, UserAgentUtils.getDefaultUserAgent());
   }

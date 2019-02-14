@@ -6,7 +6,6 @@
 package com.sonatype.insight.mock.twistlock;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,38 +14,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.test.SslProperties;
-
-import org.eclipse.jetty.proxy.ConnectHandler;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
-import org.eclipse.jetty.security.UserStore;
-import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.util.B64Code;
 import org.eclipse.jetty.util.IO;
-import org.eclipse.jetty.util.security.Constraint;
-import org.eclipse.jetty.util.security.Password;
 
 public class TwistlockMockServer
 {
-  static {
-    SslProperties.use();
-  }
-
-  private int httpPort = 0;
-
-  private String username;
-
-  private String password;
+  private int httpPort;
 
   private Server server;
 
@@ -95,12 +74,6 @@ public class TwistlockMockServer
     return "http://localhost:" + getHttpPort();
   }
 
-  public TwistlockMockServer setAuthentication(String username, String password) {
-    this.username = username;
-    this.password = password;
-    return this;
-  }
-
   private Connector newHttpConnector() {
     ServerConnector connector = new ServerConnector(server);
     connector.setPort(httpPort);
@@ -114,37 +87,7 @@ public class TwistlockMockServer
 
     server = new Server();
     server.addConnector(newHttpConnector());
-
-    Handler mainHandler = new RestHandler();
-
-    if (username != null && username.length() > 0) {
-      UserStore userStore = new UserStore();
-      userStore.addUser(username, new Password(password), new String[]{"uploader"});
-      HashLoginService loginService = new HashLoginService("TestRealm");
-      loginService.setUserStore(userStore);
-      server.addBean(loginService);
-
-      Constraint constraint = new Constraint("auth", "uploader");
-      constraint.setAuthenticate(true);
-
-      ConstraintMapping constraintMapping = new ConstraintMapping();
-      constraintMapping.setPathSpec("/*");
-      constraintMapping.setConstraint(constraint);
-
-      ConstraintSecurityHandler secHandler = new ConstraintSecurityHandler();
-      secHandler.setAuthenticator(new BasicAuthenticator());
-      secHandler.setLoginService(loginService);
-      secHandler.setConstraintMappings(new ConstraintMapping[] { constraintMapping });
-      secHandler.setHandler(mainHandler);
-
-      mainHandler = secHandler;
-    }
-
-    HandlerList handlers = new HandlerList();
-
-    handlers.addHandler(new ConnectHandler());
-    handlers.addHandler(mainHandler);
-    server.setHandler(handlers);
+    server.setHandler(new HandlerList(new RestHandler()));
     server.start();
 
     return this;
@@ -165,42 +108,6 @@ public class TwistlockMockServer
   class RestHandler
       extends AbstractHandler
   {
-    private static final String REPORT_PATH_PREFIX = "/rest/application/analysis/";
-
-    private static final String SCAN_ID = "SCAN-ID";
-
-    private void handleMatchedRequest(HttpServletRequest request) throws IOException {
-      IO.copy(request.getInputStream(), IO.getNullStream());
-    }
-
-    private void handleScanUpload(Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-        throws IOException
-    {
-      handleMatchedRequest(request);
-
-      response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
-
-      try (PrintWriter writer = response.getWriter()) {
-        writer.println("{");
-        writer.println("\"scanId\" : \"" + SCAN_ID + "\", ");
-        writer.println("\"timeToReport\" : " + 1);
-        writer.println("}");
-      }
-
-      baseRequest.setHandled(true);
-    }
-
-    private void handleReportDownload(HttpServletRequest request) throws IOException {
-      handleMatchedRequest(request);
-
-      String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());
-      if (scanId.length() <= 0) {
-        throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "scan id missing");
-      }
-
-      throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "bad scan id");
-    }
-
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
@@ -208,57 +115,11 @@ public class TwistlockMockServer
       String uri = request.getRequestURI();
       String uriWithParams = uri;
 
-      try {
-        ResponseProvider responseProvider = getResponseProvider(uriWithParams);
-        if (responseProvider != null) {
-          handleMatchedRequest(request);
-          responseProvider.render(response);
-          baseRequest.setHandled(true);
-        }
-        else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
-          handleScanUpload(baseRequest, request, response);
-        }
-        else if (uri.startsWith(REPORT_PATH_PREFIX) && "GET".equals(request.getMethod())) {
-          handleReportDownload(request);
-        }
-      }
-      catch (RequestException e) {
-        response.sendError(e.statusCode, e.errorMsg);
+      ResponseProvider responseProvider = getResponseProvider(uriWithParams);
+      if (responseProvider != null) {
+        IO.copy(request.getInputStream(), IO.getNullStream());
+        responseProvider.render(response);
         baseRequest.setHandled(true);
-      }
-    }
-  }
-
-  static class RequestException
-      extends RuntimeException
-  {
-    private static final long serialVersionUID = -5203188602692541540L;
-
-    final int statusCode;
-
-    final String errorMsg;
-
-    public RequestException(int statusCode, String errorMsg) {
-      this.statusCode = statusCode;
-      this.errorMsg = errorMsg;
-    }
-  }
-
-  class ProxyHandler
-      extends AbstractHandler
-  {
-    @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-        throws IOException, ServletException
-    {
-      if ("https".equalsIgnoreCase(request.getScheme())) {
-        return;
-      }
-
-      String auth = request.getHeader("Proxy-Authorization");
-      if (auth != null) {
-        auth = auth.substring(auth.indexOf(' ') + 1).trim();
-        auth = B64Code.decode(auth, "ISO-8859-1");
       }
     }
   }

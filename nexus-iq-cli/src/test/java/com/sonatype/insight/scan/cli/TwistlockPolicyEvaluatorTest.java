@@ -19,7 +19,6 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.mock.twistlock.TwistlockMockServerRule;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.io.ScanReader;
-import com.sonatype.insight.test.PortAllocator;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.IOUtil;
@@ -36,16 +35,16 @@ import static org.mockito.Mockito.verify;
 public class TwistlockPolicyEvaluatorTest
     extends InjectedTest
 {
+  private static final String DEFAULT_TWISTLOCK_RESULTS_PATH = "/api/v1/scan/scan-2016-10-11T18:38:13.773Z.tar.gz";
+
   private static final String DEFAULT_TWISTLOCK_RESULTS_URL =
-      "http://localhost:${twistlockServerPort}/api/v1/scan/scan-2016-10-11T18:38:13.773Z.tar.gz";
+      "http://localhost:${twistlockServerPort}" + DEFAULT_TWISTLOCK_RESULTS_PATH;
 
   private static final String DEFAULT_TWISTLOCK_SCANNER_OUTPUT = "\nScan completed. Results at: "
       + DEFAULT_TWISTLOCK_RESULTS_URL + "\n";
 
-  private int twistlockServerPort = PortAllocator.findFreePort(8083);
-
   @Rule
-  public TwistlockMockServerRule twistlockMockServer = new TwistlockMockServerRule(twistlockServerPort);
+  public TwistlockMockServerRule twistlockMockServer = new TwistlockMockServerRule();
 
   public TwistlockScanner spyTwistlockScanner;
 
@@ -61,7 +60,8 @@ public class TwistlockPolicyEvaluatorTest
       // these tests.
       @Override
       String runTwistlockScannerCommand(List<String> twistlockScannerCommand) {
-        return DEFAULT_TWISTLOCK_SCANNER_OUTPUT.replace("${twistlockServerPort}", String.valueOf(twistlockServerPort));
+        return DEFAULT_TWISTLOCK_SCANNER_OUTPUT.replace("${twistlockServerPort}",
+            String.valueOf(twistlockMockServer.getHttpPort()));
       }
     });
     binder.bind(TwistlockScanner.class).toInstance(spyTwistlockScanner);
@@ -73,8 +73,7 @@ public class TwistlockPolicyEvaluatorTest
         "twistlock-2-2-87/twistcli", "--twistlock-console-url", "https://localhost:8083",
         "--twistlock-console-username", "admin", "--twistlock-console-password", "1Twistlock$", "02c0ca9581ac");
 
-    twistlockMockServer.setResponseForURI(
-        DEFAULT_TWISTLOCK_RESULTS_URL.replace("${twistlockServerPort}", String.valueOf(twistlockServerPort)),
+    twistlockMockServer.setResponseForURI(DEFAULT_TWISTLOCK_RESULTS_PATH,
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
     File scanFile = evaluator.scan(params, new ProprietaryConfig());
@@ -123,8 +122,7 @@ public class TwistlockPolicyEvaluatorTest
   private void testScan_TwistlockScannerParameters(TwistlockParameters twistlockParameters,
                                                    List<String> expectedParameters) throws Exception
   {
-    twistlockMockServer.setResponseForURI(
-        DEFAULT_TWISTLOCK_RESULTS_URL.replace("${twistlockServerPort}", String.valueOf(twistlockServerPort)),
+    twistlockMockServer.setResponseForURI(DEFAULT_TWISTLOCK_RESULTS_PATH,
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
     evaluator.scan(twistlockParameters, new ProprietaryConfig());

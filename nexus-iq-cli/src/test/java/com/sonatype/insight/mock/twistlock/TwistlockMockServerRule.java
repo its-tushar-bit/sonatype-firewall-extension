@@ -10,13 +10,7 @@ import org.junit.rules.ExternalResource;
 public class TwistlockMockServerRule
     extends ExternalResource
 {
-  private final int port;
-
   protected TwistlockMockServer twistlockMockServer;
-
-  public TwistlockMockServerRule(int port) {
-    this.port = port;
-  }
 
   @Override
   protected void before() throws Throwable {
@@ -31,11 +25,11 @@ public class TwistlockMockServerRule
   public void start() throws Exception {
     long start = System.currentTimeMillis();
 
-    System.out.println("Starting TwistlockMockServer on port " + port);
+    System.out.println("Starting TwistlockMockServer");
     twistlockMockServer = new TwistlockMockServer();
-    twistlockMockServer.setHttpPort(port);
     twistlockMockServer.start();
-    System.out.println("Started twistlockMockServer in " + (System.currentTimeMillis() - start) + " ms.");
+    System.out.println("Started TwistlockMockServer on port " + getHttpPort() + " in "
+        + (System.currentTimeMillis() - start) + " ms.");
   }
 
   public void stop() {
@@ -54,5 +48,9 @@ public class TwistlockMockServerRule
 
   public void reset() {
     twistlockMockServer.reset();
+  }
+
+  public int getHttpPort() {
+    return twistlockMockServer.getHttpPort();
   }
 }

@@ -95,12 +95,14 @@ public class AuthorizationChecker
     }
     switch (contextEntity) {
       case APPLICATION:
-        return (Collection<T>) filter(user, permission, (Iterable<Application>) entities, contextResolver.application);
+        return (Collection<T>) filter(user, permission, (Iterable<Application>) entities,
+            contextResolver.resolverForApplication);
       case ORGANIZATION:
         return (Collection<T>) filter(user, permission, (Iterable<Organization>) entities,
-            contextResolver.organization);
+            contextResolver.resolverForOrganization);
       case REPOSITORY:
-        return (Collection<T>) filter(user, permission, (Iterable<Repository>) entities, contextResolver.repository);
+        return (Collection<T>) filter(user, permission, (Iterable<Repository>) entities,
+            contextResolver.resolverForRepository);
       default:
         throw new IllegalStateException("Cannot check authorization in unknown context " + contextEntity);
     }

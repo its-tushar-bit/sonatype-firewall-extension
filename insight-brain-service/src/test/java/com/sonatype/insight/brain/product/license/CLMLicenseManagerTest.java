@@ -50,6 +50,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testMissingLicense_BasicLicenseInformationCanStillBeQueried() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
+    assertThat(clmLicenseManager.getFeatures()).isEmpty();
+    assertThat(clmLicenseManager.getLicenseSummary()).isNotNull();
+    assertThat(clmLicenseManager.getLicenseInfo()).isNotNull();
+  }
+
+  @Test
   public void testLicenseLacksClmFeatureAndFirewallFeature() throws Exception {
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);

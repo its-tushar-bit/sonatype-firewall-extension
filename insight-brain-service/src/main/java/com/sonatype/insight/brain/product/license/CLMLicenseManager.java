@@ -488,8 +488,8 @@ public class CLMLicenseManager
   }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(), 0,
-        0, 0, 0);
+    licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(),
+        EnumSet.noneOf(Feature.class), 0, 0, 0, 0);
     notifyListeners();
   }
 

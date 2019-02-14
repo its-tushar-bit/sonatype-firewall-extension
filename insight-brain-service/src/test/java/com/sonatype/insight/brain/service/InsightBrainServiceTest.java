@@ -232,4 +232,13 @@ public class InsightBrainServiceTest
     assertThat(logOutput).atInfoLevel()
         .contains("Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
   }
+
+  @Test
+  @ManualServerInit
+  public void testStartupWithoutLicense() throws Exception {
+    getTestProductLicenseManager().uninstallLicense();
+    // Manually initialize server with custom configurator to ensure it gets restarted if already running
+    initServer(config -> {
+    });
+  }
 }

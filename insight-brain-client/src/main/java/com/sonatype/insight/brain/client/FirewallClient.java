@@ -81,9 +81,8 @@ public class FirewallClient
     verifyStatusCode(result);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
-      throws IOException
+  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+      RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList) throws IOException
   {
     ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequestList),
         ContentType.APPLICATION_JSON);

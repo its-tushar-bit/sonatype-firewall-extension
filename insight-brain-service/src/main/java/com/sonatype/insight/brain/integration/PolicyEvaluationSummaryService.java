@@ -51,9 +51,9 @@ public class PolicyEvaluationSummaryService
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public PolicyEvaluationSummary getEvaluationSummaryByApplicationId(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-                                                                     final Stage stage)
+  public PolicyEvaluationSummary getEvaluationSummaryByApplicationId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+      final Stage stage)
   {
     validateLicensed();
 

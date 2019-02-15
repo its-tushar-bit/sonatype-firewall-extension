@@ -341,10 +341,9 @@ public class ComponentInfoServiceTest
         repository.getId());
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(final OwnerType ownerType,
-                                                                                                 final String ownerId)
-      throws Exception
+  private void testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(
+      final OwnerType ownerType,
+      final String ownerId) throws Exception
   {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));

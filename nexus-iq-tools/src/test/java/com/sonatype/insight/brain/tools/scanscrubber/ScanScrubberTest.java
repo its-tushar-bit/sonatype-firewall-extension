@@ -175,8 +175,9 @@ public class ScanScrubberTest
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private Map<String, String> getPathnamesToScrubbedPathnames(Map<String, com.sonatype.insight.brain.tools.scanscrubber.ScanScrubber.Node> pathnamesToNodes) {
+  private Map<String, String> getPathnamesToScrubbedPathnames(
+      Map<String, com.sonatype.insight.brain.tools.scanscrubber.ScanScrubber.Node> pathnamesToNodes)
+  {
     return pathnamesToNodes.entrySet().stream().collect(Collectors
         .toMap(Entry::getKey, entry -> entry.getValue().getScrubbedPathname(), (entryOne, entryTwo) -> entryOne,
             LinkedHashMap::new));

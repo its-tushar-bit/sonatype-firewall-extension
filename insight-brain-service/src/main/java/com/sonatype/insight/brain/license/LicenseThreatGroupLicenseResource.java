@@ -51,10 +51,10 @@ public class LicenseThreatGroupLicenseResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                                                                       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                                                       @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
+  public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
     return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(licenseThreatGroupId);
   }
@@ -64,11 +64,11 @@ public class LicenseThreatGroupLicenseResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                                                                       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                                                       @PathParam("licenseThreatGroupId") String licenseThreatGroupId,
-                                                                       Set<String> licenseIds)
+  public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @PathParam("licenseThreatGroupId") String licenseThreatGroupId,
+      Set<String> licenseIds)
   {
     licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroupId, licenseIds);
 

@@ -11,8 +11,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.webhook.EventAction;
-import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -30,6 +28,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.webhook.EventAction;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -73,9 +73,9 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                                        @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 

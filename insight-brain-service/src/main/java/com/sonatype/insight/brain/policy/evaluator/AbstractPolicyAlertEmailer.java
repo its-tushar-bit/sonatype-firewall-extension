@@ -40,9 +40,9 @@ public abstract class AbstractPolicyAlertEmailer
     this.policyAlertEmailResolver = policyAlertEmailResolver;
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  protected Map<String, List<PolicyFact>> getPolicyFactsByEmailAddress(Owner owner,
-                                                                       final List<PolicyNotification> policyNotifications)
+  protected Map<String, List<PolicyFact>> getPolicyFactsByEmailAddress(
+      Owner owner,
+      final List<PolicyNotification> policyNotifications)
   {
     return policyAlertEmailResolver.getPolicyFactsByEmailAddress(owner, policyNotifications);
   }

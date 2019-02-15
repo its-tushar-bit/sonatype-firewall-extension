@@ -51,11 +51,11 @@ public class FirewallMigrationResource
   @POST
   @Path(HISTORY_PATH)
   @Audited(AuditEvent.MIGRATE_REPOSITORY)
-  @SuppressWarnings("checkstyle:LineLength")
-  public void migrateRepositoryHistory(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
-                                       @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId,
-                                       @QueryParam("sourceRepositoryManagerInstanceId") String sourceRepositoryManagerInstanceId,
-                                       @QueryParam("sourceRepositoryPublicId") String sourceRepositoryPublicId)
+  public void migrateRepositoryHistory(
+      @PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
+      @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId,
+      @QueryParam("sourceRepositoryManagerInstanceId") String sourceRepositoryManagerInstanceId,
+      @QueryParam("sourceRepositoryPublicId") String sourceRepositoryPublicId)
   {
     firewallMigrationService.migrateRepositoryHistory(sourceRepositoryManagerInstanceId, sourceRepositoryPublicId,
         targetRepositoryManagerInstanceId, targetRepositoryPublicId);
@@ -64,9 +64,9 @@ public class FirewallMigrationResource
   @GET
   @Path(HISTORY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @SuppressWarnings("checkstyle:LineLength")
-  public MigrationDetails getRepositoryMigrationState(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
-                                                      @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
+  public MigrationDetails getRepositoryMigrationState(
+      @PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
+      @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
   {
     return firewallMigrationService.getRepositoryMigrationState(targetRepositoryManagerInstanceId,
         targetRepositoryPublicId);

@@ -101,8 +101,9 @@ public class ApplicationService
    *        Allows anonymous access. Only for use by the clients.
    */
   @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
-  @SuppressWarnings("checkstyle:LineLength")
-  protected Application getApplicationByPublicIdAllowAnonymous(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+  protected Application getApplicationByPublicIdAllowAnonymous(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
@@ -119,14 +120,16 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Application getApplicationByPublicIdNotNull(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+  public Application getApplicationByPublicIdNotNull(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
     return applicationDAO.getByPublicIdNotNull(applicationPublicId);
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Application getApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+  public Application getApplicationByPublicId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 

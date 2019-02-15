@@ -86,8 +86,9 @@ public class RepositoryReevaluationTask
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(Iterator<RepositoryComponent> components) {
+  private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(
+      Iterator<RepositoryComponent> components)
+  {
     int limit = 0;
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(

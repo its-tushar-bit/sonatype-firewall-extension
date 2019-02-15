@@ -37,10 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationLogDTOAssert
 {
-  @SuppressWarnings("checkstyle:LineLength")
-  public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(LogOutput logOutput,
-                                                                         PolicyViolationLogEvent policyViolationLogEvent,
-                                                                         int expected) throws Exception
+  public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(
+      LogOutput logOutput,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      int expected) throws Exception
   {
     List<String> infoMessages = logOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     ObjectMapper objectMapper = new ObjectMapper();

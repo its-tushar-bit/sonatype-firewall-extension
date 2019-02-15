@@ -497,8 +497,9 @@ public class ApiEvaluationResourceV2Test
         componentEvaluationDataList, 200);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private ComponentEvaluationDataList createComponentEvaluationDataList(final ComponentEvaluationData... componentEvaluationData) {
+  private ComponentEvaluationDataList createComponentEvaluationDataList(
+      final ComponentEvaluationData... componentEvaluationData)
+  {
     ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
     componentEvaluationDataList.components = new ArrayList<>();
     Collections.addAll(componentEvaluationDataList.components, componentEvaluationData);

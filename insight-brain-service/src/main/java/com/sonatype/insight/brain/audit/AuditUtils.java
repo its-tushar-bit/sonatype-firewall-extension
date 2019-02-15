@@ -78,8 +78,9 @@ public class AuditUtils
     return getSelectedApplicationsById(applicationIds, organizationIds, applicationsById);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public static List<ApplicationCategoryAuditDTO> getSelectedApplicationCategoriesById(Set<String> applicationCategoryIds) {
+  public static List<ApplicationCategoryAuditDTO> getSelectedApplicationCategoriesById(
+      Set<String> applicationCategoryIds)
+  {
     List<ApplicationCategoryAuditDTO> applicationCategoryDTOs = new ArrayList<>();
 
     if (applicationCategoryIds == null) {

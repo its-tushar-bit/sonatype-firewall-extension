@@ -497,8 +497,9 @@ public class PolicyViolationAggregation
     return countsToTable(openGettersMap);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private Table<PolicyThreatCategory, ThreatLevel, Integer> countsToTable(Table<PolicyThreatCategory, ThreatLevel, IntSupplier> getterMap) {
+  private Table<PolicyThreatCategory, ThreatLevel, Integer> countsToTable(
+      Table<PolicyThreatCategory, ThreatLevel, IntSupplier> getterMap)
+  {
     Table<PolicyThreatCategory, ThreatLevel, Integer> result =
         new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
     for (PolicyThreatCategory category : PolicyThreatCategory.values()) {

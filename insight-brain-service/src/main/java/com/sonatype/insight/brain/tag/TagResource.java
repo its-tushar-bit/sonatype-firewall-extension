@@ -76,8 +76,9 @@ public class TagResource
   @GET
   @Path(APPLICATION_PATH + "/applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<Tag> getApplicableTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationPublicId) {
+  public List<Tag> getApplicableTagsByApplicationPublicId(
+      @PathParam("applicationPublicId") String applicationPublicId)
+  {
     return service.getApplicableTagsByApplicationPublicId(applicationPublicId);
   }
 

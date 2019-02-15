@@ -171,10 +171,10 @@ public class ReportResource
   @GET
   @Path("embedReport/{path:.*}")
   @Authorize(permission = Permission.READ, anonymousAllowed = true)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Response embedReport(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
-                              @PathParam("scanId") final String scanId,
-                              @PathParam("path") final String path)
+  public Response embedReport(
+      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
+      @PathParam("scanId") final String scanId,
+      @PathParam("path") final String path)
   {
     if ("index.html".equals(path) || path.isEmpty()) {
       UriBuilder uriBuilder = baseUrl.redirect();
@@ -185,7 +185,7 @@ public class ReportResource
       sb.append("<body style='font: 12px Verdana, Helvetica;margin-top:50px;'>");
       sb.append("<h1>This report has moved</h1>");
       sb.append("<p>Your Nexus IQ Server was updated, causing the report formerly at this location to be moved ");
-      sb.append("<a target='_blank' href='" + uriBuilder.build(applicationPublicId, scanId) + "'>here</a></p>");
+      sb.append("<a target='_blank' href='" + uriBuilder.build(appPublicId, scanId) + "'>here</a></p>");
       sb.append("</body>");
       sb.append("</html>");
 
@@ -206,13 +206,13 @@ public class ReportResource
   @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Response browseReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-                               @PathParam("scanId") final String scanId,
-                               @PathParam("path") final String path,
-                               @Context final HttpServletRequest httpRequest) throws IOException
+  public Response browseReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("scanId") final String scanId,
+      @PathParam("path") final String path,
+      @Context final HttpServletRequest httpRequest) throws IOException
   {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
 
     final String name = Report.toEntryName(path);
@@ -316,12 +316,12 @@ public class ReportResource
   @Produces("application/pdf")
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Response printReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-                              @PathParam("scanId") final String scanId) throws IOException
+  public Response printReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("scanId") final String scanId) throws IOException
   {
     AuditData.get().setReportId(scanId);
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
 
@@ -353,12 +353,12 @@ public class ReportResource
   @Produces("application/zip")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Response downloadBundle(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-                                 @PathParam("scanId") final String scanId) throws IOException
+  public Response downloadBundle(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("scanId") final String scanId) throws IOException
   {
     AuditData.get().setReportId(scanId);
-    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     File reportFile = reportService.fetchReport(work, app.getId(), scanId, true);
     String filename = "report-" + scanId + ".zip";
 
@@ -371,7 +371,7 @@ public class ReportResource
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
-    ApiReportDataDTOV2 reportData = reportDataService.getDataNoAuth(applicationPublicId, scanId);
+    ApiReportDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils
         .parse(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
 
@@ -382,7 +382,7 @@ public class ReportResource
       updater.add(dataPath + "report.pdf", pdfFile);
       updater.add(dataPath + "components.json", reportData);
 
-      addUniqueComponentsToUpdater(applicationPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
+      addUniqueComponentsToUpdater(appPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
 
       File[] cachedFiles = Report.getCacheDir(reportFile).listFiles();
       if (cachedFiles != null) {
@@ -581,12 +581,12 @@ public class ReportResource
   @Path("auditLog/{path}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Response auditLog(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-                           @PathParam("path") final String path,
-                           @QueryParam("key") final String encodedKey) throws IOException
+  public Response auditLog(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("path") final String path,
+      @QueryParam("key") final String encodedKey) throws IOException
   {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
 
     final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));

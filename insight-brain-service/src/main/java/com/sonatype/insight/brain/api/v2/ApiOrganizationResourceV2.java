@@ -69,8 +69,9 @@ public class ApiOrganizationResourceV2
   @GET
   @Path(ROLE_MEMBERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(@PathParam("organizationId") final String organizationId) {
+  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
+      @PathParam("organizationId") final String organizationId)
+  {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         OwnerType.ORGANIZATION, organizationId);
     return apiMemberMappingAdapter.convert(mappings, OwnerType.ORGANIZATION);

@@ -85,8 +85,9 @@ public class ApiApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApiApplicationDTO getApplicationById(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId) {
+  public ApiApplicationDTO getApplicationById(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
+  {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
     return convertApplicationToDTO(application);
   }

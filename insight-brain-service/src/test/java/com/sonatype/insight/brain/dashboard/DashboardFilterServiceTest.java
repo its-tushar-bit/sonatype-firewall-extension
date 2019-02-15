@@ -192,9 +192,8 @@ public class DashboardFilterServiceTest
     testCreateOrUpdateDashboardFilterForCurrentUser_Update(true);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void testCreateOrUpdateDashboardFilterForCurrentUser_Update(boolean needsAcknowledgementOfInitialDashboardFilter)
-      throws Exception
+  private void testCreateOrUpdateDashboardFilterForCurrentUser_Update(
+      boolean needsAcknowledgementOfInitialDashboardFilter) throws Exception
   {
     String filterName1 = "Filter1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
@@ -243,9 +242,8 @@ public class DashboardFilterServiceTest
     testCreateOrUpdateDashboardFilterForCurrentUser_Insert(true);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void testCreateOrUpdateDashboardFilterForCurrentUser_Insert(boolean needsAcknowledgementOfInitialDashboardFilter)
-      throws Exception
+  private void testCreateOrUpdateDashboardFilterForCurrentUser_Insert(
+      boolean needsAcknowledgementOfInitialDashboardFilter) throws Exception
   {
     insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
@@ -290,9 +288,8 @@ public class DashboardFilterServiceTest
     testGetActiveDashboardFilterForCurrentUser_NewFilter(true);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void testGetActiveDashboardFilterForCurrentUser_NewFilter(boolean needsAcknowledgementOfInitialDashboardFilter)
-      throws Exception
+  private void testGetActiveDashboardFilterForCurrentUser_NewFilter(
+      boolean needsAcknowledgementOfInitialDashboardFilter) throws Exception
   {
     insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();

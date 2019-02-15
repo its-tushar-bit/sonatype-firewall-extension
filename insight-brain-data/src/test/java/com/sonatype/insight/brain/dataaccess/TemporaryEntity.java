@@ -1540,39 +1540,39 @@ public class TemporaryEntity
     return newWebhook("http://localhost/" + uuid, events);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
-                                                                  Date timePeriodStart,
-                                                                  TimePeriod timePeriod,
-                                                                  DescriptiveStatistics mttrLowThreatStats,
-                                                                  DescriptiveStatistics mttrModerateThreatStats,
-                                                                  DescriptiveStatistics mttrSevereThreatStats,
-                                                                  DescriptiveStatistics mttrCriticalThreatStats,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
-                                                                  int evaluationCount)
+  public PolicyViolationAggregation newPolicyViolationAggregation(
+      String applicationId,
+      Date timePeriodStart,
+      TimePeriod timePeriod,
+      DescriptiveStatistics mttrLowThreatStats,
+      DescriptiveStatistics mttrModerateThreatStats,
+      DescriptiveStatistics mttrSevereThreatStats,
+      DescriptiveStatistics mttrCriticalThreatStats,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
+      int evaluationCount)
   {
     return newPolicyViolationAggregation(applicationId, timePeriodStart, null, timePeriod, mttrLowThreatStats,
         mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats, discoveredCounts, fixedCounts,
         waivedCounts, openCounts, evaluationCount);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
-                                                                  Date timePeriodStart,
-                                                                  Date timePeriodEnd,
-                                                                  TimePeriod timePeriod,
-                                                                  DescriptiveStatistics mttrLowThreatStats,
-                                                                  DescriptiveStatistics mttrModerateThreatStats,
-                                                                  DescriptiveStatistics mttrSevereThreatStats,
-                                                                  DescriptiveStatistics mttrCriticalThreatStats,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                                                                  Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
-                                                                  int evaluationCount)
+  public PolicyViolationAggregation newPolicyViolationAggregation(
+      String applicationId,
+      Date timePeriodStart,
+      Date timePeriodEnd,
+      TimePeriod timePeriod,
+      DescriptiveStatistics mttrLowThreatStats,
+      DescriptiveStatistics mttrModerateThreatStats,
+      DescriptiveStatistics mttrSevereThreatStats,
+      DescriptiveStatistics mttrCriticalThreatStats,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
+      int evaluationCount)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
         timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, 

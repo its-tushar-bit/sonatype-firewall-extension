@@ -26,8 +26,9 @@ public class RepositoryPolicyViolationLogger
   }
 
   @Override
-  @SuppressWarnings("checkstyle:LineLength")
-  protected PolicyViolationLogDTO createPolicyViolationLogDTO(PolicyViolationData<RepositoryPolicyViolation> policyViolationData) {
+  protected PolicyViolationLogDTO createPolicyViolationLogDTO(
+      PolicyViolationData<RepositoryPolicyViolation> policyViolationData)
+  {
     PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
     if (!PolicyViolationLogEvent.CLEAR.equals(policyViolationData.policyViolationLogEvent)) {

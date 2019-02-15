@@ -80,7 +80,7 @@ public class IdeResource
    * Get the result from a scan request, or a wait delta
    * 
    * @param scanType simple or enhanced though we do not enforce that in the Brain
-   * @param applicationPublicId the public application id
+   * @param appPublicId the public application id
    * @return the result of the scan or a wait delta
    * @since 1.2
    */
@@ -89,15 +89,14 @@ public class IdeResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   @Audited(AuditEvent.EVALUATE_PROJECT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public IdeMatchedComponent doScan(@PathParam("scanType") String scanType,
-                                    @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-                                    @PathParam("path") String path,
-                                    @QueryParam("proprietary") boolean proprietary,
-                                    @Context HttpServletRequest req)
-      throws IOException
+  public IdeMatchedComponent doScan(
+      @PathParam("scanType") String scanType,
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String appPublicId,
+      @PathParam("path") String path,
+      @QueryParam("proprietary") boolean proprietary,
+      @Context HttpServletRequest req) throws IOException
   {
-    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     String applicationId = app.getId();
 
     MatchedComponent matchedComponent = client.relay(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",

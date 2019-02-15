@@ -124,11 +124,10 @@ public class OrganizationResource
   @Path(ORGANIZATION_ICON_PATH)
   @Produces("image/png")
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public Response getIcon(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId)
-      throws IOException
+  public Response getIcon(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String orgId) throws IOException
   {
-    return super.getIcon(organizationId, work.getOrganizationIconDir());
+    return super.getIcon(orgId, work.getOrganizationIconDir());
   }
 
   /**

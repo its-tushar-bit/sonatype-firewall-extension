@@ -158,8 +158,9 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "createOrUpdateDashboardFilterForCurrentUserExceptionMeter")
   @Audited(AuditEvent.SAVE_DASHBOARD_FILTER)
-  @SuppressWarnings("checkstyle:LineLength")
-  public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO dashboardFilterDTO) {
+  public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(
+      NamedDashboardFilterDTO dashboardFilterDTO)
+  {
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }
 

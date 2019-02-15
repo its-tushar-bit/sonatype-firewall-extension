@@ -41,8 +41,9 @@ public class PolicyViolationGrandfatheringResource
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 
   @Inject
-  @SuppressWarnings("checkstyle:LineLength")
-  public PolicyViolationGrandfatheringResource(PolicyViolationGrandfatheringService policyViolationGrandfatheringService) {
+  public PolicyViolationGrandfatheringResource(
+      PolicyViolationGrandfatheringService policyViolationGrandfatheringService)
+  {
     this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
   }
 
@@ -74,10 +75,10 @@ public class PolicyViolationGrandfatheringResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(GET_PATH)
   @Audited(AuditEvent.CONFIGURE_GRANDFATHERING)
-  @SuppressWarnings("checkstyle:LineLength")
-  public PolicyViolationGrandfatheringDTO setGrandfathering(@PathParam("ownerType") OwnerType ownerType,
-                                                            @PathParam("ownerId") String ownerId,
-                                                            PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
+  public PolicyViolationGrandfatheringDTO setGrandfathering(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
   {
     return policyViolationGrandfatheringService.setGrandfathering(ownerType, ownerId, policyViolationGrandfatheringDTO);
   }

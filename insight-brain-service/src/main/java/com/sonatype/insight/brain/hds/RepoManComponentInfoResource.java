@@ -56,13 +56,12 @@ public class RepoManComponentInfoResource
   @Path(APPLICATION_COMPONENT_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  @SuppressWarnings("checkstyle:LineLength")
-  public NamedComponentDetails getComponentDetails(@PathParam("applicationPublicId") String applicationPublicId,
-                                                   @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-                                                   @QueryParam("matchState") String matchState,
-                                                   @QueryParam("hash") String hash,
-                                                   @QueryParam("proprietary") boolean proprietary)
-      throws IOException
+  public NamedComponentDetails getComponentDetails(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("matchState") String matchState,
+      @QueryParam("hash") String hash,
+      @QueryParam("proprietary") boolean proprietary) throws IOException
   {
     return componentInfoService.getComponentDetails_EvaluateComponentPermission(applicationPublicId, identifier,
         matchState, hash, proprietary, httpRequest);
@@ -76,11 +75,10 @@ public class RepoManComponentInfoResource
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ComponentDetailsList getComponentDetailsList(@PathParam("applicationPublicId") String applicationPublicId,
-                                                      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-                                                      @QueryParam("matchState") String matchState)
-      throws IOException
+  public ComponentDetailsList getComponentDetailsList(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("matchState") String matchState) throws IOException
   {
     return componentInfoService.getComponentDetailsList_EvaluateComponentPermission(applicationPublicId, identifier,
         matchState, httpRequest);
@@ -93,10 +91,9 @@ public class RepoManComponentInfoResource
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("applicationPublicId") String applicationPublicId,
-                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
-      throws IOException
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
     return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
         componentIdentifier, httpRequest);

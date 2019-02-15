@@ -48,10 +48,10 @@ public class ApiSearchResourceV2
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.SEARCH_COMPONENT_USES)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApiSearchResultsDTOV2 searchComponent(@QueryParam("stageId") String stageId,
-                                               @QueryParam("hash") String hash,
-                                               @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+  public ApiSearchResultsDTOV2 searchComponent(
+      @QueryParam("stageId") String stageId,
+      @QueryParam("hash") String hash,
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
 
     return searchService.searchComponent(stageId, hash, componentIdentifier);

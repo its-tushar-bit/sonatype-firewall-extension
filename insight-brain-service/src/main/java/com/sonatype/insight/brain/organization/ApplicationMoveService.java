@@ -171,8 +171,9 @@ public class ApplicationMoveService
   }
 
   @Authorize(permission = Permission.WRITE)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<Organization> getDestinationOrganizations(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId) {
+  public List<Organization> getDestinationOrganizations(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
+  {
     Application application = applicationDAO.getByIdNotNull(applicationId);
     List<Organization> organizations = new ArrayList<>();
     for (Organization organization : getPermittedDestinationOrganizations()) {

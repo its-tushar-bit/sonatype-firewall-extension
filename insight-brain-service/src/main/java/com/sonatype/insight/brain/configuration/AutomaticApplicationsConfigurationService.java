@@ -37,10 +37,10 @@ public class AutomaticApplicationsConfigurationService
   private final TelemetrySender telemetrySender;
 
   @Inject
-  @SuppressWarnings("checkstyle:LineLength")
-  public AutomaticApplicationsConfigurationService(OrganizationDAO organizationDAO,
-                                                   AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
-                                                   TelemetrySender telemetrySender)
+  public AutomaticApplicationsConfigurationService(
+      OrganizationDAO organizationDAO,
+      AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
+      TelemetrySender telemetrySender)
   {
     this.organizationDAO = organizationDAO;
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;

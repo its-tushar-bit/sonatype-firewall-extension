@@ -489,10 +489,10 @@ public final class Report
         overrideCount);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private static Set<ComponentIdentifier> addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
-                                                                                  Collection<HashComponentIdentifier> hashComponentIdentifiers,
-                                                                                  Application application)
+  private static Set<ComponentIdentifier> addLicenseOverridesForClaimedComponents(
+      ArrayNode licensesAaData,
+      Collection<HashComponentIdentifier> hashComponentIdentifiers,
+      Application application)
   {
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
@@ -536,9 +536,9 @@ public final class Report
     return componentIdentifiersWithLicenseOverrides;
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private static void removeClaimedComponentsFromPartialMatched(ContainerNode<?> partialmatchedJsonData,
-                                                                Map<String, HashComponentIdentifier> claimedComponentsByHash)
+  private static void removeClaimedComponentsFromPartialMatched(
+      ContainerNode<?> partialmatchedJsonData,
+      Map<String, HashComponentIdentifier> claimedComponentsByHash)
   {
     JsonNode aaData = partialmatchedJsonData.get("aaData");
     Iterator<JsonNode> iterPartialMatchData = aaData.iterator();

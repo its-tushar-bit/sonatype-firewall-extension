@@ -113,14 +113,13 @@ public class OrganizationService
    * @since 1.11.0
    */
   @Authorize(permission = Permission.WRITE)
-  @SuppressWarnings("checkstyle:LineLength")
-  public void deleteOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
-      throws IOException
+  public void deleteOrganization(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String orgId) throws IOException
   {
     Organization organization;
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
-      organization = organizationDAO.getByIdNotNull(tx, organizationId);
+      organization = organizationDAO.getByIdNotNull(tx, orgId);
       AuditData.get().setOrganization(organization);
       deleteOrganization(tx, organization);
       tx.commit();

@@ -193,18 +193,16 @@ public class RestClientFactory
     }
 
     @Override
-    @SuppressWarnings("checkstyle:LineLength")
-    public void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
-        throws IOException
+    public void evaluateComponents(
+        final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException
     {
       newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).evaluateComponents(
           componentEvaluationDataRequestList);
     }
 
     @Override
-    @SuppressWarnings("checkstyle:LineLength")
-    public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
-        throws IOException
+    public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+        RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList) throws IOException
     {
       return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
           .evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequestList);

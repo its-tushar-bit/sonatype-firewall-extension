@@ -84,9 +84,9 @@ public class RepositoryResource
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @SuppressWarnings("checkstyle:LineLength")
-  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
-                                                                      @PathParam("repositoryPublicId") final String repositoryPublicId)
+  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId)
   {
     return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId);
   }
@@ -109,11 +109,11 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
-  @SuppressWarnings("checkstyle:LineLength")
-  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
-                                                                               @PathParam("repositoryPublicId") final String repositoryPublicId,
-                                                                               final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                                                               @Context final HttpServletRequest request)
+  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId,
+      final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      @Context final HttpServletRequest request)
   {
     return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList, true, HdsClient.getClientUserAgent(request));
@@ -145,10 +145,10 @@ public class RepositoryResource
   @GET
   @Path(UNQUARANTINED_COMPONENTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @SuppressWarnings("checkstyle:LineLength")
-  public UnquarantinedComponentList getUnquarantinedComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-                                                               @PathParam("repositoryPublicId") String repositoryPublicId,
-                                                               @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp)
+  public UnquarantinedComponentList getUnquarantinedComponents(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp)
   {
     return repositoryService.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId,
         sinceUtcTimestamp);

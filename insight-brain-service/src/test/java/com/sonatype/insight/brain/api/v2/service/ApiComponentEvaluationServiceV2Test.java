@@ -169,9 +169,8 @@ public class ApiComponentEvaluationServiceV2Test
         .isEqualTo(componentIdentifier.getCoordinates());
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationTicket)
-      throws Exception
+  private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(
+      final ApiComponentEvaluationTicketDTOV2 evaluationTicket) throws Exception
   {
     boolean done = false;
     int tryCount = 1;

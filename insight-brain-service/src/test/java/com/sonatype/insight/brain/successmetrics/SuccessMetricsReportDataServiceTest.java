@@ -1766,8 +1766,9 @@ public class SuccessMetricsReportDataServiceTest
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void assertAggregationViolationTotalsByCategoryHistoryIncludeLatestData(List<ViolationsByCategoryDTO> actualDTOs) {
+  private void assertAggregationViolationTotalsByCategoryHistoryIncludeLatestData(
+      List<ViolationsByCategoryDTO> actualDTOs)
+  {
     List<ViolationsByCategoryDTO> expectedDTOs = Arrays.asList(
         new ViolationsByCategoryDTO("02 Oct", 6, 12, 10, 10),
         new ViolationsByCategoryDTO("09 Oct", 6, 12, 10, 10),

@@ -68,8 +68,9 @@ public class SuccessMetricsReportResource
   @DELETE
   @Path("{successMetricsReportId}")
   @Audited(AuditEvent.DELETE_SUCCESS_METRICS_REPORT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public void deleteSuccessMetricsReportForCurrentUser(@PathParam("successMetricsReportId") String successMetricsReportId) {
+  public void deleteSuccessMetricsReportForCurrentUser(
+      @PathParam("successMetricsReportId") String successMetricsReportId)
+  {
     successMetricsReportService.deleteSuccessMetricsReportForCurrentUser(successMetricsReportId);
   }
 

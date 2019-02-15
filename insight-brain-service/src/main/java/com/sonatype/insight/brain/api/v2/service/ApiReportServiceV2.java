@@ -43,8 +43,9 @@ public class ApiReportServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<ApiApplicationReportDTOV2> getByApplicationId(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId) {
+  public List<ApiApplicationReportDTOV2> getByApplicationId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
+  {
     Application application = applicationDAO.getById(applicationId);
 
     List<ApiApplicationReportDTOV2> reports = new LinkedList<>();

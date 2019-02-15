@@ -60,9 +60,9 @@ public class ApiEvaluationResourceV2
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_AD_HOC)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApiComponentEvaluationTicketDTOV2 evaluateComponents(@PathParam("applicationId") final String applicationId,
-                                                              final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
+  public ApiComponentEvaluationTicketDTOV2 evaluateComponents(
+      @PathParam("applicationId") final String applicationId,
+      final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
     return componentEvaluationService.evaluateComponents(applicationId, evaluationRequest);
   }
@@ -71,10 +71,9 @@ public class ApiEvaluationResourceV2
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_EVALUATION_AD_HOC)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(@PathParam("applicationId") final String applicationId,
-                                                                  @PathParam("resultId") final String resultId)
-      throws IOException
+  public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(
+      @PathParam("applicationId") final String applicationId,
+      @PathParam("resultId") final String resultId) throws IOException
   {
     return componentEvaluationService.getComponentEvaluation(applicationId, resultId);
   }

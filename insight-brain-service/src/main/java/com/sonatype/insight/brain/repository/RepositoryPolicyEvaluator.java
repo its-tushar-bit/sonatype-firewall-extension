@@ -108,11 +108,11 @@ public class RepositoryPolicyEvaluator
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public RepositoryComponentEvaluationDataList evaluate(Repository repository,
-                                                        RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                                        final boolean withQuarantine,
-                                                        final String clientUserAgent)
+  public RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      final boolean withQuarantine,
+      final String clientUserAgent)
   {
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
@@ -360,11 +360,11 @@ public class RepositoryPolicyEvaluator
     return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private ComponentEvaluationDataList getComponentDetailsFromHds(Repository repository,
-                                                                 boolean withQuarantine,
-                                                                 final RepositoryComponentEvaluationDataRequestList hdsRequest,
-                                                                 final String clientUserAgent)
+  private ComponentEvaluationDataList getComponentDetailsFromHds(
+      Repository repository,
+      boolean withQuarantine,
+      final RepositoryComponentEvaluationDataRequestList hdsRequest,
+      final String clientUserAgent)
   {
     try {
       long start = System.currentTimeMillis();

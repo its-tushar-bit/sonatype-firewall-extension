@@ -134,8 +134,9 @@ public class DashboardFilterService
   /**
    * @since 1.24.0
    */
-  @SuppressWarnings("checkstyle:LineLength")
-  public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO namedDashboardFilterDTO) {
+  public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(
+      NamedDashboardFilterDTO namedDashboardFilterDTO)
+  {
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
@@ -202,8 +203,9 @@ public class DashboardFilterService
   /**
    * @since 1.24.0
    */
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<DashboardFilterErrorResponseDTO> deleteDashboardFiltersForCurrentUserByFilterName(List<String> filterNames) {
+  public List<DashboardFilterErrorResponseDTO> deleteDashboardFiltersForCurrentUserByFilterName(
+      List<String> filterNames)
+  {
     dashboardUtils.validateDashboardLicensed();
 
     if (isEmpty(filterNames)) {

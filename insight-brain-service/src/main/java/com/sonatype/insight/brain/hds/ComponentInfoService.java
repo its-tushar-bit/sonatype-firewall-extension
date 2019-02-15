@@ -94,14 +94,13 @@ public class ComponentInfoService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public NamedComponentDetails getComponentDetails_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                                                               ComponentIdentifier identifier,
-                                                                               String matchState,
-                                                                               String hash,
-                                                                               boolean proprietary,
-                                                                               HttpServletRequest httpRequest)
-      throws IOException
+  public NamedComponentDetails getComponentDetails_EvaluateComponentPermission(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      ComponentIdentifier identifier,
+      String matchState,
+      String hash,
+      boolean proprietary,
+      HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(identifier, hash);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -111,14 +110,14 @@ public class ComponentInfoService
   }
 
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public NamedComponentDetails getComponentDetails_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                                  @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                                                  ComponentIdentifier componentIdentifier,
-                                                                  String matchState,
-                                                                  String hash,
-                                                                  boolean proprietary,
-                                                                  HttpServletRequest httpRequest) throws IOException
+  public NamedComponentDetails getComponentDetails_ReadPermission(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String matchState,
+      String hash,
+      boolean proprietary,
+      HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(componentIdentifier, hash);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
@@ -209,12 +208,11 @@ public class ComponentInfoService
    */
   @Deprecated
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                                                                  ComponentIdentifier identifier,
-                                                                                  String matchState,
-                                                                                  HttpServletRequest httpRequest)
-      throws IOException
+  public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      ComponentIdentifier identifier,
+      String matchState,
+      HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -230,11 +228,10 @@ public class ComponentInfoService
    * This method is called by the IDE and RM plugins, so it needs to check the EVALUATE_COMPONENT permission.
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_EvaluateComponentPermission(@AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                                                                                 ComponentIdentifier componentIdentifier,
-                                                                                                 HttpServletRequest httpRequest)
-      throws IOException
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_EvaluateComponentPermission(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentDetailsForAllVersions(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
@@ -249,13 +246,12 @@ public class ComponentInfoService
    */
   @Deprecated
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ComponentDetailsList getComponentDetailsList_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                                     @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                                                     ComponentIdentifier componentIdentifier,
-                                                                     String matchState,
-                                                                     HttpServletRequest httpRequest)
-      throws IOException
+  public ComponentDetailsList getComponentDetailsList_ReadPermission(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String matchState,
+      HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
@@ -271,12 +267,11 @@ public class ComponentInfoService
    * This method is called by the CIP, so it needs to check the READ permission.
    */
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(@AuthzContext(Key.TYPE) final OwnerType ownerType,
-                                                                                    @AuthzContext(Key.ID) final String ownerId,
-                                                                                    ComponentIdentifier componentIdentifier,
-                                                                                    HttpServletRequest httpRequest)
-      throws IOException
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.ID) final String ownerId,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentDetailsForAllVersions(ownerType, ownerId, componentIdentifier, httpRequest);
@@ -419,13 +414,12 @@ public class ComponentInfoService
    * @since 1.18.0
    */
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                                     @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                                                     final String hash,
-                                                                     final ComponentIdentifier componentIdentifier,
-                                                                     final HttpServletRequest httpRequest)
-      throws IOException
+  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final String hash,
+      final ComponentIdentifier componentIdentifier,
+      final HttpServletRequest httpRequest) throws IOException
   {
     auditComponentAccess(componentIdentifier, hash);
     if (componentIdentifier == null) {

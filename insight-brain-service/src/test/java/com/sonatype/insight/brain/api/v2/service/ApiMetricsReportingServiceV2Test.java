@@ -1788,8 +1788,9 @@ public class ApiMetricsReportingServiceV2Test
    * id. This method ensures that that is true and separates the groups by application, returning the separated
    * lists in a map indexed by application id
    */
-  @SuppressWarnings("checkstyle:LineLength")
-  private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> getFlattenedDTOGroups(List<ApiMetricsReportingFlattenedDTOV2> dtos) {
+  private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> getFlattenedDTOGroups(
+      List<ApiMetricsReportingFlattenedDTOV2> dtos)
+  {
     // applicationIds that have already been seen not including the current one
     Set<String> idsAlreadySeen = new HashSet<>();
     String currentAppId = null;
@@ -1814,13 +1815,13 @@ public class ApiMetricsReportingServiceV2Test
     return retval;
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> buildExpectedDTOGroups(Set<String> applicationIds,
-                                                                                      List<ApiMetricsReportingFlattenedDTOV2> app1Expected,
-                                                                                      List<ApiMetricsReportingFlattenedDTOV2> app2Expected,
-                                                                                      List<ApiMetricsReportingFlattenedDTOV2> app3Expected,
-                                                                                      List<ApiMetricsReportingFlattenedDTOV2> app4Expected,
-                                                                                      List<ApiMetricsReportingFlattenedDTOV2> app5Expected)
+  private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> buildExpectedDTOGroups(
+      Set<String> applicationIds,
+      List<ApiMetricsReportingFlattenedDTOV2> app1Expected,
+      List<ApiMetricsReportingFlattenedDTOV2> app2Expected,
+      List<ApiMetricsReportingFlattenedDTOV2> app3Expected,
+      List<ApiMetricsReportingFlattenedDTOV2> app4Expected,
+      List<ApiMetricsReportingFlattenedDTOV2> app5Expected)
   {
     Map<String, List<ApiMetricsReportingFlattenedDTOV2>> expectedDTOsByApplicationId = new HashMap<>();
 

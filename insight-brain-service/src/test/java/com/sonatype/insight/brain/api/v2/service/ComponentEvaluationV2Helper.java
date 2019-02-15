@@ -46,15 +46,15 @@ public class ComponentEvaluationV2Helper
 {
   private PolicyDAO policyDAO = new PolicyDAO();
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public ComponentEvaluationData createComponentEvaluationData(final ComponentIdentifier componentIdentifier,
-                                                               final String hash,
-                                                               final MatchState matchState,
-                                                               final int index,
-                                                               final Set<License> declaredLicenses,
-                                                               final Set<License> observedLicenses,
-                                                               final List<SecurityVulnerability> securityVulnerabilities,
-                                                               final Integer relativePopularity)
+  public ComponentEvaluationData createComponentEvaluationData(
+      final ComponentIdentifier componentIdentifier,
+      final String hash,
+      final MatchState matchState,
+      final int index,
+      final Set<License> declaredLicenses,
+      final Set<License> observedLicenses,
+      final List<SecurityVulnerability> securityVulnerabilities,
+      final Integer relativePopularity)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;

@@ -81,10 +81,10 @@ public class InsightConfigurationFactory
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void setAppenderFactoriesLogFormats(Collection<? extends AppenderFactory<?>> appenderFactories,
-                                              @SuppressWarnings("rawtypes") Class<? extends AbstractAppenderFactory> appenderFactoryType,
-                                              String logFormat)
+  private void setAppenderFactoriesLogFormats(
+      Collection<? extends AppenderFactory<?>> appenderFactories,
+      @SuppressWarnings("rawtypes") Class<? extends AbstractAppenderFactory> appenderFactoryType,
+      String logFormat)
   {
     appenderFactories.stream().filter(appenderFactoryType::isInstance).map(appenderFactoryType::cast)
         .filter(abtractAppenderFactory -> abtractAppenderFactory.getLogFormat() == null)

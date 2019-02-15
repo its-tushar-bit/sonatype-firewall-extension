@@ -95,9 +95,9 @@ class LdapServerExceptionWrapper
     return addAllToSuppressedAndLogAll(ldapServerExceptionWrappers, new NamingException(msg.toString()));
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private static NamingException addAllToSuppressedAndLogAll(final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers,
-                                                             final NamingException exceptionToThrow)
+  private static NamingException addAllToSuppressedAndLogAll(
+      final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers,
+      final NamingException exceptionToThrow)
   {
     for (final LdapServerExceptionWrapper exception : ldapServerExceptionWrappers) {
       exceptionToThrow.addSuppressed(exception.namingException);

@@ -65,16 +65,16 @@ public class ApplicationRiskService
   /**
    * @since 1.11.0
    */
-  @SuppressWarnings("checkstyle:LineLength")
-  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> organizationIds,
-                                                                          final Set<String> applicationIds,
-                                                                          final Set<String> stageIds,
-                                                                          final Set<String> tagIds,
-                                                                          final PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                                          final PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                                          final PolicyViolationStateFilter policyViolationStateFilter,
-                                                                          final String orderBy,
-                                                                          final int maxResults)
+  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds,
+      final Set<String> stageIds,
+      final Set<String> tagIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter,
+      final String orderBy,
+      final int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -165,8 +165,9 @@ public class ApplicationRiskService
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private List<ApplicationStageView> sortByLastEvaluationTimeDescending(Collection<ApplicationStageView> appStageViews) {
+  private List<ApplicationStageView> sortByLastEvaluationTimeDescending(
+      Collection<ApplicationStageView> appStageViews)
+  {
     List<ApplicationStageView> sorted = new ArrayList<>(appStageViews);
     sorted.sort((appStageView1, appStageView2) -> {
       PolicyEvaluation eval1 = appStageView1.getLastEvaluation();

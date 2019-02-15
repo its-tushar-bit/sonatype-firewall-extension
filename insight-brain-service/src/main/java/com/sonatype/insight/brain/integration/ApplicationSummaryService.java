@@ -205,8 +205,9 @@ public class ApplicationSummaryService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  @SuppressWarnings("checkstyle:LineLength")
-  void checkEvaluateApplicationPermissionForOrganization(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+  void checkEvaluateApplicationPermissionForOrganization(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  {
   }
 
   private void sendApplicationCreatedTelemetryData(boolean appCreatedAutomatically, String clientUserAgent) {

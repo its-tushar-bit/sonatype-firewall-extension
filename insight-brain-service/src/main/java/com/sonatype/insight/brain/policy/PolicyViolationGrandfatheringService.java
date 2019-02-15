@@ -199,10 +199,10 @@ public class PolicyViolationGrandfatheringService
   }
 
   @Authorize(permission = Permission.WRITE)
-  @SuppressWarnings("checkstyle:LineLength")
-  public PolicyViolationGrandfatheringDTO setGrandfathering(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                                            @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                                                            PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
+  public PolicyViolationGrandfatheringDTO setGrandfathering(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO)
   {
     validateGrandfatheringIsLicensed();
 

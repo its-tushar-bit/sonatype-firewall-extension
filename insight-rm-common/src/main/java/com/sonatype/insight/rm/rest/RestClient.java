@@ -80,9 +80,8 @@ public interface RestClient
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 
-    @SuppressWarnings("checkstyle:LineLength")
-    RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest)
-        throws IOException;
+    RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+        final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
 
     RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
 

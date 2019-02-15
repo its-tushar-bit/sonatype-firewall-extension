@@ -108,10 +108,10 @@ public class PolicyWaiverResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  @SuppressWarnings("checkstyle:LineLength")
-  public AppliedWaivers getPolicyWaiversByHash(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                               @PathParam("hash") String hash)
+  public AppliedWaivers getPolicyWaiversByHash(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @PathParam("hash") String hash)
   {
     AuditData.get().setComponentHash(hash);
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -149,10 +149,10 @@ public class PolicyWaiverResource
   @Path("applicable/context/{policyId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  @SuppressWarnings("checkstyle:LineLength")
-  public ApplicableContext getApplicableContexts(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                                                 @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                                 @PathParam("policyId") String policyId)
+  public ApplicableContext getApplicableContexts(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @PathParam("policyId") String policyId)
   {
     Policy policy = new PolicyDAO().getByIdNotNull(policyId);
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

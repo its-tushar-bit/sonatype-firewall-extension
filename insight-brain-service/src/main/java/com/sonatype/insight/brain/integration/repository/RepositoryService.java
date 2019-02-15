@@ -239,8 +239,9 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  @SuppressWarnings("checkstyle:LineLength")
-  RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@AuthzContext(Key.REPOSITORY) final Repository repository) {
+  RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
+      @AuthzContext(Key.REPOSITORY) final Repository repository)
+  {
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
@@ -322,12 +323,12 @@ public class RepositoryService
     repositoryDAO.update(repository);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  public RepositoryComponentEvaluationDataList evaluateComponents(String repositoryManagerInstanceId,
-                                                                  String repositoryPublicId,
-                                                                  RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                                                  boolean withQuarantine,
-                                                                  final String clientUserAgent)
+  public RepositoryComponentEvaluationDataList evaluateComponents(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      boolean withQuarantine,
+      final String clientUserAgent)
   {
     auditRepoComponentEvalList(componentEvaluationDataRequestList);
     checkLicenseFeature();
@@ -352,11 +353,10 @@ public class RepositoryService
     }
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void normalizeComponents(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
-    for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
-      truncateHash(componentEvaluationDataRequest);
-      componentEvaluationDataRequest.pathname = normalizePathname(componentEvaluationDataRequest.pathname);
+  private void normalizeComponents(RepositoryComponentEvaluationDataRequestList componentEvalRequestList) {
+    for (RepositoryComponentEvaluationDataRequest componentEvalRequest : componentEvalRequestList.components) {
+      truncateHash(componentEvalRequest);
+      componentEvalRequest.pathname = normalizePathname(componentEvalRequest.pathname);
     }
   }
 
@@ -364,10 +364,9 @@ public class RepositoryService
     componentEvaluationDataRequest.hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private void validateEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
-    for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
-      validateEvaluateRequest(componentEvaluationDataRequest);
+  private void validateEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvalRequestList) {
+    for (RepositoryComponentEvaluationDataRequest componentEvalRequest : componentEvalRequestList.components) {
+      validateEvaluateRequest(componentEvalRequest);
     }
   }
 
@@ -387,12 +386,12 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  @SuppressWarnings("checkstyle:LineLength")
-  RepositoryComponentEvaluationDataList evaluateComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
-                                                           String repositoryManagerInstanceId,
-                                                           RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                                           final boolean withQuarantine,
-                                                           final String clientUserAgent)
+  RepositoryComponentEvaluationDataList evaluateComponents(
+      @AuthzContext(Key.REPOSITORY) Repository repository,
+      String repositoryManagerInstanceId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      final boolean withQuarantine,
+      final String clientUserAgent)
   {
     long start = System.currentTimeMillis();
 

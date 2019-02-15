@@ -1,0 +1,198 @@
+<item-description>
+  <marked>
+    Table with a fixed header and contents that scroll.
+
+    This is a complex table that has many moving parts.
+    - a parent `.iq-tile--table-name` with `positon: relative;`
+    - a parent `iq-scrollable--table-name` which uses both the detect-scrollbar and maximize-container-height directives
+    - `@include table-fixed-widths($numColumns)` in the custom `iq-scrollable--table-name` SCSS which has the table's column count as its input
+    - in this case our table has five columns so our mixin would be set like this: `@include table-fixed-widths(5);`
+
+    The mixin will work for simple tables which do not require fixed sizes for any of the table columns. For more complicated tables look at 
+    `_dashboard.scss` for examples of tables with normal, expanding, and fixed width columns.
+  </marked>
+</item-description>
+
+<item-example-html title="Fixed header table with scrolling contents">
+  <div class="iq-tile iq-tile--fixed-table-example">
+    <div class="iq-scrollable iq-scrollable--fixed-table" detect-scrollbar="" maximize-container-height>
+      <table class="iq-table iq-table--fixed">
+        <thead class="iq-table--fixed__header">
+          <tr class="iq-table-row">
+            <th class="iq-cell iq-cell--header iq-clickable"> 
+              <div class="iq-col-sort-icons">
+                <i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i> 
+              </div>
+              Header 
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-clickable iq-cell--selected"> 
+              <div class="iq-col-sort-icons">
+                <i class="fa fa-caret-up"></i><i class="fa fa-caret-down down"></i> 
+              </div>
+              Selected header
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-clickable"> 
+              <div class="iq-col-sort-icons">
+                <i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i> 
+              </div>
+              Header
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-clickable"> 
+              <div class="iq-col-sort-icons">
+                <i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i> 
+              </div>
+              Header
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--header--noborder iq-clickable"> 
+              <div class="iq-col-sort-icons">
+                <i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i> 
+              </div>
+              No left border
+            </th>
+          </tr>
+        </thead>
+        <tbody class="iq-table--fixed__content">
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Clickable row</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row">
+            <td class="iq-cell iq-cell--label">Non-clickable row</td><!--
+         --><td class="iq-cell">with icon</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row">
+            <td class="iq-cell iq-cell--label">Non-clickable row</td><!--
+         --><td class="iq-cell">with tertiary icon button</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Clickable row</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row iq-clickable">
+            <td class="iq-cell iq-cell--label">Row Label</td><!--
+         --><td class="iq-cell">Content 1</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row">
+            <td class="iq-cell iq-cell--label">Non-clickable row</td><!--
+         --><td class="iq-cell">with icon</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+          <tr class="iq-table-row">
+            <td class="iq-cell iq-cell--label">Non-clickable row</td><!--
+         --><td class="iq-cell">with tertiary icon button</td><!--
+         --><td class="iq-cell">Content 2</td><!--
+         --><td class="iq-cell">Content 3</td><!--
+         --><td class="iq-cell">Content 4</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <style>
+    /* 
+     Hacks for Gallery
+     You can safely ignore these styles
+     */
+    
+    .iq-tile--fixed-table-example {
+      border: none;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    
+    .iq-table--fixed__header {
+      left: 0;
+      width: 100%;
+    }
+  </style>
+</item-example-html>
+
+<div class="iq-tile">
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <h2>SCSS Mixin Usage</h2>
+    </div>
+  </div>
+  <div hljs hljs-language="scss" hljs-include="'styles/iq-table-fixed.scss'"></div>
+</div>

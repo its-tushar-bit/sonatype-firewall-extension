@@ -15,15 +15,17 @@
     left: 8px;
   }
 
-  .iq-scrollable {
-    max-height: 100%;
-    width: 100%;
-  }
-
   .iq-spinner__wrapper {
     margin-top: 0;
     padding-top: 8px;
   }
+}
+
+.iq-scrollable--report-list {
+  @include table-fixed-widths(6);
+
+  max-height: 100%;
+  width: 100%;
 }
 
 .iq-report-list__stage-links {
@@ -47,10 +49,6 @@
     background: $iq-grey-1;
   }
 
-  .iq-cell--header {
-    width: calc((100% / 6) - (24px + 1px));
-  }
-
   tbody {
     .iq-table-row {
       border-top: 1px solid $iq-grey-1;
@@ -58,8 +56,9 @@
 
     .iq-cell {
       border-top: 0;
-      // (100% / # of columns) - (column padding + border)
-      width: calc((100% / 6) - (24px + 1px));
+      height: 68px;
+      line-height: 68px;
+      vertical-align: middle;
     }
   }
 
@@ -91,20 +90,6 @@
 
   .vs-repeat-before-content, .vs-repeat-after-content {
     display: block;
-  }
-}
-
-.scrollbar-present {
-  .iq-table--report-list {
-    .iq-cell {
-      // ((100% + scrollbar ) / # of columns) - (column padding + border)
-      width: calc(((100% + #{$iq-scrollbar-width}) / 6) - (24px + 1px));
-    }
-
-    .iq-cell:last-child {
-      // ((100% + scrollbar ) / # of columns) - (column padding + border) - scrollbar
-      width: calc(((100% + #{$iq-scrollbar-width}) / 6) - (24px + 1px) - #{$iq-scrollbar-width});
-    }
   }
 }
 

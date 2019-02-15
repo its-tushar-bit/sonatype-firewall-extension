@@ -73,6 +73,7 @@ export default angular.module('config',
 
     .constant('htmlConfig', {
       'iq-table': 'styles/iq-table.html',
+      'iq-table with fixed header': 'styles/iq-table-fixed.html',
       'iq-text-input': 'styles/iq-form-text-input.html',
       'iq-textarea': 'styles/iq-form-textarea.html',
       'iq-form-layout': 'styles/iq-form-layout/iq-form-layout.html'

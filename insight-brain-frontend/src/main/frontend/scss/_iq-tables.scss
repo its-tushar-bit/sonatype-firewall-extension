@@ -241,6 +241,10 @@ thead {
   #Table with a fixed header and scrolling contents
  */
 
+// a page utilizing a fixed header table will require a modified ".iq-scrollable", e.g. ".iq-scrollable--mypage".
+// This custom ".iq-scrollable--mypage" should invoke the `table-fixed-widths` mixin with the desired number
+// of columns in order to get width styles for that many equal-width columns. See the gallery for an example
+
 .iq-table--fixed {
   border-bottom: 1px solid $iq-grey-1;
   display: block;
@@ -274,10 +278,6 @@ thead {
     display: inline-block;
     height: $iq-table-header-height;
     line-height: $iq-table-header-height;
-    // The width value will need to be customized for all applications since
-    // it is dependent on the number of columns in the table
-    // Typically it looks like: calc((100% / # of columns) - (column padding + borders))
-    width: auto;
 
     &:first-child {
       border-left: 1px solid $iq-grey-1;
@@ -298,15 +298,7 @@ thead {
   .iq-cell {
     border-left: 1px solid $iq-off-white;
     display: inline-block;
-    height: 68px;
-    line-height: 68px;
-    vertical-align: middle;
     min-width: 0;
-
-    // The width value will need to be customized for all applications since
-    // it is dependent on the number of columns in the table
-    // Typically it looks like: calc((100% / # of columns) - (column padding + borders))
-    width: auto;
 
     &:last-child {
       padding-right: 11px;
@@ -314,23 +306,6 @@ thead {
 
     &.iq-cell--empty {
       width: 100%;
-    }
-  }
-}
-
-.scrollbar-present {
-  .iq-table--fixed__content {
-    .iq-cell {
-      // This works as above but we have to subtract the width of the scrollbar ($iq-scrollbar-width)
-      // Doing the calc as below keeps the shifted columns in line with their headers above
-      // Typically it looks like: calc(((100% + $iq-scrollbar-width) / # of columns) - (column padding + borders))
-      width: auto;
-    }
-
-    .iq-cell:last-child {
-      // Then we subtract $iq-scrollbar-width from the last cell.
-      // ((100% / # of columns) - (column padding - borders) - $iq-scrollbar-width)
-      width: auto;
     }
   }
 }

@@ -15,6 +15,7 @@ class UserManagementSpec
 {
   // assumes a license has already been installed
   // get to the user page
+  @Override
   def setupSpec() {
     loginAsAdminVia(UserManagementPage)
   }

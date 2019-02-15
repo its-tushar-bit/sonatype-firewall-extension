@@ -17,6 +17,7 @@ class NotificationSpec
 {
   static NotificationModule notificationMenu
 
+  @Override
   def setupSpec() {
     Date now = new Date()
     long tenMinutesAgo = now.getTime() - (1000 * 60 * 10)

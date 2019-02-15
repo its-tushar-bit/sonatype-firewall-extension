@@ -51,6 +51,7 @@ extends BaseSpec {
   createMavenCoordinates(FORM_FIELDS.groupId, FORM_FIELDS.artifactId, FORM_FIELDS.version + '-NEW',
   '', FORM_FIELDS.extension)
 
+  @Override
   def setupSpec() {
     work = new InsightWork(serviceRule.configuration)
     app = temporaryEntity.newApplication(temporaryEntity.newOrganization().id)
@@ -61,6 +62,7 @@ extends BaseSpec {
     to ReportPage, app.publicId, reportId
   }
 
+  @Override
   def cleanupSpec() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO()
     HashComponentIdentifier hci = dao.getByComponentIdentifier(CID)

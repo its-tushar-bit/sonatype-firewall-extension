@@ -21,6 +21,7 @@ class ReportPage
    */
   static url = 'rest/report'
 
+  @Override
   String convertToPath(Object[] args) {
     args ? '/' + args*.toString().join('/') + '/browseReport/index.html' : ""
   }

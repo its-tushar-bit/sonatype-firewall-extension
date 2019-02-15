@@ -56,6 +56,7 @@ extends BaseSpec {
 
   protected static ComponentDetails PREZI_DIST
 
+  @Override
   def setupSpec() {
     JUNIT = mockComponentDetails(JUNIT_DETAILS_FILE)
     mockComponentDetailsList(JUNIT_DETAILS_LIST_FILE, JUNIT)

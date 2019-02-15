@@ -29,6 +29,7 @@ extends BaseSpec {
 
   static User userWithoutPermission
 
+  @Override
   def setupSpec() {
     org = temporaryEntity.newOrganization('DashboardAuthzSpec')
     firstApp = temporaryEntity.newApplication('DashboardAuthzSpecAppOne', 'DashboardAuthzSpecAppOne', org.id)

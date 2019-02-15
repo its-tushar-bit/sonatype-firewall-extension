@@ -88,6 +88,7 @@ extends GebReportingSpec {
         "http://localhost:" + hdsPort, false, getBrainModules())
 
     rule.setConfigurator(new Configurator() {
+      @Override
       void configure(InsightConfig config) {
         // HTTP CSP headers that prohibit eval break webdriver control of phantomjs
         config.setCspEnabled(false)

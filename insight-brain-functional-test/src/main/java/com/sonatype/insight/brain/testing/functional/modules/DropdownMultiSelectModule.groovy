@@ -65,6 +65,7 @@ class DropdownMultiSelectModule
     waitFor { !dropdownList.displayed }
   }
 
+  @Override
   boolean isEmpty() {
     assert emptyText, 'This dropdown does not have an empty value specified'
     return dropdownButton.text() == emptyText

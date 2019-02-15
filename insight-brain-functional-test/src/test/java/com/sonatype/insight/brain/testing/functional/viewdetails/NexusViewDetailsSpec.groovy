@@ -23,6 +23,7 @@ class NexusViewDetailsSpec
 {
   static Application app
 
+  @Override
   def setupSpec() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(temporaryEntity)
 
@@ -112,6 +113,7 @@ class NexusViewDetailsSpec
       row.summary == mockSecurityVulnerability.summary
   }
 
+  @Override
   public String getToolName() {
     return 'rm';
   }

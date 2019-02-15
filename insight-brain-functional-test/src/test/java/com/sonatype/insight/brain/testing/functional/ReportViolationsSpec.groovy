@@ -11,6 +11,7 @@ import spock.lang.Stepwise
 class ReportViolationsSpec
     extends BaseSpec
 {
+  @Override
   def setupSpec() {
     temporaryEntity.
         newApplication('ReportViolationsSpec1', 'ReportViolationsSpec1', temporaryEntity.newOrganization('org1').id)

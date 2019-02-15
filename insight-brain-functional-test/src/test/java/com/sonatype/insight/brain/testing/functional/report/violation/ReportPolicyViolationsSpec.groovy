@@ -32,6 +32,7 @@ extends BaseSpec {
 
   private static String scanId
 
+  @Override
   def setupSpec() {
     // create app
     app = temporaryEntity.newApplication(temporaryEntity.newOrganization().getId())

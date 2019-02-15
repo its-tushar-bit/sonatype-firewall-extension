@@ -37,6 +37,7 @@ class LoginModule
     }
   }
 
+  @Override
   boolean isDisplayed() {
     modal.displayed
   }

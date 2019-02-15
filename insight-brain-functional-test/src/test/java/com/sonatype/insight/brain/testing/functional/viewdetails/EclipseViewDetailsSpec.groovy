@@ -25,6 +25,7 @@ class EclipseViewDetailsSpec
 {
   static Application app
 
+  @Override
   def setupSpec() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(temporaryEntity)
 
@@ -127,6 +128,7 @@ class EclipseViewDetailsSpec
       row.summary == mockSecurityVulnerability.summary
   }
 
+  @Override
   public String getToolName() {
     return 'ide'
   }

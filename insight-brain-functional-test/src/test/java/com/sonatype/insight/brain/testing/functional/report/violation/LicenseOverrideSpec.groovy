@@ -34,6 +34,7 @@ extends BaseSpec {
   @Shared
   String scanId
 
+  @Override
   def setupSpec() {
     work = new InsightWork(serviceRule.configuration)
     app = temporaryEntity.newApplication(temporaryEntity.newOrganization().id)

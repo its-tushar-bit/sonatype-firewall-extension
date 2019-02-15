@@ -21,6 +21,7 @@ extends BaseSpec {
   static final boolean ON = true
   static final boolean ENABLED = true
 
+  @Override
   def setupSpec() {
     loginAsAdminVia(RoleManagementPage)
   }

@@ -15,6 +15,7 @@ import spock.lang.Unroll
 class NavigationToSpec
     extends BaseSpec
 {
+  @Override
   def setupSpec() {
     loginAsAdminVia()
   }

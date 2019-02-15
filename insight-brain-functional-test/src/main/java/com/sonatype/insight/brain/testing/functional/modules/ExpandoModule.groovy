@@ -25,6 +25,7 @@ class ExpandoModule
     return BrowserInfo.phantom
   }
 
+  @Override
   boolean isDisplayed() {
     if (isPhantomJs()) {
       expando.present
@@ -34,6 +35,7 @@ class ExpandoModule
     }
   }
 
+  @Override
   Navigator click() {
     if (isPhantomJs()) {
       browser.js.exec(expando.firstElement(), 'jQuery(arguments[0]).click()')

@@ -28,6 +28,7 @@ extends BaseSpec {
   @Shared
   def scanId
 
+  @Override
   def setupSpec() {
     app = newApplication()
 
@@ -42,6 +43,7 @@ extends BaseSpec {
     loginAsAdminVia()
   }
 
+  @Override
   def cleanupSpec() {
     cleanAppsAndOrgs()
   }

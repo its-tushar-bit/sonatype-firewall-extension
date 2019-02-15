@@ -30,6 +30,7 @@ class NexusCIPSpec
     return app.name + " (" + app.publicId + ")";
   }
 
+  @Override
   def setupSpec() {
     app2 = temporaryEntity.newApplicationWithParent('SomeApp', 'Some App')
     app1 = temporaryEntity.newApplicationWithParent('app-123', 'app-123')
@@ -195,6 +196,7 @@ class NexusCIPSpec
     cip.highestSecurityThreat == 'NA'
   }
   
+  @Override
   String getToolName() {
     return "rm"
   }

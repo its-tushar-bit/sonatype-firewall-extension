@@ -25,6 +25,7 @@ class EclipseCIPSpec
   static Application app
   static Policy violatedPolicy = null
 
+  @Override
   def setupSpec() {
     Organization org = temporaryEntity.newOrganization('EclipseCIPSpec')
     app = temporaryEntity.newApplication('EclipseCIPSpec', org.id)
@@ -180,6 +181,7 @@ class EclipseCIPSpec
     cip.highestSecurityThreat == 'NA'
   }
 
+  @Override
   String getToolName() {
     return "ide"
   }

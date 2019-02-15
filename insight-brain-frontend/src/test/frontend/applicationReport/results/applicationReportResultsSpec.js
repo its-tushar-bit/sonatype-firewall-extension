@@ -29,9 +29,9 @@ describe('applicationReportResults', function() {
       expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('watches vm.selectedReport and sets OwnerId in OwnerContext', function() {
+    it('watches vm.metadata and sets OwnerId in OwnerContext', function() {
       spyOn(OwnerContext, 'setOwnerId');
-      vm.selectedReport = {
+      vm.metadata = {
         application: {
           publicId: 'test-application-23424iufg'
         }
@@ -42,7 +42,7 @@ describe('applicationReportResults', function() {
 
     it('watches vm.selectedReport and handles null value', function() {
       spyOn(OwnerContext, 'setOwnerId');
-      vm.selectedReport = null;
+      vm.metadata = null;
       scope.$digest();
       expect(OwnerContext.setOwnerId).not.toHaveBeenCalled();
     });

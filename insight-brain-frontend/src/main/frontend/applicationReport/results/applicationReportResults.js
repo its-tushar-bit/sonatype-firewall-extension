@@ -19,9 +19,9 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
   Object.assign(vm, {
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
-      $scope.$watch('vm.selectedReport', function(selectedReport) {
-        if (selectedReport) {
-          OwnerContext.setOwnerId(selectedReport.application.publicId);
+      $scope.$watch('vm.metadata', function(metadata) {
+        if (metadata) {
+          OwnerContext.setOwnerId(metadata.application.publicId);
         }
       });
     },
@@ -58,7 +58,7 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
     },
 
     getReportPdfDownloadUrl: function() {
-      return CLMLocations.getReportPdfDownloadUrl(vm.selectedReport.application.publicId, vm.selectedReport.scanId);
+      return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.selectedReport.scanId);
     }
   });
 }

@@ -111,10 +111,11 @@ export default function(state = initState, {type, payload}) {
   }
 }
 
-function setSelectedReport(state, {report, isUnknownJs}) {
+function setSelectedReport(state, {report, metadata, isUnknownJs}) {
   const newState = updateDisplayedEntries({
     ...state,
     loading: false,
+    metadata,
     isUnknownJs,
     selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)}
   });

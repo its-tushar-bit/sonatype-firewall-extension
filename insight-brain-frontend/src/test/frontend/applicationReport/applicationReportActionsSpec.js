@@ -58,9 +58,11 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {
-            reportTitle: 'test',
             allEntries: [],
             scanId: 'scanId'
+          },
+          metadata: {
+            reportTitle: 'test'
           },
           isUnknownJs: false
         }
@@ -86,7 +88,6 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {
-            reportTitle: 'test',
             allEntries: [{
               filenames: ['foo.js'],
               policyThreatLevel: 0,
@@ -97,6 +98,9 @@ describe('applicationReportActions', function() {
               derivedViolationState: 'notViolating'
             }],
             scanId: 'scanId'
+          },
+          metadata: {
+            reportTitle: 'test'
           },
           isUnknownJs: true
         }
@@ -110,10 +114,10 @@ describe('applicationReportActions', function() {
       initialState = {
         applicationReport: {
           isUnknownJs: false,
+          metadata: {
+            application: { publicId: 'appId' }
+          },
           selectedReport: {
-            application: {
-              publicId: 'appId'
-            },
             scanId: 'scanId'
           }
         }
@@ -156,9 +160,11 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {
-            reportTitle: 'test',
             allEntries: [],
             scanId: 'scanId'
+          },
+          metadata: {
+            reportTitle: 'test'
           },
           isUnknownJs: false
         }
@@ -183,7 +189,6 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {
-            reportTitle: 'test',
             allEntries: [{
               filenames: ['foo.js'],
               policyThreatLevel: 0,
@@ -194,6 +199,9 @@ describe('applicationReportActions', function() {
               derivedViolationState: 'notViolating'
             }],
             scanId: 'scanId'
+          },
+          metadata: {
+            reportTitle: 'test'
           },
           isUnknownJs: true
         }
@@ -254,8 +262,10 @@ describe('applicationReportActions', function() {
     it('fires REEVALUATE_REPORT_FAILED action if the reevaluation request fails', function() {
       const initialState = {
             applicationReport: {
+              metadata: {
+                application: { publicId: 'appId' }
+              },
               selectedReport: {
-                application: { publicId: 'appId' },
                 scanId: 'scanId'
               }
             }
@@ -286,8 +296,10 @@ describe('applicationReportActions', function() {
     it('loads the report after reevaluation', function() {
       const initialState = {
             applicationReport: {
+              metadata: {
+                application: { publicId: 'appId' }
+              },
               selectedReport: {
-                application: { publicId: 'appId' },
                 scanId: 'scanId'
               },
               isUnknownJs: {}
@@ -322,7 +334,6 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {
-            reportTitle: 'test',
             allEntries: [{
               filenames: ['foo.js'],
               policyThreatLevel: 0,
@@ -333,6 +344,9 @@ describe('applicationReportActions', function() {
               derivedViolationState: 'notViolating'
             }],
             scanId: 'scanId'
+          },
+          metadata: {
+            reportTitle: 'test'
           },
           isUnknownJs: {}
         }
@@ -345,8 +359,10 @@ describe('applicationReportActions', function() {
     it('does not fire REEVALUATE_REPORT_FAILED if the load afterwards fails', function() {
       const initialState = {
             applicationReport: {
+              metadata: {
+                application: { publicId: 'appId' }
+              },
               selectedReport: {
-                application: { publicId: 'appId' },
                 scanId: 'scanId'
               }
             }

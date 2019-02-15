@@ -19,7 +19,8 @@ export default {
   controllerAs: 'vm',
   bindings: {
     selectedComponent: '<',
-    selectedReport: '<',
+    scanId: '<',
+    applicationPublicId: '<',
     reloadReport: '&'
   }
 };

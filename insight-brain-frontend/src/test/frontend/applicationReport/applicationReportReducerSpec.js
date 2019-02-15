@@ -62,7 +62,7 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_FULFILLED action', function() {
-    it('unsets loading flag and sets selectedReport and isUnknownJs values', function() {
+    it('unsets loading flag and sets selectedReport, metadata and isUnknownJs values', function() {
       const state = Object.freeze({
         loading: true,
         loadError: null,
@@ -77,6 +77,7 @@ describe('applicationReportReducer', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           report: {allEntries: entries},
+          metadata: {reportTitle: 'test'},
           isUnknownJs: false
         }
       });
@@ -91,6 +92,7 @@ describe('applicationReportReducer', function() {
           criticalViolationCount: 1,
           nonLowViolationCount: 3
         },
+        metadata: {reportTitle: 'test'},
         isUnknownJs: false,
         other: otherObject
       });

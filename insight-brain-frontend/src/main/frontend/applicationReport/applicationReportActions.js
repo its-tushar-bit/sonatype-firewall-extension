@@ -45,7 +45,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
           const partialMatches = results[4].data || undefined;
           const unknownJsResult = isUnknownJs && results[5].data || undefined;
           const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult, partialMatches);
-          return { ...metadata, allEntries, ...dataResult, scanId };
+          return {
+            report: { allEntries, ...dataResult, scanId },
+            metadata
+          };
         });
   }
 
@@ -56,8 +59,8 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
       });
 
       return fetchReportData(applicationPublicId, scanId, isUnknownJs)
-          .then((results) => {
-            dispatch(loadReportFulfilled(results, isUnknownJs));
+          .then(({ report, metadata }) => {
+            dispatch(loadReportFulfilled(report, metadata, isUnknownJs));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
@@ -68,13 +71,11 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
 
   function reloadReport() {
     return (dispatch, getState) => {
-      const isUnknownJs = getState().applicationReport.isUnknownJs;
-      const {application, scanId} = getState().applicationReport.selectedReport;
-      const applicationPublicId = application.publicId;
+      const {isUnknownJs, metadata, selectedReport} = getState().applicationReport;
 
-      return fetchReportData(applicationPublicId, scanId, isUnknownJs)
-          .then((results) => {
-            dispatch(loadReportFulfilled(results, isUnknownJs));
+      return fetchReportData(metadata.application.publicId, selectedReport.scanId, isUnknownJs)
+          .then(({ report, metadata }) => {
+            dispatch(loadReportFulfilled(report, metadata, isUnknownJs));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
@@ -83,10 +84,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function loadReportFulfilled(report, isUnknownJs) {
+  function loadReportFulfilled(report, metadata, isUnknownJs) {
     return {
       type: LOAD_REPORT_FULFILLED,
-      payload: { report, isUnknownJs }
+      payload: { report, metadata, isUnknownJs }
     };
   }
 
@@ -137,9 +138,9 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
 
   function reevaluateReport() {
     return (dispatch, getState) => {
-      const { selectedReport, isUnknownJs } = getState().applicationReport,
-          { application, scanId } = selectedReport,
-          applicationPublicId = application.publicId;
+      const { selectedReport, isUnknownJs, metadata } = getState().applicationReport,
+          { scanId } = selectedReport,
+          applicationPublicId = metadata.application.publicId;
 
       dispatch({
         type: REEVALUATE_REPORT_REQUESTED

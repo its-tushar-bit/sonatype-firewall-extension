@@ -394,7 +394,7 @@ public class PolicyViolationAggregationServiceTest
 
     aggregations = aggregationDAO.getByTimePeriod(WEEK);
 
-    assertThat(aggregations).size().isGreaterThan(1);
+    assertThat(aggregations).hasSizeGreaterThan(1);
     for (int i = 0; i < aggregations.size(); i++) {
       // only last weeks aggregation should expect a violation
       assertViolationOneWeekAgoFromMidMonth(aggregations.get(i), i == aggregations.size() - 2);

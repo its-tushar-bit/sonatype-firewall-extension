@@ -40,7 +40,7 @@ public class RoleDAOTest
   @Test
   public void testGetGlobalRoles() throws Exception {
     List<Role> roles = roleDAO.getGlobalRoles();
-    assertThat(roles).allMatch(Role::isGlobal).size().isGreaterThanOrEqualTo(2);
+    assertThat(roles).allMatch(Role::isGlobal).hasSizeGreaterThanOrEqualTo(2);
   }
 
   @Test

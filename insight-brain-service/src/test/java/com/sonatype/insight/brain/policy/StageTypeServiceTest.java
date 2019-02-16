@@ -5,15 +5,17 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.TestLicenseManager;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,131 +27,101 @@ public class StageTypeServiceTest
   private StageTypeService stageTypeService;
 
   @Inject
-  // note we solely use this to call installLicense() to flush the caches
-  private CLMLicenseManager clmLicenseManager;
+  private TestLicenseManager licenseManager;
 
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  @Test
+  public void testGetLicensedStageTypes_OrderedByComponentLifecycle() throws Exception {
+    List<StageType> all = new ArrayList<>(StageTypes.getAll());
+    Collections.reverse(all);
+    licenseManager.setStageTypes(all);
 
-  @After
-  public void cleanup() throws Exception {
-    productLicenseManager.reset();
-    clmLicenseManager.installLicense(null);
+    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly( //
+        StageTypes.PROXY, //
+        StageTypes.DEVELOP, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_Firewall() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextAll() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.STAGE_RELEASE,
-        StageTypes.RELEASE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT)).containsExactly( //
+        StageTypes.PROXY, //
+        StageTypes.DEVELOP, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_RiskRemediation() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextDashboard() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).containsExactly( //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_Risk() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextCI() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.RELEASE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT)).containsExactly( //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_Nexus() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextCli() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.STAGE_RELEASE,
-        StageTypes.RELEASE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CLI_CONTEXT)).containsExactly( //
+        StageTypes.DEVELOP, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_Foundation() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextQa() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.QA_CONTEXT)).containsExactly( //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_Foundation_Firewall() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextRm() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.RM_CONTEXT)).containsExactly( //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 
   @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextAll() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
+  public void testGetLicensedStageTypes_ContextMaven() throws Exception {
+    licenseManager.setStageTypes(StageTypes.getAll());
 
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT)).containsExactly(StageTypes.PROXY,
-        StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextDashboard() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT))
-        .containsExactly(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextCI() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT)).containsExactly(StageTypes.BUILD,
-        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextCli() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CLI_CONTEXT)).containsExactly(StageTypes.DEVELOP,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextQa() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.QA_CONTEXT)).containsExactly(StageTypes.BUILD,
-        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextRm() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.RM_CONTEXT)).containsExactly(StageTypes.BUILD,
-        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
-  }
-
-  @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextMaven() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    clmLicenseManager.installLicense(null);
-
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.MAVEN_CONTEXT)).containsExactly(
-        StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.MAVEN_CONTEXT)).containsExactly( //
+        StageTypes.DEVELOP, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
   }
 }

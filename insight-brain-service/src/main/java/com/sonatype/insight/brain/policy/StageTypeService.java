@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -23,7 +22,6 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 /**
  * @since 1.11
@@ -85,37 +83,9 @@ public class StageTypeService
     if (filter == null) {
       throw new IllegalArgumentException("Invalid context " + context);
     }
-    Collection<StageType> allowed = orderStages(calculateLicensedStages());
+    Collection<StageType> allowed = orderStages(licenseManager.getStageTypes());
     allowed = allowed.stream().filter(filter).collect(Collectors.toList());
     return Collections.unmodifiableCollection(allowed);
-  }
-
-  private Collection<StageType> calculateLicensedStages() {
-    Collection<StageType> allowed = new HashSet<>();
-
-    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION) ||
-        licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
-      // all allowed
-      allowed.addAll(StageTypes.getAll());
-    }
-
-    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
-      allowed.add(StageTypes.RELEASE);
-    }
-
-    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
-      allowed.add(StageTypes.STAGE_RELEASE);
-      allowed.add(StageTypes.RELEASE);
-    }
-
-    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
-      allowed.add(StageTypes.STAGE_RELEASE);
-      allowed.add(StageTypes.RELEASE);
-    }
-
-    allowed.add(StageTypes.PROXY);
-
-    return allowed;
   }
 
   /**

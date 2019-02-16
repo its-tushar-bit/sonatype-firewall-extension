@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
 import org.sonatype.licensing.LicensingException;
@@ -64,5 +66,25 @@ public class TestLicenseManager
   public void setMissingFeatures(Feature feature, Feature... features) {
     licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature, features)).toArray(new Feature[0]));
     reloadLicenseData();
+  }
+
+  @Override
+  public Set<StageType> getStageTypes() {
+    // stage types are normally derived based on the products
+    // for precise testing, we allow them to be manually overridden to a specific set
+    Set<StageType> stageTypes = licenseManager.getStageTypes();
+    if (stageTypes != null) {
+      return stageTypes;
+    }
+    return super.getStageTypes();
+  }
+
+  public void setStageTypes(StageType... stageTypes) {
+    licenseManager.setStageTypes(stageTypes);
+    reloadLicenseData();
+  }
+
+  public void setStageTypes(Collection<StageType> stageTypes) {
+    setStageTypes(stageTypes.toArray(new StageType[stageTypes.size()]));
   }
 }

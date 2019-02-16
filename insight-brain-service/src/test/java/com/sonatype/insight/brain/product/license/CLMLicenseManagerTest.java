@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
@@ -54,6 +55,7 @@ public class CLMLicenseManagerTest
     clmLicenseManager.uninstallLicense();
     assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
     assertThat(clmLicenseManager.getFeatures()).isEmpty();
+    assertThat(clmLicenseManager.getStageTypes()).isEmpty();
     assertThat(clmLicenseManager.getLicenseSummary()).isNotNull();
     assertThat(clmLicenseManager.getLicenseInfo()).isNotNull();
   }
@@ -181,13 +183,82 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+    installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
         Feature.DASHBOARD, //
         Feature.CI_INTEGRATION, //
         Feature.CLI_INTEGRATION, //
         Feature.RM_STAGING_INTEGRATION, //
         Feature.QUALITY);
+  }
+
+  @Test
+  public void testGetStageTypes_Auditor() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+
+    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.RELEASE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_NexusProPlus() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    installLicense();
+
+    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_Firewall() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+
+    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_FirewallForArtifactory() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    installLicense();
+
+    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_Lifecycle() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+
+    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.DEVELOP, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_Foundation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    installLicense();
+
+    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.DEVELOP, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE, //
+        StageTypes.PROXY);
   }
 
   @Test

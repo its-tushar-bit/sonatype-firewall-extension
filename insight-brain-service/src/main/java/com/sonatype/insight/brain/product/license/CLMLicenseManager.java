@@ -30,6 +30,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.licensing.LicensingException;
@@ -72,6 +74,8 @@ public class CLMLicenseManager
 
     private final Set<Feature> features;
 
+    private final Set<StageType> stageTypes;
+
     private final Integer applicationLimit;
 
     private final Integer maxUsers;
@@ -87,6 +91,7 @@ public class CLMLicenseManager
                              String contactEmail,
                              Set<String> products,
                              Set<Feature> features,
+                             Set<StageType> stageTypes,
                              Integer applicationLimit,
                              Integer maxUsers,
                              Integer maxFirewallUsers,
@@ -99,6 +104,7 @@ public class CLMLicenseManager
       this.contactEmail = contactEmail;
       this.products = products;
       this.features = features;
+      this.stageTypes = stageTypes;
       this.applicationLimit = applicationLimit;
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
@@ -195,10 +201,14 @@ public class CLMLicenseManager
   }
 
   public Set<Feature> getFeatures() {
-    return EnumSet.copyOf(licenseCache.features);
+    return Collections.unmodifiableSet(licenseCache.features);
   }
 
-  public boolean hasProduct(String productId) {
+  public Set<StageType> getStageTypes() {
+    return Collections.unmodifiableSet(licenseCache.stageTypes);
+  }
+
+  private boolean hasProduct(String productId) {
     return licenseCache.products.contains(productId);
   }
 
@@ -367,6 +377,7 @@ public class CLMLicenseManager
     Set<String> products = getProducts(key);
 
     Set<Feature> features = EnumSet.noneOf(Feature.class);
+    Set<StageType> stageTypes = new LinkedHashSet<>(); 
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       features.add(Feature.POLICY_MONITORING);
       features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
@@ -377,6 +388,7 @@ public class CLMLicenseManager
       features.add(Feature.POLICY_GRANDFATHERING);
       features.add(Feature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(Feature.RM_STAGING_INTEGRATION);
+      stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       features.add(Feature.QUALITY);
@@ -391,6 +403,7 @@ public class CLMLicenseManager
       features.add(Feature.IDE_INTEGRATION);
       features.add(Feature.CI_INTEGRATION);
       features.add(Feature.RM_STAGING_INTEGRATION);
+      stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
       features.add(Feature.ENFORCEMENT);
@@ -398,6 +411,8 @@ public class CLMLicenseManager
       features.add(Feature.POLICY_GRANDFATHERING);
       features.add(Feature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(Feature.RM_STAGING_INTEGRATION);
+      stageTypes.add(StageTypes.STAGE_RELEASE);
+      stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
       features.add(Feature.DASHBOARD);
@@ -405,22 +420,26 @@ public class CLMLicenseManager
       features.add(Feature.CI_INTEGRATION);
       features.add(Feature.RM_STAGING_INTEGRATION);
       features.add(Feature.QUALITY);
+      stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       features.add(Feature.FIREWALL);
       features.add(Feature.RM_STAGING_INTEGRATION);
       features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(Feature.WEBHOOKS_FOR_REPOSITORIES);
+      stageTypes.add(StageTypes.STAGE_RELEASE);
+      stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
       features.add(Feature.FIREWALL_FOR_ARTIFACTORY);
       features.add(Feature.RM_STAGING_INTEGRATION);
       features.add(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
+    stageTypes.add(StageTypes.PROXY);
 
     licenseCache = new CachedLicenseData(licenseFingerprint, key.getExpirationDate().getTime(), key.getContactName(),
-        key.getContactCompany(), key.getContactEmailAddress(), products, features, applicationCount, maxUsers,
-        maxFirewallUsers, maxFirewallForArtifactoryServers);
+        key.getContactCompany(), key.getContactEmailAddress(), products, features, stageTypes, applicationCount,
+        maxUsers, maxFirewallUsers, maxFirewallForArtifactoryServers);
     notifyListeners();
   }
 
@@ -489,7 +508,7 @@ public class CLMLicenseManager
 
   private void clearLicenseCache() {
     licenseCache = new CachedLicenseData(null, 0, null, null, null, Collections.emptySet(),
-        EnumSet.noneOf(Feature.class), 0, 0, 0, 0);
+        EnumSet.noneOf(Feature.class), Collections.emptySet(), 0, 0, 0, 0);
     notifyListeners();
   }
 

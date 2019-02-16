@@ -7,9 +7,11 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -19,6 +21,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -114,6 +117,15 @@ public class TestProductLicenseManager
     return mockProductLicenseManager.features;
   }
 
+  public void setStageTypes(StageType... stageTypes) {
+    wasChanged = true;
+    mockProductLicenseManager.setStageTypes(stageTypes);
+  }
+
+  public Set<StageType> getStageTypes() {
+    return mockProductLicenseManager.stageTypes;
+  }
+
   public Date getExpirationDate() {
     return mockProductLicenseManager.expirationDate;
   }
@@ -167,6 +179,8 @@ public class TestProductLicenseManager
         ProductLicenseDetails.PRODUCT_FIREWALL };
 
     private Set<Feature> features;
+
+    private Set<StageType> stageTypes;
 
     private Map<String, String> properties = new HashMap<>();
 
@@ -273,6 +287,14 @@ public class TestProductLicenseManager
           this.features.add(feature);
         }
 
+        createKey();
+      }
+    }
+
+    public void setStageTypes(StageType... stageTypes) {
+      if (valid) {
+        this.stageTypes = new LinkedHashSet<>();
+        Collections.addAll(this.stageTypes, stageTypes);
         createKey();
       }
     }

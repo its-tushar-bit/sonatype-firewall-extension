@@ -474,9 +474,10 @@ public class ScanPolicyEvaluator
   private void deletePreviousScanFile(String appId, Stage stage, String previousScanId) {
     File previousScanFile = work.getScanFile(appId, previousScanId);
     try {
-      Files.delete(previousScanFile.toPath());
-      log.debug("Deleted obsolete scan file for app ID {} and stage {}: {}.", appId, stage,
-          previousScanFile.getAbsolutePath());
+      if (Files.deleteIfExists(previousScanFile.toPath())) {
+        log.debug("Deleted obsolete scan file for app ID {} and stage {}: {}.", appId, stage,
+            previousScanFile.getAbsolutePath());
+      }
     }
     catch (Exception e) {
       log.error("Cannot delete previous scan file for app ID {} and stage {}: {}. Cause: {}", appId, stage,

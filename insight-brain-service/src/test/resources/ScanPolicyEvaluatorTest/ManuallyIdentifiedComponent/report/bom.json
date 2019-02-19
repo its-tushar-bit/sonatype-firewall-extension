@@ -1,0 +1,15 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "dummy.jar" ],
+    "pathnames" : [ "dummy.jar" ],
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5801a1a27a36f88e2089",
+    "relativePopularity" : 0.0,
+    "createTime" : null
+  } ]
+}

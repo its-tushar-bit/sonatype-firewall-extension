@@ -1,0 +1,21 @@
+{
+  "aaData" : [ {
+    "hash" : "1249e25aebb15358bedd",
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Sources" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 9,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : "LIBERAL",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 5.0,
+    "catalogDate" : 1201589122000
+  } ]
+}

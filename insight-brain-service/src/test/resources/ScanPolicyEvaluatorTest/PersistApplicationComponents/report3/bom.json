@@ -1,0 +1,18 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "tomcat-util-5.5.23.jar" ],
+    "pathnames" : [ "tomcat-util-5.5.23.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1249e25aebb15358bedd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1201589122000,
+    "lastModifiedTime" : 1399301298000,
+    "lastModifiedEntryTime" : 1173101098000,
+    "website" : null
+  } ]
+}

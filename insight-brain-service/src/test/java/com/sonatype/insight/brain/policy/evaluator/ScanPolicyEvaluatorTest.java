@@ -173,7 +173,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_Results_Evaluation() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
@@ -186,7 +186,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AllViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -198,7 +198,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyNameChange() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -213,7 +213,7 @@ public class ScanPolicyEvaluatorTest
     policy.setName("PolicyName1");
     new PolicyDAO().update(policy);
 
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage);
     assertThat(results2.activeViolations).allSatisfy(violation -> {
       assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
@@ -227,7 +227,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_WaivedViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     Policy policy = newSecurityPolicy();
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
 
@@ -271,7 +271,7 @@ public class ScanPolicyEvaluatorTest
     reset(mockTelemetrySender);
 
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(expectGrandfatheredViolations);
@@ -322,7 +322,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
 
     // This is the first evaluation. All policy violations should be grandfathered.
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(results1.activeViolations).hasSize(0);
@@ -337,12 +337,12 @@ public class ScanPolicyEvaluatorTest
     inactiveViolations.forEach(inactiveViolation -> policyViolationDAO.delete(inactiveViolation));
 
     // Evaluate again. No policy violations should be grandfathered.
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage1);
     assertThat(results2.activeViolations).hasSize(36);
 
     // Evaluate for a different stage. No policy violations should be grandfathered.
-    String scanId3 = simulateReportIsAvailable("report.zip");
+    String scanId3 = simulateReportIsAvailable("report");
     Stage stage2 = new Stage(Stage.ID_RELEASE);
     ScanPolicyEvaluatorResults results3 = scanPolicyEvaluator.evaluate(application, scanId3, stage2);
     assertThat(results3.activeViolations).hasSize(36);
@@ -361,7 +361,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
 
     // This is the first evaluation with foundation license. No policy violations should be grandfathered.
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(results1.activeViolations).hasSize(36);
@@ -377,7 +377,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
 
     // This is the first evaluation. All policy violations should be grandfathered.
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(results1.activeViolations).hasSize(0);
@@ -391,7 +391,7 @@ public class ScanPolicyEvaluatorTest
     clmLicenseManager.installLicense(null);
 
     // Evaluate again with foundation license. Policy violations continue to be grandfathered.
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage1);
     assertThat(results2.activeViolations).hasSize(0);
     inactiveViolations = getInactiveViolations(results2);
@@ -433,7 +433,7 @@ public class ScanPolicyEvaluatorTest
     newSecurityPolicy();
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     asyncEventBus.register(handler);
 
@@ -458,7 +458,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_DeletesPreviousScanFile() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     File scanFile1 = createScanFile(application, scanId1);
     scanPolicyEvaluator.evaluate(application, scanId1, stage);
     assertThat(scanFile1).isFile();
@@ -466,7 +466,7 @@ public class ScanPolicyEvaluatorTest
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
 
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     File scanFile2 = createScanFile(application, scanId2);
     scanPolicyEvaluator.evaluate(application, scanId2, stage);
     assertThat(scanFile1).doesNotExist();
@@ -477,7 +477,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_ReEvaluationDoesNotDeleteScanFile() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     File scanFile = createScanFile(application, scanId);
     scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(scanFile).isFile();
@@ -493,7 +493,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_DoesNotDeleteScanFileForDifferentStage() throws Exception {
     Stage stage1 = new Stage(Stage.ID_BUILD);
 
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     File scanFile1 = createScanFile(application, scanId1);
     scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     assertThat(scanFile1).isFile();
@@ -502,7 +502,7 @@ public class ScanPolicyEvaluatorTest
     waitForTimeAdvance();
 
     Stage stage2 = new Stage(Stage.ID_RELEASE);
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     File scanFile2 = createScanFile(application, scanId2);
     scanPolicyEvaluator.evaluate(application, scanId2, stage2);
     assertThat(scanFile1).isFile();
@@ -513,14 +513,14 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_CanReEvaluatePreviousScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     File scanFile1 = createScanFile(application, scanId1);
     scanPolicyEvaluator.evaluate(application, scanId1, stage);
 
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
 
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     createScanFile(application, scanId2);
     scanPolicyEvaluator.evaluate(application, scanId2, stage);
 
@@ -533,7 +533,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_UpdateFixedViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -556,7 +556,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_UpdateWaivedViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     Policy policy = newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -606,7 +606,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_ApplicationStageComponentCounts() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     scanPolicyEvaluator.evaluate(application, scanId, stage);
 
@@ -942,7 +942,7 @@ public class ScanPolicyEvaluatorTest
     String artifactId = "tomcat-util";
     String version = "5.5.23";
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
 
@@ -979,7 +979,7 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newLicenseOverride(application.getOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -995,7 +995,7 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.ACKNOWLEDGED,
         (String) null /* licenseId */, " My comment");
 
-    scanId = simulateReportIsAvailable("report.zip");
+    scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1015,7 +1015,7 @@ public class ScanPolicyEvaluatorTest
     tempEntity.newSecurityVulnerabilityOverride(application.getId(), hash, "cve", "CVE-2009-1524",
         SecurityVulnerabilityOverrideStatus.CONFIRMED, " My comment");
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1036,7 +1036,7 @@ public class ScanPolicyEvaluatorTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1102,7 +1102,7 @@ public class ScanPolicyEvaluatorTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("G", "A", "V");
     tempEntity.newClaimedComponent(hash, componentIdentifier);
 
-    String scanId = simulateReportIsAvailable("ManuallyIdentifiedComponent/report.zip");
+    String scanId = simulateReportIsAvailable("ManuallyIdentifiedComponent/report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1121,7 +1121,7 @@ public class ScanPolicyEvaluatorTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1192,7 +1192,7 @@ public class ScanPolicyEvaluatorTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     scanPolicyEvaluator.evaluate(application, scanId, stage);
@@ -1236,7 +1236,7 @@ public class ScanPolicyEvaluatorTest
     newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 
     // Evaluate policy for the Build stage
-    String scanBuildId = simulateReportIsAvailable("report.zip");
+    String scanBuildId = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
     PolicyEvaluation policyEvaluationBuild = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
@@ -1249,7 +1249,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(policyViolationsBuild.get(0).getOpenTime()).isEqualTo(policyEvaluationBuild.getTime());
 
     // Evaluate policy for the Release stage
-    String scanReleaseId = simulateReportIsAvailable("report.zip");
+    String scanReleaseId = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanReleaseId, new Stage(Stage.ID_RELEASE));
     PolicyEvaluation policyEvaluationRelease = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_RELEASE);
@@ -1270,7 +1270,7 @@ public class ScanPolicyEvaluatorTest
     Stage stage = new Stage(Stage.ID_BUILD);
 
     // Evaluate policy for scanId1
-    String scanId1 = simulateReportIsAvailable("report.zip");
+    String scanId1 = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanId1, stage);
     assertPolicyEvaluation(scanId1, false /* isReevaluation */);
 
@@ -1278,7 +1278,7 @@ public class ScanPolicyEvaluatorTest
     Thread.sleep(1);
 
     // Evaluate policy for scanId2
-    String scanId2 = simulateReportIsAvailable("report.zip");
+    String scanId2 = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanId2, stage);
     assertPolicyEvaluation(scanId2, false /* isReevaluation */);
 
@@ -1296,7 +1296,7 @@ public class ScanPolicyEvaluatorTest
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage1.getStageTypeId()))
         .isEmpty();
-    String scanId1 = simulateReportIsAvailable("PersistApplicationComponents/report1.zip");
+    String scanId1 = simulateReportIsAvailable("PersistApplicationComponents/report1");
     scanPolicyEvaluator.evaluate(application, scanId1, stage1);
     List<ApplicationComponent> appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
         stage1.getStageTypeId());
@@ -1312,7 +1312,7 @@ public class ScanPolicyEvaluatorTest
     // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage2.getStageTypeId()))
         .isEmpty();
-    String scanId2 = simulateReportIsAvailable("PersistApplicationComponents/report2.zip");
+    String scanId2 = simulateReportIsAvailable("PersistApplicationComponents/report2");
     scanPolicyEvaluator.evaluate(application, scanId2, stage2);
     List<ApplicationComponent> appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
         stage2.getStageTypeId());
@@ -1330,7 +1330,7 @@ public class ScanPolicyEvaluatorTest
 
     // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
     // should not touch the app<->component assocs for the second stage.
-    String scanId3 = simulateReportIsAvailable("PersistApplicationComponents/report3.zip");
+    String scanId3 = simulateReportIsAvailable("PersistApplicationComponents/report3");
     scanPolicyEvaluator.evaluate(application, scanId3, stage1);
     List<ApplicationComponent> appComponents3 = appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
         stage1.getStageTypeId());
@@ -1353,7 +1353,7 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
     // The waiver will waive one policy violation, leaving two active policy violations.
     tempEntity.newWaiver("f2e35e4a21f07d25710f", policy.getId(), application.getId(), "Waiver comment here");
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator
@@ -1387,7 +1387,7 @@ public class ScanPolicyEvaluatorTest
     Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
     // The waiver will waive one policy violation, leaving two active policy violations.
     tempEntity.newWaiver("f2e35e4a21f07d25710f", policy.getId(), application.getId(), "Waiver comment here");
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
 
     // Evaluate policy
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator
@@ -1417,7 +1417,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate() throws Exception {
     newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 
-    String scanBuildId = simulateReportIsAvailable("report.zip");
+    String scanBuildId = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator
         .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
     PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
@@ -1433,7 +1433,7 @@ public class ScanPolicyEvaluatorTest
 
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
-    String scanBuildId = simulateReportIsAvailable("report.zip");
+    String scanBuildId = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator
         .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));
     PolicyEvaluationResult evaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
@@ -1446,7 +1446,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyViolationLogger_CreateAndFixPolicyViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     Policy policy = newSecurityPolicy();
 
     // First evaluation, all policy violations are new, all logged
@@ -1550,11 +1550,11 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyViolationLogger_DoesNotLogPolicyViolationsForNonLatestScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanId, stage);
     // Make sure we don't have two evaluations at exactly the same time
     waitForTimeAdvance();
-    scanPolicyEvaluator.evaluate(application, simulateReportIsAvailable("report.zip"), stage);
+    scanPolicyEvaluator.evaluate(application, simulateReportIsAvailable("report"), stage);
     newSecurityPolicy();
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);

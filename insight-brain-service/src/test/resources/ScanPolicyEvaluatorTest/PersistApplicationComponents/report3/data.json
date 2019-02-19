@@ -1,0 +1,14 @@
+{
+  "totalArtifactCount" : 1,
+  "weakcopyleftLicenseCount" : 0,
+  "keyFindings" : [ ],
+  "securityCounts" : [ 0, 0, 0, 0, 0, 4, 5, 0, 0, 0 ],
+  "nonStandardLicenseCount" : 0,
+  "knownArtifactCount" : 1,
+  "copyleftLicenseCount" : 0,
+  "liberalLicenseCount" : 1,
+  "notProvidedLicenseCount" : 0,
+  "securityPunchCard" : [ [ 0, 9, 0 ] ],
+  "licensePunchCard" : [ [ 0, 0, 0 ] ],
+  "insecureArtifactCount" : 1
+}

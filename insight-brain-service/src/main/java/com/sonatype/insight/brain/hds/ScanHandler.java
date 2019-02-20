@@ -56,8 +56,6 @@ public class ScanHandler
 {
   private static final Logger log = LoggerFactory.getLogger(ScanHandler.class);
 
-  public static final String TWISTLOCK_SCAN_FILENAME_SUFFIX = "-twistlock";
-
   private final InsightWork work;
 
   private final ScanUploader scanUploader;
@@ -99,13 +97,21 @@ public class ScanHandler
 
     File tempScanFile = saveScanFromHttpRequest(httpRequest, app, clientScanType);
 
-    File tempTwistlockScanFile = null;
     if (ClientScanType.TWISTLOCK.equals(clientScanType)) {
-      tempTwistlockScanFile = tempScanFile;
-
+      File tempTwistlockScanFile = tempScanFile;
       ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
           app.getPublicId());
-      tempScanFile = convertTwistlockScan(tempTwistlockScanFile, proprietaryConfig);
+      try {
+        tempScanFile = convertTwistlockScan(tempTwistlockScanFile, proprietaryConfig);
+      }
+      finally {
+        try {
+          Files.delete(tempTwistlockScanFile.toPath());
+        }
+        catch (IOException e) {
+          log.warn(e.getMessage(), e);
+        }
+      }
     }
 
     ScanReceipt scanReceipt = scanUploader.upload(httpRequest, tempScanFile, app);
@@ -115,9 +121,6 @@ public class ScanHandler
     else {
       File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
       FileUtils.rename(tempScanFile, scanFile);
-      if (tempTwistlockScanFile != null) {
-        FileUtils.rename(tempTwistlockScanFile, toTwistlockScanFilename(scanFile));
-      }
     }
 
     log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
@@ -170,12 +173,6 @@ public class ScanHandler
 
     log.debug("Converted {} scan in {} ms.", ClientScanType.TWISTLOCK, System.currentTimeMillis() - start);
     return scanFile;
-  }
-
-  private File toTwistlockScanFilename(File scanFile) {
-    File path = scanFile.getParentFile();
-    String twistlockFilename = scanFile.getName().replaceFirst("\\.", TWISTLOCK_SCAN_FILENAME_SUFFIX + ".");
-    return new File(path, twistlockFilename);
   }
 
   /**

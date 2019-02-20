@@ -122,6 +122,7 @@ public class ScanHandlerTest
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
+    assertThat(work.getScanDir(app.getId()).listFiles()).hasSize(1);
     File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile).isFile();
 
@@ -243,5 +244,17 @@ public class ScanHandlerTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
     }).withMessage("Could not find an application with public ID NoSuchAppPublicID.");
+  }
+
+  @Test
+  public void testHandle_FailedConversion_DeletesTwistlockArchive() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(new byte[0]));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> scanHandler.handle(servletRequest, application.getPublicId(), ClientScanType.TWISTLOCK));
+
+    assertThat(work.getScanDir(application.getId()).listFiles()).isEmpty();
   }
 }

@@ -34,10 +34,10 @@ public class DeleteModal
   }
 
   public static SelenideElement continueButton() {
-    return root().$(".btn-primary");
+    return root().$(".iq-btn--primary");
   }
 
   public static SelenideElement cancelButton() {
-    return root().$(".btn:not(.btn-primary)[type='button']");
+    return root().$(".iq-btn:not(.iq-btn--primary)[type='button']");
   }
 }

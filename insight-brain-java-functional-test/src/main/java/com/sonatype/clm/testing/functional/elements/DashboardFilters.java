@@ -207,11 +207,11 @@ public class DashboardFilters
     }
 
     public SelenideElement continueButton() {
-      return child(".iq-modal-footer", ".btn-primary");
+      return child(".iq-modal-footer", ".iq-btn--primary");
     }
 
     public SelenideElement cancelButton() {
-      return child(".btn:not(.btn-primary)[type='button']");
+      return child(".iq-btn:not(.iq-btn--primary)[type='button']");
     }
   }
 

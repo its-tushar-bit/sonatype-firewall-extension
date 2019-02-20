@@ -15,15 +15,15 @@
     </div>
     <div class="iq-modal-footer" ng-class="{ error : vm.error }">
       <div ng-if="vm.error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i> {{ vm.error }}
+        <i class="fa fa-warning"></i>{{ vm.error }}
       </div>
-      <button ng-if="!vm.error" class="btn btn-primary" type="submit">
+      <button ng-if="!vm.error" class="iq-btn iq-btn--primary" type="submit">
         Continue
       </button>
-      <button ng-if="vm.error" class="btn btn-error" type="submit">
-        <i class="fa fa-refresh"></i> Retry
+      <button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit">
+        <i class="fa fa-refresh"></i>Retry
       </button>
-      <button class="btn btn-dismiss" type="button" ng-click="$dismiss()">Cancel</button>
+      <button class="iq-btn" type="button" ng-click="$dismiss()">Cancel</button>
     </div>
   </form>
 </div>

@@ -5,36 +5,45 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-public class RepositoryResourceAuditTest
+import com.sonatype.insight.brain.features.Feature;
+
+import org.junit.Before;
+
+public class ArtifactoryRepositoryResourceAuditTest
     extends AbstractRepositoryResourceAuditTest
 {
+  @Before
+  public void init() {
+    getTestProductLicenseManager().setFeatures(Feature.FIREWALL_FOR_ARTIFACTORY);
+  }
+
   @Override
   protected String getEnablePath() {
-    return RepositoryResource.ENABLE_PATH;
+    return ArtifactoryRepositoryResource.ENABLE_PATH;
   }
 
   @Override
   protected String getResourcePath() {
-    return RepositoryResource.RESOURCE_PATH;
+    return ArtifactoryRepositoryResource.RESOURCE_PATH;
   }
 
   @Override
   protected String getEvaluateComponentsPath() {
-    return RepositoryResource.EVALUATE_COMPONENTS_PATH;
+    return ArtifactoryRepositoryResource.EVALUATE_COMPONENTS_PATH;
   }
 
   @Override
   protected String getQuarantinePath() {
-    return RepositoryResource.QUARANTINE_PATH;
+    return ArtifactoryRepositoryResource.QUARANTINE_PATH;
   }
 
   @Override
   protected String getComponentsPath() {
-    return RepositoryResource.COMPONENTS_PATH;
+    return ArtifactoryRepositoryResource.COMPONENTS_PATH;
   }
 
   @Override
   protected String getEvaluateComponentWithQuarantinePath() {
-    return RepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH;
+    return ArtifactoryRepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH;
   }
 }

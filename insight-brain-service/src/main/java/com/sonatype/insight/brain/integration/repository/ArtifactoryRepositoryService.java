@@ -16,25 +16,22 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 
-/**
- * @since 1.17.0
- */
 @Named
-public class RepositoryService extends AbstractRepositoryService
+public class ArtifactoryRepositoryService extends AbstractRepositoryService
 {
   @Inject
-  public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                           CLMLicenseManager licenseManager,
-                           PolicyThreatsAdapter policyThreatsAdapter,
-                           HdsClient hdsClient,
-                           PolicyViolationLoggerFactory policyViolationLoggerFactory)
+  public ArtifactoryRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+                                      CLMLicenseManager licenseManager,
+                                      PolicyThreatsAdapter policyThreatsAdapter,
+                                      HdsClient hdsClient,
+                                      PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     super(repositoryPolicyEvaluator, licenseManager, policyThreatsAdapter, hdsClient, policyViolationLoggerFactory);
   }
 
   @Override
   protected void checkLicenseFeature() {
-    if (!licenseManager.hasFeature(Feature.FIREWALL)) {
+    if (!licenseManager.hasFeature(Feature.FIREWALL_FOR_ARTIFACTORY)) {
       throw new InvalidLicenseException();
     }
   }

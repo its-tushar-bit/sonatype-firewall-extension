@@ -14,8 +14,8 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
-import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
+import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.RepositoriesDTO;
+import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;

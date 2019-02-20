@@ -7,14 +7,27 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 
-public class RepositoryServiceAuthzTest
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.features.Feature;
+
+import org.junit.Before;
+
+public class ArtifactoryRepositoryServiceAuthzTest
     extends AbstractRepositoryServiceAuthzTest
 {
   @Inject
-  private RepositoryService repositoryService;
+  TestProductLicenseManager licenseManager;
+
+  @Inject
+  private ArtifactoryRepositoryService repositoryService;
 
   @Override
   protected AbstractRepositoryService getRepositoryService() {
     return repositoryService;
+  }
+
+  @Before
+  public void init() {
+    licenseManager.setFeatures(Feature.FIREWALL_FOR_ARTIFACTORY);
   }
 }

@@ -7,17 +7,25 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 
-/**
- * @since 1.17
- */
-public class RepositoryServiceTest
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+
+import org.junit.Before;
+
+public class ArtifactoryRepositoryServiceTest
     extends AbstractRepositoryServiceTest
 {
   @Inject
-  private RepositoryService repositoryService;
+  private ArtifactoryRepositoryService repositoryService;
 
   @Override
   protected AbstractRepositoryService getRepositoryService() {
     return repositoryService;
+  }
+
+  @Before
+  public void setArtifactoryLicense() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    clmLicenseManager.installLicense(null);
   }
 }

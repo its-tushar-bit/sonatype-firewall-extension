@@ -20,9 +20,9 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.RepositoriesDTO;
+import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
-import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
-import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 
 import com.codahale.metrics.annotation.Timed;
 

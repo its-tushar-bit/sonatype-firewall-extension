@@ -140,9 +140,8 @@ public class PolicyMonitor
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
         policyMonitoring.getStageTypeId());
 
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
-        app.getId(), policyMonitoring.getStageTypeId());
+    PolicyEvaluation lastPrimaryPolicyEvaluation = new PolicyEvaluationDAO()
+        .getLastPrimaryByApplicationIdAndStageId(app.getId(), policyMonitoring.getStageTypeId());
     if (lastPrimaryPolicyEvaluation == null) {
       AuditData.get().setEvent(null);
       log.info("There is nothing to monitor for application '{}' because there is no scan for stage '{}'",
@@ -151,9 +150,41 @@ public class PolicyMonitor
     }
 
     // Copy the last scan file to a new scan file that will get a new scan id.
-    String lastScanId = lastPrimaryPolicyEvaluation.getScanId();
+    // The tests assume that the temp file is created in the scan directory for the given app.
+    // If the location of the temp files is changed, the tests need to be updated.
     File tempScanFile = work.getScanFile(app.getId(), "tmp-" + UUID.randomUUID());
-    ScanReceipt scanReceipt;
+
+    String newScanId = null;
+    try {
+      cloneScanFile(tempScanFile, app, lastPrimaryPolicyEvaluation);
+      newScanId = uploadScan(tempScanFile, app);
+    }
+    catch (Exception e) {
+      try {
+        Files.deleteIfExists(tempScanFile.toPath());
+      }
+      catch (IOException fileDeleteException) {
+        log.warn(fileDeleteException.getMessage(), fileDeleteException);
+      }
+
+      throw e;
+    }
+
+    // Evaluate policies and send notifications
+    Stage stage = new Stage(policyMonitoring.getStageTypeId());
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(app, newScanId, stage);
+    policyAlertNotifier.sendNotifications(app, results);
+
+    log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(),
+        System.currentTimeMillis() - start);
+  }
+
+  private void cloneScanFile(
+      File tempScanFile,
+      Application app,
+      PolicyEvaluation lastPrimaryPolicyEvaluation) throws IOException
+  {
+    String lastScanId = lastPrimaryPolicyEvaluation.getScanId();
     do {
       File lastScanFile = work.getScanFile(app.getId(), lastScanId);
       try {
@@ -163,8 +194,8 @@ public class PolicyMonitor
       catch (Exception e) {
         // Each policy evaluation deletes the scan file for the previous evaluation, which may cause this exception.
         // If there is a newer scan file, try again.
-        PolicyEvaluation newLastPrimaryPolicyEvaluation = policyEvaluationDAO
-            .getLastPrimaryByApplicationIdAndStageId(app.getId(), policyMonitoring.getStageTypeId());
+        PolicyEvaluation newLastPrimaryPolicyEvaluation = new PolicyEvaluationDAO()
+            .getLastPrimaryByApplicationIdAndStageId(app.getId(), lastPrimaryPolicyEvaluation.getStageTypeId());
         if (lastScanId.equals(newLastPrimaryPolicyEvaluation.getScanId())) {
           // There's no newer scan file.
           throw e;
@@ -175,19 +206,14 @@ public class PolicyMonitor
       }
     }
     while (true);
+  }
 
-    // Upload the scan and rename the new scan file using the new scan id.
-    scanReceipt = uploader.upload(tempScanFile, app);
+  private String uploadScan(File tempScanFile, Application app) throws IOException, InterruptedException {
+    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app);
     scanReceipt.waitForReport();
-    String newScanId = scanReceipt.getScanId();
-    Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), newScanId).toPath());
+    String scanId = scanReceipt.getScanId();
+    Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), scanId).toPath());
 
-    // Evaluate policies and send notifications
-    Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(app, newScanId, stage);
-    policyAlertNotifier.sendNotifications(app, results);
-
-    log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()
-        - start);
+    return scanId;
   }
 }

@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
@@ -608,6 +609,29 @@ public class PolicyMonitorTest
     assertThat(reportCacheDir).isDirectory();
     File policyAlertsFile = new File(reportCacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
     assertThat(policyAlertsFile).isFile();
+  }
+
+  @Test
+  public void testEvaluate_TempScanFileIsDeletedWhenHdsUploadFails() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Stage stage = new Stage(ReleaseStageType.ID);
+    PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    String scanId = "scanId";
+    File scanFile = createScanFile(app, scanId, "test");
+
+    // Simulate that the report is available and evaluate policies
+    mockScanReceiptAndReport(scanId);
+    evaluatePolicy(app.getPublicId(), scanId, stage);
+
+    // Mock an HDS error on scan upload and evaluate policies again.
+    setHdsResponseForURI("rest/application/analysis", "HDS Error", 500);
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> policyMonitor.evaluate(app, policyMonitoring));
+
+    // Verify there are no temp scan files left behind.
+    File[] scanFiles = insightWork.getScanDir(app.getId()).listFiles();
+    assertThat(scanFiles).containsExactly(scanFile);
   }
 
   private File createScanFile(Application app, String scanId) {

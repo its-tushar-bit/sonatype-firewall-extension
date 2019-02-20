@@ -66,7 +66,7 @@ public class RepositoryPolicyViolationDAO
     }
   }
 
-  public List<RepositoryPolicyViolation> getByRepositoryId(TransactionContext tx, String repositoryId) {
+  private List<RepositoryPolicyViolation> getByRepositoryId(TransactionContext tx, String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1";
     return getList(tx, sQuery, repositoryId);

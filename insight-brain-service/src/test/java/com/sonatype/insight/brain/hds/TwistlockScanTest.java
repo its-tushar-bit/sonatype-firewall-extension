@@ -19,12 +19,6 @@ public class TwistlockScanTest
   }
 
   @Test
-  public void testGetAnalysisJson() throws Exception {
-    TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getAnalysisJson()).isEqualTo(readFile("expected-analysis.json"));
-  }
-
-  @Test
   public void testGetFilesJson() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
     assertThat(twistlockScan.getFilesJson()).isEqualTo(readFile("expected-files.json"));

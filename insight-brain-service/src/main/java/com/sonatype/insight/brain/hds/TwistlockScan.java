@@ -33,10 +33,6 @@ public class TwistlockScan
     this.scanFile = scanFile;
   }
 
-  public String getAnalysisJson() {
-    return getTwistlockFileContent("/analysis.json");
-  }
-
   public String getFilesJson() {
     return getTwistlockFileContent("/files.json");
   }

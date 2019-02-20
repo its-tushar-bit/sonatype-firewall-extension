@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
+import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 
 public interface RestClient
 {
@@ -41,6 +42,10 @@ public interface RestClient
     App forApplication(String appId);
 
     Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId);
+
+    Repository forRepository(final String repositoryManagerInstanceId,
+                             final String repositoryPublicId,
+                             final RepositoryManagerType repositoryManagerType);
 
     /**
      * @since 1.30

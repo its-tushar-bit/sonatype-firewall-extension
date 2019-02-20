@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
+import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
@@ -56,7 +57,15 @@ public class RestClientFactory
                                    final String repositoryManagerInstanceId,
                                    final String repositoryPublicId)
   {
-    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId);
+    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+  }
+
+  FirewallClient newFirewallClient(final Configuration config,
+                                   final String repositoryManagerInstanceId,
+                                   final String repositoryPublicId,
+                                   final RepositoryManagerType repositoryManagerType)
+  {
+    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType);
   }
 
   FirewallMigrationClient newFirewallMigrationClient(final Configuration config) {
@@ -130,7 +139,17 @@ public class RestClientFactory
 
     @Override
     public Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId) {
-      return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId);
+      return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId,
+          RepositoryManagerType.NEXUS);
+    }
+
+    @Override
+    public Repository forRepository(final String repositoryManagerInstanceId,
+                                    final String repositoryPublicId,
+                                    final RepositoryManagerType repositoryManagerType)
+    {
+      return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId,
+          repositoryManagerType);
     }
 
     @Override
@@ -172,14 +191,18 @@ public class RestClientFactory
     private final String repositoryManagerInstanceId;
 
     private final String repositoryPublicId;
+    
+    private final RepositoryManagerType repositoryManagerType;
 
     public RepositorySpecificClient(final Configuration config,
                                     final String repositoryManagerInstanceId,
-                                    final String repositoryPublicId)
+                                    final String repositoryPublicId,
+                                    final RepositoryManagerType repositoryManagerType)
     {
       super(config);
       this.repositoryManagerInstanceId = repositoryManagerInstanceId;
       this.repositoryPublicId = repositoryPublicId;
+      this.repositoryManagerType = repositoryManagerType;
     }
 
     @Override

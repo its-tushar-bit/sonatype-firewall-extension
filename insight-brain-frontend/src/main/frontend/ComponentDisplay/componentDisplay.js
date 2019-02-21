@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { join, map, pipe, prop, replace } from 'ramda';
+
+import template from './componentDisplay.html';
 
 export default {
   controllerAs: 'vm',
@@ -10,17 +13,41 @@ export default {
     component: '<',
     truncate: '<'
   },
-  template: `
-    <div>
-       <div ng-if="vm.component.displayName" ng-class="{'truncate-ellipsis': vm.truncate}">
-         <component-name name="vm.component.displayName"></component-name>
-       </div>
-       <div ng-if="!vm.component.displayName && (vm.component.filename || vm.component.filenames)"
-            ng-class="{'truncate-ellipsis': vm.truncate}">
-         <filename-display component="vm.component"></filename-display>
-       </div>
-       <div ng-if="!vm.component.displayName && !vm.component.filename" ng-class="{'truncate-ellipsis': vm.truncate}">
-         <div><em>Unknown</em></div>
-       </div>
-    </div>`
+  template,
+  controller: ComponentDisplayController
 };
+
+function ComponentDisplayController($scope) {
+  const vm = this;
+
+  Object.assign(vm, {
+    displayName: undefined,
+    filename: undefined,
+
+    $onInit() {
+      $scope.$watchGroup(['vm.component.displayName', 'vm.component.filename', 'vm.component.filenames'],
+          vm.updateDisplay);
+      vm.updateDisplay();
+    },
+
+    updateDisplay() {
+      const { displayName, filename, filenames } = vm.component;
+
+      vm.displayName = displayName && formatComponentDisplayName(displayName);
+      vm.filename = filename || (filenames && join(', ', filenames));
+    }
+  });
+}
+
+ComponentDisplayController.$inject = ['$scope'];
+
+// NOTE: You can't see it, but we are replacing the periods with a period followed by a zero-width space.
+// This makes our periods into word breaking delimiters. Also, we only replace the periods in between words as
+// to preserve version numbers.
+const addWordBreakAfterPeriods = replace(/(?=\.\D+)\.(?=\D+)/g, '.​'),
+    formatComponentDisplayName = pipe(
+        prop('parts'),
+        map(prop('value')),
+        join(''),
+        addWordBreakAfterPeriods
+    );

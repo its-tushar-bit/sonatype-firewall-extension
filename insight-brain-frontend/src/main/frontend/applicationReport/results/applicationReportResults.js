@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { isNil, splitAt } from 'ramda';
+
 import template from './applicationReportResults.html';
 import cipModalWrapper from './cipModalWrapper.html';
 
@@ -12,11 +14,15 @@ export default {
   controller: ApplicationReportResultsController
 };
 
-function ApplicationReportResultsController($state, $ngRedux, $scope, applicationReportActions, Modal, OwnerContext,
-                                            CLMLocations) {
+function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, applicationReportActions, Modal,
+                                            OwnerContext, CLMLocations) {
   const vm = this;
 
   Object.assign(vm, {
+    renderedEntries: [],
+
+    updateRenderedEntriesPromise: null,
+
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
       $scope.$watch('vm.metadata', function(metadata) {
@@ -24,6 +30,8 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
           OwnerContext.setOwnerId(metadata.application.publicId);
         }
       });
+
+      $scope.$watch('vm.selectedReport.displayedEntries', updateRenderedEntries);
     },
 
     $onDestroy() {
@@ -61,6 +69,33 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, applicatio
       return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.selectedReport.scanId);
     }
   });
+
+  // rendering thousands of rows at once can cause a noticeable UI freeze while all the angular code runs.
+  // To help mitigate this, add the rows in chunks
+  function updateRenderedEntries() {
+    if (vm.updateRenderedEntriesPromise) {
+      $timeout.cancel(vm.updateRenderedEntriesPromise);
+    }
+
+    vm.renderedEntries = [];
+
+    if (!isNil(vm.selectedReport)) {
+      doUpdateStep(vm.selectedReport.displayedEntries);
+    }
+  }
+
+  function doUpdateStep(remainingEntries) {
+    const [firstChunk, furtherRemainingEntries] = splitAt(100, remainingEntries);
+
+    vm.renderedEntries = vm.renderedEntries.concat(firstChunk);
+
+    if (furtherRemainingEntries.length) {
+      // NOTE the delay of 1 is only necessary due to unit tests - angular-mock's fake implementation
+      // of $timeout gets confused when everything has a delay of zero and flushes chained timeouts as
+      // opposed to only timeouts that existed at the time flush was called
+      vm.updateRenderedEntriesPromise = $timeout(doUpdateStep, 1, true, furtherRemainingEntries);
+    }
+  }
 }
 
 function mapStateToThis({applicationReport}) {
@@ -68,5 +103,5 @@ function mapStateToThis({applicationReport}) {
 }
 
 ApplicationReportResultsController.$inject = [
-  '$state', '$ngRedux', '$scope', 'applicationReportActions', 'Modal', 'OwnerContext', 'CLMLocations'
+  '$state', '$ngRedux', '$scope', '$timeout', 'applicationReportActions', 'Modal', 'OwnerContext', 'CLMLocations'
 ];

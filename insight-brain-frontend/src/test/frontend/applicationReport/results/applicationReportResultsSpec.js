@@ -1,3 +1,5 @@
+import { range } from 'ramda';
+
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
 
 describe('applicationReportResults', function() {
@@ -40,11 +42,82 @@ describe('applicationReportResults', function() {
       expect(OwnerContext.setOwnerId).toHaveBeenCalledWith('test-application-23424iufg');
     });
 
-    it('watches vm.selectedReport and handles null value', function() {
+    it('watches vm.metadata and handles null value', function() {
       spyOn(OwnerContext, 'setOwnerId');
       vm.metadata = null;
       scope.$digest();
       expect(OwnerContext.setOwnerId).not.toHaveBeenCalled();
+    });
+
+  });
+
+  describe('vm.selectedReport.displayedEntries watcher', function() {
+    let $timeout;
+
+    beforeEach(inject(function(_$timeout_) {
+      $timeout = _$timeout_;
+    }));
+
+    afterEach(function() {
+      $timeout.verifyNoPendingTasks();
+    });
+
+    it('populates vm.renderedEntries in chunks of 100 at a time', function() {
+      expect(vm.renderedEntries).toEqual([]);
+
+      vm.selectedReport = { displayedEntries: [1, 2, 3] };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual([1, 2, 3]);
+
+      vm.selectedReport = { displayedEntries: range(1, 351) };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual(range(1, 101));
+
+      $timeout.flush();
+      expect(vm.renderedEntries).toEqual(range(1, 201));
+
+      $timeout.flush();
+      expect(vm.renderedEntries).toEqual(range(1, 301));
+
+      $timeout.flush();
+      expect(vm.renderedEntries).toEqual(range(1, 351));
+    });
+
+    it('restarts populating vm.renderedEntries if vm.selectedReport.displayedEntries changes while it is in ' +
+        'progress', function() {
+      vm.selectedReport = { displayedEntries: range(1, 351) };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual(range(1, 101));
+
+      $timeout.flush();
+      expect(vm.renderedEntries).toEqual(range(1, 201));
+
+      vm.selectedReport = { displayedEntries: range(5, 151) };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual(range(5, 105));
+
+      $timeout.flush();
+      expect(vm.renderedEntries).toEqual(range(5, 151));
+    });
+
+    it('clears vm.renderedEntries when vm.selectedReport is not defined', function() {
+      vm.selectedReport = { displayedEntries: [1, 2, 3] };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual([1, 2, 3]);
+
+      vm.selectedReport = null;
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual([]);
+    });
+
+    it('clears vm.renderedEntries when vm.selectedReport.displayedEntries is empty', function() {
+      vm.selectedReport = { displayedEntries: [1, 2, 3] };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual([1, 2, 3]);
+
+      vm.selectedReport = { displayedEntries: [] };
+      scope.$digest();
+      expect(vm.renderedEntries).toEqual([]);
     });
   });
 

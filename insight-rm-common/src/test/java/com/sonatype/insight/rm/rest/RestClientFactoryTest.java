@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
+import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -112,10 +113,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     repository.setEnabled(true);
 
     verify(firewallClient).setEnabled(true);
@@ -131,10 +133,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     repository.setQuarantine(true);
 
     verify(firewallClient).setQuarantine(true);
@@ -150,10 +153,11 @@ public class RestClientFactoryTest
 
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     repository.removeComponent("somepath");
 
     verify(firewallClient).removeComponent("somepath");
@@ -169,10 +173,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     repository.evaluateComponents(null);
 
     verify(firewallClient).evaluateComponents(null);
@@ -188,10 +193,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     repository.evaluateComponentWithQuarantine(null);
 
     verify(firewallClient).evaluateComponentWithQuarantine(null);
@@ -207,10 +213,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     repository.getUnquarantinedComponents(0L);
 
     verify(firewallClient).getUnquarantinedComponents(0L);
@@ -231,10 +238,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       repository.getUnquarantinedComponents(0L);
     }).isSameAs(httpResponseException);
@@ -254,10 +262,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
       repository.getUnquarantinedComponents(0L);
     }).withCause(httpResponseException);
@@ -282,10 +291,11 @@ public class RestClientFactoryTest
 
     final RestClientFactory factory = spy(new RestClientFactory());
     doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
-        eq(repositoryPublicId));
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     assertThat(repository.getPolicyEvaluationSummary()).isSameAs(policyEvaluationSummary);
   }
 

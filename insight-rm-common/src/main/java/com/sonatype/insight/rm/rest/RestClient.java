@@ -41,8 +41,6 @@ public interface RestClient
 
     App forApplication(String appId);
 
-    Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId);
-
     Repository forRepository(final String repositoryManagerInstanceId,
                              final String repositoryPublicId,
                              final RepositoryManagerType repositoryManagerType);

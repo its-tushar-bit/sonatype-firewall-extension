@@ -55,13 +55,6 @@ public class RestClientFactory
 
   FirewallClient newFirewallClient(final Configuration config,
                                    final String repositoryManagerInstanceId,
-                                   final String repositoryPublicId)
-  {
-    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
-  }
-
-  FirewallClient newFirewallClient(final Configuration config,
-                                   final String repositoryManagerInstanceId,
                                    final String repositoryPublicId,
                                    final RepositoryManagerType repositoryManagerType)
   {
@@ -138,12 +131,6 @@ public class RestClientFactory
     }
 
     @Override
-    public Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId) {
-      return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId,
-          RepositoryManagerType.NEXUS);
-    }
-
-    @Override
     public Repository forRepository(final String repositoryManagerInstanceId,
                                     final String repositoryPublicId,
                                     final RepositoryManagerType repositoryManagerType)
@@ -207,44 +194,48 @@ public class RestClientFactory
 
     @Override
     public void setEnabled(boolean enabled) throws IOException {
-      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).setEnabled(enabled);
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .setEnabled(enabled);
     }
 
     @Override
     public void setQuarantine(final boolean enabled) throws IOException {
-      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).setQuarantine(enabled);
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .setQuarantine(enabled);
     }
 
     @Override
     public void evaluateComponents(
         final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException
     {
-      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).evaluateComponents(
-          componentEvaluationDataRequestList);
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .evaluateComponents(componentEvaluationDataRequestList);
     }
 
     @Override
     public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
         RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList) throws IOException
     {
-      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
           .evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequestList);
     }
 
     @Override
     public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
-      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).getPolicyEvaluationSummary();
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .getPolicyEvaluationSummary();
     }
 
     @Override
     public void removeComponent(String pathname) throws IOException {
-      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).removeComponent(pathname);
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .removeComponent(pathname);
     }
 
     @Override
     public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
       try {
-        return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
+        return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
             .getUnquarantinedComponents(sinceUtcTimestamp);
       }
       catch (HttpResponseException e) {

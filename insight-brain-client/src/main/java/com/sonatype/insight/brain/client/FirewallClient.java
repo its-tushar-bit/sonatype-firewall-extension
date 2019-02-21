@@ -43,13 +43,6 @@ public class FirewallClient
 
   public FirewallClient(final Configuration config,
                         final String repositoryManagerInstanceId,
-                        final String repositoryPublicId)
-  {
-    this(config, repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
-  }
-
-  public FirewallClient(final Configuration config,
-                        final String repositoryManagerInstanceId,
                         final String repositoryPublicId,
                         final RepositoryManagerType repositoryManagerType)
   {

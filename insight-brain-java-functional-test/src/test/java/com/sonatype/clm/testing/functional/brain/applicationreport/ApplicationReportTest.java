@@ -23,7 +23,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.MatchStateFilter;
-//import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.PolicyTypeFilter;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ViolationStateFilter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -435,38 +435,49 @@ public class ApplicationReportTest
     violations.shouldHaveSize(60);
 
     //policy type filter
-    //PolicyTypeFilter policyTypeFilter = reportPage.policyTypeFilter();
-    //policyTypeFilter.counter().shouldHave(exactText("4"));
-    //policyTypeFilter.multiSelectList().shouldBe(empty);
-    //policyTypeFilter.twisty().click();
-    //policyTypeFilter.multiSelectList().shouldHaveSize(5);
-    //
-    //policyTypeFilter.quality().click();
-    //policyTypeFilter.quality().shouldBe(selected);
-    //policyTypeFilter.counter().shouldHave(exactText("1 of 4"));
-    //violations.shouldHaveSize(1);
-    //violations.first().shouldHave(exactText("No Results"));
-    //
-    //policyTypeFilter.license().click();
-    //policyTypeFilter.license().shouldBe(selected);
-    //policyTypeFilter.counter().shouldHave(exactText("2 of 4"));
-    //violations.shouldHaveSize(3);
-    //violations.shouldHave(texts(
-    //    "com.mycila : license-maven-plugin : 2.11",
-    //    "com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1",
-    //    "xpp3 : xpp3_min : 1.1.4c"
-    //));
-    //
-    //policyTypeFilter.other().click();
-    //policyTypeFilter.other().shouldBe(selected);
-    //policyTypeFilter.counter().shouldHave(exactText("3 of 4"));
-    //violations.shouldHaveSize(38);
-    //violations.last().shouldHave(text("wsdl4j : wsdl4j : 1.5.1"));
-    //
-    //policyTypeFilter.security().click();
-    //policyTypeFilter.security().shouldBe(selected);
-    //policyTypeFilter.counter().shouldHave(exactText("4 of 4"));
-    //violations.shouldHaveSize(60);
+    PolicyTypeFilter policyTypeFilter = reportPage.policyTypeFilter();
+    policyTypeFilter.counter().shouldHave(exactText("4"));
+    policyTypeFilter.multiSelectList().shouldBe(empty);
+    policyTypeFilter.twisty().click();
+    policyTypeFilter.multiSelectList().shouldHaveSize(5);
+
+    policyTypeFilter.quality().click();
+    policyTypeFilter.quality().shouldBe(selected);
+    policyTypeFilter.counter().shouldHave(exactText("1 of 4"));
+    violations.shouldHaveSize(1);
+    violations.first().shouldHave(exactText("No Results"));
+
+    policyTypeFilter.license().click();
+    policyTypeFilter.license().shouldBe(selected);
+    policyTypeFilter.counter().shouldHave(exactText("2 of 4"));
+    violations.shouldHaveSize(3);
+    violations.shouldHave(texts(
+        "com.mycila : license-maven-plugin : 2.11",
+        "com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1",
+        "xpp3 : xpp3_min : 1.1.4c"
+    ));
+
+    policyTypeFilter.other().click();
+    policyTypeFilter.other().shouldBe(selected);
+    policyTypeFilter.counter().shouldHave(exactText("3 of 4"));
+    violations.shouldHaveSize(5);
+    violations.shouldHave(texts(
+        "com.mycila : license-maven-plugin : 2.11",
+        "com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1",
+        "xpp3 : xpp3_min : 1.1.4c",
+        "RegexMatch.dll",
+        "junit : junit : 4.8.1"
+    ));
+    eyesWatcher.eyesCheck("Test Policy Threat Level Filter");
+
+    policyTypeFilter.security().click();
+    policyTypeFilter.security().shouldBe(selected);
+    policyTypeFilter.counter().shouldHave(exactText("4 of 4"));
+    violations.shouldHaveSize(27);
+
+    policyTypeFilter.allItems().click();
+    policyTypeFilter.allItems().shouldNotBe(selected);
+    violations.shouldHaveSize(60);
     
     // policy threat level filter
     PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();

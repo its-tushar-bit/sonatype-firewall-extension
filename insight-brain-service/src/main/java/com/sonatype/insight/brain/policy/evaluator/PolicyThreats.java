@@ -105,6 +105,11 @@ public class PolicyThreats
     public List<PolicyAction> actions = new ArrayList<>();
 
     public List<PolicyConstraint> constraints = new ArrayList<>();
+
+    /**
+     * @since 1.61
+     */
+    public String policyThreatCategory;
   }
 
   public static class PolicyAction

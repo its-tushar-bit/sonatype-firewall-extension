@@ -142,7 +142,7 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
     },
 
     setPolicyTypeFilterOptions(selectedIds) {
-      vm.setExactValueFilter('threatCategory', selectedIds);
+      vm.setExactValueFilter('policyThreatCategory', selectedIds);
     },
 
     setPolicyThreatLevelFilter(selectedRange) {
@@ -152,7 +152,13 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 }
 
 function mapStateToThis(state) {
-  return pick(['aggregate', 'reevaluating', 'reevaluationError', 'exactValueFilters'], state.applicationReport || {});
+  return pick([
+    'policyTypeFilterEnabled',
+    'aggregate',
+    'reevaluating',
+    'reevaluationError',
+    'exactValueFilters'
+  ], state.applicationReport || {});
 }
 
 ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions', 'Modal'];

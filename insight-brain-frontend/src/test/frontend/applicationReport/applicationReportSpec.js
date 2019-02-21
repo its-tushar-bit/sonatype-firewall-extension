@@ -223,12 +223,12 @@ describe('applicationReport component', function() {
   });
 
   describe('setPolicyTypeFilterOptions', function() {
-    it('calls setPolicyTypeFilterOptions with a fieldName of "threatCategory"', function() {
+    it('calls setPolicyTypeFilterOptions with a fieldName of "policyThreatCategory"', function() {
       const selectedIds = new Set(['SECURITY', 'LICENSE']);
 
       controller.setPolicyTypeFilterOptions(selectedIds);
 
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith('threatCategory', selectedIds);
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatCategory', selectedIds);
     });
   });
 

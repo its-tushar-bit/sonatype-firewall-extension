@@ -204,6 +204,7 @@ public class PolicyThreatsAdapterTest
       assertThat(actions.get(0).actionType).isEqualTo(Action.ID_FAIL);
       assertThat(actions.get(0).actionSummary).isEqualTo(ActionTypes.getById(Action.ID_FAIL).getSummary());
     }
+    assertPolicyThreats(threats, violations);
   }
 
   @Test
@@ -211,7 +212,7 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(null);
 
     assertThat(threats.aaData).isEmpty();
-    assertThat(threats.version).isEqualTo(3);
+    assertThat(threats.version).isEqualTo(4);
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,
@@ -321,6 +322,7 @@ public class PolicyThreatsAdapterTest
     assertThat(policyViolation.waived).isEqualTo(violation.isWaived());
     assertThat(policyViolation.grandfathered).isEqualTo(violation.isGrandfathered());
     assertThat(policyViolation.constraintFactsJson).isEqualTo(violation.getConstraintFactsJson());
+    assertThat(policyViolation.policyThreatCategory).isEqualTo(violation.getThreatCategory().toString());
 
     for (PolicyThreats.PolicyAction action : policyViolation.actions) {
       assertThat(action.actionType).isEqualTo(violation.getActionTypeId());

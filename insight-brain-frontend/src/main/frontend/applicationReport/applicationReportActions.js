@@ -45,8 +45,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
           const partialMatches = results[4].data || undefined;
           const unknownJsResult = isUnknownJs && results[5].data || undefined;
           const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult, partialMatches);
+          const reportVersion = policyResult && policyResult.version || null;
           return {
             report: { allEntries, ...dataResult, scanId },
+            reportVersion,
             metadata
           };
         });
@@ -59,8 +61,8 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
       });
 
       return fetchReportData(applicationPublicId, scanId, isUnknownJs)
-          .then(({ report, metadata }) => {
-            dispatch(loadReportFulfilled(report, metadata, isUnknownJs));
+          .then(({ report, metadata, reportVersion }) => {
+            dispatch(loadReportFulfilled(report, metadata, isUnknownJs, reportVersion));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
@@ -74,8 +76,8 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
       const {isUnknownJs, metadata, selectedReport} = getState().applicationReport;
 
       return fetchReportData(metadata.application.publicId, selectedReport.scanId, isUnknownJs)
-          .then(({ report, metadata }) => {
-            dispatch(loadReportFulfilled(report, metadata, isUnknownJs));
+          .then(({ report, metadata, reportVersion }) => {
+            dispatch(loadReportFulfilled(report, metadata, isUnknownJs, reportVersion));
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
@@ -84,10 +86,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function loadReportFulfilled(report, metadata, isUnknownJs) {
+  function loadReportFulfilled(report, metadata, isUnknownJs, reportVersion) {
     return {
       type: LOAD_REPORT_FULFILLED,
-      payload: { report, metadata, isUnknownJs }
+      payload: { report, metadata, isUnknownJs, reportVersion }
     };
   }
 

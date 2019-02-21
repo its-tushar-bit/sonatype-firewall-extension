@@ -39,6 +39,7 @@ describe('applicationReportReducer', function() {
       expect(newState.exactValueFilters).toEqual({});
       expect(newState.substringFilters).toEqual({});
       expect(newState.isUnknownJs).toBe(false);
+      expect(newState.policyTypeFilterEnabled).toBe(false);
     });
   });
 
@@ -67,6 +68,7 @@ describe('applicationReportReducer', function() {
         loading: true,
         loadError: null,
         selectedReport: null,
+        policyTypeFilterEnabled: null,
         other: otherObject
       });
       const entries = [
@@ -78,7 +80,8 @@ describe('applicationReportReducer', function() {
         payload: {
           report: {allEntries: entries},
           metadata: {reportTitle: 'test'},
-          isUnknownJs: false
+          isUnknownJs: false,
+          reportVersion: 3
         }
       });
       expect(newState).toEqual({
@@ -94,6 +97,7 @@ describe('applicationReportReducer', function() {
         },
         metadata: {reportTitle: 'test'},
         isUnknownJs: false,
+        policyTypeFilterEnabled: false,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -267,6 +271,42 @@ describe('applicationReportReducer', function() {
       });
 
       expect(newState.selectedComponentIndex).toBe(3);
+    });
+
+    it('sets policyTypeFilterEnabled to true if the report version is bigger than 3', function () {
+      const state = Object.freeze({
+        policyTypeFilterEnabled: false,
+        other: otherObject
+      });
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {allEntries: []},
+          metadata: {reportTitle: 'test'},
+          isUnknownJs: false,
+          reportVersion: 4
+        }
+      });
+      expect(newState.policyTypeFilterEnabled).toBe(true);
+      expect(newState.other).toBe(otherObject); //confirm no side-effects
+    });
+
+    it('sets policyTypeFilterEnabled to false if the report version is lower than 4', function () {
+      const state = Object.freeze({
+        policyTypeFilterEnabled: true,
+        other: otherObject
+      });
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          report: {allEntries: []},
+          metadata: {reportTitle: 'test'},
+          isUnknownJs: false,
+          reportVersion: 3
+        }
+      });
+      expect(newState.policyTypeFilterEnabled).toBe(false);
+      expect(newState.other).toBe(otherObject);
     });
   });
 

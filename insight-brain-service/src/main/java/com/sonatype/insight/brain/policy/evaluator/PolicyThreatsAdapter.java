@@ -36,7 +36,7 @@ public class PolicyThreatsAdapter
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations);
 
     PolicyThreats policyThreats = new PolicyThreats();
-    policyThreats.version = 3;
+    policyThreats.version = 4;
     policyThreats.aaData = new ArrayList<>(components.values());
 
     return policyThreats;
@@ -87,6 +87,7 @@ public class PolicyThreatsAdapter
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
     result.constraintFactsJson = violation.getConstraintFactsJson();
+    result.policyThreatCategory = violation.getThreatCategory().toString();
     return result;
   }
 

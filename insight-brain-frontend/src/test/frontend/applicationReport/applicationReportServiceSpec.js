@@ -53,7 +53,7 @@ describe('applicationReportService', function() {
           }]
         };
 
-    it('creates entries from report V3 data', function() {
+    it('creates entries from report V3/V4 data', function() {
       const policyThreatData = {
             version: 3,
             aaData: [{
@@ -125,10 +125,23 @@ describe('applicationReportService', function() {
               }]
             }]
           },
+          policyThreatData2 = {
+            version: 4,
+            aaData: policyThreatData.aaData.map(threat => ({
+              ...threat,
+              allViolations: threat.allViolations.map(violation => ({
+                ...violation,
+                policyThreatCategory: 'OTHER'
+              }))
+            }))
+          },
           result = applicationReportService.createReportEntries(
-              policyThreatData, bomData, unknownJSData, partialMatchData);
+              policyThreatData, bomData, unknownJSData, partialMatchData),
+          result2 = applicationReportService.createReportEntries(
+              policyThreatData2, bomData, unknownJSData, partialMatchData);
 
       expect(result.length).toEqual(4);
+      expect(result2.length).toEqual(4);
 
       expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
@@ -194,7 +207,75 @@ describe('applicationReportService', function() {
         grandfathered: false
       }));
 
+      expect(result2).toContain(jasmine.objectContaining({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        derivedComponentName: 'foo : 1',
+        derivedViolationState: 'open',
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        policyThreatCategory: 'OTHER',
+        waived: false,
+        grandfathered: false
+      }));
+
+      expect(result2).toContain(jasmine.objectContaining({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        derivedComponentName: 'foo : 1',
+        derivedViolationState: 'waived+grandfathered',
+        policyName: 'License-High',
+        policyThreatLevel: 8,
+        policyThreatCategory: 'OTHER',
+        waived: true,
+        grandfathered: true
+      }));
+
+      expect(result2).toContain(jasmine.objectContaining({
+        hash: 'barHash',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'barGroup',
+            artifactId: 'bar',
+            version: '2'
+          }
+        },
+        derivedComponentName: 'bargroup : bar : 2',
+        derivedViolationState: 'grandfathered',
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        policyThreatCategory: 'OTHER',
+        grandfathered: true,
+        matchDetails: partialMatchData.aaData[0].matchDetails
+      }));
+
+      expect(result2).toContain(jasmine.objectContaining({
+        hash: 'bazHash',
+        otherProp: 'baz',
+        derivedComponentName: 'baz.js, bazzzz.js',
+        derivedViolationState: 'notViolating',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        waived: false,
+        grandfathered: false
+      }));
+
       expectNoExtraMatchData(result);
+      expectNoExtraMatchData(result2);
     });
 
     it('creates entries from report V1/V2 data', function() {

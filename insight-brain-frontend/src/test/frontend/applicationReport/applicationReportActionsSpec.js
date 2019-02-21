@@ -64,7 +64,8 @@ describe('applicationReportActions', function() {
           metadata: {
             reportTitle: 'test'
           },
-          isUnknownJs: false
+          isUnknownJs: false,
+          reportVersion: 3
         }
       });
     });
@@ -102,7 +103,8 @@ describe('applicationReportActions', function() {
           metadata: {
             reportTitle: 'test'
           },
-          isUnknownJs: true
+          isUnknownJs: true,
+          reportVersion: 3
         }
       });
     });
@@ -119,7 +121,8 @@ describe('applicationReportActions', function() {
           },
           selectedReport: {
             scanId: 'scanId'
-          }
+          },
+          reportVersion: 3
         }
       };
     });
@@ -166,7 +169,8 @@ describe('applicationReportActions', function() {
           metadata: {
             reportTitle: 'test'
           },
-          isUnknownJs: false
+          isUnknownJs: false,
+          reportVersion: 3
         }
       });
     });
@@ -203,7 +207,8 @@ describe('applicationReportActions', function() {
           metadata: {
             reportTitle: 'test'
           },
-          isUnknownJs: true
+          isUnknownJs: true,
+          reportVersion: 3
         }
       });
     });
@@ -302,7 +307,8 @@ describe('applicationReportActions', function() {
               selectedReport: {
                 scanId: 'scanId'
               },
-              isUnknownJs: {}
+              isUnknownJs: {},
+              reportVersion: 3
             }
           },
           store = SpecUtil.mockReduxStore(initialState),
@@ -348,7 +354,8 @@ describe('applicationReportActions', function() {
           metadata: {
             reportTitle: 'test'
           },
-          isUnknownJs: {}
+          isUnknownJs: {},
+          reportVersion: 3
         }
       });
 
@@ -421,7 +428,7 @@ describe('applicationReportActions', function() {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(
         {reportTitle: 'test'});
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
-        null);
+        {version: 3, aaData: []});
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(null);
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(null);
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))

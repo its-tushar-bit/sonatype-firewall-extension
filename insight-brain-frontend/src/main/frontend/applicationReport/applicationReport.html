@@ -43,14 +43,13 @@
                                  on-change="vm.setViolationStateFilterOptions(selected)">
         Violation State
       </iq-tree-view-multi-select>
-      <!--
       <iq-tree-view-multi-select id="policy-type-filter"
+                                 ng-if="vm.policyTypeFilterEnabled"
                                  available="vm.availablePolicyTypeFilterOptions"
-                                 selected="vm.exactValueFilters.threatCategory"
+                                 selected="vm.exactValueFilters.policyThreatCategory"
                                  on-change="vm.setPolicyTypeFilterOptions(selected)">
         Policy Types
       </iq-tree-view-multi-select>
-      -->
       <iq-tree-view-policy-threat-level-slider id="threat-level-filter"
                                                selected-range="vm.policyThreatLevelFilterSelectedRange"
                                                on-change="vm.setPolicyThreatLevelFilter(value)">

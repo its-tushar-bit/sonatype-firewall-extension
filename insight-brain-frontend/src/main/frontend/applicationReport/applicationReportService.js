@@ -51,9 +51,10 @@ const flatMap = pipe(map, flatten),
 
 /**
  * In this version, each entry in policyResult represents a component, with nested lists of violations
- * for each
+ * for each.
+ * Note that v3 violations have no `policyThreatCategory`
  */
-function makeViolationEntriesV3(policyResult, bomDataByKey) {
+function makeViolationEntriesV3V4(policyResult, bomDataByKey) {
   function makeEntriesForComponent(component) {
     const key = toKey(component),
         bomComponent = bomDataByKey[key],
@@ -61,7 +62,7 @@ function makeViolationEntriesV3(policyResult, bomDataByKey) {
           const { waived, grandfathered } = violation;
 
           return {
-            ...pick(['policyThreatLevel', 'policyName'], violation),
+            ...pick(['policyThreatLevel', 'policyName', 'policyThreatCategory'], violation),
             ...bomComponent,
             waived,
             grandfathered,
@@ -141,7 +142,8 @@ const deriveViolationState = (waived, grandfathered) => waived && grandfathered 
 
 // A map of makeViolationEntries functions, indexed by policyResult version
 const makeViolationEntriesMap = new window.Map([
-  [3, makeViolationEntriesV3],
+  [4, makeViolationEntriesV3V4],
+  [3, makeViolationEntriesV3V4],
   [2, makeViolationEntriesV1V2],
   [1, makeViolationEntriesV1V2],
   [null, makeViolationEntriesNoVersion]

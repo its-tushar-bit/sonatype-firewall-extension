@@ -15,3 +15,5 @@ dependency-reduced-pom.xml
 .factorypath
 perfTemp_*/
 perf_results-*.out
+.pmd
+.pmdruleset.xml

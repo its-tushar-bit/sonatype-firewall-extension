@@ -31,7 +31,7 @@
 
 #infoPanelArtifactTable tr td:first-child {
   text-align: right;
-  width: 136px;
+  min-width: 136px;
 }
 
 #infoPanelArtifactTable tr td:last-child {

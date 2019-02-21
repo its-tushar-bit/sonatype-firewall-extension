@@ -257,4 +257,33 @@ public class ScanHandlerTest
 
     assertThat(work.getScanDir(application.getId()).listFiles()).isEmpty();
   }
+
+  @Test
+  public void testHandle_FailedUpload_DeletesScanFile() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanFileContent = "test scan file content";
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
+    when(hdsClient.relay(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
+        eq(null), any(String[].class))).thenThrow(new RuntimeException("test"));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> scanHandler.handle(servletRequest, application.getPublicId(), ClientScanType.SONATYPE))
+        .withMessage("test");
+
+    assertThat(work.getScanDir(application.getId()).listFiles()).isEmpty();
+  }
+
+  @Test
+  public void testHandle_FailedScanSave_DeletesScanFile() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream()).thenThrow(new RuntimeException("test"));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> scanHandler.handle(servletRequest, application.getPublicId(), ClientScanType.SONATYPE))
+        .withMessage("test");
+
+    assertThat(work.getScanDir(application.getId()).listFiles()).isEmpty();
+  }
 }

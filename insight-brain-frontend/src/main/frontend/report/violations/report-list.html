@@ -1,4 +1,4 @@
-<div class="iq-body-container iq-body-container--single-pane" sortable="name">
+<div class="iq-body-container iq-body-container--single-pane">
   <root-organization-migrate></root-organization-migrate>
     <div class="iq-report-list-container">
       <div class="iq-tile iq-tile--report-list-filter">
@@ -21,13 +21,16 @@
              detect-scrollbar="vm.applications">
           <table id="report-list-table" class="iq-table iq-table--fixed iq-table--report-list">
             <thead class="iq-table--fixed__header">
-              <tr id="report-list-headers" class="iq-table-row">
+              <tr id="report-list-headers"
+                  class="iq-table-row"
+                  sort="vm.sortFields"
+                  on-sort-change="vm.sortFields = sortFields">
                 <th id="report-list-header-app" class="iq-cell iq-cell--header">
-                  <div sort-columns="name">Application Name</div>
+                  <div sort-column="name">Application Name</div>
                 </th><!--
              --><th id="report-list-header-contact" class="iq-cell iq-cell--header">Contact</th><!--
              --><th id="report-list-header-org" class="iq-cell iq-cell--header">
-                  <div sort-columns="organizationName">Organization</div>
+                  <div sort-column="organizationName">Organization</div>
                 </th><!--
              --><th id="report-list-header-{{::stage.stageTypeId}}"
                     ng-repeat="stage in vm.stages | filterReportColumns"

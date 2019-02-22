@@ -6,13 +6,10 @@
 /* global angular */
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
-import sortableDirective from './violations/sortable.directive';
-import sortColumnsDirective from './violations/sortColumns.directive';
+import utilityDirectiveModule from '../utility/directives/utility.directives.module';
 
 var reportViolationsModule = angular.module('ReportViolations',
-    [angularCommonModule.name, CLMLocationModule.name, 'vs-repeat'])
-    .directive('sortable', sortableDirective)
-    .directive('sortColumns', sortColumnsDirective);
+    [angularCommonModule.name, CLMLocationModule.name, utilityDirectiveModule.name, 'vs-repeat']);
 
 export default reportViolationsModule;
 
@@ -30,6 +27,7 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
 
     vm.encodeURIComponent = window.encodeURIComponent;
     vm.appFilter = '';
+    vm.sortFields = ['name'];
 
     vm.applicationHasViolationsForStage = function(application, stage) {
       const stageTypeId = stage.stageTypeId,
@@ -59,11 +57,13 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
     };
     vm.doLoad();
 
-    $scope.$watchGroup(['vm.appFilter', 'getSortField()[0]'], () => {
+    $scope.$watchGroup(['vm.appFilter', 'vm.sortFields'], sortAndFilter);
+
+    function sortAndFilter() {
       if (allApplications) {
         vm.applications = sortAndIndex(filter(allApplications));
       }
-    });
+    }
 
     function sortAndIndex(apps) {
       return index(sort(apps));
@@ -74,8 +74,7 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
     }
 
     function sort(apps) {
-      // getSortField is populated onto the scope by the `sortable` directive
-      return $filter('orderBy')(apps, $scope.getSortField());
+      return $filter('orderBy')(apps, vm.sortFields[0]);
     }
 
     function index(apps) {

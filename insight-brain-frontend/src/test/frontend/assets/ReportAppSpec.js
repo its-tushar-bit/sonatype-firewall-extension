@@ -15,7 +15,6 @@ describe('reportApp', function() {
   beforeEach(inject(function($rootScope, $state, _$controller_, _$httpBackend_, _CLMLocations_) {
     $rootScope.licensed = true;
     scope = $rootScope.$new();
-    scope.getSortField = () => ['name'];
     state = $state;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
@@ -147,7 +146,7 @@ describe('reportApp', function() {
         expect(vm.applications[0].index).toBe(0);
         expect(vm.applications[1].index).toBe(1);
 
-        scope.getSortField = () => ['-name'];
+        vm.sortFields = ['-name'];
         scope.$digest();
 
         expect(vm.applications.length).toBe(2);

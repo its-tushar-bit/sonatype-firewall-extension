@@ -79,6 +79,11 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
+  public void testGetApplications_SortedByCaseInsensitiveName_VIEW_CIP() throws Exception {
+    testGetApplications_SortedByCaseInsensitiveName(Goal.VIEW_CIP);
+  }
+
+  @Test
   public void testVerifyOrCreateApplication_ApplicationDoesExist() {
     Application app = tempEntity.newApplicationWithParent();
 

@@ -107,6 +107,7 @@ public class ApplicationSummaryService
       case EVALUATE_APPLICATION:
         return getApplicationsForEvaluateApplication();
       case EVALUATE_COMPONENT:
+      case VIEW_CIP:
         return getApplicationsForEvaluateComponent();
       default:
         return getApplicationsForRead();

@@ -72,6 +72,14 @@ public class ApplicationSummaryServiceAuthzTest
   }
 
   @Test
+  public void testGetApplications_Authorized_VIEW_CIP() {
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP);
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).hasSize(1);
+  }
+
+  @Test
   public void testGetApplications_Unauthorized_NullGoal() {
     login();
     ApplicationSummaryList list = service.getApplications(null /* goal */);
@@ -99,6 +107,14 @@ public class ApplicationSummaryServiceAuthzTest
   public void testGetApplications_Unauthorized_SUMMARIZE_EVALUATION() {
     login();
     ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  @Test
+  public void testGetApplications_Unauthorized_VIEW_CIP() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }

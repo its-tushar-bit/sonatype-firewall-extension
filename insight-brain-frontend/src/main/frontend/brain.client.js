@@ -125,7 +125,7 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
      * @since version 1.21
      */
     'getIntegratorApplicationListUrl' : function () {
-      return basePath + 'rest/integration/applications?goal=EVALUATE_COMPONENT';
+      return basePath + 'rest/integration/applications?goal=VIEW_CIP';
     },
     /**
      * Get the Brain's version.

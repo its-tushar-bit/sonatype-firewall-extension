@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
@@ -44,7 +45,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantReadPermission(app.getId());
     ApplicationSummaryList list = service.getApplications(null /* goal */);
     assertThat(list).isNotNull();
-    assertThat(list.getApplicationSummaries()).hasSize(1);
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
 
   @Test
@@ -52,7 +53,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
     assertThat(list).isNotNull();
-    assertThat(list.getApplicationSummaries()).hasSize(1);
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
 
   @Test
@@ -60,7 +61,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
     assertThat(list).isNotNull();
-    assertThat(list.getApplicationSummaries()).hasSize(1);
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
 
   @Test
@@ -68,7 +69,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantPermission(app.getId(), Permission.READ);
     ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
     assertThat(list).isNotNull();
-    assertThat(list.getApplicationSummaries()).hasSize(1);
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
 
   @Test
@@ -76,7 +77,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
     ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP);
     assertThat(list).isNotNull();
-    assertThat(list.getApplicationSummaries()).hasSize(1);
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
 
   @Test

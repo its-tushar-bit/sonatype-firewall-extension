@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
-import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.features.Feature;
@@ -53,23 +52,23 @@ public class FirewallClientTest
 
   private RepositoryDAO repositoryDAO = new RepositoryDAO();
   
-  private RepositoryManagerType repositoryManagerType;
+  private String resourcePath;
 
-  public FirewallClientTest(final RepositoryManagerType repositoryManagerType) {
-    this.repositoryManagerType = repositoryManagerType;
+  public FirewallClientTest(final String resourcePath) {
+    this.resourcePath = resourcePath;
   }
 
-  @Parameterized.Parameters(name = "repositoryManagerType: {0}")
+  @Parameterized.Parameters(name = "resourcePath: {0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {RepositoryManagerType.NEXUS},
-        {RepositoryManagerType.ARTIFACTORY}
+        {FirewallClient.NEXUS_RESOURCE_PATH},
+        {FirewallClient.ARTIFACTORY_RESOURCE_PATH}
     });
   }
 
   @Before
   public void start() {
-    if (repositoryManagerType.equals(RepositoryManagerType.ARTIFACTORY)) {
+    if (resourcePath.equals(FirewallClient.ARTIFACTORY_RESOURCE_PATH)) {
       getTestProductLicenseManager().setFeatures(Feature.FIREWALL_FOR_ARTIFACTORY);
     }
     repositoryManager = tempEntity.newRepositoryManager();
@@ -78,8 +77,7 @@ public class FirewallClientTest
 
   @Test
   public void testSetEnabled_True() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
     client.setEnabled(true);
 
@@ -94,7 +92,7 @@ public class FirewallClientTest
     Configuration configuration = getCLMServer().getClientConfiguration();
     configuration.setServerAuth(null);
     FirewallClient client =
-        new FirewallClient(configuration, rmInstanceId, REPOSITORY_PUBLIC_ID, repositoryManagerType);
+        new FirewallClient(configuration, rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
     try {
       client.setEnabled(true);
@@ -107,8 +105,7 @@ public class FirewallClientTest
 
   @Test
   public void testSetEnabled_False() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
     client.setEnabled(false);
 
@@ -125,8 +122,7 @@ public class FirewallClientTest
     // Check that the initial value is false
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.setQuarantine(true);
 
     Repository repo = repositoryDAO.getById(repository.getId());
@@ -140,8 +136,7 @@ public class FirewallClientTest
     // Check that the initial value is true
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.setQuarantine(false);
 
     Repository repo = repositoryDAO.getById(repository.getId());
@@ -150,8 +145,7 @@ public class FirewallClientTest
 
   @Test
   public void testSetQuarantine_Error() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     try {
       client.setQuarantine(true);
       fail("Expected HttpResponseException");
@@ -176,7 +170,7 @@ public class FirewallClientTest
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined", new Date(), null);
 
     FirewallClient client =
-        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), repositoryManagerType);
+        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), resourcePath);
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = client.getPolicyEvaluationSummary();
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
@@ -187,8 +181,7 @@ public class FirewallClientTest
 
   @Test
   public void testGetPolicyEvaluationSummary_Error() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     try {
       client.getPolicyEvaluationSummary();
       fail("Expected HttpResponseException");
@@ -211,7 +204,7 @@ public class FirewallClientTest
   @Test
   public void testEvaluateComponents_Empty() throws Exception {
     final FirewallClient client =
-        new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, repositoryManagerType);
+        new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.setEnabled(true);
 
     final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -222,7 +215,7 @@ public class FirewallClientTest
   @Test
   public void testEvaluateComponents_Error() throws Exception {
     final FirewallClient client =
-        new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, repositoryManagerType);
+        new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     // do not enable repository
 
     final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -240,8 +233,7 @@ public class FirewallClientTest
 
   @Test
   public void testEvaluateComponentWithQuarantine() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
     client.setEnabled(true);
 
@@ -274,8 +266,7 @@ public class FirewallClientTest
 
   @Test
   public void testEvaluateComponentWithQuarantine_Error() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
@@ -297,16 +288,14 @@ public class FirewallClientTest
     RepositoryComponent component = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(timestamp), new Date());
 
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     UnquarantinedComponentList components = client.getUnquarantinedComponents(timestamp);
     assertThat(components.pathnames).containsExactly(component.getPathname());
   }
 
   @Test
   public void testGetUnquarantinedComponents_Error() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
     try {
       client.getUnquarantinedComponents(System.currentTimeMillis());
@@ -324,8 +313,7 @@ public class FirewallClientTest
     String pathname = "somepath";
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), pathname);
 
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.removeComponent(pathname);
 
     repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
@@ -334,8 +322,7 @@ public class FirewallClientTest
 
   @Test
   public void testRemoveComponent_Error() throws Exception {
-    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
-        repositoryManagerType);
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     try {
       client.removeComponent("somepath");
       fail("Expected HttpResponseException");

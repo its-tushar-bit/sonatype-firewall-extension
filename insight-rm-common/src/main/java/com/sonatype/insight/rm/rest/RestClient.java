@@ -21,7 +21,6 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
-import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 
 public interface RestClient
 {

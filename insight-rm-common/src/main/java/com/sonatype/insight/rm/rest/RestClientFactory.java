@@ -26,7 +26,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
-import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
@@ -58,7 +57,8 @@ public class RestClientFactory
                                    final String repositoryPublicId,
                                    final RepositoryManagerType repositoryManagerType)
   {
-    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType);
+    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId,
+        repositoryManagerType.resourcePath);
   }
 
   FirewallMigrationClient newFirewallMigrationClient(final Configuration config) {

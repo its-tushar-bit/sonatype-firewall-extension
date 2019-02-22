@@ -21,6 +21,10 @@ import org.apache.http.entity.ContentType;
 public class FirewallClient
     extends AbstractRequestClient
 {
+  public static final String NEXUS_RESOURCE_PATH = "rest/integration/repositories";
+
+  public static final String ARTIFACTORY_RESOURCE_PATH =  "rest/integration/artifactory/repositories";
+
   private static final String EVALUATE_PATH = "evaluate/audit";
 
   private static final String SUMMARY_PATH = "summary";
@@ -39,38 +43,37 @@ public class FirewallClient
 
   private final String repositoryPublicId;
 
-  private final RepositoryManagerType repositoryManagerType;
+  private final String resourcePath;
 
   public FirewallClient(final Configuration config,
                         final String repositoryManagerInstanceId,
                         final String repositoryPublicId,
-                        final RepositoryManagerType repositoryManagerType)
+                        final String resourcePath)
   {
     super(config);
 
     this.repositoryManagerInstanceId = repositoryManagerInstanceId;
     this.repositoryPublicId = repositoryPublicId;
-    this.repositoryManagerType = repositoryManagerType;
+    this.resourcePath = resourcePath;
   }
 
   public void setEnabled(boolean enabled) throws IOException {
     Result result = postRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH,
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH,
             Boolean.toString(enabled)), null);
     verifyStatusCode(result);
   }
 
   public void setQuarantine(final boolean enabled) throws IOException {
     Result result = postRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
             Boolean.toString(enabled)), null);
     verifyStatusCode(result);
   }
 
   public void removeComponent(String pathname) throws IOException {
     Result result = deleteRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH,
-            pathname));
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH, pathname));
     verifyStatusCode(result);
   }
 
@@ -81,8 +84,7 @@ public class FirewallClient
         ContentType.APPLICATION_JSON);
 
     final Result result = postRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
-        entity);
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH), entity);
     verifyStatusCode(result);
   }
 
@@ -93,33 +95,20 @@ public class FirewallClient
         ContentType.APPLICATION_JSON);
 
     Result result = postRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId,
-            EVALUATE_COMPONENT_WITH_QUARANTINE_PATH), entity);
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH),
+        entity);
     return parseResult(result, RepositoryComponentEvaluationDataList.class);
   }
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
-    Result result = getRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
+    Result result = getRequest(path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
     return parseResult(result, RepositoryPolicyEvaluationSummary.class);
   }
 
   public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
-    Result result = getRequest(
-        path(repositoryManagerType.resourcePath, repositoryManagerInstanceId, repositoryPublicId,
+    Result result = getRequest(path(resourcePath, repositoryManagerInstanceId, repositoryPublicId,
             UNQUARANTINED_COMPONENTS_PATH)
             .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)));
     return parseResult(result, UnquarantinedComponentList.class);
-  }
-
-  public enum RepositoryManagerType
-  {
-    NEXUS("rest/integration/repositories"), ARTIFACTORY("rest/integration/artifactory/repositories");
-
-    RepositoryManagerType(final String resourcePath) {
-      this.resourcePath = resourcePath;
-    }
-
-    public final String resourcePath;
   }
 }

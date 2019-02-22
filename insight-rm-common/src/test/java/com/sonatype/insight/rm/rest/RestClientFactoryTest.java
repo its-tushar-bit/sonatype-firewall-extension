@@ -16,7 +16,6 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
-import com.sonatype.insight.brain.client.FirewallClient.RepositoryManagerType;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;

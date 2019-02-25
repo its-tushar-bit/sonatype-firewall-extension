@@ -21,6 +21,8 @@
     name | String | name used in disabled tooltip and in generated checkbox id
     tooltip-generator | expression | optional - expression to generate tooltip text. Context: {entity: Object} - object provided in 'available' parameter
     sort-entities | boolean | optional
+    is-disabled | boolean | optional - controls whether the component is disabled or not
+    disabled-tooltip | String | optional - Text to use in the tooltip that appears when the component is disabled
 
     In the example below, triggered on-change callback is logged to console.
 
@@ -32,6 +34,16 @@
 
     <iq-tree-view-multi-select available="[]" name="applications">
       No Applications
+    </iq-tree-view-multi-select>
+
+    <iq-tree-view-multi-select available="vm.available"
+                               selected="vm.selected"
+                               on-change="vm.onChange(selected, toggledId)"
+                               filter-placeholder="Application Name"
+                               name="applications"
+                               is-disabled="true"
+                               disabled-tooltip="This is a tooltip text overriding the default.">
+      Disabled Example
     </iq-tree-view-multi-select>
 
     <iq-tree-view-multi-select available="vm.available"

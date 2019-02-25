@@ -212,7 +212,8 @@
       background-color: $iq-grey-4;
     }
 
-    .iq-tree-view__twisty-icon.expand {
+    .iq-tree-view__twisty-icon.expand,
+    .iq-tree-view__twisty-icon.collapse {
       border-left-color: $iq-grey-4;
     }
 

@@ -16,7 +16,9 @@ const iqTreeViewMultiSelect = {
     name: '@',
     tooltipGenerator: '&?',
     sortEntities: '<?',
-    onChange: '&'
+    onChange: '&',
+    isDisabled: '<?',
+    disabledTooltip: '@'
   },
   controller: IqTreeViewMultiSelectController,
   controllerAs: 'vm'
@@ -36,6 +38,8 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
   vm.toggle = toggle;
   vm.showFilter = showFilter;
   vm.generateCheckboxId = generateCheckboxId;
+  vm.getTooltipText = getTooltipText;
+  vm.isComponentDisabled = isComponentDisabled;
 
   vm.$onChanges = function({selected, providedFilterThreshold}) {
     if (selected) {
@@ -48,6 +52,17 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
     }
 
   };
+
+  function isComponentDisabled() {
+    return !vm.available.length || vm.isDisabled;
+  }
+
+  function getTooltipText() {
+    if (!vm.isComponentDisabled()) {
+      return '';
+    }
+    return vm.disabledTooltip || 'There are no ' + vm.name + ' to filter.';
+  }
 
   function showFilter() {
     return vm.available.length > vm.filterThreshold;

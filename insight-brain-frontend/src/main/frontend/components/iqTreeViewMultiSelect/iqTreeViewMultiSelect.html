@@ -1,8 +1,8 @@
 <div class="iq-tree-view iq-tree-view--multi-select">
   <a class="iq-tree-view__trigger"
      ng-click="isExpanded = vm.available.length && !isExpanded"
-     ng-class="{disabled: !vm.available.length}"
-     data-tooltip="{{:: vm.available.length ? '' : 'There are no ' + vm.name + ' to filter.'}}"
+     ng-class="{disabled: vm.isComponentDisabled()}"
+     data-tooltip="{{vm.getTooltipText()}}"
      data-tooltip-placement="top-left"
      data-tooltip-append-to-body="true"
      tooltip-class="filter-label-tooltip">
@@ -32,12 +32,16 @@
       <iq-checkbox label="all/none"
                    class="tm-select-all"
                    on-click="vm.toggleSelectAll()"
-                   is-checked="vm.allSelected()">
+                   is-checked="vm.allSelected()"
+                   is-disabled="vm.isDisabled">
       </iq-checkbox>
     </div>
     <div class="iq-tree-view__child tm-select-entity"
          ng-repeat="entity in vm.available | fuzzy:vm.filter:'name' | orderBy: vm.sortEntities ? ['name'] : []">
-      <label class="iq-checkbox__label" ng-class="{'tm-checked':vm.selected.has(entity.id),'tm-unchecked':!vm.selected.has(entity.id)}"
+      <label class="iq-checkbox__label" 
+             ng-class="{'tm-checked':vm.selected.has(entity.id),
+                        'tm-unchecked':!vm.selected.has(entity.id),
+                        'iq-checkbox--disabled': vm.isDisabled}"
              tooltip="{{::(vm.tooltipGenerator({entity: entity}))}}"
              tooltip-append-to-body="true"
              data-tooltip-popup-delay="200"
@@ -46,6 +50,7 @@
         <input type="checkbox"
                class="iq-checkbox__input"
                ng-checked="vm.selected.has(entity.id)"
+               ng-disabled="vm.isDisabled"
                ng-click="vm.toggle(entity.id)"
                id="{{vm.generateCheckboxId(vm.name, entity.id)}}">
         <span class="iq-checkbox__box"></span>{{::entity.name}}

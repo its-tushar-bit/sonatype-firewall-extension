@@ -51,7 +51,7 @@ public class SuccessMetricsReportPage
     super(ROOT_SELECTOR);
   }
 
-  public SuccessMetricsReportPage shouldBeFullyLoaded() {
+  public SuccessMetricsReportPage shouldBeFullyLoaded() throws InterruptedException {
     SummaryStatementTile.title().should(exist);
     ViolationTrendTile.title().should(exist);
     ViolationsByCategoryTile.title().should(exist);
@@ -59,6 +59,10 @@ public class SuccessMetricsReportPage
     MttrTile.chart().should(exist);
     ApplicationCountsTile.activeApplicationsCount().should(exist);
     ComponentCountsTile.averages().should(exist);
+
+    // give Plottable time to adjust to scrollbar existence
+    Thread.sleep(2000);
+
     return this;
   }
 

@@ -201,7 +201,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testSummaryStatementTile() {
+  public void testSummaryStatementTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
@@ -216,7 +216,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testViolationTrendTile() {
+  public void testViolationTrendTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
     successMetricsChartsPage.should(appear);
 
@@ -420,7 +420,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testViolationsByCategoryTile() {
+  public void testViolationsByCategoryTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
@@ -465,7 +465,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testViolationAveragesTile() {
+  public void testViolationAveragesTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ViolationAveragesTile.root());
@@ -502,7 +502,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testMttrTile() {
+  public void testMttrTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(MttrTile.root());

@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.exist;
@@ -51,7 +52,7 @@ public class SuccessMetricsReportPage
     super(ROOT_SELECTOR);
   }
 
-  public SuccessMetricsReportPage shouldBeFullyLoaded() throws InterruptedException {
+  public SuccessMetricsReportPage shouldBeFullyLoaded() {
     SummaryStatementTile.title().should(exist);
     ViolationTrendTile.title().should(exist);
     ViolationsByCategoryTile.title().should(exist);
@@ -61,7 +62,7 @@ public class SuccessMetricsReportPage
     ComponentCountsTile.averages().should(exist);
 
     // give Plottable time to adjust to scrollbar existence
-    Thread.sleep(2000);
+    Selenide.sleep(2000);
 
     return this;
   }

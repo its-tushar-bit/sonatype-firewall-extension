@@ -39,6 +39,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.google.common.collect.Ordering;
@@ -201,7 +202,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testSummaryStatementTile() throws Exception {
+  public void testSummaryStatementTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
@@ -216,7 +217,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testViolationTrendTile() throws Exception {
+  public void testViolationTrendTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
     successMetricsChartsPage.should(appear);
 
@@ -420,7 +421,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testViolationsByCategoryTile() throws Exception {
+  public void testViolationsByCategoryTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
@@ -465,7 +466,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testViolationAveragesTile() throws Exception {
+  public void testViolationAveragesTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ViolationAveragesTile.root());
@@ -481,7 +482,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testApplicationCountsTile() throws Exception {
+  public void testApplicationCountsTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ApplicationCountsTile.root());
@@ -502,7 +503,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testMttrTile() throws Exception {
+  public void testMttrTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(MttrTile.root());
@@ -534,7 +535,7 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testComponentCountsTile() throws Exception {
+  public void testComponentCountsTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ComponentCountsTile.root());
@@ -567,7 +568,7 @@ public class SuccessMetricsChartsTest
 
     // Tooltip is configured to appear after 300ms, so we need to wait at least that long to really make sure its
     // not going to appear.  Without this sleep we'd just be testing that it hasn't appeared _yet_.
-    Thread.sleep(1000);
+    Selenide.sleep(1000);
     Tooltip.get().shouldBe(hidden);
 
     String[] componentGroupIdsWithMostViolations = {

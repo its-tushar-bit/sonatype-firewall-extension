@@ -26,6 +26,10 @@ describe('applicationReportRawData', function() {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
+
+    it('calls loadReportRawData action', () => {
+      expect(vm.loadReportRawData).toHaveBeenCalled();
+    });
   });
 
   describe('$onDestroy()', function() {
@@ -36,10 +40,10 @@ describe('applicationReportRawData', function() {
     });
   });
 
-  describe('reload()', function() {
-    it('calls loadReport action with proper params', function() {
-      vm.reload();
-      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
+  describe('load()', function() {
+    it('calls loadReportRawData action', function() {
+      vm.load();
+      expect(vm.loadReportRawData).toHaveBeenCalled();
     });
   });
 });

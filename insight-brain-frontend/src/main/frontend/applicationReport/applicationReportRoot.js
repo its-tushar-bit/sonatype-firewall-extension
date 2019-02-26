@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import {pick} from 'ramda';
+
 export default {
   template: '<ui-view></ui-view>',
   controllerAs: 'vm',
@@ -15,9 +17,10 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribe = $ngRedux.connect(null, applicationReportActions)(vm);
-      vm.resetReportViewSettings();
-      vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
+      const actions = pick(['setReportParameters'], applicationReportActions);
+
+      vm.unsubscribe = $ngRedux.connect(null, actions)(vm);
+      vm.setReportParameters($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
     },
 
     $onDestroy() {

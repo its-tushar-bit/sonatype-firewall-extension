@@ -51,6 +51,20 @@ describe('applicationReportResults', function() {
 
   });
 
+  describe('getReportPdfDownloadUrl()', function() {
+    it('generates a PDF link from app id and scan id', () => {
+      vm.metadata = {
+        application: {
+          publicId: 'appId'
+        }
+      };
+      vm.reportParameters = {
+        scanId: 'scanId'
+      };
+      expect(vm.getReportPdfDownloadUrl()).toEqual('/rest/report/appId/scanId/printReport');
+    });
+  });
+
   describe('vm.selectedReport.displayedEntries watcher', function() {
     let $timeout;
 

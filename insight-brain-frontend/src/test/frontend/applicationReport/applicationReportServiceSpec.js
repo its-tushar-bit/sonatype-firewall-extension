@@ -2,6 +2,109 @@ import * as applicationReportService from '../../../main/frontend/applicationRep
 import {map, props} from 'ramda';
 
 describe('applicationReportService', function() {
+
+  describe('createRawDataEntries', function() {
+    const bomData = {
+          aaData: [
+            {
+              hash: 'fooHash',
+              displayName: {
+                parts: [
+                  {field: 'a-name', value: 'foo'}, {value: ' : '}, {field: 'version', value: '1'}
+                ]
+              }
+            }, {
+              hash: 'barHash',
+              displayName: {
+                parts: [
+                  {field: 'Group', value: 'barGroup'},
+                  {value: ' : '},
+                  {field: 'Artifact', value: 'bar'},
+                  {value: ' : '},
+                  {field: 'Version', value: '2'}
+                ]
+              }
+            }
+          ]
+        },
+        unknownJSData = {
+          aaData: [
+            {
+              hash: 'bazHash',
+              filenames: ['baz.js', 'bazzzz.js'],
+              otherProp: 'baz'
+            }
+          ]
+        },
+        licensesData = {
+          aaData: [{
+            hash: 'fooHash',
+            declaredLicenses: ['Apache 2.0'],
+            effectiveLicenses: ['Apache 2.0'],
+            observedLicenses: ['Apache 2.0']
+          }, {
+            hash: 'barHash',
+            declaredLicenses: ['Apache 200.0'],
+            effectiveLicenses: ['Apache 200.0'],
+            observedLicenses: ['Apache 200.0']
+          }]
+        },
+        securityData = {
+          aaData: [{
+            hash: 'fooHash',
+            score: 1.2,
+            reference: 'fooCode',
+            url: 'fooUrl'
+          }, {
+            hash: 'fooHash',
+            score: 3.4,
+            reference: 'fooCode2',
+            url: 'fooUrl2'
+          }, {
+            hash: 'bazHash',
+            score: 5.6,
+            reference: 'bazCode',
+            url: 'bazUrl'
+          }]
+        };
+
+    it('creates raw data appropriately', () => {
+
+      const result = applicationReportService.createRawDataEntries(
+          securityData, licensesData, bomData, unknownJSData);
+
+      expect(result.length).toEqual(4);
+
+      expect(result[0].license).toBe(licensesData.aaData[0]);
+      expect(result[0]).toEqual(jasmine.objectContaining({
+        derivedComponentName: 'foo : 1',
+        cvssScore: 1.2,
+        securityCode: 'fooCode',
+        url: 'fooUrl'
+      }));
+
+      expect(result[1].license).toBe(licensesData.aaData[0]);
+      expect(result[1]).toEqual(jasmine.objectContaining({
+        derivedComponentName: 'foo : 1',
+        cvssScore: 3.4,
+        securityCode: 'fooCode2',
+        url: 'fooUrl2'
+      }));
+
+      expect(result[2].license).toBe(licensesData.aaData[1]);
+      expect(result[2].derivedComponentName).toBe('bargroup : bar : 2');
+      expect(result[2].cvssScore).toBeUndefined();
+      expect(result[2].securityCode).toBeUndefined();
+      expect(result[2].url).toBeUndefined();
+
+      expect(result[3].derivedComponentName).toBe('baz.js, bazzzz.js');
+      expect(result[3].license).toBeUndefined();
+      expect(result[3].cvssScore).toBeUndefined();
+      expect(result[3].securityCode).toBeUndefined();
+      expect(result[3].url).toBeUndefined();
+    });
+  });
+
   describe('createReportEntries', function() {
     const bomData = {
           aaData: [{

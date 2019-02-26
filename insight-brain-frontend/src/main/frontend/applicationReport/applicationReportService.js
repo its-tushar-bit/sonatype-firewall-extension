@@ -22,6 +22,7 @@ import {
   isNil,
   join,
   map,
+  mapObjIndexed,
   maxBy,
   pick,
   pipe,
@@ -182,6 +183,40 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
       nonViolatingComponentEntries = map(makeNonViolatingComponentEntry, nonViolatingBomData);
 
   return concat(violationEntriesWithPartialMatches, nonViolatingComponentEntries);
+}
+
+export function createRawDataEntries(securityResult = defaultParamValue, licensesResult = defaultParamValue,
+                                     bomResult = defaultParamValue, unknownJsResult = defaultParamValue) {
+  const bomDataByKey = indexByKey(bomResult.aaData);
+
+  const licenseEntriesByKey = indexByKey(licensesResult.aaData);
+  const securityEntriesByKey = groupBy(toKey, securityResult.aaData);
+
+  const reportRawData = mapObjIndexed((oneBomData, bomDataKey) => {
+    if (securityEntriesByKey[bomDataKey]) {
+      return map((oneSecurityEntry) => ({
+        derivedComponentName: deriveComponentName(oneBomData),
+        license: licenseEntriesByKey[bomDataKey],
+        securityCode: oneSecurityEntry.reference,
+        cvssScore: oneSecurityEntry.score,
+        url: oneSecurityEntry.url
+      }), securityEntriesByKey[bomDataKey]);
+    }
+    else {
+      return {
+        derivedComponentName: deriveComponentName(oneBomData),
+        license: licenseEntriesByKey[bomDataKey]
+      };
+    }
+  }, bomDataByKey);
+
+  const bomRawData = flatten(values(reportRawData));
+
+  const allRawDeportRawData = bomRawData.concat(map(oneUnknownJsResult => ({
+    derivedComponentName: deriveComponentName(oneUnknownJsResult)
+  }), unknownJsResult.aaData));
+
+  return allRawDeportRawData;
 }
 
 function highestViolationReducer(highestViolationSoFar, violation) {

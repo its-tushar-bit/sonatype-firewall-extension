@@ -3,12 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createReportEntries } from './applicationReportService';
+import { createReportEntries, createRawDataEntries } from './applicationReportService';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
 export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
+export const RELOAD_REPORT_REQUESTED = 'RELOAD_REPORT_REQUESTED';
+export const LOAD_REPORT_RAW_DATA_REQUESTED = 'LOAD_REPORT_RAW_DATA_REQUESTED';
+export const LOAD_REPORT_RAW_DATA_FULFILLED = 'LOAD_REPORT_RAW_DATA_FULFILLED';
+export const LOAD_REPORT_RAW_DATA_FAILED = 'LOAD_REPORT_RAW_DATA_FAILED';
+export const LOAD_COMMON_DATA_FULFILLED = 'LOAD_COMMON_DATA_FULFILLED';
+export const LOAD_COMMON_DATA_FAILED = 'LOAD_COMMON_DATA_FAILED';
 export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
+export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
 export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
@@ -19,83 +26,168 @@ export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
 export const SET_EXACT_VALUE_FILTER = 'SET_EXACT_VALUE_FILTER';
 export const SET_SORTING = 'SET_SORTING';
-export const RESET_REPORT_VIEW_SETTINGS = 'RESET_REPORT_VIEW_SETTINGS';
 
 export default function applicationReportActions($http, $q, CLMLocations, Messages) {
 
-  function fetchReportData(applicationPublicId, scanId, isUnknownJs) {
-    const promises = [
-      $http.get(CLMLocations.getReportMetadataUrl(applicationPublicId, scanId)),
-      $http.get(CLMLocations.getReportPolicyThreatsUrl(applicationPublicId, scanId)),
-      $http.get(CLMLocations.getReportBomUrl(applicationPublicId, scanId)),
-      $http.get(CLMLocations.getReportDataUrl(applicationPublicId, scanId)),
-      $http.get(CLMLocations.getReportPartialMatchedUrl(applicationPublicId, scanId))
-    ];
-
-    if (isUnknownJs) {
-      promises.push($http.get(CLMLocations.getReportUnknownJsUrl(applicationPublicId, scanId)));
-    }
-
-    return $q.all(promises)
-        .then((results) => {
-          const metadata = results[0].data;
-          const policyResult = results[1].data || undefined;
-          const bomResult = results[2].data || undefined;
-          const dataResult = results[3].data;
-          const partialMatches = results[4].data || undefined;
-          const unknownJsResult = isUnknownJs && results[5].data || undefined;
-          const allEntries = createReportEntries(policyResult, bomResult, unknownJsResult, partialMatches);
-          const reportVersion = policyResult && policyResult.version || null;
-          return {
-            report: { allEntries, ...dataResult, scanId },
-            reportVersion,
-            metadata
-          };
-        });
+  function setReportParameters(appId, scanId, isUnknownJs) {
+    return {
+      type: SET_REPORT_PARAMETERS,
+      payload: { appId, scanId, isUnknownJs }
+    };
   }
 
-  function loadReport(applicationPublicId, scanId, isUnknownJs) {
-    return dispatch => {
+  function fetchCommonData() {
+    return (dispatch, getState) => {
+      const {bomData, unknownJsData, metadata, reportParameters} = getState().applicationReport;
+      const {appId, scanId, isUnknownJs} = reportParameters;
+
+      if (!metadata || !bomData || (!unknownJsData && isUnknownJs)) {
+        const promises = {
+          bomResult: $http.get(CLMLocations.getReportBomUrl(appId, scanId)),
+          metadata: $http.get(CLMLocations.getReportMetadataUrl(appId, scanId))
+        };
+
+        if (isUnknownJs) {
+          promises.unknownJsResult = $http.get(CLMLocations.getReportUnknownJsUrl(appId, scanId));
+        }
+
+        return $q.all(promises)
+            .then((results) => {
+              const bomResult = results.bomResult.data || undefined;
+              const metadataResult = results.metadata.data;
+              const unknownJsResult = (isUnknownJs && results.unknownJsResult.data) || undefined;
+              return dispatch(loadCommonDataFulfilled({
+                bomData: bomResult,
+                metadata: metadataResult,
+                unknownJsData: unknownJsResult
+              }));
+            })
+            .catch(error => {
+              dispatch(loadCommonDataFailed(error));
+              return $q.reject(error);
+            });
+      }
+
+      return $q.resolve();
+    };
+  }
+
+  function fetchReportData() {
+    return (dispatch, getState) => {
+      const { bomData, unknownJsData, reportParameters } = getState().applicationReport;
+      const { appId, scanId } = reportParameters;
+      const promises = {
+        policyResult: $http.get(CLMLocations.getReportPolicyThreatsUrl(appId, scanId)),
+        dataResult: $http.get(CLMLocations.getReportDataUrl(appId, scanId)),
+        partialMatches: $http.get(CLMLocations.getReportPartialMatchedUrl(appId, scanId))
+      };
+
+      return $q.all(promises)
+          .then((results) => {
+            const policyResult = results.policyResult.data || undefined;
+            const dataResult = results.dataResult.data;
+            const partialMatches = results.partialMatches.data || undefined;
+
+            const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches);
+            const reportVersion = policyResult && policyResult.version || null;
+            return dispatch(loadReportFulfilled({ allEntries, reportVersion, ...dataResult }));
+          })
+          .catch(error => {
+            dispatch(loadReportFailed(error));
+            return $q.reject(error);
+          });
+    };
+  }
+
+  function fetchReportRawData() {
+    return (dispatch, getState) => {
+      const {bomData, unknownJsData, reportParameters} = getState().applicationReport;
+      const { appId, scanId } = reportParameters;
+      const promises = {
+        securityResult: $http.get(CLMLocations.getReportSecurityUrl(appId, scanId)),
+        licenseResult: $http.get(CLMLocations.getReportLicenseUrl(appId, scanId))
+      };
+
+      return $q.all(promises)
+          .then((results) => {
+            const securityResult = results.securityResult.data;
+            const licenseResult = results.licenseResult.data;
+            const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
+            return dispatch(loadReportRawDataFulfilled(allEntries));
+          })
+          .catch(error => {
+            dispatch(loadReportRawDataFailed(error));
+            return $q.reject(error);
+          });
+    };
+  }
+
+  function loadReport() {
+    return (dispatch) => {
       dispatch({
         type: LOAD_REPORT_REQUESTED
       });
 
-      return fetchReportData(applicationPublicId, scanId, isUnknownJs)
-          .then(({ report, metadata, reportVersion }) => {
-            dispatch(loadReportFulfilled(report, metadata, isUnknownJs, reportVersion));
-          })
-          .catch(error => {
-            dispatch(loadReportFailed(error));
-            return $q.reject(error);
-          });
+      return dispatch(fetchCommonData()).then(() => dispatch(fetchReportData()));
+    };
+  }
+
+  function loadReportRawData() {
+    return (dispatch) => {
+      dispatch({
+        type: LOAD_REPORT_RAW_DATA_REQUESTED
+      });
+      return dispatch(fetchCommonData()).then(() => dispatch(fetchReportRawData()));
     };
   }
 
   function reloadReport() {
-    return (dispatch, getState) => {
-      const {isUnknownJs, metadata, selectedReport} = getState().applicationReport;
-
-      return fetchReportData(metadata.application.publicId, selectedReport.scanId, isUnknownJs)
-          .then(({ report, metadata, reportVersion }) => {
-            dispatch(loadReportFulfilled(report, metadata, isUnknownJs, reportVersion));
-          })
-          .catch(error => {
-            dispatch(loadReportFailed(error));
-            return $q.reject(error);
-          });
+    return (dispatch) => {
+      dispatch({
+        type: RELOAD_REPORT_REQUESTED
+      });
+      return dispatch(fetchCommonData()).then(() => dispatch(fetchReportData()));
     };
   }
 
-  function loadReportFulfilled(report, metadata, isUnknownJs, reportVersion) {
+  function loadCommonDataFulfilled({ bomData, metadata, unknownJsData }) {
+    return {
+      type: LOAD_COMMON_DATA_FULFILLED,
+      payload: { bomData, metadata, unknownJsData }
+    };
+  }
+
+  function loadCommonDataFailed(error) {
+    return {
+      type: LOAD_COMMON_DATA_FAILED,
+      payload: Messages.getHttpErrorMessage(error)
+    };
+  }
+
+  function loadReportFulfilled(payload) {
     return {
       type: LOAD_REPORT_FULFILLED,
-      payload: { report, metadata, isUnknownJs, reportVersion }
+      payload
     };
   }
 
   function loadReportFailed(error) {
     return {
       type: LOAD_REPORT_FAILED,
+      payload: Messages.getHttpErrorMessage(error)
+    };
+  }
+
+  function loadReportRawDataFulfilled(payload) {
+    return {
+      type: LOAD_REPORT_RAW_DATA_FULFILLED,
+      payload
+    };
+  }
+
+  function loadReportRawDataFailed(error) {
+    return {
+      type: LOAD_REPORT_RAW_DATA_FAILED,
       payload: Messages.getHttpErrorMessage(error)
     };
   }
@@ -140,22 +232,20 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
 
   function reevaluateReport() {
     return (dispatch, getState) => {
-      const { selectedReport, isUnknownJs, metadata } = getState().applicationReport,
-          { scanId } = selectedReport,
-          applicationPublicId = metadata.application.publicId;
+      const { scanId, appId } = getState().applicationReport.reportParameters;
 
       dispatch({
         type: REEVALUATE_REPORT_REQUESTED
       });
 
-      return $http.post(CLMLocations.getReportReevaluateUrl(applicationPublicId, scanId))
+      return $http.post(CLMLocations.getReportReevaluateUrl(appId, scanId))
           .catch(error => {
             dispatch(reevaluateReportFailed(error));
             return $q.reject(error);
           })
           .then(() => {
             dispatch(reevaluateReportFulfilled());
-            return dispatch(loadReport(applicationPublicId, scanId, isUnknownJs));
+            return dispatch(loadReport());
           });
     };
   }
@@ -179,17 +269,10 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  /**
-   * Reset all filter, sorting, and aggregation settings to the default
-   */
-  function resetReportViewSettings() {
-    return {
-      type: RESET_REPORT_VIEW_SETTINGS
-    };
-  }
-
   return {
+    setReportParameters,
     loadReport,
+    loadReportRawData,
     reloadReport,
     reevaluateReport,
     reevaluateReportCancelled,
@@ -197,8 +280,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     setStringFieldFilter,
     setExactValueFilter,
     setSorting,
-    selectComponent,
-    resetReportViewSettings
+    selectComponent
   };
 }
 

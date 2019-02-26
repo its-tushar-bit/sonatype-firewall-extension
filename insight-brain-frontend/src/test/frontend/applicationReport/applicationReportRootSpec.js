@@ -27,9 +27,8 @@ describe('applicationReportRoot', function() {
       expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('resets the report view settings and then loads correct report', function() {
-      expect(vm.resetReportViewSettings).toHaveBeenCalledBefore(vm.loadReport);
-      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
+    it('calls setReportParameters with the correct parameters', function() {
+      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false);
     });
   });
 

@@ -23,6 +23,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
           encodeURIComponent(scanId);
     }
 
+    const getBrowseReportUrl = (fileName) => (applicationPublicId, scanId) =>
+      getBaseReportUrl(applicationPublicId, scanId) + '/browseReport/' + fileName;
+
     return {
       getLicensesUrl: function() {
         return baseUrl.get() + '/rest/license';
@@ -341,20 +344,19 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`,
 
-      getReportPolicyThreatsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/browseReport/policythreats.json',
+      getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
 
-      getReportBomUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/browseReport/bom.json',
+      getReportBomUrl: getBrowseReportUrl('bom.json'),
 
-      getReportDataUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/browseReport/data.json',
+      getReportDataUrl: getBrowseReportUrl('data.json'),
 
-      getReportUnknownJsUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/browseReport/unknownjs.json',
+      getReportSecurityUrl: getBrowseReportUrl('security.json'),
 
-      getReportPartialMatchedUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/browseReport/partialmatched.json',
+      getReportLicenseUrl: getBrowseReportUrl('licenses.json'),
+
+      getReportUnknownJsUrl: getBrowseReportUrl('unknownjs.json'),
+
+      getReportPartialMatchedUrl: getBrowseReportUrl('partialmatched.json'),
 
       getReportAuditLogUrl: function(appPublicId, reportId, component) {
         const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),

@@ -66,7 +66,7 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
     },
 
     getReportPdfDownloadUrl: function() {
-      return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.selectedReport.scanId);
+      return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.reportParameters.scanId);
     }
   });
 

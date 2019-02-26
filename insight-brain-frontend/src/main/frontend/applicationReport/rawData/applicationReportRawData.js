@@ -11,20 +11,21 @@ export default {
   controller: ApplicationReportRawController
 };
 
-function ApplicationReportRawController($ngRedux, applicationReportActions, $state) {
+function ApplicationReportRawController($ngRedux, applicationReportActions) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
+      vm.load();
     },
 
     $onDestroy() {
       vm.unsubscribe();
     },
 
-    reload() {
-      vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
+    load() {
+      vm.loadReportRawData();
     }
   });
 }

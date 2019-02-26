@@ -14,6 +14,47 @@ describe('CLMLocation.js', function() {
     $window = _$window_;
   }));
 
+  describe('browseReportUrl', () => {
+    beforeEach(inject(function(BaseUrl) {
+      spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
+    }));
+
+    it('should return the correct URL for the report policy threats URL', () => {
+      expect(CLMLocations.getReportPolicyThreatsUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/policythreats.json');
+    });
+
+    it('should return the correct URL for the report BOM URL', () => {
+      expect(CLMLocations.getReportBomUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/bom.json');
+    });
+
+    it('should return the correct URL for the report data URL', () => {
+      expect(CLMLocations.getReportDataUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/data.json');
+    });
+
+    it('should return the correct URL for the report security URL', () => {
+      expect(CLMLocations.getReportSecurityUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/security.json');
+    });
+
+    it('should return the correct URL for the report licenses URL', () => {
+      expect(CLMLocations.getReportLicenseUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/licenses.json');
+    });
+
+    it('should return the correct URL for the report unknownJS URL', () => {
+      expect(CLMLocations.getReportUnknownJsUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/unknownjs.json');
+    });
+
+    it('should return the correct URL for the report partial matched URL', () => {
+      expect(CLMLocations.getReportPartialMatchedUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/partialmatched.json');
+    });
+  });
+
   it('Test noFormData added to license upload', function() {
     var formData = $window.FormData || 'mock';
     $window.FormData = null;

@@ -35,6 +35,12 @@ describe('applicationReport component', function() {
     controller.$onInit();
   }));
 
+  describe('$onInit()', function() {
+    it('subscribes to the redux store', () => {
+      expect(controller.unsubscribe).toBeDefined();
+    });
+  });
+
   it('activates the form mask when vm.reevaluating is set to true', function() {
     expect(controller.formMaskController.activateMask).not.toHaveBeenCalled();
 

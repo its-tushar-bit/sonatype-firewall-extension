@@ -43,6 +43,60 @@ describe('applicationReportReducer', function() {
     });
   });
 
+  describe('SET_REPORT_PARAMETERS action', function() {
+    it('adds report parameters to state', function() {
+      const state = {};
+      const newState = reduce(state, {
+        type: 'SET_REPORT_PARAMETERS',
+        payload: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false
+        }
+      });
+      expect(newState.reportParameters).toEqual({
+        appId: 'appId',
+        scanId: 'scanId',
+        isUnknownJs: false
+      });
+    });
+
+    it('sets the state to the initState value', () => {
+      const state = {
+        foo: 'bar',
+        changeMe: 'can haz overwrite plz?'
+      };
+      const newState = reduce(state, {
+        type: 'SET_REPORT_PARAMETERS',
+        payload: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false
+        }
+      });
+      expect(newState).toEqual({
+        loading: false,
+        reevaluating: false,
+        loadError: null,
+        reevaluationError: null,
+        aggregate: true,
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+        exactValueFilters: {},
+        reportRawData: null,
+        reportParameters: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false
+        },
+        substringFilters: {},
+        selectedReport: null,
+        selectedComponentIndex: null,
+        policyTypeFilterEnabled: false,
+        isUnknownJs: false
+      });
+    });
+  });
+
   describe('LOAD_REPORT_REQUESTED action', function() {
     it('sets loading flag and unsets error and selectedReport values', function() {
       const state = Object.freeze({
@@ -63,7 +117,7 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_FULFILLED action', function() {
-    it('unsets loading flag and sets selectedReport, metadata and isUnknownJs values', function() {
+    it('unsets loading flag and sets selectedReport values', function() {
       const state = Object.freeze({
         loading: true,
         loadError: null,
@@ -78,9 +132,7 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          report: {allEntries: entries},
-          metadata: {reportTitle: 'test'},
-          isUnknownJs: false,
+          allEntries: entries,
           reportVersion: 3
         }
       });
@@ -93,10 +145,9 @@ describe('applicationReportReducer', function() {
           moderateViolationCount: 1,
           severeViolationCount: 1,
           criticalViolationCount: 1,
-          nonLowViolationCount: 3
+          nonLowViolationCount: 3,
+          reportVersion: 3
         },
-        metadata: {reportTitle: 'test'},
-        isUnknownJs: false,
         policyTypeFilterEnabled: false,
         other: otherObject
       });
@@ -154,7 +205,8 @@ describe('applicationReportReducer', function() {
           newState = reduce(state, {
             type: 'LOAD_REPORT_FULFILLED',
             payload: {
-              report: {allEntries: entries}
+              allEntries: entries,
+              reportVersion: 3
             }
           });
 
@@ -209,7 +261,8 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          report: {allEntries: entries}
+          allEntries: entries,
+          reportVersion: 3
         }
       });
 
@@ -266,7 +319,8 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          report: {allEntries: entries}
+          allEntries: entries,
+          reportVersion: 3
         }
       });
 
@@ -281,7 +335,7 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          report: {allEntries: []},
+          allEntries: [],
           metadata: {reportTitle: 'test'},
           isUnknownJs: false,
           reportVersion: 4
@@ -299,7 +353,7 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
-          report: {allEntries: []},
+          allEntries: [],
           metadata: {reportTitle: 'test'},
           isUnknownJs: false,
           reportVersion: 3
@@ -307,6 +361,71 @@ describe('applicationReportReducer', function() {
       });
       expect(newState.policyTypeFilterEnabled).toBe(false);
       expect(newState.other).toBe(otherObject);
+    });
+  });
+
+  describe('LOAD_REPORT_RAW_DATA_REQUESTED', () => {
+    it('sets loading flag and unsets error and reportRawData values', function() {
+      const state = Object.freeze({
+        loading: false,
+        loadError: 'test error',
+        reportRawData: 'test report',
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'LOAD_REPORT_RAW_DATA_REQUESTED'});
+      expect(newState).toEqual({
+        loading: true,
+        loadError: null,
+        reportRawData: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LOAD_REPORT_RAW_DATA_FULFILLED action', () => {
+    it('unsets loading flag and does not change other values on the state', function() {
+      const state = Object.freeze({
+        loading: true,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'LOAD_REPORT_RAW_DATA_FULFILLED'});
+      expect(newState.loading).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets the raw data information on the allEntries section of reportRawData state', () => {
+      const state = {};
+      const rawDataEntries = [
+        {
+          derivedComponentName: 'foo',
+          license: 'undefined'
+        }
+      ];
+
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
+        payload: rawDataEntries
+      });
+
+      expect(newState.reportRawData.allEntries).toEqual(rawDataEntries);
+    });
+
+    it('sets the appropriate raw data information on the displayedEntries section of reportRawData state', () => {
+      const state = {};
+      const rawDataEntries = [
+        {
+          derivedComponentName: 'foo',
+          license: 'undefined'
+        }
+      ];
+
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
+        payload: rawDataEntries
+      });
+
+      expect(newState.reportRawData.displayedEntries).toEqual(rawDataEntries);
     });
   });
 
@@ -392,6 +511,25 @@ describe('applicationReportReducer', function() {
         loading: false,
         loadError: 'test error',
         selectedReport: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LOAD_REPORT_RAW_DATA_FAILED action', function() {
+    it('unsets loading flag and sets error value', function() {
+      const state = Object.freeze({
+        loading: true,
+        loadError: null,
+        reportRawData: null,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'LOAD_REPORT_FAILED', payload: 'test error'});
+      expect(newState).toEqual({
+        loading: false,
+        loadError: 'test error',
+        reportRawData: null,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -728,37 +866,6 @@ describe('applicationReportReducer', function() {
       }]);
 
       expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
-    });
-  });
-
-  describe('RESET_REPORT_VIEW_SETTINGS', function() {
-    it('resets exactValueFilters, substringFilters, aggregate, and sortFields back to their initial values', () => {
-      const state = Object.freeze({
-            exactValueFilters: Object.freeze({
-              bar: [1, 2],
-              baz: ['asdfasf']
-            }),
-            substringFilters: Object.freeze({
-              foo: 'asdf'
-            }),
-            aggregate: false,
-            sortFields: ['derivedComponentName'],
-            other: otherObject
-          }),
-          action = {
-            type: 'RESET_REPORT_VIEW_SETTINGS'
-          },
-          newState = reduce(state, action);
-
-      expect(newState).toEqual({
-        exactValueFilters: {},
-        substringFilters: {},
-        aggregate: true,
-        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-        other: otherObject
-      });
-
-      expect(newState.other).toBe(otherObject);
     });
   });
 });

@@ -9,7 +9,6 @@ import {
   identity,
   inc,
   lensPath,
-  pick,
   pipe,
   propEq,
   reduceBy,
@@ -20,19 +19,25 @@ import {
 } from 'ramda';
 
 import {
+  LOAD_COMMON_DATA_FAILED,
+  LOAD_COMMON_DATA_FULFILLED,
   LOAD_REPORT_FAILED,
   LOAD_REPORT_FULFILLED,
   LOAD_REPORT_REQUESTED,
+  RELOAD_REPORT_REQUESTED,
+  LOAD_REPORT_RAW_DATA_FAILED,
+  LOAD_REPORT_RAW_DATA_FULFILLED,
+  LOAD_REPORT_RAW_DATA_REQUESTED,
   SET_AGGREGATE_REPORT_ENTRIES,
   SET_SUBSTRING_FIELD_FILTER,
   SET_EXACT_VALUE_FILTER,
+  SET_REPORT_PARAMETERS,
   REEVALUATE_REPORT_REQUESTED,
   REEVALUATE_REPORT_FULFILLED,
   REEVALUATE_REPORT_FAILED,
   REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
-  SELECT_COMPONENT,
-  RESET_REPORT_VIEW_SETTINGS
+  SELECT_COMPONENT
 } from './applicationReportActions';
 
 import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService';
@@ -49,6 +54,7 @@ const initState = {
   // map from field name to Set of allowed values
   // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
   exactValueFilters: {},
+  reportRawData: null,
 
   // map from field name to string to use for substring matching
   // example: { policyName: 'security', derivedComponentName: 'foo' }
@@ -61,11 +67,28 @@ const initState = {
 
 export default function(state = initState, {type, payload}) {
   switch (type) {
+    case SET_REPORT_PARAMETERS:
+      return setReportParameters(state, payload);
+
     case LOAD_REPORT_REQUESTED:
       return {...state, loading: true, loadError: null, selectedReport: null};
 
+    case RELOAD_REPORT_REQUESTED:
+      return {...state, bomData: null};
+
     case LOAD_REPORT_FULFILLED:
       return setSelectedReport(state, payload);
+
+    case LOAD_COMMON_DATA_FULFILLED: {
+      const {bomData, metadata, unknownJsData} = payload;
+      return {...state, bomData, metadata, unknownJsData};
+    }
+
+    case LOAD_REPORT_RAW_DATA_REQUESTED:
+      return {...state, loading: true, loadError: null, reportRawData: null};
+
+    case LOAD_REPORT_RAW_DATA_FULFILLED:
+      return setRawDataInformation(state, payload);
 
     case REEVALUATE_REPORT_REQUESTED:
       return {...state, reevaluating: true, reevaluationError: null};
@@ -75,6 +98,12 @@ export default function(state = initState, {type, payload}) {
       return {...state, reevaluating: false, reevaluationError: null};
 
     case LOAD_REPORT_FAILED:
+      return {...state, loading: false, loadError: payload};
+
+    case LOAD_REPORT_RAW_DATA_FAILED:
+      return {...state, loading: false, loadError: payload};
+
+    case LOAD_COMMON_DATA_FAILED:
       return {...state, loading: false, loadError: payload};
 
     case REEVALUATE_REPORT_FAILED:
@@ -101,24 +130,22 @@ export default function(state = initState, {type, payload}) {
     case SELECT_COMPONENT:
       return {...state, selectedComponentIndex: payload};
 
-    case RESET_REPORT_VIEW_SETTINGS:
-      return updateDisplayedEntries({
-        ...state,
-        ...pick(['exactValueFilters', 'substringFilters', 'aggregate', 'sortFields'], initState)
-      });
-
     default:
       return state;
   }
 }
+function setReportParameters(state, payload) {
+  return {
+    ...initState,
+    reportParameters: payload
+  };
+}
 
-function setSelectedReport(state, {report, metadata, isUnknownJs, reportVersion}) {
+function setSelectedReport(state, report) {
   const newState = updateDisplayedEntries({
     ...state,
     loading: false,
-    metadata,
-    isUnknownJs,
-    policyTypeFilterEnabled: reportVersion && reportVersion >= 4,
+    policyTypeFilterEnabled: report.reportVersion && report.reportVersion >= 4,
     selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)}
   });
 
@@ -134,6 +161,22 @@ function setSelectedReport(state, {report, metadata, isUnknownJs, reportVersion}
     }
   }
   return newState;
+}
+
+function setRawDataInformation(state, rawDataEntries) {
+  return updateRawDataDisplayedEntries({
+    ...state,
+    loading: false,
+    reportRawData: {
+      allEntries: rawDataEntries
+    }
+  });
+}
+
+function updateRawDataDisplayedEntries(state) {
+  const { reportRawData } = state;
+
+  return pathSet(['reportRawData', 'displayedEntries'], reportRawData.allEntries, state);
 }
 
 /**

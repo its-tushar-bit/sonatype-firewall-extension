@@ -57,10 +57,12 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
     $onInit() {
       const actions = pick(
-          ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport', 'reevaluateReportCancelled'],
+          ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport',
+            'reevaluateReportCancelled', 'loadReport'],
           applicationReportActions);
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
+      vm.loadReport();
 
       $scope.$watch('vm.reevaluating', function(reevaluating) {
         if (reevaluating) {

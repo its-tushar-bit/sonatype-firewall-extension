@@ -154,8 +154,7 @@ public class ScanFileCleaner
           }
         }
         catch (Exception e) {
-          log.warn("Error accessing the last modified timestamp for scan file '{}'. Error: {}", scanFilePath,
-              e.getMessage());
+          log.warn("Error accessing the last modified timestamp for scan file '{}': {}", scanFilePath, e.toString());
           continue;
         }
 
@@ -171,7 +170,7 @@ public class ScanFileCleaner
           log.info("Deleted obsolete scan file: '{}'.", scanFilePath);
         }
         catch (Exception e) {
-          log.warn("Error deleting scan file '{}'. Error: {}", scanFilePath, e.getMessage());
+          log.warn("Error deleting scan file '{}': {}", scanFilePath, e.toString());
         }
       }
     }

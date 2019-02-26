@@ -1,0 +1,17 @@
+#application-report-raw-data {
+  .iq-spinner__wrapper {
+    padding: 8px;
+  }
+}
+
+.iq-table--report-raw-data {
+  table-layout: fixed;
+
+  .iq-cell--report-raw-data-security-code {
+    width: 140px;
+  }
+
+  .iq-cell--report-raw-data-cvss {
+    width: 85px;
+  }
+}

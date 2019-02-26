@@ -6,8 +6,8 @@
       <div class="iq-tile iq-tile--back-button">
         <iq-back-button state="applicationReport.policy"></iq-back-button>
       </div>
-      
-      <div class="iq-tile iq-tile--top-tile iq-tile--application-report-raw">
+
+      <div class="iq-tile">
         <div class="iq-tile-header">
           <div class="iq-tile-header__title" id="raw-data-report-title">
             <h1>
@@ -19,6 +19,48 @@
             Please note that the data appearing on this page is the raw data and not the result of policy evaluation
           </div>
         </div>
+        <table class="iq-table iq-table--report-raw-data">
+          <thead>
+            <tr class="iq-table-row">
+              <th class="iq-cell iq-cell--header">
+                Component
+              </th>
+              <th class="iq-cell iq-cell--header">
+                License
+              </th>
+              <th class="iq-cell iq-cell--header iq-cell--report-raw-data-security-code">
+                Security Issue
+              </th>
+              <th class="iq-cell iq-cell--header iq-cell--report-raw-data-cvss">
+                CVSS Score
+              </th>
+            </tr>
+          </thead>
+          <tbody class="iq-application-report-results">
+            <tr class="iq-table-row" ng-repeat="rawDataEntry in vm.reportRawData.displayedEntries">
+              <td class="iq-cell">
+                <div class="truncate-ellipsis"
+                     iq-tooltip
+                     tooltip-text="{{::rawDataEntry.derivedComponentName}}"
+                     tooltip-only-on-overflow="true">
+                  {{::rawDataEntry.derivedComponentName}}
+                </div>
+              </td>
+              <td class="iq-cell">
+                <raw-license-display license="::rawDataEntry.license"></raw-license-display>
+              </td>
+              <td class="iq-cell">
+                {{::rawDataEntry.securityCode}}
+              </td>
+              <td class="iq-cell">
+                {{::rawDataEntry.cvssScore | number : 1}}
+              </td>
+            </tr>
+            <tr ng-if="::vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">
+              <td class="iq-cell iq-cell--empty" colspan="4">No Results</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>

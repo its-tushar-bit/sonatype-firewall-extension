@@ -15,6 +15,7 @@ import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
 import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorModal';
 import applicationReportRoot from './applicationReportRoot';
+import rawLicenseDisplay from './rawData/rawLicenseDisplay/rawLicenseDisplay';
 import applicationReportRawData from './rawData/applicationReportRawData';
 
 export default angular.module('applicationReportModule',
@@ -26,6 +27,7 @@ export default angular.module('applicationReportModule',
     .component('applicationReportRoot', applicationReportRoot)
     .component('applicationReportResults', applicationReportResults)
     .component('reevaluationErrorModal', reevaluationErrorModal)
+    .component('rawLicenseDisplay', rawLicenseDisplay)
     .component('applicationReportRawData', applicationReportRawData)
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)

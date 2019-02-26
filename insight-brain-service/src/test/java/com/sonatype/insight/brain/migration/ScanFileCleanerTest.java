@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.security.Permission;
+import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -103,15 +104,17 @@ public class ScanFileCleanerTest
     // Create two policy evaluations for two scans older than one hour.
     // Only the first scan should be deleted.
     String oldScanId = "oldScanId";
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), oldScanId);
+    long oldScanTimestamp = System.currentTimeMillis() - 2 * ONE_HOUR;
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), oldScanId, new Date(oldScanTimestamp));
     Path oldScanFile = insightWork.getScanFile(app.getId(), oldScanId).toPath();
     Files.createFile(oldScanFile);
-    Files.setLastModifiedTime(oldScanFile, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+    Files.setLastModifiedTime(oldScanFile, FileTime.fromMillis(oldScanTimestamp));
     String newScanId = "newScanId";
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), newScanId);
+    long newScanTimestamp = System.currentTimeMillis() - ONE_HOUR - 1;
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), newScanId, new Date(newScanTimestamp));
     Path newScanFile = insightWork.getScanFile(app.getId(), newScanId).toPath();
     Files.createFile(newScanFile);
-    Files.setLastModifiedTime(newScanFile, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+    Files.setLastModifiedTime(newScanFile, FileTime.fromMillis(newScanTimestamp));
 
     assertThat(Files.list(scanDir)).containsExactlyInAnyOrder(oldScanFile, newScanFile);
 

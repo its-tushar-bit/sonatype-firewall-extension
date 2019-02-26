@@ -62,7 +62,7 @@ public class SuccessMetricsReportPage
     ComponentCountsTile.averages().should(exist);
 
     // give Plottable time to adjust to scrollbar existence
-    Selenide.sleep(2000);
+    Selenide.sleep(4000);
 
     return this;
   }

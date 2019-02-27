@@ -10,12 +10,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
@@ -51,6 +53,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -59,6 +62,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchesText;
@@ -646,6 +650,41 @@ public class ApplicationReportTest
     reportPage.showAllViolationsRadio().shouldNotBe(selected);
     headers.policyNameHeader().sortArrowUp().shouldNotBeSelected();
     reportPage.proprietaryFilter().nonProprietary().shouldNotBe(selected);
+  }
+
+  @Test
+  public void testPolicyTypeFilterDisabledInV3Report() throws IOException {
+    // Setup
+    final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
+    Application app2 = tempEntity.newApplicationWithParent();
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/evaluated-v3-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    File reportDestination = work.getReportFile(app2.getId(), SCAN_ID2);
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, SCAN_ID2);
+    refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+
+    // Assertions
+    PolicyTypeFilter policyTypeFilter = reportPage.policyTypeFilter();
+    ElementsCollection violations = reportPage.resultRows();
+
+    policyTypeFilter.counter().shouldHave(exactText("4"));
+    policyTypeFilter.multiSelectList().shouldBe(empty);
+    violations.shouldHaveSize(63);
+    policyTypeFilter.hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Reevaluate the report in order to enable Policy Types filter"));
+    policyTypeFilter.twisty().click();
+    policyTypeFilter.multiSelectList().shouldHaveSize(5);
+    policyTypeFilter.allItems().shouldBe(disabled);
+    policyTypeFilter.security().shouldBe(disabled);
+    policyTypeFilter.quality().shouldBe(disabled);
+    policyTypeFilter.license().shouldBe(disabled);
+    policyTypeFilter.other().shouldBe(disabled);
+    // Assert no changes on click.
+    policyTypeFilter.security().click();
+    policyTypeFilter.security().shouldBe(disabled);
+    policyTypeFilter.security().shouldNotBe(selected);
+    violations.shouldHaveSize(63);
   }
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {

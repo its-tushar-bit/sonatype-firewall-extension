@@ -44,7 +44,8 @@
         Violation State
       </iq-tree-view-multi-select>
       <iq-tree-view-multi-select id="policy-type-filter"
-                                 ng-if="vm.policyTypeFilterEnabled"
+                                 is-disabled="!vm.policyTypeFilterEnabled"
+                                 disabled-tooltip="Reevaluate the report in order to enable Policy Types filter"
                                  available="vm.availablePolicyTypeFilterOptions"
                                  selected="vm.exactValueFilters.policyThreatCategory"
                                  on-change="vm.setPolicyTypeFilterOptions(selected)">

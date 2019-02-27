@@ -159,7 +159,8 @@ function mapStateToThis(state) {
     'aggregate',
     'reevaluating',
     'reevaluationError',
-    'exactValueFilters'
+    'exactValueFilters',
+    'policyTypeFilterEnabled'
   ], state.applicationReport || {});
 }
 

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
@@ -171,7 +173,7 @@ public abstract class AbstractRepositoryService
   }
 
   public RepositoryPolicyThreatDTO getPolicyThreats(final String repositoryId, final String pathname) {
-    checkLicenseFeature();
+    checkIfFirewallRelated();
 
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     return getPolicyThreats(repository, pathname);
@@ -431,8 +433,7 @@ public abstract class AbstractRepositoryService
   }
 
   public RepositoryReportSummary getReportSummary(String repositoryId) {
-    checkLicenseFeature();
-
+    checkIfFirewallRelated();
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
 
     log.debug("Get report summary for repository {}:{} ({})", repository.getRepositoryManagerId(),
@@ -498,7 +499,7 @@ public abstract class AbstractRepositoryService
   }
 
   public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash, String pathname) {
-    checkLicenseFeature();
+    checkIfFirewallRelated();
 
     final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
 
@@ -797,6 +798,13 @@ public abstract class AbstractRepositoryService
     }
     catch (BadGatewayException e) {
       throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
+    }
+  }
+
+  private void checkIfFirewallRelated() {
+    if (! (licenseManager.hasFeature(Feature.FIREWALL_FOR_ARTIFACTORY) ||
+        licenseManager.hasFeature(Feature.FIREWALL))) {
+      throw new InvalidLicenseException();
     }
   }
 }

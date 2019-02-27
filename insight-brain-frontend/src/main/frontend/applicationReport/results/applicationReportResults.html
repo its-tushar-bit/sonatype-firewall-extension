@@ -140,18 +140,18 @@
               ng-click="vm.openCipModal($index)">
             <td class="iq-cell iq-cell--label iq-cell--application-report-policy-threat-level">
               <span class="iq-threat-indication" threat-class="component.policyThreatLevel"></span>
-              <span class="iq-threat-number">{{::component.policyThreatLevel}}</span>
+              <span class="iq-threat-number">{{component.policyThreatLevel}}</span>
             </td><!--
-         --><td class="iq-cell iq-cell--application-report-policy-name">{{::component.policyName}}</td><!--
+         --><td class="iq-cell iq-cell--application-report-policy-name">{{component.policyName}}</td><!--
          --><td class="iq-cell iq-cell--application-report-component-display">
-              <span class="iq-text-indicator iq-text-indicator--waived iq-pull-right" ng-show="::component.waived">
+              <span class="iq-text-indicator iq-text-indicator--waived iq-pull-right" ng-show="component.waived">
                 Waived<i class="fa fa-check"></i>
               </span>
               <span class="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right"
-                    ng-show="::component.grandfathered">
+                    ng-show="component.grandfathered">
                 Grandfathered<i class="fa fa-history"></i>
               </span>
-              <component-display component="::component" truncate="true"></component-display>
+              <component-display component="component" truncate="true"></component-display>
             </td>
           </tr>
           <tr ng-if="vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">

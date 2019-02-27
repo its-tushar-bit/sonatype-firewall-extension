@@ -229,6 +229,17 @@ public class ApplicationReportTest
 
     eyesWatcher.eyesCheck();
 
+    // a test to catch CLM-12064. When aggregating, the policy name for these rows should change back to None
+    reportPage.headers().componentNameFilterInput().setValue("vaadin");
+    reportPage.headers().policyNameFilterInput().clear();
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).policyName().shouldHave(text(licenseBanned.getName()));
+    reportPage.resultRow(1).threatNumber().shouldHave(text("10"));
+    reportPage.showAggregatedViolationsRadio().click();
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).policyName().shouldHave(text("None"));
+    reportPage.resultRow(1).threatNumber().shouldHave(text("0"));
+
     new PolicyWaiverDAO().delete(waiver);
     evaluator.reevaluatePolicy();
     refresh();

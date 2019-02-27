@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.exist;
@@ -60,9 +59,6 @@ public class SuccessMetricsReportPage
     MttrTile.chart().should(exist);
     ApplicationCountsTile.activeApplicationsCount().should(exist);
     ComponentCountsTile.averages().should(exist);
-
-    // give Plottable time to adjust to scrollbar existence
-    Selenide.sleep(4000);
 
     return this;
   }

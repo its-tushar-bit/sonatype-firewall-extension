@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.persistence.EntityExistsException;
+import javax.persistence.RollbackException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -137,7 +139,18 @@ public class SuccessMetricsReportDataService
       reportData = createSuccessMetricsReportData(successMetricsReportId, lastUpdatedDate, applicationIdsToQuery,
           includeLatestData, currentDateTime);
 
-      successMetricsReportDataDAO.insert(reportData);
+      try {
+        successMetricsReportDataDAO.insert(reportData);
+      }
+      catch (RollbackException e) {
+        if (e.getCause() instanceof EntityExistsException) {
+          // race condition, another thread just created it
+          reportData = successMetricsReportDataDAO.getById(successMetricsReportId);
+        }
+        else {
+          throw e;
+        }
+      }
     }
     else if (isReportDataOutOfDate(reportData, includeLatestData, currentDateTime.toDateTime(),
         applicationIdsToQuery)) {

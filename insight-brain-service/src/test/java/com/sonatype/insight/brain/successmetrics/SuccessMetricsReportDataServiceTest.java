@@ -16,11 +16,16 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.inject.Inject;
+import javax.persistence.EntityExistsException;
+import javax.persistence.RollbackException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -38,6 +43,8 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
+import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
 import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
@@ -51,6 +58,8 @@ import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.ORG_ID;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
@@ -63,6 +72,10 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;
 import static org.joda.time.DateTime.now;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SuccessMetricsReportDataServiceTest
     extends AbstractComponentTest
@@ -2277,5 +2290,45 @@ public class SuccessMetricsReportDataServiceTest
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count).isEqualTo(1);
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).componentDisplayName).isEqualTo("Unknown");
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).count).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetChartData_InsertRaceCondition() {
+    Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(new HashSet<>(), applicationIds);
+    String reportId = successMetricsReport.getId();
+
+    SuccessMetricsReportData data = new SuccessMetricsReportData();
+    data.setChartDataJson("{\"monthCount\": 82}");
+
+    SuccessMetricsReportDataDAO mockDAO = mock(SuccessMetricsReportDataDAO.class);
+
+    // on first getById call, data isn't saved yet. Then an insert will be attempted but will, as if another thread
+    // inserted first, fail. Then another getById call should be made which should return the mocked data object
+    // (ie the object created supposedly created by the other thread)
+    when(mockDAO.getById(reportId)).thenAnswer(new Answer<SuccessMetricsReportData>() {
+      private int callCount = 0;
+
+      @Override
+      public SuccessMetricsReportData answer(InvocationOnMock invocation) {
+        if (callCount == 0) {
+          callCount++;
+          return null;
+        }
+        else {
+          return data;
+        }
+      }
+    });
+
+    doThrow(new RollbackException(new EntityExistsException())).when(mockDAO).insert(any());
+
+    SuccessMetricsReportDataService service = new SuccessMetricsReportDataService(lookup(ApplicationService.class),
+        lookup(ApplicationComponentDAO.class), lookup(StageTypeService.class),
+        lookup(PolicyViolationAggregationService.class), lookup(SuccessMetricsReportService.class), mockDAO,
+        lookup(PolicyViolationAggregationDAO.class));
+
+    assertThat(service.getChartData(reportId).monthCount).isEqualTo(82);
   }
 }

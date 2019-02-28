@@ -10,7 +10,10 @@ import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ApplicationReportRawDataPage
     extends BasicElement<ApplicationReportRawDataPage>
@@ -31,5 +34,55 @@ public class ApplicationReportRawDataPage
 
   public SelenideElement reportTitle() {
     return child("#raw-data-report-title");
+  }
+
+  public ResultTable resultTable() {
+    return new ResultTable();
+  }
+
+  public static class ResultTable
+      extends BasicElement<ResultTable>
+  {
+    static final String ROW_SELECTOR = "tbody .iq-table-row";
+
+    ResultTable() {
+      super(ROOT, "#raw-data-report-results");
+    }
+
+    public ElementsCollection resultRows() {
+      return children(ROW_SELECTOR);
+    }
+
+    public ResultRow resultRow(int i) {
+      return new ResultRow(childSelector(ROW_SELECTOR, nthChild(i)));
+    }
+  }
+
+  public static class ResultRow
+      extends BasicElement<ApplicationReportPage.ResultRow>
+  {
+    public ResultRow(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement component() {
+      return child(".iq-cell", nthChild(1));
+    }
+
+    public SelenideElement securityIssue() {
+      return child(".iq-cell", nthChild(3));
+    }
+
+    public SelenideElement cvssScore() {
+      return child(".iq-cell", nthChild(4));
+    }
+
+    public SelenideElement declaredLicenses() {
+      return child("raw-license-display strong");
+    }
+
+    public SelenideElement observedLicenses() {
+      return child("raw-license-display span");
+    }
   }
 }

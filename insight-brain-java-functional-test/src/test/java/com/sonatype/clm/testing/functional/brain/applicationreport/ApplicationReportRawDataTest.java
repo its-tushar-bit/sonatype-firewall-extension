@@ -12,6 +12,8 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultRow;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultTable;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -29,6 +31,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -79,5 +84,27 @@ public class ApplicationReportRawDataTest
 
     backButton.click();
     applicationReportPage.should(appear);
+  }
+
+  @Test
+  public void testResults() {
+    ResultTable resultTable = rawDataPage.resultTable();
+    resultTable.shouldBe(visible);
+    resultTable.resultRows().shouldHaveSize(100);
+
+    ResultRow springSecurity = resultTable.resultRow(6);
+    springSecurity.component()
+        .shouldHave(exactText("org.springframework.security : spring-security-web : 3.2.4.release"));
+    springSecurity.declaredLicenses().shouldHave(exactText("Apache-2.0"));
+    springSecurity.observedLicenses().shouldNot(exist);
+    springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507"));
+    springSecurity.cvssScore().shouldHave(exactText("5.0"));
+
+    ResultRow resultRowXpp3 = resultTable.resultRow(7);
+    resultRowXpp3.component().shouldHave(exactText("xpp3 : xpp3_min : 1.1.4c"));
+    resultRowXpp3.declaredLicenses().shouldHave(exactText("Non-Standard, Public Domain, XPP-1.1.1"));
+    resultRowXpp3.observedLicenses().shouldHave(exactText(", XPP-1.2"));
+    resultRowXpp3.securityIssue().shouldBe(empty);
+    resultRowXpp3.cvssScore().shouldBe(empty);
   }
 }

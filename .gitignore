@@ -17,3 +17,10 @@ perfTemp_*/
 perf_results-*.out
 .pmd
 .pmdruleset.xml
+awsPerfRun_*/
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+override.tf
+.terraform
+terraform.tfvars

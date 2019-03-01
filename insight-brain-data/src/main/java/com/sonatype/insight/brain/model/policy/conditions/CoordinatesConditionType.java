@@ -31,6 +31,7 @@ public class CoordinatesConditionType
   static {
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_MAVEN, Collections.singleton(5));
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_ANAME, Collections.singleton(2));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_PYPI, Collections.singleton(3));
   }
 
   public static final String ID = "Coordinates";
@@ -127,6 +128,10 @@ public class CoordinatesConditionType
         componentIdentifier = ComponentIdentifier
             .createAnameCoordinates(coordinates[1], coordinates[2], coordinates[3]);
         break;
+      case ComponentIdentifier.FORMAT_PYPI:
+        componentIdentifier = ComponentIdentifier
+            .createPypiCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[4]);
+        break;
       default:
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
     }
@@ -149,6 +154,7 @@ public class CoordinatesConditionType
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
       case ComponentIdentifier.FORMAT_ANAME:
+      case ComponentIdentifier.FORMAT_PYPI:
         break;
       default:
         throw new InvalidConditionException(condition,

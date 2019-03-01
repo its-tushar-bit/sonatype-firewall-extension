@@ -39,6 +39,9 @@ public class ComponentFactory
       case ComponentIdentifier.FORMAT_ANAME:
         componentIdentifier = ComponentIdentifier.createAnameCoordinates(coord[0], coord[1], coord[2]);
         break;
+      case ComponentIdentifier.FORMAT_PYPI:
+        componentIdentifier = ComponentIdentifier.createPypiCoordinates(coord[0], coord[1], coord[2], coord[3]);
+        break;
       default:
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
     }

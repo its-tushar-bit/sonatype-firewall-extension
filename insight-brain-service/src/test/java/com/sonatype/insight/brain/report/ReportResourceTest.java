@@ -176,8 +176,8 @@ public class ReportResourceTest
     String jsonData = response.getBodyText();
     JsonNode actual = JsonUtils.parse(jsonData);
     assertThat(actual.get("partiallyMatchedComponentCount").asInt()).isEqualTo(1);
-    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(27);
-    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(28);
+    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(28);
+    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(29);
   }
 
   @Test
@@ -208,13 +208,13 @@ public class ReportResourceTest
     String jsonData = response.getBodyText();
     JsonNode actual = JsonUtils.parse(jsonData);
     assertThat(actual.get("partiallyMatchedComponentCount").asInt()).isEqualTo(2);
-    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(27);
-    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(29);
+    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(28);
+    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(30);
 
     response = request.subpath("summary.json").get();
     String summaryData = response.getBodyText();
     actual = JsonUtils.parse(summaryData);
-    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(29);
+    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(30);
   }
 
   @Test
@@ -1259,8 +1259,8 @@ public class ReportResourceTest
     assertThat(data.get("securityPunchCard").toString()).isEqualTo("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]");
     assertThat(data.get("licensePunchCard").toString()).isEqualTo("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]");
 
-    assertThat(data.get("exactlyMatchedComponentCount").asInt()).isEqualTo(26);
-    assertThat(data.get("knownArtifactCount").asInt()).isEqualTo(28);
+    assertThat(data.get("exactlyMatchedComponentCount").asInt()).isEqualTo(27);
+    assertThat(data.get("knownArtifactCount").asInt()).isEqualTo(29);
     assertThat(data.get("partiallyMatchedComponentCount").asInt()).isEqualTo(2);
   }
 
@@ -1338,6 +1338,22 @@ public class ReportResourceTest
         assertThat(displayNameNode.get(1).get("value").textValue()).isEqualTo(" ");
         assertThat(displayNameNode.get(2).get("field").textValue()).isEqualTo("Version");
         assertThat(displayNameNode.get(2).get("value").textValue()).isEqualTo(jsonNode.get("version").textValue());
+        break;
+      case ComponentIdentifier.FORMAT_PYPI:
+        assertThat(displayNameNode).hasSize(6);
+        assertThat(displayNameNode.get(0).get("field").textValue()).isEqualTo("Name");
+        assertThat(displayNameNode.get(0).get("value").textValue())
+            .isEqualTo(componentIdentifier.get(ComponentIdentifier.PYPI_NAME));
+        assertThat(displayNameNode.get(1).get("field")).isNull();
+        assertThat(displayNameNode.get(1).get("value").textValue()).isEqualTo(" ");
+        assertThat(displayNameNode.get(2).get("field").textValue()).isEqualTo("Version");
+        assertThat(displayNameNode.get(2).get("value").textValue()).isEqualTo(jsonNode.get("version").textValue());
+        assertThat(displayNameNode.get(3).get("field")).isNull();
+        assertThat(displayNameNode.get(3).get("value").textValue()).isEqualTo(" (.");
+        assertThat(displayNameNode.get(4).get("field").textValue()).isEqualTo("Extension");
+        assertThat(displayNameNode.get(4).get("value").textValue()).isEqualTo(jsonNode.get("extension").textValue());
+        assertThat(displayNameNode.get(5).get("field")).isNull();
+        assertThat(displayNameNode.get(5).get("value").textValue()).isEqualTo(")");
         break;
       default:
         fail("Unexpected format " + componentIdentifier.getFormat());

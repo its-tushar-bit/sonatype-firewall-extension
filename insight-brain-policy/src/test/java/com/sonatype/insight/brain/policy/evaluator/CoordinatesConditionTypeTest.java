@@ -44,6 +44,11 @@ public class CoordinatesConditionTypeTest
     testEvaluate_MatchExact(ComponentIdentifier.FORMAT_ANAME);
   }
 
+  @Test
+  public void testEvaluate_Pypi_MatchExact() {
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_PYPI);
+  }
+
   private void testEvaluate_MatchExact(String format) {
     // Create policy constraints
     Constraint constraint = createConstraint("match", format + ":g2:a2:v2");
@@ -56,9 +61,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -270,6 +275,11 @@ public class CoordinatesConditionTypeTest
     testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_ANAME);
   }
 
+  @Test
+  public void testEvaluate_Pypi_MatchWildcard() {
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_PYPI);
+  }
+
   private void testEvaluate_MatchWildcard(String format) {
     // Create policy constraints
     Constraint constraint = createConstraint("match", format + ":g2:a*:v2");
@@ -282,9 +292,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -308,6 +318,11 @@ public class CoordinatesConditionTypeTest
     testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_ANAME);
   }
 
+  @Test
+  public void testEvaluate_Pypi_DoNotMatchExact() {
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_ANAME);
+  }
+
   private void testEvaluate_DoNotMatchExact(String format) {
     // Create policy constraints
     Constraint constraint = createConstraint("do not match", format + ":g2:a2:v2");
@@ -320,9 +335,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -346,6 +361,11 @@ public class CoordinatesConditionTypeTest
     testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_ANAME);
   }
 
+  @Test
+  public void testEvaluate_Pypi_DoNotMatchWildcard() {
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_PYPI);
+  }
+
   private void testEvaluate_DoNotMatchWildcard(String format) {
     // Create policy constraints
     Constraint constraint = createConstraint("do not match", format + ":g2:a*:v2");
@@ -358,9 +378,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -442,6 +462,16 @@ public class CoordinatesConditionTypeTest
     assertConvertIfNeeded("a-name:n:q", "a-name:n:q:*");
     assertConvertIfNeeded("a-name:n::v", "a-name:n::v");
     assertConvertIfNeeded("a-name:n:q:v", "a-name:n:q:v");
+
+    assertConvertIfNeeded("pypi:n", "pypi:n:*:*:*");
+    assertConvertIfNeeded("pypi::v", "pypi:*:v:*:*");
+    assertConvertIfNeeded("pypi:::q", "pypi:*:*:q:*");
+    assertConvertIfNeeded("pypi::::e", "pypi:*:*::e");
+    assertConvertIfNeeded("pypi:n:v", "pypi:n:v:*:*");
+    assertConvertIfNeeded("pypi::v:q", "pypi:*:v:q:*");
+    assertConvertIfNeeded("pypi:n:v:q", "pypi:n:v:q:*");
+    assertConvertIfNeeded("pypi:n:v::e", "pypi:n:v::e");
+    assertConvertIfNeeded("pypi:n:v:q:e", "pypi:n:v:q:e");
   }
 
   private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {

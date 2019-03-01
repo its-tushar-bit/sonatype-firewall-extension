@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -526,6 +528,18 @@ public class OrganizationDAOTest
     dao.delete(organization);
 
     assertThat(policyMonitoringDAO.getByOwnerId(organization.getId())).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToDataRetentionPolicies() {
+    Organization organization = tempEntity.newOrganization();
+
+    DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(organization.getId(), "contextId", false, null, null));
+
+    dao.delete(organization);
+
+    assertThat(dataRetentionPolicyDAO.getByOwnerId(organization.getId())).isEmpty();
   }
 
   @Test

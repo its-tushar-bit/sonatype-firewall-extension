@@ -41,6 +41,7 @@
     <class>com.sonatype.insight.brain.model.tag.PolicyTag</class>
     <class>com.sonatype.insight.brain.model.tag.Tag</class>
     <class>com.sonatype.insight.brain.model.filter.DashboardFilter</class>
+    <class>com.sonatype.insight.brain.model.configuration.DataRetentionPolicy</class>
     <class>com.sonatype.insight.brain.model.configuration.ProprietaryConfig</class>
     <class>com.sonatype.insight.brain.model.configuration.ldap.LdapServer</class>
     <class>com.sonatype.insight.brain.model.configuration.ldap.LdapConnection</class>

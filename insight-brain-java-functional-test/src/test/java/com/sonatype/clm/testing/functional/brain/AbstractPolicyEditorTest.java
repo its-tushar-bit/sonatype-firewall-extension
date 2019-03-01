@@ -164,28 +164,30 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(14);
+    assertThat(constraint.getConditions()).hasSize(15);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
         "maven:org.apache:tomcat:5.0.28:jar:javadoc");
     assertCondition(constraint.getConditions().get(2), CoordinatesConditionType.ID, "do not match",
         "a-name:jquery::1.0.28");
-    assertCondition(constraint.getConditions().get(3), LabelConditionType.ID, "is", sampleLabel.getId());
-    assertCondition(constraint.getConditions().get(4), LicenseConditionType.ID, "is", "AFL-1.2");
-    assertCondition(constraint.getConditions().get(5), LicenseStatusConditionType.ID, "is not", 
+    assertCondition(constraint.getConditions().get(3), CoordinatesConditionType.ID, "match",
+        "pypi:MarkupSafe:1.1.0:cp37:tar.gz");
+    assertCondition(constraint.getConditions().get(4), LabelConditionType.ID, "is", sampleLabel.getId());
+    assertCondition(constraint.getConditions().get(5), LicenseConditionType.ID, "is", "AFL-1.2");
+    assertCondition(constraint.getConditions().get(6), LicenseStatusConditionType.ID, "is not",
         LicenseOverrideStatus.CONFIRMED.name());
-    assertCondition(constraint.getConditions().get(6), LicenseThreatGroupConditionType.ID, "is", 
+    assertCondition(constraint.getConditions().get(7), LicenseThreatGroupConditionType.ID, "is",
         new LicenseThreatGroupDAO().getByName("Liberal").get(0).getId());
-    assertCondition(constraint.getConditions().get(7), LicenseThreatGroupLevelConditionType.ID, ">=", "5");
-    assertCondition(constraint.getConditions().get(8), SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
-    assertCondition(constraint.getConditions().get(9), SecurityVulnerabilityStatusConditionType.ID, "is",
+    assertCondition(constraint.getConditions().get(8), LicenseThreatGroupLevelConditionType.ID, ">=", "5");
+    assertCondition(constraint.getConditions().get(9), SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
+    assertCondition(constraint.getConditions().get(10), SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.name());
-    assertCondition(constraint.getConditions().get(10), RelativePopularityConditionType.ID, "=", "50");
-    assertCondition(constraint.getConditions().get(11), MatchStateConditionType.ID, "is not",
+    assertCondition(constraint.getConditions().get(11), RelativePopularityConditionType.ID, "=", "50");
+    assertCondition(constraint.getConditions().get(12), MatchStateConditionType.ID, "is not",
         MatchState.UNKNOWN.getId());
-    assertCondition(constraint.getConditions().get(12), ProprietaryConditionType.ID, "is false", null);
-    assertCondition(constraint.getConditions().get(13), IdentificationSourceConditionType.ID, "is not",
+    assertCondition(constraint.getConditions().get(13), ProprietaryConditionType.ID, "is false", null);
+    assertCondition(constraint.getConditions().get(14), IdentificationSourceConditionType.ID, "is not",
         IdentificationSource.MANUAL.getId());
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
@@ -902,53 +904,96 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.qualifier().val("");
     coordsCondition.version().val("1.0.28");
 
-    DropdownConditionEditSection labelCondition = addDropdownCondition(newConstraint, LabelConditionType.class, 3);
+    newConstraint.addConditionButton().click();
+    coordsCondition = newConstraint.coordinatesCondition(3);
+    coordsCondition.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
+
+    format = coordsCondition.format();
+    format.selectedItem().click();
+    format.listItem(2).click();
+    format.selectedItem().shouldHave(text("pypi"));
+
+    // Check initial values
+    coordsCondition.name().shouldHave(value(""));
+    coordsCondition.version().shouldHave(value(""));
+    coordsCondition.qualifier().shouldHave(value("*"));
+    coordsCondition.extension().shouldHave(value("*"));
+    // With everything set to wildcard, if we set any except qualifier to empty we can't save
+    coordsCondition.name().val("*");
+    coordsCondition.version().val("*");
+    coordsCondition.qualifier().val("*");
+    coordsCondition.extension().val("*");
+    toggleAndCheckSave(coordsCondition.name());
+    toggleAndCheckSave(coordsCondition.version());
+    toggleAndCheckSave(coordsCondition.extension());
+    // With everything set to wildcard, if we set qualifier to empty we can still save
+    coordsCondition.qualifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to wildcard, if we set qualifier back to a wildcard we can still save
+    coordsCondition.qualifier().val("*");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set any except qualifier to empty we can't save
+    coordsCondition.name().val("MarkupSafe");
+    coordsCondition.version().val("1.1.0");
+    coordsCondition.qualifier().val("cp37");
+    coordsCondition.extension().val("tar.gz");
+    toggleAndCheckSave(coordsCondition.name());
+    toggleAndCheckSave(coordsCondition.version());
+    toggleAndCheckSave(coordsCondition.extension());
+    // With everything set to specific values, if we set qualifier to empty we can still save
+    coordsCondition.qualifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set qualifier back to a specific value we can still save
+    coordsCondition.qualifier().val("cp37");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    DropdownConditionEditSection labelCondition = addDropdownCondition(newConstraint, LabelConditionType.class, 4);
     labelCondition.operator().selectedItem().shouldHave(text("is"));
     labelCondition.value().shouldBe(text("Sample Label"));
 
-    DropdownConditionEditSection licenseCondition = addDropdownCondition(newConstraint, LicenseConditionType.class, 4);
+    DropdownConditionEditSection licenseCondition = addDropdownCondition(newConstraint, LicenseConditionType.class, 5);
     licenseCondition.operator().selectedItem().shouldHave(text("is"));
     licenseCondition.value().selectedItem().shouldHave(text("AAL")).click();
     licenseCondition.value().listItem(5).shouldHave(text("AFL-1.2")).click();
 
     DropdownConditionEditSection licenseStatus =
-        addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 5);
+        addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6);
     licenseStatus.operator().selectedItem().shouldHave(text("is")).click();
     licenseStatus.operator().listItem(1).shouldHave(text("is not")).click();
     licenseStatus.value().selectedItem().shouldHave(text("Open")).click();
     licenseStatus.value().listItem(4).shouldHave(text("Confirmed")).click();
 
     DropdownConditionEditSection licenseThreatGroup =
-        addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 6);
+        addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 7);
     licenseThreatGroup.operator().selectedItem().shouldHave(text("is"));
     licenseThreatGroup.value().selectedItem().shouldHave(text("Banned")).click();
     licenseThreatGroup.value().listItem(2).shouldHave(text("Liberal")).click();
 
     InputConditionEditSection licenseThreatGroupLevel = addInputCondition(newConstraint,
-        LicenseThreatGroupLevelConditionType.class, 7);
+        LicenseThreatGroupLevelConditionType.class, 8);
     licenseThreatGroupLevel.operator().selectedItem().shouldHave(text("<=")).click();
     licenseThreatGroupLevel.operator().listItem(1).shouldHave(text(">=")).click();
     licenseThreatGroupLevel.value().val("5");
 
     InputConditionEditSection securityVulnerabilitySeverity = addInputCondition(newConstraint,
-        SecurityVulnerabilitySeverityConditionType.class, 8);
+        SecurityVulnerabilitySeverityConditionType.class, 9);
     securityVulnerabilitySeverity.operator().selectedItem().shouldHave(text("=")).click();
     securityVulnerabilitySeverity.operator().listItem(3).shouldHave(text(">")).click();
     securityVulnerabilitySeverity.value().val("1");
 
     DropdownConditionEditSection securityVulnerabilityStatus = addDropdownCondition(newConstraint,
-        SecurityVulnerabilityStatusConditionType.class, 9);
+        SecurityVulnerabilityStatusConditionType.class, 10);
     securityVulnerabilityStatus.operator().selectedItem().shouldHave(text("is"));
     securityVulnerabilityStatus.value().selectedItem().shouldHave(text("Open")).click();
     securityVulnerabilityStatus.value().listItem(2).shouldHave(text("Not Applicable")).click();
 
     InputConditionEditSection relativePopularity = addInputCondition(newConstraint,
-        RelativePopularityConditionType.class, 10);
+        RelativePopularityConditionType.class, 11);
     relativePopularity.operator().selectedItem().shouldHave(text("="));
     relativePopularity.value().val("50");
 
     newConstraint.addConditionButton().click();
-    DropdownConditionEditSection matchState = newConstraint.dropdownCondition(11);
+    DropdownConditionEditSection matchState = newConstraint.dropdownCondition(12);
     matchState.type().chooseOption(conditionTypesOptionMap.get(MatchStateConditionType.class));
     matchState.operator().selectedItem().shouldHave(text("is")).click();
     matchState.operator().listItem(1).shouldHave(text("is not")).click();
@@ -956,13 +1001,13 @@ public abstract class AbstractPolicyEditorTest
     matchState.value().listItem(2).shouldHave(text(MatchState.UNKNOWN.getName())).click();
 
     newConstraint.addConditionButton().click();
-    DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(12);
+    DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(13);
     proprietary.type().chooseOption(conditionTypesOptionMap.get(ProprietaryConditionType.class));
     proprietary.operator().selectedItem().shouldHave(text("is true")).click();
     proprietary.operator().listItem(1).shouldHave(text("is false")).click();
 
     newConstraint.addConditionButton().click();
-    DropdownConditionEditSection identificationSource = newConstraint.dropdownCondition(13);
+    DropdownConditionEditSection identificationSource = newConstraint.dropdownCondition(14);
     identificationSource.type().chooseOption(conditionTypesOptionMap.get(IdentificationSourceConditionType.class));
     identificationSource.operator().selectedItem().shouldHave(text("is")).click();
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();

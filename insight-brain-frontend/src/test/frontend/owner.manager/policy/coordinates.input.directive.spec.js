@@ -120,6 +120,53 @@ describe('coordinates.input.directive.spec', function() {
     });
   });
 
+  describe('parses pypi coordinates', function() {
+    it('default', function() {
+      initialize('pypi');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toBeUndefined();
+      expect(directiveScope.vm.coordinates.version).toBeUndefined();
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('*');
+      expect(directiveScope.vm.coordinates.extension).toEqual('*');
+    });
+
+    it('name, version, extension specific values', function() {
+      initialize('pypi:MarkupSafe:1.1.0::tar.gz');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toEqual('MarkupSafe');
+      expect(directiveScope.vm.coordinates.version).toEqual('1.1.0');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('');
+      expect(directiveScope.vm.coordinates.extension).toEqual('tar.gz');
+    });
+
+    it('name, version, extension wildcard values', function() {
+      initialize('pypi:*:*::*');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toEqual('*');
+      expect(directiveScope.vm.coordinates.version).toEqual('*');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('');
+      expect(directiveScope.vm.coordinates.extension).toEqual('*');
+    });
+
+    it('name, version, qualifier, extension specific values', function() {
+      initialize('pypi:MarkupSafe:1.1.0:cp37:tar.gz');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toEqual('MarkupSafe');
+      expect(directiveScope.vm.coordinates.version).toEqual('1.1.0');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('cp37');
+      expect(directiveScope.vm.coordinates.extension).toEqual('tar.gz');
+    });
+
+    it('name, version, qualifier, extension wildcard values', function() {
+      initialize('pypi:*:*:*:*');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toEqual('*');
+      expect(directiveScope.vm.coordinates.version).toEqual('*');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('*');
+      expect(directiveScope.vm.coordinates.extension).toEqual('*');
+    });
+  });
+
   describe('serialization', function() {
     it('a-name', function() {
       initialize();
@@ -146,6 +193,37 @@ describe('coordinates.input.directive.spec', function() {
       directiveScope.vm.coordinates.version = '1.4';
       directiveScope.$apply();
       expect(scope.value).toEqual('a-name:jquery:min:1.4');
+    });
+
+    it('pypi', function() {
+      initialize();
+
+      directiveScope.vm.coordinates.format = 'pypi';
+      directiveScope.$apply();
+      expect(scope.value).toBeUndefined();
+
+      // test that we don't simply serialize the format
+      directiveScope.vm.coordinates.name = 'MarkupSafe';
+      directiveScope.$apply();
+      directiveScope.vm.coordinates.name = '';
+      directiveScope.$apply();
+      expect(scope.value).toEqual('pypi:::*:*');
+
+      directiveScope.vm.coordinates.name = 'MarkupSafe';
+      directiveScope.$apply();
+      expect(scope.value).toEqual('pypi:MarkupSafe::*:*');
+
+      directiveScope.vm.coordinates.version = '1.1.0';
+      directiveScope.$apply();
+      expect(scope.value).toEqual('pypi:MarkupSafe:1.1.0:*:*');
+
+      directiveScope.vm.coordinates.extension = 'tar.gz';
+      directiveScope.$apply();
+      expect(scope.value).toEqual('pypi:MarkupSafe:1.1.0:*:tar.gz');
+
+      directiveScope.vm.coordinates.qualifier = 'cp37';
+      directiveScope.$apply();
+      expect(scope.value).toEqual('pypi:MarkupSafe:1.1.0:cp37:tar.gz');
     });
 
     it('maven', function() {

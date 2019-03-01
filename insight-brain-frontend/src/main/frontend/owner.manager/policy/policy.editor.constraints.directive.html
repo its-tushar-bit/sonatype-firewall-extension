@@ -131,7 +131,7 @@
                    --><dropdown-selector ng-model="vm.coordinates.format"
                                          item-as-class="true"
                                          required
-                                         options="['maven', 'a-name']">
+                                         options="['maven', 'a-name', 'pypi']">
                       </dropdown-selector><!--
                    --><ng-switch on="vm.coordinates.format"><!--
                      --><span ng-switch-when="maven"><!--
@@ -191,6 +191,36 @@
                                  placeholder="Version"
                                  name="version-{{::identifier}}"
                                  ng-model="vm.coordinates.version"
+                                 ng-pattern="vm.invalidRegex"
+                                 ng-required="true"><!--
+                     --></span><!--
+                     --><span ng-switch-when="pypi"><!--
+                       --><input type="text"
+                                 class="iq-text-input"
+                                 placeholder="Name"
+                                 name="name-{{::identifier}}"
+                                 ng-model="vm.coordinates.name"
+                                 ng-pattern="vm.invalidRegex"
+                                 ng-required="true"><!--
+                       --><input type="text"
+                                 class="iq-text-input"
+                                 placeholder="Version"
+                                 name="version-{{::identifier}}"
+                                 ng-model="vm.coordinates.version"
+                                 ng-pattern="vm.invalidRegex"
+                                 ng-required="true"><!--
+                       --><input type="text"
+                                 class="iq-text-input"
+                                 placeholder="Qualifier"
+                                 name="qualifier-{{::identifier}}"
+                                 ng-model="vm.coordinates.qualifier"
+                                 ng-pattern="vm.invalidRegex"
+                                 ng-required="false"><!--
+                       --><input type="text"
+                                 class="iq-text-input"
+                                 placeholder="Extension"
+                                 name="extension-{{::identifier}}"
+                                 ng-model="vm.coordinates.extension"
                                  ng-pattern="vm.invalidRegex"
                                  ng-required="true"><!--
                      --></span><!--

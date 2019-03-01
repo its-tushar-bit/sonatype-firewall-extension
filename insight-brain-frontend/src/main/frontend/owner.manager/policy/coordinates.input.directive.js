@@ -5,7 +5,8 @@
  */
 var types = {
   'maven': ['groupId', 'artifactId', 'version', 'extension', 'classifier'],
-  'a-name': ['name', 'qualifier', 'version']
+  'a-name': ['name', 'qualifier', 'version'],
+  'pypi': ['name', 'version', 'qualifier', 'extension']
 };
 
 // colon separated to object

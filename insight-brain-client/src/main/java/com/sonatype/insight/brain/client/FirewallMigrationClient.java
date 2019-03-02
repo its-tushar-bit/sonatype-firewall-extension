@@ -28,7 +28,7 @@ public class FirewallMigrationClient
   }
 
   public void verifyMigrationSupport(final String protocolVersion) throws IOException {
-    verifyStatusCode(postRequest(path(RESOURCE_PATH, SUPPORTED_PATH, protocolVersion), null));
+    verifyStatusCode(path(RESOURCE_PATH, SUPPORTED_PATH, protocolVersion).post(null));
   }
 
   public void migrateRepositoryHistory(String sourceRepositoryManagerInstanceId,
@@ -36,19 +36,18 @@ public class FirewallMigrationClient
                                        String targetRepositoryManagerInstanceId,
                                        String targetRepositoryPublicId) throws IOException
   {
-    Result result = postRequest(
-        path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId).query(
-            "sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId, "sourceRepositoryPublicId",
-            sourceRepositoryPublicId),
-        null);
+    Result result = path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId)
+        .query("sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId, "sourceRepositoryPublicId",
+            sourceRepositoryPublicId)
+        .post(null);
     verifyStatusCode(result);
   }
 
   public MigrationDetails getRepositoryMigrationState(String targetRepositoryManagerInstanceId,
                                                       String targetRepositoryPublicId) throws IOException
   {
-    Result result = getRequest(
-        path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId));
+    Result result =
+        path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId).get();
     return parseResult(result, MigrationDetails.class);
   }
 }

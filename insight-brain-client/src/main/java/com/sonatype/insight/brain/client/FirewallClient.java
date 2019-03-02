@@ -58,22 +58,22 @@ public class FirewallClient
   }
 
   public void setEnabled(boolean enabled) throws IOException {
-    Result result = postRequest(
+    Result result =
         path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH,
-            Boolean.toString(enabled)), null);
+            Boolean.toString(enabled)).post(null);
     verifyStatusCode(result);
   }
 
   public void setQuarantine(final boolean enabled) throws IOException {
-    Result result = postRequest(
+    Result result =
         path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
-            Boolean.toString(enabled)), null);
+            Boolean.toString(enabled)).post(null);
     verifyStatusCode(result);
   }
 
   public void removeComponent(String pathname) throws IOException {
-    Result result = deleteRequest(
-        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH, pathname));
+    Result result =
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH, pathname).delete();
     verifyStatusCode(result);
   }
 
@@ -83,8 +83,8 @@ public class FirewallClient
     final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(componentEvaluationDataRequestList),
         ContentType.APPLICATION_JSON);
 
-    final Result result = postRequest(
-        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH), entity);
+    final Result result =
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH).post(entity);
     verifyStatusCode(result);
   }
 
@@ -94,21 +94,20 @@ public class FirewallClient
     ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequestList),
         ContentType.APPLICATION_JSON);
 
-    Result result = postRequest(
-        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH),
-        entity);
+    Result result =
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
+            .post(entity);
     return parseResult(result, RepositoryComponentEvaluationDataList.class);
   }
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
-    Result result = getRequest(path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
+    Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH).get();
     return parseResult(result, RepositoryPolicyEvaluationSummary.class);
   }
 
   public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
-    Result result = getRequest(path(resourcePath, repositoryManagerInstanceId, repositoryPublicId,
-            UNQUARANTINED_COMPONENTS_PATH)
-            .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)));
+    Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, UNQUARANTINED_COMPONENTS_PATH)
+        .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)).get();
     return parseResult(result, UnquarantinedComponentList.class);
   }
 }

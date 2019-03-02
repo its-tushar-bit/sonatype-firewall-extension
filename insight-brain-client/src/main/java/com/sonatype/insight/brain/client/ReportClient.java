@@ -43,7 +43,7 @@ public final class ReportClient
    * @since 1.10
    */
   public void downloadBundle(File bundleFile) throws IOException {
-    final Result result = getRequest(path("rest/report", appId, scanId, "downloadBundle"));
+    final Result result = path("rest/report", appId, scanId, "downloadBundle").get();
     verifyStatusCode(result);
 
     byte[] data = result.data();
@@ -59,7 +59,7 @@ public final class ReportClient
    * @since 1.37
    */
   public void prepareExpandedCoverageReport() throws IOException {
-    Result result = postRequest(path("rest/report", appId, scanId, "prepareReport"), null /* entity */);
+    Result result = path("rest/report", appId, scanId, "prepareReport").post(null /* entity */);
     verifyStatusCode(result);
   }
 }

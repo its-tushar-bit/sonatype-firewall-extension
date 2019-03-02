@@ -41,12 +41,10 @@ public class ConfigurationClient
    * @since 1.13
    */
   public List<Stage> getLicensedStages(final Context context) throws IOException {
-    RequestBuilder requestBuilder = path("rest/policy/stages");
     if (context == null) {
       throw new IllegalArgumentException("Context can not be null");
     }
-    requestBuilder = requestBuilder.query("context", context.name().toLowerCase(Locale.ENGLISH));
-    Result result = getRequest(requestBuilder);
+    Result result = path("rest/policy/stages").query("context", context.name().toLowerCase(Locale.ENGLISH)).get();
     return Arrays.asList(parseResult(result, Stage[].class));
   }
 
@@ -57,7 +55,7 @@ public class ConfigurationClient
    * @since 1.14.0
    */
   public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
-    Result result = getRequest(path("rest/integration/applications?goal=EVALUATE_APPLICATION"));
+    Result result = path("rest/integration/applications?goal=EVALUATE_APPLICATION").get();
     return parseResult(result, ApplicationSummaryList.class);
   }
 
@@ -65,10 +63,9 @@ public class ConfigurationClient
    * @since 1.45.0
    */
   public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
-    Result result = postRequest(
+    Result result =
         path("rest/integration/applications/verifyOrCreate", UrlUtils.encodeUrlComponent(applicationPublicId))
-            .query("goal", "EVALUATE_APPLICATION"),
-        null);
+            .query("goal", "EVALUATE_APPLICATION").post(null);
     return parseResult(result, Boolean.class);
   }
 
@@ -79,12 +76,12 @@ public class ConfigurationClient
    * @since 1.14.0
    */
   public ApplicationSummaryList getApplicationsForEvaluationSummary() throws IOException {
-    Result result = getRequest(path("rest/integration/applications?goal=SUMMARIZE_EVALUATION"));
+    Result result = path("rest/integration/applications?goal=SUMMARIZE_EVALUATION").get();
     return parseResult(result, ApplicationSummaryList.class);
   }
 
   public void validateConfiguration() throws IOException {
-    final Result result = getRequest(path("rest/config/proprietary"));
+    final Result result = path("rest/config/proprietary").get();
     verifyStatusCode(result);
     final String text = result.text();
     // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
@@ -98,7 +95,7 @@ public class ConfigurationClient
   }
 
   public void validateApplicationId(final String appId) throws IOException {
-    final Result result = getRequest(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
+    final Result result = path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)).get();
     verifyStatusCode(result);
     final String text = result.text();
     if (!"OK".equals(text)) {
@@ -114,8 +111,8 @@ public class ConfigurationClient
   public ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
       throws IOException
   {
-    Result result = getRequest(path("rest/config/proprietary").query("goal", "EVALUATE_APPLICATION",
-        "applicationPublicId", applicationPublicId));
+    Result result = path("rest/config/proprietary").query("goal", "EVALUATE_APPLICATION",
+        "applicationPublicId", applicationPublicId).get();
     return parseResult(result, ProprietaryConfig.class);
   }
 
@@ -127,8 +124,8 @@ public class ConfigurationClient
   public ProprietaryConfig getProprietaryConfigForComponentEvaluation(String applicationPublicId)
       throws IOException
   {
-    Result result = getRequest(path("rest/config/proprietary").query("goal", "EVALUATE_COMPONENT",
-        "applicationPublicId", applicationPublicId));
+    Result result = path("rest/config/proprietary").query("goal", "EVALUATE_COMPONENT",
+        "applicationPublicId", applicationPublicId).get();
     return parseResult(result, ProprietaryConfig.class);
   }
 
@@ -136,7 +133,7 @@ public class ConfigurationClient
    * @since 1.35
    */
   public FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException {
-    Result result = getRequest(path("rest/integration/repositories/evaluate/ignorePatterns"));
+    Result result = path("rest/integration/repositories/evaluate/ignorePatterns").get();
     return parseResult(result, FirewallIgnorePatterns.class);
   }
 
@@ -144,7 +141,7 @@ public class ConfigurationClient
    * @since 1.50
    */
   public void validateServerVersion(String minimalServerVersionRequiredAsString) throws IOException {
-    Result result = getRequest(path("rest/product/version"));
+    Result result = path("rest/product/version").get();
     Properties serverVersionProperties = parseResult(result, Properties.class);
 
     try {

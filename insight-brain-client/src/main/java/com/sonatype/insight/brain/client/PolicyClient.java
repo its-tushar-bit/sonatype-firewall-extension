@@ -34,7 +34,7 @@ public class PolicyClient
 
   public PolicyEvaluationResult evaluate(final String scanId, final Stage stage) throws IOException {
     final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(stage), ContentType.APPLICATION_JSON);
-    Result result = postRequest(path("rest/policy", appId, "evaluate").query("scanId", scanId), entity);
+    Result result = path("rest/policy", appId, "evaluate").query("scanId", scanId).post(entity);
     return parseResult(result, PolicyEvaluationResult.class);
   }
 
@@ -51,7 +51,7 @@ public class PolicyClient
    * @since 1.11.0
    */
   public PolicyEvaluationSummary getPolicyEvaluationSummary(final Stage stage) throws IOException {
-    Result result = getRequest(path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()));
+    Result result = path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()).get();
     return parseResult(result, PolicyEvaluationSummary.class);
   }
 }

@@ -65,7 +65,7 @@ public abstract class AbstractRequestClient
     verifyStatusCode(result);
     String json = result.text();
     try {
-      return JsonUtils.parse(json, type);
+      return json != null ? JsonUtils.parse(json, type) : null;
     }
     catch (IOException e) {
       throw new IOException("Could not parse: " + json, e);

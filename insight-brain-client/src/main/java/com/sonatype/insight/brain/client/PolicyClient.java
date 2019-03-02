@@ -10,23 +10,17 @@ import java.io.IOException;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PolicyClient
     extends AbstractRequestClient
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyClient.class);
-
   private final String serverUrl;
 
   private final String appId;
@@ -38,39 +32,10 @@ public class PolicyClient
     this.appId = UrlUtils.encodeUrlComponent(appId);
   }
 
-  private Result post(RequestBuilder builder, HttpEntity entity) throws IOException {
-    Result httpResult = postRequest(builder, entity);
-
-    if (httpResult.status() >= 400) {
-      throw new ClientException(httpResult);
-    }
-
-    return httpResult;
-  }
-
-  private Result get(RequestBuilder builder) throws IOException {
-    Result httpResult = getRequest(builder);
-
-    if (httpResult.status() >= 400) {
-      throw new ClientException(httpResult);
-    }
-
-    return httpResult;
-  }
-
   public PolicyEvaluationResult evaluate(final String scanId, final Stage stage) throws IOException {
     final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(stage), ContentType.APPLICATION_JSON);
-
-    final Result httpResult = post(path("rest/policy", appId, "evaluate").query("scanId", scanId), entity);
-
-    final String jsonResult = httpResult.text();
-    try {
-      return JsonUtils.parse(jsonResult, PolicyEvaluationResult.class);
-    }
-    catch (final IOException e) {
-      log.error("Cannot parse json:" + jsonResult);
-      throw new ClientException(httpResult, e);
-    }
+    Result result = postRequest(path("rest/policy", appId, "evaluate").query("scanId", scanId), entity);
+    return parseResult(result, PolicyEvaluationResult.class);
   }
 
   public String linkToManagement() {
@@ -86,19 +51,7 @@ public class PolicyClient
    * @since 1.11.0
    */
   public PolicyEvaluationSummary getPolicyEvaluationSummary(final Stage stage) throws IOException {
-
-    final Result result = get(path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()));
-
-    final String jsonResult = result.text();
-    if (jsonResult == null) {
-      return null;
-    }
-    try {
-      return JsonUtils.parse(jsonResult, PolicyEvaluationSummary.class);
-    }
-    catch (final IOException e) {
-      log.error("Cannot parse json:" + jsonResult);
-      throw new ClientException(result, e);
-    }
+    Result result = getRequest(path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()));
+    return parseResult(result, PolicyEvaluationSummary.class);
   }
 }

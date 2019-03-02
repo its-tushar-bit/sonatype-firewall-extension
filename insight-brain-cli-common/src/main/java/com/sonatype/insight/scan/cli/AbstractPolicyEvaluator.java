@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
-import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -184,11 +183,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     catch (HttpResponseException e) {
       log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server: {} ({})",
           scanId, e.getMessage(), e.getStatusCode());
-      throw new ExitException(params.isIgnoreSystemErrors(), e);
-    }
-    catch (ClientException e) {
-      log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server: {} ({})",
-          scanId, e.getMessage(), e.getResult().status());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {

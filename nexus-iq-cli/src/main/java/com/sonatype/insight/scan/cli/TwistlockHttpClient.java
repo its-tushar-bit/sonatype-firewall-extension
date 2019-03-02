@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.scan.cli;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
 
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -36,10 +34,7 @@ public final class TwistlockHttpClient
         throw new HttpResponseException(status, result.message());
       }
 
-      byte[] data = result.data();
-      try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(resultsFile))) {
-        fos.write(data);
-      }
+      Files.write(resultsFile.toPath(), result.data());
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

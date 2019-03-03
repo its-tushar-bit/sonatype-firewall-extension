@@ -12,21 +12,11 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.http.client.HttpResponseException;
-
 public abstract class AbstractRequestClient
     extends AbstractClient
 {
   protected AbstractRequestClient(final Configuration config) {
     super(config);
-  }
-
-  protected void verifyStatusCode(Result result) throws IOException {
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
   }
 
   protected <T> T parseResult(Result result, Class<T> type) throws IOException {

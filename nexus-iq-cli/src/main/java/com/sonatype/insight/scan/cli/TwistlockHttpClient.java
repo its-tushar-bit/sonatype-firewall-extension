@@ -14,8 +14,6 @@ import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 
-import org.apache.http.client.HttpResponseException;
-
 /**
  * @since 1.24
  */
@@ -29,11 +27,7 @@ public final class TwistlockHttpClient
   public void downloadScanResults(File resultsFile) {
     try {
       final Result result = path().get();
-      final int status = result.status();
-      if (status >= 300) {
-        throw new HttpResponseException(status, result.message());
-      }
-
+      verifyStatusCode(result);
       Files.write(resultsFile.toPath(), result.data());
     }
     catch (IOException e) {

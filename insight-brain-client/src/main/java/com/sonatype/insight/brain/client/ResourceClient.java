@@ -12,8 +12,6 @@ import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 
-import org.apache.http.client.HttpResponseException;
-
 /**
  * Used to access arbitrary CLM resources
  *
@@ -28,10 +26,7 @@ public class ResourceClient
 
   public Resource getResource(String path) throws IOException {
     Result result = path(path).get();
-
-    if (result.status() != 200) {
-      throw new HttpResponseException(result.status(), result.message());
-    }
+    verifyStatusCode(result);
     return new Resource(result.data(), result.header("Content-Type"));
   }
 }

@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
@@ -147,7 +148,7 @@ public class ApplicationReportTest
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(1); // increase to 2 after CLM-11857
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(2);
 
     eyesWatcher.eyesCheck();
   }
@@ -176,6 +177,16 @@ public class ApplicationReportTest
 
     // detect PDF magic number ("%PDF")
     assertThat(fileBeginning).isEqualTo(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+  }
+
+  @Test
+  public void testRawDataLink() {
+    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    optionsDropdown.button().click();
+    optionsDropdown.menu().entries().last().shouldHave(text("View raw data")).click();
+
+    waitUntilUrl(ApplicationReportRawDataPage.url(app, SCAN_ID));
+    new ApplicationReportRawDataPage().reportTitle().shouldHave(text(app.getName()));
   }
 
   @Test

@@ -6,7 +6,7 @@ As of 1.17 CLM server is being renamed to Nexus IQ Server.
 System Requirements
 ===================
 
-Nexus IQ Server requires an Oracle Java 8 runtime update 45 as a minimum [2].
+Nexus IQ Server requires a Java 8 runtime. OpenJDK 8 is supported.  Prior to IQ Server release 55 (November 2018) Oracle Java 8 runtime update 45 as a minimum was supported.
 
 Internet Explorer 9+ or equivalent modern browsers from other vendors will be required for proper interaction with the web application.
 
@@ -33,6 +33,3 @@ Documentation and Support
 For more comprehensive documentation that includes full installation, configuration and usage instructions, please visit our documentation portal: http://links.sonatype.com/products/clm/doc.
 
 If you are experiencing trouble with any part of Sonatype Nexus Lifecycle, you can always visit our support site at http://links.sonatype.com/products/clm/support. There you can view our knowledge base and contact our support team directly.
-
-[1] Java SE 7 End of Public Updates Notice: http://www.oracle.com/technetwork/java/eol-135779.html
-[2] All Java 8 update releases: http://www.oracle.com/technetwork/java/javase/8u-relnotes-2225394.html

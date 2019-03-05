@@ -10,6 +10,7 @@ import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultRow;
@@ -100,6 +101,8 @@ public class ApplicationReportRawDataTest
     springSecurity.observedLicenses().shouldNot(exist);
     springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507"));
     springSecurity.cvssScore().shouldHave(exactText("5.0"));
+    springSecurity.declaredLicenses().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Declared:Apache-2.0 Observed:Apache-2.0"));
 
     ResultRow resultRowXpp3 = resultTable.resultRow(7);
     resultRowXpp3.component().shouldHave(exactText("xpp3 : xpp3_min : 1.1.4c"));
@@ -107,6 +110,16 @@ public class ApplicationReportRawDataTest
     resultRowXpp3.observedLicenses().shouldHave(exactText(", XPP-1.2"));
     resultRowXpp3.securityIssue().shouldBe(empty);
     resultRowXpp3.cvssScore().shouldBe(empty);
+    resultRowXpp3.declaredLicenses().hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Declared:Non-Standard, Public Domain, XPP-1.1.1 Observed:XPP-1.2"));
+
+    // ensure that the entire (filled) part of the license column has the tooltip
+    resultRowXpp3.cvssScore().hover();
+    Tooltip.get().shouldNotBe(visible);
+    resultRowXpp3.observedLicenses().hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Declared:Non-Standard, Public Domain, XPP-1.1.1 Observed:XPP-1.2"));
   }
 
   @Test

@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { defaultTo, join, pipe } from 'ramda';
+
 import template from './applicationReportRawData.html';
 
 export default {
@@ -26,6 +28,21 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Vuln
 
     load() {
       vm.loadReportRawData();
+    },
+
+    getLicenseTooltip(rawDataEntry) {
+      const placeholder = '-',
+          joiner = pipe(defaultTo([]), join(', ')),
+          license = rawDataEntry.license || {},
+          declaredLicenses = joiner(license.declaredLicenses),
+          observedLicenses = joiner(license.observedLicenses);
+
+      return `
+        <dl class="iq-license-table">
+          <dt>Declared:</dt><dd>${declaredLicenses || placeholder}</dd>
+          <dt>Observed:</dt><dd>${observedLicenses || placeholder}</dd>
+        </dl>
+      `;
     },
 
     openVulnerabilitiesModal(rawDataEntry) {

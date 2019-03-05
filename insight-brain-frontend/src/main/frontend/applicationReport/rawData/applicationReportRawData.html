@@ -47,7 +47,12 @@
                 </div>
               </td>
               <td class="iq-cell">
-                <raw-license-display license="::rawDataEntry.license"></raw-license-display>
+                <span iq-tooltip
+                      tooltip-text="{{::vm.getLicenseTooltip(rawDataEntry)}}"
+                      tooltip-attach-to-body="true"
+                      tooltip-content-is-html="true">
+                  <raw-license-display license="::rawDataEntry.license"></raw-license-display>
+                </span>
               </td>
               <td class="iq-cell">
                 <a ng-click="vm.openVulnerabilitiesModal(rawDataEntry)">{{::rawDataEntry.securityCode}}</a>

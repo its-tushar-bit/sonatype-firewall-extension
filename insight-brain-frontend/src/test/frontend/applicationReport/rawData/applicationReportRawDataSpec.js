@@ -45,6 +45,74 @@ describe('applicationReportRawData', function() {
     });
   });
 
+  describe('getLicenseTooltip', function() {
+    it('returns an HTML string with the declared and observed licenses', function() {
+      const data = {
+        license: {
+          declaredLicenses: ['foo', 'bar'],
+          observedLicenses: ['foo', 'baz']
+        }
+      };
+
+      expect(vm.getLicenseTooltip(data)).toMatch(
+          /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>foo, bar<\/dd>\s*<dt>Observed:<\/dt><dd>foo, baz<\/dd>\s*<\/dl>\s*$/);
+    });
+
+    it('Uses \'-\' as a placeholder if the declaredLicenses list is empty', function() {
+      const data = {
+        license: {
+          declaredLicenses: [],
+          observedLicenses: ['foo', 'baz']
+        }
+      };
+
+      expect(vm.getLicenseTooltip(data)).toMatch(
+          /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>foo, baz<\/dd>\s*<\/dl>\s*$/);
+    });
+
+    it('Uses \'-\' as a placeholder if the observedLicenses list is empty', function() {
+      const data = {
+        license: {
+          declaredLicenses: ['foo', 'bar'],
+          observedLicenses: []
+        }
+      };
+
+      expect(vm.getLicenseTooltip(data)).toMatch(
+          /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>foo, bar<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
+    });
+
+    it('Uses \'-\' as a placeholder if the `declaredLicences property is missing', function() {
+      const data = {
+        license: {
+          observedLicenses: ['foo', 'baz']
+        }
+      };
+
+      expect(vm.getLicenseTooltip(data)).toMatch(
+          /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>foo, baz<\/dd>\s*<\/dl>\s*$/);
+    });
+
+    it('Uses \'-\' as a placeholder if the observedLicenses list is missing', function() {
+      const data = {
+        license: {
+          declaredLicenses: ['foo', 'bar']
+        }
+      };
+
+      expect(vm.getLicenseTooltip(data)).toMatch(
+          /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>foo, bar<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
+    });
+
+    it('Uses \'-\' as a placeholder if the license object is missing', function() {
+      const data = {
+      };
+
+      expect(vm.getLicenseTooltip(data)).toMatch(
+          /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
+    });
+  });
+
   describe('openVulnerabilitiesModal', function() {
     let mockRawDataEntry;
 

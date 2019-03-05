@@ -34,6 +34,7 @@ var iqTooltip = function($timeout, $window) {
             title: attrs.tooltipText,
             container: attrs.tooltipAttachToBody === undefined ? false : 'body',
             template: templateString,
+            html: attrs.tooltipContentIsHtml,
             trigger: 'manual'
           },
           overflowFlag,

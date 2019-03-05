@@ -89,4 +89,32 @@ describe('CLMLocation.js', function() {
       });
     });
   }
+
+  describe('getVulnerabilityDetailUrl', function() {
+    let mockHash, mockRefId, mockComponentIdentifier, mockSource;
+
+    beforeEach(inject(function(BaseUrl) {
+      spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
+      mockHash = 'hash';
+      mockRefId = 'refId';
+      mockComponentIdentifier = { coordinates: 'a-coordinate' };
+      mockSource = 'sonatype';
+    }));
+
+    it('returns URL to get the vulnerability details', function() {
+      const expectedUrl = 'http://localhost/rest/vulnerability/details/sonatype/refId';
+      const actualUrl = CLMLocations.getVulnerabilityDetailUrl(mockSource, mockRefId);
+
+      expect(actualUrl).toEqual(expectedUrl);
+    });
+
+    it('returns URL to get the vulnerability details with the supplied params', function() {
+      const expectedUrl = 'http://localhost/rest/vulnerability/details/sonatype/refId'
+          + '?hash=hash&componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D';
+      const actualUrl = CLMLocations
+          .getVulnerabilityDetailUrl(mockSource, mockRefId, mockComponentIdentifier, mockHash);
+
+      expect(actualUrl).toEqual(expectedUrl);
+    });
+  });
 });

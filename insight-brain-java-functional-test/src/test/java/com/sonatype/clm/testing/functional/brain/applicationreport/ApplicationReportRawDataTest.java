@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultRow;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultTable;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.VulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -106,5 +107,22 @@ public class ApplicationReportRawDataTest
     resultRowXpp3.observedLicenses().shouldHave(exactText(", XPP-1.2"));
     resultRowXpp3.securityIssue().shouldBe(empty);
     resultRowXpp3.cvssScore().shouldBe(empty);
+  }
+
+  @Test
+  public void testVulnerabilityModal() {
+    testCLMServer.getHdsServer().setResponseForURI("rest/vulnerability/details/sonatype/sonatype-2017-0507",
+        getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"), 200);
+
+    ResultTable resultTable = rawDataPage.resultTable();
+    ResultRow springSecurity = resultTable.resultRow(6);
+    springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507")).click();
+
+    VulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
+    vulnerabilityModal.shouldBe(visible);
+    vulnerabilityModal.header().shouldHave(text("Vulnerability Information"));
+    vulnerabilityModal.content().$("#somedivfortest").shouldHave(text("sonatype-2017-0507"));
+    vulnerabilityModal.closeButton().shouldHave(text("Close")).click();
+    vulnerabilityModal.shouldNot(exist);
   }
 }

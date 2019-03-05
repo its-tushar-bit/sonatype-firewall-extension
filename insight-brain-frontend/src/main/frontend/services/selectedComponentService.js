@@ -3,9 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * 'Sonatype' is a trademark of Sonatype, Inc.
  */
-/*global angular */
 
-export default function SelectedComponent() {
+function SelectedComponent() {
   var selectedComponent = null;
   return {
     get: function() {
@@ -21,3 +20,6 @@ export default function SelectedComponent() {
     }
   };
 }
+
+export default angular.module('selectedComponentService', [])
+    .service('SelectedComponent', SelectedComponent);

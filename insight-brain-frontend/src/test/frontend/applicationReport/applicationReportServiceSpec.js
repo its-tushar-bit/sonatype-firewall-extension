@@ -54,17 +54,20 @@ describe('applicationReportService', function() {
             hash: 'fooHash',
             score: 1.2,
             reference: 'fooCode',
-            url: 'fooUrl'
+            url: 'fooUrl',
+            source: 'fooSource'
           }, {
             hash: 'fooHash',
             score: 3.4,
             reference: 'fooCode2',
-            url: 'fooUrl2'
+            url: 'fooUrl2',
+            source: 'fooSource2'
           }, {
             hash: 'bazHash',
             score: 5.6,
             reference: 'bazCode',
-            url: 'bazUrl'
+            url: 'bazUrl',
+            source: 'bazSource'
           }]
         };
 
@@ -80,7 +83,8 @@ describe('applicationReportService', function() {
         derivedComponentName: 'foo : 1',
         cvssScore: 1.2,
         securityCode: 'fooCode',
-        url: 'fooUrl'
+        url: 'fooUrl',
+        source: 'fooSource'
       }));
 
       expect(result[1].license).toBe(licensesData.aaData[0]);
@@ -88,7 +92,8 @@ describe('applicationReportService', function() {
         derivedComponentName: 'foo : 1',
         cvssScore: 3.4,
         securityCode: 'fooCode2',
-        url: 'fooUrl2'
+        url: 'fooUrl2',
+        source: 'fooSource2'
       }));
 
       expect(result[2].license).toBe(licensesData.aaData[1]);
@@ -102,6 +107,7 @@ describe('applicationReportService', function() {
       expect(result[3].cvssScore).toBeUndefined();
       expect(result[3].securityCode).toBeUndefined();
       expect(result[3].url).toBeUndefined();
+      expect(result[3].source).toBeUndefined();
     });
   });
 

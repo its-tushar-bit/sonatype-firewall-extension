@@ -11,7 +11,7 @@ export default {
   controller: ApplicationReportRawController
 };
 
-function ApplicationReportRawController($ngRedux, applicationReportActions) {
+function ApplicationReportRawController($ngRedux, applicationReportActions, VulnerabilityDetails, SelectedComponent) {
   const vm = this;
 
   Object.assign(vm, {
@@ -26,6 +26,13 @@ function ApplicationReportRawController($ngRedux, applicationReportActions) {
 
     load() {
       vm.loadReportRawData();
+    },
+
+    openVulnerabilitiesModal(rawDataEntry) {
+      const { source, securityCode } = rawDataEntry;
+
+      SelectedComponent.toggle(rawDataEntry);
+      VulnerabilityDetails.open(source, securityCode);
     }
   });
 }
@@ -34,4 +41,9 @@ function mapStateToThis({applicationReport}) {
   return applicationReport;
 }
 
-ApplicationReportRawController.$inject = ['$ngRedux', 'applicationReportActions', '$state'];
+ApplicationReportRawController.$inject = [
+  '$ngRedux',
+  'applicationReportActions',
+  'VulnerabilityDetails',
+  'SelectedComponent'
+];

@@ -7,6 +7,7 @@
 import { pick } from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
+import {toURIParams} from './jsUtil';
 
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
@@ -374,7 +375,23 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getReportPdfDownloadUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
           '/printReport',
 
-      getClaimComponentUrl: () => `${baseUrl.get()}/rest/component/identified`
+      getClaimComponentUrl: () => `${baseUrl.get()}/rest/component/identified`,
+
+      getVulnerabilityDetailUrl: (source, refId, componentIdentifier, hash) => {
+        const url = baseUrl.get() + '/rest/vulnerability/details/' +
+            encodeURIComponent(source) + '/' + encodeURIComponent(refId);
+
+        const params = toURIParams({
+          hash,
+          componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier)
+        });
+
+        if (params.length > 0) {
+          return url + '?' + params;
+        }
+
+        return url;
+      }
     };
   }
 ]);

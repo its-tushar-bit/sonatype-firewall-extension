@@ -40,6 +40,30 @@ public class ApplicationReportRawDataPage
     return new ResultTable();
   }
 
+  public VulnerabilityModal vulnerabilityModal() {
+    return new VulnerabilityModal();
+  }
+
+  public static class VulnerabilityModal
+      extends BasicElement<VulnerabilityModal>
+  {
+    VulnerabilityModal() {
+      super("#sv-info-modal");
+    }
+
+    public SelenideElement header() {
+      return child(".iq-modal-header");
+    }
+
+    public SelenideElement content() {
+      return child(".iq-modal-content");
+    }
+
+    public SelenideElement closeButton() {
+      return child(".iq-modal-footer .btn");
+    }
+  }
+
   public static class ResultTable
       extends BasicElement<ResultTable>
   {

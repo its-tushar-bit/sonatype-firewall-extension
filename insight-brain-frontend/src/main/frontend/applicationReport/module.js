@@ -8,6 +8,8 @@ import CLMLocationsModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import ComponentDisplayModule from '../ComponentDisplay/module';
+import vulnerabilityDetailsServiceModule from '../services/vulnerabilityDetailService';
+import selectedComponentServiceModule from '../services/selectedComponentService';
 
 import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
@@ -21,7 +23,7 @@ import applicationReportRawData from './rawData/applicationReportRawData';
 export default angular.module('applicationReportModule',
     [
       cipModalModule.name, CLMLocationsModule.name, utilityModule.name, utilityDirectivesModule.name,
-      ComponentDisplayModule.name
+      ComponentDisplayModule.name, vulnerabilityDetailsServiceModule.name, selectedComponentServiceModule.name
     ])
     .component('applicationReport', applicationReport)
     .component('applicationReportRoot', applicationReportRoot)

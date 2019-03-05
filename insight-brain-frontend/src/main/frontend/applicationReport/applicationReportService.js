@@ -199,7 +199,8 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
         license: licenseEntriesByKey[bomDataKey],
         securityCode: oneSecurityEntry.reference,
         cvssScore: oneSecurityEntry.score,
-        url: oneSecurityEntry.url
+        url: oneSecurityEntry.url,
+        source: oneSecurityEntry.source
       }), securityEntriesByKey[bomDataKey]);
     }
     else {

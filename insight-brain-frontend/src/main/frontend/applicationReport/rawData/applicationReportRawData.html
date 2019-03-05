@@ -50,7 +50,7 @@
                 <raw-license-display license="::rawDataEntry.license"></raw-license-display>
               </td>
               <td class="iq-cell">
-                {{::rawDataEntry.securityCode}}
+                <a ng-click="vm.openVulnerabilitiesModal(rawDataEntry)">{{::rawDataEntry.securityCode}}</a>
               </td>
               <td class="iq-cell">
                 {{::rawDataEntry.cvssScore | number : 1}}

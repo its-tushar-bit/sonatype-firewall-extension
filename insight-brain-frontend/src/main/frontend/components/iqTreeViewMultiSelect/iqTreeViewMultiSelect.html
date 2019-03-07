@@ -5,7 +5,7 @@
      data-tooltip="{{vm.getTooltipText()}}"
      data-tooltip-placement="top-left"
      data-tooltip-append-to-body="true"
-     tooltip-class="filter-label-tooltip">
+     tooltip-class="filter-label-tooltip {{::vm.tooltipModifierClass}}">
     <div class="iq-counter" ng-class="{'iq-counter--active': vm.selected.size !== 0}">
       {{vm.selected.size === 0 ? '' : vm.selected.size + ' of '}}{{::vm.available.length}}
     </div>
@@ -46,7 +46,7 @@
              tooltip-append-to-body="true"
              data-tooltip-popup-delay="200"
              data-tooltip-placement="top-left"
-             tooltip-class="filter-item-tooltip">
+             tooltip-class="filter-item-tooltip {{::vm.tooltipModifierClass}}">
         <input type="checkbox"
                class="iq-checkbox__input"
                ng-checked="vm.selected.has(entity.id)"

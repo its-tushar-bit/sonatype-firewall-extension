@@ -18,7 +18,8 @@ const iqTreeViewMultiSelect = {
     sortEntities: '<?',
     onChange: '&',
     isDisabled: '<?',
-    disabledTooltip: '@'
+    disabledTooltip: '@',
+    tooltipModifierClass: '@'
   },
   controller: IqTreeViewMultiSelectController,
   controllerAs: 'vm'

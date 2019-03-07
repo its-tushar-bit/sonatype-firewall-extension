@@ -48,7 +48,8 @@
                                  disabled-tooltip="Reevaluate the report in order to enable Policy Types filter"
                                  available="vm.availablePolicyTypeFilterOptions"
                                  selected="vm.exactValueFilters.policyThreatCategory"
-                                 on-change="vm.setPolicyTypeFilterOptions(selected)">
+                                 on-change="vm.setPolicyTypeFilterOptions(selected)"
+                                 tooltip-modifier-class="iq-tooltip--theme-dark">
         Policy Types
       </iq-tree-view-multi-select>
       <iq-tree-view-policy-threat-level-slider id="threat-level-filter"

@@ -1,6 +1,7 @@
 $iq-theme-dark-background: $iq-slate;
 $iq-theme-dark-text: $iq-grey-2;
 $iq-theme-dark-text-hover: $iq-off-white;
+$iq-theme-dark-text-disabled: #969696;
 $iq-theme-dark-border-color: $iq-grey-2;
 $iq-theme-dark-box-shadow: $iq-off-black;
 
@@ -96,11 +97,11 @@ $iq-theme-dark-box-shadow: $iq-off-black;
   }
 
   .iq-checkbox--disabled {
-    color: $iq-grey-4;
+    color: $iq-theme-dark-text-disabled;
 
     .iq-checkbox__box {
       &::before {
-        border: 1px solid $iq-grey-4;
+        border: 1px solid $iq-theme-dark-text-disabled;
       }
     }
   }
@@ -121,9 +122,11 @@ $iq-theme-dark-box-shadow: $iq-off-black;
   }
 
   .iq-radio--disabled {
+    color: $iq-theme-dark-text-disabled;
+
     .iq-radio__circle {
       &::before {
-        border-color: $iq-grey-4;
+        border-color: $iq-theme-dark-text-disabled;
       }
     }
   }
@@ -140,7 +143,8 @@ $iq-theme-dark-box-shadow: $iq-off-black;
     }
 
     &.disabled, &[disabled] {
-      color: $iq-grey-4;
+      color: $iq-theme-dark-text-disabled;
+      border-color: transparent;
     }
   }
 
@@ -160,6 +164,17 @@ $iq-theme-dark-box-shadow: $iq-off-black;
     }
   }
 
+  .iq-tree-view__trigger.disabled {
+    .iq-tree-view__text {
+      color: $iq-theme-dark-text-disabled;
+    }
+
+    .iq-tree-view__twisty-icon.expand,
+    .iq-tree-view__twisty-icon.collapse {
+      border-left-color: $iq-theme-dark-text-disabled;
+    }
+  }
+
   .iq-tree-view__filter {
     input[type="text"] {
       color: $iq-off-white;
@@ -167,6 +182,16 @@ $iq-theme-dark-box-shadow: $iq-off-black;
 
     .fa-filter, .fa-times {
       color: $iq-slate;
+    }
+  }
+
+  .iq-counter {
+    background-color: $iq-theme-dark-text-disabled;
+    border-color: $iq-theme-dark-text-disabled;
+
+    &.iq-counter--active {
+      background-color: $iq-grey-1;
+      border-color: $iq-grey-3;
     }
   }
 }

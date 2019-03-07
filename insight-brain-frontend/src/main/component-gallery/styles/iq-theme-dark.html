@@ -48,8 +48,16 @@
                                  filter-placeholder="Application Name"
                                  filter-threshold="5"
                                  name="applications"
-                                 sort-entities="vm.sort">
+                                 sort-entities="vm.sort"
+                                 tooltip-modifier-class="iq-tooltip--theme-dark">
         Test Applications
+      </iq-tree-view-multi-select>
+      <iq-tree-view-multi-select available="vm.available"
+                                 selected="vm.selected"
+                                 disabled-tooltip="This filter is disabled"
+                                 tooltip-modifier-class="iq-tooltip--theme-dark"
+                                 is-disabled="true">
+        Test Applications (disabled)
       </iq-tree-view-multi-select>
     </fieldset>
     <fieldset class="iq-form-group" ng-controller="iqTreeViewRadioSelectExampleController as vm">
@@ -65,7 +73,11 @@
   <div class="iq-btn-bar">
     <button class="iq-btn iq-btn--tertiary">Tertiary button</button>
   </div>
-  
+
+  <div class="iq-btn-bar">
+    <button class="iq-btn iq-btn--tertiary disabled">Tertiary button (disabled)</button>
+  </div>
+
 </div>
 
 </item-example-html>

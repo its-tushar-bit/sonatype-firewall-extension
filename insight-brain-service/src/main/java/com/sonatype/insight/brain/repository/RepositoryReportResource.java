@@ -18,7 +18,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.integration.repository.RepositoryService;
 
 import com.codahale.metrics.annotation.Timed;
 

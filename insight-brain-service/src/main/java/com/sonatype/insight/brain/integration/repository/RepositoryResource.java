@@ -41,7 +41,7 @@ public class RepositoryResource
 {
   public static final String RESOURCE_PATH = "rest/integration/repositories";
 
-  private static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
+  static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
 
   public static final String SUMMARY_PATH = REPOSITORY_PATH + "summary";
 

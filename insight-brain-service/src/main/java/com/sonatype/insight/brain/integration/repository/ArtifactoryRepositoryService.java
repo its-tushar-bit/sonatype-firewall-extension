@@ -10,7 +10,6 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -22,11 +21,10 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
   @Inject
   public ArtifactoryRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
                                       CLMLicenseManager licenseManager,
-                                      PolicyThreatsAdapter policyThreatsAdapter,
                                       HdsClient hdsClient,
                                       PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
-    super(repositoryPolicyEvaluator, licenseManager, policyThreatsAdapter, hdsClient, policyViolationLoggerFactory);
+    super(repositoryPolicyEvaluator, licenseManager, hdsClient, policyViolationLoggerFactory);
   }
 
   @Override

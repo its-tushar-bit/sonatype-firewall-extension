@@ -24,6 +24,15 @@ public class OwnerDAOTest
   @Test
   public void testWalkHierarchy_Application() {
     List<String> ownersIds = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(application)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).containsExactly(applicationId, organization.getId(), organization.getParentOrganizationId());
+  }
+
+  @Test
+  public void testWalkHierarchy_ApplicationId() {
+    List<String> ownersIds = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(applicationId)) {
       ownersIds.add(owner.getId());
     }
@@ -32,6 +41,15 @@ public class OwnerDAOTest
 
   @Test
   public void testWalkHierarchy_Organization() {
+    List<String> ownersIds = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(organization)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).containsExactly(organization.getId(), organization.getParentOrganizationId());
+  }
+
+  @Test
+  public void testWalkHierarchy_OrganizationId() {
     List<String> ownersIds = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(organization.getId())) {
       ownersIds.add(owner.getId());
@@ -42,6 +60,16 @@ public class OwnerDAOTest
   @Test
   public void testWalkHierarchy_RepositoryContainer() {
     List<String> ownersIds = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(RepositoryContainer.SINGLETON)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).containsExactly(RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testWalkHierarchy_RepositoryContainerId() {
+    List<String> ownersIds = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(RepositoryContainer.REPOSITORY_CONTAINER_ID)) {
       ownersIds.add(owner.getId());
     }
@@ -51,6 +79,16 @@ public class OwnerDAOTest
 
   @Test
   public void testWalkHierarchy_Repository() {
+    List<String> ownersIds = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(repository)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).containsExactly(repository.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testWalkHierarchy_RepositoryId() {
     List<String> ownersIds = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(repository.getId())) {
       ownersIds.add(owner.getId());

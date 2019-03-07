@@ -172,7 +172,7 @@ public class OrganizationSummaryViewTest
     List<List<Tag>> ownerTags = new ArrayList<>();
     List<Owner> owners = new ArrayList<>();
 
-    for (Owner owner : new OwnerDAO().walkHierarchy(organization.getId())) {
+    for (Owner owner : new OwnerDAO().walkHierarchy(organization)) {
       List<Tag> tags = new ArrayList<>();
       owners.add(owner);
 

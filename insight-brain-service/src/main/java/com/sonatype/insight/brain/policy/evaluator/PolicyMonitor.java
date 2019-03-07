@@ -101,7 +101,7 @@ public class PolicyMonitor
     List<Application> apps = new ApplicationDAO().getAll();
     for (Application app : apps) {
       PolicyMonitoring policyMonitoring = null;
-      for (Owner owner : ownerDAO.walkHierarchy(app.getId())) {
+      for (Owner owner : ownerDAO.walkHierarchy(app)) {
         policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
         if (policyMonitoring != null) {
           break;

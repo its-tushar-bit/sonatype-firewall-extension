@@ -135,8 +135,7 @@ public class LicenseDAO
   public Integer getLicenseThreatLevelByOwnerAndLicenseId(final Owner owner, String licenseId) {
     final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     Integer threatLevel = null;
-    String ownerId = owner.getId();
-    for (final Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
+    for (final Owner currentOwner : ownerDAO.walkHierarchy(owner)) {
       List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(
           currentOwner.getId(), licenseId);
       threatLevel = max(threatLevel, licenseThreatGroups);

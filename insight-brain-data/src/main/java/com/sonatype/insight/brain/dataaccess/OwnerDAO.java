@@ -85,19 +85,23 @@ public class OwnerDAO
     return getById(owner.getParentOwnerId());
   }
 
+  public Iterable<Owner> walkHierarchy(Owner owner) {
+    return () -> new OwnerIterator(null, owner);
+  }
+
   public Iterable<Owner> walkHierarchy(final String ownerId) {
-    return new OwnerIterator(null, ownerId);
+    return () -> new OwnerIterator(null, ownerId);
   }
 
   public Iterable<Owner> walkHierarchy(TransactionContext tx, final String ownerId) {
     if (tx == null) {
       throw new IllegalArgumentException();
     }
-    return new OwnerIterator(tx, ownerId);
+    return () -> new OwnerIterator(tx, ownerId);
   }
 
   private class OwnerIterator
-      implements Iterator<Owner>, Iterable<Owner>
+      implements Iterator<Owner>
   {
     private final TransactionContext tx;
 
@@ -110,9 +114,9 @@ public class OwnerDAO
       nextOwnerId = startOwnerId;
     }
 
-    @Override
-    public Iterator<Owner> iterator() {
-      return new OwnerIterator(tx, nextOwnerId);
+    OwnerIterator(TransactionContext tx, Owner startOwner) {
+      this.tx = tx;
+      nextOwner = startOwner;
     }
 
     @Override

@@ -344,7 +344,7 @@ public class PolicyWaiverResourceTest
     ApplicableContext result = response.getBody(ApplicableContext.class);
 
     LinkedList<Owner> ownerHierarchy = new LinkedList<>();
-    for (Owner owner : new OwnerDAO().walkHierarchy(repository.getId())) {
+    for (Owner owner : new OwnerDAO().walkHierarchy(repository)) {
       ownerHierarchy.push(owner);
     }
 

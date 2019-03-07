@@ -98,7 +98,7 @@ public class PolicyAlertEmailResolver
   {
     List<Member> members = new ArrayList<>();
     // Get role members from owner on up
-    for (Owner parentOwner : ownerDAO.walkHierarchy(owner.getId())) {
+    for (Owner parentOwner : ownerDAO.walkHierarchy(owner)) {
       for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(parentOwner.getId(),
           roleId)) {
         Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),

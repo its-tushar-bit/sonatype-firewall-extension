@@ -36,6 +36,8 @@ describe('applicationReportReducer', function() {
       expect(newState.selectedReport).toBe(null);
       expect(newState.aggregate).toBe(true);
       expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
+      expect(newState.rawDataSortFields).toEqual(
+          ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore']);
       expect(newState.exactValueFilters).toEqual({});
       expect(newState.substringFilters).toEqual({});
       expect(newState.isUnknownJs).toBe(false);
@@ -80,6 +82,7 @@ describe('applicationReportReducer', function() {
         loadError: null,
         reevaluationError: null,
         aggregate: true,
+        rawDataSortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         exactValueFilters: {},
         reportRawData: null,

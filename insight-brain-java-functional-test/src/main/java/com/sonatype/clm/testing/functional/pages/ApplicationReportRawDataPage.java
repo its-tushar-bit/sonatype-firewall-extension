@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
+import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -42,6 +43,10 @@ public class ApplicationReportRawDataPage
 
   public VulnerabilityModal vulnerabilityModal() {
     return new VulnerabilityModal();
+  }
+
+  public AppReportRawDataHeaders headers() {
+    return new AppReportRawDataHeaders();
   }
 
   public static class VulnerabilityModal
@@ -107,6 +112,30 @@ public class ApplicationReportRawDataPage
 
     public SelenideElement observedLicenses() {
       return child("raw-license-display span");
+    }
+  }
+
+  public static class AppReportRawDataHeaders
+      extends BasicElement<AppReportRawDataHeaders>
+  {
+    public AppReportRawDataHeaders() {
+      super(ROOT, ".iq-table--report-raw-data thead");
+    }
+
+    public IqSortingHeader componentHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-component a"));
+    }
+
+    public IqSortingHeader licensesHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-license a"));
+    }
+
+    public IqSortingHeader securityIssueHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-security-code a"));
+    }
+
+    public IqSortingHeader cvssScoreHeader() {
+      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-cvss a"));
     }
   }
 }

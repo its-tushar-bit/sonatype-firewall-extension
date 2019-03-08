@@ -352,7 +352,8 @@ describe('applicationReportActions', function() {
         type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
         payload: [{
           derivedComponentName: 'unknown',
-          license: undefined
+          license: undefined,
+          licenseSortKey: ''
         }]
       });
     });

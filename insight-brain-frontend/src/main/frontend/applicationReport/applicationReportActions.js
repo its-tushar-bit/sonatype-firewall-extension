@@ -26,6 +26,7 @@ export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
 export const SET_EXACT_VALUE_FILTER = 'SET_EXACT_VALUE_FILTER';
 export const SET_SORTING = 'SET_SORTING';
+export const SET_SORTING_RAW_DATA = 'SET_SORTING_RAW_DATA';
 
 export default function applicationReportActions($http, $q, CLMLocations, Messages) {
 
@@ -209,6 +210,13 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
+  function setSortingRawData(rawDataSortFields) {
+    return {
+      type: SET_SORTING_RAW_DATA,
+      payload: rawDataSortFields
+    };
+  }
+
   function setStringFieldFilter(fieldName, filterString) {
     return {
       type: SET_SUBSTRING_FIELD_FILTER,
@@ -280,6 +288,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     setStringFieldFilter,
     setExactValueFilter,
     setSorting,
+    setSortingRawData,
     selectComponent
   };
 }

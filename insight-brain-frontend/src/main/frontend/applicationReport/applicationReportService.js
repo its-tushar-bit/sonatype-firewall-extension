@@ -35,6 +35,7 @@ import {
 } from 'ramda';
 
 import { isNilOrEmpty, setToArray } from '../util/jsUtil';
+import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 
 const flatMap = pipe(map, flatten),
     toKey = component => component.hash || (component.pathnames || []).join('\t'),
@@ -133,6 +134,15 @@ const deriveComponentName = ({ displayName, filenames }) =>
 const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''), toLower);
 const deriveComponentNameFromFilenames = pipe(join(', '), toLower);
 
+const getLicenseSortKey = (licenseObj) => {
+  if (!licenseObj) {
+    return '';
+  }
+  const observedLicenses = getObservedLicensesDisplay(licenseObj);
+  return getDeclaredLicensesDisplay(licenseObj) +
+      (observedLicenses ? ', ' + observedLicenses : '');
+};
+
 // Violation state is a combination of Waived and Grandfathered.  These two values need to be stored in the same
 // field so that OR-based filtering can be performed on them.  If only their separate-field values were used, the
 // current filtering engine could only do AND-based filtering on them.
@@ -193,20 +203,23 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
   const securityEntriesByKey = groupBy(toKey, securityResult.aaData);
 
   const reportRawData = mapObjIndexed((oneBomData, bomDataKey) => {
+    const licenseObj = licenseEntriesByKey[bomDataKey];
     if (securityEntriesByKey[bomDataKey]) {
       return map((oneSecurityEntry) => ({
         derivedComponentName: deriveComponentName(oneBomData),
-        license: licenseEntriesByKey[bomDataKey],
+        license: licenseObj,
         securityCode: oneSecurityEntry.reference,
         cvssScore: oneSecurityEntry.score,
         url: oneSecurityEntry.url,
+        licenseSortKey: getLicenseSortKey(licenseObj),
         source: oneSecurityEntry.source
       }), securityEntriesByKey[bomDataKey]);
     }
     else {
       return {
         derivedComponentName: deriveComponentName(oneBomData),
-        license: licenseEntriesByKey[bomDataKey]
+        license: licenseObj,
+        licenseSortKey: getLicenseSortKey(licenseObj)
       };
     }
   }, bomDataByKey);
@@ -325,9 +338,22 @@ export const sortReportEntries = curry(function sortReportEntries(sortFields, en
             const aProp = propGetter(a),
                 bProp = propGetter(b);
 
-            return aProp < bProp ? -1 :
-              aProp > bProp ? 1 :
-                0;
+            if (aProp === bProp) {
+              return 0;
+            }
+            if (aProp === undefined) {
+              return -1;
+            }
+            if (bProp === undefined) {
+              return 1;
+            }
+            if (aProp < bProp) {
+              return -1;
+            }
+            if (aProp > bProp) {
+              return 1;
+            }
+            return 0;
           };
       return reverse ? flip(sortFn) : sortFn;
     });

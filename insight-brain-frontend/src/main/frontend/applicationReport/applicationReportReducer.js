@@ -37,6 +37,7 @@ import {
   REEVALUATE_REPORT_FAILED,
   REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
+  SET_SORTING_RAW_DATA,
   SELECT_COMPONENT
 } from './applicationReportActions';
 
@@ -50,6 +51,7 @@ const initState = {
   reevaluationError: null,
   aggregate: true,
   sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+  rawDataSortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
 
   // map from field name to Set of allowed values
   // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
@@ -127,6 +129,9 @@ export default function(state = initState, {type, payload}) {
     case SET_SORTING:
       return updateDisplayedEntries({...state, sortFields: payload});
 
+    case SET_SORTING_RAW_DATA:
+      return updateRawDataDisplayedEntries({...state, rawDataSortFields: payload});
+
     case SELECT_COMPONENT:
       return {...state, selectedComponentIndex: payload};
 
@@ -173,15 +178,29 @@ function setRawDataInformation(state, rawDataEntries) {
   });
 }
 
+/**
+ * Update the `displayedEntries` field on the reportRawData section of the state
+ * based on `allEntries` and the sorting passed-in, if any.
+ */
 function updateRawDataDisplayedEntries(state) {
-  const { reportRawData } = state;
+  const { reportRawData, rawDataSortFields } = state;
 
-  return pathSet(['reportRawData', 'displayedEntries'], reportRawData.allEntries, state);
+  if (reportRawData) {
+    const { allEntries } = reportRawData;
+    const processEntries = sortReportEntries(rawDataSortFields);
+    const newDisplayedEntries = processEntries(allEntries);
+
+    return pathSet(['reportRawData', 'displayedEntries'], newDisplayedEntries, state);
+  }
+  else {
+    return state;
+  }
+
 }
 
 /**
- * Update the `displayedEntries` field on the state based on `allEntries` and the various sorting, filtering,
- * and aggregation settings stored in the state
+ * Update the `displayedEntries` field on the selectedReport section of the state
+ * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
   const { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;

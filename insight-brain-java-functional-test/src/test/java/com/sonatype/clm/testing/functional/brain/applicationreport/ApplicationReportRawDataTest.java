@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.Re
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.VulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -33,7 +34,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -94,22 +94,17 @@ public class ApplicationReportRawDataTest
     resultTable.shouldBe(visible);
     resultTable.resultRows().shouldHaveSize(100);
 
-    ResultRow springSecurity = resultTable.resultRow(6);
-    springSecurity.component()
-        .shouldHave(exactText("org.springframework.security : spring-security-web : 3.2.4.release"));
-    springSecurity.declaredLicenses().shouldHave(exactText("Apache-2.0"));
-    springSecurity.observedLicenses().shouldNot(exist);
-    springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507"));
-    springSecurity.cvssScore().shouldHave(exactText("5.0"));
+    ResultRow springSecurity = resultTable.resultRow(94);
+    ScrollUtil.scrollIntoView(springSecurity.getElement());
+    checkRawDataRow(springSecurity, "org.springframework.security : spring-security-web : 3.2.4.release", "Apache-2.0",
+        null, "sonatype-2017-0507", "5.0");
     springSecurity.declaredLicenses().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Declared:Apache-2.0 Observed:Apache-2.0"));
 
-    ResultRow resultRowXpp3 = resultTable.resultRow(7);
-    resultRowXpp3.component().shouldHave(exactText("xpp3 : xpp3_min : 1.1.4c"));
-    resultRowXpp3.declaredLicenses().shouldHave(exactText("Non-Standard, Public Domain, XPP-1.1.1"));
-    resultRowXpp3.observedLicenses().shouldHave(exactText(", XPP-1.2"));
-    resultRowXpp3.securityIssue().shouldBe(empty);
-    resultRowXpp3.cvssScore().shouldBe(empty);
+    ResultRow resultRowXpp3 = resultTable.resultRow(100);
+    ScrollUtil.scrollIntoView(resultRowXpp3.getElement());
+    checkRawDataRow(resultRowXpp3, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", ", XPP-1.2",
+        "", "");
     resultRowXpp3.declaredLicenses().hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("Declared:Non-Standard, Public Domain, XPP-1.1.1 Observed:XPP-1.2"));
@@ -128,7 +123,8 @@ public class ApplicationReportRawDataTest
         getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"), 200);
 
     ResultTable resultTable = rawDataPage.resultTable();
-    ResultRow springSecurity = resultTable.resultRow(6);
+    ResultRow springSecurity = resultTable.resultRow(94);
+    ScrollUtil.scrollIntoView(springSecurity.getElement());
     springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507")).click();
 
     VulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
@@ -137,5 +133,94 @@ public class ApplicationReportRawDataTest
     vulnerabilityModal.content().$("#somedivfortest").shouldHave(text("sonatype-2017-0507"));
     vulnerabilityModal.closeButton().shouldHave(text("Close")).click();
     vulnerabilityModal.shouldNot(exist);
+  }
+
+  @Test
+  public void testSorting() {
+    ResultTable resultTable = rawDataPage.resultTable();
+    resultTable.resultRows().shouldHaveSize(100);
+
+    // starts off sorting by component name ascending
+    ResultRow firstRow = resultTable.resultRow(1);
+    ResultRow lastRow = resultTable.resultRow(100);
+    checkRawDataRow(firstRow, "angular 1.2.17", "MIT", ", Not Supported", "sonatype-2014-0015", "5.4");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", ", XPP-1.2", "",
+        "");
+
+    // sort by component descending
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().componentHeader().click();
+    checkRawDataRow(firstRow, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", ", XPP-1.2", "",
+        "");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "angular 1.2.17", "MIT", ", Not Supported", "sonatype-2017-0486", "4.3");
+
+    // sort by license (ascending)
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().licensesHeader().click();
+    checkRawDataRow(firstRow, "full.jar", "", null, "", "");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "aopalliance : aopalliance : 1.0", "Public Domain", ", No Source License", "", "");
+
+    // sort by license (descending)
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().licensesHeader().click();
+    checkRawDataRow(firstRow, "aopalliance : aopalliance : 1.0", "Public Domain", ", No Source License", "", "");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "regexmatch.dll", "", null, "", "");
+
+    // sort by security (ascending)
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().securityIssueHeader().click();
+    checkRawDataRow(firstRow, "aopalliance : aopalliance : 1.0", "Public Domain", ", No Source License", "", "");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "org.springframework.security : spring-security-web : 3.2.4.release", "Apache-2.0", null,
+        "sonatype-2017-0507", "5.0");
+
+    // sort by security (descending)
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().securityIssueHeader().click();
+    checkRawDataRow(firstRow, "org.springframework.security : spring-security-web : 3.2.4.release", "Apache-2.0", null,
+        "sonatype-2017-0507", "5.0");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", ", XPP-1.2", "",
+        "");
+
+    // sort by cvss (descending)
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().cvssScoreHeader().click();
+    checkRawDataRow(firstRow, "com.fasterxml.jackson.core : jackson-databind : 2.0.4", "Apache-2.0 or LGPL-2.1",
+        ", Non-Standard", "CVE-2017-7525", "9.8");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", ", XPP-1.2", "",
+        "");
+
+    // sort by cvss (ascending)
+    ScrollUtil.scrollIntoView(rawDataPage.headers().getElement());
+    rawDataPage.headers().cvssScoreHeader().click();
+    checkRawDataRow(firstRow, "aopalliance : aopalliance : 1.0", "Public Domain", ", No Source License", "", "");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "org.springframework : spring-expression : 3.2.4.release", "Apache-2.0", null,
+        "CVE-2018-1270", "9.8");
+  }
+
+  private void checkRawDataRow(final ResultRow row,
+                               final String componentName,
+                               final String declaredLicenses,
+                               final String observedLicenses,
+                               final String securityIssue,
+                               final String cvssScore)
+  {
+    row.component().shouldHave(exactText(componentName));
+    row.declaredLicenses().shouldHave(exactText(declaredLicenses));
+    if (observedLicenses == null) {
+      row.observedLicenses().shouldNot(exist);
+    }
+    else {
+      row.observedLicenses().shouldHave(exactText(observedLicenses));
+    }
+    row.securityIssue().shouldHave(exactText(securityIssue));
+    row.cvssScore().shouldHave(exactText(cvssScore));
   }
 }

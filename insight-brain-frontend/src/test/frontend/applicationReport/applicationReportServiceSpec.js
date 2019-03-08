@@ -41,7 +41,7 @@ describe('applicationReportService', function() {
             hash: 'fooHash',
             declaredLicenses: ['Apache 2.0'],
             effectiveLicenses: ['Apache 2.0'],
-            observedLicenses: ['Apache 2.0']
+            observedLicenses: ['Apache 2.1']
           }, {
             hash: 'barHash',
             declaredLicenses: ['Apache 200.0'],
@@ -84,7 +84,8 @@ describe('applicationReportService', function() {
         cvssScore: 1.2,
         securityCode: 'fooCode',
         url: 'fooUrl',
-        source: 'fooSource'
+        source: 'fooSource',
+        licenseSortKey: 'Apache 2.0, Apache 2.1'
       }));
 
       expect(result[1].license).toBe(licensesData.aaData[0]);
@@ -93,6 +94,7 @@ describe('applicationReportService', function() {
         cvssScore: 3.4,
         securityCode: 'fooCode2',
         url: 'fooUrl2',
+        licenseSortKey: 'Apache 2.0, Apache 2.1',
         source: 'fooSource2'
       }));
 
@@ -101,6 +103,7 @@ describe('applicationReportService', function() {
       expect(result[2].cvssScore).toBeUndefined();
       expect(result[2].securityCode).toBeUndefined();
       expect(result[2].url).toBeUndefined();
+      expect(result[2].licenseSortKey).toBe('Apache 200.0');
 
       expect(result[3].derivedComponentName).toBe('baz.js, bazzzz.js');
       expect(result[3].license).toBeUndefined();
@@ -108,6 +111,7 @@ describe('applicationReportService', function() {
       expect(result[3].securityCode).toBeUndefined();
       expect(result[3].url).toBeUndefined();
       expect(result[3].source).toBeUndefined();
+      expect(result[3].licenseSortKey).toBeUndefined();
     });
   });
 
@@ -1026,6 +1030,82 @@ describe('applicationReportService', function() {
           [3, 'Policy 3', 'ant.ant.1.62'],
           [2, 'Policy 10', 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'],
           [0, 'None', 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29']
+        ]);
+      });
+
+      it('sorts null values to the end when sorting descending', () => {
+        const nullSortInput = [
+          { foo: '3' },
+          { foo: '2' },
+          { foo: null },
+          { foo: '4' },
+          { foo: '1' }
+        ];
+        const result = applicationReportService.sortReportEntries(
+            ['-foo'], nullSortInput);
+        expect(result).toEqual([
+          { foo: '4' },
+          { foo: '3' },
+          { foo: '2' },
+          { foo: '1' },
+          { foo: null }
+        ]);
+      });
+
+      it('sorts undefined values to the end when sorting descending', () => {
+        const nullSortInput = [
+          { foo: '3' },
+          { foo: '2' },
+          { foo: undefined },
+          { foo: '4' },
+          { foo: '1' }
+        ];
+        const result = applicationReportService.sortReportEntries(
+            ['-foo'], nullSortInput);
+        expect(result).toEqual([
+          { foo: '4' },
+          { foo: '3' },
+          { foo: '2' },
+          { foo: '1' },
+          { foo: undefined }
+        ]);
+      });
+
+      it('sorts null values to the beginning when sorting ascending', () => {
+        const nullSortInput = [
+          { foo: '3' },
+          { foo: '2' },
+          { foo: null },
+          { foo: '4' },
+          { foo: '1' }
+        ];
+        const result = applicationReportService.sortReportEntries(
+            ['foo'], nullSortInput);
+        expect(result).toEqual([
+          { foo: null },
+          { foo: '1' },
+          { foo: '2' },
+          { foo: '3' },
+          { foo: '4' }
+        ]);
+      });
+
+      it('sorts undefined values to the beginning when sorting ascending', () => {
+        const nullSortInput = [
+          { foo: '3' },
+          { foo: '2' },
+          { foo: undefined },
+          { foo: '4' },
+          { foo: '1' }
+        ];
+        const result = applicationReportService.sortReportEntries(
+            ['foo'], nullSortInput);
+        expect(result).toEqual([
+          { foo: undefined },
+          { foo: '1' },
+          { foo: '2' },
+          { foo: '3' },
+          { foo: '4' }
         ]);
       });
 

@@ -21,17 +21,23 @@
         </div>
         <table class="iq-table iq-table--report-raw-data" id="raw-data-report-results">
           <thead>
-            <tr class="iq-table-row">
-              <th class="iq-cell iq-cell--header">
+            <tr class="iq-table-row"
+                sort="vm.rawDataSortFields"
+                on-sort-change="vm.setSortingRawData(sortFields)">
+              <th class="iq-cell iq-cell--header iq-cell--report-raw-data-component"
+                  sort-column="derivedComponentName,licenseSortKey,securityCode,-cvssScore">
                 Component
-              </th>
-              <th class="iq-cell iq-cell--header">
+              </th><!--
+           --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-license"
+                  sort-column="licenseSortKey,derivedComponentName,securityCode,-cvssScore">
                 License
-              </th>
-              <th class="iq-cell iq-cell--header iq-cell--report-raw-data-security-code">
+              </th><!--
+           --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-security-code"
+                  sort-column="securityCode,derivedComponentName,licenseSortKey,-cvssScore">
                 Security Issue
-              </th>
-              <th class="iq-cell iq-cell--header iq-cell--report-raw-data-cvss">
+              </th><!--
+           --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-cvss"
+                  sort-column="-cvssScore,derivedComponentName,licenseSortKey,securityCode">
                 CVSS Score
               </th>
             </tr>

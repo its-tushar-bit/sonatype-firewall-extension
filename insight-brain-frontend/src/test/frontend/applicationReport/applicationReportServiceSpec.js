@@ -1,5 +1,5 @@
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
-import {map, props} from 'ramda';
+import {ascend, map, prop, props, sortWith} from 'ramda';
 
 describe('applicationReportService', function() {
 
@@ -7,6 +7,13 @@ describe('applicationReportService', function() {
     const bomData = {
           aaData: [
             {
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
               hash: 'fooHash',
               displayName: {
                 parts: [
@@ -14,6 +21,14 @@ describe('applicationReportService', function() {
                 ]
               }
             }, {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              },
               hash: 'barHash',
               displayName: {
                 parts: [
@@ -24,6 +39,30 @@ describe('applicationReportService', function() {
                   {field: 'Version', value: '2'}
                 ]
               }
+            }, {
+              // same component id as the first entry, but with the keys declared in a different order
+              componentIdentifier: {
+                coordinates: {
+                  version: '1',
+                  name: 'foo'
+                },
+                format: 'a-name'
+              },
+              // different hash from the first entry
+              hash: 'fooHash2',
+              displayName: {
+                parts: [
+                  {field: 'a-name', value: 'foo'}, {value: ' : '}, {field: 'version', value: '1'}
+                ]
+              }
+            }, {
+              hash: 'unidentifiedHash1',
+              pathnames: ['foo/bar/path1'],
+              filenames: ['path1']
+            }, {
+              hash: 'unidentifiedHash2',
+              pathnames: ['foo/bar/path2', 'foo/path3'],
+              filenames: ['path2', 'path3']
             }
           ]
         },
@@ -38,11 +77,26 @@ describe('applicationReportService', function() {
         },
         licensesData = {
           aaData: [{
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1'
+              }
+            },
             hash: 'fooHash',
             declaredLicenses: ['Apache 2.0'],
             effectiveLicenses: ['Apache 2.0'],
             observedLicenses: ['Apache 2.1']
           }, {
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2'
+              }
+            },
             hash: 'barHash',
             declaredLicenses: ['Apache 200.0'],
             effectiveLicenses: ['Apache 200.0'],
@@ -63,6 +117,14 @@ describe('applicationReportService', function() {
             url: 'fooUrl2',
             source: 'fooSource2'
           }, {
+            // same reference as the first one, but for the other hash of component foo. Should not result
+            // in an additional (duplicated) entry in the createRawDataEntries output
+            hash: 'fooHash2',
+            score: 1.2,
+            reference: 'fooCode',
+            url: 'fooUrl',
+            source: 'fooSource'
+          }, {
             hash: 'bazHash',
             score: 5.6,
             reference: 'bazCode',
@@ -76,10 +138,27 @@ describe('applicationReportService', function() {
       const result = applicationReportService.createRawDataEntries(
           securityData, licensesData, bomData, unknownJSData);
 
-      expect(result.length).toEqual(4);
+      expect(result.length).toEqual(6);
 
-      expect(result[0].license).toBe(licensesData.aaData[0]);
-      expect(result[0]).toEqual(jasmine.objectContaining({
+      const sortedResult = sortWith([ascend(prop('cvssScore')), ascend(prop('derivedComponentName'))], result);
+
+      expect(sortedResult[0].license).toBe(licensesData.aaData[1]);
+      expect(sortedResult[0].derivedComponentName).toBe('bargroup : bar : 2');
+      expect(sortedResult[0].cvssScore).toBeUndefined();
+      expect(sortedResult[0].securityCode).toBeUndefined();
+      expect(sortedResult[0].url).toBeUndefined();
+      expect(sortedResult[0].licenseSortKey).toBe('Apache 200.0');
+
+      expect(sortedResult[1].derivedComponentName).toBe('baz.js, bazzzz.js');
+      expect(sortedResult[1].license).toBeUndefined();
+      expect(sortedResult[1].cvssScore).toBeUndefined();
+      expect(sortedResult[1].securityCode).toBeUndefined();
+      expect(sortedResult[1].url).toBeUndefined();
+      expect(sortedResult[1].source).toBeUndefined();
+      expect(sortedResult[1].licenseSortKey).toBeUndefined();
+
+      expect(sortedResult[2].license).toBe(licensesData.aaData[0]);
+      expect(sortedResult[2]).toEqual(jasmine.objectContaining({
         derivedComponentName: 'foo : 1',
         cvssScore: 1.2,
         securityCode: 'fooCode',
@@ -88,8 +167,8 @@ describe('applicationReportService', function() {
         licenseSortKey: 'Apache 2.0, Apache 2.1'
       }));
 
-      expect(result[1].license).toBe(licensesData.aaData[0]);
-      expect(result[1]).toEqual(jasmine.objectContaining({
+      expect(sortedResult[3].license).toBe(licensesData.aaData[0]);
+      expect(sortedResult[3]).toEqual(jasmine.objectContaining({
         derivedComponentName: 'foo : 1',
         cvssScore: 3.4,
         securityCode: 'fooCode2',
@@ -98,20 +177,19 @@ describe('applicationReportService', function() {
         source: 'fooSource2'
       }));
 
-      expect(result[2].license).toBe(licensesData.aaData[1]);
-      expect(result[2].derivedComponentName).toBe('bargroup : bar : 2');
-      expect(result[2].cvssScore).toBeUndefined();
-      expect(result[2].securityCode).toBeUndefined();
-      expect(result[2].url).toBeUndefined();
-      expect(result[2].licenseSortKey).toBe('Apache 200.0');
+      expect(sortedResult[4].derivedComponentName).toBe('path1');
+      expect(sortedResult[4].license).toBeUndefined();
+      expect(sortedResult[4].cvssScore).toBeUndefined();
+      expect(sortedResult[4].securityCode).toBeUndefined();
+      expect(sortedResult[4].url).toBeUndefined();
+      expect(sortedResult[4].source).toBeUndefined();
 
-      expect(result[3].derivedComponentName).toBe('baz.js, bazzzz.js');
-      expect(result[3].license).toBeUndefined();
-      expect(result[3].cvssScore).toBeUndefined();
-      expect(result[3].securityCode).toBeUndefined();
-      expect(result[3].url).toBeUndefined();
-      expect(result[3].source).toBeUndefined();
-      expect(result[3].licenseSortKey).toBeUndefined();
+      expect(sortedResult[5].derivedComponentName).toBe('path2, path3');
+      expect(sortedResult[5].license).toBeUndefined();
+      expect(sortedResult[5].cvssScore).toBeUndefined();
+      expect(sortedResult[5].securityCode).toBeUndefined();
+      expect(sortedResult[5].url).toBeUndefined();
+      expect(sortedResult[5].source).toBeUndefined();
     });
   });
 

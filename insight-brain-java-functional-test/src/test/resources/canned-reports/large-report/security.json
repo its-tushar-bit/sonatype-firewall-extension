@@ -410,6 +410,25 @@
     "groupId" : null,
     "artifactId" : null,
     "version" : null,
+    "hash" :  "1d85f0f3464e5e49b052",
+    "url" : null,
+    "reference" : "sonatype-2014-0026",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
     "hash" : "8bca689e7e5f803c704c",
     "url" : null,
     "reference" : "sonatype-2014-0026",

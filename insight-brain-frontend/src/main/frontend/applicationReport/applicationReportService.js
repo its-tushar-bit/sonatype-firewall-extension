@@ -6,6 +6,7 @@
 import {
   __,
   always,
+  append,
   apply,
   complement,
   compose,
@@ -27,10 +28,13 @@ import {
   pick,
   pipe,
   prop,
+  reduce,
   reduceBy,
   toLower,
+  sortBy,
   sortWith,
   toPairs,
+  uniqBy,
   values
 } from 'ramda';
 
@@ -38,9 +42,11 @@ import { isNilOrEmpty, setToArray } from '../util/jsUtil';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 
 const flatMap = pipe(map, flatten),
-    toKey = component => component.hash || (component.pathnames || []).join('\t'),
+    joinPathnames = join('\t'),
+    toKey = component => component.hash || joinPathnames(component.pathnames || []),
     nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
-    indexByKey = reduceBy((acc, c) => c, null, toKey),
+    indexBy = reduceBy((acc, c) => c, null),
+    indexByKey = indexBy(toKey),
     makeNonViolatingComponentEntry = component => ({
       ...component,
       policyThreatLevel: 0,
@@ -197,32 +203,47 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
 
 export function createRawDataEntries(securityResult = defaultParamValue, licensesResult = defaultParamValue,
                                      bomResult = defaultParamValue, unknownJsResult = defaultParamValue) {
-  const bomDataByKey = indexByKey(bomResult.aaData);
 
-  const licenseEntriesByKey = indexByKey(licensesResult.aaData);
+  const bomDataByComponentId = groupBy(serializeComponentId, bomResult.aaData);
+  const licenseEntriesByComponentId = indexBy(serializeComponentId, licensesResult.aaData);
+
+  // flatten all the bom entries for a given component id into one, creating a new property to aggregate all the hashes
+  const flattenedBomDataByComponentId = map(
+      reduce((acc, comp) => ({ ...acc, ...comp, hashes: append(comp.hash, acc.hashes) }), { hashes: [] }),
+      bomDataByComponentId);
+
   const securityEntriesByKey = groupBy(toKey, securityResult.aaData);
 
-  const reportRawData = mapObjIndexed((oneBomData, bomDataKey) => {
-    const licenseObj = licenseEntriesByKey[bomDataKey];
-    if (securityEntriesByKey[bomDataKey]) {
+  const reportRawData = mapObjIndexed((oneBomData, componentId) => {
+
+    // distinct security entries associated with any detected hash of this component id
+    const securityEntries = pipe(
+            map(hash => securityEntriesByKey[hash] || []),
+            flatten,
+            uniqBy(prop('reference'))
+        )(oneBomData.hashes),
+        license = licenseEntriesByComponentId[componentId],
+        derivedComponentName = deriveComponentName(oneBomData);
+
+    if (securityEntries.length) {
       return map((oneSecurityEntry) => ({
-        derivedComponentName: deriveComponentName(oneBomData),
-        license: licenseObj,
+        derivedComponentName,
+        license,
         securityCode: oneSecurityEntry.reference,
         cvssScore: oneSecurityEntry.score,
         url: oneSecurityEntry.url,
-        licenseSortKey: getLicenseSortKey(licenseObj),
+        licenseSortKey: getLicenseSortKey(license),
         source: oneSecurityEntry.source
-      }), securityEntriesByKey[bomDataKey]);
+      }), securityEntries);
     }
     else {
       return {
-        derivedComponentName: deriveComponentName(oneBomData),
-        license: licenseObj,
-        licenseSortKey: getLicenseSortKey(licenseObj)
+        derivedComponentName,
+        license,
+        licenseSortKey: getLicenseSortKey(license)
       };
     }
-  }, bomDataByKey);
+  }, flattenedBomDataByComponentId);
 
   const bomRawData = flatten(values(reportRawData));
 
@@ -231,6 +252,31 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
   }), unknownJsResult.aaData));
 
   return allRawDeportRawData;
+}
+
+/**
+ * Takes an object that has a component identifier and returns a string representing the component identifier's value.
+ * Equivalent component identifiers will result in equivalent strings, making the strings useful for constructing a map
+ * keyed by component identifier. Also includes a fallback to the pathnames property if there is no component
+ * identifier. If pathnames aren't available either, returns null
+ */
+function serializeComponentId({ componentIdentifier, pathnames }) {
+  if (componentIdentifier) {
+    const { format, coordinates } = componentIdentifier,
+
+        // use U+001F UNIT SEPARATOR to separate coordinate field names from values, and use U+001E RECORD SEPARATOR to
+        // separate the k/v pairs from each other
+        coordinatePairStrings = map(join('\u001f'), sortBy(prop(0), toPairs(coordinates))),
+        coordinatesString = join('\u001e', coordinatePairStrings);
+
+    return `${format}:${coordinatesString}`;
+  }
+  else if (pathnames) {
+    return `pathnames:${joinPathnames(pathnames)}`;
+  }
+  else {
+    return null;
+  }
 }
 
 function highestViolationReducer(highestViolationSoFar, violation) {

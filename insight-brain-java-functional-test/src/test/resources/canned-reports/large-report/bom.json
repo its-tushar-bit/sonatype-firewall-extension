@@ -747,6 +747,29 @@
     "website" : null
   }, {
     "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery-1.10.2.js" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/js/jquery/jquery-1.10.2.js" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1d85f0f3464e5e49b052",
+    "relativePopularity" : null,
+    "createTime" : 1458609912000,
+    "lastModifiedTime" : 1413088370000,
+    "lastModifiedEntryTime" : null,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
         "artifactId" : "commons-lang3",

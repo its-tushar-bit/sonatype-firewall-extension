@@ -124,13 +124,13 @@ public class ApplicationReportTest
 
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("22"));
-    reportPage.threatIndicators().severe().shouldHave(text("38"));
+    reportPage.threatIndicators().severe().shouldHave(text("39"));
     reportPage.threatIndicators().moderate().shouldHave(text("4"));
-    reportPage.threatIndicators().caption().shouldHave(exactText("64 Violations"));
-    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 26 components"));
+    reportPage.threatIndicators().caption().shouldHave(exactText("65 Violations"));
+    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 27 components"));
 
     IQCoverageIndicator coverageIndicator = reportPage.coverageIndicator();
-    coverageIndicator.caption().shouldHave(exactText("63 COMPONENTS"));
+    coverageIndicator.caption().shouldHave(exactText("64 COMPONENTS"));
     coverageIndicator.subCaption().shouldHave(exactText("97% of all components identified"));
     coverageIndicator.donutChart().shouldBe(visible);
 
@@ -140,7 +140,7 @@ public class ApplicationReportTest
     activateGrandfathering();
 
     grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("45 Grandfathered"));
+    grandfatheringIndicator.caption().shouldHave(exactText("46 Grandfathered"));
   }
 
   @Test
@@ -281,9 +281,9 @@ public class ApplicationReportTest
   public void testAggregation() {
     reportPage.showAggregatedViolationsRadio().shouldBe(selected);
     reportPage.showAllViolationsRadio().shouldNotBe(selected);
-    reportPage.resultRows().shouldHaveSize(63);
+    reportPage.resultRows().shouldHaveSize(64);
     reportPage.getThreatBars("critical").shouldHaveSize(17);
-    reportPage.getThreatBars("severe").shouldHaveSize(8);
+    reportPage.getThreatBars("severe").shouldHaveSize(9);
     reportPage.getThreatBars("moderate").shouldHaveSize(1);
     reportPage.getThreatBars("low").shouldHaveSize(0);
     reportPage.getThreatBars("ignore").shouldHaveSize(36);
@@ -301,9 +301,9 @@ public class ApplicationReportTest
     reportPage.getThreatBars("moderate").shouldHaveSize(1);
 
     reportPage.headers().componentNameFilterInput().clear();
-    reportPage.resultRows().shouldHaveSize(101);
+    reportPage.resultRows().shouldHaveSize(102);
     reportPage.getThreatBars("critical").shouldHaveSize(22);
-    reportPage.getThreatBars("severe").shouldHaveSize(38);
+    reportPage.getThreatBars("severe").shouldHaveSize(39);
     reportPage.getThreatBars("moderate").shouldHaveSize(4);
     reportPage.getThreatBars("low").shouldHaveSize(0);
     reportPage.getThreatBars("ignore").shouldHaveSize(36);
@@ -419,21 +419,21 @@ public class ApplicationReportTest
     proprietaryFilter.proprietary().shouldBe(selected);
     proprietaryFilter.nonProprietary().shouldBe(selected);
 
-    violations.shouldHaveSize(63);
+    violations.shouldHaveSize(64);
 
     proprietaryFilter.allItems().click();
     proprietaryFilter.counter().shouldHave(text("2"));
     proprietaryFilter.proprietary().shouldNotBe(selected);
     proprietaryFilter.nonProprietary().shouldNotBe(selected);
 
-    violations.shouldHaveSize(63);
+    violations.shouldHaveSize(64);
 
     proprietaryFilter.nonProprietary().click();
     proprietaryFilter.counter().shouldHave(text("1 of 2"));
     proprietaryFilter.proprietary().shouldNotBe(selected);
     proprietaryFilter.nonProprietary().shouldBe(selected);
 
-    violations.shouldHaveSize(60);
+    violations.shouldHaveSize(61);
 
     // match state filter
     MatchStateFilter matchStateFilter = reportPage.matchStateFilter();
@@ -458,7 +458,7 @@ public class ApplicationReportTest
     matchStateFilter.exact().click();
     matchStateFilter.exact().shouldBe(selected);
     matchStateFilter.counter().shouldHave(exactText("3 of 3"));
-    violations.shouldHaveSize(60);
+    violations.shouldHaveSize(61);
 
     //policy type filter
     PolicyTypeFilter policyTypeFilter = reportPage.policyTypeFilter();
@@ -499,11 +499,11 @@ public class ApplicationReportTest
     policyTypeFilter.security().click();
     policyTypeFilter.security().shouldBe(selected);
     policyTypeFilter.counter().shouldHave(exactText("4 of 4"));
-    violations.shouldHaveSize(27);
+    violations.shouldHaveSize(28);
 
     policyTypeFilter.allItems().click();
     policyTypeFilter.allItems().shouldNotBe(selected);
-    violations.shouldHaveSize(60);
+    violations.shouldHaveSize(61);
     
     // policy threat level filter
     PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
@@ -512,14 +512,14 @@ public class ApplicationReportTest
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(visible);
     threatLevelFilter.slider().setValues(1, 10);
-    violations.shouldHaveSize(27);
+    violations.shouldHaveSize(28);
     threatLevelFilter.slider().setValues(1, 9);
-    violations.shouldHaveSize(25);
+    violations.shouldHaveSize(26);
     eyesWatcher.eyesCheck("Test Policy Threat Level Filter");
     threatLevelFilter.slider().setValues(2, 9);
-    violations.shouldHaveSize(24);
+    violations.shouldHaveSize(25);
     threatLevelFilter.slider().setValues(7, 9);
-    violations.shouldHaveSize(23);
+    violations.shouldHaveSize(24);
     threatLevelFilter.slider().setValues(9, 9);
     violations.shouldHaveSize(15);
     threatLevelFilter.slider().setValues(10, 10);
@@ -528,7 +528,7 @@ public class ApplicationReportTest
     violations.shouldHaveSize(1);
     violations.shouldHave(texts("No Results"));
     threatLevelFilter.slider().setValues(0, 10);
-    violations.shouldHaveSize(60);
+    violations.shouldHaveSize(61);
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(hidden);
   }
@@ -546,7 +546,7 @@ public class ApplicationReportTest
     violationStateFilter.open().click();
     violationStateFilter.open().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("1 of 4"));
-    violations.shouldHaveSize(27);
+    violations.shouldHaveSize(28);
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
     // waive the first violation
@@ -561,13 +561,13 @@ public class ApplicationReportTest
     FormMask.seeAndWaitForDismissal();
 
     // waived violation filtered out
-    violations.shouldHaveSize(26);
+    violations.shouldHaveSize(27);
 
     // now add waived violations
     violationStateFilter.waived().click();
     violationStateFilter.waived().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("2 of 4"));
-    violations.shouldHaveSize(27);
+    violations.shouldHaveSize(28);
 
     // at this point, the mycila violation is visible but is way down at the "None" part of the list because we are
     // in the aggregated view
@@ -576,7 +576,7 @@ public class ApplicationReportTest
     // switch to non-aggregated view to get the actual waived violation, back in its original place at the top of the
     // list
     reportPage.showAllViolationsRadio().click();
-    violations.shouldHaveSize(65);
+    violations.shouldHaveSize(66);
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
     eyesWatcher.eyesCheck("Test Violation State Filter");
@@ -596,21 +596,21 @@ public class ApplicationReportTest
     violationStateFilter.grandfathered().click();
     violationStateFilter.grandfathered().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
-    violations.shouldHaveSize(65);
+    violations.shouldHaveSize(66);
 
     // the waived violation is also grandfathered, so no difference.
     violationStateFilter.waived().click();
-    violations.shouldHaveSize(65);
+    violations.shouldHaveSize(66);
 
     violationStateFilter.notViolating().click();
     violationStateFilter.notViolating().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
-    violations.shouldHaveSize(101);
+    violations.shouldHaveSize(102);
 
     // all boxes checked - again no difference in count because the waived violation is also grandfathered
     violationStateFilter.waived().click();
     violationStateFilter.counter().shouldHave(exactText("4 of 4"));
-    violations.shouldHaveSize(101);
+    violations.shouldHaveSize(102);
 
     // no boxes checked
     violationStateFilter.allItems().shouldBe(selected).click();
@@ -620,7 +620,7 @@ public class ApplicationReportTest
     violationStateFilter.waived().shouldNotBe(selected);
     violationStateFilter.grandfathered().shouldNotBe(selected);
     violationStateFilter.counter().shouldHave(exactText("4"));
-    violations.shouldHaveSize(101);
+    violations.shouldHaveSize(102);
   }
 
   @Test

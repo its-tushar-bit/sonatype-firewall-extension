@@ -18,6 +18,9 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiDataRetentionPolicyService;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -48,10 +51,12 @@ public class ApiDataRetentionPolicyResource
   @PUT
   @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_DATA_RETENTION)
   public void setDataRetentionPolicies(
       @PathParam("organizationId") String organizationId,
       ApiDataRetentionPoliciesDTO dto)
   {
+    AuditData.get().setData("dataRetentionPolicies", dto);
     dataRetentionService.setDataRetentionPolicies(organizationId, dto);
   }
 }

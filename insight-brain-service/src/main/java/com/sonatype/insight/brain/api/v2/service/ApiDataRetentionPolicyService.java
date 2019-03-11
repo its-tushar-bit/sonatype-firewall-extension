@@ -36,15 +36,13 @@ import static java.util.stream.Collectors.toMap;
 @Named
 public class ApiDataRetentionPolicyService
 {
-  public static final String CONTEXT_ID_CONTINUOUS_MONITORING = "continuous-monitoring";
-
   private static final Set<String> VALID_CONTEXT_IDS = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList( //
       Stage.ID_DEVELOP, //
       Stage.ID_BUILD, //
       Stage.ID_STAGE_RELEASE, //
       Stage.ID_RELEASE, //
       Stage.ID_OPERATE, //
-      CONTEXT_ID_CONTINUOUS_MONITORING)));
+      DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING)));
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
 

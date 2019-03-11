@@ -20,6 +20,8 @@ import com.sonatype.insight.model.HasStringId;
 public class DataRetentionPolicy
     implements HasStringId
 {
+  public static final String CONTEXT_ID_CONTINUOUS_MONITORING = "continuous-monitoring";
+
   @Id
   @Column(name = "data_retention_policy_id")
   private String id;

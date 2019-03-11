@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiDataRetentionPolicyService;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -42,7 +41,7 @@ public class ApiDataRetentionPolicyResourceTest
     assertThat(dto).isNotNull();
     assertThat(dto.applicationReports).isNotNull();
     assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_BUILD, Stage.ID_STAGE_RELEASE,
-        Stage.ID_RELEASE, Stage.ID_OPERATE, ApiDataRetentionPolicyService.CONTEXT_ID_CONTINUOUS_MONITORING);
+        Stage.ID_RELEASE, Stage.ID_OPERATE, DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
     assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> {
       assertThat(policyDTO).isNotNull();
       assertThat(policyDTO.inheritPolicy).isFalse();

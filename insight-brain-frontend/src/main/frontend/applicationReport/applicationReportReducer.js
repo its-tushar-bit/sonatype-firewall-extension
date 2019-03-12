@@ -63,7 +63,7 @@ const initState = {
   substringFilters: {},
   selectedReport: null,
   selectedComponentIndex: null,
-  policyTypeFilterEnabled: false,
+  policyTypeFilterEnabled: true,
   isUnknownJs: false
 };
 

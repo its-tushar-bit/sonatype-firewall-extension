@@ -41,7 +41,7 @@ describe('applicationReportReducer', function() {
       expect(newState.exactValueFilters).toEqual({});
       expect(newState.substringFilters).toEqual({});
       expect(newState.isUnknownJs).toBe(false);
-      expect(newState.policyTypeFilterEnabled).toBe(false);
+      expect(newState.policyTypeFilterEnabled).toBe(true);
     });
   });
 
@@ -94,7 +94,7 @@ describe('applicationReportReducer', function() {
         substringFilters: {},
         selectedReport: null,
         selectedComponentIndex: null,
-        policyTypeFilterEnabled: false,
+        policyTypeFilterEnabled: true,
         isUnknownJs: false
       });
     });

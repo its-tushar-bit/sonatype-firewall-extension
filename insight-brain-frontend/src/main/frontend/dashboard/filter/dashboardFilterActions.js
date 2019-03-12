@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
 export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
 export const FETCH_CURRENT_FILTER_FULFILLED = 'FETCH_CURRENT_FILTER_FULFILLED';
@@ -73,12 +75,7 @@ export default function dashboardFilterActions(dashboardResultsActions, manageFi
     };
   }
 
-  function loadFilterFailed(error) {
-    return {
-      type: LOAD_FILTER_FAILED,
-      payload: error
-    };
-  }
+  const loadFilterFailed = payloadParamActionCreator(LOAD_FILTER_FAILED);
 
   function applyFilter(filter, basedOnFilterName) {
     return dispatch => {
@@ -111,19 +108,8 @@ export default function dashboardFilterActions(dashboardResultsActions, manageFi
     };
   }
 
-  function applyFilterFailed(error) {
-    return {
-      type: APPLY_FILTER_FAILED,
-      payload: error
-    };
-  }
-
-  function applySavedFilterFailed(filterName) {
-    return {
-      type: APPLY_SAVED_FILTER_FAILED,
-      payload: filterName
-    };
-  }
+  const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
+  const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
 
   function updateFiltersFulfilled(filter, basedOnFilterName) {
     return (dispatch, getState) => {
@@ -162,12 +148,7 @@ export default function dashboardFilterActions(dashboardResultsActions, manageFi
     };
   }
 
-  function selectAge(maxDaysOld) {
-    return {
-      type: SELECT_AGE,
-      payload: maxDaysOld
-    };
-  }
+  const selectAge = payloadParamActionCreator(SELECT_AGE);
 
   function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
     return {
@@ -176,13 +157,8 @@ export default function dashboardFilterActions(dashboardResultsActions, manageFi
     };
   }
 
-  function clear() {
-    return {type: CLEAR_FILTER};
-  }
-
-  function revert() {
-    return {type: REVERT_FILTER};
-  }
+  const clear = noPayloadActionCreator(CLEAR_FILTER);
+  const revert = noPayloadActionCreator(REVERT_FILTER);
 
   return {
     clear,

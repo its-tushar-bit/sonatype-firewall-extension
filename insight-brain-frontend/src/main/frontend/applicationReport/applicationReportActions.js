@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { pick } from 'ramda';
+
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
+import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -151,71 +154,19 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function loadCommonDataFulfilled({ bomData, metadata, unknownJsData }) {
-    return {
-      type: LOAD_COMMON_DATA_FULFILLED,
-      payload: { bomData, metadata, unknownJsData }
-    };
-  }
+  const httpErrorMessageActionCreator = type => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
 
-  function loadCommonDataFailed(error) {
-    return {
-      type: LOAD_COMMON_DATA_FAILED,
-      payload: Messages.getHttpErrorMessage(error)
-    };
-  }
+  const loadCommonDataFulfilled = mappedPayloadParamActionCreator(LOAD_COMMON_DATA_FULFILLED,
+      pick(['bomData', 'metadata', 'unknownJsData']));
 
-  function loadReportFulfilled(payload) {
-    return {
-      type: LOAD_REPORT_FULFILLED,
-      payload
-    };
-  }
-
-  function loadReportFailed(error) {
-    return {
-      type: LOAD_REPORT_FAILED,
-      payload: Messages.getHttpErrorMessage(error)
-    };
-  }
-
-  function loadReportRawDataFulfilled(payload) {
-    return {
-      type: LOAD_REPORT_RAW_DATA_FULFILLED,
-      payload
-    };
-  }
-
-  function loadReportRawDataFailed(error) {
-    return {
-      type: LOAD_REPORT_RAW_DATA_FAILED,
-      payload: Messages.getHttpErrorMessage(error)
-    };
-  }
-
-  /**
-   * @param isAggregated a boolean for whether or not to aggregate
-   */
-  function setAggregateReportEntries(isAggregated) {
-    return {
-      type: SET_AGGREGATE_REPORT_ENTRIES,
-      payload: isAggregated
-    };
-  }
-
-  function setSorting(sortFields) {
-    return {
-      type: SET_SORTING,
-      payload: sortFields
-    };
-  }
-
-  function setSortingRawData(rawDataSortFields) {
-    return {
-      type: SET_SORTING_RAW_DATA,
-      payload: rawDataSortFields
-    };
-  }
+  const loadCommonDataFailed = httpErrorMessageActionCreator(LOAD_COMMON_DATA_FAILED);
+  const loadReportFulfilled = payloadParamActionCreator(LOAD_REPORT_FULFILLED);
+  const loadReportFailed = httpErrorMessageActionCreator(LOAD_REPORT_FAILED);
+  const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
+  const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
+  const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
+  const setSorting = payloadParamActionCreator(SET_SORTING);
+  const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 
   function setStringFieldFilter(fieldName, filterString) {
     return {
@@ -231,12 +182,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function selectComponent(index) {
-    return {
-      type: SELECT_COMPONENT,
-      payload: index
-    };
-  }
+  const selectComponent = payloadParamActionCreator(SELECT_COMPONENT);
 
   function reevaluateReport() {
     return (dispatch, getState) => {
@@ -258,24 +204,9 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function reevaluateReportFulfilled() {
-    return {
-      type: REEVALUATE_REPORT_FULFILLED
-    };
-  }
-
-  function reevaluateReportFailed(error) {
-    return {
-      type: REEVALUATE_REPORT_FAILED,
-      payload: Messages.getHttpErrorMessage(error)
-    };
-  }
-
-  function reevaluateReportCancelled() {
-    return {
-      type: REEVALUATE_REPORT_CANCELLED
-    };
-  }
+  const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFILLED);
+  const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
+  const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
 
   return {
     setReportParameters,

@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+
 export const FETCH_SAVED_FILTERS_FULFILLED = 'FETCH_SAVED_FILTERS_FULFILLED';
 export const FETCH_SAVED_FILTERS_FAILED = 'FETCH_SAVED_FILTERS_FAILED';
 export const SAVE_FILTER_REQUESTED = 'SAVE_FILTER_REQUESTED';
@@ -27,19 +29,8 @@ function manageFiltersActions($http, CLMLocations, $q, $timeout, filterService) 
     };
   }
 
-  function fetchSavedFiltersFulfilled(filters) {
-    return {
-      type: FETCH_SAVED_FILTERS_FULFILLED,
-      payload: filters
-    };
-  }
-
-  function fetchSavedFiltersFailed(error) {
-    return {
-      type: FETCH_SAVED_FILTERS_FAILED,
-      payload: error
-    };
-  }
+  const fetchSavedFiltersFulfilled = payloadParamActionCreator(FETCH_SAVED_FILTERS_FULFILLED);
+  const fetchSavedFiltersFailed = payloadParamActionCreator(FETCH_SAVED_FILTERS_FAILED);
 
   function saveFilter(name) {
     return (dispatch, getState) => {
@@ -76,13 +67,8 @@ function manageFiltersActions($http, CLMLocations, $q, $timeout, filterService) 
     };
   }
 
-  function resetSaveFilterStatus() {
-    return { type: RESET_SAVE_FILTER_STATUS };
-  }
-
-  function resetDeleteFiltersStatus() {
-    return { type: RESET_DELETE_FILTERS_STATUS };
-  }
+  const resetSaveFilterStatus = noPayloadActionCreator(RESET_SAVE_FILTER_STATUS);
+  const resetDeleteFiltersStatus = noPayloadActionCreator(RESET_DELETE_FILTERS_STATUS);
 
   return {
     fetchSavedFilters,

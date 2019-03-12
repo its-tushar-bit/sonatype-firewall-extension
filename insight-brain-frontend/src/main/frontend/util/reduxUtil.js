@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { curry, lensProp, set } from 'ramda';
+import { always, curry, lensProp, set } from 'ramda';
 /*
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.  The payload is ignored and is only an argument
  * to conform to the interface needed by reducerActionMap
@@ -29,3 +29,13 @@ export function createReducerFromActionMap(reducerActionMap, initialState) {
     return reducer ? reducer(payload, state) : state;
   };
 }
+
+/**
+ * Some convenience functions for common, simple types of redux action creators
+ */
+export const noPayloadActionCreator = type => always({ type });
+export const payloadParamActionCreator = type => payload => ({ type, payload });
+export const mappedPayloadParamActionCreator = (type, mapper) => payloadSrc => ({
+  type,
+  payload: mapper(payloadSrc)
+});

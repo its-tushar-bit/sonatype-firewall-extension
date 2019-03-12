@@ -1,4 +1,10 @@
 <div class="iq-tile-container" load-wrapper="vm.loadError" reload="vm.reload()" loading="vm.loading">
+  <div ng-if="!vm.policyTypeFilterEnabled"
+       id="application-report-policy-type-filter-warning"
+       class="iq-alert iq-alert--error">
+    <i class="fa fa-warning"></i>This report has not been upgraded for the new Policy Types filter introduced in
+    release 61. Re-evaluate in order to enable the Policy Types filter.
+  </div>
   <div class="iq-tile iq-alert iq-alert--info">
     <div class="iq-tile-header">
       <div class="iq-tile-header__title">

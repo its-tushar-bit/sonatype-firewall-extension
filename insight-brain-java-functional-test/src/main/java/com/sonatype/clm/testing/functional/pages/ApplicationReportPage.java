@@ -443,4 +443,8 @@ public class ApplicationReportPage
   public static PolicyThreatLevelFilter policyThreatLevelFilter() {
     return new PolicyThreatLevelFilter("#threat-level-filter");
   }
+
+  public SelenideElement policyTypeFilterWarning() {
+    return child("#application-report-policy-type-filter-warning");
+  }
 }

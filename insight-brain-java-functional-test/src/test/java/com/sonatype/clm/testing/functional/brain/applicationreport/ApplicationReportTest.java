@@ -65,6 +65,7 @@ import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchesText;
 import static com.codeborne.selenide.Condition.selected;
@@ -121,6 +122,8 @@ public class ApplicationReportTest
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(DateTime.now().toString("yyyy-MM-dd")));
+
+    reportPage.policyTypeFilterWarning().shouldNot(exist);
 
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("22"));
@@ -679,6 +682,7 @@ public class ApplicationReportTest
     PolicyTypeFilter policyTypeFilter = reportPage.policyTypeFilter();
     ElementsCollection violations = reportPage.resultRows();
 
+    reportPage.policyTypeFilterWarning().shouldBe(visible);
     policyTypeFilter.counter().shouldHave(exactText("4"));
     policyTypeFilter.multiSelectList().shouldBe(empty);
     violations.shouldHaveSize(63);

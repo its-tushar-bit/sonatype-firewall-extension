@@ -15,7 +15,10 @@
           <input type="text" ng-model="vm.appFilter" autocomplete="off" placeholder="Filter Applications" />
         </div>
       </div>
-      <div class="iq-tile iq-tile--report-list" load-wrapper="vm.error" loading="!vm.stages" reload="vm.doLoad()">
+      <div class="iq-tile iq-tile--report-list iq-tile--fixed-table"
+           load-wrapper="vm.error"
+           loading="!vm.stages"
+           reload="vm.doLoad()">
         <div class="iq-scrollable iq-scrollable--report-list"
              maximize-container-height="100px"
              detect-scrollbar="vm.applications">

@@ -13,9 +13,9 @@
   </marked>
 </item-description>
 
-<item-example-html title="Fixed header table with scrolling contents">
-  <div class="iq-tile iq-tile--fixed-table-example">
-    <div class="iq-scrollable iq-scrollable--fixed-table" detect-scrollbar="" maximize-container-height>
+<item-example-html title="Fixed header table with scrolling contents" class="iq-fixed-table-example">
+  <div class="iq-tile-content iq-tile-content--fixed-table">
+    <div class="iq-scrollable iq-scrollable--fixed-table-example" detect-scrollbar="" maximize-container-height>
       <table class="iq-table iq-table--fixed">
         <thead class="iq-table--fixed__header">
           <tr class="iq-table-row">
@@ -173,17 +173,11 @@
      Hacks for Gallery
      You can safely ignore these styles
      */
-    
-    .iq-tile--fixed-table-example {
-      border: none;
-      margin: 0;
-      padding: 0;
-      position: relative;
-    }
-    
-    .iq-table--fixed__header {
-      left: 0;
-      width: 100%;
+
+    /* Minor kludge because we can't add a class to the example tile in the Gallery 
+       but normally you would use the iq-tile--fixed-table class */
+    .iq-fixed-table-example .iq-tile {
+      padding-right: 0;
     }
   </style>
 </item-example-html>

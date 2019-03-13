@@ -38,7 +38,7 @@
 @mixin table-fixed-widths($numColumns) {
   .iq-table--fixed__header, .iq-table--fixed__content {
     .iq-cell {
-      width: calc((100% / #{$numColumns}) - (24px + 1px));
+      width: calc((100% / #{$numColumns}) - ((#{$iq-cell-side-padding} * 2) + 1px));
     }
 
     .iq-cell--empty {
@@ -49,11 +49,15 @@
   &.scrollbar-present {
     .iq-table--fixed__content {
       .iq-cell {
-        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - (24px + 1px));
+        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - ((#{$iq-cell-side-padding} * 2) + 1px));
       }
 
       .iq-cell:last-child {
-        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - (24px + 1px) - #{$iq-scrollbar-width});
+        width: calc(
+                     ((100% + #{$iq-scrollbar-width}) / #{$numColumns})
+                     - ((#{$iq-cell-side-padding} * 2) + 1px)
+                     - #{$iq-scrollbar-width}
+                   );
       }
     }
   }

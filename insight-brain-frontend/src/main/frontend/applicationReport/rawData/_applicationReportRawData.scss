@@ -1,18 +1,102 @@
+$iq-cell-report-raw-data-security-code-width: 200px;
+$iq-cell-report-raw-data-cvss-width: 120px;
+
 #application-report-raw-data {
   .iq-spinner__wrapper {
     padding: 8px;
   }
 }
 
-.iq-table--report-raw-data {
-  table-layout: fixed;
+.iq-cell--report-raw-data-cvss {
+  width: $iq-cell-report-raw-data-cvss-width;
+}
 
-  .iq-cell--report-raw-data-security-code {
-    width: 140px;
+.iq-cell--report-raw-data-security-code {
+  width: $iq-cell-report-raw-data-security-code-width;
+}
+
+.iq-scrollable--report-raw-data {
+  .iq-table--fixed__header, .iq-table--fixed__content {
+    .iq-cell--report-raw-data-license, .iq-cell--report-raw-data-component {
+      // in calc below 1px is for cell border
+      width: calc(
+                   (100% -
+                     (
+                       ((#{$iq-cell-side-padding} * 2) + 1px) * 2
+                       + #{$iq-cell-report-raw-data-security-code-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                       + #{$iq-cell-report-raw-data-cvss-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                     )
+                   )
+                  / 2);
+    }
+
+    // Filter table cells have less left/right padding so we must compensate so their widths match
+    .iq-cell--filter {
+      &.iq-cell--report-raw-data-security-code {
+        width: $iq-cell-report-raw-data-security-code-width
+               + $iq-cell-side-padding
+               + $iq-cell-side-padding
+               + 1px
+               - $iq-cell-filter-right-padding
+               - $iq-cell-filter-left-padding;
+      }
+
+      &.iq-cell--report-raw-data-cvss {
+        width: $iq-cell-report-raw-data-cvss-width
+               + $iq-cell-side-padding
+               + $iq-cell-filter-left-padding
+               + 1px
+               - $iq-cell-filter-right-padding;
+      }
+
+      &.iq-cell--report-raw-data-component {
+        // in calc below 1px is borders
+        width: calc(
+                   (100% -
+                     (
+                      #{$iq-cell-filter-right-padding} + #{$iq-cell-filter-right-padding}
+                      + #{$iq-cell-report-raw-data-security-code-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                      + #{$iq-cell-report-raw-data-cvss-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                     )
+                   )
+                  / 2);
+      }
+
+      &.iq-cell--report-raw-data-license {
+        // in calc below 1px is borders
+        width: calc(
+                     (100% -
+                       (
+                        (#{$iq-cell-filter-right-padding} + #{$iq-cell-filter-left-padding}) * 2
+                        + #{$iq-cell-report-raw-data-security-code-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                        + #{$iq-cell-report-raw-data-cvss-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                       )
+                     )
+                    / 2);
+      }
+    }
   }
 
-  .iq-cell--report-raw-data-cvss {
-    width: 85px;
+  &.scrollbar-present {
+    .iq-table--fixed__content {
+      .iq-cell--report-raw-data-license, .iq-cell--report-raw-data-component {
+        // in calc below 1px is borders
+        width: calc(
+                     (100% -
+                       (
+                         ((#{$iq-cell-side-padding} * 2) + 1px) * 2
+                         + #{$iq-cell-report-raw-data-security-code-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                         + #{$iq-cell-report-raw-data-cvss-width} + (#{$iq-cell-side-padding} * 2) + 1px
+                         - #{$iq-scrollbar-width}
+                       )
+                     )
+                    / 2);
+      }
+
+      .iq-cell--report-raw-data-cvss {
+        width: $iq-cell-report-raw-data-cvss-width - $iq-scrollbar-width;
+      }
+    }
   }
 }
 

@@ -2,7 +2,10 @@
   #Tables
 */
 
-$iq-table-header-height: 40px;
+$iq-table-header-row-height: 40px;
+$iq-table-header-filter-row-height: 38px;
+$iq-cell-filter-left-padding: 3px;
+$iq-cell-filter-right-padding: 2px;
 
 .iq-table {
   border-collapse: collapse;
@@ -204,11 +207,6 @@ thead {
 // it is expected that the column filters will be located in the <thead>
 .iq-table-row--filters {
   border-color: transparent;
-
-  &:last-child .iq-cell.iq-cell--filter {
-    // override high-specificity style
-    border-color: transparent;
-  }
 }
 
 .iq-cell--filter {
@@ -217,7 +215,7 @@ thead {
   border-color: transparent;
   height: $height;
   line-height: $height;
-  padding: 3px 0;
+  padding: 3px $iq-cell-filter-right-padding 3px $iq-cell-filter-left-padding;
 
   .input-prepend {
     line-height: $height;
@@ -227,14 +225,24 @@ thead {
   }
 
   input {
-    width: calc(100% - 48px);
+    padding-left: 0;
+    width: calc(100% - 40px);
+  }
+
+  .fa-filter {
+    color: $iq-slate;
   }
 
   &:first-child {
-    padding-left: 8px;
+    padding-right: $iq-cell-filter-right-padding;
+    padding-left: 0;
+    text-align: left;
   }
+
   &:last-child {
-    padding-right: 8px;
+    padding-right: 0;
+    padding-left: $iq-cell-filter-left-padding - 1px;
+    text-align: right;
   }
 }
 
@@ -246,6 +254,22 @@ thead {
 // This custom ".iq-scrollable--mypage" should invoke the `table-fixed-widths` mixin with the desired number
 // of columns in order to get width styles for that many equal-width columns. See the gallery for an example
 
+// Override default values
+
+// Double class required because widgets SCSS loads before tiles SCSS
+.iq-tile.iq-tile--fixed-table {
+  padding-right: 0;
+}
+
+.iq-tile-content--fixed-table {
+  position: relative;
+}
+
+.iq-scrollable--fixed-table {
+  max-height: 100%;
+}
+
+// Fixed table styles
 .iq-table--fixed {
   border-bottom: 1px solid $iq-grey-1;
   display: block;
@@ -264,21 +288,25 @@ thead {
 .iq-table--fixed__header {
   @include semi-bold();
 
-  background-color: #fff;
+  background-color: $iq-off-white;
   box-shadow: 0px 2px 5px 0px $iq-grey-1;
   display: block;
   font-size: 14px;
   position: absolute;
   top: 0;
-  left: 8px;
+  left: 0;
   text-transform: uppercase;
-  width: calc(100% - 16px);
+  width: calc(100% - 1px);
   z-index: $iq-dashboard-headers-zindex;
+
+  .iq-table-row {
+    border: none;
+  }
 
   .iq-cell--header {
     display: inline-block;
-    height: $iq-table-header-height;
-    line-height: $iq-table-header-height;
+    height: $iq-table-header-row-height;
+    line-height: $iq-table-header-row-height;
 
     &:first-child {
       border-left: 1px solid $iq-grey-1;
@@ -286,14 +314,20 @@ thead {
     }
 
     &:last-child {
-      padding-right: 11px;
+      // 8px + 4px = 12px used on all preceeding cells
+      border-right: 8px solid $iq-off-white;
+      padding-right: 4px;
     }
+  }
+
+  .iq-cell--filter {
+    display: inline-block;
   }
 }
 
 .iq-table--fixed__content {
   display: block;
-  padding-top: $iq-table-header-height; // pushes top row from below header
+  padding-top: $iq-table-header-row-height; // pushes top row from below header
   position: relative;
 
   .iq-cell {
@@ -309,4 +343,8 @@ thead {
       width: 100%;
     }
   }
+}
+
+.iq-table--fixed__content--filtered {
+  padding-top: $iq-table-header-row-height + $iq-table-header-filter-row-height;
 }

@@ -1,13 +1,11 @@
-<div id="application-report-raw-data"
-     class="iq-root-container"
-     maximize-container-height>
+<div id="application-report-raw-data" class="iq-root-container">
   <main class="iq-body-container iq-body-container--single-pane">
     <div class="iq-tile-container" load-wrapper="vm.loadError" reload="vm.reload()" loading="vm.loading">
       <div class="iq-tile iq-tile--back-button">
         <iq-back-button state="applicationReport.policy"></iq-back-button>
       </div>
 
-      <div class="iq-tile">
+      <div class="iq-tile iq-tile--fixed-table">
         <div class="iq-tile-header">
           <div class="iq-tile-header__title" id="raw-data-report-title">
             <h1>
@@ -19,59 +17,89 @@
             Please note that the data appearing on this page is the raw data and not the result of policy evaluation
           </div>
         </div>
-        <table class="iq-table iq-table--report-raw-data" id="raw-data-report-results">
-          <thead>
-            <tr class="iq-table-row"
-                sort="vm.rawDataSortFields"
-                on-sort-change="vm.setSortingRawData(sortFields)">
-              <th class="iq-cell iq-cell--header iq-cell--report-raw-data-component"
-                  sort-column="derivedComponentName,licenseSortKey,securityCode,-cvssScore">
-                Component
-              </th><!--
-           --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-license"
-                  sort-column="licenseSortKey,derivedComponentName,securityCode,-cvssScore">
-                License
-              </th><!--
-           --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-security-code"
-                  sort-column="securityCode,derivedComponentName,licenseSortKey,-cvssScore">
-                Security Issue
-              </th><!--
-           --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-cvss"
-                  sort-column="-cvssScore,derivedComponentName,licenseSortKey,securityCode">
-                CVSS Score
-              </th>
-            </tr>
-          </thead>
-          <tbody class="iq-application-report-results">
-            <tr class="iq-table-row" ng-repeat="rawDataEntry in vm.reportRawData.displayedEntries">
-              <td class="iq-cell">
-                <div class="truncate-ellipsis"
-                     iq-tooltip
-                     tooltip-text="{{::rawDataEntry.derivedComponentName}}"
-                     tooltip-only-on-overflow="true">
-                  {{::rawDataEntry.derivedComponentName}}
-                </div>
-              </td>
-              <td class="iq-cell">
-                <span iq-tooltip
-                      tooltip-text="{{::vm.getLicenseTooltip(rawDataEntry)}}"
-                      tooltip-attach-to-body="true"
-                      tooltip-content-is-html="true">
-                  <raw-license-display license="::rawDataEntry.license"></raw-license-display>
-                </span>
-              </td>
-              <td class="iq-cell">
-                <a ng-click="vm.openVulnerabilitiesModal(rawDataEntry)">{{::rawDataEntry.securityCode}}</a>
-              </td>
-              <td class="iq-cell">
-                {{::rawDataEntry.cvssScore | number : 1}}
-              </td>
-            </tr>
-            <tr ng-if="::vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">
-              <td class="iq-cell iq-cell--empty" colspan="4">No Results</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="iq-tile-content iq-tile-content--fixed-table" maximize-container-height>
+          <div class="iq-scrollable iq-scrollable--fixed-table iq-scrollable--report-raw-data" detect-scrollbar="">
+            <table id="raw-data-report-results" class="iq-table iq-table--fixed">
+              <thead class="iq-table--fixed__header">
+                <tr class="iq-table-row"
+                    sort="vm.rawDataSortFields"
+                    on-sort-change="vm.setSortingRawData(sortFields)">
+                  <th class="iq-cell iq-cell--header iq-cell--report-raw-data-component"
+                      sort-column="derivedComponentName,licenseSortKey,securityCode,-cvssScore">
+                    Component
+                  </th><!--
+               --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-license"
+                      sort-column="licenseSortKey,derivedComponentName,securityCode,-cvssScore">
+                    License
+                  </th><!--
+               --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-security-code"
+                      sort-column="securityCode,derivedComponentName,licenseSortKey,-cvssScore">
+                    Security Issue
+                  </th><!--
+               --><th class="iq-cell iq-cell--header iq-cell--report-raw-data-cvss"
+                      sort-column="-cvssScore,derivedComponentName,licenseSortKey,securityCode">
+                    CVSS Score
+                  </th>
+                </tr>
+                <tr class="iq-table-row iq-table-row--filters">
+                  <th class="iq-cell iq-cell--filter iq-cell--report-raw-data-component">
+                    <span class="input-prepend">
+                      <i class="fa fa-filter add-on"></i>
+                      <input type="text" placeholder="component">
+                    </span>
+                  </th><!--
+               --><th class="iq-cell iq-cell--filter iq-cell--report-raw-data-license">
+                    <span class="input-prepend">
+                      <i class="fa fa-filter add-on"></i>
+                      <input type="text" placeholder="license">
+                    </span>
+                  </th><!--
+               --><th class="iq-cell iq-cell--filter iq-cell--report-raw-data-security-code">
+                    <span class="input-prepend">
+                      <i class="fa fa-filter add-on"></i>
+                      <input type="text" placeholder="security code">
+                    </span>
+                  </th><!--
+               --><th class="iq-cell iq-cell--filter iq-cell--report-raw-data-cvss">
+                    <span class="input-prepend">
+                      <i class="fa fa-filter add-on"></i>
+                      <input type="text" placeholder="CVSS">
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="iq-table--fixed__content iq-table--fixed__content--filtered">
+                <tr class="iq-table-row" ng-repeat="rawDataEntry in vm.reportRawData.displayedEntries">
+                  <td class="iq-cell iq-cell--report-raw-data-component">
+                    <div class="truncate-ellipsis"
+                        iq-tooltip
+                        tooltip-text="{{::rawDataEntry.derivedComponentName}}"
+                        tooltip-only-on-overflow="true">
+                      {{::rawDataEntry.derivedComponentName}}
+                    </div>
+                 </td><!--
+               --><td class="iq-cell iq-cell--report-raw-data-license">
+                    <span iq-tooltip
+                          tooltip-text="{{::vm.getLicenseTooltip(rawDataEntry)}}"
+                          tooltip-attach-to-body="true"
+                          tooltip-content-is-html="true">
+                      <raw-license-display license="::rawDataEntry.license"></raw-license-display>
+                    </span>
+                  </td><!--
+               --><td class="iq-cell iq-cell--report-raw-data-security-code">
+                    <a ng-click="vm.openVulnerabilitiesModal(rawDataEntry)">{{::rawDataEntry.securityCode}}</a>
+                  </td><!--
+               --><td class="iq-cell iq-cell--report-raw-data-cvss">
+                    {{::rawDataEntry.cvssScore | number : 1}}
+                  </td>
+                </tr>
+                <tr ng-if="::vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">
+                  <td class="iq-cell iq-cell--empty" colspan="4">No Results</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </main>

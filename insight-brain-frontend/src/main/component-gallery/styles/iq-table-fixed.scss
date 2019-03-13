@@ -4,6 +4,6 @@
 @import "../../frontend/scss/mixins";
 
 // Example usage of the table-fixed-widths mixin that must be used for each iq-table-fixed
-.iq-tile--fixed-table-example .iq-scrollable--fixed-table {
+.iq-scrollable--fixed-table-example {
   @include table-fixed-widths(5);
 }

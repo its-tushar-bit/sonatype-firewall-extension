@@ -7,7 +7,8 @@ $iq-application-report-policy-name-filter-width:
   $iq-application-report-policy-threat-level-width
   + $iq-application-report-policy-name-width
   + (4 * $iq-cell-side-padding)
-  + 1px; // 1px for the border between cells
+  + 1px // 1px for the border between cells
+  - 2px; // 2px for the missing :first-child filter padding
 
 #application-report-sidebar {
   &.iq-sidebar {
@@ -98,7 +99,7 @@ $iq-application-report-policy-name-filter-width:
     border: none;
   }
 
-  .iq-cell--header {
+  .iq-cell--header, .iq-cell--filter {
     &:first-child {
       border-left: 8px solid $iq-off-white;
     }
@@ -157,5 +158,5 @@ $iq-application-report-policy-name-filter-width:
   border-left-width: 1px;
   text-align: right;
   // The 16px represents .iq-cell--filter first and last child padding
-  width: calc(100% - #{$iq-application-report-policy-name-filter-width + 1px + 16px});
+  width: calc(100% - #{$iq-application-report-policy-name-filter-width + 1px + $iq-cell-filter-left-padding + 16px});
 }

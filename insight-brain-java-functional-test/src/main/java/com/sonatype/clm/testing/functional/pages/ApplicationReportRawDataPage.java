@@ -119,7 +119,7 @@ public class ApplicationReportRawDataPage
       extends BasicElement<AppReportRawDataHeaders>
   {
     public AppReportRawDataHeaders() {
-      super(ROOT, ".iq-table--report-raw-data thead");
+      super(ROOT, "#raw-data-report-results thead");
     }
 
     public IqSortingHeader componentHeader() {

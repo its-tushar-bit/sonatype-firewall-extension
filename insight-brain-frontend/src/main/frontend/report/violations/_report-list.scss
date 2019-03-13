@@ -45,11 +45,14 @@
 }
 
 .iq-table--report-list {
-  thead {
+  .iq-table--fixed__header {
     background: $iq-grey-1;
+    left: 8px;
+    // modified because table is not inside iq-tile-content
+    width: calc(100% - 8px);
   }
 
-  tbody {
+  .iq-table--fixed__content {
     .iq-table-row {
       border-top: 1px solid $iq-grey-1;
     }

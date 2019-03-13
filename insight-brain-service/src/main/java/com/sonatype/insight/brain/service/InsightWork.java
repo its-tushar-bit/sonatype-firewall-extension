@@ -91,4 +91,11 @@ public class InsightWork
   public File getDataDir() {
     return new File(insightConfig.getSonatypeWork(), "data");
   }
+
+  /**
+   * @since version.next
+   */
+  public File getTrashDir() {
+    return new File(insightConfig.getSonatypeWork(), "trash");
+  }
 }

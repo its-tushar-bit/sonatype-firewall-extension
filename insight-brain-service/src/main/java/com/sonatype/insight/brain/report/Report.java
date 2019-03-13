@@ -65,6 +65,8 @@ public final class Report
 {
   private static final Logger log = LoggerFactory.getLogger(Report.class);
 
+  public static final String CACHE_DIRECTORY_NAME = "report.cache";
+
   private static enum ReportType
   {
     FULL, ERROR
@@ -717,7 +719,7 @@ public final class Report
   }
 
   public static File getCacheDir(final File reportFile) {
-    return new File(reportFile.getParentFile(), "report.cache");
+    return new File(reportFile.getParentFile(), CACHE_DIRECTORY_NAME);
   }
 
   // public access for tests only

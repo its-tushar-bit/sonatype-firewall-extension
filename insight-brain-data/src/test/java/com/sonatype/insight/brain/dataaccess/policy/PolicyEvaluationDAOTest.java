@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -501,5 +503,46 @@ public class PolicyEvaluationDAOTest
 
     assertThat(results).isNotNull();
     assertThat(results.getId()).isEqualTo(eval2.getId());
+  }
+
+  @Test
+  public void testGetPrimaryNonMonitoringByApplicationIdAndStageId() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation evaluation1 =
+        tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan1", false, false, new Date());
+    PolicyEvaluation evaluation2 =
+        tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan2", false, false, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan2", true, false, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan3", false, true, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan4", false, false, new Date());
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "scan5", false, false, new Date());
+
+    assertThat(dao.getPrimaryNonMonitoringByApplicationIdAndStageId(app1.getId(), Stage.ID_BUILD))
+        .usingElementComparator(Comparator.comparing(PolicyEvaluation::getId))
+        .containsExactlyInAnyOrder(evaluation1, evaluation2);
+  }
+
+  @Test
+  public void testGetPrimaryForMonitoringByApplicationId() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation evaluation1 =
+        tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, true, new Date());
+    PolicyEvaluation evaluation2 =
+        tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_OPERATE, "scan2", false, true, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_OPERATE, "scan2", true, true, new Date());
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_OPERATE, "scan3", false, false, new Date());
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan4", false, true, new Date());
+
+    assertThat(dao.getPrimaryForMonitoringByApplicationId(app1.getId()))
+        .usingElementComparator(Comparator.comparing(PolicyEvaluation::getId))
+        .containsExactlyInAnyOrder(evaluation1, evaluation2);
   }
 }

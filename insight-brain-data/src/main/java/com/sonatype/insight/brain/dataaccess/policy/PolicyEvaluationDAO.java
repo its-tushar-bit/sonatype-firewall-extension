@@ -269,4 +269,18 @@ public class PolicyEvaluationDAO
 
     return getSingle(tx, Number.class, sQuery, appId).intValue();
   }
+
+  public List<PolicyEvaluation> getPrimaryNonMonitoringByApplicationIdAndStageId(String applicationId, String stageId) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
+        " AND entity.isForMonitoring=false AND entity.isReevaluation=false";
+    return getList(sQuery, applicationId, stageId);
+  }
+
+  public List<PolicyEvaluation> getPrimaryForMonitoringByApplicationId(String applicationId) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId=?1" + //
+        " AND entity.isForMonitoring=true AND entity.isReevaluation=false";
+    return getList(sQuery, applicationId);
+  }
 }

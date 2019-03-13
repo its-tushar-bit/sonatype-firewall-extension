@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -605,7 +606,7 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).isFile();
-    File reportCacheDir = new File(reportFile.getParentFile(), "report.cache");
+    File reportCacheDir = new File(reportFile.getParentFile(), Report.CACHE_DIRECTORY_NAME);
     assertThat(reportCacheDir).isDirectory();
     File policyAlertsFile = new File(reportCacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
     assertThat(policyAlertsFile).isFile();

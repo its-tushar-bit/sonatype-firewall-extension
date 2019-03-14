@@ -19,7 +19,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -58,8 +57,6 @@ public class ArtifactoryRepositoryResource
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
 
   private final AbstractRepositoryService repositoryService;
-
-  static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
 
   @Inject
   public ArtifactoryRepositoryResource(final ArtifactoryRepositoryService repositoryService) {
@@ -151,12 +148,5 @@ public class ArtifactoryRepositoryResource
   {
     return repositoryService
         .getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, sinceUtcTimestamp);
-  }
-
-  @GET
-  @Path(IGNORE_PATTERNS_PATH)
-  @Produces({ MediaType.APPLICATION_JSON })
-  public FirewallIgnorePatterns getIgnorePatterns() {
-    return repositoryService.getIgnorePatterns();
   }
 }

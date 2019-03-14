@@ -8,12 +8,14 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 /**
  * @since 1.17.0
@@ -34,6 +36,15 @@ public class RepositoryService extends AbstractRepositoryService
   protected void checkLicenseFeature() {
     if (!licenseManager.hasFeature(Feature.FIREWALL)) {
       throw new InvalidLicenseException();
+    }
+  }
+
+  FirewallIgnorePatterns getIgnorePatterns() {
+    try {
+      return hdsClient.get(FirewallIgnorePatterns.class, HDS_IGNORE_PATTERNS_PATH);
+    }
+    catch (BadGatewayException e) {
+      throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
     }
   }
 }

@@ -12,7 +12,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -42,7 +41,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;
@@ -67,7 +65,7 @@ public abstract class AbstractRepositoryService
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
-  private final HdsClient hdsClient;
+  protected final HdsClient hdsClient;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
@@ -432,14 +430,5 @@ public abstract class AbstractRepositoryService
         repository.getId(), System.currentTimeMillis() - start);
 
     return result;
-  }
-
-  FirewallIgnorePatterns getIgnorePatterns() {
-    try {
-      return hdsClient.get(FirewallIgnorePatterns.class, HDS_IGNORE_PATTERNS_PATH);
-    }
-    catch (BadGatewayException e) {
-      throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
-    }
   }
 }

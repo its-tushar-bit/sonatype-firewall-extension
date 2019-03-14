@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +20,6 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -1834,20 +1832,5 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(policyViolationLoggerOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME))
         .isEmpty();
-  }
-
-  @Test
-  public void testGetIgnorePatterns() throws Exception {
-    // Prepare request and mock the HDS request
-    FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
-    hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put("foo", Collections.singletonList("bar"));
-    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(AbstractRepositoryService.HDS_IGNORE_PATTERNS_PATH)))
-        .thenReturn(hdsResult);
-
-    // Call the service
-    FirewallIgnorePatterns firewallIgnorePatterns = getRepositoryService().getIgnorePatterns();
-
-    assertThat(firewallIgnorePatterns).isEqualTo(hdsResult);
   }
 }

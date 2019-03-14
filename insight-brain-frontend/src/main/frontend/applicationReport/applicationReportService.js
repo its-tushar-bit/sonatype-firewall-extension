@@ -39,6 +39,7 @@ import {
 } from 'ramda';
 
 import { isNilOrEmpty, setToArray } from '../util/jsUtil';
+import { getComponentName } from '../util/componentNameUtils';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 
 const flatMap = pipe(map, flatten),
@@ -132,13 +133,7 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
   return map(makeEntryForViolation, filter(nullHashCheck, policyResult.aaData));
 }
 
-const deriveComponentName = ({ displayName, filenames }) =>
-  displayName && deriveComponentNameFromDisplayName(displayName) ||
-  filenames && deriveComponentNameFromFilenames(filenames) ||
-  'unknown';
-
-const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''), toLower);
-const deriveComponentNameFromFilenames = pipe(join(', '), toLower);
+const deriveComponentName = pipe(getComponentName, toLower);
 
 const getLicenseSortKey = (licenseObj) => {
   if (!licenseObj) {

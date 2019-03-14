@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { join, map, pipe, prop, replace } from 'ramda';
+import { getComponentName } from '../util/componentNameUtils';
 
 import template from './componentDisplay.html';
 
@@ -31,23 +31,12 @@ function ComponentDisplayController($scope) {
     },
 
     updateDisplay() {
-      const { displayName, filename, filenames } = vm.component;
+      const { displayName } = vm.component;
 
-      vm.displayName = displayName && formatComponentDisplayName(displayName);
-      vm.filename = filename || (filenames && join(', ', filenames));
+      vm.componentName = getComponentName(vm.component);
+      vm.isDisplayName = !!displayName;
     }
   });
 }
 
 ComponentDisplayController.$inject = ['$scope'];
-
-// NOTE: You can't see it, but we are replacing the periods with a period followed by a zero-width space.
-// This makes our periods into word breaking delimiters. Also, we only replace the periods in between words as
-// to preserve version numbers.
-const addWordBreakAfterPeriods = replace(/(?=\.\D+)\.(?=\D+)/g, '.​'),
-    formatComponentDisplayName = pipe(
-        prop('parts'),
-        map(prop('value')),
-        join(''),
-        addWordBreakAfterPeriods
-    );

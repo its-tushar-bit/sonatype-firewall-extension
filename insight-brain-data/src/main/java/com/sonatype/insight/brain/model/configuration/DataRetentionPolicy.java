@@ -13,7 +13,7 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 @Entity
 @Table(name = "data_retention_policy")

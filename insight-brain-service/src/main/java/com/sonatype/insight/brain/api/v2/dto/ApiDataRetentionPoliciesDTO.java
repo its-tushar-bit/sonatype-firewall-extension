@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2.dto;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 public class ApiDataRetentionPoliciesDTO
 {

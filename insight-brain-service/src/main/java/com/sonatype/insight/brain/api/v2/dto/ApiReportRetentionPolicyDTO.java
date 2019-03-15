@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 @JsonInclude(Include.NON_NULL)
 public class ApiReportRetentionPolicyDTO

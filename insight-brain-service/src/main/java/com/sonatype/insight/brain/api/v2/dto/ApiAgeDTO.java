@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 public class ApiAgeDTO
 {

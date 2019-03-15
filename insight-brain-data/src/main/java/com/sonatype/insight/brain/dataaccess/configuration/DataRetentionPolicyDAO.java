@@ -13,7 +13,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 public class DataRetentionPolicyDAO
     extends AbstractOperationalSqlDAO<DataRetentionPolicy>

@@ -31,7 +31,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 @Named
 public class ApiDataRetentionPolicyService

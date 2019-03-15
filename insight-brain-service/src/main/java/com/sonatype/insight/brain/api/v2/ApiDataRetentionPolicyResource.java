@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 @Named
 @Timed

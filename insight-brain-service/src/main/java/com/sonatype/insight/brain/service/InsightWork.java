@@ -93,7 +93,7 @@ public class InsightWork
   }
 
   /**
-   * @since version.next
+   * @since 1.63
    */
   public File getTrashDir() {
     return new File(insightConfig.getSonatypeWork(), "trash");

@@ -1,4 +1,4 @@
--- Since version.next
+-- Since 1.63
 SET SCHEMA insight_brain_ods;
 
 CREATE TABLE data_retention_policy (

@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * @since version.next
+ * @since 1.63
  */
 public class ApiReportRetentionPoliciesDTO
 {

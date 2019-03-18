@@ -81,8 +81,9 @@ public class ReportService
     try {
       if (!reportFile.exists()) {
         if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
-          throw new IllegalStateException(
-              "The report file does not exist for application ID " + appId + " and scan ID " + scanId + ".");
+          throw new NotFoundException("The report for application ID " + appId + " and scan ID " + scanId
+              + " does not exist. Usually this means the report was deemed obsolete"
+              + " according to the data retention policies and hence purged to the trash.");
         }
         // 0 indicates no retries
         int reportTimeoutInSeconds = 0;

@@ -89,9 +89,10 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
     ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
         applicationDAO);
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
-    }).withMessage("The report file does not exist for application ID " + app.getId() + " and scan ID " + scanId + ".");
+    }).withMessageContaining("report for application ID " + app.getId() + " and scan ID " + scanId + " does not exist")
+        .withMessageContaining("purged to the trash");
   }
 
   @Test

@@ -62,4 +62,24 @@ public class ReportServiceAuthzTest
     login();
     reportService.prepareExpandedCoverageReport(app.getPublicId(), "12345678");
   }
+
+  @Test
+  public void testPrintReport_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      reportService.printReport(app.getPublicId(), "12345678");
+    }).withMessage("Could not download the report for scan ID 12345678");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testPrintReport_Unauthenticated() throws Exception {
+    reportService.printReport(app.getPublicId(), "12345678");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testPrintReport_Unauthorized() throws Exception {
+    login();
+    reportService.printReport(app.getPublicId(), "12345678");
+  }
 }

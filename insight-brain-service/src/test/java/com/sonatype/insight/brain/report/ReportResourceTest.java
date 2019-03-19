@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -597,67 +596,6 @@ public class ReportResourceTest
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType()).isEqualTo("application/pdf");
     assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
-  }
-
-  @Test
-  public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
-    createReportFile(app.getId(), scanId);
-    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("printReport");
-    HttpResponse response;
-    try {
-      response = request.get();
-      assertResponseStatus(200, response);
-
-      // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
-      File pdfFile = new File(getCLMServer().getReportDir(app.getId(), scanId), "report.pdf");
-      assertThat(pdfFile).isFile();
-      new FileOutputStream(pdfFile).close();
-
-      // printing again after fixing the mem setting should produce a proper PDF
-      response = request.get();
-      assertResponseStatus(200, response);
-      assertThat(response.getHeader("Content-Disposition"))
-          .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
-      assertThat(Long.parseLong(response.getHeader("Content-Length"))).isGreaterThan(0);
-    }
-    finally {
-      Pdf.destroy();
-    }
-
-    // validate content type and check the actual content is really a PDF
-    assertThat(response.getContentType()).isEqualTo("application/pdf");
-    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
-  }
-
-  @Test
-  public void testPrintReport_BirtRenderingErrorsLeaveNoInvalidPdfBehind() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
-    File reportFile = createReportFile(app.getId(), scanId, "/ReportResourceTest/report-pdf");
-    File pdfFile = Pdf.getPdfFile(reportFile);
-    File cacheDir = Report.getCacheDir(reportFile);
-    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-    HttpResponse response;
-    try {
-      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
-      assertResponseStatus(500, response);
-      assertThat(pdfFile).doesNotExist();
-
-      // until the missing JSON file gets fixed, the PDF should remain unprintable
-      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
-      assertResponseStatus(500, response);
-      assertThat(pdfFile).doesNotExist();
-
-      FileUtils.fileWrite(new File(cacheDir, "policyalerts.json"), "UTF-8", "{\"aaData\":[]}");
-      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
-      assertResponseStatus(200, response);
-      assertThat(pdfFile).isFile();
-    }
-    finally {
-      Pdf.destroy();
-    }
   }
 
   @Test

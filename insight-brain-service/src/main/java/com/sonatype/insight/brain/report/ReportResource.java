@@ -62,7 +62,6 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -314,32 +313,12 @@ public class ReportResource
   @GET
   @Path(PRINT_PATH)
   @Produces("application/pdf")
-  @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
   public Response printReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
-    AuditData.get().setReportId(scanId);
-    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
-    String appId = application.getId();
-    ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
-
-    final File reportFile = reportService.fetchReport(work, appId, scanId, true);
-
-    final ResponseBuilder response = Response.ok();
-
-    Report.printPdf(reportFile, application.getName(), getStageName(appId, scanId), contact, response);
-
-    return response.build();
-  }
-
-  private String getStageName(String appId, String scanId) {
-    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
-    if (eval == null) {
-      throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId);
-    }
-    return StageTypes.getById(eval.getStageTypeId()).getName();
+    return reportService.printReport(appPublicId, scanId);
   }
 
   /**

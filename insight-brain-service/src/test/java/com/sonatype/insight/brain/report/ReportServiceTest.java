@@ -5,17 +5,23 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -25,7 +31,9 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -60,6 +68,9 @@ public class ReportServiceTest
   @Inject
   private InsightConfig insightConfig;
 
+  @Inject
+  private ApplicationAdapter applicationAdapter;
+
   /**
    * To be configured/mocked by each test.
    */
@@ -72,7 +83,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO());
+        new ApplicationDAO(), applicationAdapter);
   }
 
   @Test
@@ -217,6 +228,89 @@ public class ReportServiceTest
     assertThat(reportFile).isFile();
   }
 
+  @Test
+  public void testPrintReport() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    createReportFile();
+
+    ReportService reportService = createReportService();
+
+    Response response;
+    try {
+      response = reportService.printReport(app.getPublicId(), scanId);
+    }
+    finally {
+      Pdf.destroy();
+    }
+
+    // Validate content type and check the actual content is really a PDF.
+    assertThat(response.getHeaderString("Content-Disposition"))
+        .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
+    assertThat(response.getMediaType().toString()).isEqualTo("application/pdf");
+    assertThat(new String(getBytes(response, 1024), "US-ASCII")).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    createReportFile();
+
+    // Pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around.
+    File pdfFile = Pdf.getPdfFile(insightWork.getReportFile(app.getId(), scanId));
+    pdfFile.createNewFile();
+    assertThat(pdfFile).isFile();
+
+    ReportService reportService = createReportService();
+
+    Response response;
+    try {
+      // Printing again after fixing the mem setting should produce a proper PDF.
+      response = reportService.printReport(app.getPublicId(), scanId);
+    }
+    finally {
+      Pdf.destroy();
+    }
+
+    // Validate content type and check the actual content is really a PDF.
+    assertThat(response.getHeaderString("Content-Disposition"))
+        .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
+    assertThat(response.getMediaType().toString()).isEqualTo("application/pdf");
+    assertThat(Long.parseLong(response.getHeaderString("Content-Length"))).isGreaterThan(0);
+    assertThat(new String(getBytes(response, 1024), "US-ASCII")).contains("%PDF-");
+
+    // Check the PDF file (to ensure we simulated the failed PDF correctly).
+    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, "US-ASCII")).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintReport_BirtRenderingErrorsLeaveNoInvalidPdfBehind() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    // This report is missing the policyalerts.json file, which should cause the PDF generation to fail.
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report-missing-policyalerts-json"));
+    File reportFile = insightWork.getReportFile(app.getId(), scanId);
+    File pdfFile = Pdf.getPdfFile(reportFile);
+    File cacheDir = Report.getCacheDir(reportFile);
+
+    ReportService reportService = createReportService();
+
+    try {
+      assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
+        reportService.printReport(app.getPublicId(), scanId);
+      });
+      assertThat(pdfFile).doesNotExist();
+
+      Files.write(cacheDir.toPath().resolve(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME), "{\"aaData\":[]}".getBytes());
+      reportService.printReport(app.getPublicId(), scanId);
+      assertThat(pdfFile).isFile();
+    }
+    finally {
+      Pdf.destroy();
+    }
+  }
+
   private void createReportFile() throws IOException {
     FileUtils.copyURLToFile(getClass().getResource("/ReportServiceTest/report.zip"),
         insightWork.getReportFile(app.getId(), scanId));
@@ -237,5 +331,12 @@ public class ReportServiceTest
     catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private byte[] getBytes(Response response, int length) throws WebApplicationException, IOException {
+    StreamingOutput responseStream = (StreamingOutput) response.getEntity();
+    ByteArrayOutputStream os = new ByteArrayOutputStream(length);
+    responseStream.write(os);
+    return os.toByteArray();
   }
 }

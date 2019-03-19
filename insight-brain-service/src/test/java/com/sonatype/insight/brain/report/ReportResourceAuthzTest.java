@@ -11,7 +11,6 @@ import java.io.IOException;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -47,16 +46,6 @@ public class ReportResourceAuthzTest
 
     HttpRequest request = restRequest().path("browseReport/{path}")
         .parameter(app.getPublicId(), "scanId", "index.html");
-    testAuthzGet(request);
-  }
-
-  @Test
-  public void testPrintReport() throws Exception {
-    String scanId = "scanId";
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
-    createReportFile(app.getId(), scanId);
-    grantReadPermission(app.getId());
-    HttpRequest request = restRequest().path(ReportResource.PRINT_PATH).parameter(app.getPublicId(), "scanId");
     testAuthzGet(request);
   }
 

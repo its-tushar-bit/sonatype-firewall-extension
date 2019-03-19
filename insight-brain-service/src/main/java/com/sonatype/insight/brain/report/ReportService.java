@@ -14,18 +14,24 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -52,18 +58,23 @@ public class ReportService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApplicationAdapter applicationAdapter;
+
   @Inject
-  public ReportService(InsightWork work,
-                       ReportDownloader reportDownloader,
-                       PolicyEvaluationDAO policyEvaluationDAO,
-                       InsightConfig insightConfig,
-                       ApplicationDAO applicationDAO)
+  public ReportService(
+      InsightWork work,
+      ReportDownloader reportDownloader,
+      PolicyEvaluationDAO policyEvaluationDAO,
+      InsightConfig insightConfig,
+      ApplicationDAO applicationDAO,
+      ApplicationAdapter applicationAdapter)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.insightConfig = insightConfig;
     this.applicationDAO = applicationDAO;
+    this.applicationAdapter = applicationAdapter;
   }
 
   public File fetchReport(final InsightWork work, final String appId, final String scanId, final boolean waitForReport)
@@ -202,5 +213,31 @@ public class ReportService
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     fetchReport(work, application.getId(), scanId, true /* waitForReport */);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Response printReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
+      String scanId) throws IOException
+  {
+    AuditData.get().setReportId(scanId);
+    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
+    String appId = application.getId();
+
+    File reportFile = fetchReport(work, appId, scanId, true);
+
+    ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
+    ResponseBuilder responseBuilder = Response.ok();
+    Report.printPdf(reportFile, application.getName(), getStageName(appId, scanId), contact, responseBuilder);
+
+    return responseBuilder.build();
+  }
+
+  private String getStageName(String appId, String scanId) {
+    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    if (eval == null) {
+      throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId);
+    }
+    return StageTypes.getById(eval.getStageTypeId()).getName();
   }
 }

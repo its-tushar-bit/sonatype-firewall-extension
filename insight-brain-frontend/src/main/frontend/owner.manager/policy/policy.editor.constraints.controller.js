@@ -78,7 +78,8 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
     return vm.conditionTypesMap[condition.conditionTypeId].name + ' ' + operator + (value ? (' ' + value) : '');
 
     function parseDays(days) {
-      return days % 365 === 0 ? days / 365 + ' Years' : days % 30 === 0 ? days / 30 + ' Months' : days + ' Days';
+      return days % 365 === 0 ? days / 365 + ' Years' : days % 30 === 0 ? days / 30 + ' Months' : days % 7 ===
+      0 ? days / 7 + ' Weeks' : days + ' Days';
     }
 
     function getAvailableValue(valueParam) {

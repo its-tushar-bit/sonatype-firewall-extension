@@ -549,7 +549,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.ageCondition(0).deleteConditionButton().shouldBe(visible, disabled);
     constraintEdit.ageCondition(0).value().age().shouldHave(value("2")).val("3");
     constraintEdit.ageCondition(0).value().modifier().selectedItem().shouldHave(text("Years")).click();
-    constraintEdit.ageCondition(0).value().modifier().listItem(1).shouldHave(text("Months")).click();
+    constraintEdit.ageCondition(0).value().modifier().listItem(2).shouldHave(text("Months")).click();
     constraintEdit.ageCondition(0).operator().selectedItem().shouldHave(text("older than")).click();
     constraintEdit.ageCondition(0).operator().listItem(1).shouldHave(text("younger than")).click();
     PolicyEditorPage.savePolicy();

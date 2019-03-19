@@ -35,7 +35,7 @@ describe('age.in.days.input.directive.spec.js', function() {
     scope.$digest();
     expect(element.find('input[type="number"]').val()).toEqual('3');
 
-    expect(vm.modifierTypes.length).toBe(3);
+    expect(vm.modifierTypes.length).toBe(4);
     vm.modifierTypes.forEach(function(modifierType) {
       vm.modifier = modifierType.modifier;
       isolatedScope.$digest();

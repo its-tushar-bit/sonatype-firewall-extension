@@ -14,6 +14,8 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -48,6 +50,7 @@ import static org.mockito.Mockito.when;
 public class ReportServiceTest
     extends AbstractComponentTest
 {
+  @Inject
   private InsightWork insightWork;
 
   private Application app;
@@ -56,18 +59,14 @@ public class ReportServiceTest
 
   private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
-  private InsightConfig insightConfig = new InsightConfig();
+  @Inject
+  private InsightConfig insightConfig;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Before
   public void before() throws Exception {
     app = tempEntity.newApplicationWithParent("testAppPublicId");
-
-    File sonatypeWork = tempDir.newFolder();
-    String tempFolderPath = sonatypeWork.getAbsolutePath();
-    insightConfig.setSonatypeWork(tempFolderPath);
-    insightWork = new InsightWork(insightConfig);
   }
 
   @Test

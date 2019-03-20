@@ -161,10 +161,6 @@ public final class Report
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
         reportFile, "dependencies.json").buf));
 
-    /*
-     * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
-     */
-
     final int[] policyCounts = new int[11];
     final int[] securityCounts = new int[10];
     final int[] licenseCounts = new int[11];

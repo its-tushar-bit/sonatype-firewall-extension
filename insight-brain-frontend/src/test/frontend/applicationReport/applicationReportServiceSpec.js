@@ -148,6 +148,7 @@ describe('applicationReportService', function() {
       expect(sortedResult[0].securityCode).toBeUndefined();
       expect(sortedResult[0].url).toBeUndefined();
       expect(sortedResult[0].licenseSortKey).toBe('Apache 200.0');
+      expect(sortedResult[0].displayName).toBe(bomData.aaData[1].displayName);
 
       expect(sortedResult[1].derivedComponentName).toBe('baz.js, bazzzz.js');
       expect(sortedResult[1].license).toBeUndefined();
@@ -164,7 +165,8 @@ describe('applicationReportService', function() {
         securityCode: 'fooCode',
         url: 'fooUrl',
         source: 'fooSource',
-        licenseSortKey: 'Apache 2.0, Apache 2.1'
+        licenseSortKey: 'Apache 2.0, Apache 2.1',
+        displayName: bomData.aaData[0].displayName
       }));
 
       expect(sortedResult[3].license).toBe(licensesData.aaData[0]);
@@ -174,7 +176,8 @@ describe('applicationReportService', function() {
         securityCode: 'fooCode2',
         url: 'fooUrl2',
         licenseSortKey: 'Apache 2.0, Apache 2.1',
-        source: 'fooSource2'
+        source: 'fooSource2',
+        displayName: bomData.aaData[0].displayName
       }));
 
       expect(sortedResult[4].derivedComponentName).toBe('path1');

@@ -209,19 +209,20 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
 
   const securityEntriesByKey = groupBy(toKey, securityResult.aaData);
 
-  const reportRawData = mapObjIndexed((oneBomData, componentId) => {
+  const reportRawData = mapObjIndexed(({ hashes, ...oneBomData }, componentId) => {
 
     // distinct security entries associated with any detected hash of this component id
     const securityEntries = pipe(
             map(hash => securityEntriesByKey[hash] || []),
             flatten,
             uniqBy(prop('reference'))
-        )(oneBomData.hashes),
+        )(hashes),
         license = licenseEntriesByComponentId[componentId],
         derivedComponentName = deriveComponentName(oneBomData);
 
     if (securityEntries.length) {
       return map((oneSecurityEntry) => ({
+        ...oneBomData,
         derivedComponentName,
         license,
         securityCode: oneSecurityEntry.reference,
@@ -233,6 +234,7 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
     }
     else {
       return {
+        ...oneBomData,
         derivedComponentName,
         license,
         licenseSortKey: getLicenseSortKey(license)
@@ -243,6 +245,7 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
   const bomRawData = flatten(values(reportRawData));
 
   const allRawDeportRawData = bomRawData.concat(map(oneUnknownJsResult => ({
+    ...oneUnknownJsResult,
     derivedComponentName: deriveComponentName(oneUnknownJsResult)
   }), unknownJsResult.aaData));
 

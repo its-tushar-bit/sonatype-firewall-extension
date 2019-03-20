@@ -34,9 +34,16 @@ function ComponentDisplayController($scope) {
       const { displayName } = vm.component;
 
       vm.componentName = getComponentName(vm.component);
-      vm.isDisplayName = !!displayName;
+      vm.isFilenameOrUnknown = !displayName || isDisplayNameFilename(displayName);
     }
   });
 }
 
 ComponentDisplayController.$inject = ['$scope'];
+
+/**
+ * @return true if the displayName consists of only a single part whose field name is "Filename"
+ */
+function isDisplayNameFilename({ parts }) {
+  return parts.length === 1 && parts[0].field === 'Filename';
+}

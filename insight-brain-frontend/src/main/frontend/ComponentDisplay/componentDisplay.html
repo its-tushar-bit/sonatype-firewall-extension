@@ -1,4 +1,4 @@
 <div ng-class="{'truncate-ellipsis': vm.truncate}">
-  <span ng-if="vm.isDisplayName">{{vm.componentName}}</span>
-  <em ng-if="!vm.isDisplayName">{{vm.componentName}}</em>
+  <em ng-if="vm.isFilenameOrUnknown">{{vm.componentName}}</em>
+  <span ng-if="!vm.isFilenameOrUnknown">{{vm.componentName}}</span>
 </div>

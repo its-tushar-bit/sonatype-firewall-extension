@@ -353,7 +353,8 @@ describe('applicationReportActions', function() {
         payload: [{
           derivedComponentName: 'unknown',
           license: undefined,
-          licenseSortKey: ''
+          licenseSortKey: '',
+          foo: 'bar'
         }]
       });
     });

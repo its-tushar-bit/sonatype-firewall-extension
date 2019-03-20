@@ -33,6 +33,18 @@ describe('ComponentDisplay', function() {
       expect(element.text().trim().replace(/\s+/g, ' ')).toContain('foo : bar : 1.0');
     });
 
+    it('Can show an element with a displayName consisting of a filename', function() {
+      scope.component = {
+        displayName: {
+          parts: [{ field: 'Filename', value: 'foo.jar' }]
+        },
+        pathnames: []
+      };
+      var element = $compile(angular.element('<component-display component="component"></component-display>'))(scope);
+      scope.$digest();
+      expect(element.text()).toContain('foo.jar');
+    });
+
     it('Can show an element with a filename', function() {
       scope.component = {
         displayName: null,

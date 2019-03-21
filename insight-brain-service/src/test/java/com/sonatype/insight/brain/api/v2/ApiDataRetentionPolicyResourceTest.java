@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -47,12 +48,16 @@ public class ApiDataRetentionPolicyResourceTest
       assertThat(policyDTO.inheritPolicy).isFalse();
       assertThat(policyDTO.maxAge).isNotNull();
     });
+    assertThat(dto.successMetrics).isNotNull();
+    assertThat(dto.successMetrics.inheritPolicy).isFalse();
+    assertThat(dto.successMetrics.maxAge).isNotNull();
   }
 
   @Test
   public void testSetDataRetentionPolicies() throws Exception {
     Organization org = tempEntity.newOrganization();
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_BUILD,
         new ApiReportRetentionPolicyDTO(false, true, 30, ApiAgeDTO.fromString("2 weeks")));
 

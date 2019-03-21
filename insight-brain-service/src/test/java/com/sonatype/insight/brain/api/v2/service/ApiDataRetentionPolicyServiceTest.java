@@ -14,7 +14,9 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO.AgeUnit;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -35,8 +37,13 @@ public class ApiDataRetentionPolicyServiceTest
 
   private DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
 
+  private Map<String, DataRetentionPolicy> getPoliciesByContext(Organization org) {
+    return dataRetentionPolicyDAO.getByOwnerId(org.getId()).stream()
+        .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
+  }
+
   @Test
-  public void testGetDataRetentionPolicies() {
+  public void testGetDataRetentionPolicies_AppReports() {
     Organization org = tempEntity.newOrganization();
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD));
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_DEVELOP, true, 7, 5));
@@ -68,7 +75,38 @@ public class ApiDataRetentionPolicyServiceTest
   }
 
   @Test
-  public void testSetDataRetentionPolicies() {
+  public void testGetDataRetentionPolicies_SuccessMetrics_LocalPolicy() {
+    Organization org = tempEntity.newOrganization();
+    dataRetentionPolicyDAO.insert(
+        new DataRetentionPolicy(org.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, true, null, 365 * 5));
+
+    ApiDataRetentionPoliciesDTO dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.successMetrics).isNotNull();
+    assertThat(dto.successMetrics.inheritPolicy).isFalse();
+    assertThat(dto.successMetrics.enablePurging).isTrue();
+    assertThat(dto.successMetrics.maxAge).usingRecursiveComparison().isEqualTo(new ApiAgeDTO(5, AgeUnit.YEAR));
+  }
+
+  @Test
+  public void testGetDataRetentionPolicies_SuccessMetrics_InheritedPolicy() {
+    Organization org = tempEntity.newOrganization();
+    DataRetentionPolicy policy = dataRetentionPolicyDAO.getByOwnerIdAndContextId(Organization.ROOT_ORGANIZATION_ID,
+        DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+
+    ApiDataRetentionPoliciesDTO dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.successMetrics).isNotNull();
+    assertThat(dto.successMetrics.inheritPolicy).isTrue();
+    assertThat(dto.successMetrics.enablePurging).isTrue();
+    assertThat(dto.successMetrics.maxAge).isNotNull();
+    assertThat(dto.successMetrics.maxAge.toDays()).isEqualTo(policy.getMaxAgeInDays());
+  }
+
+  @Test
+  public void testSetDataRetentionPolicies_AppReports() {
     Organization org = tempEntity.newOrganization();
     // a policy to update
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD));
@@ -78,6 +116,7 @@ public class ApiDataRetentionPolicyServiceTest
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_STAGE_RELEASE, true, 11, 3));
 
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_BUILD,
         new ApiReportRetentionPolicyDTO(false, true, 7, new ApiAgeDTO(2, AgeUnit.WEEK)));
     dto.applicationReports.stages.put(Stage.ID_DEVELOP, new ApiReportRetentionPolicyDTO(true, false, null, null));
@@ -86,8 +125,7 @@ public class ApiDataRetentionPolicyServiceTest
 
     dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
 
-    Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(org.getId()).stream()
-        .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
+    Map<String, DataRetentionPolicy> policiesByContext = getPoliciesByContext(org);
     assertThat(policiesByContext).containsOnlyKeys(Stage.ID_BUILD, Stage.ID_OPERATE, Stage.ID_STAGE_RELEASE);
 
     DataRetentionPolicy policy = policiesByContext.get(Stage.ID_BUILD);
@@ -107,8 +145,9 @@ public class ApiDataRetentionPolicyServiceTest
   }
 
   @Test
-  public void testSetDataRetentionPolicies_NoInheritanceForRootOrganization() {
+  public void testSetDataRetentionPolicies_AppReports_NoInheritanceForRootOrganization() {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_BUILD, new ApiReportRetentionPolicyDTO(true, false, null, null));
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
@@ -117,13 +156,83 @@ public class ApiDataRetentionPolicyServiceTest
   }
 
   @Test
-  public void testSetDataRetentionPolicies_InvalidStage() {
+  public void testSetDataRetentionPolicies_AppReports_InvalidStage() {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_PROXY, new ApiReportRetentionPolicyDTO(false, false, null, null));
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto);
     }).withMessageContaining("Invalid stage id");
+  }
+
+  @Test
+  public void testSetDataRetentionPolicies_SuccessMetrics_InheritedPolicy() {
+    Organization org = tempEntity.newOrganization();
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS));
+
+    ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(true, false, null);
+
+    dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
+
+    assertThat(dataRetentionPolicyDAO.getByOwnerId(org.getId())).isEmpty();
+
+    dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
+
+    assertThat(dataRetentionPolicyDAO.getByOwnerId(org.getId())).isEmpty();
+  }
+
+  @Test
+  public void testSetDataRetentionPolicies_SuccessMetrics_LocalPolicy() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
+    dto.applicationReports.stages = null;
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(false, false, null);
+
+    dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
+
+    Map<String, DataRetentionPolicy> policiesByContext = getPoliciesByContext(org);
+    assertThat(policiesByContext).containsOnlyKeys(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    DataRetentionPolicy policy = policiesByContext.get(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    assertThat(policy.isPurgingEnabled()).isFalse();
+    assertThat(policy.getMaxCount()).isNull();
+    assertThat(policy.getMaxAgeInDays()).isNull();
+
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(false, true, new ApiAgeDTO(3, AgeUnit.YEAR));
+
+    dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
+
+    policiesByContext = getPoliciesByContext(org);
+    assertThat(policiesByContext).containsOnlyKeys(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    policy = policiesByContext.get(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    assertThat(policy.isPurgingEnabled()).isTrue();
+    assertThat(policy.getMaxCount()).isNull();
+    assertThat(policy.getMaxAgeInDays()).isEqualTo(3 * 365);
+  }
+
+  @Test
+  public void testSetDataRetentionPolicies_SuccessMetrics_NoInheritanceForRootOrganization() {
+    ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(true, false, null);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      dataRetentionPolicyService.setDataRetentionPolicies(Organization.ROOT_ORGANIZATION_ID, dto);
+    }).withMessageContaining("root organization cannot inherit");
+  }
+
+  @Test
+  public void testSetDataRetentionPolicies_SuccessMetrics_InvalidTimeUnit() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(false, true, new ApiAgeDTO(30, AgeUnit.DAY));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
+    }).withMessageContaining("expected unit 'year' for maximum age");
   }
 
   @Test
@@ -134,9 +243,10 @@ public class ApiDataRetentionPolicyServiceTest
   }
 
   @Test
-  public void testSetDataRetentionPolicies_NullAppReportConfig() {
+  public void testSetDataRetentionPolicies_NullPolicies() {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
     dto.applicationReports = null;
+    dto.successMetrics = null;
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto);
@@ -146,6 +256,7 @@ public class ApiDataRetentionPolicyServiceTest
   @Test
   public void testSetDataRetentionPolicies_NullAppReportStages() {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages = null;
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
@@ -156,6 +267,7 @@ public class ApiDataRetentionPolicyServiceTest
   @Test
   public void testSetDataRetentionPolicies_EmptyAppReportStages() {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.clear();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {

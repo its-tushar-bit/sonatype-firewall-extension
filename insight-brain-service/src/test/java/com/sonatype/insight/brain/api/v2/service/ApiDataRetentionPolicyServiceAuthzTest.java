@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -54,6 +55,7 @@ public class ApiDataRetentionPolicyServiceAuthzTest
   public void testSetDataRetentionPolicies_Authorized() {
     grantWritePermission(org.getId());
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_BUILD, new ApiReportRetentionPolicyDTO());
     dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
   }

@@ -10,7 +10,9 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Organization;
@@ -31,8 +33,10 @@ public class ApiDataRetentionPolicyResourceAuditTest
   public void testSetDataRetentionPolicies_Organization() throws Exception {
     Organization org = tempEntity.newOrganization();
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_BUILD,
         new ApiReportRetentionPolicyDTO(false, true, 30, ApiAgeDTO.fromString("2 weeks")));
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(false, true, ApiAgeDTO.fromString("1 year"));
     restRequest(org.getId()).body(dto).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_DATA_RETENTION, null);

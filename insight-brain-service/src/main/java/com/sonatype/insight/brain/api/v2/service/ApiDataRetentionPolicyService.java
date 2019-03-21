@@ -18,7 +18,9 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -36,13 +38,14 @@ import static java.util.stream.Collectors.toMap;
 @Named
 public class ApiDataRetentionPolicyService
 {
-  private static final Set<String> VALID_CONTEXT_IDS = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList( //
-      Stage.ID_DEVELOP, //
-      Stage.ID_BUILD, //
-      Stage.ID_STAGE_RELEASE, //
-      Stage.ID_RELEASE, //
-      Stage.ID_OPERATE, //
-      DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING)));
+  private static final Set<String> VALID_REPORT_CONTEXT_IDS =
+      Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList( //
+          Stage.ID_DEVELOP, //
+          Stage.ID_BUILD, //
+          Stage.ID_STAGE_RELEASE, //
+          Stage.ID_RELEASE, //
+          Stage.ID_OPERATE, //
+          DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING)));
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
@@ -56,9 +59,11 @@ public class ApiDataRetentionPolicyService
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
   {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
+    dto.applicationReports = new ApiReportRetentionPoliciesDTO();
+    dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO();
     Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(organizationId).stream()
         .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
-    for (String contextId : VALID_CONTEXT_IDS) {
+    for (String contextId : VALID_REPORT_CONTEXT_IDS) {
       ApiReportRetentionPolicyDTO policyDTO = new ApiReportRetentionPolicyDTO();
       DataRetentionPolicy policy = policiesByContext.get(contextId);
       policyDTO.inheritPolicy = policy == null;
@@ -70,6 +75,15 @@ public class ApiDataRetentionPolicyService
       policyDTO.maxAge = ApiAgeDTO.fromDays(policy.getMaxAgeInDays());
       dto.applicationReports.stages.put(contextId, policyDTO);
     }
+    DataRetentionPolicy policy = policiesByContext.get(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    ApiSuccessMetricsRetentionPolicyDTO policyDTO = dto.successMetrics;
+    policyDTO.inheritPolicy = policy == null;
+    if (policy == null) {
+      policy = dataRetentionPolicyDAO.getByOwnerIdAndContextId(Organization.ROOT_ORGANIZATION_ID,
+          DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    }
+    policyDTO.enablePurging = policy.isPurgingEnabled();
+    policyDTO.maxAge = ApiAgeDTO.fromDays(policy.getMaxAgeInDays());
     return dto;
   }
 
@@ -78,48 +92,81 @@ public class ApiDataRetentionPolicyService
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
       ApiDataRetentionPoliciesDTO dto)
   {
-    if (dto == null || dto.applicationReports == null || dto.applicationReports.stages == null
-        || dto.applicationReports.stages.isEmpty()) {
+    if (dto == null || ((dto.applicationReports == null || dto.applicationReports.stages == null
+        || dto.applicationReports.stages.isEmpty()) && dto.successMetrics == null)) {
       throw new BadRequestException("The request does not specify any retention policies to configure");
     }
     try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
       tx.begin();
       Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(tx, organizationId)
           .stream().collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
-      for (Map.Entry<String, ApiReportRetentionPolicyDTO> entry : dto.applicationReports.stages.entrySet()) {
-        String contextId = entry.getKey();
-        if (!VALID_CONTEXT_IDS.contains(contextId)) {
-          throw new BadRequestException("Invalid stage id '" + contextId + "', expected one of " + VALID_CONTEXT_IDS);
-        }
-        ApiReportRetentionPolicyDTO policyDTO = entry.getValue();
-        if (policyDTO != null) {
-          DataRetentionPolicy policy = policiesByContext.get(contextId);
-          if (policyDTO.inheritPolicy) {
-            if (Organization.ROOT_ORGANIZATION_ID.equals(organizationId)) {
-              throw new BadRequestException(
-                  "The root organization cannot inherit a retention policy for stage '" + contextId + "'");
-            }
-            if (policy != null) {
-              dataRetentionPolicyDAO.delete(tx, policy);
-            }
+      if (dto.applicationReports != null && dto.applicationReports.stages != null) {
+        for (Map.Entry<String, ApiReportRetentionPolicyDTO> entry : dto.applicationReports.stages.entrySet()) {
+          String contextId = entry.getKey();
+          if (!VALID_REPORT_CONTEXT_IDS.contains(contextId)) {
+            throw new BadRequestException(
+                "Invalid stage id '" + contextId + "', expected one of " + VALID_REPORT_CONTEXT_IDS);
           }
-          else {
-            if (policy == null) {
-              policy = new DataRetentionPolicy(organizationId, contextId);
-            }
-            policy.setPurgingEnabled(policyDTO.enablePurging);
-            policy.setMaxCount(policyDTO.maxCount);
-            policy.setMaxAgeInDays(policyDTO.maxAge != null ? policyDTO.maxAge.toDays() : null);
-            if (policy.getId() != null) {
-              dataRetentionPolicyDAO.update(tx, policy);
-            }
-            else {
-              dataRetentionPolicyDAO.insert(tx, policy);
-            }
+          ApiReportRetentionPolicyDTO policyDTO = entry.getValue();
+          if (policyDTO != null) {
+            DataRetentionPolicy policy = policiesByContext.get(contextId);
+            updateRetentionPolicy(tx, organizationId, contextId, policy, policyDTO.inheritPolicy,
+                policyDTO.enablePurging, policyDTO.maxCount, policyDTO.maxAge);
           }
         }
       }
+      if (dto.successMetrics != null) {
+        if (dto.successMetrics.maxAge != null && !ApiAgeDTO.AgeUnit.YEAR.equals(dto.successMetrics.maxAge.unitOfTime)) {
+          throw new BadRequestException("Invalid time unit '" + dto.successMetrics.maxAge.unitOfTime
+              + "', expected unit 'year' for maximum age of Success Metrics");
+        }
+        String contextId = DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS;
+        DataRetentionPolicy policy = policiesByContext.get(contextId);
+        updateRetentionPolicy(tx, organizationId, contextId, policy, dto.successMetrics.inheritPolicy,
+            dto.successMetrics.enablePurging, null, dto.successMetrics.maxAge);
+      }
       tx.commit();
+    }
+  }
+
+  private void updateRetentionPolicy(
+      TransactionContext tx,
+      String organizationId,
+      String contextId,
+      DataRetentionPolicy policy,
+      boolean inheritPolicy,
+      boolean enablePurging,
+      Integer maxCount,
+      ApiAgeDTO maxAge)
+  {
+    if (inheritPolicy) {
+      if (Organization.ROOT_ORGANIZATION_ID.equals(organizationId)) {
+        String msg = "The root organization cannot inherit a retention policy for ";
+        if (DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS.equals(contextId)) {
+          msg += "Success Metrics";
+        }
+        else {
+          msg += "stage '" + contextId + "'";
+        }
+        throw new BadRequestException(msg);
+      }
+      if (policy != null) {
+        dataRetentionPolicyDAO.delete(tx, policy);
+      }
+    }
+    else {
+      if (policy == null) {
+        policy = new DataRetentionPolicy(organizationId, contextId);
+      }
+      policy.setPurgingEnabled(enablePurging);
+      policy.setMaxCount(maxCount);
+      policy.setMaxAgeInDays(maxAge != null ? maxAge.toDays() : null);
+      if (policy.getId() != null) {
+        dataRetentionPolicyDAO.update(tx, policy);
+      }
+      else {
+        dataRetentionPolicyDAO.insert(tx, policy);
+      }
     }
   }
 }

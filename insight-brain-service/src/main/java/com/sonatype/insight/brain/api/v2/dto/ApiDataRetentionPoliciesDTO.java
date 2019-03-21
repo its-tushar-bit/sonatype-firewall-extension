@@ -10,5 +10,7 @@ package com.sonatype.insight.brain.api.v2.dto;
  */
 public class ApiDataRetentionPoliciesDTO
 {
-  public ApiReportRetentionPoliciesDTO applicationReports = new ApiReportRetentionPoliciesDTO();
+  public ApiReportRetentionPoliciesDTO applicationReports;
+
+  public ApiSuccessMetricsRetentionPolicyDTO successMetrics;
 }

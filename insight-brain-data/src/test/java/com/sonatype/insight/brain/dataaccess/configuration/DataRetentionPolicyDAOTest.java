@@ -72,7 +72,8 @@ public class DataRetentionPolicyDAOTest
   public void testDefaultPoliciesForRootOrganization() {
     assertThat(dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).extracting(DataRetentionPolicy::getContextId)
         .containsExactlyInAnyOrder(Stage.ID_DEVELOP, Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE,
-            Stage.ID_OPERATE, DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+            Stage.ID_OPERATE, DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING,
+            DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
   }
 
   @Test

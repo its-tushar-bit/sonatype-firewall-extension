@@ -22,6 +22,8 @@ public class DataRetentionPolicy
 {
   public static final String CONTEXT_ID_CONTINUOUS_MONITORING = "continuous-monitoring";
 
+  public static final String CONTEXT_ID_SUCCESS_METRICS = "success-metrics";
+
   @Id
   @Column(name = "data_retention_policy_id")
   private String id;

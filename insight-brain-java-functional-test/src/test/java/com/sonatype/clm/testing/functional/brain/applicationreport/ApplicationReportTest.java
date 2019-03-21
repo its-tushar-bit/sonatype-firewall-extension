@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import org.apache.commons.io.FileUtils;
@@ -534,6 +535,36 @@ public class ApplicationReportTest
     violations.shouldHaveSize(61);
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(hidden);
+  }
+
+  @Test
+  public void testFilteringNotPersisting() {
+    AppReportHeaders headers = reportPage.headers();
+    ElementsCollection violations = reportPage.resultRows();
+
+    headers.policyNameFilterInput().setValue("unk");
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("Component-Unknown"));
+    violations.shouldHave(texts("RegexMatch.dll"));
+
+    MainHeader.reportingNavigationButton().click();
+    ReportListPage.firstRow().buildReportLink().click();
+    ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
+
+    headers.policyNameFilterInput().shouldBe(Condition.empty);
+    violations.shouldHaveSize(64);
+
+    headers.componentNameFilterInput().setValue("Reg");
+    violations.shouldHaveSize(1);
+    violations.shouldHave(texts("Component-Unknown"));
+    violations.shouldHave(texts("RegexMatch.dll"));
+
+    MainHeader.reportingNavigationButton().click();
+    ReportListPage.firstRow().buildReportLink().click();
+    ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
+
+    headers.componentNameFilterInput().shouldBe(Condition.empty);
+    violations.shouldHaveSize(64);
   }
 
   @Test

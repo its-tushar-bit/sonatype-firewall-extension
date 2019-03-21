@@ -43,6 +43,33 @@ describe('applicationReportReducer', function() {
       expect(newState.isUnknownJs).toBe(false);
       expect(newState.policyTypeFilterEnabled).toBe(true);
     });
+
+    it('is immutable', function() {
+      const action = {type: 'UNKNOWN'};
+      const state = reduce(undefined, action);
+
+      // Overall state object
+      expect(() => {
+        state.newProp = 'newProp';
+      }).toThrowError(TypeError);
+
+      // Nested object-properties
+      expect(() => {
+        state.sortFields = [];
+      }).toThrowError(TypeError);
+
+      expect(() => {
+        state.rawDataSortFields = [];
+      }).toThrowError(TypeError);
+
+      expect(() => {
+        state.exactValueFilters.newProp = 'newProp';
+      }).toThrowError(TypeError);
+
+      expect(() => {
+        state.substringFilters.newProp = 'newProp';
+      }).toThrowError(TypeError);
+    });
   });
 
   describe('SET_REPORT_PARAMETERS action', function() {

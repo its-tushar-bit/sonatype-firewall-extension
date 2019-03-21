@@ -58,11 +58,11 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
     },
 
     onDerivedComponentNameFilterChange() {
-      vm.setStringFieldFilter('derivedComponentName', vm.substringFilters.derivedComponentName);
+      vm.setStringFieldFilter('derivedComponentName', vm.derivedComponentNameSubstringFilter);
     },
 
     onPolicyNameFilterChange() {
-      vm.setStringFieldFilter('policyName', vm.substringFilters.policyName);
+      vm.setStringFieldFilter('policyName', vm.policyNameSubstringFilter);
     },
 
     getReportPdfDownloadUrl: function() {
@@ -99,7 +99,13 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
 }
 
 function mapStateToThis({applicationReport}) {
-  return applicationReport;
+  const { policyName, derivedComponentName } = applicationReport.substringFilters;
+
+  return {
+    ...applicationReport,
+    policyNameSubstringFilter: policyName,
+    derivedComponentNameSubstringFilter: derivedComponentName
+  };
 }
 
 ApplicationReportResultsController.$inject = [

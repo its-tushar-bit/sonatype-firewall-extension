@@ -44,28 +44,28 @@ import {
 import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
-const initState = {
+const initState = Object.freeze({
   loading: false,
   reevaluating: false,
   loadError: null,
   reevaluationError: null,
   aggregate: true,
-  sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-  rawDataSortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+  sortFields: Object.freeze(['-policyThreatLevel', 'policyName', 'derivedComponentName']),
+  rawDataSortFields: Object.freeze(['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore']),
 
   // map from field name to Set of allowed values
   // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
-  exactValueFilters: {},
+  exactValueFilters: Object.freeze({}),
   reportRawData: null,
 
   // map from field name to string to use for substring matching
   // example: { policyName: 'security', derivedComponentName: 'foo' }
-  substringFilters: {},
+  substringFilters: Object.freeze({}),
   selectedReport: null,
   selectedComponentIndex: null,
   policyTypeFilterEnabled: true,
   isUnknownJs: false
-};
+});
 
 export default function(state = initState, {type, payload}) {
   switch (type) {

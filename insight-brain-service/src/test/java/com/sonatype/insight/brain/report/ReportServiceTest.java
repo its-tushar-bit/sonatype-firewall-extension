@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -292,7 +291,6 @@ public class ReportServiceTest
     createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report-missing-policyalerts-json"));
     File reportFile = insightWork.getReportFile(app.getId(), scanId);
     File pdfFile = Pdf.getPdfFile(reportFile);
-    File cacheDir = Report.getCacheDir(reportFile);
 
     ReportService reportService = createReportService();
 
@@ -301,10 +299,6 @@ public class ReportServiceTest
         reportService.printReport(app.getPublicId(), scanId);
       });
       assertThat(pdfFile).doesNotExist();
-
-      Files.write(cacheDir.toPath().resolve(ScanPolicyEvaluator.POLICY_ALERTS_FILENAME), "{\"aaData\":[]}".getBytes());
-      reportService.printReport(app.getPublicId(), scanId);
-      assertThat(pdfFile).isFile();
     }
     finally {
       Pdf.destroy();

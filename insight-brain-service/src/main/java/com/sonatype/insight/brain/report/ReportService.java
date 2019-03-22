@@ -92,9 +92,7 @@ public class ReportService
     try {
       if (!reportFile.exists()) {
         if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
-          throw new NotFoundException("The report for application ID " + appId + " and scan ID " + scanId
-              + " does not exist. Usually this means the report was deemed obsolete"
-              + " according to the data retention policies and hence purged to the trash.");
+          throw getReportNotFoundException(appId, scanId);
         }
         // 0 indicates no retries
         int reportTimeoutInSeconds = 0;
@@ -224,20 +222,27 @@ public class ReportService
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
 
-    File reportFile = fetchReport(work, appId, scanId, true);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    if (policyEvaluation == null) {
+      throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId + ".");
+    }
+
+    File reportFile = getReport(work, appId, scanId);
+    if (reportFile == null) {
+      throw getReportNotFoundException(appId, scanId);
+    }
 
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
+    String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
     ResponseBuilder responseBuilder = Response.ok();
-    Report.printPdf(reportFile, application.getName(), getStageName(appId, scanId), contact, responseBuilder);
+    Report.printPdf(reportFile, application.getName(), stageName, contact, responseBuilder);
 
     return responseBuilder.build();
   }
 
-  private String getStageName(String appId, String scanId) {
-    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
-    if (eval == null) {
-      throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId);
-    }
-    return StageTypes.getById(eval.getStageTypeId()).getName();
+  private NotFoundException getReportNotFoundException(String appId, String scanId) {
+    return new NotFoundException("The report for application ID " + appId + " and scan ID " + scanId
+        + " does not exist. Usually this means the report was deemed obsolete"
+        + " according to the data retention policies and hence purged to the trash.");
   }
 }

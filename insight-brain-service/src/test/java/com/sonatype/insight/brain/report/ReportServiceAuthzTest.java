@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -66,10 +67,11 @@ public class ReportServiceAuthzTest
   @Test
   public void testPrintReport_Authorized() throws Exception {
     grantReadPermission(app.getId());
+    String scanId = "12345678";
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.printReport(app.getPublicId(), "12345678");
-    }).withMessage("Could not download the report for scan ID 12345678");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      reportService.printReport(app.getPublicId(), scanId);
+    }).withMessage("Unable to locate scan " + scanId + " for application " + app.getId() + ".");
   }
 
   @Test(expected = UnauthenticatedException.class)

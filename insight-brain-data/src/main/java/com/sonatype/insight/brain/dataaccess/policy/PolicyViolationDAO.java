@@ -24,6 +24,8 @@ import static java.util.stream.Collectors.toList;
 public class PolicyViolationDAO
     extends AbstractOperationalSqlDAO<PolicyViolation>
 {
+  static final int DELETE_BATCH_SIZE = 100;
+
   @Override
   protected PolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
@@ -231,5 +233,24 @@ public class PolicyViolationDAO
         " WHERE entity.applicationId=?1 AND entity.policyId=?2";
     Query query = createQuery(sQuery, applicationId, fromPolicyId, toPolicyId);
     return query.executeUpdate(tx);
+  }
+
+  public int deleteFixedByApplicationIdAndDate(String applicationId, Date fixedBefore) {
+    String sQuery = "SELECT entity.id FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId = ?1 AND entity.fixTime < ?2";
+    // Deleting a potentially huge number of records from H2 in one shot consumes a lot of heap and blocks any other
+    // database operation for a long time. To avoid this, we split the entire delete up into smaller batches.
+    int deletedRows = 0;
+    while (true) {
+      try (TransactionContext tx = createTransactionContext()) {
+        @SuppressWarnings("unchecked")
+        List<String> ids = tx.createQuery(sQuery).setParameter(1, applicationId).setParameter(2, fixedBefore)
+            .setMaxResults(DELETE_BATCH_SIZE).getResultList();
+        if (ids.isEmpty()) {
+          return deletedRows;
+        }
+        deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
+      }
+    }
   }
 }

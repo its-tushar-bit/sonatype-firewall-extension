@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -724,5 +725,40 @@ public class PolicyViolationDAOTest
     assertThat(otherPolicyViolation.getPolicyId()).isEqualTo(otherPolicy.getId());
     otherAppPolicyViolation = dao.getById(otherAppPolicyViolation.getId());
     assertThat(otherAppPolicyViolation.getPolicyId()).isEqualTo(fromPolicy.getId());
+  }
+
+  @Test
+  public void testDeleteFixedByApplicationIdAndDate() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Policy policy = tempEntity.newPolicy();
+    PolicyEvaluation evaluation0 = tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(),
+        BuildStageType.ID, "scan-1", new Date(System.currentTimeMillis() - 900));
+    PolicyViolation violation0 = tempEntity.newPolicyViolation(evaluation0, policy);
+    violation0.setFixTime(evaluation0.getTime());
+    dao.update(violation0);
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1",
+        new Date(System.currentTimeMillis() - 900));
+    for (int i = 0; i < PolicyViolationDAO.DELETE_BATCH_SIZE + 2; i++) {
+      tempEntity.newPolicyViolation(evaluation1, policy);
+    }
+    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-2",
+        new Date(System.currentTimeMillis() - 500));
+    for (PolicyViolation violation : dao.getByApplicationId(applicationId)) {
+      violation.setFixTime(evaluation2.getTime());
+      dao.update(violation);
+    }
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation2, policy);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy);
+    PolicyEvaluation evaluation3 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-3");
+    violation2.setFixTime(evaluation3.getTime());
+    dao.update(violation2);
+
+    int deletedRows = dao.deleteFixedByApplicationIdAndDate(applicationId, evaluation3.getTime());
+
+    assertThat(deletedRows).isEqualTo(PolicyViolationDAO.DELETE_BATCH_SIZE + 2);
+    assertThat(dao.getByApplicationId(applicationId))
+        .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
+        .containsExactlyInAnyOrder(violation1, violation2);
+    assertThat(dao.getById(violation0.getId())).isNotNull();
   }
 }

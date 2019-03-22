@@ -1720,18 +1720,6 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(policyViolation2.isActive()).isTrue();
   }
 
-  private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
-                                                              final String pathname,
-                                                              final boolean waived,
-                                                              int... threatLevels)
-  {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
-    for (final int threatLevel : threatLevels) {
-      tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, waived, null);
-    }
-    return component;
-  }
-
   private Policy createQuarantiningPolicy(Repository repository) {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);

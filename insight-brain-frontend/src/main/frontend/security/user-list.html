@@ -1,9 +1,9 @@
 <div class="iq-body-container iq-body-container--single-pane" maximize-container-height>
   <script type='text/ng-template' id='reset-password-modal'>
 <div class="iq-modal-header">
-  <h2>Reset Password</h2>
+  <h2 id="reset-password-modal-title">Reset Password</h2>
 </div>
-<div ng-switch="state">
+<div ng-switch="state" class="test-reset-password-modal">
   <div ng-switch-default id="reset-password-modal">
     <div class="iq-modal-content">
       <div class="iq-alert">
@@ -18,8 +18,8 @@
       <button class="btn btn-error" type="submit" ng-click="resetClick()" ng-if="error">
         <i class="fa fa-refresh"></i> Retry
       </button>
-      <button ng-if="!error" class="btn btn-primary" ng-click="resetClick()">Reset</button>
-      <button class="btn btn-dismiss" ng-click="cancelClick()">Cancel</button>
+      <button ng-if="!error" class="btn btn-primary test-reset-button" ng-click="resetClick()">Reset</button>
+      <button class="btn btn-dismiss test-cancel-button" ng-click="cancelClick()">Cancel</button>
     </div>
   </div>
   <div ng-switch-when="pending">
@@ -48,7 +48,7 @@
       </form>
     </div>
     <div class="iq-modal-footer">
-      <button class="btn btn-primary" ng-click="okClick()">OK</button>
+      <button class="btn btn-primary test-ok-button" ng-click="okClick()">OK</button>
     </div>
   </div>
 </div>
@@ -66,7 +66,7 @@
           <h2>Users</h2>
         </div>
       </div>
-      <div class='iq-tile-content'>
+      <div class='iq-tile-content test-user-management'>
         <h5 ng-hide='context.users'>
           <i class='icon-time'></i> Loading...
         </h5>
@@ -95,6 +95,7 @@
                 </button>
               </div>
               <a class="accordion-toggle user-top collapsed"
+                 ng-class="{ 'test-current-user': isCurrentUser(user) }"
                  style="padding-bottom:4px;"
                  data-toggle="collapse"
                  data-target="#collapse{{user.id}}"

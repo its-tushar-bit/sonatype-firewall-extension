@@ -35,6 +35,7 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
@@ -68,6 +69,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -276,9 +278,19 @@ public abstract class AbstractFunctionalTest
   /**
    * Find all popover violation messages in a given element. Intended to confirm the presence/absence of violations in a
    * form.
+   *
+   * @throws NoSuchElementException if the element was not found
    */
   protected SelenideElement popoverViolations(SelenideElement element) {
     return $('#' + element.attr("name") + "-popover.in");
+  }
+
+  /**
+   * Find all popover violation messages in a given element as a list. Intended to confirm the presence/absence of
+   * violations in a form. If not found this will return an empty collection.
+   */
+  protected ElementsCollection popoverViolationsList(SelenideElement element) {
+    return $$('#' + element.attr("name") + "-popover.in");
   }
 
   protected static void refresh() {

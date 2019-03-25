@@ -91,7 +91,6 @@ public class InsightBrainService
   public static void main(final String[] args) {
     try {
       setupServerLogging(args);
-      JavaRuntimeChecker.checkJreIsSupported();
 
       if (!validateTempDir()) {
         System.exit(1);

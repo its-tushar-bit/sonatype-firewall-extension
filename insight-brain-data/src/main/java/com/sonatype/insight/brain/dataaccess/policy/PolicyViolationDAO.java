@@ -242,15 +242,13 @@ public class PolicyViolationDAO
     // database operation for a long time. To avoid this, we split the entire delete up into smaller batches.
     int deletedRows = 0;
     while (true) {
-      try (TransactionContext tx = createTransactionContext()) {
-        @SuppressWarnings("unchecked")
-        List<String> ids = tx.createQuery(sQuery).setParameter(1, applicationId).setParameter(2, fixedBefore)
-            .setMaxResults(DELETE_BATCH_SIZE).getResultList();
-        if (ids.isEmpty()) {
-          return deletedRows;
-        }
-        deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
+      @SuppressWarnings({"unchecked", "rawtypes"})
+      List<String> ids =
+          (List) createQuery(sQuery, applicationId, fixedBefore).setMaxResults(DELETE_BATCH_SIZE).getList();
+      if (ids.isEmpty()) {
+        return deletedRows;
       }
+      deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
     }
   }
 }

@@ -81,11 +81,12 @@
                     class="iq-btn iq-btn--primary"
                     submit-validation
                     submit-dirty="vm.dirtyWebhook.isDirty()"
-                    submit-type="vm.dirtyWebhook.id ? 'update' : 'create'">
+                    submit-type="vm.dirtyWebhook.id ? 'update' : 'create'"
+                    submit-tooltip-target="body">
               {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}
-            </button>
-            <button class="iq-btn iq-btn--dismiss" type="button" ui-sref="webhooks.list">Cancel</button>
-            <button id="delete-webhook-button"
+            </button><!--
+         --><button class="iq-btn iq-btn--dismiss" type="button" ui-sref="webhooks.list">Cancel</button><!--
+         --><button id="delete-webhook-button"
                     class="iq-btn iq-btn--tertiary"
                     type="button"
                     ng-click="vm.deleteWebhook()"

@@ -1205,7 +1205,10 @@ describe('applicationReportService', function() {
             substringFilters = {
               derivedComponentName: 'j'
             },
-            result = applicationReportService.filterReportEntries(exactValueFilters, substringFilters)(input);
+            numericFilters = {
+              policyThreatLevel: [3, 4]
+            },
+            result = applicationReportService.filterReportEntries(exactValueFilters, substringFilters, numericFilters)(input);
 
         expect(result).toEqual([{
           hash: '2',
@@ -1223,25 +1226,17 @@ describe('applicationReportService', function() {
           grandfathered: false,
           componentIdentifier: 'bar',
           derivedComponentName: 'junit.junit.4.12'
-        }, {
-          hash: '5',
-          policyThreatLevel: 2,
-          policyName: 'Policy 10',
-          waived: false,
-          grandfathered: false,
-          componentIdentifier: 'foo',
-          derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'
         }]);
       });
 
       it('handles empty filterConfig objects', function() {
-        const result = applicationReportService.filterReportEntries({}, {})(input);
+        const result = applicationReportService.filterReportEntries({}, {}, {})(input);
 
         expect(result).toEqual(input);
       });
 
       it('handles undefined filterConfig objects', function() {
-        const result = applicationReportService.filterReportEntries(undefined, undefined)(input);
+        const result = applicationReportService.filterReportEntries(undefined, undefined, undefined)(input);
 
         expect(result).toEqual(input);
       });
@@ -1250,16 +1245,90 @@ describe('applicationReportService', function() {
         const substringFilters = {
               derivedComponentName: ''
             },
-            result = applicationReportService.filterReportEntries(undefined, substringFilters)(input);
+            result = applicationReportService.filterReportEntries(undefined, substringFilters, undefined)(input);
 
         expect(result).toEqual(input);
+      });
+
+      it('treats blank entry parameters as being filtered out with any value of substring filters', () => {
+        const input = [{
+          derivedComponentName: 'junit.junit.4.8',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123'
+        }, {
+          derivedComponentName: 'junit.junit.4.12',
+          licenseSortKey: 'Not Provided'
+        }];
+
+        const substringFilters = {
+          securityCode: 's'
+        };
+        const result = applicationReportService.filterReportEntries(undefined, substringFilters, undefined)(input);
+        expect(result).toEqual([input[0]]);
+      });
+
+      it('treats both empty numeric min and max filters as including blanks', () => {
+        const input = [{
+          derivedComponentName: 'junit.junit.4.8',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123',
+          cvssScore: 7
+        }, {
+          derivedComponentName: 'junit.junit.4.12',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123'
+        }];
+
+        const numericFilters = {
+          cvssScore: [undefined, undefined]
+        };
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
+        expect(result).toEqual(input);
+      });
+
+      it('eliminates blank rows when only the maximum numeric filter is set', () => {
+        const input = [{
+          derivedComponentName: 'junit.junit.4.8',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123',
+          cvssScore: 7
+        }, {
+          derivedComponentName: 'junit.junit.4.12',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123'
+        }];
+
+        const numericFilters = {
+          cvssScore: [undefined, 9]
+        };
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
+        expect(result).toEqual([input[0]]);
+      });
+
+      it('eliminates blank rows when only the minimum numeric filter is set', () => {
+        const input = [{
+          derivedComponentName: 'junit.junit.4.8',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123',
+          cvssScore: 7
+        }, {
+          derivedComponentName: 'junit.junit.4.12',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123'
+        }];
+
+        const numericFilters = {
+          cvssScore: [2, undefined]
+        };
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
+        expect(result).toEqual([input[0]]);
       });
 
       it('treats empty exact value filters as no filter', function() {
         const exactValueFilters = {
               waived: new Set([])
             },
-            result = applicationReportService.filterReportEntries(exactValueFilters, undefined)(input);
+            result = applicationReportService.filterReportEntries(exactValueFilters, undefined, undefined)(input);
 
         expect(result).toEqual(input);
       });

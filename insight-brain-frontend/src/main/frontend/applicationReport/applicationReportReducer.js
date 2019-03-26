@@ -30,6 +30,9 @@ import {
   LOAD_REPORT_RAW_DATA_REQUESTED,
   SET_AGGREGATE_REPORT_ENTRIES,
   SET_SUBSTRING_FIELD_FILTER,
+  SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
+  SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
+  SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
   SET_EXACT_VALUE_FILTER,
   SET_REPORT_PARAMETERS,
   REEVALUATE_REPORT_REQUESTED,
@@ -61,6 +64,11 @@ const initState = Object.freeze({
   // map from field name to string to use for substring matching
   // example: { policyName: 'security', derivedComponentName: 'foo' }
   substringFilters: Object.freeze({}),
+  rawDataSubstringFilters: Object.freeze({}),
+
+  // numeric filters to allow matching for numeric values
+  rawDataNumericFilters: Object.freeze({}),
+
   selectedReport: null,
   selectedComponentIndex: null,
   policyTypeFilterEnabled: true,
@@ -126,6 +134,21 @@ export default function(state = initState, {type, payload}) {
       return updateDisplayedEntries(pathSet(['substringFilters', fieldName], filterString, state));
     }
 
+    case SET_RAW_DATA_SUBSTRING_FIELD_FILTER: {
+      const { fieldName, filterString } = payload;
+      return updateRawDataDisplayedEntries(pathSet(['rawDataSubstringFilters', fieldName], filterString, state));
+    }
+
+    case SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER: {
+      const { fieldName, filterValue } = payload;
+      return updateRawDataDisplayedEntries(pathSet(['rawDataNumericFilters', fieldName, 0], filterValue, state));
+    }
+
+    case SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER: {
+      const { fieldName, filterValue } = payload;
+      return updateRawDataDisplayedEntries(pathSet(['rawDataNumericFilters', fieldName, 1], filterValue, state));
+    }
+
     case SET_SORTING:
       return updateDisplayedEntries({...state, sortFields: payload});
 
@@ -183,11 +206,13 @@ function setRawDataInformation(state, rawDataEntries) {
  * based on `allEntries` and the sorting passed-in, if any.
  */
 function updateRawDataDisplayedEntries(state) {
-  const { reportRawData, rawDataSortFields } = state;
-
+  const { reportRawData, rawDataSortFields, rawDataSubstringFilters, rawDataNumericFilters } = state;
   if (reportRawData) {
     const { allEntries } = reportRawData;
-    const processEntries = sortReportEntries(rawDataSortFields);
+    const processEntries = pipe(
+        filterReportEntries(null, rawDataSubstringFilters, rawDataNumericFilters),
+        sortReportEntries(rawDataSortFields)
+    );
     const newDisplayedEntries = processEntries(allEntries);
 
     return pathSet(['reportRawData', 'displayedEntries'], newDisplayedEntries, state);
@@ -209,7 +234,7 @@ function updateDisplayedEntries(state) {
     const { allEntries } = selectedReport,
         processEntries = pipe(
             aggregate ? aggregateReportEntries : identity,
-            filterReportEntries(exactValueFilters, substringFilters),
+            filterReportEntries(exactValueFilters, substringFilters, null),
             sortReportEntries(sortFields)
         ),
         newDisplayedEntries = processEntries(allEntries);

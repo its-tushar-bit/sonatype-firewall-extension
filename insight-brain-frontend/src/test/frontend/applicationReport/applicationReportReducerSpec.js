@@ -40,6 +40,8 @@ describe('applicationReportReducer', function() {
           ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore']);
       expect(newState.exactValueFilters).toEqual({});
       expect(newState.substringFilters).toEqual({});
+      expect(newState.rawDataSubstringFilters).toEqual({});
+      expect(newState.rawDataNumericFilters).toEqual({});
       expect(newState.isUnknownJs).toBe(false);
       expect(newState.policyTypeFilterEnabled).toBe(true);
     });
@@ -119,6 +121,8 @@ describe('applicationReportReducer', function() {
           isUnknownJs: false
         },
         substringFilters: {},
+        rawDataSubstringFilters: {},
+        rawDataNumericFilters: {},
         selectedReport: null,
         selectedComponentIndex: null,
         policyTypeFilterEnabled: true,
@@ -419,7 +423,10 @@ describe('applicationReportReducer', function() {
         loading: true,
         other: otherObject
       });
-      const newState = reduce(state, {type: 'LOAD_REPORT_RAW_DATA_FULFILLED'});
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
+        payload: []
+      });
       expect(newState.loading).toBe(false);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -896,6 +903,271 @@ describe('applicationReportReducer', function() {
       }]);
 
       expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
+    });
+  });
+
+  describe('SET_RAW_DATA_SUBSTRING_FIELD_FILTER', function() {
+    it('sets the specified property on the rawDataSubstringFilters to the specified value', function() {
+      const state = Object.freeze({
+            rawDataSubstringFilters: Object.freeze({
+              otherField: 'asdf'
+            }),
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_RAW_DATA_SUBSTRING_FIELD_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterString: 'bar'
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        rawDataSubstringFilters: {
+          fooField: 'bar',
+          otherField: 'asdf'
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('filters the displayedEntries based on the resulting substringFilters', function() {
+      const state = Object.freeze({
+            rawDataSubstringFilters: Object.freeze({}),
+            reportRawData: Object.freeze({
+              allEntries: Object.freeze([{
+                otherField: 'asdfasdf',
+                fooField: 'qwerty'
+              }, {
+                otherField: 'asdfasdf',
+                fooField: 'bar'
+              }, {
+                otherField: '',
+                fooField: 'bar'
+              }, {
+                otherField: 'asdfasdf',
+                fooField: ''
+              }, {
+                otherField: 'dfasdfas',
+                fooField: 'foobarbaz'
+              }, {
+                otherField: 'bar',
+                fooField: 'asdf'
+              }])
+            })
+          }),
+          action = {
+            type: 'SET_RAW_DATA_SUBSTRING_FIELD_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterString: 'bar'
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState.reportRawData.displayedEntries).toEqual([{
+        otherField: 'asdfasdf',
+        fooField: 'bar'
+      }, {
+        otherField: '',
+        fooField: 'bar'
+      }, {
+        otherField: 'dfasdfas',
+        fooField: 'foobarbaz'
+      }]);
+
+      expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
+    });
+  });
+
+  describe('SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER', function() {
+    it('sets the max value on the array in rawDataNumericFilters to the specified value', function() {
+      const state = Object.freeze({
+            rawDataNumericFilters: {
+              otherField: [1, 5]
+            },
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterValue: 6
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        rawDataNumericFilters: {
+          fooField: [undefined, 6],
+          otherField: [1, 5]
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('doesnt overwrite the minimum value when you set the maximum value of rawDataNumericFilters', function() {
+      const state = Object.freeze({
+            rawDataNumericFilters: {
+              otherField: [1, 5],
+              fooField: [2]
+            },
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterValue: 6
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        rawDataNumericFilters: {
+          fooField: [2, 6],
+          otherField: [1, 5]
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('filters the displayedEntries based on a maximum numeric filter', function() {
+      const state = Object.freeze({
+            reportRawData: Object.freeze({
+              allEntries: Object.freeze([{
+                otherField: 'monkeybrains',
+                fooField: 1
+              }, {
+                otherField: 'asdfasdf',
+                fooField: 5
+              }, {
+                otherField: 'chocolate',
+                fooField: 7
+              }, {
+                otherField: 'asdfasdf'
+              }])
+            })
+          }),
+          action = {
+            type: 'SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterValue: 6
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState.reportRawData.displayedEntries).toEqual([{
+        otherField: 'monkeybrains',
+        fooField: 1
+      }, {
+        otherField: 'asdfasdf',
+        fooField: 5
+      }]);
+
+      expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
+    });
+  });
+
+  describe('SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER', function() {
+    it('sets the min value on the array in rawDataNumericFilters to the specified value', function() {
+      const state = Object.freeze({
+            rawDataNumericFilters: {
+              otherField: [1, 5]
+            },
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterValue: 4
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        rawDataNumericFilters: {
+          fooField: [4],
+          otherField: [1, 5]
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('doesnt overwrite the max value when you set the maximum value of rawDataNumericFilters', function() {
+      const state = Object.freeze({
+            rawDataNumericFilters: {
+              otherField: [1, 5],
+              fooField: [undefined, 9]
+            },
+            other: otherObject
+          }),
+          action = {
+            type: 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterValue: 4
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        rawDataNumericFilters: {
+          fooField: [4, 9],
+          otherField: [1, 5]
+        },
+        other: otherObject
+      });
+
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('filters the displayedEntries based on a minimum numeric filter', function() {
+      const state = Object.freeze({
+            reportRawData: Object.freeze({
+              allEntries: Object.freeze([{
+                otherField: 'monkeybrains',
+                fooField: 1
+              }, {
+                otherField: 'asdfasdf',
+                fooField: 5
+              }, {
+                otherField: 'chocolate',
+                fooField: 7
+              }, {
+                otherField: 'asdfasdf'
+              }])
+            })
+          }),
+          action = {
+            type: 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER',
+            payload: {
+              fieldName: 'fooField',
+              filterValue: 4
+            }
+          },
+          newState = reduce(state, action);
+
+      expect(newState.reportRawData.displayedEntries).toEqual([{
+        otherField: 'asdfasdf',
+        fooField: 5
+      }, {
+        otherField: 'chocolate',
+        fooField: 7
+      }]);
+
+      expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
     });
   });
 });

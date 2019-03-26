@@ -98,7 +98,7 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
   }
 }
 
-function mapStateToThis({applicationReport}) {
+export function mapStateToThis({applicationReport}) {
   const { policyName, derivedComponentName } = applicationReport.substringFilters;
 
   return {

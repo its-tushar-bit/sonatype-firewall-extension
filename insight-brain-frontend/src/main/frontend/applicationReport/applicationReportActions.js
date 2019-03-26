@@ -25,9 +25,12 @@ export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
 export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
 export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 
-// To be used for filters that are done by substring matching, as opposed to matchings a discreet set of values
+// To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
 export const SET_EXACT_VALUE_FILTER = 'SET_EXACT_VALUE_FILTER';
+export const SET_RAW_DATA_SUBSTRING_FIELD_FILTER = 'SET_RAW_DATA_SUBSTRING_FIELD_FILTER';
+export const SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER';
+export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER';
 export const SET_SORTING = 'SET_SORTING';
 export const SET_SORTING_RAW_DATA = 'SET_SORTING_RAW_DATA';
 
@@ -175,6 +178,27 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
+  function setRawDataStringFieldFilter(fieldName, filterString) {
+    return {
+      type: SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
+      payload: { fieldName, filterString }
+    };
+  }
+
+  function setRawDataNumericMaxFilter(fieldName, filterValue) {
+    return {
+      type: SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
+      payload: { fieldName, filterValue }
+    };
+  }
+
+  function setRawDataNumericMinFilter(fieldName, filterValue) {
+    return {
+      type: SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
+      payload: { fieldName, filterValue }
+    };
+  }
+
   function setExactValueFilter(fieldName, allowedValues) {
     return {
       type: SET_EXACT_VALUE_FILTER,
@@ -218,6 +242,9 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     setAggregateReportEntries,
     setStringFieldFilter,
     setExactValueFilter,
+    setRawDataStringFieldFilter,
+    setRawDataNumericMaxFilter,
+    setRawDataNumericMinFilter,
     setSorting,
     setSortingRawData,
     selectComponent

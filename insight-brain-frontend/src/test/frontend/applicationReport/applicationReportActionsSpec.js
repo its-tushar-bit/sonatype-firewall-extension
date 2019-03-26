@@ -485,6 +485,48 @@ describe('applicationReportActions', function() {
     );
   });
 
+  describe('setRawDataStringFieldFilter', function() {
+    it('returns a SET_RAW_DATA_SUBSTRING_FIELD_FILTER action with payload of specified fieldName and filterString',
+        function() {
+          const action = applicationReportActions.setRawDataStringFieldFilter('fooField', 'bar');
+
+          expect(action.type).toBe('SET_RAW_DATA_SUBSTRING_FIELD_FILTER');
+          expect(action.payload).toEqual({
+            fieldName: 'fooField',
+            filterString: 'bar'
+          });
+        }
+    );
+  });
+
+  describe('setRawDataNumericMaxFilter', function() {
+    it('returns a SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER action with correct payload',
+        function() {
+          const action = applicationReportActions.setRawDataNumericMaxFilter('fooField', 'bar');
+
+          expect(action.type).toBe('SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER');
+          expect(action.payload).toEqual({
+            fieldName: 'fooField',
+            filterValue: 'bar'
+          });
+        }
+    );
+  });
+
+  describe('setRawDataNumericMinFilter', function() {
+    it('returns a SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER action with correct payload',
+        function() {
+          const action = applicationReportActions.setRawDataNumericMinFilter('fooField', 'bar');
+
+          expect(action.type).toBe('SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER');
+          expect(action.payload).toEqual({
+            fieldName: 'fooField',
+            filterValue: 'bar'
+          });
+        }
+    );
+  });
+
   describe('reevaluateReport', function() {
     it('fires REEVALUATE_REPORT_FAILED action if the reevaluation request fails', function() {
       const store = SpecUtil.mockReduxStore(createMockState(false)),

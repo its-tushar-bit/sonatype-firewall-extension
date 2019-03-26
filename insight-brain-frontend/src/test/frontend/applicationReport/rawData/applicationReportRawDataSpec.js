@@ -1,4 +1,5 @@
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
+import { mapStateToThis } from '../../../../main/frontend/applicationReport/rawData/applicationReportRawData';
 
 describe('applicationReportRawData', function() {
 
@@ -110,6 +111,69 @@ describe('applicationReportRawData', function() {
 
       expect(vm.getLicenseTooltip(data)).toMatch(
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
+    });
+  });
+
+  describe('mapStateToThis', () => {
+    it('spreads the applicationReport object from state', () => {
+      let state = {
+        applicationReport: {
+          foo: 'bar',
+          rawDataSubstringFilters: {},
+          rawDataNumericFilters: {}
+        }
+      };
+
+      let output = mapStateToThis(state);
+      expect(output).toEqual(jasmine.objectContaining({ foo: 'bar' }));
+    });
+
+    it('maps substring filters to fields appropriately', () => {
+      let state = {
+        applicationReport: {
+          rawDataSubstringFilters: {
+            derivedComponentName: 'filter1',
+            licenseSortKey: 'filter2',
+            securityCode: 'filter3'
+          },
+          rawDataNumericFilters: {}
+        }
+      };
+
+      let output = mapStateToThis(state);
+      expect(output.derivedComponentNameSubstringFilter).toEqual('filter1');
+      expect(output.licenseSortKeySubstringFilter).toEqual('filter2');
+      expect(output.securityCodeSubstringFilter).toEqual('filter3');
+    });
+
+    it('maps the numeric filters from the cvssScore array to fields appropriately', () => {
+      let state = {
+        applicationReport: {
+          rawDataSubstringFilters: {},
+          rawDataNumericFilters: {
+            cvssScore: [1, 3.5]
+          }
+        }
+      };
+
+      let output = mapStateToThis(state);
+      expect(output.cvssMinNumericFilter).toEqual(1);
+      expect(output.cvssMaxNumericFilter).toEqual(3.5);
+    });
+
+    it('sets default cvss filters if filters inside rawDataNumericFilters are not arrays', () => {
+      let state = {
+        applicationReport: {
+          rawDataSubstringFilters: {},
+          rawDataNumericFilters: {
+            cvssScore: 9
+          }
+        }
+      };
+
+      let output = mapStateToThis(state);
+      expect(output.cvssMinNumericFilter).toBeUndefined();
+      expect(output.cvssMaxNumericFilter).toBeUndefined();
     });
   });
 

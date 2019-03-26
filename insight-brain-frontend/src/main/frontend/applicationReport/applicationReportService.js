@@ -8,19 +8,23 @@ import {
   always,
   append,
   apply,
+  both,
   complement,
   compose,
   concat,
   contains,
   curry,
+  defaultTo,
   either,
   filter,
   flatten,
   flip,
   identity,
   groupBy,
+  gte,
   into,
   isNil,
+  lte,
   join,
   map,
   mapObjIndexed,
@@ -325,8 +329,10 @@ export const aggregateReportEntries = pipe(
  * @param exactValueFilters an object mapping from property name to Set of allowed values
  * @param substringFilters an object mapping from property name to substring to match.
  */
-export const filterReportEntries = curry(function filterReportEntries(exactValueFilters, substringFilters, entries) {
-  const overallFilter = compose(filterByExactValues(exactValueFilters), filterBySubstring(substringFilters));
+export const filterReportEntries = curry(function filterReportEntries(exactValueFilters, substringFilters,
+                                                                      rawDataNumericFilters, entries) {
+  const overallFilter = compose(filterByExactValues(exactValueFilters), filterBySubstring(substringFilters),
+      filterBetweenValues(rawDataNumericFilters));
 
   return into([], overallFilter, entries);
 });
@@ -366,7 +372,11 @@ const filterByExactValues = makeFilterTransducer(allowedValues =>
 const filterBySubstring = makeFilterTransducer(filterString => {
   const lowerCasedFilterString = toLower(filterString);
 
-  return pipe(toLower, contains(lowerCasedFilterString));
+  return pipe(defaultTo(''), toLower, contains(lowerCasedFilterString));
+});
+
+const filterBetweenValues = makeFilterTransducer(([min, max]) => {
+  return (min == null && max == null) ? always(true) : both(gte(__, min || 0), lte(__, max || 10));
 });
 
 /**

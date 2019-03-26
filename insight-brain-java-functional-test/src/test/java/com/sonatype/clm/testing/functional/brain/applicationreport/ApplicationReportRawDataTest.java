@@ -205,6 +205,69 @@ public class ApplicationReportRawDataTest
         "CVE-2018-1270", "9.8");
   }
 
+  @Test
+  public void testFiltering() {
+    ResultTable resultTable = rawDataPage.resultTable();
+    resultTable.resultRows().shouldHaveSize(100);
+
+    // filter component name
+    rawDataPage.headers().componentFilterInput().setValue("java");
+    resultTable.resultRows().shouldHaveSize(6);
+    ResultRow firstRow = resultTable.resultRow(1);
+    ResultRow lastRow = resultTable.resultRow(6);
+    checkRawDataRow(firstRow, "java2html : j2h : 1.3.1", "Not Declared", ", No Sources", "", "");
+    ScrollUtil.scrollIntoView(lastRow.getElement());
+    checkRawDataRow(lastRow, "javax.transaction : jta : 1.0.1b", "Not Declared", ", No Sources", "", "");
+    rawDataPage.headers().componentFilterInput().clear();
+
+    // filter license
+    rawDataPage.headers().licenseFilterInput().setValue("declared");
+    resultTable.resultRows().shouldHaveSize(11);
+    firstRow = resultTable.resultRow(1);
+    lastRow = resultTable.resultRow(11);
+    checkRawDataRow(firstRow, "apache-collections : commons-collections : 3.1", "Not Declared", ", No Sources",
+        "sonatype-2015-0002", "9.0");
+    checkRawDataRow(lastRow, "javax.transaction : jta : 1.0.1b", "Not Declared", ", No Sources", "", "");
+    rawDataPage.headers().licenseFilterInput().clear();
+
+    // filter security issue
+    rawDataPage.headers().securityCodeFilterInput().setValue("005");
+    resultTable.resultRows().shouldHaveSize(6);
+    firstRow = resultTable.resultRow(1);
+    lastRow = resultTable.resultRow(6);
+    checkRawDataRow(firstRow, "angular 1.2.17", "MIT", ", Not Supported", "sonatype-2014-0058", "3.6");
+    checkRawDataRow(lastRow, "org.springframework : spring-web : 3.2.4.release", "Apache-2.0", null, "CVE-2014-0054",
+        "6.8");
+
+    // intersection of multiple filters
+    rawDataPage.headers().licenseFilterInput().setValue("Apache");
+    resultTable.resultRows().shouldHaveSize(2);
+    firstRow = resultTable.resultRow(1);
+    lastRow = resultTable.resultRow(2);
+    checkRawDataRow(firstRow, "commons-fileupload : commons-fileupload : 1.2.2", "Apache-2.0", null, "CVE-2014-0050",
+        "7.5");
+    checkRawDataRow(lastRow, "org.springframework : spring-web : 3.2.4.release", "Apache-2.0", null, "CVE-2014-0054",
+        "6.8");
+    rawDataPage.headers().licenseFilterInput().clear();
+    rawDataPage.headers().securityCodeFilterInput().clear();
+
+    // filter cvssScore
+    rawDataPage.headers().cvssMinFilterInput().setValue("9");
+    rawDataPage.headers().cvssMaxFilterInput().setValue("9.5");
+    resultTable.resultRows().shouldHaveSize(2);
+    firstRow = resultTable.resultRow(1);
+    lastRow = resultTable.resultRow(2);
+    checkRawDataRow(firstRow, "apache-collections : commons-collections : 3.1", "Not Declared", ", No Sources",
+        "sonatype-2015-0002", "9.0");
+    checkRawDataRow(lastRow, " hsqldb : hsqldb : 1.8.0.7", "BSD-3-Clause", ", BSD", "CVE-2007-4575", "9.3");
+    rawDataPage.headers().securityCodeFilterInput().clear();
+
+    // make sure no results row shows up if all results are filtered out
+    rawDataPage.headers().licenseFilterInput().setValue("Garbage");
+    resultTable.resultRows().shouldHaveSize(1);
+    rawDataPage.noResultsRow().shouldHave(exactText("No Results"));
+  }
+
   private void checkRawDataRow(final ResultRow row,
                                final String componentName,
                                final String declaredLicenses,

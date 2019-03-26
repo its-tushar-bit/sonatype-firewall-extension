@@ -30,6 +30,26 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Vuln
       vm.loadReportRawData();
     },
 
+    onRawDataComponentNameFilterChange() {
+      vm.setRawDataStringFieldFilter('derivedComponentName', vm.derivedComponentNameSubstringFilter);
+    },
+
+    onRawDataLicenseFilterChange() {
+      vm.setRawDataStringFieldFilter('licenseSortKey', vm.licenseSortKeySubstringFilter);
+    },
+
+    onRawDataSecurityCodeFilterChange() {
+      vm.setRawDataStringFieldFilter('securityCode', vm.securityCodeSubstringFilter);
+    },
+
+    onRawDataCVSSMinFilterChange() {
+      vm.setRawDataNumericMinFilter('cvssScore', vm.cvssMinNumericFilter);
+    },
+
+    onRawDataCVSSMaxFilterChange() {
+      vm.setRawDataNumericMaxFilter('cvssScore', vm.cvssMaxNumericFilter);
+    },
+
     getLicenseTooltip(rawDataEntry) {
       const placeholder = '-',
           joiner = pipe(defaultTo([]), join(', ')),
@@ -54,8 +74,24 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Vuln
   });
 }
 
-function mapStateToThis({applicationReport}) {
-  return applicationReport;
+export function mapStateToThis({applicationReport}) {
+  const { derivedComponentName, licenseSortKey, securityCode } = applicationReport.rawDataSubstringFilters;
+  const { cvssScore } = applicationReport.rawDataNumericFilters;
+  let cvssScoreMin, cvssScoreMax;
+
+  if (cvssScore && cvssScore.length) {
+    cvssScoreMin = cvssScore[0];
+    cvssScoreMax = cvssScore[1];
+  }
+
+  return {
+    ...applicationReport,
+    derivedComponentNameSubstringFilter: derivedComponentName,
+    licenseSortKeySubstringFilter: licenseSortKey,
+    securityCodeSubstringFilter: securityCode,
+    cvssMinNumericFilter: cvssScoreMin,
+    cvssMaxNumericFilter: cvssScoreMax
+  };
 }
 
 ApplicationReportRawController.$inject = [

@@ -1,6 +1,7 @@
 import { range } from 'ramda';
 
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
+import { mapStateToThis } from '../../../../main/frontend/applicationReport/results/applicationReportResults';
 
 describe('applicationReportResults', function() {
 
@@ -167,6 +168,35 @@ describe('applicationReportResults', function() {
       vm.selectedReport = { totalArtifactCount: 300, knownArtifactCount: 151 };
 
       expect(vm.coveragePercent()).toBe(50);
+    });
+  });
+
+  describe('mapStateToThis', () => {
+    it('spreads the applicationReport object from state', () => {
+      let state = {
+        applicationReport: {
+          foo: 'bar',
+          substringFilters: {}
+        }
+      };
+
+      let output = mapStateToThis(state);
+      expect(output).toEqual(jasmine.objectContaining({ foo: 'bar' }));
+    });
+
+    it('maps substring filters to fields appropriately', () => {
+      let state = {
+        applicationReport: {
+          substringFilters: {
+            derivedComponentName: 'filter1',
+            policyName: 'filter2'
+          }
+        }
+      };
+
+      let output = mapStateToThis(state);
+      expect(output.derivedComponentNameSubstringFilter).toEqual('filter1');
+      expect(output.policyNameSubstringFilter).toEqual('filter2');
     });
   });
 

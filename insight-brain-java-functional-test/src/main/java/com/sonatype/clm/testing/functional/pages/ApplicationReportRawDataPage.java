@@ -41,6 +41,10 @@ public class ApplicationReportRawDataPage
     return new ResultTable();
   }
 
+  public SelenideElement noResultsRow() {
+    return child(".iq-cell--empty");
+  }
+
   public VulnerabilityModal vulnerabilityModal() {
     return new VulnerabilityModal();
   }
@@ -136,6 +140,26 @@ public class ApplicationReportRawDataPage
 
     public IqSortingHeader cvssScoreHeader() {
       return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-cvss a"));
+    }
+
+    public SelenideElement componentFilterInput() {
+      return child(".iq-cell--report-raw-data-component input");
+    }
+
+    public SelenideElement licenseFilterInput() {
+      return child(".iq-cell--report-raw-data-license input");
+    }
+
+    public SelenideElement securityCodeFilterInput() {
+      return child(".iq-cell--report-raw-data-security-code input");
+    }
+
+    public SelenideElement cvssMinFilterInput() {
+      return child("#raw-data-cvss-min-filter");
+    }
+
+    public SelenideElement cvssMaxFilterInput() {
+      return child("#raw-data-cvss-max-filter");
     }
   }
 }

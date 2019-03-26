@@ -51,6 +51,7 @@ public class ApiReportDataResourceV2AuditTest
   }
 
   private HttpRequest reportDataRequest(String appId, String scanId) {
-    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).parameter(appId, scanId);
+    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appId, scanId);
   }
 }

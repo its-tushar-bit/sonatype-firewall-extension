@@ -45,7 +45,7 @@ public class ScanUploaderTest
     scanUploader.augmentScanReceipt("app id", receipt);
     assertThat(receipt.getReportUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id");
     assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
-    assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id");
+    assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id/raw");
     assertThat(receipt.getReportTimeoutInSeconds()).isEqualTo(900);
   }
 

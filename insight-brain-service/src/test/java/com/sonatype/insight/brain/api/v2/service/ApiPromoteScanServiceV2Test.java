@@ -259,7 +259,7 @@ public class ApiPromoteScanServiceV2Test
     assertThat(scanStatus.reportPdfUrl)
         .isEqualTo(String.format("ui/links/application/%s/report/%s/pdf", app.getPublicId(), NEW_SCAN_ID));
     assertThat(scanStatus.reportDataUrl)
-        .isEqualTo(String.format("api/v2/applications/%s/reports/%s", app.getPublicId(), NEW_SCAN_ID));
+        .isEqualTo(String.format("api/v2/applications/%s/reports/%s/raw", app.getPublicId(), NEW_SCAN_ID));
   }
 
   @Test

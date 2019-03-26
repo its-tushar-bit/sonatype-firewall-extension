@@ -88,7 +88,6 @@ public class SecurityModule
     manager.addFilter("authcBasic", new UserFriendlyBasicHttpAuthenticationFilter());
     manager.addFilter("secureCookies", new SecureCookiesFilter());
     manager.addFilter("antiCsrf", antiCsrfFilter);
-    manager.addFilter("noSessionAllowed", new NoSessionAllowedFilter());
     manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
     manager.addFilter("noSessionReverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication, false));
     manager.addFilter("authcNoChallengeBasic", new NoChallengeBasicHttpAuthenticationFilter());
@@ -115,9 +114,10 @@ public class SecurityModule
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects
     manager.createChain("/rest/config/systemNotice/fetch", anonFilters);
-    // public REST API, no sessions supported/allowed
-    manager.createChain("/api/**", "noSessionAllowed, noSessionCreation, antiCsrf["
-        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], noSessionReverseProxy, authcNoChallengeBasic");
+
+    // public REST API
+    manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
+        + "], noSessionReverseProxy, authcNoChallengeBasic");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, antiCsrf["

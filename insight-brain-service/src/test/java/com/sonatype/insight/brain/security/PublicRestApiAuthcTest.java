@@ -35,25 +35,57 @@ public class PublicRestApiAuthcTest
   };
 
   @Test
-  public void testSessionCookieInsufficientForAuthentication() throws Exception {
+  public void testSessionCookieSufficientWithoutCsrfTokenForSafeRequests() throws Exception {
     HttpResponse response = restRequest().path(UserSessionResource.RESOURCE_PATH).post();
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();
     assertThat(sessionCookie).isNotNull();
 
-    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
+    HttpRequest request =
+        restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().noCsrfToken().cookie(sessionCookie);
     response = request.get();
-    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
+    assertResponseStatus(404, response);
+  }
 
+  @Test
+  public void testSessionCookieInsufficientWithoutCsrfTokenForUnsafeRequests() throws Exception {
+    HttpResponse response = restRequest().path(UserSessionResource.RESOURCE_PATH).post();
+    assertResponseStatus(204, response);
+
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie).isNotNull();
+
+    HttpRequest request =
+        restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().noCsrfToken().cookie(sessionCookie);
     response = request.put();
-    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
+    assertResponseStatus(401, response);
 
     response = request.post();
-    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
+    assertResponseStatus(401, response);
 
     response = request.delete();
-    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testSessionCookieWithCsrfTokenSufficientForUnsafeRequests() throws Exception {
+    HttpResponse response = restRequest().path(UserSessionResource.RESOURCE_PATH).post();
+    assertResponseStatus(204, response);
+
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie).isNotNull();
+
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().csrfToken("nonce", "nonce")
+        .cookie(sessionCookie);
+    response = request.put();
+    assertResponseStatus(404, response);
+
+    response = request.post();
+    assertResponseStatus(404, response);
+
+    response = request.delete();
+    assertResponseStatus(404, response);
   }
 
   @Test

@@ -105,6 +105,8 @@ describe('HttpInterceptors.js', function() {
     $httpBackend.expectGET('/unrest/test').respond(200);
     $httpBackend.expectPOST('/test/unrest/test').respond(200);
     $httpBackend.expectGET('test.notjson').respond(200);
+    $httpBackend.expectGET(SpecUtil.toRegExp('/api/test')).respond(200);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('/test/api/test')).respond(200);
 
     $http.get('/rest/test');
     $http.post('/test/rest/test');
@@ -112,6 +114,8 @@ describe('HttpInterceptors.js', function() {
     $http.get('/unrest/test');
     $http.post('/test/unrest/test');
     $http.get('test.notjson');
+    $http.get('/api/test');
+    $http.post('/test/api/test');
 
     $httpBackend.flush();
   }));

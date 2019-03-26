@@ -41,12 +41,11 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '
 ]);
 
 // This is the cache busting interceptor factory, which handles adding a timestamp query parameter to each request
-// note it's not currently in use, would need to be pushed into the interceptor list in the httpInterceptors.config
-// call below
 httpInterceptors.factory('cacheBusterHttpInterceptor', [function() {
   return {
     request: function(config) {
-      if ((config.url.indexOf('/rest/') > -1 || config.url.indexOf('.json') > -1) && config.url.indexOf('timestamp=') < 0) {
+      if ((config.url.indexOf('/rest/') > -1 || config.url.indexOf('/api/') > -1 || config.url.indexOf('.json') > -1) &&
+          config.url.indexOf('timestamp=') < 0) {
         config.params = config.params || {};
         config.params.timestamp = new Date().getTime();
       }

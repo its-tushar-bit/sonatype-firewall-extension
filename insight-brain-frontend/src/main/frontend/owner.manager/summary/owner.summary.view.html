@@ -112,6 +112,11 @@
           License Threat Groups
         </a>
       </li>
+      <li ng-if="vm.isOrg" class="iq-nav-pills__pill">
+        <a data-toggle="pill" id="owner-data-retention-button" data-target="#owner-pill-retention" ng-href="">
+          Data Retention
+        </a>
+      </li>
       <li class="iq-nav-pills__pill">
         <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">Access</a>
       </li>
@@ -391,6 +396,8 @@
       </div>
     </div>
   </div>
+
+  <retention-tile></retention-tile>
 
   <access-tile id="owner-pill-access" pad-to-top></access-tile>
 </div>

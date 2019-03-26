@@ -1,0 +1,77 @@
+<div class="iq-tile">
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <i class="fa fa-archive size-20px iq-tile-header__icon"></i>
+      <h1>Data Retention</h1>
+    </div>
+  </div>
+</div>
+<div id="retention-editor"
+     class="iq-tile iq-tile--form-tile"
+     load-wrapper="vm.error"
+     loading="!vm.parentApplicationReports && !vm.applicationReports"
+     reload="vm.load()">
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <h2>Application Reports</h2>
+    </div>
+  </div>
+  <div class="iq-tile-content">
+    <form name="retentionForm"
+          class="iq-form"
+          role="form"
+          ng-submit="vm.isDirty() && vm.save()"
+          form-mask="vm.retentionEditorMask"
+          mask-attach-to-body>
+      <div ng-repeat="(stage, retention) in vm.retention">
+        <h2 class="iq-tile__section-header">{{::stage}}</h2>
+        <fieldset class="iq-form-group iq-radio-group">
+          <iq-radio ng-if="!vm.isRootOrganization" model="retention.formValue" value="'inherit'">
+            Inherit ({{::vm.getParentMaxReportsAndMaxAge(stage)}})
+          </iq-radio>
+          <iq-radio model="retention.formValue" value="'dontPurge'">Don't Purge</iq-radio>
+          <iq-radio model="retention.formValue" value="'custom'">Custom</iq-radio>
+        </fieldset>
+        <div class="iq-form-row" ng-if="retention.formValue === 'custom'">
+          <div class="iq-form-group iq-form-group--inputs-prefix">
+            <label class="iq-label">Smaller of</label>
+          </div>
+          <div class="iq-form-group">
+            <label class="iq-label">Max Age</label>
+            <age-in-days-input name="{{::stage}}"
+                               ng-model="retention.maxAgeInDays"
+                               is-required="!retention.maxCount"
+                               max="{{::vm.MAX_AGE_IN_DAYS}}">
+            </age-in-days-input>
+          </div>
+          <div class="iq-form-group iq-form-group--inputs-prefix">
+            <label class="iq-label">or</label>
+          </div>
+          <div class="iq-form-group">
+            <label class="iq-label" for="{{::(stage + '-max-number-input')}}">Max Number of Reports</label>
+            <input id="{{::(stage + '-max-number-input')}}"
+                   name="{{::(stage + '-count-input')}}"
+                   class="iq-text-input"
+                   ng-model="retention.maxCount"
+                   ng-required="!retention.maxAgeInDays"
+                   clm-input
+                   type="number"
+                   min="{{::vm.MIN_REPORTS}}"
+                   max="{{::vm.MAX_REPORTS}}">
+          </div>
+        </div>
+      </div>
+      <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+        <button id="save-retention-button"
+                class="iq-btn iq-btn--primary"
+                type="submit"
+                submit-validation
+                submit-dirty="vm.isDirty()"
+                submit-tooltip-target="body"
+                submit-type="update">
+          Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

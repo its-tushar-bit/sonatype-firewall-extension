@@ -227,6 +227,10 @@ locationModule.factory('CLMContextLocations', [
         return `${baseUrl.get()}/rest/policyViolationGrandfathering/${getServicePathWithId()}`;
       },
 
+      getRetentionPoliciesUrl: function(orgId) {
+        return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
+      },
+
       isApplication: isApplication,
       isOrganization: isOrganization,
       isRootOrg: isRootOrg,

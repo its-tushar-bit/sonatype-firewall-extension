@@ -10,7 +10,9 @@ export default function AgeInDaysInput() {
     restrict: 'E',
     scope: {
       ageInDaysModel: '=ngModel',
-      name: '@'
+      ageInDaysRequired: '<?isRequired',
+      name: '@',
+      max: '@'
     },
     template,
     controller: AgeInDaysInputController,
@@ -38,6 +40,11 @@ function AgeInDaysInputController($scope) {
     {name: 'Days', modifier: 1}, {name: 'Weeks', modifier: 7}, {name: 'Months', modifier: 30},
     {name: 'Years', modifier: 365}
   ];
+  vm.isRequired = isRequired;
+  vm.formatMax = formatMax;
+  if (vm.max !== undefined) {
+    vm.max = parseInt(vm.max, 10);
+  }
 
   $scope.$watch('vm.modifier', function(newModifier, oldModifier) {
     if (vm.ageInDaysModel) {
@@ -54,7 +61,15 @@ function AgeInDaysInputController($scope) {
   }
 
   function parseAgeToDays(age) {
-    return (parseInt(age) * vm.modifier).toString();
+    return Number.isInteger(age) ? (parseInt(age) * vm.modifier).toString() : null;
+  }
+
+  function isRequired() {
+    return vm.ageInDaysRequired === undefined ? true : vm.ageInDaysRequired;
+  }
+
+  function formatMax() {
+    return vm.max === undefined ? undefined : Math.floor(vm.max / vm.modifier);
   }
 }
 

@@ -62,4 +62,37 @@ describe('age.in.days.input.directive.spec.js', function() {
     expect(element.find('input[type="number"]').val()).toEqual('100');
     expect(vm.ageInDaysModel).toEqual('3000');
   });
+
+  describe('isRequired', function() {
+    it('returns true if vm.ageInDaysRequired is undefined', function() {
+      vm.ageInDaysRequired = undefined;
+      expect(vm.isRequired()).toBe(true);
+    });
+
+    it('returns vm.ageInDaysRequired if it is defined', function() {
+      vm.ageInDaysRequired = false;
+      expect(vm.isRequired()).toBe(false);
+      vm.ageInDaysRequired = true;
+      expect(vm.isRequired()).toBe(true);
+    });
+  });
+
+  describe('formatMax', function() {
+    it('returns undefined if vm.max is undefined', function() {
+      vm.max = undefined;
+      expect(vm.formatMax()).toBeUndefined();
+    });
+
+    it('returns the maximum for the current modifier if vm.max is defined', function() {
+      vm.max = 18249;
+      vm.modifier = 365;
+      expect(vm.formatMax()).toBe(49);
+      vm.modifier = 30;
+      expect(vm.formatMax()).toBe(608);
+      vm.modifier = 7;
+      expect(vm.formatMax()).toBe(2607);
+      vm.modifier = 1;
+      expect(vm.formatMax()).toBe(18249);
+    });
+  });
 });

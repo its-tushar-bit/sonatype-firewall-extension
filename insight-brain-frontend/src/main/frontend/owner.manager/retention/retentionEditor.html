@@ -26,9 +26,9 @@
       <div ng-repeat="(stage, retention) in vm.retention">
         <h2 class="iq-tile__section-header">{{::stage}}</h2>
         <fieldset class="iq-form-group iq-radio-group">
-          <iq-radio ng-if="!vm.isRootOrganization" model="retention.formValue" value="'inherit'">
-            Inherit ({{::vm.getParentMaxReportsAndMaxAge(stage)}})
-          </iq-radio>
+          <iq-radio ng-if="!vm.isRootOrganization" model="retention.formValue" value="'inherit'"><!--
+         -->Inherit ({{::vm.getParentMaxReportsAndMaxAge(stage)}})<!--
+       --></iq-radio>
           <iq-radio model="retention.formValue" value="'dontPurge'">Don't Purge</iq-radio>
           <iq-radio model="retention.formValue" value="'custom'">Custom</iq-radio>
         </fieldset>

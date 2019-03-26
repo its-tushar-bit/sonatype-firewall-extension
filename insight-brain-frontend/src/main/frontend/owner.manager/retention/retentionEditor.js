@@ -83,7 +83,8 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
     save() {
       vm.submitError = undefined;
       const newApplicationReports = {stages: {}};
-      for (const [stage, retention] of Object.entries(vm.retention)) {
+      for (const stage in vm.retention) {
+        const retention = vm.retention[stage];
         const newApplicationReport = {};
         switch (retention.formValue) {
           case 'inherit': {
@@ -125,7 +126,8 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
     // for each stage (e.g. build) set the value to select the button representing its data retention configuration
     // (vm.applicationReports corresponds to ApiDataRetentionPoliciesDTO.applicationReports)
     vm.retention = {};
-    for (const [stage, retention] of Object.entries(vm.applicationReports.stages)) {
+    for (const stage in vm.applicationReports.stages) {
+      const retention = vm.applicationReports.stages[stage];
       vm.retention[stage] = {};
       const stageRetention = vm.retention[stage];
       if (retention.inheritPolicy) {
@@ -147,8 +149,9 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
         let invalid = !/^\d+$/.test(splitMaxAge[0]);
         if (!invalid) {
           invalid = true;
-          for (const [timeUnit, multiplier] of Object.entries(timeUnitMultipliers)) {
-            if (splitMaxAge[1].startsWith(timeUnit)) {
+          for (const timeUnit in timeUnitMultipliers) {
+            const multiplier = timeUnitMultipliers[timeUnit];
+            if (splitMaxAge[1].indexOf(timeUnit) >= 0) {
               stageRetention.maxAgeInDays = (splitMaxAge[0] * multiplier).toString();
               invalid = false;
               break;

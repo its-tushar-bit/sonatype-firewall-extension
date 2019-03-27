@@ -21,13 +21,15 @@ thead {
   }
 }
 
-.iq-table-row {
-  &:last-child {
+tbody {
+  .iq-table-row:last-child {
     .iq-cell {
       border-bottom: 1px solid $iq-grey-1;
     }
   }
+}
 
+.iq-table-row {
   &.iq-clickable {
     &:last-child {
       &:hover .iq-cell {
@@ -90,7 +92,7 @@ thead {
     border-color: $iq-grey-1;
   }
 
-  &.iq-th--selected, &.selected-column {
+  &.iq-cell--selected, &.selected-column {
     background-color: $iq-grey-2;
   }
 
@@ -205,12 +207,15 @@ thead {
 
 // used on pages where we want an input field at the top of the table column to filter the column contents
 // it is expected that the column filters will be located in the <thead>
-.iq-table-row--filters {
-  border-color: transparent;
+thead {
+  .iq-table-row--filters {
+    border-color: transparent;
+    height: $iq-table-header-filter-row-height;
+  }
 }
 
 .iq-cell--filter {
-  $height: 30px;
+  $height: 35px;
 
   border-color: transparent;
   height: $height;
@@ -254,13 +259,6 @@ thead {
 // This custom ".iq-scrollable--mypage" should invoke the `table-fixed-widths` mixin with the desired number
 // of columns in order to get width styles for that many equal-width columns. See the gallery for an example
 
-// Override default values
-
-// Double class required because widgets SCSS loads before tiles SCSS
-.iq-tile.iq-tile--fixed-table {
-  padding-right: 0;
-}
-
 .iq-tile-content--fixed-table {
   position: relative;
 }
@@ -279,7 +277,12 @@ thead {
     display: block;
   }
 
+  .iq-cell {
+    box-sizing: border-box;
+  }
+
   .iq-table-row {
+    box-sizing: border-box;
     display: block;
     width: 100%;
   }
@@ -289,38 +292,29 @@ thead {
   @include semi-bold();
 
   background-color: $iq-off-white;
-  box-shadow: 0px 2px 5px 0px $iq-grey-1;
+  box-shadow: 0px 5px 5px 0px transparentize($iq-grey-1, .50) ;
   display: block;
   font-size: 14px;
   position: absolute;
   top: 0;
   left: 0;
   text-transform: uppercase;
-  width: calc(100% - 1px);
+  width: 100%;
   z-index: $iq-dashboard-headers-zindex;
-
-  .iq-table-row {
-    border: none;
-  }
 
   .iq-cell--header {
     display: inline-block;
-    height: $iq-table-header-row-height;
-    line-height: $iq-table-header-row-height;
+    // 2px is so it doesn't cover over the table row borders
+    height: $iq-table-header-row-height - 2px;
+    line-height: $iq-table-header-row-height - 2px;
 
     &:first-child {
       border-left: 1px solid $iq-grey-1;
-      line-height: 40px;
-    }
-
-    &:last-child {
-      // 8px + 4px = 12px used on all preceeding cells
-      border-right: 8px solid $iq-off-white;
-      padding-right: 4px;
     }
   }
 
   .iq-cell--filter {
+    border-left: 1px solid transparent;
     display: inline-block;
   }
 }
@@ -329,6 +323,7 @@ thead {
   display: block;
   padding-top: $iq-table-header-row-height; // pushes top row from below header
   position: relative;
+  width: 100%;
 
   .iq-cell {
     border-left: 1px solid $iq-off-white;

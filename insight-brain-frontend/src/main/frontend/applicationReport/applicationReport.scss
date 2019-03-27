@@ -66,6 +66,12 @@ $iq-application-report-policy-name-filter-width:
     .iq-table-row {
       display: block;
       width: 100%;
+
+      &:last-child {
+        .iq-cell {
+          border-bottom: none;
+        }
+      }
     }
   }
 

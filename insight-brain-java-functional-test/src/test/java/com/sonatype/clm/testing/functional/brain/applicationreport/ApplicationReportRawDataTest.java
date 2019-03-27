@@ -94,6 +94,8 @@ public class ApplicationReportRawDataTest
     resultTable.shouldBe(visible);
     resultTable.resultRows().shouldHaveSize(100);
 
+    eyesWatcher.eyesCheck("Test Raw Data View");
+
     ResultRow springSecurity = resultTable.resultRow(94);
     ScrollUtil.scrollIntoView(springSecurity.getElement());
     checkRawDataRow(springSecurity, "org.springframework.security : spring-security-web : 3.2.4.release", "Apache-2.0",
@@ -115,6 +117,8 @@ public class ApplicationReportRawDataTest
     resultRowXpp3.observedLicenses().hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("Declared:Non-Standard, Public Domain, XPP-1.1.1 Observed:XPP-1.2"));
+
+    eyesWatcher.eyesCheck("Test Raw Data License Tooltip");
   }
 
   @Test
@@ -131,6 +135,9 @@ public class ApplicationReportRawDataTest
     vulnerabilityModal.shouldBe(visible);
     vulnerabilityModal.header().shouldHave(text("Vulnerability Information"));
     vulnerabilityModal.content().$("#somedivfortest").shouldHave(text("sonatype-2017-0507"));
+
+    eyesWatcher.eyesCheck("Test Raw Data Vulnerability Modal");
+
     vulnerabilityModal.closeButton().shouldHave(text("Close")).click();
     vulnerabilityModal.shouldNot(exist);
   }
@@ -266,6 +273,8 @@ public class ApplicationReportRawDataTest
     rawDataPage.headers().licenseFilterInput().setValue("Garbage");
     resultTable.resultRows().shouldHaveSize(1);
     rawDataPage.noResultsRow().shouldHave(exactText("No Results"));
+
+    eyesWatcher.eyesCheck("Test Raw Data No Results");
   }
 
   private void checkRawDataRow(final ResultRow row,

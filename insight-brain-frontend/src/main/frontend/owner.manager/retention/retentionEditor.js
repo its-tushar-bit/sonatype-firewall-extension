@@ -118,7 +118,14 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
     },
 
     isDirty() {
-      return !angular.equals(originalRetention, vm.retention);
+      for (const stage in vm.retention) {
+        if (originalRetention[stage].formValue !== vm.retention[stage].formValue ||
+            (originalRetention[stage].formValue === 'custom' &&
+                !angular.equals(originalRetention[stage], vm.retention[stage]))) {
+          return true;
+        }
+      }
+      return false;
     }
   });
 

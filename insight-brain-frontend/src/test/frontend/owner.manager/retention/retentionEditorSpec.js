@@ -456,6 +456,29 @@ describe('retentionEditor', function() {
 
       expect(vm.isDirty()).toBe(true);
     });
+
+    it('returns false if the non-custom form value has not changed even if the custom inputs have', function() {
+      getRetentionPoliciesDeferred.resolve({
+        applicationReports: {
+          stages: {
+            stage: {
+              enablePurging: false
+            }
+          }
+        }
+      });
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+
+      $scope.$digest();
+
+      expect(vm.retention['stage'].formValue).toBe('dontPurge');
+      expect(vm.isDirty()).toBe(false);
+
+      vm.retention['stage'].maxAgeInDays = '1';
+      vm.retention['stage'].maxCount = '2';
+
+      expect(vm.isDirty()).toBe(false);
+    });
   });
 
   describe('save', function() {

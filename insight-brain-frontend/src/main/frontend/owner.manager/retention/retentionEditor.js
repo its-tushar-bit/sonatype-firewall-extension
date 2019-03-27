@@ -48,7 +48,7 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
       if (!vm.isRootOrganization) {
         promises.push(retentionService.getRootOrganizationRetentionPolicies());
       }
-      $q.all(promises).then(function(results) {
+      return $q.all(promises).then(function(results) {
         vm.applicationReports = results[0].applicationReports;
         if (!vm.isRootOrganization) {
           vm.parentApplicationReports = results[1].applicationReports;
@@ -112,9 +112,9 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
         newApplicationReports.stages[stage] = newApplicationReport;
       }
       const payload = {applicationReports: newApplicationReports};
-      vm.retentionEditorMask.wrap(retentionService.setRetentionPolicies(payload)).then(vm.load, function(error) {
+      vm.retentionEditorMask.wrap(retentionService.setRetentionPolicies(payload).then(vm.load, function(error) {
         vm.submitError = Messages.getHttpErrorMessage(error);
-      });
+      }));
     },
 
     isDirty() {

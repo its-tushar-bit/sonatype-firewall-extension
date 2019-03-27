@@ -40,7 +40,7 @@ describe('retentionEditor', function() {
       retentionService: mockRetentionService
     });
     vm.retentionEditorMask = {
-      wrap: SpecUtil.promiseWrapper($q)
+      wrap: jasmine.createSpy('wrap')
     };
   }));
 
@@ -625,6 +625,47 @@ describe('retentionEditor', function() {
 
       expect(vm.submitError).toBe('not found');
       expect(vm.error).toBeUndefined();
+    });
+
+    it('waits for the saving and loading requests to resolve before clearing the mask', function() {
+      getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+
+      $scope.$digest();
+
+      expect(vm.retention['stage 1'].formValue).toBe('dontPurge');
+      vm.retention['stage 1'].formValue = 'inherit';
+
+      expect(vm.isDirty()).toBe(true);
+
+      vm.save();
+
+      getRetentionPoliciesDeferred = $q.defer();
+      getRootOrganizationRetentionPoliciesDeferred = $q.defer();
+
+      $scope.$digest();
+
+      expect(vm.retentionEditorMask.wrap).toHaveBeenCalled();
+      const promise = vm.retentionEditorMask.wrap.calls.first().args[0];
+      const isPromiseResolved = jasmine.createSpy('isPromiseResolved');
+      promise.then(isPromiseResolved);
+
+      expect(isPromiseResolved).not.toHaveBeenCalled();
+
+      setRetentionPoliciesDeferred.resolve({status: 204, data: 'no content'});
+      $scope.$digest();
+
+      expect(isPromiseResolved).not.toHaveBeenCalled();
+
+      getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
+      $scope.$digest();
+
+      expect(isPromiseResolved).not.toHaveBeenCalled();
+
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      $scope.$digest();
+
+      expect(isPromiseResolved).toHaveBeenCalled();
     });
   });
 });

@@ -38,6 +38,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
 import static com.sonatype.clm.testing.functional.elements.PopoverViolations.on;
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserManagementTest
     extends AbstractFunctionalTest
@@ -255,6 +256,48 @@ public class UserManagementTest
     accordionHeader.click();
     userManagementPage.editPanelForm().shouldBe(disappear);
     userManagementPage.editUserButtons().get(userRow).shouldBe(enabled);
+
+  }
+
+  @Test
+  public void testDeleteModal() throws Exception {
+    User user = createUser();
+    refreshOrOpen(UserManagementPage.url());
+
+    UserManagementPage userManagementPage = new UserManagementPage();
+
+    int userRow = -1;
+    String username = user.getUsername().toLowerCase();
+    for (int i = 0; i < userManagementPage.headers().size(); i++) {
+      SelenideElement element = userManagementPage.headers().get(i);
+      if (element.text().toLowerCase().contains(username)) {
+        userRow = i;
+        break;
+      }
+    }
+    assertThat(userRow).isNotEqualTo(-1);
+
+    SelenideElement accordionHeader = userManagementPage.headers().get(userRow);
+    accordionHeader.shouldHave(text(user.getUsername()));
+    userManagementPage.deleteUserButtons().get(userRow).shouldBe(visible).click();
+
+    DeleteModal.root().shouldBe(visible);
+    // Stop server to test error messages.
+    testCLMServer.stop();
+    DeleteModal.continueButton().click();
+    DeleteModal.error().shouldBe(visible);
+    DeleteModal.body().shouldBe(visible);
+    // Start the server again, and log back in
+    testCLMServer.start();
+    initialLogin();
+    refreshOrOpen(UserManagementPage.url());
+    // Test proper delete.
+    userManagementPage.deleteUserButtons().get(userRow).click();
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.continueButton().click();
+    DeleteModal.root().shouldNotBe(visible);
+    // Confirm delete
+    accordionHeader.shouldNotHave(text(user.getUsername()));
   }
 
   private void keyInElementValue(final String inputText, final List<SelenideElement> elements) {

@@ -7,7 +7,7 @@
   <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="vm.deleteResourceMask"
         mask-message="{{vm.maskText || 'Deleting'}}">
     <div class="iq-modal-content">
-      <div ng-if="!vm.error" class="iq-alert">
+      <div class="iq-alert">
         <i class="fa fa-warning"></i>
         <span ng-if="!vm.bodyText">You are about to permanently remove {{ ::vm.resourceName }}. This action cannot be undone.</span>
         <span ng-if="vm.bodyText">{{ ::vm.bodyText }}</span>

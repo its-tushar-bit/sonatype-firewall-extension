@@ -194,6 +194,14 @@ public class ApplicationReportTest
   }
 
   @Test
+  public void testLinkToOldReport() {
+    reportPage.oldReportLinkTile().shouldBe(visible);
+    reportPage.oldReportLink().shouldBe(visible).click();
+
+    ApplicationReportContainerPage.getIframe().shouldBe(visible);
+  }
+
+  @Test
   public void testTextIndicators() throws Exception {
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());

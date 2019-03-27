@@ -22,6 +22,12 @@
    --></external-link>.
     </div>
   </div>
+  <div id="old-report-link-tile" class="iq-tile iq-alert iq-alert--info">
+    <div class="iq-tile-content">
+      <a ui-sref="report({ publicId: vm.reportParameters.appId, scanId: vm.reportParameters.scanId })">Click here</a>
+      to access the previous version of the Application Report.
+    </div>
+  </div>
   <div class="iq-tile iq-tile--top-tile iq-tile--application-report">
     <div class="iq-tile__actions">
       <button id="reevaluate-button" class="iq-btn iq-btn--tertiary" ng-click="vm.reevaluateReport()">

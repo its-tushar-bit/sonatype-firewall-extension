@@ -110,15 +110,18 @@
           <tr class="iq-table-row"
               sort="vm.sortFields"
               on-sort-change="vm.setSorting(sortFields)">
-            <th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-threat-level"
+            <th id="report-policy-threat-column-header"
+                class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-threat-level"
                 sort-column="-policyThreatLevel,policyName,derivedComponentName">
               Threat
             </th><!--
-         --><th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-name"
+         --><th id="report-policy-name-column-header"
+                class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-policy-name"
                 sort-column="policyName,-policyThreatLevel,derivedComponentName">
               Policy
             </th><!--
-         --><th class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-component-display"
+         --><th id="report-component-name-column-header"
+                class="iq-cell iq-cell--header iq-clickable iq-cell--application-report-component-display"
                 sort-column="derivedComponentName,-policyThreatLevel,policyName">
               Component
             </th>
@@ -127,7 +130,8 @@
             <th colspan="2" class="iq-cell iq-cell--filter iq-cell--application-report-policy-name-filter">
               <span class="input-prepend">
                 <i class="fa fa-filter add-on"></i>
-                <input type="text"
+                <input id="report-policy-name-filter"
+                       type="text"
                        ng-model="vm.policyNameSubstringFilter"
                        ng-change="vm.onPolicyNameFilterChange()"
                        placeholder="policy name">
@@ -136,7 +140,8 @@
          --><th class="iq-cell iq-cell--filter iq-cell--application-report-component-name-filter">
               <span class="input-prepend">
                 <i class="fa fa-filter add-on"></i>
-                <input type="text"
+                <input id="report-component-name-filter"
+                       type="text"
                        ng-model="vm.derivedComponentNameSubstringFilter"
                        ng-change="vm.onDerivedComponentNameFilterChange()"
                        placeholder="component name">
@@ -144,7 +149,7 @@
             </th>
           </tr>
         </thead>
-        <tbody class="iq-application-report-results">
+        <tbody id="iq-application-report-results" class="iq-application-report-results">
           <tr class="iq-table-row iq-clickable"
               ng-repeat="component in vm.renderedEntries"
               ng-click="vm.openCipModal($index)">

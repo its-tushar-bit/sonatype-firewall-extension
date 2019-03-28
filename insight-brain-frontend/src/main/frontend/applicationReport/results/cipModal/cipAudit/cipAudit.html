@@ -9,11 +9,17 @@
            on-sort-change="vm.onSortChange(sortFields)">
       <thead>
         <tr class="iq-table-row">
-          <th class="iq-cell iq-cell--header iq-clickable" sort-column="time">Date</th>
-          <th class="iq-cell iq-cell--header iq-clickable" sort-column="user">User</th>
-          <th class="iq-cell iq-cell--header iq-clickable" sort-column="action">Action</th>
-          <th class="iq-cell iq-cell--header iq-clickable" sort-column="detail">Detail</th>
-          <th class="iq-cell iq-cell--header iq-clickable" sort-column="comment">Comment</th>
+          <th id="audit-date-column-header" class="iq-cell iq-cell--header iq-clickable" sort-column="time">Date</th>
+          <th id="audit-user-column-header" class="iq-cell iq-cell--header iq-clickable" sort-column="user">User</th>
+          <th id="audit-action-column-header" class="iq-cell iq-cell--header iq-clickable" sort-column="action">
+            Action
+          </th>
+          <th id="audit-detail-column-header" class="iq-cell iq-cell--header iq-clickable" sort-column="detail">
+            Detail
+          </th>
+          <th id="audit-comment-column-header" class="iq-cell iq-cell--header iq-clickable" sort-column="comment">
+            Comment
+          </th>
         </tr>
       </thead>
       <tbody>

@@ -12,7 +12,7 @@ export default function SortColumn() {
       inverted: '@?sortInverted' // is the data logically inverted, i.e. AGE vs TIME
     },
     transclude: true,
-    template: '<a class="iq-column-sort-trigger" ng-click="vm.setSort()">' +
+    template: '<a class="iq-column-sort-trigger tm-column-sort-trigger" ng-click="vm.setSort()">' +
       '<div class="iq-column-sort-icons">' +
       '<i class="fa fa-caret-up" ng-class="{up : vm.isUp() }"></i>' +
       '<i class="fa fa-caret-down" ng-class="{down : vm.isDown() }"></i>' +

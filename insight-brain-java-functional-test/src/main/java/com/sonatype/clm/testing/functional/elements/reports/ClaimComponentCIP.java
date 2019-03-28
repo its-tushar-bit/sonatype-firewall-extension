@@ -30,47 +30,47 @@ public class ClaimComponentCIP
   }
 
   public ControlGroup group() {
-    return new ControlGroup("#group-id-input");
+    return new ControlGroup("#cip-claim-group-id");
   }
 
   public ControlGroup extension() {
-    return new ControlGroup("#extension-input");
+    return new ControlGroup("#cip-claim-extension");
   }
 
   public ControlGroup artifactId() {
-    return new ControlGroup("#artifact-id-input");
+    return new ControlGroup("#cip-claim-artifact-id");
   }
 
   public ControlGroup created() {
-    return new ControlGroup("#created-input");
+    return new ControlGroup("#cip-claim-created-date");
   }
 
   public ControlGroup version() {
-    return new ControlGroup("#version-input");
+    return new ControlGroup("#cip-claim-version");
   }
 
   public ControlGroup classifier() {
-    return new ControlGroup("#classifier-input");
+    return new ControlGroup("#cip-claim-classifier");
   }
 
   public ControlGroup comment() {
-    return new ControlGroup("#comment-input");
+    return new ControlGroup("#cip-claim-comment");
   }
 
   public SelenideElement revokeBtn() {
-    return child("#revoke-claim-btn");
+    return child("#cip-claim-revoke");
   }
 
   public SelenideElement cancelBtn() {
-    return child("#cancel-btn");
+    return child("#cip-claim-cancel");
   }
 
   public SelenideElement updateBtn() {
-    return child("#update-btn");
+    return child("#cip-claim-update");
   }
 
   public SelenideElement claimBtn() {
-    return child("#claim-btn");
+    return child("#cip-claim-submit");
   }
 
   public SelenideElement validationErrors() {

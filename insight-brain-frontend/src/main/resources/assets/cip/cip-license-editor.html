@@ -38,16 +38,19 @@
         <div class="control-group">
           <label class="control-label">Scope</label>
           <div class="controls">
-            <select ng-model='override.ownerId' name="scope"
-                ng-options='scope.ownerId as scope.ownerName for scope in hierarchy'
-                required>
+            <select id="license-scope"
+                    ng-model="override.ownerId"
+                    name="scope"
+                    ng-options="scope.ownerId as scope.ownerName for scope in hierarchy"
+                    required>
             </select>
           </div>
         </div>
         <div class="control-group">
           <label class="control-label">Status</label>
           <div class="controls" style="text-align:left;">
-            <select ng-model='override.status'
+            <select id="license-status"
+                    ng-model='override.status'
                     name="status"
                     ng-change="onOverrideStatusChange()"
                     required>
@@ -64,19 +67,39 @@
           <label class="control-label">License(s)</label>
           <div class="controls" style="text-align:left;">
             <span ng-switch='override.status'>
-              <span class='multi-dropdown' multi-select items='selectableLicenses' selected-ids='override.licenseIds' ng-switch-when='SELECTED'></span>
-              <span class='multi-dropdown' multi-select items='rawLicenses' selected-ids='override.licenseIds' ng-switch-when='OVERRIDDEN'></span>
+              <span id="license-selected"
+                    class="multi-dropdown"
+                    multi-select
+                    items="selectableLicenses"
+                    selected-ids="override.licenseIds"
+                    ng-switch-when="SELECTED"></span>
+              <span id="license-overridden"
+                    class="multi-dropdown"
+                    multi-select
+                    items="rawLicenses"
+                    selected-ids="override.licenseIds"
+                    ng-switch-when="OVERRIDDEN"></span>
             </span>
           </div>
         </div>
         <div class="control-group">
           <label class="control-label" for="comment1376501760921">Comment</label>
           <div class="controls">
-            <textarea ng-model='override.comment' name="comment" disablenav class="input-xlarge" id="comment1376501760921" maxlength='1000' rows="3" style="padding:0px;height:62px"></textarea>
+            <textarea id="license-comment"
+                      ng-model="override.comment"
+                      name="comment"
+                      disablenav
+                      class="input-xlarge"
+                      id="comment1376501760921"
+                      maxlength="1000"
+                      rows="3"
+                      style="padding:0px;height:62px"></textarea>
           </div>
         </div>
         <div class="controls" style="text-align:right">
-          <button type="submit" class="btn btn-primary" ng-disabled="!isSubmitEnabled()">Update</button>
+          <button id="license-update-button" type="submit" class="btn btn-primary" ng-disabled="!isSubmitEnabled()">
+            Update
+          </button>
         </div>
       </div>
     </div>

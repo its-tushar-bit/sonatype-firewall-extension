@@ -17,8 +17,8 @@
         <tr>
           <td>
             <div class="form-horizontal">
-              <div class="control-group"
-                   id="group-id-input"
+              <div id="cip-claim-group-id"
+                   class="control-group"
                    ng-class="{ error : vm.claimForm.$submitted && vm.claimForm.groupId.$error.required }">
                 <label class="control-label">Group ID</label>
                 <div class="controls">
@@ -29,8 +29,8 @@
                          required/>
                 </div>
               </div>
-              <div class="control-group"
-                   id="artifact-id-input"
+              <div id="cip-claim-artifact-id"
+                   class="control-group"
                    ng-class="{ error : vm.claimForm.$submitted && vm.claimForm.artifactId.$error.required }">
                 <label class="control-label">Artifact ID</label>
                 <div class="controls">
@@ -41,8 +41,8 @@
                          required/>
                 </div>
               </div>
-              <div class="control-group"
-                   id="version-input"
+              <div id="cip-claim-version"
+                   class="control-group"
                    ng-class="{ error : vm.claimForm.$submitted && vm.claimForm.version.$error.required }">
                 <label class="control-label">Version</label>
                 <div class="controls">
@@ -53,7 +53,8 @@
                          required/>
                 </div>
               </div>
-              <div id="classifier-input" class="control-group">
+              <div id="cip-claim-classifier"
+                   class="control-group">
                 <label class="control-label">Classifier</label>
 
                 <div class="controls">
@@ -64,8 +65,8 @@
           </td>
           <td>
             <div class="form-horizontal">
-              <div class="control-group"
-                   id="extension-input"
+              <div id="cip-claim-extension"
+                   class="control-group"
                    ng-class="{ error : vm.claimForm.$submitted && vm.claimForm.extension.$error.required }">
                 <label class="control-label">Extension</label>
                 <div class="controls">
@@ -76,8 +77,8 @@
                          required/>
                 </div>
               </div>
-              <div class="control-group"
-                   id="created-input"
+              <div id="cip-claim-created-date"
+                   class="control-group"
                    ng-class="{ error : vm.claimForm.createTimeText.$dirty && vm.claimForm.createTimeText.$error.pattern }">
                 <label class="control-label">Created</label>
                 <div class="controls">
@@ -91,7 +92,8 @@
                   </div>
                 </div>
               </div>
-              <div class="control-group" id="comment-input">
+              <div id="cip-claim-comment"
+                   class="control-group">
                 <label class="control-label">Comment</label>
                 <div class="controls">
                   <textarea name="comment"
@@ -108,7 +110,7 @@
           <td>
             <div class="controls" style="text-align: right;">
               <button type="none"
-                      id="claim-btn"
+                      id="cip-claim-submit"
                       class="btn btn-primary"
                       ng-show="!vm.isClaimedComponent()"
                       ng-disabled="!vm.claimForm.$dirty"
@@ -116,14 +118,14 @@
                 Claim
               </button>
               <button type="none"
-                      id="revoke-claim-btn"
+                      id="cip-claim-revoke"
                       class="btn btn-danger btn-error"
                       ng-show="vm.isClaimedComponent()"
                       ng-click="vm.openRevokeClaimDialog()">
                 Revoke Claim
               </button>
               <button type="none"
-                      id="cancel-btn"
+                      id="cip-claim-cancel"
                       class="btn"
                       ng-show="vm.isClaimedComponent()"
                       ng-disabled="!vm.claimForm.$dirty"
@@ -131,7 +133,7 @@
                 Cancel
               </button>
               <button type="none"
-                      id="update-btn"
+                      id="cip-claim-update"
                       class="btn btn-primary"
                       ng-show="vm.isClaimedComponent()"
                       ng-disabled="!vm.claimForm.$dirty"

@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.pages.UserManagementPage.SummarySecti
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -35,6 +36,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
 import static com.sonatype.clm.testing.functional.elements.PopoverViolations.on;
 import static java.util.Arrays.asList;
@@ -268,9 +270,12 @@ public class UserManagementTest
 
     int userRow = -1;
     String username = user.getUsername().toLowerCase();
-    for (int i = 0; i < userManagementPage.headers().size(); i++) {
+    ElementsCollection headers = userManagementPage.headers();
+    headers.shouldHave(sizeGreaterThan(0));
+
+    for (int i = 0; i < headers.size(); i++) {
       SelenideElement element = userManagementPage.headers().get(i);
-      if (element.text().toLowerCase().contains(username)) {
+      if (element.getText().toLowerCase().contains(username)) {
         userRow = i;
         break;
       }

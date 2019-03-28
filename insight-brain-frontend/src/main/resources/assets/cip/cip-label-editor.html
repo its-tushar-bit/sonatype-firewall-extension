@@ -1,19 +1,19 @@
 <div style='padding:5px' class='labelEditor' load-wrapper="error" reload="doLoad()" error-message="Unable to load labels." loading="!error && !itemLabels">
   <div clm-alerts='alerts'></div>
   <div id="available-labels">
-    <h5>Available <i class='icon-refresh' ng-click='doLoad()' spinner></i></h5>
+    <h5>Available <i class='icon-refresh tm-refresh' ng-click='doLoad()' spinner></i></h5>
     <div class='cip-label-container'>
       <span ng-repeat="label in availableLabels | filter:isApplied | orderBy:'labelLowercase'"
-            class='clmLabel {{label.color}}'>
+            class='clmLabel tm-label {{label.color}}'>
         <span tooltip='{{label.description || label.label}}' tooltip-placement="right">{{label.label}}</span>&nbsp;
         <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
       </span>
     </div>
   </div>
   <div id="applied-labels">
-    <h5>Applied <i class='icon-refresh' ng-click='doLoad()' spinner></i></h5>
+    <h5>Applied <i class='icon-refresh tm-refresh' ng-click='doLoad()' spinner></i></h5>
     <div class='cip-label-container'>
-      <span ng-repeat="label in itemLabels | orderBy:'labelLowercase'" class='clmLabel {{label.color}}'>
+      <span ng-repeat="label in itemLabels | orderBy:'labelLowercase'" class='clmLabel tm-label {{label.color}}'>
         <span tooltip='{{label.description || label.label}}' tooltip-placement="top">{{label.label}}</span>&nbsp;
         <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
       </span>
@@ -30,7 +30,7 @@
       </div>
       <div class="iq-modal-content" ng-show="!labelLoading">
         <div ng-repeat="labelOwner in labelOwners">
-          <label class="radio">
+          <label class="radio tm-label-assignment-scope">
             <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
             <span>Assign label<span ng-if="displayName"> to component <em ng-repeat="part in displayName.parts">{{part.value}}</em></span> for </span>
             <span ng-switch on="labelOwner.type">
@@ -43,8 +43,16 @@
       </div>
       <div class="iq-modal-footer">
         <span class="alert alert-error" ng-show="labelAddError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelAddError}}</span>
-        <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">Save</button>
-        <button type='button' class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="labelSaving">Cancel</button>
+        <button id="cip-save-label" type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">
+          Save
+        </button>
+        <button id="cip-save-label-cancel"
+                type='button'
+                class="btn btn-dismiss"
+                ng-click="$dismiss()"
+                ng-disabled="labelSaving">
+          Cancel
+        </button>
       </div>
     </div>
   </script>
@@ -59,8 +67,20 @@
       </div>
       <div class="iq-modal-footer">
         <span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
-        <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
-        <button type='button' class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="labelDeleting">Cancel</button>
+        <button id="cip-remove-label"
+                type="button"
+                class="btn btn-primary"
+                ng-click="accept()"
+                ng-disabled="labelDeleting">
+          Remove
+        </button>
+        <button id="cip-remove-label-cancel"
+                type="button"
+                class="btn btn-dismiss"
+                ng-click="$dismiss()"
+                ng-disabled="labelDeleting">
+          Cancel
+        </button>
       </div>
     </div>
   </script>

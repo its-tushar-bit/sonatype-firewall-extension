@@ -2,6 +2,7 @@
   <div class="iq-tab-bar">
     <a ng-repeat="tab in vm.tabs"
        ng-click="vm.selectedTab = tab.name"
+       id="cip-tab-{{::tab.name}}"
        class="iq-tab"
        ng-class="{ active: vm.selectedTab === tab.name }">
       {{::tab.displayName}}

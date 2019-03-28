@@ -66,11 +66,19 @@
           <div class="radio-container">
             <label class="iq-label">Component</label>
             <label class="radio">
-              <input type="radio" name="waiver-hash" ng-model="waiver.hash" value="{{component.hash}}">
+              <input type="radio"
+                     id="waiver-hash-component"
+                     name="waiver-hash"
+                     ng-model="waiver.hash"
+                     value="{{component.hash}}">
               {{component.componentDisplayText}}
             </label>
             <label class="radio">
-              <input type="radio" name="waiver-hash" ng-model="waiver.hash" ng-value="null">
+              <input type="radio"
+                     id="waiver-hash-all"
+                     name="waiver-hash"
+                     ng-model="waiver.hash"
+                     ng-value="null">
               All components
             </label>
           </div>
@@ -82,8 +90,16 @@
     </div>
     <div class="iq-modal-footer">
       <div class="iq-alert iq-alert--error" ng-show="waiveAssignError">{{waiveAssignError}}</div>
-      <button type="button" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving || legacyReport">Waive</button>
-      <button type="button" class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
+      <button id="waiver-submit"
+              type="button"
+              class="btn btn-primary"
+              ng-click="acceptWaiveComponent()"
+              ng-disabled="waiverSaving || legacyReport">
+        Waive
+      </button>
+      <button id="waiver-cancel" type="button" class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="waiverSaving">
+        Cancel
+      </button>
     </div>
   </div>
   </script>
@@ -113,7 +129,7 @@
               <td class="visual-testing-ignore">{{waiver.ownerName}}</td>
               <td class="visual-testing-ignore">{{waiver.comment}}</td>
               <td>
-                <button id="remove-waiver" class="btn btn-mini visual-testing-ignore tm-remove-waiver" ng-click="remove(waiver)" title="Remove {{placeHolder}}"><i class="icon-minus-sign"></i></button>
+                <button class="btn btn-mini visual-testing-ignore tm-remove-waiver" ng-click="remove(waiver)" title="Remove {{placeHolder}}"><i class="icon-minus-sign"></i></button>
               </td>
             </tr>
           </table>
@@ -182,7 +198,7 @@
           <th class="cip-policy-table-header">Waivers</th>
         </tr>
       </thead>
-      <tr ng-repeat="policyAlert in processedPolicyAlerts">
+      <tr class="tm-cip-waiver-row" ng-repeat="policyAlert in processedPolicyAlerts">
         <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{::getThreatColor(policyAlert.threatLevel)}}">
           <div>
             <b>{{::policyAlert.name}}</b>
@@ -208,7 +224,9 @@
           </div>
         </td>
         <td style="vertical-align:middle;">
-          <button type="none" class="btn btn-primary" ng-click="waiveComponent(policyAlert)">Waive</button>
+          <button type="none" class="btn btn-primary tm-waive-button" ng-click="waiveComponent(policyAlert)">
+            Waive
+          </button>
         </td>
       </tr>
       <tr ng-if="processedPolicyAlerts.length === 0">

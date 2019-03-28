@@ -7,10 +7,10 @@
 
       <div class="iq-tile iq-tile--fixed-table">
         <div class="iq-tile-header">
-          <div class="iq-tile-header__title" id="raw-data-report-title">
+          <div class="iq-tile-header__title visual-testing-ignore" id="raw-data-report-title">
             <h1>
-              Raw Data for {{::vm.metadata.application.name}} {{::vm.metadata.reportTitle}}
-              - {{::vm.metadata.reportTime | date: 'yyyy-MM-dd'}}
+              Raw Data for {{::vm.metadata.application.name}} {{::vm.metadata.reportTitle}} -
+              <span class="visual-testing-ignore">{{::vm.metadata.reportTime | date: 'yyyy-MM-dd'}}</span>
             </h1>
           </div>
           <div class="iq-tile-header__subtitle">

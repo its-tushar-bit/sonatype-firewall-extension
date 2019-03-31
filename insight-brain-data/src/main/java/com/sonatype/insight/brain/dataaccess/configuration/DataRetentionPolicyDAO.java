@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @since 1.63
@@ -58,15 +61,15 @@ public class DataRetentionPolicyDAO
     super.update(tx, entity);
   }
 
-  public Collection<DataRetentionPolicy> getByOwnerId(String ownerId) {
+  public Map<String, DataRetentionPolicy> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
     }
   }
 
-  public Collection<DataRetentionPolicy> getByOwnerId(TransactionContext tx, String ownerId) {
+  public Map<String, DataRetentionPolicy> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM DataRetentionPolicy entity WHERE entity.ownerId = ?1";
-    return getList(tx, sQuery, ownerId);
+    return getList(tx, sQuery, ownerId).stream().collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
   }
 
   public DataRetentionPolicy getByOwnerIdAndContextId(String ownerId, String contextId) {

@@ -174,7 +174,7 @@ public class OwnerDAO
 
     // Cascade to data retention policies
     DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
-    for (DataRetentionPolicy dataRetentionPolicy : dataRetentionPolicyDAO.getByOwnerId(tx, owner.getId())) {
+    for (DataRetentionPolicy dataRetentionPolicy : dataRetentionPolicyDAO.getByOwnerId(tx, owner.getId()).values()) {
       dataRetentionPolicyDAO.delete(tx, dataRetentionPolicy);
     }
   }

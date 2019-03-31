@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Map;
-import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -25,7 +24,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -36,11 +34,6 @@ public class ApiDataRetentionPolicyServiceTest
   private ApiDataRetentionPolicyService dataRetentionPolicyService;
 
   private DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
-
-  private Map<String, DataRetentionPolicy> getPoliciesByContext(Organization org) {
-    return dataRetentionPolicyDAO.getByOwnerId(org.getId()).stream()
-        .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
-  }
 
   @Test
   public void testGetDataRetentionPolicies_AppReports() {
@@ -125,7 +118,7 @@ public class ApiDataRetentionPolicyServiceTest
 
     dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
 
-    Map<String, DataRetentionPolicy> policiesByContext = getPoliciesByContext(org);
+    Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(org.getId());
     assertThat(policiesByContext).containsOnlyKeys(Stage.ID_BUILD, Stage.ID_OPERATE, Stage.ID_STAGE_RELEASE);
 
     DataRetentionPolicy policy = policiesByContext.get(Stage.ID_BUILD);
@@ -194,7 +187,7 @@ public class ApiDataRetentionPolicyServiceTest
 
     dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
 
-    Map<String, DataRetentionPolicy> policiesByContext = getPoliciesByContext(org);
+    Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(org.getId());
     assertThat(policiesByContext).containsOnlyKeys(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     DataRetentionPolicy policy = policiesByContext.get(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     assertThat(policy.isPurgingEnabled()).isFalse();
@@ -205,7 +198,7 @@ public class ApiDataRetentionPolicyServiceTest
 
     dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
 
-    policiesByContext = getPoliciesByContext(org);
+    policiesByContext = dataRetentionPolicyDAO.getByOwnerId(org.getId());
     assertThat(policiesByContext).containsOnlyKeys(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     policy = policiesByContext.get(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     assertThat(policy.isPurgingEnabled()).isTrue();

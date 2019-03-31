@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,8 +28,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @since 1.63
@@ -61,8 +58,7 @@ public class ApiDataRetentionPolicyService
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO();
-    Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(organizationId).stream()
-        .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
+    Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(organizationId);
     for (String contextId : VALID_REPORT_CONTEXT_IDS) {
       ApiReportRetentionPolicyDTO policyDTO = new ApiReportRetentionPolicyDTO();
       DataRetentionPolicy policy = policiesByContext.get(contextId);
@@ -98,8 +94,7 @@ public class ApiDataRetentionPolicyService
     }
     try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
       tx.begin();
-      Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(tx, organizationId)
-          .stream().collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
+      Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(tx, organizationId);
       if (dto.applicationReports != null && dto.applicationReports.stages != null) {
         for (Map.Entry<String, ApiReportRetentionPolicyDTO> entry : dto.applicationReports.stages.entrySet()) {
           String contextId = entry.getKey();

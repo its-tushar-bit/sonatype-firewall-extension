@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Collection;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
@@ -64,9 +64,9 @@ public class ApiDataRetentionPolicyResourceTest
     HttpResponse response = restRequest(org.getId()).body(dto).put();
     assertResponseStatus(204, response);
 
-    Collection<DataRetentionPolicy> policies = new DataRetentionPolicyDAO().getByOwnerId(org.getId());
-    assertThat(policies).hasSize(1);
-    DataRetentionPolicy policy = policies.iterator().next();
+    Map<String, DataRetentionPolicy> policies = new DataRetentionPolicyDAO().getByOwnerId(org.getId());
+    assertThat(policies).containsOnlyKeys(Stage.ID_BUILD);
+    DataRetentionPolicy policy = policies.get(Stage.ID_BUILD);
     assertThat(policy.isPurgingEnabled()).isTrue();
     assertThat(policy.getMaxCount()).isEqualTo(30);
     assertThat(policy.getMaxAgeInDays()).isEqualTo(14);

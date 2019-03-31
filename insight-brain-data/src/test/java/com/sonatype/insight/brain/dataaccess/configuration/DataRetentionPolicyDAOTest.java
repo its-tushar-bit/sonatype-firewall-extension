@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.Comparator;
+import java.util.Map;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
@@ -70,9 +71,14 @@ public class DataRetentionPolicyDAOTest
 
   @Test
   public void testDefaultPoliciesForRootOrganization() {
-    assertThat(dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).extracting(DataRetentionPolicy::getContextId)
-        .containsExactlyInAnyOrder(Stage.ID_DEVELOP, Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE,
-            Stage.ID_OPERATE, DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING,
+    assertThat(dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values())
+        .extracting(DataRetentionPolicy::getContextId).containsExactlyInAnyOrder( //
+            Stage.ID_DEVELOP, //
+            Stage.ID_BUILD, //
+            Stage.ID_STAGE_RELEASE, //
+            Stage.ID_RELEASE, //
+            Stage.ID_OPERATE, //
+            DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING, //
             DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
   }
 
@@ -195,8 +201,9 @@ public class DataRetentionPolicyDAOTest
     dao.insert(policy1);
     DataRetentionPolicy policy2 = new DataRetentionPolicy(organization.getId(), "contextId");
     dao.insert(policy2);
-    assertThat(dao.getByOwnerId(organization.getId())).extracting(DataRetentionPolicy::getId)
-        .containsExactly(policy2.getId());
+    Map<String, DataRetentionPolicy> policiesByContext = dao.getByOwnerId(organization.getId());
+    assertThat(policiesByContext).containsOnlyKeys("contextId");
+    assertThat(policiesByContext.values()).extracting(DataRetentionPolicy::getId).containsExactly(policy2.getId());
   }
 
   @Test

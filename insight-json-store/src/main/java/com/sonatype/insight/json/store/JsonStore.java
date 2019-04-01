@@ -15,7 +15,5 @@ public interface JsonStore
 
   ContainerNode<?> restore(String path) throws IOException;
 
-  int modificationCount();
-
   ContainerNode<?> history(ContainerNode<?> key, String... paths) throws IOException;
 }

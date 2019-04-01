@@ -216,7 +216,7 @@ public class ReportResource
 
     final String name = Report.toEntryName(path);
     auditBrowseReport(scanId, name);
-    final File reportFile = reportService.fetchReport(work, appId, scanId, false);
+    final File reportFile = reportService.getReport(work, appId, scanId);
     ReportEntry reportEntry = null;
     try {
       reportEntry = Report.getEntry(reportFile, name);
@@ -338,7 +338,7 @@ public class ReportResource
   {
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    File reportFile = reportService.fetchReport(work, app.getId(), scanId, true);
+    File reportFile = reportService.getReport(work, app.getId(), scanId);
     String filename = "report-" + scanId + ".zip";
 
     Properties templateProps = Report.getTemplateProperties(reportFile);
@@ -618,13 +618,6 @@ public class ReportResource
     UriBuilder uriBuilder = baseUrl.redirect().path(path);
 
     return Response.temporaryRedirect(uriBuilder.build()).build();
-  }
-
-  public static String getReportPath(final String appPublicId, final String scanId) {
-    String url = ReportResource.RESOURCE_PATH + "/browseReport/";
-    url = url.replace("{applicationPublicId}", UrlUtils.encodeUrlComponent(appPublicId));
-    url = url.replace("{scanId}", UrlUtils.encodeUrlComponent(scanId));
-    return url;
   }
 
   /**

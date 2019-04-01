@@ -22,10 +22,8 @@ import java.util.zip.ZipFile;
 
 import javax.mail.Message;
 
-import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
-import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -35,22 +33,15 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.component.HashComponentIdentifierDTO;
-import com.sonatype.insight.brain.component.HashComponentIdentifierResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
-import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -63,8 +54,6 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
-import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -72,7 +61,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityOverrideResource;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -104,225 +92,11 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testManuallyIdentifiedSimilarComponent() throws Exception {
-    // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
-    String hash = "f0776db1593e215146d2";
-    String groupId = "testClaimedComponent_G";
-    String artifactId = "testClaimedComponent_A";
-    String version = "testClaimedComponent_V";
-    String extension = "testClaimedComponent_E";
-    String classifier = "testClaimedComponent_C";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
-        classifier, extension);
-    Date createTime = new Date();
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
-    hashComponentIdentifier.setCreateTime(createTime);
-    tempEntity.newClaimedComponent(hashComponentIdentifier);
-
-    String scanId = "testClaimedComponent_ScanId";
-    mockReport(scanId, "/ReportResourceTest/report");
-
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
-
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
-    HttpResponse response = request.subpath("bom.json").get();
-    assertResponseStatus(200, response);
-    boolean foundClaimedComponent = false;
-    String bomJsonData = response.getBodyText();
-    for (JsonNode bomJsonNode : JsonUtils.parse(bomJsonData).get("aaData")) {
-      String bomJsonHash = bomJsonNode.get("hash").asText();
-      JsonNode identificationSource = bomJsonNode.get("identificationSource");
-      if (hash.equals(bomJsonHash)) {
-        assertThat(identificationSource.asText()).isEqualTo(IdentificationSource.MANUAL.getId());
-        assertThat(bomJsonNode.get("groupId").asText()).isEqualTo(groupId);
-        assertThat(bomJsonNode.get("artifactId").asText()).isEqualTo(artifactId);
-        assertThat(bomJsonNode.get("version").asText()).isEqualTo(version);
-        assertThat(bomJsonNode.get("extension").asText()).isEqualTo(extension);
-        assertThat(bomJsonNode.get("classifier").asText()).isEqualTo(classifier);
-        assertThat(ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode)).isEqualTo(componentIdentifier);
-        assertThat(bomJsonNode.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
-        assertThat(bomJsonNode.get("createTime").asLong()).isEqualTo(createTime.getTime());
-        assertThat(bomJsonNode.get("relativePopularity").asDouble()).isEqualTo(0F);
-        assertThat(JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString())
-            .isEqualTo("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
-                + "testClaimedComponent_C : testClaimedComponent_V");
-        foundClaimedComponent = true;
-      }
-      else {
-        assertThat(identificationSource).isNull();
-      }
-    }
-    assertThat(foundClaimedComponent).isTrue();
-
-    response = request.subpath("licenses.json").get();
-    assertResponseStatus(200, response);
-    String licensesJsonData = response.getBodyText();
-    assertThat(licensesJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
-
-    response = request.subpath("security.json").get();
-    assertResponseStatus(200, response);
-    String securityJsonData = response.getBodyText();
-    assertThat(securityJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
-
-    response = request.subpath("partialmatched.json").get();
-    assertResponseStatus(200, response);
-    String partialmatched = response.getBodyText();
-    assertThat(partialmatched).isNotBlank().doesNotContain(hash, "commons-httpclient").contains("c32df577f739535648b0",
-        "org.slf4j.api_1.6.1.v20100831-0715.jar");
-
-    response = request.subpath("data.json").get();
-    assertResponseStatus(200, response);
-    String jsonData = response.getBodyText();
-    JsonNode actual = JsonUtils.parse(jsonData);
-    assertThat(actual.get("partiallyMatchedComponentCount").asInt()).isEqualTo(1);
-    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(28);
-    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(29);
-  }
-
-  @Test
-  public void testManuallyIdentifiedUnknownComponent() throws Exception {
-    String hash = "c32df577f739535648b0";
-    String groupId = "testClaimedComponent_G";
-    String artifactId = "testClaimedComponent_A";
-    String version = "testClaimedComponent_V";
-    String extension = "testClaimedComponent_E";
-    String classifier = "testClaimedComponent_C";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
-        classifier, extension);
-    Date createTime = new Date();
-    // The hash of org.slf4j.api_1.6.1.v20100831-0715.jar which is marked as unknown
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
-    hashComponentIdentifier.setCreateTime(createTime);
-    tempEntity.newClaimedComponent(hashComponentIdentifier);
-
-    String scanId = "testClaimedComponent_ScanId";
-    mockReport(scanId, "/ReportResourceTest/report");
-
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
-
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
-    HttpResponse response = request.subpath("data.json").get();
-
-    assertResponseStatus(200, response);
-    String jsonData = response.getBodyText();
-    JsonNode actual = JsonUtils.parse(jsonData);
-    assertThat(actual.get("partiallyMatchedComponentCount").asInt()).isEqualTo(2);
-    assertThat(actual.get("exactlyMatchedComponentCount").asInt()).isEqualTo(28);
-    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(30);
-
-    response = request.subpath("summary.json").get();
-    String summaryData = response.getBodyText();
-    actual = JsonUtils.parse(summaryData);
-    assertThat(actual.get("knownArtifactCount").asInt()).isEqualTo(30);
-  }
-
-  @Test
-  public void testManuallyIdentifiedComponent_LicenseOverrides() throws Exception {
-    // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
-    String hash = "f0776db1593e215146d2";
-    String groupId = "testClaimedComponent_G";
-    String artifactId = "testClaimedComponent_A";
-    String version = "testClaimedComponent_V";
-    String extension = "testClaimedComponent_E";
-    String classifier = "testClaimedComponent_C";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
-        classifier, extension);
-    Date createTime = new Date();
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
-    hashComponentIdentifier.setCreateTime(createTime);
-    tempEntity.newClaimedComponent(hashComponentIdentifier);
-
-    String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
-    tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, licenseId,
-        "manual override");
-
-    String scanId = "testClaimedComponent_ScanId";
-    mockReport(scanId, "/ReportResourceTest/report");
-
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
-
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
-    HttpResponse response = request.subpath("licenses.json").get();
-    assertResponseStatus(200, response);
-    String licensesJsonData = response.getBodyText();
-    assertThat(licensesJsonData).isNotBlank().contains(hash, artifactId).doesNotContain("commons-httpclient");
-  }
-
-  @Test
-  public void testManuallyIdentifiedComponentInvalidatesCachedReportData() throws Exception {
-    String scanId = "testClaimedComponent_ScanId";
-    mockReport(scanId, "/ReportResourceTest/report");
-
-    // populate JSON data cache before claiming the component
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
-    HttpResponse response = request.subpath("bom.json").get();
-    assertResponseStatus(200, response);
-
-    // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
-    String hash = "f0776db1593e215146d2";
-    String groupId = "testClaimedComponent_G";
-    String artifactId = "testClaimedComponent_A";
-    String version = "testClaimedComponent_V";
-    String extension = "testClaimedComponent_E";
-    String classifier = "testClaimedComponent_C";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
-        classifier, extension);
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
-    mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
-    response = restRequest().path(HashComponentIdentifierResource.RESOURCE_PATH).body(hashComponentIdentifier).post();
-    assertResponseStatus(200, response);
-    HashComponentIdentifierDTO hashComponentIdentifierDTO = response.getBody(HashComponentIdentifierDTO.class);
-    tempEntity.register(new HashComponentIdentifierDAO().getById(hashComponentIdentifierDTO.id));
-
-    response = request.subpath("bom.json").get();
-    assertResponseStatus(200, response);
-    boolean foundClaimedComponent = false;
-    String bomJsonData = response.getBodyText();
-    for (JsonNode bomJsonNode : JsonUtils.parse(bomJsonData).get("aaData")) {
-      String bomJsonHash = bomJsonNode.get("hash").asText();
-      JsonNode identificationSource = bomJsonNode.get("identificationSource");
-      if (hash.equals(bomJsonHash)) {
-        assertThat(identificationSource.asText()).isEqualTo(IdentificationSource.MANUAL.getId());
-        assertThat(bomJsonNode.get("groupId").asText()).isEqualTo(groupId);
-        assertThat(bomJsonNode.get("artifactId").asText()).isEqualTo(artifactId);
-        assertThat(bomJsonNode.get("version").asText()).isEqualTo(version);
-        assertThat(bomJsonNode.get("extension").asText()).isEqualTo(extension);
-        assertThat(bomJsonNode.get("classifier").asText()).isEqualTo(classifier);
-        assertThat(ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode)).isEqualTo(componentIdentifier);
-        assertThat(JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString())
-            .isEqualTo("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
-                + "testClaimedComponent_C : testClaimedComponent_V");
-        assertThat(bomJsonNode.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
-        foundClaimedComponent = true;
-      }
-      else {
-        assertThat(identificationSource).isNull();
-      }
-    }
-    assertThat(foundClaimedComponent).isTrue();
-
-    response = request.subpath("licenses.json").get();
-    assertResponseStatus(200, response);
-    String licensesJsonData = response.getBodyText();
-    assertThat(licensesJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
-
-    response = request.subpath("security.json").get();
-    assertResponseStatus(200, response);
-    String securityJsonData = response.getBodyText();
-    assertThat(securityJsonData).isNotBlank().doesNotContain(hash, "commons-httpclient");
-
-    response = request.subpath("partialmatched.json").get();
-    assertResponseStatus(200, response);
-    String partialmatched = response.getBodyText();
-    assertThat(partialmatched).isNotBlank().doesNotContain(hash, "commons-httpclient");
-  }
-
-  @Test
   public void testBrowseReportEntryExpirationDate() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
 
-    mockReport(scanId, "/ReportResourceTest/report");
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/report");
 
     TimeZone gmt = TimeZone.getTimeZone("GMT");
     final Calendar calendar = Calendar.getInstance(gmt);
@@ -472,7 +246,7 @@ public class ReportResourceTest
     }
     assertThat(verifiedFileCount).isEqualTo(110);
 
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
+    assertResponseStatus(200, request.subpath("/").get());
   }
 
   @Test
@@ -671,141 +445,6 @@ public class ReportResourceTest
     assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     assertNotifications(notifications, 1, 5000);
-  }
-
-  @Test
-  public void test_LicenseOverrides_Organization() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
-    HttpRequest request = restRequest(app.getPublicId(), scanId).subpath("browseReport", "licenses.json");
-
-    mockReport(scanId, "/ReportResourceTest/report");
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-pool", "commons-pool",
-        "1.4", "", "jar");
-
-    // Verify before any license overrides are added
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-    int found = 0;
-    String licenseJsonString = response.getBodyText();
-    JsonNode licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
-    for (JsonNode licenseJsonNode : licenseJsonData) {
-      if (componentIdentifier
-          .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
-        assertThat(licenseJsonNode.get("overriddenLicenses")).isNull();
-        found++;
-      }
-    }
-    assertThat(found).as("Did not find expected license").isEqualTo(1);
-
-    // Override the license at organization level
-    LicenseOverride orgLicenseOverride = new LicenseOverride(app.getOrganizationId(), componentIdentifier,
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
-    response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
-        .parameter(OwnerType.ORGANIZATION, app.getOrganizationId()).body(orgLicenseOverride).post();
-    assertResponseStatus(200, response);
-    orgLicenseOverride = response.getBody(LicenseOverride.class);
-
-    response = request.get();
-    assertResponseStatus(200, response);
-    found = 0;
-    licenseJsonString = response.getBodyText();
-    licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
-    for (JsonNode licenseJsonNode : licenseJsonData) {
-      if (componentIdentifier
-          .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
-        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        assertThat(overridenLicenseNamesStr).isEqualTo("[\"GPL-3.0\"]");
-        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        assertThat(effectiveLicenseThreat).isEqualTo(9);
-        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        assertThat(overriddenLicenseThreat).isEqualTo(9);
-        String status = licenseJsonNode.get("status").asText();
-        assertThat(status).isEqualTo(LicenseOverrideStatus.OVERRIDDEN.getName());
-        String comment = licenseJsonNode.get("comment").asText();
-        assertThat(comment).isEqualTo("My org license override");
-        found++;
-      }
-    }
-    assertThat(found).as("Did not find expected overridden license").isEqualTo(1);
-
-    // Override the license at application level
-    LicenseOverride appLicenseOverride = new LicenseOverride(app.getId(), componentIdentifier,
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
-    response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
-        .parameter(OwnerType.APPLICATION, app.getPublicId()).body(appLicenseOverride).post();
-    assertResponseStatus(200, response);
-    appLicenseOverride = response.getBody(LicenseOverride.class);
-
-    response = request.get();
-    assertResponseStatus(200, response);
-    found = 0;
-    licenseJsonString = response.getBodyText();
-    licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
-    for (JsonNode licenseJsonNode : licenseJsonData) {
-      if (componentIdentifier
-          .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
-        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        assertThat(overridenLicenseNamesStr).isEqualTo("[\"GPL-2.0\"]");
-        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        assertThat(effectiveLicenseThreat).isEqualTo(9);
-        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        assertThat(overriddenLicenseThreat).isEqualTo(9);
-        String status = licenseJsonNode.get("status").asText();
-        assertThat(status).isEqualTo(LicenseOverrideStatus.OVERRIDDEN.getName());
-        String comment = licenseJsonNode.get("comment").asText();
-        assertThat(comment).isEqualTo("My app license override");
-        found++;
-      }
-    }
-    assertThat(found).as("Did not find expected overridden license").isEqualTo(1);
-  }
-
-  @Test
-  public void test_SecurityVulnerabilityOverrides() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
-    HttpRequest request = restRequest(app.getPublicId(), scanId).subpath("browseReport", "security.json");
-
-    mockReport(scanId, "/ReportResourceTest/report");
-
-    // Verify before any overrides are added
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-    int found = 0;
-    String svJsonString = response.getBodyText();
-    JsonNode svJsonData = JsonUtils.parse(svJsonString).get("aaData");
-    assertThat(svJsonData.size()).isGreaterThan(0);
-    for (JsonNode svJsonNode : svJsonData) {
-      assertThat(svJsonNode.get("status")).isNull();
-      assertThat(svJsonNode.get("comment")).isNull();
-    }
-
-    // Override a security vulnerability
-    String hash = "494308fc2d433720c778";
-    String source = "cve";
-    String referenceId = "CVE-2009-1524";
-    String comment = "My comment";
-    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(app.getId(), hash, source,
-        referenceId, SecurityVulnerabilityOverrideStatus.CONFIRMED, comment);
-    response = restRequest().path(SecurityVulnerabilityOverrideResource.RESOURCE_PATH)
-        .parameter(OwnerType.APPLICATION, app.getPublicId()).body(override).put();
-    assertResponseStatus(200, response);
-    override = response.getBody(SecurityVulnerabilityOverride.class);
-
-    response = request.get();
-    assertResponseStatus(200, response);
-    found = 0;
-    svJsonString = response.getBodyText();
-    svJsonData = JsonUtils.parse(svJsonString).get("aaData");
-    for (JsonNode svJsonNode : svJsonData) {
-      if (hash.equals(svJsonNode.get("hash").asText()) && source.equals(svJsonNode.get("source").asText())
-          && referenceId.equals(svJsonNode.get("reference").asText())) {
-        assertThat(svJsonNode.get("status").asText())
-            .isEqualTo(SecurityVulnerabilityOverrideStatus.CONFIRMED.getName());
-        assertThat(svJsonNode.get("comment").asText()).isEqualTo(comment);
-        found++;
-      }
-    }
-    assertThat(found).as("Did not find expected overridden security vulnerability").isEqualTo(1);
   }
 
   @Test
@@ -1093,7 +732,6 @@ public class ReportResourceTest
   public void testGetReportMetadata() throws Exception {
     final String scanId = "ScanId";
 
-    // ReportResource.fetchReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId, "/ReportResourceTest/report-expanded_coverage_false");
 
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
@@ -1109,15 +747,14 @@ public class ReportResourceTest
     // Unknown scan id
     response = restRequest(app.getPublicId(), "12345678").path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Could not download the report for scan ID 12345678");
+    assertThat(response.getBodyText()).isEqualTo("Could not find a report with ID 12345678");
   }
 
   @Test
   public void testGetReportMetadata_expandedCoverage() throws Exception {
     final String scanId = "ScanId";
-    mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/report-expanded_coverage");
 
-    // Verify Response for scan
     HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(200, response);
     ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);

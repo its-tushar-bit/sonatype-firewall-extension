@@ -46,9 +46,6 @@ public class ReportService
 
   private final ReportDownloader reportDownloader;
 
-  static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = CacheBuilder.newBuilder().maximumSize(8192)
-      .<String, Integer> build().asMap();
-
   private static final ConcurrentMap<String, Lock> LOCK_TABLE = CacheBuilder.newBuilder().weakValues()
       .<String, Lock> build().asMap();
 
@@ -77,28 +74,16 @@ public class ReportService
     this.applicationAdapter = applicationAdapter;
   }
 
-  public File fetchReport(final InsightWork work, final String appId, final String scanId, final boolean waitForReport)
+  public File fetchReport(final InsightWork work, final Application app, final String scanId)
       throws IOException
   {
+    String appId = app.getId();
     final File reportFile = work.getReportFile(appId, scanId);
     final Lock lock = lockFor(appId, scanId);
-    if (waitForReport || reportFile.exists()) {
-      // protect against concurrent download as well as concurrent editing of the report
-      lock.lock();
-    }
-    else if (!lock.tryLock()) {
-      throw new NotFoundException("The report for scan ID " + scanId + " is still being downloaded");
-    }
+    lock.lock();
     try {
       if (!reportFile.exists()) {
-        if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
-          throw getReportNotFoundException(appId, scanId);
-        }
-        // 0 indicates no retries
-        int reportTimeoutInSeconds = 0;
-        if (waitForReport) {
-          reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
-        }
+        int reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
         final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
         if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
           throw new NotFoundException("Could not download the report for scan ID " + scanId);
@@ -106,7 +91,7 @@ public class ReportService
         FileUtils.rename(tempFile, reportFile);
       }
 
-      applyChanges(appId, scanId, reportFile);
+      Report.applyChanges(app, reportFile);
 
       return reportFile;
     }
@@ -127,48 +112,18 @@ public class ReportService
     return lock;
   }
 
-  public File getReport(final InsightWork work, final String appId, final String scanId) throws IOException {
+  public File getReport(final InsightWork work, final String appId, final String scanId) {
     File reportFile = work.getReportFile(appId, scanId);
-    if (!reportFile.exists()) {
-      return null;
-    }
-
-    // protect against concurrent editing of the report
-    final Lock lock = lockFor(appId, scanId);
-    lock.lock();
-    try {
-      applyChanges(appId, scanId, reportFile);
-
+    if (reportFile.exists()) {
       return reportFile;
     }
-    finally {
-      lock.unlock();
+
+    if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
+      throw new NotFoundException("The report for application ID " + appId + " and scan ID " + scanId
+          + " does not exist. Usually this means the report was deemed obsolete"
+          + " according to the data retention policies and hence purged to the trash.");
     }
-  }
-
-  private void applyChanges(String appId, String scanId, File reportFile) throws IOException {
-    final File appAuditDir = work.getAuditDir(appId);
-    int newCount = JsonUtils.fileStore(appAuditDir).modificationCount();
-    Application application = new ApplicationDAO().getByIdNotNull(appId);
-    File orgAuditDir = work.getAuditDir(application.getOrganizationId());
-    newCount += JsonUtils.fileStore(orgAuditDir).modificationCount();
-    final Integer oldCount = MODIFICATION_COUNTS.get(appId + '-' + scanId);
-
-    if (oldCount == null || oldCount < newCount) {
-      Report.deletePdf(reportFile);
-
-      Report.applyChanges(application, reportFile);
-
-      MODIFICATION_COUNTS.put(appId + '-' + scanId, newCount);
-    }
-  }
-
-  public static void flushReportChanges(final String appId, final String scanId) {
-    MODIFICATION_COUNTS.remove(appId + '-' + scanId);
-  }
-
-  public static void flushReportChanges() {
-    MODIFICATION_COUNTS.clear();
+    throw new NotFoundException("Could not find a report with ID " + scanId);
   }
 
   @Authorize(permission = Permission.READ)
@@ -180,7 +135,7 @@ public class ReportService
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
-    File reportFile = fetchReport(work, application.getId(), scanId, false);
+    File reportFile = getReport(work, application.getId(), scanId);
     final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, "data.json").buf);
     metadata.setExpandedCoverage(data.path("globals").path("expandedCoverage").booleanValue());
 
@@ -210,7 +165,7 @@ public class ReportService
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    fetchReport(work, application.getId(), scanId, true /* waitForReport */);
+    fetchReport(work, application, scanId);
   }
 
   @Authorize(permission = Permission.READ)
@@ -228,9 +183,6 @@ public class ReportService
     }
 
     File reportFile = getReport(work, appId, scanId);
-    if (reportFile == null) {
-      throw getReportNotFoundException(appId, scanId);
-    }
 
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
@@ -238,11 +190,5 @@ public class ReportService
     Report.printPdf(reportFile, application.getName(), stageName, contact, responseBuilder);
 
     return responseBuilder.build();
-  }
-
-  private NotFoundException getReportNotFoundException(String appId, String scanId) {
-    return new NotFoundException("The report for application ID " + appId + " and scan ID " + scanId
-        + " does not exist. Usually this means the report was deemed obsolete"
-        + " according to the data retention policies and hence purged to the trash.");
   }
 }

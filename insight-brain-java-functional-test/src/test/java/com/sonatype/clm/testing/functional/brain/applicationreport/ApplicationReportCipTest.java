@@ -674,7 +674,7 @@ public class ApplicationReportCipTest
   }
 
   @Test
-  public void testClaimComponentTab() {
+  public void testClaimComponentTab() throws Exception {
     mockHdsResponseForClaimedComponent();
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(5).shouldHave(text("unknown.jar")).click();
@@ -720,15 +720,18 @@ public class ApplicationReportCipTest
     claimComponentTab.classifier().shouldNotHave(ERROR_CLASS).input().val("classifier");
 
     claimComponentTab.claimBtn().click();
-    claimComponentTab.revokeBtn().waitUntil(visible, 10 * 1000); // sometimes takes a surprisingly long time
-    cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));
-    claimComponentTab.revokeBtn().shouldBe(enabled);
-    claimComponentTab.cancelBtn().shouldBe(disabled);
+    // Close CIP, re-eval policies and re-open the CIP
     cipModal.closeButton().click();
+    evaluator.reevaluatePolicy();
+    refresh();
+    cipModal = reportPage.cipModal();
     // the new name pushes the component one entry up in the results page
     reportPage.resultRow(5).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
     reportPage.resultRow(4).shouldHave(text("groupId : artifactId : extension : classifier : version")).click();
     cipModal.tabLink(7).shouldHave(exactText("CLAIM")).click(); // a few extra tabs have been added
+    cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));
+    claimComponentTab.revokeBtn().shouldBe(enabled);
+    claimComponentTab.cancelBtn().shouldBe(disabled);
 
     HashComponentIdentifier claimedComponent = new HashComponentIdentifierDAO().getByComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version", "classifier", "extension"));
@@ -748,8 +751,6 @@ public class ApplicationReportCipTest
     eyesWatcher.eyesCheck("Revoke Claim dialog");
     confirmRevokeClaimDialog.revokeClaimButton().click();
     confirmRevokeClaimDialog.shouldBe(hidden);
-    claimComponentTab.allFormInputs().forEach(i -> i.shouldBe(empty));
-    cipModal.header().shouldHave(text("unknown.jar"));
   }
 
   @Test

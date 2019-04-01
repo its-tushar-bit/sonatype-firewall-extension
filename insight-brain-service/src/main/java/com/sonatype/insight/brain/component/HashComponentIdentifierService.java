@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -62,8 +61,6 @@ public class HashComponentIdentifierService
     hashComponentIdentifier.setId(null);
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
 
-    ReportService.flushReportChanges();
-
     return new HashComponentIdentifierDTO(hashComponentIdentifier,
         ComponentDisplayNameUtil.fromIdentifier(hashComponentIdentifier.getComponentIdentifier()));
   }
@@ -94,8 +91,6 @@ public class HashComponentIdentifierService
       tx.commit();
     }
 
-    ReportService.flushReportChanges();
-
     return new HashComponentIdentifierDTO(hashComponentIdentifier,
         ComponentDisplayNameUtil.fromIdentifier(hashComponentIdentifier.getComponentIdentifier()));
   }
@@ -109,7 +104,6 @@ public class HashComponentIdentifierService
     auditHashComponentIdentifier(toDelete);
 
     hashComponentIdentifierDAO.delete(toDelete);
-    ReportService.flushReportChanges();
   }
 
   private void ensureUnknownComponent(final HashComponentIdentifier hashComponentIdentifier) {

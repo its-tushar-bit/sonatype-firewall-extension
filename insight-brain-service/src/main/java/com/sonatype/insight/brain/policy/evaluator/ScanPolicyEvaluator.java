@@ -65,6 +65,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,9 +156,7 @@ public class ScanPolicyEvaluator
 
     AuditData.get().setStageId(stage.getStageTypeId());
 
-    String appId = application.getId();
-
-    final File reportFile = reportService.fetchReport(work, appId, scanId, true);
+    final File reportFile = reportService.fetchReport(work, application, scanId);
 
     final ReportEntry licenseReportEntry = Report.getEntry(reportFile, "licenses.json");
     final ReportEntry securityReportEntry = Report.getEntry(reportFile, "security.json");
@@ -174,6 +173,7 @@ public class ScanPolicyEvaluator
     sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 
     // Evaluate the policies
+    String appId = application.getId();
     List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(appId);
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
@@ -183,8 +183,7 @@ public class ScanPolicyEvaluator
 
     sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
 
-    createReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
-    ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
+    updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
     postEvaluateEvent(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
 
@@ -205,11 +204,11 @@ public class ScanPolicyEvaluator
     return PolicyAlertUtil.createPolicyAlerts(activeViolations, stageTypeId, forMonitoring, enableActions);
   }
 
-  private void createReportFiles(File reportFile,
-                                 ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
-                                 Stage stage,
-                                 boolean forMonitoring)
-      throws IOException
+  private void updateReportFiles(
+      File reportFile,
+      ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
+      Stage stage,
+      boolean forMonitoring) throws IOException
   {
     List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getApplicationId(),
         scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
@@ -218,6 +217,33 @@ public class ScanPolicyEvaluator
 
     PolicyThreats policyThreats = policyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
+
+    updateDataJson(reportFile, policyThreats);
+  }
+
+  private void updateDataJson(File reportFile, PolicyThreats policyThreats) throws IOException {
+    int[] policyCounts = new int[11];
+    int policyComponentCount = 0;
+    int grandfatheredPolicyViolationCount = 0;
+
+    for (PolicyThreats.Component component : policyThreats.aaData) {
+      int level = component.policyThreatLevel;
+      policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
+      if (level >= 2) {
+        policyComponentCount++;
+      }
+      for (PolicyThreats.PolicyViolation policyViolation : component.allViolations) {
+        if (policyViolation.grandfathered) {
+          grandfatheredPolicyViolationCount++;
+        }
+      }
+    }
+
+    ObjectNode data = JsonUtils.parse(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME).buf);
+    Report.fill(data.putArray("policyCounts"), policyCounts);
+    data.put("policyComponentCount", policyComponentCount);
+    data.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
+    Report.putEntry(reportFile, Report.DATA_JSON_FILENAME, JsonUtils.generate(data));
   }
 
   /**

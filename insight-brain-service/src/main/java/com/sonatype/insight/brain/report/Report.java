@@ -28,6 +28,7 @@ import java.util.zip.ZipFile;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -46,8 +47,6 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,6 +63,8 @@ import org.slf4j.LoggerFactory;
 public final class Report
 {
   private static final Logger log = LoggerFactory.getLogger(Report.class);
+
+  public static final String DATA_JSON_FILENAME = "data.json";
 
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
@@ -146,12 +147,13 @@ public final class Report
       return;
     }
 
+    // If this is called from a policy re-evaluation, some files may be cached.
+    // Start fresh by deleting any cached files.
+    new FileCleaner().delete(getCacheDir(reportFile));
+
     embedApplicationPublicId(application, reportFile);
 
     applyComponentRelatedChanges(application, reportFile);
-
-    // this data item is not in the original report, but is placed in the cache by the policy evaluator
-    final ReportEntry policyReportEntry = getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);
@@ -161,32 +163,13 @@ public final class Report
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
         reportFile, "dependencies.json").buf));
 
-    final int[] policyCounts = new int[11];
     final int[] securityCounts = new int[10];
     final int[] licenseCounts = new int[11];
 
-    int policyComponentCount = 0;
     int insecureArtifactCount = 0;
-    int grandfatheredPolicyViolationCount = 0;
 
     final ArrayList<int[]> securityPunchCard = new ArrayList<>();
     final ArrayList<int[]> licensePunchCard = new ArrayList<>();
-
-    if (policyReportEntry != null) {
-      for (final JsonNode row : JsonUtils.parse(policyReportEntry.buf).get("aaData")) {
-        PolicyThreats.Component component = JsonUtils.asPojo(row, PolicyThreats.Component.class);
-        final int level = component.policyThreatLevel;
-        policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
-        if (level >= 2) {
-          policyComponentCount++;
-        }
-        for (PolicyThreats.PolicyViolation policyViolation : component.allViolations) {
-          if (policyViolation.grandfathered) {
-            grandfatheredPolicyViolationCount++;
-          }
-        }
-      }
-    }
 
     Set<ComponentIdentifier> components = new HashSet<>();
     for (final JsonNode row : security.get("aaData")) {
@@ -244,17 +227,14 @@ public final class Report
     saveReportEntry(reportFile, "partialmatched.json", partialMatched);
     writeLicenseThreatsToReportFile(application, reportFile);
 
-    final ObjectNode data = JsonUtils.parse(getEntry(reportFile, "data.json").buf);
-    fill(data.putArray("policyCounts"), policyCounts);
-    data.put("policyComponentCount", policyComponentCount);
+    final ObjectNode data = JsonUtils.parse(getEntry(reportFile, DATA_JSON_FILENAME).buf);
     fill(data.putArray("securityCounts"), securityCounts);
-    data.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
     data.put("insecureArtifactCount", insecureArtifactCount);
     fill(data.putArray("effectiveLicenseCounts"), licenseCounts);
     fill(data.putArray("securityPunchCard"), securityPunchCard);
     fill(data.putArray("licensePunchCard"), licensePunchCard);
 
-    saveReportEntry(reportFile, "data.json", data);
+    saveReportEntry(reportFile, DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
   }
@@ -571,13 +551,13 @@ public final class Report
     long start = System.currentTimeMillis();
 
     ContainerNode<?> bomJsonData = loadReportEntry(reportFile, "bom.json");
-    ContainerNode<?> dataJson = loadReportEntry(reportFile, "data.json");
+    ContainerNode<?> dataJson = loadReportEntry(reportFile, DATA_JSON_FILENAME);
     ContainerNode<?> summaryJsonData = loadReportEntry(reportFile, "summary.json");
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
         applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
-    saveReportEntry(reportFile, "data.json", dataJson);
+    saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
     saveReportEntry(reportFile, "summary.json", summaryJsonData);
 
     // Must start from un-edited license data.
@@ -675,10 +655,6 @@ public final class Report
     return Pdf.generate(reportFile, getCacheDir(reportFile), projectName, stageName, contact);
   }
 
-  public static void deletePdf(final File reportFile) {
-    Pdf.delete(reportFile);
-  }
-
   private static ReportEntry extractEntry(final File reportFile, final String name) throws IOException {
     // When the archive is closed, all InputStreams retrieved from this archive are also closed.
     try (final ZipFile archive = new ZipFile(reportFile)) {
@@ -744,7 +720,7 @@ public final class Report
     }
   }
 
-  private static void fill(final ArrayNode node, final int[] data) {
+  public static void fill(final ArrayNode node, final int[] data) {
     for (final int d : data) {
       node.add(d);
     }

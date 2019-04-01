@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,7 +27,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 final class JsonFileStore
     implements JsonStore
 {
-  private static final ConcurrentMap<String, CountingLock> LOCK_TABLE = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<String, ReadWriteLock> LOCK_TABLE = new ConcurrentHashMap<>();
 
   private final File folder;
 
@@ -35,9 +37,9 @@ final class JsonFileStore
 
   @Override
   public void commit(final String path, final ContainerNode<?> data) throws IOException {
-    final CountingLock lock = lockFor(folder);
+    final ReadWriteLock lock = lockFor(folder);
 
-    lock.exclusiveLock();
+    lock.writeLock().lock();
     try {
       final File file = new File(folder, path);
 
@@ -53,15 +55,15 @@ final class JsonFileStore
       JsonUtils.write(file, log.insert(0, data));
     }
     finally {
-      lock.exclusiveUnlock();
+      lock.writeLock().unlock();
     }
   }
 
   @Override
   public ContainerNode<?> restore(String path) throws IOException {
-    final CountingLock lock = lockFor(folder);
+    final ReadWriteLock lock = lockFor(folder);
 
-    lock.sharedLock();
+    lock.readLock().lock();
     try {
       final File file = new File(folder, path);
 
@@ -77,7 +79,7 @@ final class JsonFileStore
       return null;
     }
     finally {
-      lock.sharedUnlock();
+      lock.readLock().unlock();
     }
   }
 
@@ -96,15 +98,10 @@ final class JsonFileStore
   }
 
   @Override
-  public int modificationCount() {
-    return lockFor(folder).count();
-  }
-
-  @Override
   public ContainerNode<?> history(final ContainerNode<?> key, final String... paths) throws IOException {
-    final CountingLock lock = lockFor(folder);
+    final ReadWriteLock lock = lockFor(folder);
 
-    lock.sharedLock();
+    lock.readLock().lock();
     try {
       Iterable<String> filenames = Arrays.asList(paths);
       if (paths.length == 0 || paths[0].length() == 0) {
@@ -124,7 +121,7 @@ final class JsonFileStore
       return entries.size() > 0 ? log : null;
     }
     finally {
-      lock.sharedUnlock();
+      lock.readLock().unlock();
     }
   }
 
@@ -209,10 +206,10 @@ final class JsonFileStore
     };
   }
 
-  private static CountingLock lockFor(final File folder) {
-    CountingLock lock = LOCK_TABLE.get(folder.getAbsolutePath());
+  private static ReadWriteLock lockFor(final File folder) {
+    ReadWriteLock lock = LOCK_TABLE.get(folder.getAbsolutePath());
     if (lock == null) {
-      final CountingLock newLock = new CountingLock(folder.exists() ? 1 : 0);
+      final ReadWriteLock newLock = new ReentrantReadWriteLock();
       lock = LOCK_TABLE.putIfAbsent(folder.getAbsolutePath(), newLock);
       if (lock == null) {
         lock = newLock;

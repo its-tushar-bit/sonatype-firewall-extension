@@ -93,7 +93,7 @@ public class ReportResourceAuditTest
 
   @Test
   public void testBrowseReport_Json() throws Exception {
-    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    createReportFile(app.getId(), SCAN_ID);
 
     restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, "data.json").get();
 
@@ -114,8 +114,6 @@ public class ReportResourceAuditTest
 
   @Test
   public void testBrowseReport_Unauthorized() throws Exception {
-    mockReport(SCAN_ID, "/ReportResourceTest/report");
-
     restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, "data.json").get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, "unauthorized");

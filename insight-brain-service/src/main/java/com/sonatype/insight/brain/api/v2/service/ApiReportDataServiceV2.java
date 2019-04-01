@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -79,9 +78,6 @@ public class ApiReportDataServiceV2
   public ApiReportDataDTOV2 getDataNoAuth(String applicationPublicId, String scanId) throws IOException {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(work, app.getId(), scanId);
-    if (reportFile == null) {
-      throw new NotFoundException("Could not find a report with ID " + scanId);
-    }
 
     ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
     ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");

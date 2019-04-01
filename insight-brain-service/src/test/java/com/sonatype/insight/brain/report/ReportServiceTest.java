@@ -42,13 +42,10 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -90,49 +87,24 @@ public class ReportServiceTest
     createReportFile();
 
     ReportService reportService = createReportService();
-    File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
+    File report = reportService.fetchReport(insightWork, app, scanId);
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
   }
 
   @Test
-  public void testFetchReport_DoesNotExistAndEvaluationExist() throws Exception {
-    reportDownloader = mock(ReportDownloader.class);
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
-    ReportService reportService = createReportService();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
-    }).withMessageContaining("report for application ID " + app.getId() + " and scan ID " + scanId + " does not exist")
-        .withMessageContaining("purged to the trash");
-  }
-
-  @Test
-  public void testFetchReport_WithWaitForReport_DoesNotExist() throws Exception {
+  public void testFetchReport_DoesNotExist() throws Exception {
     MockReportDownloader mockReportDownloader = new MockReportDownloader();
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report.zip");
     reportDownloader = mockReportDownloader.getMock();
 
     ReportService reportService = createReportService();
-    File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
+    File report = reportService.fetchReport(insightWork, app, scanId);
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
     verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(900), eq(5));
-  }
-
-  @Test
-  public void testFetchReport_WithoutWaitingForReport_DoesNotExist() throws Exception {
-    MockReportDownloader mockReportDownloader = new MockReportDownloader();
-    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report.zip");
-    reportDownloader = mockReportDownloader.getMock();
-
-    ReportService reportService = createReportService();
-    File report = reportService.fetchReport(insightWork, app.getId(), scanId, false /* waitForReport */);
-    assertThat(report).isNotNull();
-    assertThat(report).isFile();
-    assertThat(report.getName()).isEqualTo("report.zip");
-    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(0), eq(5));
   }
 
   @Test
@@ -148,8 +120,20 @@ public class ReportServiceTest
   @Test
   public void testGetReport_DoesNotExist() throws Exception {
     ReportService reportService = createReportService();
-    File report = reportService.getReport(insightWork, app.getId(), scanId);
-    assertThat(report).isNull();
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      reportService.getReport(insightWork, app.getId(), scanId);
+    }).withMessage("Could not find a report with ID ReportServiceTestScanId");
+  }
+
+  @Test
+  public void testGetReport_DoesNotExistAndEvaluationExist() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
+    ReportService reportService = createReportService();
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      reportService.getReport(insightWork, app.getId(), scanId);
+    }).withMessageContaining("The report for application ID " + app.getId() + " and scan ID " + scanId
+        + " does not exist. Usually this means the report was deemed obsolete according "
+        + "to the data retention policies and hence purged to the trash.");
   }
 
   @Test
@@ -157,7 +141,7 @@ public class ReportServiceTest
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
 
-    // ReportResource.fetchReport requires a report.zip to exist when evaluations exist
+    // ReportResource.getReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
     // use an older data.json to make sure they still work
     createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
@@ -165,14 +149,6 @@ public class ReportServiceTest
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2);
 
-    reportDownloader = mock(ReportDownloader.class);
-    when(reportDownloader.downloadReport(eq("12345678"), (File) any(), anyInt(), anyInt())).then(new Answer<Boolean>()
-    {
-      @Override
-      public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        return false;
-      }
-    });
     ReportService reportService = createReportService();
 
     // Verify Response for scan 1
@@ -190,7 +166,7 @@ public class ReportServiceTest
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.getReportMetadata(app.getPublicId(), "12345678");
-    }).withMessage("Could not download the report for scan ID 12345678");
+    }).withMessage("Could not find a report with ID 12345678");
   }
 
   @Test

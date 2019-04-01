@@ -96,6 +96,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
@@ -1348,7 +1349,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_CreatesReportFiles() throws Exception {
+  public void testEvaluate_UpdatesReportFiles() throws Exception {
     // The policy will cause three policy violations.
     Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
     // The waiver will waive one policy violation, leaving two active policy violations.
@@ -1377,10 +1378,52 @@ public class ScanPolicyEvaluatorTest
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
+    // Verify the data.json report file
+    ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
+    ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
+    assertThat(data.get("policyCounts").toString()).isEqualTo("[1,0,0,0,0,2,0,0,0,0,0]");
+    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
+    assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(0);
   }
 
   @Test
-  public void testEvaluate_CreatesReportFiles_LifecycleFoundationLicense() throws Exception {
+  public void testEvaluate_UpdatesReportFiles_GrandfatheredViolations() throws Exception {
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+    // The policy will cause three policy violations.
+    Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
+    String scanId = simulateReportIsAvailable("report");
+
+    // Evaluate policy
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+        scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(0);
+
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    // Verify the policyalerts.json report file
+    ReportEntry policyAlertsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils.parse(policyAlertsReportEntry.buf, PolicyAlert[].class));
+    assertThat(policyAlerts).isEmpty();
+    // Verify the policythreats.json report file
+    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
+    assertThat(policyThreats.aaData) //
+        .extracting(component -> component.hash) //
+        .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
+    // Verify the data.json report file
+    ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
+    ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
+    assertThat(data.get("policyCounts").toString()).isEqualTo("[0,0,0,0,0,3,0,0,0,0,0]");
+    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(3);
+    assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(3);
+  }
+
+  @Test
+  public void testEvaluate_UpdatesReportFiles_LifecycleFoundationLicense() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     clmLicenseManager.installLicense(null);
     // The policy will cause three policy violations.

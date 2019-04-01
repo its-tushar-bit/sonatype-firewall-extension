@@ -40,12 +40,12 @@ public class ReportResourceAuthzTest
   @Test
   public void testBrowseReport() throws Exception {
     String scanId = "scanId";
-    mockReport(scanId, "/ReportResourceTest/report");
+    createReportFile(app.getId(), scanId);
 
     grantReadPermission(app.getId());
 
     HttpRequest request = restRequest().path("browseReport/{path}")
-        .parameter(app.getPublicId(), "scanId", "index.html");
+        .parameter(app.getPublicId(), scanId, "index.html");
     testAuthzGet(request);
   }
 
@@ -53,12 +53,13 @@ public class ReportResourceAuthzTest
   public void testDownloadBundle() throws Exception {
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report");
-    Report.putEntry(getReportFile(app.getId(), scanId), ScanPolicyEvaluator.POLICY_ALERTS_FILENAME, "[]");
+    ScanPolicyEvaluator scanPolicyEvaluator = getCLMServer().getInjector().getInstance(ScanPolicyEvaluator.class);
+    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD));
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
     HttpRequest request = restRequest().path(ReportResource.DOWNLOAD_BUNDLE_PATH)
-        .parameter(app.getPublicId(), "scanId");
+        .parameter(app.getPublicId(), scanId);
     testAuthzGet(request);
   }
 

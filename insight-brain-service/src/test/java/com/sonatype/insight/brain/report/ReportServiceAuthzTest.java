@@ -30,7 +30,7 @@ public class ReportServiceAuthzTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.getReportMetadata(app.getPublicId(), "12345678");
-    }).withMessage("Could not download the report for scan ID 12345678");
+    }).withMessage("Could not find a report with ID 12345678");
   }
 
   @Test(expected = UnauthenticatedException.class)

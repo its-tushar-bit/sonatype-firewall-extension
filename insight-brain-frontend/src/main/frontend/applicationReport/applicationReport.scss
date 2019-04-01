@@ -1,14 +1,11 @@
 @import "results/cipModal/cipModal";
 @import "rawData/applicationReportRawData";
 
-$iq-application-report-policy-threat-level-width: 65px;
-$iq-application-report-policy-name-width: 200px;
+$iq-application-report-policy-threat-level-width: 90px;
+$iq-application-report-policy-name-width: 225px;
 $iq-application-report-policy-name-filter-width:
   $iq-application-report-policy-threat-level-width
-  + $iq-application-report-policy-name-width
-  + (4 * $iq-cell-side-padding)
-  + 1px // 1px for the border between cells
-  - 2px; // 2px for the missing :first-child filter padding
+  + $iq-application-report-policy-name-width;
 
 #application-report-sidebar {
   &.iq-sidebar {
@@ -26,106 +23,16 @@ $iq-application-report-policy-name-filter-width:
   }
 }
 
-.iq-tile--application-report {
-  border-bottom: none;
-  box-shadow: none;
-  padding-bottom: 0;
-  position: relative;
-  z-index: 3;
-}
-
-.iq-tile--application-report-table-container {
-  background-color: transparent;
-  border: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-  padding: 0;
-  position: relative;
-
-  .iq-scrollable {
-    background-color: $iq-off-white;
-    border-right: 1px solid $iq-grey-2;
-    border-bottom: 1px solid $iq-grey-2;
-    border-left: 1px solid $iq-grey-2;
-    margin-bottom: 8px;
-    padding-right: 8px;
-    padding-bottom: 8px;
-    padding-left: 8px;
-    max-height: calc(100% - 17px);
-  }
-}
-
-.iq-table--application-report {
-  display: block;
-  margin: 0;
-  width: 100%;
-
-  tbody, thead {
-    display: block;
-
-    .iq-table-row {
-      display: block;
-      width: 100%;
-
-      &:last-child {
-        .iq-cell {
-          border-bottom: none;
-        }
-      }
-    }
-  }
-
-  tbody {
-    width: 100%;
-  }
-
-  .iq-cell {
-    display: inline-block;
-  }
-}
-
-.iq-application-report-headers {
-  @include semi-bold();
-
-  background-color: #fff;
-  border-top: 8px solid $iq-off-white;
-  border-right: 1px solid $iq-grey-2;
-  border-left: 1px solid $iq-grey-2;
-  box-shadow: 0px 2px 5px 0px $iq-grey-1;
-  display: block;
-  font-size: 14px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  text-transform: uppercase;
-  width: calc(100% - 2px);
-  z-index: $iq-dashboard-headers-zindex;
-
-  .iq-table-row {
-    border: none;
-  }
-
-  .iq-cell--header, .iq-cell--filter {
-    &:first-child {
-      border-left: 8px solid $iq-off-white;
-    }
-  }
-}
-
-.iq-application-report-results {
-  // table top border + th row height + filter row height
-  margin-top: 8px + 40px + 38px;
+.iq-tile-content--indicators {
+  margin-bottom: 8px;
 }
 
 .iq-cell--application-report-policy-threat-level {
-  &.iq-cell--label {
-    padding-left: 0;
-
-    // add the left padding we just removed
-    width: $iq-application-report-policy-threat-level-width + $iq-cell-side-padding;
-  }
-
   width: $iq-application-report-policy-threat-level-width;
+}
+
+.iq-table--fixed__content .iq-cell--application-report-policy-threat-level {
+  padding-left: 0;
 }
 
 .iq-cell--application-report-policy-name {
@@ -133,26 +40,11 @@ $iq-application-report-policy-name-filter-width:
 }
 
 .iq-cell--application-report-component-display {
-  $other-cells-width: $iq-application-report-policy-threat-level-width
-                      + (2 * $iq-cell-side-padding)
-                      + $iq-application-report-policy-name-width
-                      + (2 * $iq-cell-side-padding);
-  $borders-width: 2px; // 2 1px borders between cells
-
-  // first 2 cells (incl. padding/border ) + padding/border for this cell
-  width: calc(100% - #{$other-cells-width + $borders-width + (2 * $iq-cell-side-padding)});
+  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
   min-width: 0;
 
   .iq-text-indicator {
     margin-left: 12px;
-  }
-
-  &.iq-cell--header {
-    border-right: 8px solid $iq-off-white;
-
-    // first 2 cells (incl. padding/border ) + padding/border for this cell
-    width: calc(100% - #{$other-cells-width + $borders-width + (2 * $iq-cell-side-padding) + 16px});
-    min-width: 0;
   }
 }
 
@@ -161,8 +53,5 @@ $iq-application-report-policy-name-filter-width:
 }
 
 .iq-cell--application-report-component-name-filter {
-  border-left-width: 1px;
-  text-align: right;
-  // The 16px represents .iq-cell--filter first and last child padding
-  width: calc(100% - #{$iq-application-report-policy-name-filter-width + 1px + $iq-cell-filter-left-padding + 16px});
+  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
 }

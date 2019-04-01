@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,13 +23,19 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @since 1.63
@@ -46,9 +54,25 @@ public class ApiDataRetentionPolicyService
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
+  private final CLMLicenseManager licenseManager;
+
   @Inject
-  public ApiDataRetentionPolicyService(DataRetentionPolicyDAO dataRetentionPolicyDAO) {
+  public ApiDataRetentionPolicyService(
+      DataRetentionPolicyDAO dataRetentionPolicyDAO,
+      CLMLicenseManager licenseManager)
+  {
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
+    this.licenseManager = licenseManager;
+  }
+
+  private List<String> getLicensedReportContextIds() {
+    Set<String> licensed = Stream.concat( //
+        licenseManager.getStageTypes().stream().map(StageType::getId),
+        licenseManager.hasFeature(Feature.POLICY_MONITORING)
+            ? Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING)
+            : Stream.empty())
+        .collect(toSet());
+    return VALID_REPORT_CONTEXT_IDS.stream().filter(licensed::contains).collect(toList());
   }
 
   @Authorize(permission = Permission.READ)
@@ -59,7 +83,7 @@ public class ApiDataRetentionPolicyService
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO();
     Map<String, DataRetentionPolicy> policiesByContext = dataRetentionPolicyDAO.getByOwnerId(organizationId);
-    for (String contextId : VALID_REPORT_CONTEXT_IDS) {
+    for (String contextId : getLicensedReportContextIds()) {
       ApiReportRetentionPolicyDTO policyDTO = new ApiReportRetentionPolicyDTO();
       DataRetentionPolicy policy = policiesByContext.get(contextId);
       policyDTO.inheritPolicy = policy == null;

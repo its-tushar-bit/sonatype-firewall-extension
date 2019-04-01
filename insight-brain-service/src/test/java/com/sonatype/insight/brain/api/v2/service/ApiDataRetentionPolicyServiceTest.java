@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO.AgeUnit;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
@@ -17,8 +18,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -32,6 +35,9 @@ public class ApiDataRetentionPolicyServiceTest
 {
   @Inject
   private ApiDataRetentionPolicyService dataRetentionPolicyService;
+
+  @Inject
+  private TestLicenseManager licenseManager;
 
   private DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
 
@@ -65,6 +71,28 @@ public class ApiDataRetentionPolicyServiceTest
     assertThat(policyDTO.enablePurging).isTrue();
     assertThat(policyDTO.maxCount).isEqualTo(7);
     assertThat(policyDTO.maxAge).usingRecursiveComparison().isEqualTo(new ApiAgeDTO(5, AgeUnit.DAY));
+  }
+
+  @Test
+  public void testGetDataRetentionPolicies_AppReports_LicensedStages() {
+    Organization org = tempEntity.newOrganization();
+
+    licenseManager.setStageTypes(StageTypes.STAGE_RELEASE, StageTypes.RELEASE);
+
+    ApiDataRetentionPoliciesDTO dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.applicationReports).isNotNull();
+    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE,
+        DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+
+    licenseManager.setMissingFeatures(Feature.POLICY_MONITORING);
+
+    dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.applicationReports).isNotNull();
+    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE);
   }
 
   @Test

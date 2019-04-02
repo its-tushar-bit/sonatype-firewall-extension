@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
@@ -46,6 +47,10 @@ public class OwnerSummaryPage
 
   public static LicenseThreatGroupTile licenseThreatGroupTile() {
     return new LicenseThreatGroupTile();
+  }
+
+  public static DataRetentionTile dataRetentionTile() {
+    return new DataRetentionTile();
   }
 
   public static AccessTile accessTile() {

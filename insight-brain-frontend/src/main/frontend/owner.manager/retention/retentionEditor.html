@@ -23,14 +23,21 @@
           ng-submit="vm.isDirty() && vm.save()"
           form-mask="vm.retentionEditorMask"
           mask-attach-to-body>
-      <div ng-repeat="(stage, retention) in vm.retention">
-        <h2 class="iq-tile__section-header">{{::stage}}</h2>
+      <div ng-repeat="(stage, retention) in vm.retention" id="retention-editor-{{::stage}}">
+        <h3 class="iq-tile__section-header">{{::stage}}</h3>
         <fieldset class="iq-form-group iq-radio-group">
-          <iq-radio ng-if="!vm.isRootOrganization" model="retention.formValue" value="'inherit'"><!--
+          <iq-radio id="retention-editor-inherit-{{::stage}}" 
+                    ng-if="!vm.isRootOrganization" 
+                    model="retention.formValue" 
+                    value="'inherit'"><!--
          -->Inherit ({{::vm.getParentMaxReportsAndMaxAge(stage)}})<!--
        --></iq-radio>
-          <iq-radio model="retention.formValue" value="'dontPurge'">Don't Purge</iq-radio>
-          <iq-radio model="retention.formValue" value="'custom'">Custom</iq-radio>
+          <iq-radio id="retention-editor-disable-{{::stage}}" model="retention.formValue" value="'dontPurge'"><!--
+         -->Don't Purge<!--
+       --></iq-radio>
+          <iq-radio id="retention-editor-custom-{{::stage}}" model="retention.formValue" value="'custom'"><!--
+         -->Custom<!--
+       --></iq-radio>
         </fieldset>
         <div class="iq-form-row" ng-if="retention.formValue === 'custom'">
           <div class="iq-form-group iq-form-group--inputs-prefix">

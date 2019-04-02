@@ -469,4 +469,10 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.importPoliciesButton().shouldNotBe(visible);
   }
+
+  @Test
+  public void testDataRetentionTile() {
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldNot(exist);
+    OwnerSummaryPage.dataRetentionTile().shouldNot(exist);
+  }
 }

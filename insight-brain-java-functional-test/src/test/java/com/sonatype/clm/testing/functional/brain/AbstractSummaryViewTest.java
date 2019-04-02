@@ -70,7 +70,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractSummaryViewTest
     extends AbstractFunctionalTest
 {
-  private Owner currentOwner;
+  protected Owner currentOwner;
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 

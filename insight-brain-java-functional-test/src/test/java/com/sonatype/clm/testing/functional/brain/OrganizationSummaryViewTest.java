@@ -7,10 +7,13 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
@@ -21,25 +24,32 @@ import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileLis
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
+import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactTextCaseSensitive;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.elements.TileSimpleList.CLICKABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -227,5 +237,98 @@ public class OrganizationSummaryViewTest
         actualCategory.name().shouldBe(visible).shouldHave(text(expectedCategory.getName()));
       }
     }
+  }
+
+  @Test
+  public void testDataRetentionTile() {
+    DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
+
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
+
+    List<String> contextIds = Arrays.asList(
+        Stage.ID_DEVELOP,
+        Stage.ID_BUILD,
+        Stage.ID_STAGE_RELEASE,
+        Stage.ID_RELEASE,
+        Stage.ID_OPERATE,
+        DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+
+    tile.rows().shouldHaveSize(3);
+    ElementsCollection rowHeaders = tile.rowHeaders();
+    rowHeaders.shouldHaveSize(contextIds.size() + 1);
+    rowHeaders.last(rowHeaders.size() - 1).shouldHave(exactTexts(contextIds));
+
+    ElementsCollection maxAges = tile.maxAges();
+    maxAges.shouldHaveSize(contextIds.size() + 1);
+    maxAges.get(0).shouldHave(exactTextCaseSensitive(DataRetentionTile.MAX_AGE_HEADER));
+    ElementsCollection maxReports = tile.maxReports();
+    maxReports.shouldHaveSize(contextIds.size() + 1);
+    maxReports.get(0).shouldHave(exactTextCaseSensitive(DataRetentionTile.MAX_REPORTS_HEADER));
+
+    DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
+    DataRetentionPolicy customMaxCount = new DataRetentionPolicy();
+    customMaxCount.setOwnerId(organization.getId());
+    customMaxCount.setContextId(Stage.ID_DEVELOP);
+    customMaxCount.setPurgingEnabled(true);
+    customMaxCount.setMaxCount(6);
+    dao.insert(customMaxCount);
+    DataRetentionPolicy customMaxAgeAndMaxCount = new DataRetentionPolicy();
+    customMaxAgeAndMaxCount.setOwnerId(organization.getId());
+    customMaxAgeAndMaxCount.setContextId(Stage.ID_BUILD);
+    customMaxAgeAndMaxCount.setPurgingEnabled(true);
+    customMaxAgeAndMaxCount.setMaxAgeInDays(14);
+    customMaxAgeAndMaxCount.setMaxCount(8);
+    dao.insert(customMaxAgeAndMaxCount);
+    DataRetentionPolicy disabled = new DataRetentionPolicy();
+    disabled.setOwnerId(organization.getId());
+    disabled.setContextId(Stage.ID_RELEASE);
+    disabled.setPurgingEnabled(false);
+    dao.insert(disabled);
+    DataRetentionPolicy customMaxAge = new DataRetentionPolicy();
+    customMaxAge.setOwnerId(organization.getId());
+    customMaxAge.setContextId(Stage.ID_OPERATE);
+    customMaxAge.setPurgingEnabled(true);
+    customMaxAge.setMaxAgeInDays(7);
+    dao.insert(customMaxAge);
+
+    refresh();
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+
+    tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
+    tile.maxReport(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive("6"));
+    tile.maxAge(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("2 weeks"));
+    tile.maxReport(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("8"));
+    tile.maxAge(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));
+    tile.maxReport(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));
+    tile.maxAge(Stage.ID_OPERATE).shouldBe(visible).shouldHave(exactTextCaseSensitive("1 week"));
+    tile.maxReport(Stage.ID_OPERATE).shouldBe(visible)
+        .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testDataRetentionTile_Routing() {
+    DataRetentionTile tile = new DataRetentionTile();
+    DataRetentionEditorPage page = new DataRetentionEditorPage();
+
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    page.shouldNot(exist);
+
+    tile.editButton().click();
+
+    tile.shouldNot(exist);
+    page.shouldBe(visible);
+
+    back();
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    page.shouldNot(exist);
   }
 }

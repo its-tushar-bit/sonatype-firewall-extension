@@ -75,6 +75,12 @@ describe('webhook.edit.controller.spec.js', function() {
       expect(vm.dirtyWebhook).toBeUndefined();
       expect(vm.loadError).toBeDefined();
     });
+
+    it('does not prevent default on pageChangeStarted', function() {
+      const evt = $rootScope.$broadcast('pageChangeStarted');
+
+      expect(evt.defaultPrevented).toBe(false);
+    });
   });
 
   describe('Edit Webhook', function() {

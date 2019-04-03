@@ -24,7 +24,7 @@ export default function WebhookEditController($q, $scope, $http, $stateParams, $
   vm.doLoad();
 
   $scope.$on('pageChangeStarted', function(event) {
-    if (vm.dirtyWebhook.isDirty()) {
+    if (vm.dirtyWebhook && vm.dirtyWebhook.isDirty()) {
       event.preventDefault();
     }
   });

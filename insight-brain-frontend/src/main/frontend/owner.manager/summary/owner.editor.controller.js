@@ -31,6 +31,12 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
   vm.siblings = siblings;
   vm.userIconPreview = undefined;
   vm.unsavedModalVisible = false;
+  const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
+  vm.formMessages = {
+    duplicate: 'ID is already in use',
+    validNameCharacters: invalidCharactersMessage,
+    noSpaces: invalidCharactersMessage
+  };
 
   $scope.$watch('vm.icon.type', function(iconType) {
     if (iconType !== 'source') {

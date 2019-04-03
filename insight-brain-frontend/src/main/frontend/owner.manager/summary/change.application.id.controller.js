@@ -16,6 +16,13 @@ function ChangeApplicationIdController($scope, $rootScope, $state, owner, siblin
   vm.siblings = siblings;
   vm.applicationIdEditorMask = undefined;
   vm.unsavedModalVisible = false;
+  // Override messages to be used in the field validation popover
+  const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
+  vm.formMessages = {
+    duplicate: 'ID is already in use',
+    validNameCharacters: invalidCharactersMessage,
+    noSpaces: invalidCharactersMessage
+  };
 
   $scope.$on('pageChangeStarted', function(event) {
     if (vm.isDirty()) {

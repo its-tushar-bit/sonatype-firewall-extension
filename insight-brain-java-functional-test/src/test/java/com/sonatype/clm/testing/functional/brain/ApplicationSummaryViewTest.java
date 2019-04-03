@@ -335,10 +335,19 @@ public class ApplicationSummaryViewTest
     // current id is not a valid input
     changeApplicationIdDialog.newId().val(application.getPublicId());
     changeApplicationIdDialog.newId().shouldHave(cssClass("ng-invalid"));
+    popoverViolations(changeApplicationIdDialog.newId()).shouldBe(visible);
+    // use invalid characters and assert the violation popover message
+    String invalidCharsMessage = "Use valid characters: alphanumeric, \"_\", \".\" or \"-\"";
+    changeApplicationIdDialog.newId().val("*");
+    popoverViolations(changeApplicationIdDialog.newId()).shouldHave(text(invalidCharsMessage)).shouldBe(visible);
+    // assert that the popover violation message for spaces is the same as invalid characters.
+    changeApplicationIdDialog.newId().val("Spaced ID");
+    popoverViolations(changeApplicationIdDialog.newId()).shouldHave(text(invalidCharsMessage)).shouldBe(visible);
 
     // now change the id to a new, valid one
     changeApplicationIdDialog.newId().val("newAppId");
     changeApplicationIdDialog.newId().shouldNotHave(cssClass("ng-invalid"));
+    popoverViolations(changeApplicationIdDialog.newId()).shouldNotBe(visible);
     changeApplicationIdDialog.changeButton().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
     changeApplicationIdDialog.shouldBe(hidden);

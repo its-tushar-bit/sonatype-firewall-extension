@@ -231,8 +231,14 @@ input.iq-input-file--hidden {
   position: absolute;
 }
 
-.iq-textarea {
-  min-height: 64px;
+textarea {
+  &.iq-textarea {
+    min-height: 64px;
+  }
+
+  &.iq-textarea--tall {
+    height: 200px;
+  }
 }
 
 // Dropdown Selector

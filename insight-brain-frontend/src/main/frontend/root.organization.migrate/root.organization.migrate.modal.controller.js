@@ -52,4 +52,5 @@ export default function RootOrganizationMigrateModalController(Messages, Organiz
   doLoad();
 }
 
-RootOrganizationMigrateModalController.$inject = ['Messages', 'OrganizationStore', 'CLMLocations', '$http', '$scope', '$timeout', '$window'];
+RootOrganizationMigrateModalController.$inject =
+    ['Messages', 'OrganizationStore', 'CLMLocations', '$http', '$scope', '$timeout', '$window'];

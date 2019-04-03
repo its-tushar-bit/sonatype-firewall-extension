@@ -1,4 +1,5 @@
-import systemNoticeConfigurationModule from '../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationModule';
+import systemNoticeConfigurationModule
+  from '../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationModule';
 
 describe('systemNoticeConfigurationModuleSpec.js', function() {
   beforeEach(angular.mock.module('ui.router', systemNoticeConfigurationModule.name, function($provide) {

@@ -284,19 +284,21 @@ describe('ProductLicense', function() {
       expect(modalOpenSpy).toHaveBeenCalled();
     });
 
-    it('Should hide the eula and reload the page when license is installed', inject(function($window, $timeout, $httpBackend) {
-      vm.onFileChanged();
-      expect(modalOpenSpy).toHaveBeenCalled();
-      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('eula-modal-template');
+    it('Should hide the eula and reload the page when license is installed',
+        inject(function($window, $timeout, $httpBackend) {
+          vm.onFileChanged();
+          expect(modalOpenSpy).toHaveBeenCalled();
+          expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('eula-modal-template');
 
-      // trigger success
-      $httpBackend.expectPOST('').respond(204);
-      modalResultSpy.calls.mostRecent().args[0]();
-      $httpBackend.flush();
-      $timeout.flush();
+          // trigger success
+          $httpBackend.expectPOST('').respond(204);
+          modalResultSpy.calls.mostRecent().args[0]();
+          $httpBackend.flush();
+          $timeout.flush();
 
-      expect($window.location.reload).toHaveBeenCalled();
-    }));
+          expect($window.location.reload).toHaveBeenCalled();
+        })
+    );
 
     it('Should hide the eula and reload the page when license is installed - IE9',
         inject(function($window, $timeout) {
@@ -320,41 +322,45 @@ describe('ProductLicense', function() {
           expect($window.location.reload).toHaveBeenCalled();
         }));
 
-    it('Should hide the eula, clear file value and show an error if license install fails', inject(function($window, $httpBackend) {
-      scope.clearValue = angular.noop;
-      spyOn(scope, 'clearValue');
+    it('Should hide the eula, clear file value and show an error if license install fails',
+        inject(function($window, $httpBackend) {
+          scope.clearValue = angular.noop;
+          spyOn(scope, 'clearValue');
 
-      vm.onFileChanged();
-      expect(modalOpenSpy).toHaveBeenCalled();
+          vm.onFileChanged();
+          expect(modalOpenSpy).toHaveBeenCalled();
 
-      // trigger success
-      $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/product/license')).respond(501, 'failure');
-      modalResultSpy.calls.mostRecent().args[0]();
-      $httpBackend.flush();
+          // trigger success
+          $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/product/license')).respond(501, 'failure');
+          modalResultSpy.calls.mostRecent().args[0]();
+          $httpBackend.flush();
 
-      expect(vm.submitError).toBe('failure');
-    }));
+          expect(vm.submitError).toBe('failure');
+        })
+    );
 
-    it('Should hide the eula, clear file value and show an error if license install fails - IE9', inject(function($window, $timeout) {
-      $window.FormData = false; // disable
+    it('Should hide the eula, clear file value and show an error if license install fails - IE9',
+        inject(function($window, $timeout) {
+          $window.FormData = false; // disable
 
-      scope.clearValue = angular.noop;
-      spyOn(scope, 'clearValue');
+          scope.clearValue = angular.noop;
+          spyOn(scope, 'clearValue');
 
-      vm.onFileChanged();
-      expect(modalOpenSpy).toHaveBeenCalled();
+          vm.onFileChanged();
+          expect(modalOpenSpy).toHaveBeenCalled();
 
-      // trigger success
-      modalResultSpy.calls.mostRecent().args[0]();
+          // trigger success
+          modalResultSpy.calls.mostRecent().args[0]();
 
-      // ng-upload does this
-      vm.uploadCompleted('fail');
+          // ng-upload does this
+          vm.uploadCompleted('fail');
 
-      $timeout.flush();
+          $timeout.flush();
 
-      expect(vm.submitError).toBe('fail');
-      expect(scope.clearValue).toHaveBeenCalled();
-    }));
+          expect(vm.submitError).toBe('fail');
+          expect(scope.clearValue).toHaveBeenCalled();
+        })
+    );
 
     it('Should show confirmation when uninstalling license', function() {
       vm.viewUninstallLicense();

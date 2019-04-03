@@ -23,10 +23,12 @@ describe('same.owner.edit.sref.directive.spec.js', function() {
       params: {organizationId: '123', labelId: '123'}
     });
 
-    var element = $compile('<button same-owner-edit-sref=label({&quot;labelId&quot;:&quot;123&quot;})></button>')($rootScope);
+    var element =
+        $compile('<button same-owner-edit-sref=label({&quot;labelId&quot;:&quot;123&quot;})></button>')($rootScope);
 
     expect(element.attr('same-owner-edit-sref')).toBeUndefined();
-    expect(element.attr('ui-sref')).toEqual('management.edit.organization.label({"organizationId":"123","labelId":"123"})');
+    expect(element.attr('ui-sref'))
+        .toEqual('management.edit.organization.label({"organizationId":"123","labelId":"123"})');
   });
 
 });

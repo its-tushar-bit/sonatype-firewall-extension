@@ -202,7 +202,8 @@ describe('Tests for the LdapConfigurationController', function() {
 
       scope.ldap = {id: '123'};
 
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({ serverId: scope.ldap.id });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({ serverId: scope.ldap.id });
 
       $controller('LdapConnectionController', {
         $scope: scope,

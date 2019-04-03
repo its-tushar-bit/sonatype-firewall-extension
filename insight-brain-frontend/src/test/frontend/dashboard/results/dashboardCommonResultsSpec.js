@@ -64,7 +64,7 @@ describe('dashboardCommonResultsSpec', function() {
       expect(vm.loadCommonResults()).toBe(false);
     });
 
-    it('returns true when results array length is not greater than maxResults but needsAcknowledgement is true', function() {
+    it('returns true when results array length is not greater than maxResults but needsAcknowledgement is true', () => {
       vm.results = [{}];
       vm.needsAcknowledgement = true;
       expect(vm.maxResults).toBe(1);

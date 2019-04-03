@@ -14,7 +14,8 @@ export default function FormMaskDirective($parse) {
   function FormMaskLink(scope, element, attrs, maskController) {
     var maskElement,
         maskMessage = 'Saving',
-        attachToBody = attrs.hasOwnProperty('maskAttachToBody'); //if maskAttachToBody flag is set the mask will cover the whole page
+        // if maskAttachToBody flag is set the mask will cover the whole page
+        attachToBody = attrs.hasOwnProperty('maskAttachToBody');
 
     maskController.removeMask = removeMask;
     maskController.activateMask = activateMask;

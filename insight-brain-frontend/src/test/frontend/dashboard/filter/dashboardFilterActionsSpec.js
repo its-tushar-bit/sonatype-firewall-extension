@@ -421,7 +421,7 @@ describe('dashboardFilterActions', function() {
       expect(errorSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 403 }));
     });
 
-    it('returns rejected promise and does not dispatch APPLY_SAVED_FILTER_FAILED if failed to load results', function() {
+    it('returns rejected promise and does not dispatch APPLY_SAVED_FILTER_FAILED if failed to load results', () => {
       // mock update filters
       $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond('update filters response');
 

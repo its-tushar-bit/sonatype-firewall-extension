@@ -10,7 +10,8 @@ describe('has.whitespace.validator.directive.spec.js', function() {
   }));
 
   it('validates whitespace controls', inject(function($compile) {
-    $compile('<ng-form name="form"><input name="control" type="text" ng-model="whitespace" has-whitespace-validator/></ng-form>')(scope);
+    $compile('<ng-form name="form"><input name="control" type="text" ng-model="whitespace" has-whitespace-validator/>' +
+        '</ng-form>')(scope);
     scope.$digest();
 
     scope.$apply(function() {

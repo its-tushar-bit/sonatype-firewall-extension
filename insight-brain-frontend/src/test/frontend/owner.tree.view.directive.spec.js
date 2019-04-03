@@ -276,7 +276,8 @@ describe('owner.tree-view.directive.spec.js', function() {
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_TREE_DATA);
 
         $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
-        $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
+        $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'))
+            .respond(permissions);
         scope.$digest();
         $httpBackend.flush();
         $timeout.flush();

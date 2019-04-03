@@ -3,6 +3,7 @@ import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigura
 import OwnerUtils from '../owner.utils';
 import PolicyResourceMockData from '../mock.data/policy.resource.mock.data';
 import TagResourceMockData from '../mock.data/tag.resource.mock.data';
+import { any, propEq } from 'ramda';
 
 describe('policy.editor.controller.spec.js', function() {
   var $state;
@@ -364,7 +365,9 @@ describe('policy.editor.controller.spec.js', function() {
         }
       }
 
-      if (!expectError && (!isApp || policyStoreData.length > 1 && policyStoreData[1].policies.some(function(policy) { return policyId === policy.id; }))) {
+      const respondWithCategories = !expectError && (!isApp || policyStoreData.length > 1 &&
+              any(propEq('id', policyId), policyStoreData[1].policies));
+      if (respondWithCategories) {
         $httpBackend.expectGET(CLMContextLocations.getCategoriesUrl()).respond(mockCategoryOwners);
 
         if (policyId) {

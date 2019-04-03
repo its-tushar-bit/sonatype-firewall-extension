@@ -13,8 +13,8 @@ describe('ValidatorsSpec', function() {
         },
         array: ['foo']
       });
-      element =
-        $compile('<form><input name="input" type="text" unique-validator="array" ng-model="model.value"></form>')(scope);
+      element = $compile('<form><input name="input" type="text" unique-validator="array" ng-model="model.value">' +
+          '</form>')(scope);
       formController = element.controller('form');
     }));
 
@@ -70,7 +70,8 @@ describe('ValidatorsSpec', function() {
           })
         });
         var element =
-          $compile('<form><input name="input" type="text" input-validator="validator" ng-model="model.value"></form>')(scope);
+          $compile('<form><input name="input" type="text" input-validator="validator" ng-model="model.value">' +
+              '</form>')(scope);
 
         var formController = element.controller('form');
 

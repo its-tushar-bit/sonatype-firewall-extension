@@ -14,7 +14,8 @@ const automaticApplicationsConfiguration = {
   template: template
 };
 
-function AutomaticApplicationsConfigurationController($q, OrganizationStore, automaticApplicationsConfigurationService) {
+function AutomaticApplicationsConfigurationController($q, OrganizationStore,
+                                                      automaticApplicationsConfigurationService) {
   const vm = this;
 
   Object.assign(vm, {
@@ -85,6 +86,7 @@ function AutomaticApplicationsConfigurationController($q, OrganizationStore, aut
   });
 }
 
-AutomaticApplicationsConfigurationController.$inject = ['$q', 'OrganizationStore', 'automaticApplicationsConfigurationService'];
+AutomaticApplicationsConfigurationController.$inject =
+    ['$q', 'OrganizationStore', 'automaticApplicationsConfigurationService'];
 
 export default automaticApplicationsConfiguration;

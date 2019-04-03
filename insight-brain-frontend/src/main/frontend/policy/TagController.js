@@ -12,8 +12,8 @@ var tagTemplate = {id: null, organizationId: null, name: null, description: null
 
 var tagModule = angular.module('Tags', [CLMContextLocationModule.name, CLMLocationModule.name, storesModule.name]);
 
-tagModule.service('TagStore', [
-  'CachedHierarchyStore', 'CLMContextLocations', 'CLMLocations', '$http', function(CachedHierarchyStore, CLMContextLocations, CLMLocations, $http) {
+tagModule.service('TagStore', ['CachedHierarchyStore', 'CLMContextLocations', 'CLMLocations', '$http',
+  function(CachedHierarchyStore, CLMContextLocations, CLMLocations, $http) {
     var tagStoreTemplate = {
       getUrl: CLMContextLocations.getCategoriesUrl,
       template: tagTemplate,

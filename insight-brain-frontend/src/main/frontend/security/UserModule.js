@@ -18,23 +18,25 @@ import telemetryServiceModule from '../services/telemetryService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 
-export const SecurityModule = angular.module('SecurityModule', ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name,
-  permissionServiceModule.name], ['$stateProvider',
-    function($stateProvider) {
+export const SecurityModule = angular.module('SecurityModule',
+    ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name, permissionServiceModule.name],
+    ['$stateProvider', function($stateProvider) {
       $stateProvider.state('administrators', {
         url: '/administrators',
-        template: '<div authorization-wrapper="isAuthorized">' +
-                     '<div class="iq-body-container iq-body-container--single-pane" maximize-container-height>' +
-                       '<div class="iq-tile iq-tile--sys-prefs">' +
-                         '<div class="iq-tile-header">' +
-                           '<div class="iq-tile-header__title">' +
-                             '<h2>Administrators</h2>' +
-                           '</div>' +
-                         '</div>' +
-                         '<div class="iq-tile-content" ng-include="\'policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
-                       '</div>' +
-                     '</div>' +
-                   '</div>',
+        template: `<div authorization-wrapper="isAuthorized">
+                     <div class="iq-body-container iq-body-container--single-pane" maximize-container-height>
+                       <div class="iq-tile iq-tile--sys-prefs">
+                         <div class="iq-tile-header">
+                           <div class="iq-tile-header__title">
+                             <h2>Administrators</h2>
+                           </div>
+                         </div>
+                         <div class="iq-tile-content" 
+                              ng-include="'policy/components/app-security/app-security.html?${clmBuildTimestamp}'">
+                         </div>
+                       </div>
+                     </div>
+                   </div>`,
         data: {
           title: 'Administrators'
         },
@@ -47,8 +49,9 @@ export const SecurityModule = angular.module('SecurityModule', ['ui.router', ang
       });
     }]);
 
-export const UserModule = angular.module('UserModule', ['ui.router', SecurityModule.name, CLMLocationModule.name, resourceModule.name,
-  utilityModule.name, utilityDirectivesModule.name, telemetryServiceModule.name],
+export const UserModule = angular.module('UserModule', ['ui.router', SecurityModule.name, CLMLocationModule.name,
+                                                        resourceModule.name, utilityModule.name,
+                                                        utilityDirectivesModule.name, telemetryServiceModule.name],
         ['$stateProvider', function($stateProvider) {
           $stateProvider.state('users', {
             url: '/users',

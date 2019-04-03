@@ -61,5 +61,6 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
 }
 
 ApplicationCategoryTileControllerApp.$inject = [
-  '$scope', '$q', '$http', 'ApplicationStore', 'CLMContextLocations', 'CLMLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+  '$scope', '$q', '$http', 'ApplicationStore', 'CLMContextLocations', 'CLMLocations',
+  'SameOwnerStateNavigationService', 'event.name.constant'
 ];

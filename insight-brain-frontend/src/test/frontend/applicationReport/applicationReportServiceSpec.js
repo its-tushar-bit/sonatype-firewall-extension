@@ -1208,7 +1208,8 @@ describe('applicationReportService', function() {
             numericFilters = {
               policyThreatLevel: [3, 4]
             },
-            result = applicationReportService.filterReportEntries(exactValueFilters, substringFilters, numericFilters)(input);
+            result = applicationReportService
+                .filterReportEntries(exactValueFilters, substringFilters, numericFilters)(input);
 
         expect(result).toEqual([{
           hash: '2',

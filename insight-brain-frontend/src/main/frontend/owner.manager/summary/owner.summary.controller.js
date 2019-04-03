@@ -93,9 +93,10 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   }
 
   function getAppEvaluatePermissions() {
-    PermissionService.isContextAuthorized(['EVALUATE_APPLICATION'], 'application', vm.owner.id).then(function(hasPermission) {
-      vm.hasPermissionToEvaluateApp = hasPermission;
-    });
+    PermissionService.isContextAuthorized(['EVALUATE_APPLICATION'], 'application', vm.owner.id)
+        .then(function(hasPermission) {
+          vm.hasPermissionToEvaluateApp = hasPermission;
+        });
   }
 
   function edit() {

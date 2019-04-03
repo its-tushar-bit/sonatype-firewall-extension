@@ -71,7 +71,8 @@ describe('dashboardFilterService', function() {
       expect(filterJson.policyThreatCategoryFilters).toEqual(['QUALITY', 'OTHER', 'SECURITY']);
       expect(filterJson.stageTypeFilters).toEqual(['release', 'stage-release', 'build']);
       expect(filterJson.tagFilters).toEqual(['tagId1', 'tagId2', null]);
-      expect(filterJson.applicationFilters).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']);
+      expect(filterJson.applicationFilters)
+          .toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']);
       expect(filterJson.policyViolationStates).toEqual(['OPEN', 'WAIVED']);
       expect(filterJson.maxDaysOld).toEqual(90);
       expect(filterJson.minPolicyThreatLevel).toEqual(3);

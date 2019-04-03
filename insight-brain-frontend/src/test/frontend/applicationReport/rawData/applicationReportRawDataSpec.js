@@ -56,6 +56,7 @@ describe('applicationReportRawData', function() {
       };
 
       expect(vm.getLicenseTooltip(data)).toMatch(
+          // eslint-disable-next-line max-len
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>foo, bar<\/dd>\s*<dt>Observed:<\/dt><dd>foo, baz<\/dd>\s*<\/dl>\s*$/);
     });
 
@@ -68,6 +69,7 @@ describe('applicationReportRawData', function() {
       };
 
       expect(vm.getLicenseTooltip(data)).toMatch(
+          // eslint-disable-next-line max-len
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>foo, baz<\/dd>\s*<\/dl>\s*$/);
     });
 
@@ -80,6 +82,7 @@ describe('applicationReportRawData', function() {
       };
 
       expect(vm.getLicenseTooltip(data)).toMatch(
+          // eslint-disable-next-line max-len
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>foo, bar<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
     });
 
@@ -91,6 +94,7 @@ describe('applicationReportRawData', function() {
       };
 
       expect(vm.getLicenseTooltip(data)).toMatch(
+          // eslint-disable-next-line max-len
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>foo, baz<\/dd>\s*<\/dl>\s*$/);
     });
 
@@ -102,6 +106,7 @@ describe('applicationReportRawData', function() {
       };
 
       expect(vm.getLicenseTooltip(data)).toMatch(
+          // eslint-disable-next-line max-len
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>foo, bar<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
     });
 
@@ -110,6 +115,7 @@ describe('applicationReportRawData', function() {
       };
 
       expect(vm.getLicenseTooltip(data)).toMatch(
+          // eslint-disable-next-line max-len
           /^\s*<dl class="iq-license-table">\s*<dt>Declared:<\/dt><dd>-<\/dd>\s*<dt>Observed:<\/dt><dd>-<\/dd>\s*<\/dl>\s*$/);
     });
   });

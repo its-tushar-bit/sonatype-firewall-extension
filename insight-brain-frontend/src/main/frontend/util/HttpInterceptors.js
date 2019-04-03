@@ -62,8 +62,9 @@ httpInterceptors.config(['$httpProvider', function($httpProvider) {
   $httpProvider.defaults.xsrfHeaderName = 'X-CSRF-TOKEN';
 }]);
 
-//Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency
-//on $http, therefore putting modal code in an http interceptor creates a circular dependency
+// Ideally this would be merged into the above code, no event would be emitted, but sadly,
+// ui.bootstrap (for $modal) has a dependency on $http, therefore putting modal code in an http interceptor
+// creates a circular dependency
 export var unauthenticatedResponseHttpInterceptor = angular.module('UnauthenticatedResponseHttpInterceptor', [
   httpInterceptors.name, angularCommonModule.name, 'ui.bootstrap',
   CLMLocationModule.name, utilityServicesModule.name]).run([

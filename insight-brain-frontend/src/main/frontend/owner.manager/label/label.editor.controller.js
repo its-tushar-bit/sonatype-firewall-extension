@@ -35,7 +35,8 @@ function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMC
   }
 
   function doLoad() {
-    $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(CLMContextLocations.getApplicableLabelsUrl(CLMContextLocations.getEntityId()))]).then(function(results) {
+    const applicableLabelsUrl = CLMContextLocations.getApplicableLabelsUrl(CLMContextLocations.getEntityId());
+    $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(applicableLabelsUrl)]).then(function(results) {
       results[1].data.labelsByOwner.forEach(function(owner) {
         vm.siblings = vm.siblings.concat(owner.labels);
       });

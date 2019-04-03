@@ -75,25 +75,25 @@ describe('gettingStarted component', function() {
       expect(vm.license).toBe('license value');
     });
 
-    it('sets validPermissions and shouldDisplayHdsUnreachable but does not retrieve any data if has no admin permission',
-        function() {
-          $rootScope.licensed = true;
+    it('sets validPermissions and shouldDisplayHdsUnreachable but does not retrieve any data if has no admin ' +
+        'permission', function() {
+      $rootScope.licensed = true;
 
-          var permissionsDeferred = $q.defer();
-          permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
-          $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: false, errorMessage: 'foo' });
+      var permissionsDeferred = $q.defer();
+      permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: false, errorMessage: 'foo' });
 
-          vm.$onInit();
+      vm.$onInit();
 
-          permissionsDeferred.resolve(['ADD_APPLICATION']);
-          $scope.$digest();
-          $httpBackend.flush();
+      permissionsDeferred.resolve(['ADD_APPLICATION']);
+      $scope.$digest();
+      $httpBackend.flush();
 
-          expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
-          expect(vm.shouldDisplayHdsUnreachable).toBe(true);
-          expect(vm.hdsUnreachableErrorMessage).toEqual('foo');
-          expect(vm.license).toBeUndefined();
-        });
+      expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
+      expect(vm.shouldDisplayHdsUnreachable).toBe(true);
+      expect(vm.hdsUnreachableErrorMessage).toEqual('foo');
+      expect(vm.license).toBeUndefined();
+    });
 
     it('resets error', function() {
       $rootScope.licensed = true;

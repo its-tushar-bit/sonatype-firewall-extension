@@ -62,7 +62,7 @@ export default {
           ownerId: '78c1d44c07584e57945f04890c672e82',
           name: 'applicationName',
           type: 'application',
-          policies: undefined /* Irrelevant currently, set to undefined to cause errors if we attempt to use in the future */
+          policies: undefined /* Irrelevant currently, set to undefined to cause errors if we use in the future */
         },
         {
           ownerId: '9999999c07584e57945f04890c672e99',

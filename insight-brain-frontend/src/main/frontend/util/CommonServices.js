@@ -28,10 +28,12 @@ services.service('Messages', function() {
       if (args.status <= 0 || args.status >= 1000) {
         message = 'Unable to reach Nexus IQ Server';
       }
-      else if (args.data && (!headers || !headers['content-type'] || headers['content-type'].indexOf('text/html') === -1)) {
+      else if (args.data && (!headers || !headers['content-type'] ||
+          headers['content-type'].indexOf('text/html') === -1)) {
         message = args.data;
       }
-      // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665), so at least ensure message for typical proxy errors
+      // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
+      // , so at least ensure message for typical proxy errors
       else if (args.status === 502) {
         message = 'Bad Gateway';
       }

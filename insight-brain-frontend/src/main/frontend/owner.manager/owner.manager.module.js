@@ -77,11 +77,11 @@ import retentionModule from './retention/module';
 export default
 angular.module('owner.manager.module',
     [
-      storesModule.name, labelsModule.name, tagsModule.name, licenseThreatGroupModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name,
-      formsModule.name, utilityModule.name, utilityDirectivesModule.name, permissionServiceModule.name, policyModule.name,
-      CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, roleMembershipModule.name,
-      moveApplicationModule.name, ProductFeaturesModule.name, PolicyViolationGrandfatheringModule.name,
-      retentionModule.name
+      storesModule.name, labelsModule.name, tagsModule.name, licenseThreatGroupModule.name, 'ui.bootstrap', 'ui.router',
+      angularCommonModule.name, formsModule.name, utilityModule.name, utilityDirectivesModule.name,
+      permissionServiceModule.name, policyModule.name, CLMLocationModule.name, utilityServicesModule.name,
+      validatorsModule.name, roleMembershipModule.name, moveApplicationModule.name, ProductFeaturesModule.name,
+      PolicyViolationGrandfatheringModule.name, retentionModule.name
     ])
     .component('ownerPolicyList', ownerPolicyList)
     .controller('access.editor.controller', AccessEditorController)

@@ -25,7 +25,8 @@ describe('age.in.days.input.directive.spec.js', function() {
       ageModel: '3'
     });
 
-    element = $compile('<form name="testform"><age-in-days-input ng-model="ageModel"></age-in-days-input></form>')(scope).children();
+    element = $compile('<form name="testform"><age-in-days-input ng-model="ageModel">' +
+        '</age-in-days-input></form>')(scope).children();
 
     isolatedScope = element.isolateScope();
     vm = isolatedScope.vm;

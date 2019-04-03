@@ -39,7 +39,8 @@ describe('access.tile.controller.spec.js', function() {
     vm.membersByRole.forEach(function(role, roleIndex) {
       expect(role.roleName).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex].roleName);
       role.membersByOwner.forEach(function(owner, ownerIndex) {
-        expect(owner.members).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex].membersByOwner[ownerIndex].members);
+        expect(owner.members).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex]
+            .membersByOwner[ownerIndex].members);
       });
     });
   });

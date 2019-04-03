@@ -38,12 +38,14 @@ describe('applications component', function() {
         expect(vm.loadResults).not.toHaveBeenCalled();
       });
 
-      it('does not fire LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is true', function() {
-        vm.filterLoading = false;
-        vm.needsAcknowledgement = true;
-        vm.$onInit();
-        expect(vm.loadResults).not.toHaveBeenCalled();
-      });
+      it('does not fire LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is true',
+          function() {
+            vm.filterLoading = false;
+            vm.needsAcknowledgement = true;
+            vm.$onInit();
+            expect(vm.loadResults).not.toHaveBeenCalled();
+          }
+      );
 
       it('fires LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is false', function() {
         vm.filterLoading = false;

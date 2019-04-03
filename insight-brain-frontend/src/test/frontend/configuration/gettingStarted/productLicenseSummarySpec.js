@@ -62,7 +62,7 @@ describe('productLicenseSummary', function() {
         ]);
       });
 
-      it('is set to array with single Lifecycle userLimits object if license contains only Lifecycle value', function() {
+      it('is set to array with single Lifecycle userLimits object if license contains only Lifecycle value', () => {
         var vm = getVm({
           licensedUsersToDisplay: 2000
         });

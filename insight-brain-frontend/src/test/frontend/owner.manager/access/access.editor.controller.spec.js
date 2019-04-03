@@ -30,7 +30,8 @@ describe('access.editor.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $controller, _$timeout_, _$q_, _$httpBackend_, _CLMContextLocations_, $state, ApplicationId) {
+  beforeEach(inject(function($rootScope, $controller, _$timeout_, _$q_, _$httpBackend_, _CLMContextLocations_, $state,
+                             ApplicationId) {
     scope = $rootScope.$new();
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
@@ -80,7 +81,11 @@ describe('access.editor.controller.spec.js', function() {
 
   it('Calls remove on update with no picked users', function() {
     inject(function($controller) {
-      vm = $controller('access.editor.controller', {$scope: scope, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'}, isAuthorized: true});
+      vm = $controller('access.editor.controller', {
+        $scope: scope,
+        $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'},
+        isAuthorized: true
+      });
 
       vm.getCurrentMembersToSave = function() { return []; };
       vm.isMembershipDirty = function() { return true; };

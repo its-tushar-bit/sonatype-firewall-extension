@@ -13,35 +13,35 @@ import RepositoryReEvaluateModalController from './repository.reevaluate.modal.c
 import ReEvaluateModalService from './repository.reevaluate.service';
 import RepositoryReportController from './repository.report.controller';
 
-var reportModule = angular.module('Report', [CLMLocationModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name], [
-  '$stateProvider', function($stateProvider) {
-    $stateProvider.state('report', {
-      url: '/reports/{publicId}/{scanId}',
-      controller: 'ReportController',
-      templateUrl: 'report/report/report.html?' + clmBuildTimestamp,
-      data: {
-        title: 'Report'
-      }
-    });
-    $stateProvider.state('repository-report', {
-      url: '/repository/{repositoryId}/result',
-      controller: 'repository.report.controller',
-      controllerAs: 'vm',
-      templateUrl: 'report/report/repository.report.html?' + clmBuildTimestamp,
-      data: {
-        title: 'Repository Results'
-      }
-    });
-  }
-])
+var reportModule = angular.module('Report',
+    [CLMLocationModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name],
+    ['$stateProvider', function($stateProvider) {
+      $stateProvider.state('report', {
+        url: '/reports/{publicId}/{scanId}',
+        controller: 'ReportController',
+        templateUrl: 'report/report/report.html?' + clmBuildTimestamp,
+        data: {
+          title: 'Report'
+        }
+      });
+      $stateProvider.state('repository-report', {
+        url: '/repository/{repositoryId}/result',
+        controller: 'repository.report.controller',
+        controllerAs: 'vm',
+        templateUrl: 'report/report/repository.report.html?' + clmBuildTimestamp,
+        data: {
+          title: 'Repository Results'
+        }
+      });
+    }])
     .controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController)
     .service('ReEvaluateModal', ReEvaluateModalService)
     .controller('repository.report.controller', RepositoryReportController);
 
 export default reportModule;
 
-reportModule.controller('ReportController', [
-  '$scope', '$state', '$http', '$q', 'StageTypeStore', 'CLMLocations', function($scope, $state, $http, $q, StageTypeStore, clmLocations) {
+reportModule.controller('ReportController', ['$scope', '$state', '$http', '$q', 'StageTypeStore', 'CLMLocations',
+  function($scope, $state, $http, $q, StageTypeStore, clmLocations) {
     $scope.doLoad = function() {
       $scope.error = null;
 
@@ -65,7 +65,8 @@ reportModule.controller('ReportController', [
 
 reportModule.directive('expandableIframe', function() {
   return {
-    template: '<iframe ng-src="{{url}}" width="100%" height="1000px" border="0" frameborder="0" scrolling="yes" style="overflow:auto;"/>',
+    template: '<iframe ng-src="{{url}}" width="100%" height="1000px" border="0" frameborder="0" scrolling="yes" ' +
+        'style="overflow:auto;"/>',
     scope: {
       url: '=expandableIframe'
     },

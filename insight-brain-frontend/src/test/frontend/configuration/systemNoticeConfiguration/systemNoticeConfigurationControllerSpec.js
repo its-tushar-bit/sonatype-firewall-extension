@@ -105,7 +105,8 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
       expect(vm.error).toBeUndefined();
       expect(vm.savedSystemNotice.message).toEqual('saved message');
       expect(vm.savedSystemNotice.enabled).toBe(true);
-      expect($rootScope.$broadcast).toHaveBeenCalledWith('systemNoticeUpdated', SystemNoticeMockData.getSystemNotice('saved message', true));
+      expect($rootScope.$broadcast).toHaveBeenCalledWith('systemNoticeUpdated',
+          SystemNoticeMockData.getSystemNotice('saved message', true));
     });
 
     it('sets the error if it fails to send it to the server', function() {

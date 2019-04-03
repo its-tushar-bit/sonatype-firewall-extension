@@ -69,6 +69,7 @@ module.exports = {
       "error",
       "single"
     ],
+    "max-len": [ "error", { "code": 120 } ],
     "no-undef": "error",
     "no-unused-vars": "error",
     "strict": "error",

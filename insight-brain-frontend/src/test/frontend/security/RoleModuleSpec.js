@@ -169,8 +169,10 @@ describe('RoleModuleSpec.js', function() {
         expect(scope.role.permissionCategories).toBeDefined();
         expect(scope.role.permissionCategories.length).toBe(roleOne.permissionCategories.length);
         expect(scope.role.permissionCategories[0].displayName).toBe(roleOne.permissionCategories[0].displayName);
-        expect(scope.role.permissionCategories[0].permissions.length).toBe(roleOne.permissionCategories[0].permissions.length);
-        expect(scope.role.permissionCategories[0].permissions[0].displayName).toBe(roleOne.permissionCategories[0].permissions[0].displayName);
+        expect(scope.role.permissionCategories[0].permissions.length)
+            .toBe(roleOne.permissionCategories[0].permissions.length);
+        expect(scope.role.permissionCategories[0].permissions[0].displayName)
+            .toBe(roleOne.permissionCategories[0].permissions[0].displayName);
       });
 
       it('dirty editor triggers preventing the pageChangeStart event', inject(function() {

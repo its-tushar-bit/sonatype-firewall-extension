@@ -59,7 +59,8 @@ describe('AppSecurityControllerSpec', function() {
 
       for (var i = 0; i < scope.context.roles.length; i++) {
         if (scope.context.roles[i].roleId === role1.roleId) {
-          expect(scope.context.roles[i].membersByOwner[0].members).toEqual(MockData.getRoleSaveCompleteEventMemberList());
+          expect(scope.context.roles[i].membersByOwner[0].members)
+              .toEqual(MockData.getRoleSaveCompleteEventMemberList());
           found = true;
           break;
         }

@@ -26,12 +26,13 @@ const module = angular.module('RoleModule', [
       resolve: {
         'rolePermissions': [
           'PermissionService', function(PermissionService) {
-            return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true).then(function(validPermissions) {
-              return {
-                viewRoles: validPermissions.indexOf('VIEW_ROLES') >= 0,
-                editRoles: validPermissions.indexOf('EDIT_ROLES') >= 0
-              };
-            });
+            return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true)
+                .then(function(validPermissions) {
+                  return {
+                    viewRoles: validPermissions.indexOf('VIEW_ROLES') >= 0,
+                    editRoles: validPermissions.indexOf('EDIT_ROLES') >= 0
+                  };
+                });
           }
         ]
       }
@@ -157,43 +158,44 @@ module.controller('RoleEditorController', [
   }
 ]);
 
-module.controller('DeleteRoleController', ['$scope', '$state', '$stateParams', 'RoleStore', 'Dialog', 'Messages', function ($scope, $state, $stateParams, RoleStore, Dialog, Messages) {
-  function error() {
-    Dialog.open({
-      title: 'Failed to Delete',
-      body: Messages.getHttpErrorMessage(arguments),
-      buttons: [{
-        name: 'Close',
-        dismiss: true
-      }]
-    });
-  }
+module.controller('DeleteRoleController', ['$scope', '$state', '$stateParams', 'RoleStore', 'Dialog', 'Messages',
+  function ($scope, $state, $stateParams, RoleStore, Dialog, Messages) {
+    function error() {
+      Dialog.open({
+        title: 'Failed to Delete',
+        body: Messages.getHttpErrorMessage(arguments),
+        buttons: [{
+          name: 'Close',
+          dismiss: true
+        }]
+      });
+    }
 
-  $scope.deleteRole = function () {
-    Dialog.open({
-      title: 'Delete Role',
-      body: 'Are you sure you want to delete the Role <strong>' + $('<div/>').text($scope.role.name).html() +
-             '</strong>?',
-      buttons: [{
-        name: 'Delete',
-        type: 'primary'
-      }, {
-        name: 'Cancel',
-        type: 'cancel',
-        dismiss: true
-      }]
-    }).result.then(function () {
-      RoleStore.get().then(function (roles) {
-        angular.forEach(roles, function (role) {
-          if (role.id === $stateParams.roleId) {
-            role.$delete().then(function () {
-              $state.go('roles');
-            }, function (error) {
-              error(error);
-            });
-          }
-        });
-      }, error);
-    });
-  };
-}]);
+    $scope.deleteRole = function () {
+      Dialog.open({
+        title: 'Delete Role',
+        body: 'Are you sure you want to delete the Role <strong>' + $('<div/>').text($scope.role.name).html() +
+               '</strong>?',
+        buttons: [{
+          name: 'Delete',
+          type: 'primary'
+        }, {
+          name: 'Cancel',
+          type: 'cancel',
+          dismiss: true
+        }]
+      }).result.then(function () {
+        RoleStore.get().then(function (roles) {
+          angular.forEach(roles, function (role) {
+            if (role.id === $stateParams.roleId) {
+              role.$delete().then(function () {
+                $state.go('roles');
+              }, function (error) {
+                error(error);
+              });
+            }
+          });
+        }, error);
+      });
+    };
+  }]);

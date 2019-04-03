@@ -14,7 +14,8 @@ describe('load.wrapper.directive.spec.js', function() {
       canRetry: undefined
     });
 
-    element = $compile('<div load-wrapper="error" loading="loading" reload="reload()" can-retry="canRetry"><div id="content"></div></div>')(scope);
+    element = $compile('<div load-wrapper="error" loading="loading" reload="reload()" can-retry="canRetry">' +
+        '<div id="content"></div></div>')(scope);
     scope.$digest();
   }));
 

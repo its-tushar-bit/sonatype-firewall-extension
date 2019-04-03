@@ -11,8 +11,8 @@ import storesModule from './util/Stores';
 
 var module = angular.module('EditorTools',
     [
-      commonServicesModule.name, CLMContextLocationModule.name, storesModule.name, angularCommonModule.name, 'xeditable',
-      'ngCookies'
+      commonServicesModule.name, CLMContextLocationModule.name, storesModule.name, angularCommonModule.name,
+      'xeditable', 'ngCookies'
     ]);
 
 module.run(['editableOptions', function (editableOptions) {

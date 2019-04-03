@@ -31,7 +31,8 @@ describe('owner.summary.controller.js', function() {
         mockGrandfatherModalService,
         mockRevokeGrandfatheringModalService;
 
-    beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_, StageTypeStore) {
+    beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_,
+                               StageTypeStore) {
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       CLMLocations = _CLMLocations_;
@@ -156,7 +157,8 @@ describe('owner.summary.controller.js', function() {
 
         expect(mockState.href).toHaveBeenCalledWith('report', {
           publicId: applicationResourceMockData.getApplicationSummaryUrl().publicId,
-          scanId: applicationResourceMockData.getApplicationSummaryUrl().policyEvaluations[MockData.getDashboardStageData()[0].stageTypeId].scanId
+          scanId: applicationResourceMockData.getApplicationSummaryUrl()
+              .policyEvaluations[MockData.getDashboardStageData()[0].stageTypeId].scanId
         });
         expect(mockWindow.open).toHaveBeenCalled();
       }
@@ -441,7 +443,8 @@ describe('owner.summary.controller.js', function() {
 
     function resolveApplicationEvaluatePermission(hasPermission) {
       if (isApp) {
-        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['EVALUATE_APPLICATION'], type, owner.id);
+        expect(mockPermissionService.isContextAuthorized)
+            .toHaveBeenCalledWith(['EVALUATE_APPLICATION'], type, owner.id);
         isContextAuthorizedDefer.resolve(hasPermission);
       }
     }

@@ -50,7 +50,8 @@ describe('Forms module', function() {
 
       describe('Popover triggers', function() {
         beforeEach(function() {
-          element = compile('<form name="form"><input clm-input name="test" type="text" ng-model="field" required></form>')(scope);
+          element = compile('<form name="form"><input clm-input name="test" type="text" ng-model="field" ' +
+              'required></form>')(scope);
           input = element.find('input');
         });
 

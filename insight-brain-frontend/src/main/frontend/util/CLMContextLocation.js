@@ -139,7 +139,8 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getRoleMappingUrl: function(roleId) {
-        return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() + (roleId ? ('/role/' + roleId) : '');
+        return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() +
+            (roleId ? ('/role/' + roleId) : '');
       },
 
       getFindUsersUrl: function(type, typeId) {

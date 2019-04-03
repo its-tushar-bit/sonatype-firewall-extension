@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMContextLocations,
-                                            DeleteModalService, SameOwnerStateNavigationService) {
+function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $state, CLMLocations, licenseGroupStore,
+                                            CLMContextLocations, DeleteModalService, SameOwnerStateNavigationService) {
   var originalPickedLicenseIds = [],
       isNavigatingAfterRemove,
       vm = this;

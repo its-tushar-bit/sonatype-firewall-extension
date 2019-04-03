@@ -10,7 +10,8 @@ describe('threat.level.selector.directive.spec.js', function() {
 
     $compile = _$compile_;
 
-    element = $compile('<threat-level-selector ng-model="testLevel" threat-type="ltg" ng-disabled="disabled"></threat-level-selector>')(scope);
+    element = $compile('<threat-level-selector ng-model="testLevel" threat-type="ltg" ' +
+        'ng-disabled="disabled"></threat-level-selector>')(scope);
     scope.disabled = false;
     scope.testLevel = 0;
   }));

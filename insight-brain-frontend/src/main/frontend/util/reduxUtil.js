@@ -5,8 +5,8 @@
  */
 import { always, curry, lensProp, set } from 'ramda';
 /*
- * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.  The payload is ignored and is only an argument
- * to conform to the interface needed by reducerActionMap
+ * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
+ * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap
  */
 export const propSetConst = curry((propName, constValue, payload, state) => set(lensProp(propName), constValue, state));
 

@@ -72,7 +72,8 @@ function SelectApplicationContactController($scope, $http, CLMContextLocations, 
   function removeContact() {
     owner.contactInternalName = null;
     vm.deleteMode = true;
-    DeleteModalService.deleteCustom('Clear Contact', 'You are about to remove ' + vm.owner.contact.displayName + '.', 'Removing', function() {
+    DeleteModalService.deleteCustom('Clear Contact', 'You are about to remove ' +
+        vm.owner.contact.displayName + '.', 'Removing', function() {
       return vm.owner.$save();
     }).then(function() {
       $scope.$close();

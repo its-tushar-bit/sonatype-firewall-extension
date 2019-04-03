@@ -52,7 +52,8 @@ describe('repositories.configuration.tile.controller.spec.js', function() {
   });
 
   it('Properly Remove a Repository', inject(function($timeout) {
-    $httpBackend.expectGET(CLMLocations.getRepositoriesUrl()).respond(RepositoriesResourceMockData.getRepositoriesUrl());
+    $httpBackend.expectGET(CLMLocations.getRepositoriesUrl())
+        .respond(RepositoriesResourceMockData.getRepositoriesUrl());
     $httpBackend.flush();
 
     var mockRepositories = RepositoriesResourceMockData.getRepositoriesUrl().repositories;

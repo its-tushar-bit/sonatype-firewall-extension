@@ -67,27 +67,29 @@ describe('scrollspy.directive.spec.js', function() {
   }));
 
   it('Validate events are handled as expected',
-      inject(['$compile', '$rootScope', 'event.name.constant', '$timeout', function($compile, $rootScope, EventNameConstant, $timeout) {
-        var scrollspyObj = {
-          refresh: jasmine.createSpy()
-        };
+      inject(['$compile', '$rootScope', 'event.name.constant', '$timeout',
+        function($compile, $rootScope, EventNameConstant, $timeout) {
+          var scrollspyObj = {
+            refresh: jasmine.createSpy()
+          };
 
-        spyOn($.fn.scrollspy, 'Constructor').and.returnValue(scrollspyObj);
-        spyOn($.fn, 'animate');
+          spyOn($.fn.scrollspy, 'Constructor').and.returnValue(scrollspyObj);
+          spyOn($.fn, 'animate');
 
-        $compile(getFullElement())(controllerScope);
-        $timeout.flush();
+          $compile(getFullElement())(controllerScope);
+          $timeout.flush();
 
-        expect(scrollspyObj.refresh).not.toHaveBeenCalled();
-        $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);
-        expect(scrollspyObj.refresh).toHaveBeenCalled();
-        expect($.fn.animate).not.toHaveBeenCalled();
-        scrollspyObj.refresh.calls.reset();
-        $.fn.animate.calls.reset();
-        expect($.fn.animate).not.toHaveBeenCalled();
-        $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
-        expect(scrollspyObj.refresh).not.toHaveBeenCalled();
-        expect($.fn.animate).toHaveBeenCalled();
-      }])
+          expect(scrollspyObj.refresh).not.toHaveBeenCalled();
+          $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);
+          expect(scrollspyObj.refresh).toHaveBeenCalled();
+          expect($.fn.animate).not.toHaveBeenCalled();
+          scrollspyObj.refresh.calls.reset();
+          $.fn.animate.calls.reset();
+          expect($.fn.animate).not.toHaveBeenCalled();
+          $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
+          expect(scrollspyObj.refresh).not.toHaveBeenCalled();
+          expect($.fn.animate).toHaveBeenCalled();
+        }
+      ])
   );
 });

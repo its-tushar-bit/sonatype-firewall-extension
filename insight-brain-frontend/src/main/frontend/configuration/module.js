@@ -6,7 +6,8 @@
 import gettingStartedModule from './gettingStarted/module';
 import successMetricsConfigurationModule from './successMetricsConfiguration/successMetricsConfigurationModule';
 import systemNoticeConfigurationModule from './systemNoticeConfiguration/systemNoticeConfigurationModule';
-import automaticApplicationsConfigurationModule from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
+import automaticApplicationsConfigurationModule
+  from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
 import ldapModule from './ldap/ldap.module';
 import webhookModule from './webhook/webhook.module';
 import ProductLicenseModule from './license/ProductLicenseModule';

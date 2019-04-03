@@ -5,7 +5,12 @@ describe('stageTypeSort.filter.spec', function () {
   beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   it('sort by id', inject(function ($filter) {
-    var result = $filter('stageTypeSort')([{ id: 'operate' }, { id: 'build' }, { id: 'release' }, { id: 'stage-release' }]);
+    var result = $filter('stageTypeSort')([
+      { id: 'operate' },
+      { id: 'build' },
+      { id: 'release' },
+      { id: 'stage-release' }
+    ]);
     expect(result[0].id).toEqual('build');
     expect(result[1].id).toEqual('stage-release');
     expect(result[2].id).toEqual('release');

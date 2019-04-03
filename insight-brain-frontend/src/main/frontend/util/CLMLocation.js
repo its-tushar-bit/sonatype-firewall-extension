@@ -321,7 +321,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       },
 
       getGrandfatherUrl: function(applicationPublicId) {
-        return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${encodeURIComponent(applicationPublicId)}`;
+        const appId = encodeURIComponent(applicationPublicId);
+        return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${appId}`;
       },
 
       getSuccessMetricsConfigUrl: () => `${baseUrl.get()}/rest/successMetrics`,

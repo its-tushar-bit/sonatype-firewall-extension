@@ -32,10 +32,23 @@ describe('select.application.contact.controller.spec.js', function() {
 
   it('Selects current user in search results', function() {
     inject(function($controller) {
-      vm = $controller('select.application.contact.controller', {$scope: scope, owner: {contact: {internalName: 'JohnDoe'}}});
+      vm = $controller('select.application.contact.controller', {
+        $scope: scope,
+        owner: {
+          contact: {
+            internalName: 'JohnDoe'
+          }
+        }
+      });
     });
     vm.search();
-    $httpBackend.whenGET('/rest/user/global/global/query?groups=false').respond({members: [{internalName: 'Foo'}, {internalName: 'JohnDoe'}]});
+    $httpBackend.whenGET('/rest/user/global/global/query?groups=false').respond({
+      members: [{
+        internalName: 'Foo'
+      }, {
+        internalName: 'JohnDoe'
+      }]
+    });
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.selected).toBeDefined();
@@ -61,7 +74,16 @@ describe('select.application.contact.controller.spec.js', function() {
 
   it('Leaves delete mode when confirmation dialog is cancelled', function() {
     inject(function($controller) {
-      vm = $controller('select.application.contact.controller', {$scope: scope, owner: {contactInternalName: 'Foo', contact: {displayName: 'Foo Bar'}}, DeleteModalService: mockDeleteService});
+      vm = $controller('select.application.contact.controller', {
+        $scope: scope,
+        owner: {
+          contactInternalName: 'Foo',
+          contact: {
+            displayName: 'Foo Bar'
+          }
+        },
+        DeleteModalService: mockDeleteService
+      });
     });
     vm.removeContact();
     expect(vm.deleteMode).toBe(true);

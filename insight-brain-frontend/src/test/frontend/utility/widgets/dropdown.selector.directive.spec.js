@@ -21,9 +21,10 @@ describe('dropdown.selector.directive.spec.js', function() {
         disabled: false
       });
 
-      element = $compile('<form name="form"><dropdown-selector name="dropdown" ng-model="testModel" options="options" ' +
-          'ng-disabled="disabled" ng-change="onSelect(testModel)" empty-option-string="{{emptyOptionString}}" ' +
-          'option-name-param="{{optionNameParam}}" no-options-string="{{noOptionsString}}"></dropdown-selector>' +
+      element = $compile('<form name="form"><dropdown-selector name="dropdown" ng-model="testModel" ' +
+          'options="options" ng-disabled="disabled" ng-change="onSelect(testModel)" ' +
+          'empty-option-string="{{emptyOptionString}}" option-name-param="{{optionNameParam}}" ' +
+          'no-options-string="{{noOptionsString}}"></dropdown-selector>' +
           '</form>')(scope).children();
 
       scope.$digest();
@@ -161,8 +162,9 @@ describe('dropdown.selector.directive.spec.js', function() {
         optionValueParam: 'id'
       });
 
-      element = $compile('<form><dropdown-selector ng-model="testModel" options="options" option-value-param="{{optionValueParam}}" ' +
-          'option-name-param="{{optionNameParam}}"></dropdown-selector></form>')(scope).children();
+      element = $compile('<form><dropdown-selector ng-model="testModel" options="options" ' +
+          'option-value-param="{{optionValueParam}}" option-name-param="{{optionNameParam}}">' +
+          '</dropdown-selector></form>')(scope).children();
 
       scope.$digest();
     }));

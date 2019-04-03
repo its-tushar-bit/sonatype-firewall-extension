@@ -70,57 +70,65 @@ describe('mainModuleSpec', function() {
           expect(pendoServiceMock.start).toHaveBeenCalled();
         }));
 
-    it('validate state after license check fails because unlicensed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+    it('validate state after license check fails because unlicensed',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
-      initService.start();
-      $httpBackend.flush();
-      expect($rootScope.licensed).toBeFalsy();
-      expect($window.location.replace).toHaveBeenCalled();
-      expect($rootScope.initialized).toBeFalsy();
-      expect($rootScope.username).toBe('myname');
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toBeFalsy();
+          expect($window.location.replace).toHaveBeenCalled();
+          expect($rootScope.initialized).toBeFalsy();
+          expect($rootScope.username).toBe('myname');
 
-      expect(pendoServiceMock.start).toHaveBeenCalled();
-    }));
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        })
+    );
 
-    it('validate state after logged in check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
-      $rootScope.error = undefined;
-      initService.start();
-      $httpBackend.flush();
-      expect($rootScope.error).toBeDefined();
-      expect($rootScope.initialized).toBeFalsy();
+    it('validate state after logged in check error',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
+          $rootScope.error = undefined;
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.error).toBeDefined();
+          expect($rootScope.initialized).toBeFalsy();
 
-      expect(pendoServiceMock.start).toHaveBeenCalled();
-    }));
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        })
+    );
 
-    it('validate state after license check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $rootScope.error = undefined;
-      initService.start();
-      $httpBackend.flush();
-      expect($rootScope.error).toBeDefined();
-      expect($rootScope.initialized).toBeFalsy();
+    it('validate state after license check error',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+          $rootScope.error = undefined;
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.error).toBeDefined();
+          expect($rootScope.initialized).toBeFalsy();
 
-      expect(pendoServiceMock.start).toHaveBeenCalled();
-    }));
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        })
+    );
 
-    it('validate state after product feature error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
-      $rootScope.error = undefined;
-      initService.start();
-      $httpBackend.flush();
-      expect($rootScope.error).toBeDefined();
-      expect($rootScope.initialized).toBeFalsy();
+    it('validate state after product feature error',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
+          $rootScope.error = undefined;
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.error).toBeDefined();
+          expect($rootScope.initialized).toBeFalsy();
 
-      expect(pendoServiceMock.start).toHaveBeenCalled();
-    }));
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        })
+    );
 
     it('validate state after external hyperlinks are disabled',
         inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {

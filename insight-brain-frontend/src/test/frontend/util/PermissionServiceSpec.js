@@ -110,14 +110,16 @@ describe('PermissionService.js', function() {
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Multiple Perms in different order, Allowed', inject(function(PermissionService, CLMContextLocations, $httpBackend) {
-      $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'),
-          ['ADMIN', 'ADMIN2']).respond(['ADMIN2', 'ADMIN']);
-      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
-      $httpBackend.flush();
-      expect(successSpy).toHaveBeenCalledWith(true);
-      expect(errorSpy).not.toHaveBeenCalled();
-    }));
+    it('Multiple Perms in different order, Allowed',
+        inject(function(PermissionService, CLMContextLocations, $httpBackend) {
+          $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'),
+              ['ADMIN', 'ADMIN2']).respond(['ADMIN2', 'ADMIN']);
+          PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
+          $httpBackend.flush();
+          expect(successSpy).toHaveBeenCalledWith(true);
+          expect(errorSpy).not.toHaveBeenCalled();
+        })
+    );
 
     it('Server Error', inject(function(PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'),

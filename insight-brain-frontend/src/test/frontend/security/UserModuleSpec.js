@@ -127,7 +127,8 @@ describe('UserModuleSpec.js', function() {
     expect(dialogScope.state).toEqual('complete');
     expect(listScope.passwordChangedForUser).toHaveBeenCalled();
     // server failure
-    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset')).respond(500, 'Error resetting');
+    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset'))
+        .respond(500, 'Error resetting');
     dialogScope.resetClick();
     $httpBackend.flush();
 

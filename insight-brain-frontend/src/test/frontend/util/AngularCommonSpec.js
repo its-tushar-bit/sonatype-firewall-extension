@@ -53,7 +53,8 @@ describe('AngularCommon', function() {
   });
 
   it('validates valid name characters controls', function() {
-    var element = compile('<ng-form id="form" name="form"><input id="control" name="control" type="text" ng-model="alpha" valid-name-characters /></ng-form>')(scope);
+    var element = compile('<ng-form id="form" name="form"><input id="control" name="control" type="text" ' +
+        'ng-model="alpha" valid-name-characters /></ng-form>')(scope);
     scope.$digest();
     scope.$apply(function() {
       scope.alpha = '!!!!';
@@ -73,8 +74,11 @@ describe('AngularCommon', function() {
     expect(Messages.getHttpErrorMessage({ data: null, status: -1 })).toEqual('Unable to reach Nexus IQ Server');
 
     expect(Messages.getHttpErrorMessage({ data: 'Internal Error', status: 500 })).toEqual('Internal Error');
-    expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 })).toEqual('Unable to reach Nexus IQ Server');
-    expect(Messages.getHttpErrorMessage(['<html>Error</html>', 503, function() { return {'content-type': 'text/html'}; }])).toEqual('Service Unavailable');
+    expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 }))
+        .toEqual('Unable to reach Nexus IQ Server');
+    expect(
+        Messages.getHttpErrorMessage(['<html>Error</html>', 503, () => ({'content-type': 'text/html'})])
+    ).toEqual('Service Unavailable');
     expect(Messages.getHttpErrorMessage({ data: '', status: 500 })).toEqual('Error 500');
   }));
 
@@ -82,7 +86,8 @@ describe('AngularCommon', function() {
     var elm = angular.element(
         '<form name="form">' +
         '<input ng-model="app.name" name="name" ' +
-        ' is-Duplicate is-Duplicate-Array="applications" is-Duplicate-Id-Field="name" is-Duplicate-Case-Sensitive="false">' +
+               'is-Duplicate is-Duplicate-Array="applications" is-Duplicate-Id-Field="name" ' +
+               'is-Duplicate-Case-Sensitive="false">' +
         '</input>' +
         '</form>'
 
@@ -368,7 +373,8 @@ describe('AngularCommon', function() {
       });
     });
     it('should respect a provided margin', function() {
-      chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm"></div>');
+      chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm">' +
+          '</div>');
       expect(chicletElement.scope().$$childTail.style.margin).toBe('5cm');
     });
   });

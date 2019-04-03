@@ -47,13 +47,16 @@ function dashboardResultsContainerController(createRequest, CLMLocations, $ngRed
     getExportRequestJson() {
       switch (vm.routeStateName) {
         case 'dashboard.overview.violations':
-          return JSON.stringify(createRequest(vm.filters, null, translateViolationsSortFields(vm.violationsSortFields)));
+          return JSON.stringify(createRequest(vm.filters, null,
+              translateViolationsSortFields(vm.violationsSortFields)));
 
         case 'dashboard.overview.components':
-          return JSON.stringify(createRequest(vm.filters, null, translateComponentsSortFields(vm.componentsSortFields)));
+          return JSON.stringify(createRequest(vm.filters, null,
+              translateComponentsSortFields(vm.componentsSortFields)));
 
         case 'dashboard.overview.applications':
-          return JSON.stringify(createRequest(vm.filters, null, translateApplicationsSortFields(vm.applicationsSortFields)));
+          return JSON.stringify(createRequest(vm.filters, null,
+              translateApplicationsSortFields(vm.applicationsSortFields)));
 
         default:
           throw new Error('Export is not supported for state ' + vm.routeStateName);

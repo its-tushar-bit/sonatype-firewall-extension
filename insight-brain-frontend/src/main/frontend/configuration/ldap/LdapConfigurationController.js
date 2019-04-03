@@ -95,7 +95,8 @@ export function LdapConfigurationController($scope, $state, Dialog, ldapStore, E
 
   $scope.isDirty = isDirty;
   $scope.canSaveEdit = function() {
-    return $scope.ldapEditor && !$scope.ldapEditor.$invalid && ($scope.ldapNameForm && $scope.ldapNameForm.$visible || $scope.ldap && $scope.ldap.name);
+    return $scope.ldapEditor && !$scope.ldapEditor.$invalid &&
+        ($scope.ldapNameForm && $scope.ldapNameForm.$visible || $scope.ldap && $scope.ldap.name);
   };
 
   $scope.save = function() {

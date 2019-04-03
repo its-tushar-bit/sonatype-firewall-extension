@@ -124,8 +124,12 @@ describe('label.editor.controller.spec.js', function() {
     $httpBackend.whenGET('/rest/label/global/global/applicable').respond({labelsByOwner: []});
     spyOn(SameOwnerStateNavigationService, 'goEdit');
     inject(function($controller) {
-      vm = $controller('label.editor.controller',
-          {$scope: scope, SameOwnerStateNavigationService: SameOwnerStateNavigationService, $stateParams: {labelId: '1'}, DeleteModalService: mockDeleteService});
+      vm = $controller('label.editor.controller', {
+        $scope: scope,
+        SameOwnerStateNavigationService: SameOwnerStateNavigationService,
+        $stateParams: {labelId: '1'},
+        DeleteModalService: mockDeleteService
+      });
     });
     mockLabel.id = '1';
     mockLabelStore.resolveGet([mockLabel]);

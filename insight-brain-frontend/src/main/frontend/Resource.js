@@ -53,7 +53,8 @@ module.service('StoreFactory', [
      *  optional config properties:
      *  - params: <Object>            - resource URL parameters
      *  - template: <Object|Function> - object to use as a template for a new resource
-     *  - dataProperty: <String>      - property of GET result to use as resource (if not provided - the actual result object is used)
+     *  - dataProperty: <String>      - property of GET result to use as resource (if not provided -
+     *                                  the actual result object is used)
      *  - id: <String>                - name of the property to use as ID (default is 'id')
      *  - relationalConfigs: <Array>  - used to create LinkedResources. (we only use this in licenseGroupStore)
      *  - transientProperties: <Array>- list of property names to filter out of the JSON that is sent to the server
@@ -626,8 +627,10 @@ module.service('HierarchyStoreFactory', [
      *
      * @param config see Store
      * HierarchyStore specific config parameters
-     *  - crudUrl: (ownerType, ownerId) -> URL - function, if provided, called to derive Resource URL, used for children (owned entities)
-     *  - storeField: String - name of the field containing the children (owned entities). Uses 'entities' by default.@constructor
+     *  - crudUrl: (ownerType, ownerId) -> URL - function, if provided, called to derive Resource URL,
+     *             used for children (owned entities)
+     *  - storeField: String - name of the field containing the children (owned entities).
+     *                Uses 'entities' by default.@constructor
      */
     function HierarchyStore(config) {
       var storeDeferred,

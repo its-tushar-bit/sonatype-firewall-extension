@@ -1,4 +1,5 @@
-import policyViolationGrandfatheringModule from '../../../../main/frontend/owner.manager/policyViolationGrandfathering/module';
+import policyViolationGrandfatheringModule
+  from '../../../../main/frontend/owner.manager/policyViolationGrandfathering/module';
 
 describe('PolicyViolationGrandfatheringService', function() {
 

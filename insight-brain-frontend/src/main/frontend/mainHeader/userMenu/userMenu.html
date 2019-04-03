@@ -4,22 +4,30 @@
       <div class="iq-modal-header">
         <h2>Change Password</h2>
       </div>
-      <form name="passwordForm" class="clm-form" ng-submit="save()">
+      <form name="passwordForm" class="iq-form iq-form--no-padding iq-form--no-border" ng-submit="save()">
         <div class="iq-modal-content">
-          <div clm-control-group for="original-password" label="Current Password">
-            <input clm-input
-                   type="password"
+          <div class="iq-form-group">
+            <label class="iq-label" for="original-password">Current Password</label>
+            <input type="password"
                    id="original-password"
                    name="original-password"
                    ng-model="result.originalPassword"
                    required
-                   focus-input="true">
+                   focus-input="true"
+                   class="iq-text-input">
           </div>
           <hr/>
-          <div clm-control-group for="new-password" label="New Password">
-            <input clm-input type="password" id="new-password" name="new-password" ng-model="result.newPassword" required>
+          <div class="iq-form-group">
+            <label class="iq-label" for="new-password">New Password</label>
+            <input class="iq-text-input"
+                   type="password"
+                   id="new-password"
+                   name="new-password"
+                   ng-model="result.newPassword"
+                   required>
           </div>
-          <div clm-control-group for="confirm-password" label="Confirm New Password">
+          <div class="iq-form-group">
+            <label class="iq-label" for="confirm-password">Confirm New Password</label>
             <input clm-input
                    type="password"
                    id="confirm-password"
@@ -27,26 +35,29 @@
                    ng-model="result.confirmPassword"
                    required ui-validate=" '$value==result.newPassword' "
                    ui-validate-watch=" 'result.newPassword' "
-                   messages="{validator: 'Passwords must match!'}">
+                   messages="{validator: 'Passwords must match!'}"
+                   class="iq-text-input">
           </div>
         </div>
         <div class="iq-modal-footer" ng-class="{error: error}">
-          <div id="change-password-error" ng-if="error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{error}}</div>
+          <div id="change-password-error" ng-if="error" class="iq-alert iq-alert--error">
+            <i class="fa fa-warning"></i>{{error}}
+          </div>
           <button type="submit"
-                  class="btn btn-error"
+                  class="iq-btn iq-btn--error"
                   id="change-password-submit"
                   ng-if="error"
                   ng-disabled="passwordForm.$invalid || submitActive">
             <i class="fa fa-refresh"></i>Retry
-          </button>
-          <button type="submit"
-                  class="btn btn-primary"
+          </button><!--
+       --><button type="submit"
+                  class="iq-btn iq-btn--primary"
                   id="change-password-submit"
                   ng-if="!error"
                   ng-disabled="passwordForm.$invalid || submitActive">
             Change
-          </button>
-          <button type="button" class="btn btn-cancel" id="change-password-cancel" ng-click="$dismiss()">Cancel</button>
+          </button><!--
+       --><button type="button" class="iq-btn" id="change-password-cancel" ng-click="$dismiss()">Cancel</button>
         </div>
       </form>
     </div>

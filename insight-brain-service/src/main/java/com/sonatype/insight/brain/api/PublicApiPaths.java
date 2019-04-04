@@ -42,4 +42,7 @@ public class PublicApiPaths
       + "components/{componentHash}/labels/{labelName}/applications/{applicationId}";
 
   public static final String DATA_RETENTION_POLICY_RESOURCE_PATH = API_VERSION_PATH_V2 + "dataRetentionPolicies";
+
+  public static final String COMPONENT_REMEDIATION_PATH_V2 =
+      API_VERSION_PATH_V2 + "components/remediation/{ownerType: application}/{ownerId}";
 }

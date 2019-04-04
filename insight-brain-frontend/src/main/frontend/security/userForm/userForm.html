@@ -1,10 +1,11 @@
-<form id='{{vm.identifier}}user-form'
+<form id="{{vm.identifier}}user-form"
       name="userForm"
-      class='clm-form well clm-well'
+      class="iq-form iq-form--no-padding iq-form--no-border"
       ng-submit="vm.saveClick(vm.user)"
       novalidate
       autocomplete="off">
-  <div clm-control-group for="firstName" label="First Name">
+  <div class="iq-form-group">
+    <label class="iq-label" for="firstname">First Name</label>
     <input clm-input
            id="firstName"
            name="firstName"
@@ -16,7 +17,8 @@
            focus-input="vm.user"
            has-whitespace-validator>
   </div>
-  <div clm-control-group for="lastName" label="Last Name">
+  <div class="iq-form-group">
+    <label class="iq-label" for="lastName">Last Name</label>
     <input clm-input
            id="lastName"
            name="lastName"
@@ -27,9 +29,10 @@
            ng-model="vm.user.lastName"
            has-whitespace-validator>
   </div>
-  <div clm-control-group for="email" label="Email">
+  <div class="iq-form-group">
+    <label class="iq-label" for="email">Email</label>
     <input clm-input
-           id='email'
+           id="email"
            name="email"
            type="email"
            ng-required="true"
@@ -37,8 +40,10 @@
            ng-model="vm.user.email">
   </div>
   <div ng-if="!vm.user.id">
-    <div clm-control-group for="username" label="Username">
+    <div class="iq-form-group">
+      <label class="iq-label" for="username">Username</label>
       <input clm-input
+             class="iq-text-input"
              id="username"
              name="username"
              type="text"
@@ -53,17 +58,21 @@
              ng-model="vm.user.username"
              messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
     </div>
-    <div clm-control-group for="password" label="Password">
+    <div class="iq-form-group">
+      <label class="iq-label" for="password">Password</label>
       <input clm-input
-             id='password'
+             class="iq-text-input"
+             id="password"
              name="password"
              type="password"
              ng-required="!vm.user.id"
              placeholder="ex. correcthorsebatterystaple"
              ng-model="vm.user.password">
     </div>
-    <div clm-control-group for="passwordValidate" label="Validate Password">
+    <div class="iq-form-group">
+      <label class="iq-label" for="passwordValidate">Validate Password</label>
       <input clm-input
+             class="iq-text-input"
              id="passwordValidate"
              name="passwordValidate"
              type="password"
@@ -75,18 +84,18 @@
     </div>
   </div>
   <div clm-alerts="vm.alerts" no-close="true"></div>
-  <button id='{{vm.identifier}}user-form-save'
-          class='btn btn-primary'
-          type='button'
-          ng-click='vm.saveClick(vm.user)'
-          ng-disabled='userForm.$invalid || userForm.$pristine || vm.saving'>
+  <button id="{{vm.identifier}}user-form-save"
+          class="iq-btn iq-btn--primary"
+          type="button"
+          ng-click="vm.saveClick(vm.user)"
+          ng-disabled="userForm.$invalid || userForm.$pristine || vm.saving">
     Save
   </button>
-  <button id='{{vm.identifier}}user-form-cancel'
+  <button id="{{vm.identifier}}user-form-cancel"
           type="button"
-          class='btn btn-link btn-cancel'
-          type='button'
-          ng-click='vm.cancelClick(vm.user)'>
+          class="iq-btn"
+          type="button"
+          ng-click="vm.cancelClick(vm.user)">
     Cancel
   </button>
 </form>

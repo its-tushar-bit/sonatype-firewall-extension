@@ -15,7 +15,7 @@ make(
     artifactsForDownstream: '.zion/repository/com/sonatype/insight/brain/**',
     iqPolicyEvaluation: { stage ->
       nexusPolicyEvaluation iqStage: stage, iqApplication: 'CLM-server',
-          iqScanPatterns: [[scanPattern: '**/target/*.jar']],
+          iqScanPatterns: [[scanPattern: 'scan_nothing']],
           failBuildOnNetworkError: true
       nexusPolicyEvaluation iqStage: stage, iqApplication: 'iq-server-frontend-assets',
           iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],

@@ -25,8 +25,6 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import javax.ws.rs.core.Response.ResponseBuilder;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -636,15 +634,6 @@ public final class Report
     }
     licenseThreatsJson.set("aaData", licenseTable);
     saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
-  }
-
-  public static void printPdf(final File reportFile,
-                              final String projectName,
-                              final String stageName,
-                              final ContactDTO contact,
-                              final ResponseBuilder response) throws IOException
-  {
-    Pdf.generate(reportFile, getCacheDir(reportFile), projectName, stageName, contact, response);
   }
 
   public static File printPdf(final File reportFile,

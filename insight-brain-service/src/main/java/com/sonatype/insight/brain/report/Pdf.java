@@ -6,21 +6,13 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -82,36 +74,6 @@ final class Pdf
       }
     }
     return pdfFile;
-  }
-
-  public static void generate(final File reportFile,
-                              final File cacheDir,
-                              final String applicationName,
-                              final String stageName,
-                              final ContactDTO contact,
-                              final ResponseBuilder response) throws IOException
-  {
-    final File pdfFile = generate(reportFile, cacheDir, applicationName, stageName, contact);
-    final Date now = new Date();
-
-    response.lastModified(now);
-    response.expires(now);
-    response.header(HttpHeaders.CONTENT_LENGTH, pdfFile.length());
-    response.type("application/pdf");
-
-    final String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(now);
-    final String filename = applicationName + "-" + stageName + "-" + timestamp + ".pdf";
-    response.header("Content-Disposition", "attachment; filename=\"" + filename + '"');
-
-    response.entity(new StreamingOutput()
-    {
-      @Override
-      public void write(final OutputStream os) throws IOException {
-        try (final FileInputStream fis = new FileInputStream(pdfFile)) {
-          IOUtil.copy(fis, os);
-        }
-      }
-    });
   }
 
   private static File setupTemplateDir(final File reportFile,

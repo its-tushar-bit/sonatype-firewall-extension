@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,9 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -208,6 +205,7 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
     createReportFile();
+    File pdfFile = Pdf.getPdfFile(insightWork.getReportFile(app.getId(), scanId));
 
     ReportService reportService = createReportService();
 
@@ -222,8 +220,10 @@ public class ReportServiceTest
     // Validate content type and check the actual content is really a PDF.
     assertThat(response.getHeaderString("Content-Disposition"))
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
-    assertThat(response.getMediaType().toString()).isEqualTo("application/pdf");
-    assertThat(new String(getBytes(response, 1024), "US-ASCII")).contains("%PDF-");
+    assertThat(response.getMediaType()).hasToString("application/pdf");
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getEntity()).isEqualTo(pdfFile);
+    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, "US-ASCII")).contains("%PDF-");
   }
 
   @Test
@@ -251,10 +251,9 @@ public class ReportServiceTest
     // Validate content type and check the actual content is really a PDF.
     assertThat(response.getHeaderString("Content-Disposition"))
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
-    assertThat(response.getMediaType().toString()).isEqualTo("application/pdf");
-    assertThat(Long.parseLong(response.getHeaderString("Content-Length"))).isGreaterThan(0);
-    assertThat(new String(getBytes(response, 1024), "US-ASCII")).contains("%PDF-");
-
+    assertThat(response.getMediaType()).hasToString("application/pdf");
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getEntity()).isEqualTo(pdfFile);
     // Check the PDF file (to ensure we simulated the failed PDF correctly).
     assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, "US-ASCII")).contains("%PDF-");
   }
@@ -301,12 +300,5 @@ public class ReportServiceTest
     catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private byte[] getBytes(Response response, int length) throws WebApplicationException, IOException {
-    StreamingOutput responseStream = (StreamingOutput) response.getEntity();
-    ByteArrayOutputStream os = new ByteArrayOutputStream(length);
-    responseStream.write(os);
-    return os.toByteArray();
   }
 }

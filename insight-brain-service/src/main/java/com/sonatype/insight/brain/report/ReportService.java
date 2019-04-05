@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -14,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -186,9 +188,18 @@ public class ReportService
 
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
-    ResponseBuilder responseBuilder = Response.ok();
-    Report.printPdf(reportFile, application.getName(), stageName, contact, responseBuilder);
+    File pdfFile = Report.printPdf(reportFile, application.getName(), stageName, contact);
 
+    Date now = new Date();
+    String filename =
+        application.getName() + "-" + stageName + "-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(now) + ".pdf";
+
+    ResponseBuilder responseBuilder = Response.ok();
+    responseBuilder.lastModified(now).expires(now);
+    responseBuilder.type("application/pdf");
+    responseBuilder.header(HttpHeaders.CONTENT_LENGTH, pdfFile.length());
+    responseBuilder.header("Content-Disposition", "attachment; filename=\"" + filename + '"');
+    responseBuilder.entity(pdfFile);
     return responseBuilder.build();
   }
 }

@@ -29,10 +29,12 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -330,5 +332,25 @@ public class OrganizationSummaryViewTest
 
     tile.shouldBe(visible);
     page.shouldNot(exist);
+  }
+
+  @Test
+  public void testDataRetentionTile_LicensingAware() {
+    clmLicenseManager.setStageTypes(StageTypes.RELEASE);
+    clmLicenseManager.setMissingFeatures(Feature.POLICY_MONITORING);
+    refresh();
+
+    DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
+
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
+    tile.rows().shouldHaveSize(3);
+    ElementsCollection rowHeaders = tile.rowHeaders();
+    rowHeaders.shouldHaveSize(2);
+    rowHeaders.last(rowHeaders.size() - 1).shouldHave(exactTexts(Stage.ID_RELEASE));
+
+    eyesWatcher.eyesCheck();
   }
 }

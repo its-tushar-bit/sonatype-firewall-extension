@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -81,7 +82,7 @@ public abstract class AbstractFunctionalTest
 
   protected static final TestLicenseFingerprinter licenseFingerprinter;
 
-  protected static final CLMLicenseManager clmLicenseManager;
+  protected static final TestLicenseManager clmLicenseManager;
 
   protected static final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
@@ -110,7 +111,7 @@ public abstract class AbstractFunctionalTest
   static {
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
-    clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter, null);
+    clmLicenseManager = new TestLicenseManager(productLicenseManager, licenseFingerprinter, null);
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();

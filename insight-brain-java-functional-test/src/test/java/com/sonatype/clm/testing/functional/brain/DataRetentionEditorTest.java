@@ -18,8 +18,10 @@ import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.ApplicationReportRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -62,7 +64,7 @@ public class DataRetentionEditorTest
 
   @Before
   public void before() {
-    organization = tempEntity.newOrganization();
+    organization = tempEntity.newOrganization("Retention Test Org");
   }
 
   @Test
@@ -102,6 +104,23 @@ public class DataRetentionEditorTest
     eyesWatcher.eyesCheck("Data retention editor top");
     PAGE.updateButton().scrollIntoView(true);
     eyesWatcher.eyesCheck("Data retention editor bottom");
+  }
+
+  @Test
+  public void testDataRetentionEditor_LicensingAware() {
+    clmLicenseManager.setStageTypes(StageTypes.RELEASE);
+    clmLicenseManager.setMissingFeatures(Feature.POLICY_MONITORING);
+
+    refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
+
+    EDITORS.get(Stage.ID_RELEASE).shouldBe(visible);
+    EDITORS.get(Stage.ID_DEVELOP).shouldNot(exist);
+    EDITORS.get(Stage.ID_BUILD).shouldNot(exist);
+    EDITORS.get(Stage.ID_STAGE_RELEASE).shouldNot(exist);
+    EDITORS.get(Stage.ID_OPERATE).shouldNot(exist);
+    EDITORS.get(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING).shouldNot(exist);
+
+    eyesWatcher.eyesCheck();
   }
 
   @Test

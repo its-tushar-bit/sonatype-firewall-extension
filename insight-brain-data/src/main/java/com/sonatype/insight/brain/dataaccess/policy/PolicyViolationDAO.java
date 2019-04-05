@@ -223,16 +223,14 @@ public class PolicyViolationDAO
     String sQuery = "UPDATE PolicyViolation entity" + //
         " SET entity.policyId=?2" + //
         " WHERE entity.policyId=?1";
-    Query query = createQuery(sQuery, fromPolicyId, toPolicyId);
-    return query.executeUpdate();
+    return createQuery(sQuery, fromPolicyId, toPolicyId).executeUpdate();
   }
 
   public int replacePolicyId(TransactionContext tx, String applicationId, String fromPolicyId, String toPolicyId) {
     String sQuery = "UPDATE PolicyViolation entity" + //
         " SET entity.policyId=?3" + //
         " WHERE entity.applicationId=?1 AND entity.policyId=?2";
-    Query query = createQuery(sQuery, applicationId, fromPolicyId, toPolicyId);
-    return query.executeUpdate(tx);
+    return createQuery(sQuery, applicationId, fromPolicyId, toPolicyId).executeUpdate(tx);
   }
 
   public int deleteFixedByApplicationIdAndDate(String applicationId, Date fixedBefore) {
@@ -242,9 +240,8 @@ public class PolicyViolationDAO
     // database operation for a long time. To avoid this, we split the entire delete up into smaller batches.
     int deletedRows = 0;
     while (true) {
-      @SuppressWarnings({"unchecked", "rawtypes"})
       List<String> ids =
-          (List) createQuery(sQuery, applicationId, fixedBefore).setMaxResults(DELETE_BATCH_SIZE).getList();
+          new Query<String>(sQuery, applicationId, fixedBefore).setMaxResults(DELETE_BATCH_SIZE).getList();
       if (ids.isEmpty()) {
         return deletedRows;
       }

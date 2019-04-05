@@ -224,41 +224,33 @@ public class PolicyViolationAggregationDAO
         " GROUP BY agg.timePeriodStart" + //
         " ORDER BY agg.timePeriodStart DESC";
 
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, applicationIds);
-      query.setParameter(2, MONTH);
-      query.setMaxResults(NUM_PERIODS);
+    List<Object[]> results = new Query<Object[]>(sQuery, applicationIds, MONTH).setMaxResults(NUM_PERIODS).getList();
+    LinkedList<MttrMonth> retval = new LinkedList<>();
 
-      @SuppressWarnings("unchecked")
-      List<Object[]> results = query.getResultList();
-      LinkedList<MttrMonth> retval = new LinkedList<>();
+    for (Object[] row : results) {
+      Number mttrLowThreat = (Number) row[1];
+      Number mttrModerateThreat = (Number) row[2];
+      Number mttrSevereThreat = (Number) row[3];
+      Number mttrCriticalThreat = (Number) row[4];
+      Number resolvedCountLowThreat = (Number) row[5];
+      Number resolvedCountModerateThreat = (Number) row[6];
+      Number resolvedCountSevereThreat = (Number) row[7];
+      Number resolvedCountCriticalThreat = (Number) row[8];
 
-      for (Object[] row : results) {
-        Number mttrLowThreat = (Number) row[1];
-        Number mttrModerateThreat = (Number) row[2];
-        Number mttrSevereThreat = (Number) row[3];
-        Number mttrCriticalThreat = (Number) row[4];
-        Number resolvedCountLowThreat = (Number) row[5];
-        Number resolvedCountModerateThreat = (Number) row[6];
-        Number resolvedCountSevereThreat = (Number) row[7];
-        Number resolvedCountCriticalThreat = (Number) row[8];
+      MttrMonth mttrMonth = new MttrMonth((Date) row[0],
+          mttrLowThreat == null ? null : mttrLowThreat.longValue(),
+          mttrModerateThreat == null ? null : mttrModerateThreat.longValue(),
+          mttrSevereThreat == null ? null : mttrSevereThreat.longValue(),
+          mttrCriticalThreat == null ? null : mttrCriticalThreat.longValue(), resolvedCountLowThreat.intValue(),
+          resolvedCountModerateThreat.intValue(), resolvedCountSevereThreat.intValue(),
+          resolvedCountCriticalThreat.intValue());
 
-        MttrMonth mttrMonth = new MttrMonth((Date) row[0],
-            mttrLowThreat == null ? null : mttrLowThreat.longValue(),
-            mttrModerateThreat == null ? null : mttrModerateThreat.longValue(),
-            mttrSevereThreat == null ? null : mttrSevereThreat.longValue(),
-            mttrCriticalThreat == null ? null : mttrCriticalThreat.longValue(), resolvedCountLowThreat.intValue(),
-            resolvedCountModerateThreat.intValue(), resolvedCountSevereThreat.intValue(),
-            resolvedCountCriticalThreat.intValue());
-
-        // months come out in descending order to make result limiting easier. Add to the front of the retval
-        // list in order to reverse order
-        retval.push(mttrMonth);
-      }
-
-      return retval;
+      // months come out in descending order to make result limiting easier. Add to the front of the retval
+      // list in order to reverse order
+      retval.push(mttrMonth);
     }
+
+    return retval;
   }
 
   /**
@@ -292,60 +284,52 @@ public class PolicyViolationAggregationDAO
         " GROUP BY agg.timePeriodStart" + //
         " ORDER BY agg.timePeriodStart DESC";
 
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, applicationIds);
-      query.setParameter(2, MONTH);
-      query.setMaxResults(NUM_PERIODS);
+    List<Object[]> results = new Query<Object[]>(sQuery, applicationIds, MONTH).setMaxResults(NUM_PERIODS).getList();
+    LinkedList<AverageMonth> retval = new LinkedList<>();
 
-      @SuppressWarnings("unchecked")
-      List<Object[]> results = query.getResultList();
-      LinkedList<AverageMonth> retval = new LinkedList<>();
+    for (Object[] row : results) {
+      int numNonZeroEvalAggregations = ((Number) row[1]).intValue();
+      double discoveredCountSecurityLowThreat = ((Number) row[2]).doubleValue();
+      double discoveredCountSecurityModerateThreat = ((Number) row[3]).doubleValue();
+      double discoveredCountSecuritySevereThreat = ((Number) row[4]).doubleValue();
+      double discoveredCountSecurityCriticalThreat = ((Number) row[5]).doubleValue();
+      double discoveredCountLicenseLowThreat = ((Number) row[6]).doubleValue();
+      double discoveredCountLicenseModerateThreat = ((Number) row[7]).doubleValue();
+      double discoveredCountLicenseSevereThreat = ((Number) row[8]).doubleValue();
+      double discoveredCountLicenseCriticalThreat = ((Number) row[9]).doubleValue();
+      double discoveredCountQualityLowThreat = ((Number) row[10]).doubleValue();
+      double discoveredCountQualityModerateThreat = ((Number) row[11]).doubleValue();
+      double discoveredCountQualitySevereThreat = ((Number) row[12]).doubleValue();
+      double discoveredCountQualityCriticalThreat = ((Number) row[13]).doubleValue();
+      double discoveredCountOtherLowThreat = ((Number) row[14]).doubleValue();
+      double discoveredCountOtherModerateThreat = ((Number) row[15]).doubleValue();
+      double discoveredCountOtherSevereThreat = ((Number) row[16]).doubleValue();
+      double discoveredCountOtherCriticalThreat = ((Number) row[17]).doubleValue();
+      int evaluationCount = ((Number) row[18]).intValue();
 
-      for (Object[] row : results) {
-        int numNonZeroEvalAggregations = ((Number) row[1]).intValue();
-        double discoveredCountSecurityLowThreat = ((Number) row[2]).doubleValue();
-        double discoveredCountSecurityModerateThreat = ((Number) row[3]).doubleValue();
-        double discoveredCountSecuritySevereThreat = ((Number) row[4]).doubleValue();
-        double discoveredCountSecurityCriticalThreat = ((Number) row[5]).doubleValue();
-        double discoveredCountLicenseLowThreat = ((Number) row[6]).doubleValue();
-        double discoveredCountLicenseModerateThreat = ((Number) row[7]).doubleValue();
-        double discoveredCountLicenseSevereThreat = ((Number) row[8]).doubleValue();
-        double discoveredCountLicenseCriticalThreat = ((Number) row[9]).doubleValue();
-        double discoveredCountQualityLowThreat = ((Number) row[10]).doubleValue();
-        double discoveredCountQualityModerateThreat = ((Number) row[11]).doubleValue();
-        double discoveredCountQualitySevereThreat = ((Number) row[12]).doubleValue();
-        double discoveredCountQualityCriticalThreat = ((Number) row[13]).doubleValue();
-        double discoveredCountOtherLowThreat = ((Number) row[14]).doubleValue();
-        double discoveredCountOtherModerateThreat = ((Number) row[15]).doubleValue();
-        double discoveredCountOtherSevereThreat = ((Number) row[16]).doubleValue();
-        double discoveredCountOtherCriticalThreat = ((Number) row[17]).doubleValue();
-        int evaluationCount = ((Number) row[18]).intValue();
-
-        AverageMonth averageMonth = new AverageMonth((Date) row[0],
-            new AverageThreatCategoryMonth(divideOrZero(discoveredCountSecurityLowThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountSecurityModerateThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountSecuritySevereThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountSecurityCriticalThreat, numNonZeroEvalAggregations)),
-            new AverageThreatCategoryMonth(divideOrZero(discoveredCountLicenseLowThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountLicenseModerateThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountLicenseSevereThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountLicenseCriticalThreat, numNonZeroEvalAggregations)),
-            new AverageThreatCategoryMonth(divideOrZero(discoveredCountQualityLowThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountQualityModerateThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountQualitySevereThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountQualityCriticalThreat, numNonZeroEvalAggregations)),
-            new AverageThreatCategoryMonth(divideOrZero(discoveredCountOtherLowThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountOtherModerateThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountOtherSevereThreat, numNonZeroEvalAggregations),
-                divideOrZero(discoveredCountOtherCriticalThreat, numNonZeroEvalAggregations)),
-            evaluationCount);
-        // months come out in descending order to make result limiting easier. Add to the front of the retval
-        // list in order to reverse order
-        retval.push(averageMonth);
-      }
-      return retval;
+      AverageMonth averageMonth = new AverageMonth((Date) row[0],
+          new AverageThreatCategoryMonth(divideOrZero(discoveredCountSecurityLowThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountSecurityModerateThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountSecuritySevereThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountSecurityCriticalThreat, numNonZeroEvalAggregations)),
+          new AverageThreatCategoryMonth(divideOrZero(discoveredCountLicenseLowThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountLicenseModerateThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountLicenseSevereThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountLicenseCriticalThreat, numNonZeroEvalAggregations)),
+          new AverageThreatCategoryMonth(divideOrZero(discoveredCountQualityLowThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountQualityModerateThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountQualitySevereThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountQualityCriticalThreat, numNonZeroEvalAggregations)),
+          new AverageThreatCategoryMonth(divideOrZero(discoveredCountOtherLowThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountOtherModerateThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountOtherSevereThreat, numNonZeroEvalAggregations),
+              divideOrZero(discoveredCountOtherCriticalThreat, numNonZeroEvalAggregations)),
+          evaluationCount);
+      // months come out in descending order to make result limiting easier. Add to the front of the retval
+      // list in order to reverse order
+      retval.push(averageMonth);
     }
+    return retval;
   }
 
   /**
@@ -414,86 +398,79 @@ public class PolicyViolationAggregationDAO
         (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.applicationId";
 
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, applicationIds);
-      query.setParameter(2, getAggregationQueryStartDate(MONTH));
-      query.setParameter(3, MONTH);
+    List<Object[]> results =
+        new Query<Object[]>(sQuery, applicationIds, getAggregationQueryStartDate(MONTH), MONTH).getList();
 
-      @SuppressWarnings("unchecked")
-      List<Object[]> results = query.getResultList();
+    ApplicationCountsByThreat applicationCountsByThreat = new ApplicationCountsByThreat();
 
-      ApplicationCountsByThreat applicationCountsByThreat = new ApplicationCountsByThreat();
+    for (Object[] row : results) {
+      int securityLowThreat = ((Number) row[0]).intValue();
+      int securityModerateThreat = ((Number) row[1]).intValue();
+      int securitySevereThreat = ((Number) row[2]).intValue();
+      int securityCriticalThreat = ((Number) row[3]).intValue();
+      int licenseLowThreat = ((Number) row[4]).intValue();
+      int licenseModerateThreat = ((Number) row[5]).intValue();
+      int licenseSevereThreat = ((Number) row[6]).intValue();
+      int licenseCriticalThreat = ((Number) row[7]).intValue();
+      int qualityLowThreat = ((Number) row[8]).intValue();
+      int qualityModerateThreat = ((Number) row[9]).intValue();
+      int qualitySevereThreat = ((Number) row[10]).intValue();
+      int qualityCriticalThreat = ((Number) row[11]).intValue();
+      int otherLowThreat = ((Number) row[12]).intValue();
+      int otherModerateThreat = ((Number) row[13]).intValue();
+      int otherSevereThreat = ((Number) row[14]).intValue();
+      int otherCriticalThreat = ((Number) row[15]).intValue();
 
-      for (Object[] row : results) {
-        int securityLowThreat = ((Number) row[0]).intValue();
-        int securityModerateThreat = ((Number) row[1]).intValue();
-        int securitySevereThreat = ((Number) row[2]).intValue();
-        int securityCriticalThreat = ((Number) row[3]).intValue();
-        int licenseLowThreat = ((Number) row[4]).intValue();
-        int licenseModerateThreat = ((Number) row[5]).intValue();
-        int licenseSevereThreat = ((Number) row[6]).intValue();
-        int licenseCriticalThreat = ((Number) row[7]).intValue();
-        int qualityLowThreat = ((Number) row[8]).intValue();
-        int qualityModerateThreat = ((Number) row[9]).intValue();
-        int qualitySevereThreat = ((Number) row[10]).intValue();
-        int qualityCriticalThreat = ((Number) row[11]).intValue();
-        int otherLowThreat = ((Number) row[12]).intValue();
-        int otherModerateThreat = ((Number) row[13]).intValue();
-        int otherSevereThreat = ((Number) row[14]).intValue();
-        int otherCriticalThreat = ((Number) row[15]).intValue();
+      int securityThreat = securityLowThreat + securityModerateThreat +
+          securitySevereThreat + securityCriticalThreat;
 
-        int securityThreat = securityLowThreat + securityModerateThreat +
-            securitySevereThreat + securityCriticalThreat;
+      int licenseThreat = licenseLowThreat + licenseModerateThreat +
+          licenseSevereThreat + licenseCriticalThreat;
 
-        int licenseThreat = licenseLowThreat + licenseModerateThreat +
-            licenseSevereThreat + licenseCriticalThreat;
+      int qualityThreat = qualityLowThreat + qualityModerateThreat +
+          qualitySevereThreat + qualityCriticalThreat;
 
-        int qualityThreat = qualityLowThreat + qualityModerateThreat +
-            qualitySevereThreat + qualityCriticalThreat;
+      int otherThreat = otherLowThreat + otherModerateThreat +
+          otherSevereThreat + otherCriticalThreat;
 
-        int otherThreat = otherLowThreat + otherModerateThreat +
-            otherSevereThreat + otherCriticalThreat;
+      int totalThreat = securityThreat + licenseThreat + qualityThreat + otherThreat;
 
-        int totalThreat = securityThreat + licenseThreat + qualityThreat + otherThreat;
+      int totalCriticalThreat = securityCriticalThreat + licenseCriticalThreat +
+          qualityCriticalThreat + otherCriticalThreat;
 
-        int totalCriticalThreat = securityCriticalThreat + licenseCriticalThreat +
-            qualityCriticalThreat + otherCriticalThreat;
-
-        if (securityThreat > 0) {
-          applicationCountsByThreat.countSecurityThreat++;
-        }
-        if (securityCriticalThreat > 0) {
-          applicationCountsByThreat.countSecurityCriticalThreat++;
-        }
-        if (licenseThreat > 0) {
-          applicationCountsByThreat.countLicenseThreat++;
-        }
-        if (licenseCriticalThreat > 0) {
-          applicationCountsByThreat.countLicenseCriticalThreat++;
-        }
-        if (qualityThreat > 0) {
-          applicationCountsByThreat.countQualityThreat++;
-        }
-        if (qualityCriticalThreat > 0) {
-          applicationCountsByThreat.countQualityCriticalThreat++;
-        }
-        if (otherThreat > 0) {
-          applicationCountsByThreat.countOtherThreat++;
-        }
-        if (otherCriticalThreat > 0) {
-          applicationCountsByThreat.countOtherCriticalThreat++;
-        }
-        if (totalThreat > 0) {
-          applicationCountsByThreat.countAnyThreat++;
-        }
-        if (totalCriticalThreat > 0) {
-          applicationCountsByThreat.countAnyCriticalThreat++;
-        }
+      if (securityThreat > 0) {
+        applicationCountsByThreat.countSecurityThreat++;
       }
-
-      return applicationCountsByThreat;
+      if (securityCriticalThreat > 0) {
+        applicationCountsByThreat.countSecurityCriticalThreat++;
+      }
+      if (licenseThreat > 0) {
+        applicationCountsByThreat.countLicenseThreat++;
+      }
+      if (licenseCriticalThreat > 0) {
+        applicationCountsByThreat.countLicenseCriticalThreat++;
+      }
+      if (qualityThreat > 0) {
+        applicationCountsByThreat.countQualityThreat++;
+      }
+      if (qualityCriticalThreat > 0) {
+        applicationCountsByThreat.countQualityCriticalThreat++;
+      }
+      if (otherThreat > 0) {
+        applicationCountsByThreat.countOtherThreat++;
+      }
+      if (otherCriticalThreat > 0) {
+        applicationCountsByThreat.countOtherCriticalThreat++;
+      }
+      if (totalThreat > 0) {
+        applicationCountsByThreat.countAnyThreat++;
+      }
+      if (totalCriticalThreat > 0) {
+        applicationCountsByThreat.countAnyCriticalThreat++;
+      }
     }
+
+    return applicationCountsByThreat;
   }
 
   private Date getAggregationQueryStartDate(TimePeriod timePeriod) {
@@ -589,22 +566,15 @@ public class PolicyViolationAggregationDAO
 
     LinkedList<ViolationCountPeriod> countPeriods = new LinkedList<>();
 
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, applicationIds);
-      query.setParameter(2, getAggregationQueryStartDate(WEEK));
-      query.setParameter(3, WEEK);
-      query.setMaxResults(NUM_PERIODS);
+    List<Object[]> periods = new Query<Object[]>(sQuery, applicationIds, getAggregationQueryStartDate(WEEK), WEEK)
+        .setMaxResults(NUM_PERIODS).getList();
 
-      @SuppressWarnings("unchecked")
-      List<Object[]> periods = query.getResultList();
-
-      for (Object[] period : periods) {
-        ViolationCountPeriod countPeriod = new ViolationCountPeriod((Date) period[48], getDiscoveredCounts(period),
-            getFixedCounts(period), getWaivedCounts(period));
-        countPeriods.push(countPeriod);
-      }
+    for (Object[] period : periods) {
+      ViolationCountPeriod countPeriod = new ViolationCountPeriod((Date) period[48], getDiscoveredCounts(period),
+          getFixedCounts(period), getWaivedCounts(period));
+      countPeriods.push(countPeriod);
     }
+
     return countPeriods;
   }
 
@@ -667,25 +637,18 @@ public class PolicyViolationAggregationDAO
 
     final LinkedList<OpenViolationCountsWeek> openViolationCountsWeeks = new LinkedList<>();
 
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, applicationIds);
-      query.setParameter(2, getAggregationQueryStartDate(WEEK));
-      query.setParameter(3, WEEK);
-      query.setMaxResults(NUM_PERIODS);
+    List<Object[]> periods = new Query<Object[]>(sQuery, applicationIds, getAggregationQueryStartDate(WEEK), WEEK)
+        .setMaxResults(NUM_PERIODS).getList();
 
-      @SuppressWarnings("unchecked")
-      List<Object[]> periods = query.getResultList();
-
-      for (Object[] period : periods) {
-        Map<PolicyThreatCategory, Integer> violationTotalsWeek = new EnumMap<>(PolicyThreatCategory.class);
-        violationTotalsWeek.put(SECURITY, ((Number) period[0]).intValue());
-        violationTotalsWeek.put(LICENSE, ((Number) period[1]).intValue());
-        violationTotalsWeek.put(QUALITY, ((Number) period[2]).intValue());
-        violationTotalsWeek.put(OTHER, ((Number) period[3]).intValue());
-        openViolationCountsWeeks.push(new OpenViolationCountsWeek((Date) period[4], violationTotalsWeek));
-      }
+    for (Object[] period : periods) {
+      Map<PolicyThreatCategory, Integer> violationTotalsWeek = new EnumMap<>(PolicyThreatCategory.class);
+      violationTotalsWeek.put(SECURITY, ((Number) period[0]).intValue());
+      violationTotalsWeek.put(LICENSE, ((Number) period[1]).intValue());
+      violationTotalsWeek.put(QUALITY, ((Number) period[2]).intValue());
+      violationTotalsWeek.put(OTHER, ((Number) period[3]).intValue());
+      openViolationCountsWeeks.push(new OpenViolationCountsWeek((Date) period[4], violationTotalsWeek));
     }
+
     return openViolationCountsWeeks;
   }
 

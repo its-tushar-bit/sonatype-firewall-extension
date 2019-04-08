@@ -63,7 +63,7 @@ describe('retentionTile', function() {
       expect(vm.isOrganization).toBe(false);
     });
 
-    it('loads the owner name and application reports on success', function() {
+    it('loads the owner name and reports on success', function() {
       getByIdDeferred.resolve({name: 'organizationName'});
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
 
@@ -73,6 +73,7 @@ describe('retentionTile', function() {
       expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ORGANIZATION_ID);
       expect(vm.ownerName).toBe('organizationName');
       expect(vm.applicationReports).toEqual(inheritedRetentionPolicies.applicationReports);
+      expect(vm.successMetrics).toEqual(inheritedRetentionPolicies.successMetrics);
       expect(vm.error).toBeUndefined();
     });
 
@@ -147,6 +148,18 @@ describe('retentionTile', function() {
         enablePurging: true,
         maxAge: '1 day'
       })).toBe('1 day');
+    });
+  });
+
+  describe('getSuccessMetricsMaxAge', function() {
+    it('returns the correct text if purging is disabled', function() {
+      vm.successMetrics = {enablePurging: false};
+      expect(vm.getSuccessMetricsMaxAge()).toBe('Don\'t Purge');
+    });
+
+    it('returns max age if purging is enabled', function() {
+      vm.successMetrics = {enablePurging: true, maxAge: '1 year'};
+      expect(vm.getSuccessMetricsMaxAge()).toBe('Max Age 1 year');
     });
   });
 });

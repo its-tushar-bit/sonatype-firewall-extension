@@ -22,6 +22,7 @@ function RetentionTileController(CLMContextLocations, $scope, EventNameConstant,
     isOrganization: CLMContextLocations.isOrganization(),
     ownerName: undefined,
     applicationReports: undefined,
+    successMetrics: undefined,
     error: undefined,
 
     load() {
@@ -32,6 +33,7 @@ function RetentionTileController(CLMContextLocations, $scope, EventNameConstant,
       $q.all(promises).then(function(results) {
         vm.ownerName = results[0].name;
         vm.applicationReports = results[1].applicationReports;
+        vm.successMetrics = results[1].successMetrics;
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
       });
@@ -45,6 +47,10 @@ function RetentionTileController(CLMContextLocations, $scope, EventNameConstant,
     getMaxAge(applicationReport) {
       return applicationReport.enablePurging ?
         (applicationReport.maxAge ? applicationReport.maxAge : NOT_APPLICABLE) : NOT_ENABLED;
+    },
+
+    getSuccessMetricsMaxAge() {
+      return vm.successMetrics.enablePurging ? 'Max Age ' + vm.successMetrics.maxAge : NOT_ENABLED;
     }
   });
 

@@ -14,6 +14,11 @@ export const disabledRetentionPolicies = {
         maxAge: null
       }
     }
+  },
+  successMetrics: {
+    inheritPolicy: false,
+    enablePurging: false,
+    maxAge: null
   }
 };
 export const inheritedRetentionPolicies = {
@@ -32,6 +37,11 @@ export const inheritedRetentionPolicies = {
         maxAge: '4 days'
       }
     }
+  },
+  successMetrics: {
+    inheritPolicy: true,
+    enablePurging: true,
+    maxAge: '1 year'
   }
 };
 export const customRetentionPolicies = {
@@ -50,5 +60,10 @@ export const customRetentionPolicies = {
         maxAge: '4 days'
       }
     }
+  },
+  successMetrics: {
+    inheritPolicy: false,
+    enablePurging: true,
+    maxAge: '2 years'
   }
 };

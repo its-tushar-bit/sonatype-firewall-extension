@@ -271,8 +271,7 @@ extends BaseSpec {
 
   void mockHdsComponentDetailsListResponse(ComponentIdentifier identifier) {
     hdsRule.setResponseForURI("rest/ci/componentDetails/list?componentIdentifier=" +
-        UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)) +
-        "&hash=" + getExpectedHash() + "&matchState=exact", '{"list":[]}', 200)
+        UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)), '{"list":[]}', 200)
   }
 
   abstract String getReportPath()

@@ -140,9 +140,13 @@ public class ComponentInfoServiceTest
             newCoordinatesQueryParam(hdsComponentDetails))).thenReturn(hdsComponentDetails);
   }
 
-  private void mockHdsGetComponentDetailsList(ComponentDetailsList hdsComponentDetailsList) throws IOException {
-    when(hdsClientMock.relay(httpRequestMock, ComponentDetailsList.class, "rest/" + TOOL_NAME + 
-        "/componentDetails/list")).thenReturn(hdsComponentDetailsList);
+  private void mockHdsGetComponentDetailsList(ComponentDetailsList hdsComponentDetailsList,
+                                              ComponentIdentifier identifier)
+  {
+    when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
+            "/componentDetails/list",
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier))))
+        .thenReturn(hdsComponentDetailsList);
   }
 
   @Test
@@ -445,10 +449,9 @@ public class ComponentInfoServiceTest
     hdsComponentDetails3.setDeclaredLicenses(licenses3);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3));
-    mockHdsGetComponentDetailsList(hdsComponentDetailsList);
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
 
-    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(componentIdentifier1,
-        httpRequestMock);
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(componentIdentifier1);
     componentInfoService.augmentComponentDetails(componentDetailsList.getList(), MatchState.EXACT.getId(), application);
 
     assertThat(componentDetailsList).isNotNull();
@@ -816,9 +819,9 @@ public class ComponentInfoServiceTest
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(asList(hdsComponentDetails));
-    mockHdsGetComponentDetailsList(hdsComponentDetailsList);
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_COORDINATES);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
-        owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
+        owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId());
     assertThat(componentDetailsList.getList()).hasSize(1);
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
@@ -853,10 +856,10 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-7", "cve", 0.1f))); // too low for our security policy
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
-    mockHdsGetComponentDetailsList(hdsComponentDetailsList);
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_COORDINATES);
 
     List<ComponentDetailsDTO> componentDetailsList = componentInfoService
-        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, httpRequestMock);
+        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES);
 
     assertThat(componentDetailsList).hasSize(2);
 

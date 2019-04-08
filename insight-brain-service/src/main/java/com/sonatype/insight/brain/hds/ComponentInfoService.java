@@ -211,12 +211,11 @@ public class ComponentInfoService
   public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       ComponentIdentifier identifier,
-      String matchState,
-      HttpServletRequest httpRequest) throws IOException
+      String matchState)
   {
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, httpRequest);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier);
     augmentComponentDetails(componentDetailsList.getList(), matchState, app);
     return componentDetailsList;
   }
@@ -230,12 +229,10 @@ public class ComponentInfoService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_EvaluateComponentPermission(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      ComponentIdentifier componentIdentifier,
-      HttpServletRequest httpRequest) throws IOException
+      ComponentIdentifier componentIdentifier)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentDetailsForAllVersions(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
-        httpRequest);
+    return getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier);
   }
 
   /**
@@ -250,12 +247,11 @@ public class ComponentInfoService
       @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       ComponentIdentifier componentIdentifier,
-      String matchState,
-      HttpServletRequest httpRequest) throws IOException
+      String matchState)
   {
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, httpRequest);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier);
     augmentComponentDetails(componentDetailsList.getList(), matchState, owner);
     return componentDetailsList;
   }
@@ -270,21 +266,18 @@ public class ComponentInfoService
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.ID) final String ownerId,
-      ComponentIdentifier componentIdentifier,
-      HttpServletRequest httpRequest) throws IOException
+      ComponentIdentifier componentIdentifier)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentDetailsForAllVersions(ownerType, ownerId, componentIdentifier, httpRequest);
+    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier);
   }
 
-  private List<ComponentDetailsDTO> getComponentDetailsForAllVersions(OwnerType ownerType,
-                                                                      String ownerId,
-                                                                      ComponentIdentifier componentIdentifier,
-                                                                      HttpServletRequest httpRequest)
-      throws IOException
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
+                                                                           String ownerId,
+                                                                           ComponentIdentifier componentIdentifier)
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    List<ComponentDetails> componentDetailsList = getComponentDetailsList(componentIdentifier, httpRequest).getList();
+    List<ComponentDetails> componentDetailsList = getComponentDetailsList(componentIdentifier).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
     List<Component> components = augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), owner);
 
@@ -347,9 +340,7 @@ public class ComponentInfoService
     return componentDetailsDTOs;
   }
 
-  ComponentDetailsList getComponentDetailsList(ComponentIdentifier identifier, HttpServletRequest httpRequest)
-      throws IOException
-  {
+  ComponentDetailsList getComponentDetailsList(ComponentIdentifier identifier) {
     long start = System.currentTimeMillis();
 
     if (identifier == null) {
@@ -357,7 +348,8 @@ public class ComponentInfoService
     }
 
     String url = "rest/" + toolName + "/componentDetails/list";
-    ComponentDetailsList componentDetailsList = hdsClient.relay(httpRequest, ComponentDetailsList.class, url);
+    ComponentDetailsList componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
 
     log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);

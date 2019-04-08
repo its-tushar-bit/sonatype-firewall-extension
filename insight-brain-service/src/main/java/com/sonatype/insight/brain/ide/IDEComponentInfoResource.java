@@ -75,10 +75,10 @@ public class IDEComponentInfoResource
   public ComponentDetailsList getComponentDetailsList(
       @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-      @QueryParam("matchState") String matchState) throws IOException
+      @QueryParam("matchState") String matchState)
   {
     return componentInfoService.getComponentDetailsList_EvaluateComponentPermission(applicationPublicId, identifier,
-        matchState, httpRequest);
+        matchState);
   }
 
   /**
@@ -90,9 +90,9 @@ public class IDEComponentInfoResource
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
       @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
-        componentIdentifier, httpRequest);
+        componentIdentifier);
   }
 }

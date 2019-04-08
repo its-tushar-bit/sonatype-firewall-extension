@@ -82,10 +82,9 @@ public class CIComponentInfoResource
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-      @QueryParam("matchState") String matchState) throws IOException
+      @QueryParam("matchState") String matchState)
   {
-    return componentInfoService.getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState,
-        httpRequest);
+    return componentInfoService.getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState);
   }
 
   /**
@@ -101,7 +100,7 @@ public class CIComponentInfoResource
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
     return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
-        componentIdentifier, httpRequest);
+        componentIdentifier);
   }
 
   @GET

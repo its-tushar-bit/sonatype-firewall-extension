@@ -29,12 +29,12 @@ public class DataRetentionEditorPage
     return new ApplicationReportRetentionEditor(contextId);
   }
 
-  public static class ApplicationReportRetentionEditor
-      extends BasicElement<ApplicationReportRetentionEditor>
+  public static class RetentionEditor
+      extends BasicElement<RetentionEditor>
   {
-    private String contextId;
+    protected String contextId;
 
-    public ApplicationReportRetentionEditor(String contextId) {
+    public RetentionEditor(String contextId) {
       super("#retention-editor-" + contextId);
       this.contextId = contextId;
     }
@@ -62,6 +62,14 @@ public class DataRetentionEditorPage
     public SelenideElement maxAgeInput() {
       return child("input[name='" + contextId + "-age-input']");
     }
+  }
+
+  public static class ApplicationReportRetentionEditor
+      extends RetentionEditor
+  {
+    public ApplicationReportRetentionEditor(String contextId) {
+      super(contextId);
+    }
 
     public Dropdown maxAgeDropdown() {
       return new Dropdown("dropdown-selector[name='" + contextId + "-age-modifier']");
@@ -69,6 +77,14 @@ public class DataRetentionEditorPage
 
     public SelenideElement maxCountInput() {
       return child("input[name='" + contextId + "-count-input']");
+    }
+  }
+
+  public static class SuccessMetricsRetentionEditor
+      extends RetentionEditor
+  {
+    public SuccessMetricsRetentionEditor() {
+      super("success-metrics");
     }
   }
 

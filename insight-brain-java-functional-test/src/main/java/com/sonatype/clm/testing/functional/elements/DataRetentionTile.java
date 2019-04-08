@@ -62,4 +62,8 @@ public class DataRetentionTile
   public SelenideElement maxReport(String contextId) {
     return maxReports().get(column(contextId));
   }
+
+  public SelenideElement successMetrics() {
+    return child("#success-metrics-retention-tile");
+  }
 }

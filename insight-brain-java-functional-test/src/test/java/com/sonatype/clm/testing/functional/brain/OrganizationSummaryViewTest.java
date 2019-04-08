@@ -270,6 +270,8 @@ public class OrganizationSummaryViewTest
     maxReports.shouldHaveSize(contextIds.size() + 1);
     maxReports.get(0).shouldHave(exactTextCaseSensitive(DataRetentionTile.MAX_REPORTS_HEADER));
 
+    tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Max Age 1 year"));
+
     DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
     DataRetentionPolicy customMaxCount = new DataRetentionPolicy();
     customMaxCount.setOwnerId(organization.getId());
@@ -295,6 +297,11 @@ public class OrganizationSummaryViewTest
     customMaxAge.setPurgingEnabled(true);
     customMaxAge.setMaxAgeInDays(7);
     dao.insert(customMaxAge);
+    DataRetentionPolicy dontPurgeSuccessMetrics = new DataRetentionPolicy();
+    dontPurgeSuccessMetrics.setOwnerId(organization.getId());
+    dontPurgeSuccessMetrics.setContextId(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+    dontPurgeSuccessMetrics.setPurgingEnabled(false);
+    dao.insert(dontPurgeSuccessMetrics);
 
     refresh();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
@@ -308,6 +315,7 @@ public class OrganizationSummaryViewTest
     tile.maxAge(Stage.ID_OPERATE).shouldBe(visible).shouldHave(exactTextCaseSensitive("1 week"));
     tile.maxReport(Stage.ID_OPERATE).shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
+    tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Don\'t Purge"));
 
     eyesWatcher.eyesCheck();
   }

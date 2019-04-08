@@ -139,7 +139,7 @@ public class DataRetentionEditorTest
   @Test
   public void testDataRetentionEditor_Dirty() {
     refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
-    waitUntilUrl(DataRetentionEditorPage.url(organization.getId()));
+    EDITORS.get(Stage.ID_BUILD).shouldBe(visible);
 
     // Initially inherit
     checkUpdateDisabled();

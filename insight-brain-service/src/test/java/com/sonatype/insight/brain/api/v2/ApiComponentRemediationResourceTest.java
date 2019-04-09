@@ -5,14 +5,30 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -22,24 +38,108 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiComponentRemediationResourceTest
     extends AbstractResourceTest
 {
+  private static final ComponentIdentifier MAVEN_COORDINATES_V1 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "v1", "", "jar");
+
+  private static final ComponentIdentifier MAVEN_COORDINATES_V2 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "v2", "", "jar");
+
+  private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "v3", "", "jar");
+
   private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
   @Test
-  public void testGetComponentDetails() throws Exception {
+  public void testSuggestedRemediation_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testApp");
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, null);
+    createPolicyWithSecurityVulnerabilityConstraint(app.getId());
 
+    ComponentDetails details1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
+    ComponentDetails details2 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V2);
+    ComponentDetails details3 = createComponentDetailsForNoViolation(MAVEN_COORDINATES_V3);
+    List<ComponentDetails> list = Stream.of(details1, details2, details3).collect(Collectors.toList());
+    ComponentDetailsList detailsList = new ComponentDetailsList();
+    detailsList.setList(list);
+    mockComponentDetails(detailsList);
+
+    // no violations / alerts - we expect component version 3
+    ApiComponentDTOV2 expectedComponent = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
+
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     HttpResponse response =
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
             .body(component).post();
-    assertResponseStatus(200, response);
 
+    assertResponse(response, expectedComponent, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+  }
+
+  @Test
+  public void testSuggestedRemediation_Organization() throws Exception {
+    Organization org = tempEntity.newOrganization("testOrg");
+    createPolicyWithSecurityVulnerabilityConstraint(org.getId());
+
+    ComponentDetails details1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
+    ComponentDetails details2 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V2);
+    ComponentDetails details3 = createComponentDetailsForNoViolation(MAVEN_COORDINATES_V3);
+    List<ComponentDetails> list = Stream.of(details1, details2, details3).collect(Collectors.toList());
+    ComponentDetailsList detailsList = new ComponentDetailsList();
+    detailsList.setList(list);
+    mockComponentDetails(detailsList);
+
+    // no violations / alerts - we expect component version 3
+    ApiComponentDTOV2 expectedComponent = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
+
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.ORGANIZATION, org.getId())
+            .body(component).post();
+
+    assertResponse(response, expectedComponent, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+  }
+
+  private void createPolicyWithSecurityVulnerabilityConstraint(final String ownerId) {
+    Policy policy = new Policy();
+    policy.setName("Policy");
+    policy.setThreatLevel(5);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+  }
+
+  private ComponentDetails createComponentDetailsForNoViolation(final ComponentIdentifier componentIdentifier) {
+    ComponentDetails componentDetails = new ComponentDetails();
+    componentDetails.setComponentIdentifier(componentIdentifier);
+    return componentDetails;
+  }
+
+  private ComponentDetails createComponentDetailsForSecurityViolation(final ComponentIdentifier componentIdentifier) {
+    ComponentDetails componentDetails = createComponentDetailsForNoViolation(componentIdentifier);
+    componentDetails.setLicenseThreatLevel(5);
+    componentDetails
+        .setSecurityVulnerabilities(Collections.singletonList(new SecurityVulnerability("ref", "source", 5f)));
+    return componentDetails;
+  }
+
+  private void mockComponentDetails(final ComponentDetailsList componentEvaluationDataList) {
+    setHdsResponseForURI("rest/ci/componentDetails/list", componentEvaluationDataList, 200);
+  }
+
+  private void assertResponse(final HttpResponse response,
+                              final ApiComponentDTOV2 expectedComponent,
+                              final ApiVersionChangeOptionType optionType)
+  {
+    assertResponseStatus(200, response);
     String responseText = response.getBodyText();
     assertThat(responseText).doesNotContain("proprietary");
 
     ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
     assertThat(result).isNotNull();
-    assertThat(result.remediation.versionChanges).isNotNull();
+    assertThat(result.remediation.versionChanges).hasSize(1);
+    ApiVersionChangeOptionDTO versionChangeOption = result.remediation.versionChanges.get(0);
+    assertThat(versionChangeOption.getType()).isEqualTo(optionType);
+    assertThat(versionChangeOption.getData().getComponent().componentIdentifier)
+        .isEqualToComparingFieldByField(expectedComponent.componentIdentifier);
   }
 }

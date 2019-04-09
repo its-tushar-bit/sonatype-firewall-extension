@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
@@ -28,6 +30,13 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
 public class ApiComponentRemediationResource
 {
+  private final ApiComponentRemediationService remediationService;
+
+  @Inject
+  public ApiComponentRemediationResource(ApiComponentRemediationService remediationService) {
+    this.remediationService = remediationService;
+  }
+
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -36,6 +45,6 @@ public class ApiComponentRemediationResource
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId)
   {
-    return new ApiComponentRemediationDTO();
+    return remediationService.getSuggestedRemediationForComponent(component, ownerType, ownerId);
   }
 }

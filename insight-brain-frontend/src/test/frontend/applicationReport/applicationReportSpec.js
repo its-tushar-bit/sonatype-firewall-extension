@@ -39,6 +39,10 @@ describe('applicationReport component', function() {
     it('subscribes to the redux store', () => {
       expect(controller.unsubscribe).toBeDefined();
     });
+
+    it('calls loadReport', () => {
+      expect(controller.loadReport).toHaveBeenCalled();
+    });
   });
 
   it('activates the form mask when vm.reevaluating is set to true', function() {

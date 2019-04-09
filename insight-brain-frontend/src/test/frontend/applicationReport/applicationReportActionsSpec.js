@@ -234,6 +234,21 @@ describe('applicationReportActions', function() {
 
     testCommonDataLoading('loadReport', () => expectReportDataCalls(true));
 
+    it('loads report information if forceCache is true, even if it is already on the state', () => {
+      const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, mockMetadata));
+      const errorSpy = jasmine.createSpy('errorSpy');
+
+      store.dispatch(applicationReportActions.loadReport(true)).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(1);
+
+      expectCommonDataCalls(true);
+      expectUnknownJsCall();
+      expectReportDataCalls(true);
+
+      $httpBackend.flush();
+    });
+
     it('fires LOAD_REPORT_FAILED action if report request fails', function() {
       const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
       const errorSpy = jasmine.createSpy('errorSpy');
@@ -565,11 +580,12 @@ describe('applicationReportActions', function() {
 
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
 
+      expectCommonDataCalls(true);
       expectReportDataCalls(true);
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
-      expect(store.getActions().length).toBe(4);
+      expect(store.getActions().length).toBe(5);
 
       expect(store.getActions()[0]).toEqual({
         type: 'REEVALUATE_REPORT_REQUESTED'
@@ -584,6 +600,15 @@ describe('applicationReportActions', function() {
       });
 
       expect(store.getActions()[3]).toEqual({
+        type: 'LOAD_COMMON_DATA_FULFILLED',
+        payload: {
+          bomData: mockBomData,
+          metadata: mockMetadata,
+          unknownJsData: undefined
+        }
+      });
+
+      expect(store.getActions()[4]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           allEntries: [{
@@ -613,11 +638,12 @@ describe('applicationReportActions', function() {
       });
 
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
+      expectCommonDataCalls(true);
       expectReportDataCalls(false);
       $httpBackend.flush();
 
       expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(4);
+      expect(store.getActions().length).toBe(5);
 
       expect(store.getActions()[1]).toEqual({
         type: 'REEVALUATE_REPORT_FULFILLED'
@@ -626,7 +652,17 @@ describe('applicationReportActions', function() {
       expect(store.getActions()[2]).toEqual({
         type: 'LOAD_REPORT_REQUESTED'
       });
-      expect(store.getActions()[3].type).toEqual('LOAD_REPORT_FAILED');
+
+      expect(store.getActions()[3]).toEqual({
+        type: 'LOAD_COMMON_DATA_FULFILLED',
+        payload: {
+          bomData: mockBomData,
+          metadata: mockMetadata,
+          unknownJsData: undefined
+        }
+      });
+
+      expect(store.getActions()[4].type).toEqual('LOAD_REPORT_FAILED');
     });
   });
 

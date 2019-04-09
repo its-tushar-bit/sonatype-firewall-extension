@@ -43,12 +43,12 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function fetchCommonData() {
+  function fetchCommonData(forceClearMetadata = false) {
     return (dispatch, getState) => {
       const {bomData, unknownJsData, metadata, reportParameters} = getState().applicationReport;
       const {appId, scanId, isUnknownJs} = reportParameters;
 
-      if (!metadata || !bomData || (!unknownJsData && isUnknownJs)) {
+      if (forceClearMetadata || (!metadata || !bomData || (!unknownJsData && isUnknownJs))) {
         const promises = {
           bomResult: $http.get(CLMLocations.getReportBomUrl(appId, scanId)),
           metadata: $http.get(CLMLocations.getReportMetadataUrl(appId, scanId))
@@ -129,13 +129,13 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function loadReport() {
+  function loadReport(forceClearMetadata = false) {
     return (dispatch) => {
       dispatch({
         type: LOAD_REPORT_REQUESTED
       });
 
-      return dispatch(fetchCommonData()).then(() => dispatch(fetchReportData()));
+      return dispatch(fetchCommonData(forceClearMetadata)).then(() => dispatch(fetchReportData()));
     };
   }
 
@@ -223,7 +223,7 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
           })
           .then(() => {
             dispatch(reevaluateReportFulfilled());
-            return dispatch(loadReport());
+            return dispatch(loadReport(true));
           });
     };
   }

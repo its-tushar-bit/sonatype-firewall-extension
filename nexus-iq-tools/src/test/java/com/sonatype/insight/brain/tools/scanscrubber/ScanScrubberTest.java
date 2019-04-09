@@ -151,7 +151,7 @@ public class ScanScrubberTest
     Transformer transformer = ScanScrubber.createTransformer();
 
     assertThat(transformer.getOutputProperty(OutputKeys.OMIT_XML_DECLARATION)).isEqualTo("yes");
-    assertThat(transformer.getOutputProperty(OutputKeys.INDENT)).isEqualTo("yes");
+    assertThat(transformer.getOutputProperty(OutputKeys.INDENT)).isEqualTo("no");
   }
 
   @Test

@@ -328,7 +328,6 @@ public class ScanScrubber
   static Transformer createTransformer() throws TransformerConfigurationException {
     Transformer transformer = TransformerFactory.newInstance().newTransformer();
     transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     return transformer;
   }
 

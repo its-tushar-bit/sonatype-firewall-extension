@@ -14,7 +14,7 @@ export default {
 function RetentionEditorController(CLMContextLocations, retentionService, $q, Messages) {
   const DONT_PURGE = 'don\'t purge';
 
-  let originalRetention = undefined;
+  let originalRetention = {};
 
   const timeUnitMultipliers = {
     'day': 1,
@@ -232,8 +232,8 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
   }
 
   function isRetentionDirty(originalRetention, retention) {
-    return originalRetention.formValue !== retention.formValue ||
-        (originalRetention.formValue === 'custom' && !angular.equals(originalRetention, retention));
+    return originalRetention !== retention && (originalRetention.formValue !== retention.formValue ||
+        (originalRetention.formValue === 'custom' && !angular.equals(originalRetention, retention)));
   }
 
   vm.load();

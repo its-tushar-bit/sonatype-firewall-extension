@@ -97,7 +97,7 @@ public class CIComponentInfoResource
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
         componentIdentifier);

@@ -12,6 +12,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -26,6 +29,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
@@ -37,6 +41,9 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
+import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.ComponentFactDTO;
+import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.PolicyAlertDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
@@ -56,6 +63,8 @@ public class WebhookDispatcher
     implements Managed
 {
   public static final String APPLICATION_EVALUATION_ID = "iq:applicationEvaluation";
+
+  public static final String POLICY_ALERT_ID = "iq:policyAlert";
 
   public static final String LICENSE_OVERRIDE_MANAGEMENT_ID = "iq:licenseOverrideManagement";
 
@@ -218,6 +227,22 @@ public class WebhookDispatcher
     }
   }
 
+  @Subscribe
+  public void on(final PolicyAlertEvent policyAlertEvent) {
+    WebhookEventType webhookEventType = WebhookEventType.POLICY_ALERT;
+    if (!checkEventIsLicensed(policyAlertEvent.application.id, webhookEventType)) {
+      return;
+    }
+
+    // PolicyAlertEvents must be configured both as Webhook configuration and Policy Notification
+    for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_ALERT)) {
+      if (webhook.getId().equals(policyAlertEvent.targetId)) {
+        invokeWithAudit(webhook, webhookEventType,
+            () -> sendPolicyAlertPayload(webhookService.getDecrypted(webhook.getId()), policyAlertEvent));
+      }
+    }
+  }
+
   private void invokeWithAudit(Webhook webhook, WebhookEventType webhookEventType, Runnable invocation) {
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.INVOKE_WEBHOOK)) {
       try {
@@ -256,6 +281,52 @@ public class WebhookDispatcher
     payload.licenseOverride = licenseOverrideDTO;
 
     webhookClientUtil.post(webhook, LICENSE_OVERRIDE_MANAGEMENT_ID, payload);
+  }
+
+  private void sendPolicyAlertPayload(final Webhook webhook, final PolicyAlertEvent event) {
+
+    final PolicyAlertPayload payload = new PolicyAlertPayload();
+    payload.applicationEvaluation.policyEvaluationId = event.applicationEvaluation.policyEvaluationId;
+    payload.applicationEvaluation.evaluationDate = event.applicationEvaluation.evaluationDate;
+    payload.applicationEvaluation.affectedComponentCount = event.applicationEvaluation.affectedComponentCount;
+    payload.applicationEvaluation.criticalComponentCount = event.applicationEvaluation.criticalComponentCount;
+    payload.applicationEvaluation.severeComponentCount = event.applicationEvaluation.severeComponentCount;
+    payload.applicationEvaluation.moderateComponentCount = event.applicationEvaluation.moderateComponentCount;
+    payload.applicationEvaluation.outcome = event.applicationEvaluation.outcome;
+
+    payload.application.id = event.application.id;
+    payload.application.name = event.application.name;
+    payload.application.organizationId = event.application.organizationId;
+
+    payload.initiator = event.initiator;
+
+    for (final PolicyFact policyFact : event.policyFacts) {
+      final PolicyAlertDTO policyAlertDTO = new PolicyAlertDTO();
+      policyAlertDTO.policyId = policyFact.getPolicyId();
+      policyAlertDTO.policyName = policyFact.getPolicyName();
+      policyAlertDTO.threatLevel = policyFact.getThreatLevel();
+
+      for (final ComponentFact componentFact : policyFact.getComponentFacts()) {
+        final ComponentFactDTO componentFactDTO = new ComponentFactDTO();
+        componentFactDTO.hash = componentFact.getHash();
+        if (componentFact.getDisplayName() != null) {
+          componentFactDTO.displayName = componentFact.getDisplayName().toString();
+        }
+        else {
+          componentFactDTO.displayName = "Unknown Component";
+        }
+        componentFactDTO.pathNames = componentFact.getPathnames();
+
+        for (final ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
+          componentFactDTO.constraintFacts.add(new ConstraintFactDTO(constraintFact));
+        }
+
+        policyAlertDTO.componentFacts.add(componentFactDTO);
+      }
+      payload.policyAlerts.add(policyAlertDTO);
+    }
+
+    webhookClientUtil.post(webhook, POLICY_ALERT_ID, payload);
   }
 
   private void sendApplicationEvaluationPayload(final Webhook webhook, final ApplicationEvaluationEvent event) {

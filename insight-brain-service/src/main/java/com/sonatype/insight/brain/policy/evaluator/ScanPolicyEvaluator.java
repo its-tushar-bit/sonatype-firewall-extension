@@ -59,6 +59,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
+import com.sonatype.insight.brain.webhook.PolicyAlertEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -102,6 +103,8 @@ public class ScanPolicyEvaluator
 
   private final PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 
+  private final PolicyAlertEventService policyAlertEventService;
+
   private final TelemetrySender telemetrySender;
 
   private final CLMLicenseManager clmLicenseManager;
@@ -115,6 +118,7 @@ public class ScanPolicyEvaluator
                              final ComponentPolicyEvaluator componentPolicyEvaluator,
                              final ApplicationEvaluationEventService applicationEvaluationEventService,
                              final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
+                             final PolicyAlertEventService policyAlertEventService,
                              final TelemetrySender telemetrySender,
                              final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
                              final PolicyViolationLoggerFactory policyViolationLoggerFactory,
@@ -126,6 +130,7 @@ public class ScanPolicyEvaluator
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
+    this.policyAlertEventService = policyAlertEventService;
     this.telemetrySender = telemetrySender;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
@@ -186,6 +191,8 @@ public class ScanPolicyEvaluator
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
     postEvaluateEvent(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
+
+    postPolicyAlertEvent(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
 
     return scanPolicyEvaluatorResults;
   }
@@ -647,6 +654,15 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
+  }
+
+  /**
+   * @since 1.64.0
+   */
+  private void postPolicyAlertEvent(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations) {
+    PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
+        true);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult);
   }
 
   @VisibleForTesting

@@ -40,36 +40,45 @@ public class ApplicationEvaluationEventService
 
   public void postEvent(final PolicyEvaluation policyEvaluation, final PolicyEvaluationResult policyEvaluationResult) {
     try {
-      ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
-      event.policyEvaluationId = policyEvaluation.getId();
-      event.stageTypeId = policyEvaluation.getStageTypeId();
-      event.ownerId = policyEvaluation.getApplicationId();
-      event.evaluationDate = policyEvaluation.getTime();
-      event.initiator = currentUser.getUsernameOrSystem();
-
-      event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
-      event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();
-      event.severeComponentCount = policyEvaluationResult.getSevereComponentCount();
-      event.moderateComponentCount = policyEvaluationResult.getModerateComponentCount();
-
-      String outcome = ApplicationEvaluationEvent.ACTION_ID_NONE;
-      for (PolicyAlert alert : policyEvaluationResult.getAlerts()) {
-        for (final Action action : alert.getActions()) {
-          final String actionTypeId = action.getActionTypeId();
-          if (Action.ID_FAIL.equals(actionTypeId)) {
-            outcome = actionTypeId;
-          }
-          else if (Action.ID_WARN.equals(actionTypeId) && !outcome.equals(Action.ID_FAIL)) {
-            outcome = actionTypeId;
-          }
-        }
-      }
-      event.outcome = outcome;
-
+      ApplicationEvaluationEvent event = buildEvent(policyEvaluation, policyEvaluationResult, currentUser);
       asyncEventBus.post(event);
     }
     catch (RuntimeException e) {
       log.error("Webhook not posted due to exception.", e);
     }
+  }
+
+  static ApplicationEvaluationEvent buildEvent(
+      final PolicyEvaluation policyEvaluation,
+      final PolicyEvaluationResult policyEvaluationResult,
+      final CurrentUser currentUser)
+  {
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
+    event.policyEvaluationId = policyEvaluation.getId();
+    event.stageTypeId = policyEvaluation.getStageTypeId();
+    event.ownerId = policyEvaluation.getApplicationId();
+    event.evaluationDate = policyEvaluation.getTime();
+    event.initiator = currentUser.getUsernameOrSystem();
+
+    event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
+    event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();
+    event.severeComponentCount = policyEvaluationResult.getSevereComponentCount();
+    event.moderateComponentCount = policyEvaluationResult.getModerateComponentCount();
+
+    String outcome = ApplicationEvaluationEvent.ACTION_ID_NONE;
+    for (PolicyAlert alert : policyEvaluationResult.getAlerts()) {
+      for (final Action action : alert.getActions()) {
+        final String actionTypeId = action.getActionTypeId();
+        if (Action.ID_FAIL.equals(actionTypeId)) {
+          outcome = actionTypeId;
+        }
+        else if (Action.ID_WARN.equals(actionTypeId) && !outcome.equals(Action.ID_FAIL)) {
+          outcome = actionTypeId;
+        }
+      }
+    }
+    event.outcome = outcome;
+
+    return event;
   }
 }

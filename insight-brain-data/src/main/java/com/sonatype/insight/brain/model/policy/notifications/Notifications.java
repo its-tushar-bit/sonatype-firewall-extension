@@ -24,6 +24,8 @@ public class Notifications
 
   private List<JiraNotification> jiraNotifications = new ArrayList<>();
 
+  private List<WebhookNotification> webhookNotifications = new ArrayList<>();
+
   public Notifications() {
   }
 
@@ -36,10 +38,11 @@ public class Notifications
   @JsonIgnore
   public List<? extends Notification> getAllNotifications() {
     List<Notification> notifications = new ArrayList<>(
-        userNotifications.size() + roleNotifications.size() + jiraNotifications.size());
+        userNotifications.size() + roleNotifications.size() + jiraNotifications.size() + webhookNotifications.size());
     notifications.addAll(userNotifications);
     notifications.addAll(roleNotifications);
     notifications.addAll(jiraNotifications);
+    notifications.addAll(webhookNotifications);
     return notifications;
   }
 
@@ -65,6 +68,14 @@ public class Notifications
 
   public void setJiraNotifications(final List<JiraNotification> jiraNotifications) {
     this.jiraNotifications = jiraNotifications != null ? jiraNotifications : new ArrayList<>();
+  }
+
+  public List<WebhookNotification> getWebhookNotifications() {
+    return webhookNotifications;
+  }
+
+  public void setWebhookNotifications(final List<WebhookNotification> webhookNotifications) {
+    this.webhookNotifications = webhookNotifications;
   }
 
   public void add(Notification notification) {
@@ -94,6 +105,11 @@ public class Notifications
     for (JiraNotification notification : jiraNotifications) {
       if (notification.isApplicable(stageId, continuousMonitoring)) {
         notifications.jiraNotifications.add(notification);
+      }
+    }
+    for (WebhookNotification notification : webhookNotifications) {
+      if (notification.isApplicable(stageId, continuousMonitoring)) {
+        notifications.webhookNotifications.add(notification);
       }
     }
     return notifications;

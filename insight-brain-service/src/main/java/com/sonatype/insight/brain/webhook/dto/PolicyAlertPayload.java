@@ -1,0 +1,56 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.webhook.dto;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sonatype.insight.brain.policy.ConstraintFactDTO;
+import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
+
+/**
+ * @since 1.64.0
+ */
+public class PolicyAlertPayload
+    extends WebhookPayload
+{
+  public ApplicationEvaluationDTO applicationEvaluation = new ApplicationEvaluationDTO();
+
+  public ApplicationSummaryDTO application = new ApplicationSummaryDTO();
+
+  public List<PolicyAlertDTO> policyAlerts = new ArrayList<>();
+
+  public static class ApplicationSummaryDTO
+  {
+    public String id;
+
+    public String name;
+
+    public String organizationId;
+  }
+
+  public static class PolicyAlertDTO
+  {
+    public String policyId;
+
+    public String policyName;
+
+    public int threatLevel;
+
+    public List<ComponentFactDTO> componentFacts = new ArrayList<>();
+  }
+
+  public static class ComponentFactDTO
+  {
+    public String hash;
+
+    public String displayName;
+
+    public List<String> pathNames = new ArrayList<>();
+
+    public List<ConstraintFactDTO> constraintFacts = new ArrayList<>();
+  }
+}

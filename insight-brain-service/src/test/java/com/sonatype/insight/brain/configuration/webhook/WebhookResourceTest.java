@@ -24,6 +24,7 @@ import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECR
 import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,8 +70,8 @@ public class WebhookResourceTest
 
     WebhookEventType[] results = response.getBody(WebhookEventType[].class);
 
-    assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, LICENSE_OVERRIDE_MANAGEMENT,
-        SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT);
+    assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, POLICY_ALERT,
+        LICENSE_OVERRIDE_MANAGEMENT, SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT);
   }
 
   @Test

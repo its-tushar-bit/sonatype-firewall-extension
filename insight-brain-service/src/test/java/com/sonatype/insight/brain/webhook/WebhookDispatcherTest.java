@@ -38,10 +38,12 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.PolicyEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
+import com.sonatype.insight.brain.webhook.PolicyAlertEvent.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
@@ -56,6 +58,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -418,6 +421,49 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.id).isEqualTo(organization.getId());
     assertThat(webhookPayload.type).isEqualTo(PolicyManagementType.ACCESS);
     assertThat(webhookPayload.owner.id).isEqualTo(organization.getId());
+  }
+
+  @Test
+  public void testOn_HandlesPolicyAlertEvent() {
+    Webhook target = tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(POLICY_ALERT));
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    Date date = new Date();
+    ApplicationEvaluationEvent evaluationEvent = new ApplicationEvaluationEvent();
+    evaluationEvent.initiator = "initiator";
+    evaluationEvent.policyEvaluationId = "policyEvaluationId";
+    evaluationEvent.stageTypeId = "stage";
+    evaluationEvent.ownerId = "ownerId";
+    evaluationEvent.evaluationDate = date;
+    evaluationEvent.affectedComponentCount = 1;
+    evaluationEvent.criticalComponentCount = 3;
+    evaluationEvent.severeComponentCount = 5;
+    evaluationEvent.moderateComponentCount = 7;
+    evaluationEvent.outcome = "outcome";
+    PolicyAlertEvent event = new PolicyAlertEvent(target.getId());
+    event.initiator = "initiator";
+    event.targetId = target.getId();
+    event.application = new ApplicationSummary();
+    event.application.id = application.getId();
+    event.application.organizationId = organization.getId();
+    event.applicationEvaluation = evaluationEvent;
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_ALERT_ID),
+            webhookPayloadArgumentCaptor.capture());
+
+    Webhook webhook = webhookArgumentCaptor.getValue();
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
+
+    PolicyAlertPayload webhookPayload = (PolicyAlertPayload) webhookPayloadArgumentCaptor.getValue();
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.application.organizationId).isEqualTo(organization.getId());
+    assertThat(webhookPayload.application.id).isEqualTo(application.getId());
   }
 
   @Test

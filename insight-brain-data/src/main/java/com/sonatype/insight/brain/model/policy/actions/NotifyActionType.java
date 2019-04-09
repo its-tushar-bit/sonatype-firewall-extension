@@ -20,6 +20,11 @@ public class NotifyActionType
    */
   public static final String TARGET_TYPE_JIRA = "jira";
 
+  /**
+   * @since 1.64.0
+   */
+  public static final String TARGET_TYPE_WEBHOOK = "webhook";
+
   @Override
   public String getId() {
     return ID;

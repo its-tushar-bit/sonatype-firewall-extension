@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 
 public abstract class NotificationDTO
 {
@@ -35,6 +36,9 @@ public abstract class NotificationDTO
     }
     else if (notification instanceof RoleNotification) {
       return new RoleNotificationDTO((RoleNotification) notification);
+    }
+    else if (notification instanceof WebhookNotification) {
+      return new WebhookNotificationDTO((WebhookNotification) notification);
     }
     else {
       return new JiraNotificationDTO((JiraNotification) notification);

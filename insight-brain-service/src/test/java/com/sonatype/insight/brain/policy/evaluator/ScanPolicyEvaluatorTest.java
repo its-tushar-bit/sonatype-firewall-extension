@@ -73,6 +73,8 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
@@ -87,6 +89,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.brain.webhook.FilteringTestEventHandler;
+import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -106,6 +110,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static java.time.Duration.ofSeconds;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -137,6 +142,8 @@ public class ScanPolicyEvaluatorTest
 
   private TestEventHandler<ApplicationEvaluationEvent> handler;
 
+  private FilteringTestEventHandler<PolicyAlertEvent> policyAlertHandler;
+
   private MockReportDownloader mockReportDownloader;
 
   private TelemetrySender mockTelemetrySender;
@@ -161,6 +168,9 @@ public class ScanPolicyEvaluatorTest
   public void after() {
     if (handler != null) {
       asyncEventBus.unregister(handler);
+    }
+    if (policyAlertHandler != null) {
+      asyncEventBus.unregister(policyAlertHandler);
     }
   }
 
@@ -453,6 +463,50 @@ public class ScanPolicyEvaluatorTest
     assertThat(event.severeComponentCount).isEqualTo(7);
     assertThat(event.moderateComponentCount).isEqualTo(0);
     assertThat(event.outcome).isEqualTo(Action.ID_FAIL);
+  }
+
+  @Test
+  public void testEvaluate_DoesNot_EmitPolicyAlertEvent_WithoutWebhooks() throws IOException, InterruptedException {
+    policyAlertHandler = new FilteringTestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class::isInstance);
+    newSecurityPolicy();
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+    asyncEventBus.register(policyAlertHandler);
+
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(policyAlertHandler.waitForEvent(ofSeconds(5)).isPresent()).isFalse();
+  }
+
+  @Test
+  public void testEvaluate_EmitsPolicyAlertEvent() throws IOException, InterruptedException {
+    policyAlertHandler = new FilteringTestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class::isInstance);
+    tempEntity.newPolicy(application.getId(), "Test Policy", 10, Action.ID_WARN, Stage.ID_BUILD,
+        new Notifications(new WebhookNotification("id", Stage.ID_BUILD)));
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+    asyncEventBus.register(policyAlertHandler);
+
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    assertThat(policyAlertHandler.waitForEvent(ofSeconds(5)).isPresent()).isTrue();
+    PolicyAlertEvent event = policyAlertHandler.getEvent();
+    assertThat(event).isNotNull();
+    assertThat(event.applicationEvaluation.stageTypeId).isEqualTo(Stage.ID_BUILD);
+    assertThat(event.applicationEvaluation.ownerId).isEqualTo(application.getId());
+    assertThat(event.initiator).isEqualTo("testuser");
+    assertThat(event.applicationEvaluation.policyEvaluationId).isEqualTo(scanPolicyEvaluatorResults.evaluation.getId());
+    assertThat(event.applicationEvaluation.evaluationDate).isEqualTo(scanPolicyEvaluatorResults.evaluation.getTime());
+    assertThat(event.applicationEvaluation.affectedComponentCount).isEqualTo(7);
+    assertThat(event.applicationEvaluation.criticalComponentCount).isEqualTo(7);
+    assertThat(event.applicationEvaluation.severeComponentCount).isEqualTo(0);
+    assertThat(event.applicationEvaluation.moderateComponentCount).isEqualTo(0);
+    assertThat(event.applicationEvaluation.outcome).isEqualTo(Action.ID_WARN);
+    assertThat(event.application.id).isEqualTo(application.getId());
+    assertThat(event.application.name).isEqualTo(application.getName());
+    assertThat(event.application.organizationId).isEqualTo(organization.getId());
+    assertThat(event.policyFacts).hasSize(36);
   }
 
   @Test

@@ -68,6 +68,10 @@
           <groupId>com.h3xstream.retirejs</groupId>
           <artifactId>retirejs-core</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

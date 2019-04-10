@@ -111,7 +111,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad host");
     }
     catch (IOException e) {
-      assertThat(e.getMessage()).startsWith("Unknown host: 1234.bad.host.1234.com");
+      assertThat(e.getMessage()).startsWith("Unknown host:").contains("1234.bad.host.1234.com");
     }
   }
 

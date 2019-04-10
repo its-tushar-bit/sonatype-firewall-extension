@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -328,6 +329,26 @@ public class PolicyTest
     // Fix the notification and validate again
     jiraNotification.setProjectKey("key");
     jiraNotification.setIssueTypeId(1);
+    result = policy.validate(null, applicationId);
+    assertValidationResultHasNoErrors(result);
+  }
+
+  @Test
+  public void testValidate_WebhookNotificationInvalid() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+
+    // Add invalid notification and validate
+    WebhookNotification notification = new WebhookNotification();
+    policy.getNotifications().add(notification);
+    ValidationResult result = policy.validate(null, applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid notifications:",
+        "Invalid Webhook notification: A valid webhook id is required");
+
+    // Fix the notification and validate again
+    notification.setWebhookId("http://localhost");
     result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }

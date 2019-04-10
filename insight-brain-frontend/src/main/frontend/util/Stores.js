@@ -233,7 +233,8 @@ storesModule.service('PolicyHierarchyStore', [
         notifications: {
           userNotifications: [],
           roleNotifications: [],
-          jiraNotifications: []
+          jiraNotifications: [],
+          webhookNotifications: []
         }
       },
       type: 'policy',

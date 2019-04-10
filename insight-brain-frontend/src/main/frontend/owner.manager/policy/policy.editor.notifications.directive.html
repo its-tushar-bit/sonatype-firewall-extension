@@ -113,6 +113,25 @@
                              ng-disabled="vm.isNotificationsFormDisabled()">
           </dropdown-selector>
         </div>
+        <span ng-if="vm.recipientType === vm.recipientTypes.WEBHOOK && vm.isWebhooksSupported">
+          <div class="iq-form-group">
+            <label class="iq-label"
+                   for="recipient-webhook"
+                   ng-class="{disabled: vm.isNotificationsFormDisabled()}">
+              Select Webhook
+            </label>
+            <dropdown-selector id="recipient-webhook"
+                               option-name-param="url"
+                               ng-model="vm.recipientToAdd"
+                               name="recipient-webhook-select"
+                               options="vm.getAvailableWebhooks()"
+                               no-options-string="No applicable Webhook."
+                               empty-option-string="-- Select Webhook --"
+                               undefined-options-string="-- Select Webhook --"
+                               ng-disabled="vm.isNotificationsFormDisabled()">
+            </dropdown-selector>
+          </div>
+        </span>
         <span ng-if="vm.recipientType === vm.recipientTypes.JIRA">
           <div class="iq-form-group">
             <label class="iq-label" 

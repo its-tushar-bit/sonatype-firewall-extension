@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @since 1.64.0
+ * @since 1.64
  */
 public class WebhookNotification
     extends Notification
@@ -23,13 +23,21 @@ public class WebhookNotification
     // primarily supports deserialization
   }
 
-  public WebhookNotification(final String webhookId, final String... stageIds) {
+  public WebhookNotification(String webhookId, String... stageIds) {
     super(stageIds);
     setWebhookId(webhookId);
   }
 
+  public String getWebhookId() {
+    return webhookId;
+  }
+
+  public void setWebhookId(String webhookId) {
+    this.webhookId = webhookId;
+  }
+
   @Override
-  protected void validate(final ValidationResult validationResult) {
+  protected void validate(ValidationResult validationResult) {
     if (StringUtils.isBlank(webhookId)) {
       validationResult.addError("Invalid Webhook notification: A valid webhook id is required");
     }
@@ -41,21 +49,12 @@ public class WebhookNotification
   }
 
   @Override
-  protected void addToNotifications(final Notifications notifications) {
+  protected void addToNotifications(Notifications notifications) {
     notifications.getWebhookNotifications().add(this);
-  }
-
-  public String getWebhookId() {
-    return webhookId;
-  }
-
-  public void setWebhookId(final String webhookId) {
-    this.webhookId = webhookId;
   }
 
   @Override
   public String toString() {
-    return "WebhookNotification [webhookId=" + webhookId + ", getStageIds()="
-        + getStageIds() + "]";
+    return "WebhookNotification [webhookId=" + webhookId + ", getStageIds()=" + getStageIds() + "]";
   }
 }

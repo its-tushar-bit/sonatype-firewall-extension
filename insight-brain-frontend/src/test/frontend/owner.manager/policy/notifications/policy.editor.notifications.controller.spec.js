@@ -88,6 +88,7 @@ describe('policy.editor.notifications.controller.spec.js', function() {
 
     $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
     $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
+    $httpBackend.whenGET(CLMLocations.getWebhooksUrl()).respond([]);
   }));
 
   describe('controller init', function() {

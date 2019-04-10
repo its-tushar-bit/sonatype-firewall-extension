@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.policy;
 
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 
+/**
+ * @since 1.64
+ */
 public class WebhookNotificationDTO
     extends NotificationDTO
 {

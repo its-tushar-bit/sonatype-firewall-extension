@@ -75,7 +75,7 @@ public class Notifications
   }
 
   public void setWebhookNotifications(final List<WebhookNotification> webhookNotifications) {
-    this.webhookNotifications = webhookNotifications;
+    this.webhookNotifications = webhookNotifications != null ? webhookNotifications : new ArrayList<>();
   }
 
   public void add(Notification notification) {
@@ -107,6 +107,7 @@ public class Notifications
         notifications.jiraNotifications.add(notification);
       }
     }
+
     for (WebhookNotification notification : webhookNotifications) {
       if (notification.isApplicable(stageId, continuousMonitoring)) {
         notifications.webhookNotifications.add(notification);

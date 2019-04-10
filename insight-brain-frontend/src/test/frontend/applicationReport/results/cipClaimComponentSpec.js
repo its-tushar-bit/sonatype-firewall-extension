@@ -128,7 +128,7 @@ describe('cipClaimComponent', function() {
   });
 
   describe('submit methods', function() {
-    let $httpBackend, CLMLocations, $q, controller, reloadReport, reloadReportResult;
+    let $httpBackend, CLMLocations, $q, controller, reloadReport, reloadReportResult, expectedPayload;
 
     beforeEach(inject(function(_$httpBackend_, _CLMLocations_, _$q_) {
       $httpBackend = _$httpBackend_;
@@ -138,7 +138,21 @@ describe('cipClaimComponent', function() {
       const component = {
         hash: 'c2d6a87d5c2bcd383900'
       };
-
+      expectedPayload = {
+        hash: 'c2d6a87d5c2bcd383900',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'testGroupId',
+            artifactId: 'testArtifactId',
+            version: 'testVersion',
+            extension: 'testExtension',
+            classifier: 'testClassifier'
+          }
+        },
+        createTime: new Date('12/10/2018').getTime(),
+        comment: 'testComment'
+      };
       reloadReportResult = $q.defer();
       reloadReport = jasmine.createSpy('reloadReport').and.returnValue(reloadReportResult.promise);
       controller = createController(component, reloadReport);
@@ -169,7 +183,8 @@ describe('cipClaimComponent', function() {
 
       it('submits claim if claimForm is valid', function() {
         controller.claimForm.$valid = true;
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl())).respond(200);
+        const urlRegex = SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl());
+        $httpBackend.expectPOST(urlRegex, expectedPayload).respond(200);
         controller.claimComponent();
         expect(controller.loading).toBe(true);
         $httpBackend.flush();
@@ -183,8 +198,8 @@ describe('cipClaimComponent', function() {
 
       it('handles submit error', function() {
         controller.claimForm.$valid = true;
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl())).respond(500,
-            'test error');
+        const urlRegex = SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl());
+        $httpBackend.expectPOST(urlRegex, expectedPayload).respond(500, 'test error');
         controller.claimComponent();
         expect(controller.loading).toBe(true);
         $httpBackend.flush();
@@ -195,7 +210,8 @@ describe('cipClaimComponent', function() {
 
       it('handles reloadReport error', function() {
         controller.claimForm.$valid = true;
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl())).respond(200);
+        const urlRegex = SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl());
+        $httpBackend.expectPOST(urlRegex, expectedPayload).respond(200);
         controller.claimComponent();
         expect(controller.loading).toBe(true);
         $httpBackend.flush();
@@ -218,7 +234,8 @@ describe('cipClaimComponent', function() {
 
       it('submits claim if claimForm is valid', function() {
         controller.claimForm.$valid = true;
-        $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl())).respond(200);
+        const urlRegex = SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl());
+        $httpBackend.expectPUT(urlRegex, expectedPayload).respond(200);
         controller.updateComponent();
         expect(controller.loading).toBe(true);
         $httpBackend.flush();
@@ -232,8 +249,8 @@ describe('cipClaimComponent', function() {
 
       it('handles submit error', function() {
         controller.claimForm.$valid = true;
-        $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl())).respond(500,
-            'test error');
+        const urlRegex = SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl());
+        $httpBackend.expectPUT(urlRegex, expectedPayload).respond(500, 'test error');
         controller.updateComponent();
         expect(controller.loading).toBe(true);
         $httpBackend.flush();
@@ -244,7 +261,8 @@ describe('cipClaimComponent', function() {
 
       it('handles reloadReport error', function() {
         controller.claimForm.$valid = true;
-        $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl())).respond(200);
+        const urlRegex = SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl());
+        $httpBackend.expectPUT(urlRegex, expectedPayload).respond(200);
         controller.updateComponent();
         expect(controller.loading).toBe(true);
         $httpBackend.flush();

@@ -138,7 +138,7 @@ public class ReportService
     metadata.setApplication(application);
 
     File reportFile = getReport(work, application.getId(), scanId);
-    final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, "data.json").buf);
+    final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME).buf);
     metadata.setExpandedCoverage(data.path("globals").path("expandedCoverage").booleanValue());
 
     if (metadata.isExpandedCoverage()) {

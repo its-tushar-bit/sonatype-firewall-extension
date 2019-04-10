@@ -82,7 +82,7 @@ public class ApiReportDataServiceV2
     ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
     ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");
     ReportEntry licenseEntry = Report.getEntry(reportFile, "licenses.json");
-    ReportEntry dataEntry = Report.getEntry(reportFile, "data.json");
+    ReportEntry dataEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null) {
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");

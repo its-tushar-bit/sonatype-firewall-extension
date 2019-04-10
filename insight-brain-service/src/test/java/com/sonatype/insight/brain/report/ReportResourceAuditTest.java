@@ -95,7 +95,7 @@ public class ReportResourceAuditTest
   public void testBrowseReport_Json() throws Exception {
     createReportFile(app.getId(), SCAN_ID);
 
-    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, "data.json").get();
+    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, Report.DATA_JSON_FILENAME).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -114,7 +114,7 @@ public class ReportResourceAuditTest
 
   @Test
   public void testBrowseReport_Unauthorized() throws Exception {
-    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, "data.json").get();
+    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, Report.DATA_JSON_FILENAME).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);

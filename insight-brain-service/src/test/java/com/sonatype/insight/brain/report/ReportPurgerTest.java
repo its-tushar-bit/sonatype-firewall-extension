@@ -57,8 +57,9 @@ public class ReportPurgerTest
       Files.write(reportDir.resolve("report.pdf"), Arrays.asList("report.pdf"));
       reportDir = reportDir.resolve(Report.CACHE_DIRECTORY_NAME);
       Files.createDirectories(reportDir);
-      for (String filename : new String[]{"index.html", "bom.json", "data.json", "licenses.json", "licensethreats.json",
-          "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json", "summary.json"}) {
+      for (String filename : new String[]{"index.html", "bom.json", Report.DATA_JSON_FILENAME, "licenses.json",
+          "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
+          "summary.json"}) {
         Files.write(reportDir.resolve(filename), Arrays.asList(Report.CACHE_DIRECTORY_NAME + "/" + filename));
       }
     }
@@ -202,7 +203,7 @@ public class ReportPurgerTest
     assertThat(trashDir.list()).containsExactly(trashFile.getName());
     try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), null)) {
       String[] expectedZipEntries = {"report.zip", Report.CACHE_DIRECTORY_NAME + "/index.html",
-          Report.CACHE_DIRECTORY_NAME + "/bom.json", Report.CACHE_DIRECTORY_NAME + "/data.json",
+          Report.CACHE_DIRECTORY_NAME + "/bom.json", Report.CACHE_DIRECTORY_NAME + "/" + Report.DATA_JSON_FILENAME,
           Report.CACHE_DIRECTORY_NAME + "/licenses.json", Report.CACHE_DIRECTORY_NAME + "/licensethreats.json",
           Report.CACHE_DIRECTORY_NAME + "/partialmatched.json", Report.CACHE_DIRECTORY_NAME + "/policyalerts.json",
           Report.CACHE_DIRECTORY_NAME + "/policythreats.json", Report.CACHE_DIRECTORY_NAME + "/security.json",

@@ -114,12 +114,13 @@ public class ReportResourceTest
         .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = request.subpath("data.json").get();
+    response = request.subpath(Report.DATA_JSON_FILENAME).get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
     assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
-        .as("data.json expires immediately: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
+        .as(Report.DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
+        .isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
     response = request.subpath("index.html").get();
@@ -132,7 +133,7 @@ public class ReportResourceTest
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
     String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar
         .getTime());
-    response = request.subpath("data.json").header("If-Modified-Since", ifModifiedSinceHeader).get();
+    response = request.subpath(Report.DATA_JSON_FILENAME).header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(304, response);
 
     // make sure index.html always returns 200, no 304s here
@@ -199,7 +200,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if ("data.json".equals(entry)) {
+      if (Report.DATA_JSON_FILENAME.equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }

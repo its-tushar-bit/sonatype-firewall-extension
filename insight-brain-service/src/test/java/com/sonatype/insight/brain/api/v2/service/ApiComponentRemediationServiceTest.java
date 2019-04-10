@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,16 +22,21 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 public class ApiComponentRemediationServiceTest
     extends AbstractComponentTest
@@ -61,10 +69,13 @@ public class ApiComponentRemediationServiceTest
   @Mock
   private ComponentInfoService componentInfoServiceMock;
 
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
-
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -120,7 +131,7 @@ public class ApiComponentRemediationServiceTest
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_AllVersionsWithViolations() throws Exception {
+  public void testGetSuggestedRemediationForComponent_VersionUpgrade_AllVersionsWithViolations() {
     ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
     dto1.componentIdentifier = MAVEN_COORDINATES_V1;
     dto1.violatedPolicyCount = 1;
@@ -140,6 +151,7 @@ public class ApiComponentRemediationServiceTest
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId());
     assertRemediationZeroCounts(retVal.remediation);
+    assertTelemetry("application", app.getId(), dto1.componentIdentifier);
   }
 
   @Test
@@ -212,10 +224,11 @@ public class ApiComponentRemediationServiceTest
     assertRemediation(retVal.remediation,
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier),
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations");
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_Current() throws Exception {
+  public void testGetSuggestedRemediationForComponent_VersionUpgrade_Current() {
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 0;
@@ -237,6 +250,34 @@ public class ApiComponentRemediationServiceTest
     assertRemediation(retVal.remediation,
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier),
         ApiVersionChangeOptionType.CURRENT);
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_current");
+  }
+
+  private void assertTelemetry(final String ownerType,
+                               final String ownerId,
+                               final ComponentIdentifier componentIdentifier,
+                               final String... expectedTrueAttributes)
+  {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("owner_type", ownerType);
+    expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
+    expectedAttributes.put("component", componentIdentifier.toString());
+    expectedAttributes.put("option_next_no_violations", "false");
+    expectedAttributes.put("option_current", "false");
+    expectedAttributes.put("option_next_non_failing", "n/a");
+    expectedAttributes.put("option_policy_waiver", "n/a");
+    expectedAttributes.put("option_license_override", "n/a");
+    expectedAttributes.put("option_sv_override", "n/a");
+    for (String attribute : expectedTrueAttributes) {
+      expectedAttributes.put(attribute, "true");
+    }
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.COMPONENT_REMEDIATION);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list) {

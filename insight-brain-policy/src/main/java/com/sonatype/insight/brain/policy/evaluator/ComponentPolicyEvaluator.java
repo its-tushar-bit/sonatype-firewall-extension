@@ -42,15 +42,12 @@ import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparato
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.drools.KnowledgeBase;
-import org.drools.KnowledgeBaseFactory;
-import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.KnowledgeBuilderFactory;
-import org.drools.builder.ResourceType;
-import org.drools.definition.KnowledgePackage;
-import org.drools.io.ResourceFactory;
-import org.drools.runtime.ObjectFilter;
-import org.drools.runtime.StatefulKnowledgeSession;
+import org.drools.core.ObjectFilter;
+import org.kie.api.io.ResourceType;
+import org.kie.api.runtime.KieSession;
+import org.kie.internal.builder.KnowledgeBuilder;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
+import org.kie.internal.io.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,10 +245,7 @@ public class ComponentPolicyEvaluator
     if (droolsKnowledgeBuilder.hasErrors()) {
       throw new RuntimeException("Failed to load the policies: " + droolsKnowledgeBuilder.getErrors().toString());
     }
-    final Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
-    final KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
-    droolsKnowledgeBase.addKnowledgePackages(droolsKnowledgePackages);
-    final StatefulKnowledgeSession droolsSession = droolsKnowledgeBase.newStatefulKnowledgeSession();
+    final KieSession droolsSession = droolsKnowledgeBuilder.newKieBase().newKieSession();
 
     for (final Component component : components) {
       droolsSession.insert(component);
@@ -262,8 +256,8 @@ public class ComponentPolicyEvaluator
     return getMatchFacts(droolsSession);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  private static List<MatchFact> getMatchFacts(StatefulKnowledgeSession droolsSession) {
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private static List<MatchFact> getMatchFacts(KieSession droolsSession) {
     return new ArrayList<>((Collection) droolsSession.getObjects(new ObjectFilter()
     {
       @Override
@@ -273,4 +267,3 @@ public class ComponentPolicyEvaluator
     }));
   }
 }
-

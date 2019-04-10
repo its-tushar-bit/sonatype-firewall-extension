@@ -46,7 +46,7 @@
     <jersey.version>2.25.1</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
-    <drools.version>6.1.0.Final</drools.version>
+    <drools.version>7.20.0.Final</drools.version>
     <geb.version>2.3.1</geb.version>
     <selenium.version>3.8.1</selenium.version>
     <failsafe.version>2.19</failsafe.version>
@@ -486,18 +486,21 @@
         <artifactId>plexus-utils</artifactId>
         <version>3.1.0</version>
       </dependency>
-      
+
+      <dependency>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-api</artifactId>
+        <version>${drools.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.drools</groupId>
-        <artifactId>knowledge-api</artifactId>
+        <artifactId>drools-core</artifactId>
         <version>${drools.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- in an ideal world, an API JAR wouldn't drag in optional dependencies ... -->
-            <groupId>org.drools</groupId>
-            <artifactId>drools-decisiontables</artifactId>
-          </exclusion>
-        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>drools-compiler</artifactId>
+        <version>${drools.version}</version>
       </dependency>
 
       <dependency>

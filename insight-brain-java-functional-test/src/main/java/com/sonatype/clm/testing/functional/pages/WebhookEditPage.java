@@ -58,7 +58,7 @@ public class WebhookEditPage
   }
 
   public IqCheckbox component() {
-    return new IqCheckbox(eventTypes().get(2));
+    return new IqCheckbox(eventTypes().get(3));
   }
 
   public SelenideElement save() {

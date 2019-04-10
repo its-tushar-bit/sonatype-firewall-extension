@@ -64,11 +64,19 @@ public class ScanResourceTest
 
     HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
     assertResponseStatus(200, response);
-    assertThat(response.getBody(ScanTicket.class)).isNotNull();
+    ScanTicket result = response.getBody(ScanTicket.class);
+    assertThat(result).isNotNull();
+    assertThat(result.ticketId).isNotNull();
 
-    response = request.query("noFormData", "true").noCsrfToken().post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid cross-site request forgery token");
+    try {
+      response = request.query("noFormData", "true").noCsrfToken().post();
+      assertResponseStatus(200, response);
+      assertThat(response.getBodyText()).isEqualTo("Invalid cross-site request forgery token");
+    }
+    finally {
+      // let processing for this test complete before we head into the next test
+      waitForScanTaskToBeProcessed(app.getPublicId(), result.ticketId);
+    }
   }
 
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {

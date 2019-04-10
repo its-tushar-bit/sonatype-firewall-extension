@@ -18,9 +18,12 @@ abstract class AbstractPolicyEvaluatorCli
 
   static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
 
-  protected void run(Class<? extends PolicyEvaluator> policyEvaluatorClass, AbstractCliParameters params) {
+  protected <P extends AbstractCliParameters> void run(
+      Class<? extends PolicyEvaluator<P>> policyEvaluatorClass,
+      P params)
+  {
     try {
-      PolicyEvaluator<AbstractCliParameters> main = boot(policyEvaluatorClass, params);
+      PolicyEvaluator<P> main = boot(policyEvaluatorClass, params);
       main.run(params);
     }
     catch (ExitException e) {

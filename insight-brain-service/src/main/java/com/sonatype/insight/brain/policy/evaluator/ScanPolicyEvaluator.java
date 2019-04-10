@@ -190,9 +190,7 @@ public class ScanPolicyEvaluator
 
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-    postEvaluateEvent(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
-
-    postPolicyAlertEvent(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
+    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
 
     return scanPolicyEvaluatorResults;
   }
@@ -650,18 +648,10 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.25.0
    */
-  private void postEvaluateEvent(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations) {
+  private void postEvents(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations) {
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-  }
-
-  /**
-   * @since 1.64.0
-   */
-  private void postPolicyAlertEvent(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations) {
-    PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
-        true);
     policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult);
   }
 

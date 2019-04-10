@@ -267,6 +267,19 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test
+  public void testFilter_ApplicationInternalOwnerIdAndType_SetsApplication() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("internalOwnerId", application.getId());
+    pathParameters.add("ownerType", OwnerType.APPLICATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setApplicationId(application.getId());
+    verify(mockAuditData).setApplication((Application) ownerArgumentCaptor.capture());
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(application.getId());
+  }
+
+  @Test
   public void testFilter_BadApplicationOwnerIdAndType_SetsApplicationId() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
     pathParameters.add("ownerId", BAD_ID);
@@ -292,6 +305,19 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test
+  public void testFilter_OrganizationInternalOwnerIdAndType_SetsOrganization() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("internalOwnerId", organization.getId());
+    pathParameters.add("ownerType", OwnerType.ORGANIZATION.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setOrganizationId(organization.getId());
+    verify(mockAuditData).setOrganization((Organization) ownerArgumentCaptor.capture());
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(organization.getId());
+  }
+
+  @Test
   public void testFilter_BadOrganizationOwnerIdAndType_SetsOrganizationId() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
     pathParameters.add("ownerId", BAD_ID);
@@ -307,6 +333,19 @@ public class AuditContainerRequestFilterTest
   public void testFilter_RepositoryOwnerIdAndType_SetsRepository() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
     pathParameters.add("ownerId", repository.getId());
+    pathParameters.add("ownerType", OwnerType.REPOSITORY.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setRepositoryId(repository.getId());
+    verify(mockAuditData).setRepository((Repository) ownerArgumentCaptor.capture());
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(repository.getId());
+  }
+
+  @Test
+  public void testFilter_RepositoryInternalOwnerIdAndType_SetsRepository() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("internalOwnerId", repository.getId());
     pathParameters.add("ownerType", OwnerType.REPOSITORY.toString());
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);

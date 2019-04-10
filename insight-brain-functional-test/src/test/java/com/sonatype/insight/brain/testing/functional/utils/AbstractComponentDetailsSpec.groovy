@@ -93,7 +93,8 @@ extends BaseSpec {
   }
 
   static <T> T parseJsonFile(String jsonFilename,  Class<? extends T> type) {
-    return new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(getClass().getResource(jsonFilename), type)
+    URL resourceUrl = AbstractComponentDetailsSpec.class.getResource(jsonFilename)
+    return new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).readValue(resourceUrl, type)
   }
 
   ComponentDetails mockComponentDetails(String jsonFilename) {

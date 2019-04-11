@@ -50,14 +50,6 @@ public class ApiComponentRemediationService
 
   private static final String OPTION_CURRENT_ATTR =  "option_current";
 
-  private static final String OPTION_NEXT_NON_FAILING_ATTR = "option_next_non_failing";
-
-  private static final String OPTION_POLICY_WAIVER_ATTR =  "option_policy_waiver";
-
-  private static final String OPTION_LICENSE_OVERRIDE_ATTR = "option_license_override";
-
-  private static final String OPTION_SV_OVERRIDE_ATTR =  "option_sv_override";
-
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private final ComponentInfoService componentInfoService;
@@ -125,11 +117,6 @@ public class ApiComponentRemediationService
     attributes.put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
     attributes.putIfAbsent(OPTION_CURRENT_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(false));
-    // options not implemented yet - send n/a for now.
-    attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_ATTR, "n/a");
-    attributes.putIfAbsent(OPTION_POLICY_WAIVER_ATTR, "n/a");
-    attributes.putIfAbsent(OPTION_LICENSE_OVERRIDE_ATTR, "n/a");
-    attributes.putIfAbsent(OPTION_SV_OVERRIDE_ATTR, "n/a");
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
   }

@@ -267,10 +267,6 @@ public class ApiComponentRemediationServiceTest
     expectedAttributes.put("component", componentIdentifier.toString());
     expectedAttributes.put("option_next_no_violations", "false");
     expectedAttributes.put("option_current", "false");
-    expectedAttributes.put("option_next_non_failing", "n/a");
-    expectedAttributes.put("option_policy_waiver", "n/a");
-    expectedAttributes.put("option_license_override", "n/a");
-    expectedAttributes.put("option_sv_override", "n/a");
     for (String attribute : expectedTrueAttributes) {
       expectedAttributes.put(attribute, "true");
     }

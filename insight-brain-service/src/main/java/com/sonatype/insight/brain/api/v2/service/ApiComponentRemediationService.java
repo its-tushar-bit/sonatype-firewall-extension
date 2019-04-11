@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -112,7 +113,7 @@ public class ApiComponentRemediationService
                              final Map<String, Object> attributes)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.COMPONENT_REMEDIATION);
-    attributes.put(COMPONENT_ATTR, HdsClientAnalytics.obfuscate(componentIdentifier.toString()));
+    attributes.put(COMPONENT_ATTR, HdsClientAnalytics.obfuscate(JsonUtils.writeUnformatted(componentIdentifier)));
     attributes.put(OWNER_TYPE_ATTR, ownerType.toString());
     attributes.put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
     attributes.putIfAbsent(OPTION_CURRENT_ATTR, String.valueOf(false));

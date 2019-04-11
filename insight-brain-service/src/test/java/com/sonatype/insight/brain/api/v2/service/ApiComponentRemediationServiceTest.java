@@ -264,7 +264,7 @@ public class ApiComponentRemediationServiceTest
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("owner_type", ownerType);
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
-    expectedAttributes.put("component", componentIdentifier.toString());
+    expectedAttributes.put("component", HdsClientAnalytics.obfuscate(componentIdentifier.toString()));
     expectedAttributes.put("option_next_no_violations", "false");
     expectedAttributes.put("option_current", "false");
     for (String attribute : expectedTrueAttributes) {

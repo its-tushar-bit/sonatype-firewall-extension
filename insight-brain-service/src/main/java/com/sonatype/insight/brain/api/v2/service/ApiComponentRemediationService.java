@@ -112,7 +112,7 @@ public class ApiComponentRemediationService
                              final Map<String, Object> attributes)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.COMPONENT_REMEDIATION);
-    attributes.put(COMPONENT_ATTR, componentIdentifier.toString());
+    attributes.put(COMPONENT_ATTR, HdsClientAnalytics.obfuscate(componentIdentifier.toString()));
     attributes.put(OWNER_TYPE_ATTR, ownerType.toString());
     attributes.put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
     attributes.putIfAbsent(OPTION_CURRENT_ATTR, String.valueOf(false));

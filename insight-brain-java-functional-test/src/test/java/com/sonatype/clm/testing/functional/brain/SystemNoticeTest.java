@@ -90,6 +90,7 @@ public class SystemNoticeTest
   private void enabledSystemNotice_ShownOnLogin() {
     checkSystemNoticeVisibilityOnLogin(EMPTY_ENABLED, visible);
     checkSystemNoticeVisibilityOnLogin(FILLED_ENABLED, visible);
+    eyesWatcher.eyesCheck("System Notice on Login");
   }
 
   private void disabledSystemNotice_NotShownOnPages() {
@@ -100,7 +101,7 @@ public class SystemNoticeTest
   private void enabledSystemNotice_ShownOnPages() {
     checkSystemNoticeVisibilityAfterLogin(EMPTY_ENABLED, visible);
     checkSystemNoticeVisibilityAfterLogin(FILLED_ENABLED, visible);
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("System Notice on Page");
   }
 
   private void login(final String url) {

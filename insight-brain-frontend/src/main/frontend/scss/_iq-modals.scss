@@ -65,8 +65,11 @@ $iq-modal-bottom-spacing: 8px;
   }
 
   .iq-alert--system-notice {
-    border-width: 1px;
-    margin: -12px -4px 12px -4px;
+    // last-child to handle specificity issue
+    &, &:last-child {
+      border-width: 1px;
+      margin: -12px -4px 12px -4px;
+    }
   }
 
   .iq-subsection-header {

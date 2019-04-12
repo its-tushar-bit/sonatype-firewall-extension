@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * Associates component hash to a component identifier.
@@ -49,6 +50,19 @@ public class HashComponentIdentifierService
     this.client = hdsClient;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
     this.licenseOverrideDAO = licenseOverrideDAO;
+  }
+
+  @Authorize(permission = Permission.CLAIM_COMPONENT)
+  public HashComponentIdentifierDTO get(final String hash) {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
+
+    if (hashComponentIdentifier != null) {
+      return new HashComponentIdentifierDTO(hashComponentIdentifier,
+          ComponentDisplayNameUtil.fromIdentifier(hashComponentIdentifier.getComponentIdentifier()));
+    }
+    else {
+      throw new NotFoundException("Cannot find component claim for hash " + hash);
+    }
   }
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)

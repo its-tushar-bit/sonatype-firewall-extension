@@ -376,7 +376,11 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getReportPdfDownloadUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
           '/printReport',
 
-      getClaimComponentUrl: () => `${baseUrl.get()}/rest/component/identified`,
+      getClaimComponentUrl: hash => {
+        const base = `${baseUrl.get()}/rest/component/identified`;
+
+        return hash ? `${base}/${encodeURIComponent(hash)}` : base;
+      },
 
       getVulnerabilityDetailUrl: (source, refId, componentIdentifier, hash) => {
         const url = baseUrl.get() + '/rest/vulnerability/details/' +

@@ -15,6 +15,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DatePicker;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
@@ -720,11 +721,41 @@ public class ApplicationReportCipTest
     claimComponentTab.classifier().shouldNotHave(ERROR_CLASS).input().val("classifier");
 
     claimComponentTab.claimBtn().click();
+
+    claimComponentTab.group().input().shouldHave(value("groupId"));
+    claimComponentTab.artifactId().input().shouldHave(value("artifactId"));
+    claimComponentTab.version().input().shouldHave(value("version"));
+    claimComponentTab.extension().input().shouldHave(value("extension"));
+    claimComponentTab.created().input().shouldNotBe(empty);
+    claimComponentTab.comment().input().shouldHave(value("comment"));
+    claimComponentTab.claimBtn().shouldNotBe(visible);
+    claimComponentTab.revokeBtn().shouldBe(visible);
+    claimComponentTab.cancelBtn().shouldBe(visible, disabled);
+    claimComponentTab.updateBtn().shouldBe(visible, disabled);
+
+    // close and reopen CIP to ensure claim persists/comes back
     // Close CIP, re-eval policies and re-open the CIP
     cipModal.closeButton().click();
-    evaluator.reevaluatePolicy();
-    refresh();
+    reportPage.resultRow(5).shouldHave(text("unknown.jar")).click();
+    cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
+
+    claimComponentTab.group().input().shouldHave(value("groupId"));
+    claimComponentTab.artifactId().input().shouldHave(value("artifactId"));
+    claimComponentTab.version().input().shouldHave(value("version"));
+    claimComponentTab.extension().input().shouldHave(value("extension"));
+    claimComponentTab.created().input().shouldNotBe(empty);
+    claimComponentTab.comment().input().shouldHave(value("comment"));
+    claimComponentTab.claimBtn().shouldNotBe(visible);
+    claimComponentTab.revokeBtn().shouldBe(visible);
+    claimComponentTab.cancelBtn().shouldBe(visible, disabled);
+    claimComponentTab.updateBtn().shouldBe(visible, disabled);
+
+    // Close CIP, re-eval policies and re-open the CIP
+    cipModal.closeButton().click();
+    reportPage.reevaluateButton().click();
+    FormMask.seeAndWaitForDismissal();
     cipModal = reportPage.cipModal();
+
     // the new name pushes the component one entry up in the results page
     reportPage.resultRow(5).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
     reportPage.resultRow(4).shouldHave(text("groupId : artifactId : extension : classifier : version")).click();
@@ -751,6 +782,13 @@ public class ApplicationReportCipTest
     eyesWatcher.eyesCheck("Revoke Claim dialog");
     confirmRevokeClaimDialog.revokeClaimButton().click();
     confirmRevokeClaimDialog.shouldBe(hidden);
+
+    // Revoke doesn't take effect in the report immediately, but does after re-eval
+    cipModal.closeButton().click();
+    reportPage.resultRow(4).shouldHave(text("groupId : artifactId : extension : classifier : version"));
+    reportPage.reevaluateButton().click();
+    FormMask.seeAndWaitForDismissal();
+    reportPage.resultRow(5).shouldHave(text("unknown.jar"));
   }
 
   @Test

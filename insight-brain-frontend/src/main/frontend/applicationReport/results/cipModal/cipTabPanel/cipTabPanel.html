@@ -17,7 +17,6 @@
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>
     <div ng-switch-when="labels" cip-label-editor></div>
     <cip-claim-component ng-switch-when="claimComponent"
-                         reload-report="vm.reloadReport()"
                          component="vm.selectedComponent">
     </cip-claim-component>
     <cip-audit ng-switch-when="auditLog"

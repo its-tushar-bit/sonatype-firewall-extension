@@ -13,7 +13,6 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -60,10 +59,9 @@ public class HashComponentIdentifierResourceTest
     HashComponentIdentifierDTO serverResponse = response.getBody(HashComponentIdentifierDTO.class);
     assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);
 
-    // read - no GET use case for this resource - use DAO to verify
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-    hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash());
-    assertHashComponentIdentifier(hash, COMPONENT_IDENTIFIER, comment, createTime, hashComponentIdentifier);
+    // read
+    response = restRequest().path(hashComponentIdentifier.getHash()).get();
+    assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);
 
     // update
     ComponentIdentifier updatedComponentIdentifier = COMPONENT_IDENTIFIER.createAlternativeVersion("updated-version");
@@ -75,27 +73,17 @@ public class HashComponentIdentifierResourceTest
 
     assertHashComponentIdentifierDTO(hash, updatedComponentIdentifier, comment, createTime, serverResponse);
 
-    // read - no GET use case for this resource - use DAO to verify
-    hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash());
-    assertHashComponentIdentifier(hash, updatedComponentIdentifier, comment, createTime, hashComponentIdentifier);
+    // verify using GET
+    response = restRequest().path(hashComponentIdentifier.getHash()).get();
+    assertHashComponentIdentifierDTO(hash, updatedComponentIdentifier, comment, createTime, serverResponse);
 
     // delete
     response = restRequest().path(hashComponentIdentifier.getHash()).delete();
     assertResponseStatus(204, response);
-    // resource has no use case for GET so look directly in DB to ensure that record is deleted
-    assertThat(hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash())).isNull();
-  }
 
-  private void assertHashComponentIdentifier(String hash,
-                                             ComponentIdentifier componentIdentifier,
-                                             String comment,
-                                             Date createTime,
-                                             HashComponentIdentifier hashComponentIdentifier)
-  {
-    assertThat(hashComponentIdentifier.getHash()).isEqualTo(hash);
-    assertThat(hashComponentIdentifier.getComponentIdentifier()).isEqualTo(componentIdentifier);
-    assertThat(hashComponentIdentifier.getComment()).isEqualTo(comment);
-    assertThat(hashComponentIdentifier.getCreateTime()).isEqualTo(createTime);
+    // verify using GET
+    response = restRequest().path(hashComponentIdentifier.getHash()).get();
+    assertResponseStatus(404, response);
   }
 
   private void assertHashComponentIdentifierDTO(String hash,

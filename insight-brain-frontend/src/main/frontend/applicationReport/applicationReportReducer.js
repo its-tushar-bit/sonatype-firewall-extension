@@ -24,7 +24,6 @@ import {
   LOAD_REPORT_FAILED,
   LOAD_REPORT_FULFILLED,
   LOAD_REPORT_REQUESTED,
-  RELOAD_REPORT_REQUESTED,
   LOAD_REPORT_RAW_DATA_FAILED,
   LOAD_REPORT_RAW_DATA_FULFILLED,
   LOAD_REPORT_RAW_DATA_REQUESTED,
@@ -82,9 +81,6 @@ export default function(state = initState, {type, payload}) {
 
     case LOAD_REPORT_REQUESTED:
       return {...state, loading: true, loadError: null, selectedReport: null};
-
-    case RELOAD_REPORT_REQUESTED:
-      return {...state, bomData: null};
 
     case LOAD_REPORT_FULFILLED:
       return setSelectedReport(state, payload);

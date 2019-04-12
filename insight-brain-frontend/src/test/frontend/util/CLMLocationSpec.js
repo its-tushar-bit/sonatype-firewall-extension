@@ -117,4 +117,18 @@ describe('CLMLocation.js', function() {
       expect(actualUrl).toEqual(expectedUrl);
     });
   });
+
+  describe('getClaimComponentUrl', function() {
+    beforeEach(inject(function(BaseUrl) {
+      spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
+    }));
+
+    it('returns the base claim URL when called with no argument', function() {
+      expect(CLMLocations.getClaimComponentUrl()).toBe('http://localhost/rest/component/identified');
+    });
+
+    it('returns the claim URL of the hash specified via an argument', function() {
+      expect(CLMLocations.getClaimComponentUrl('foo bar')).toBe('http://localhost/rest/component/identified/foo%20bar');
+    });
+  });
 });

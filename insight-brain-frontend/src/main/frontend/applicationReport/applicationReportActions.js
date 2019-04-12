@@ -11,7 +11,6 @@ import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamAc
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
 export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
-export const RELOAD_REPORT_REQUESTED = 'RELOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_RAW_DATA_REQUESTED = 'LOAD_REPORT_RAW_DATA_REQUESTED';
 export const LOAD_REPORT_RAW_DATA_FULFILLED = 'LOAD_REPORT_RAW_DATA_FULFILLED';
 export const LOAD_REPORT_RAW_DATA_FAILED = 'LOAD_REPORT_RAW_DATA_FAILED';
@@ -148,15 +147,6 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     };
   }
 
-  function reloadReport() {
-    return (dispatch) => {
-      dispatch({
-        type: RELOAD_REPORT_REQUESTED
-      });
-      return dispatch(fetchCommonData()).then(() => dispatch(fetchReportData()));
-    };
-  }
-
   const httpErrorMessageActionCreator = type => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
 
   const loadCommonDataFulfilled = mappedPayloadParamActionCreator(LOAD_COMMON_DATA_FULFILLED,
@@ -236,7 +226,6 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
     setReportParameters,
     loadReport,
     loadReportRawData,
-    reloadReport,
     reevaluateReport,
     reevaluateReportCancelled,
     setAggregateReportEntries,

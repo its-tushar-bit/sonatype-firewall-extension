@@ -15,8 +15,7 @@ export default {
   controller: ClaimComponentController,
   controllerAs: 'vm',
   bindings: {
-    component: '<',
-    reloadReport: '&'
+    component: '<'
   }
 };
 
@@ -26,13 +25,14 @@ function ClaimComponentController($scope, $http, Dialog, CLMLocations, $timeout,
   Object.assign(vm, {
     claimData: {},
     loading: false,
+    serverClaimData: undefined,
     claimForm: undefined,
     error: undefined,
     datePickerElement: undefined,
 
     $onInit() {
       vm.initializeDatepicker();
-      $scope.$watch('vm.component', vm.resetForm);
+      $scope.$watch('vm.component', fetchClaim);
     },
 
     initializeDatepicker() {
@@ -54,29 +54,34 @@ function ClaimComponentController($scope, $http, Dialog, CLMLocations, $timeout,
       });
     },
 
-    resetForm() {
+    setServerData(serverClaimData) {
+      vm.serverClaimData = serverClaimData;
+      vm.resetFormFromServerData();
+    },
+
+    resetFormFromServerData() {
       vm.claimForm.$setPristine();
 
       // If we have previously claimed this component, use the stored values
       if (vm.isClaimedComponent()) {
         vm.claimData = pick(
             ['groupId', 'artifactId', 'version', 'classifier', 'extension'],
-            vm.component.componentIdentifier.coordinates);
-        vm.claimData.comment = vm.component.comment;
+            vm.serverClaimData.componentIdentifier.coordinates);
+        vm.claimData.comment = vm.serverClaimData.comment;
       }
       else {
         vm.claimData = {};
       }
 
       // always show createDate, if available
-      const {createTime} = vm.component;
-      const createDate = createTime ? new Date(createTime) : '';
+      const createTime = vm.serverClaimData ? vm.serverClaimData.createTime : vm.component.createTime;
+      const createDate = createTime != null ? new Date(createTime) : '';
       vm.datePickerElement.datepicker('update', createDate);
-      vm.claimData.createTimeText = createTime ? moment(createTime).format(DATE_FORMAT) : null;
+      vm.claimData.createTimeText = createTime != null ? moment(createTime).format(DATE_FORMAT) : null;
     },
 
     isClaimedComponent() {
-      return vm.component.identificationSource === 'Manual';
+      return !!vm.serverClaimData;
     },
 
     /**
@@ -101,7 +106,7 @@ function ClaimComponentController($scope, $http, Dialog, CLMLocations, $timeout,
      * Remove(delete) an existing claim on a component
      */
     revokeClaim() {
-      handleHttpRequest($http.delete(CLMLocations.getClaimComponentUrl() + '/' + vm.component.hash));
+      handleHttpRequest($http.delete(CLMLocations.getClaimComponentUrl(vm.component.hash)));
     },
 
     openRevokeClaimDialog() {
@@ -139,19 +144,29 @@ function ClaimComponentController($scope, $http, Dialog, CLMLocations, $timeout,
     }
   });
 
+  function fetchClaim() {
+    return handleHttpRequest($http.get(CLMLocations.getClaimComponentUrl(vm.component.hash)));
+  }
+
   function handleHttpRequest(promise) {
     vm.loading = true;
+    vm.error = undefined;
+
     return promise
-        .then(() => {
-          return vm.reloadReport()
-              .then(() => {
-                vm.loading = false;
-              })
-              .catch(angular.noop);
+        .then(function({ data }) {
+          vm.setServerData(data);
         })
-        .catch(response => {
+        .catch(function(err) {
+          if (err.status === 404) {
+            // no claim for this hash
+            vm.setServerData();
+          }
+          else {
+            vm.error = Messages.getHttpErrorMessage(err);
+          }
+        })
+        .finally(function() {
           vm.loading = false;
-          vm.error = Messages.getHttpErrorMessage(response);
         });
   }
 

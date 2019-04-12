@@ -128,4 +128,25 @@ public class HashComponentIdentifierServiceAuthzTest
 
     hashComponentIdentifierService.delete(HASH);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGet_Unauthenticated() throws Exception {
+    hashComponentIdentifierService.get(HASH);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGet_Unauthorized() throws Exception {
+    login();
+    hashComponentIdentifierService.get(HASH);
+  }
+
+  @Test
+  public void testGet() throws Exception {
+    grantClaimComponentPermission();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+    hashComponentIdentifier.setComponentIdentifier(COMPONENT_IDENTIFIER.createAlternativeVersion("foo"));
+
+    hashComponentIdentifierService.get(HASH);
+  }
 }

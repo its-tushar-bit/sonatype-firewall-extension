@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.inject.Binder;
@@ -117,6 +119,32 @@ public class HashComponentIdentifierServiceTest
         updatedComponentIdentifier);
     assertThat(override).isNotNull();
     assertThat(override.getId()).isEqualTo(expectedLicenseOverride.getId());
+
+    // cleanup
+    licenseOverrideDAO.delete(override);
+    new HashComponentIdentifierDAO().delete(hashComponentIdentifier);
+  }
+
+  @Test
+  public void testGet_Found() {
+    Date createTime = new Date();
+    String comment = "Test Comment";
+
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifier.setComment(comment);
+    hashComponentIdentifier.setCreateTime(createTime);
+    tempEntity.newClaimedComponent(hashComponentIdentifier);
+
+    HashComponentIdentifierDTO dto = hashComponentIdentifierService.get(HASH);
+
+    assertHashComponentIdentifierDTO(dto, COMPONENT_IDENTIFIER, comment, createTime);
+  }
+
+  @Test
+  public void testGet_NotFound() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      hashComponentIdentifierService.get(HASH);
+    });
   }
 
   private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,

@@ -18,7 +18,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -39,6 +40,8 @@ public class ApiReportDataResourceV2
 {
   public static final String RAW_DATA_PATH = "raw";
 
+  public static final String POLICY_DATA_PATH = "policy";
+
   private final ApiReportDataServiceV2 reportDataService;
 
   private final BaseUrl baseUrl;
@@ -50,7 +53,7 @@ public class ApiReportDataResourceV2
   }
 
   /**
-   * NOTE: prior to IQ 64, this endpoint was the actual implementation that is now at the RAW_DATA_PATH, rather
+   * NOTE: prior to IQ 63, this endpoint was the actual implementation that is now at the RAW_DATA_PATH, rather
    * than a redirect
    */
   @GET
@@ -62,17 +65,32 @@ public class ApiReportDataResourceV2
 
   /**
    * Gets the JSON data for the report of the given application and scan.
-   * @since 1.64
+   * @since 1.63
    */
   @GET
   @Path(RAW_DATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
-  public ApiReportDataDTOV2 getRawData(@PathParam("applicationPublicId") String applicationPublicId,
-                                       @PathParam("scanId") String scanId) throws Exception
+  public ApiReportRawDataDTOV2 getRawData(@PathParam("applicationPublicId") String applicationPublicId,
+                                          @PathParam("scanId") String scanId) throws Exception
   {
     AuditData.get().setReportId(scanId);
-    return reportDataService.getData(applicationPublicId, scanId);
+    return reportDataService.getRawData(applicationPublicId, scanId);
+  }
+
+  /**
+   * Gets the JSON data for the policy violations in the report of the given application and scan.
+   * @since 1.64
+   */
+  @GET
+  @Path(POLICY_DATA_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  public ApiReportPolicyDataDTOV2 getPolicyViolations(@PathParam("applicationPublicId") String applicationPublicId,
+                                                      @PathParam("scanId") String scanId) throws Exception
+  {
+    AuditData.get().setReportId(scanId);
+    return reportDataService.getPolicyViolationsData(applicationPublicId, scanId);
   }
 
   /**

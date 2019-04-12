@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -580,7 +580,8 @@ public class ReportResourceTest
 
         ZipEntry componentEntry = zip.getEntry("data/components.json");
         assertThat(componentEntry).isNotNull();
-        ApiReportDataDTOV2 components = JsonUtils.parse(zip.getInputStream(componentEntry), ApiReportDataDTOV2.class);
+        ApiReportRawDataDTOV2 components = JsonUtils
+            .parse(zip.getInputStream(componentEntry), ApiReportRawDataDTOV2.class);
 
         assertThat(components.matchSummary.knownComponentCount).isEqualTo(5);
         assertThat(components.matchSummary.totalComponentCount).isEqualTo(29);
@@ -669,7 +670,8 @@ public class ReportResourceTest
 
         ZipEntry componentEntry = zip.getEntry("data/components.json");
         assertThat(componentEntry).isNotNull();
-        ApiReportDataDTOV2 components = JsonUtils.parse(zip.getInputStream(componentEntry), ApiReportDataDTOV2.class);
+        ApiReportRawDataDTOV2 components = JsonUtils
+            .parse(zip.getInputStream(componentEntry), ApiReportRawDataDTOV2.class);
 
         assertThat(components.matchSummary.knownComponentCount).isEqualTo(1);
         assertThat(components.matchSummary.totalComponentCount).isEqualTo(481); // Jar has a lot of JS in it

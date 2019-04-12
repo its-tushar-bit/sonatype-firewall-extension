@@ -21,19 +21,36 @@ public class ApiReportDataServiceV2AuthzTest
   private ApiReportDataServiceV2 reportDataService;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetData_Anon() throws Exception {
-    reportDataService.getData(app.getPublicId(), "irrelevant");
+  public void getRawData_Anon() throws Exception {
+    reportDataService.getRawData(app.getPublicId(), "irrelevant");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetData_Unauthorized() throws Exception {
+  public void getRawData_Unauthorized() throws Exception {
     login();
-    reportDataService.getData(app.getPublicId(), "irrelevant");
+    reportDataService.getRawData(app.getPublicId(), "irrelevant");
   }
 
   @Test(expected = NotFoundException.class)
-  public void testGetData_Authorized() throws Exception {
+  public void getRawData_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    reportDataService.getData(app.getPublicId(), "irrelevant");
+    reportDataService.getRawData(app.getPublicId(), "irrelevant");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyViolations_Anon() throws Exception {
+    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyViolations_Unauthorized() throws Exception {
+    login();
+    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetPolicyViolations_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant");
   }
 }

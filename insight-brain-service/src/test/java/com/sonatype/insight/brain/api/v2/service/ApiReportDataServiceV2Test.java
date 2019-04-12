@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -16,11 +17,18 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintConditionDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -49,6 +57,10 @@ public class ApiReportDataServiceV2Test
 
   private String scanId;
 
+  private File reportFile;
+
+  private PolicyEvaluation policyEvaluation;
+
   private File makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
     reportFile.getParentFile().mkdirs();
@@ -59,7 +71,6 @@ public class ApiReportDataServiceV2Test
   }
 
   private void makeReport(String resource) throws Exception {
-    File reportFile = makeReportFile();
     String[] filenames = {"bom.json", "security.json", "licenses.json", Report.DATA_JSON_FILENAME};
     for (String filename : filenames) {
       File file = Report.getCacheFile(reportFile, filename);
@@ -81,10 +92,18 @@ public class ApiReportDataServiceV2Test
     }
   }
 
+  private void populatePolicyThreats(String resource, String policyThreatsFile) throws IOException {
+    File file = Report.getCacheFile(reportFile, "policythreats.json");
+    FileUtils.copyURLToFile(getClass()
+        .getResource("/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile), file);
+  }
+
   @Before
-  public void init() {
+  public void init() throws Exception {
     app = tempEntity.newApplicationWithParent("app-id");
     scanId = "scan-id";
+    reportFile = makeReportFile();
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
   }
 
   private void assertLicenses(List<ApiLicenseDTO> licenses, String... multiLicenseIds) {
@@ -114,9 +133,9 @@ public class ApiReportDataServiceV2Test
   }
 
   @Test
-  public void testGetData() throws Exception {
+  public void testGetRawData() throws Exception {
     makeReport("report-1");
-    ApiReportDataDTOV2 data = reportDataService.getData(app.getPublicId(), scanId);
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
     assertThat(data).isNotNull();
     assertThat(data.components).hasSize(2);
 
@@ -160,8 +179,97 @@ public class ApiReportDataServiceV2Test
   }
 
   @Test(expected = BadRequestException.class)
-  public void testGetData_ErrorReport() throws Exception {
-    makeReportFile();
-    reportDataService.getData(app.getPublicId(), scanId);
+  public void testGetRawData_ErrorReport() throws Exception {
+    reportDataService.getRawData(app.getPublicId(), scanId);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+
+    // metadata
+    assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
+    assertThat(data.reportTitle).isEqualTo("Release Report");
+    assertThat(data.application.id).isEqualTo(app.getId());
+    assertThat(data.application.publicId).isEqualTo("app-id");
+    assertThat(data.application.name).isEqualTo(app.getName());
+    assertThat(data.application.organizationId).isEqualTo(app.getOrganizationId());
+    assertThat(data.application.contactUserName).isEqualTo(app.getContactInternalName());
+
+    // counts
+    assertThat(data.counts.get("exactlyMatchedComponentCount")).isEqualTo(1);
+    assertThat(data.counts.get("partiallyMatchedComponentCount")).isEqualTo(0);
+    assertThat(data.counts.get("totalComponentCount")).isEqualTo(2);
+    assertThat(data.counts.get("grandfatheredPolicyViolationCount")).isEqualTo(3);
+
+    assertThat(data.components).hasSize(2);
+    data.components.sort((o1, o2) -> o1.hash.compareTo(o2.hash));
+
+    // component 1
+    ApiReportComponentPolicyViolationsDTOV2 component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(component.matchState).isEqualTo("exact");
+    assertThat(component.proprietary).isTrue();
+    assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip/tomcat-util-5.5.23.jar",
+        "sample-application.zip/dupe.jar");
+    // component identifier should be derived from bom.json
+    assertThat(component.componentIdentifier.getFormat()).isEqualTo("maven");
+    assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
+        .isEqualTo("tomcat-util");
+    assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_CLASSIFIER)).isNull();
+    assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_EXTENSION)).isNull();
+    assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_GROUP_ID))
+        .isEqualTo("tomcat");
+    assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION)).isEqualTo("5.5.23");
+
+    // violations
+    assertThat(component.violations).hasSize(2);
+    component.violations.sort((o1, o2) -> o1.policyId.compareTo(o2.policyId));
+    ApiReportPolicyViolationDTOV2 violation = component.violations.get(0);
+    assertThat(violation.policyId).isEqualTo("6430b4c764314ac6aee439ad1c045ad1");
+    assertThat(violation.policyName).isEqualTo("Security-Medium");
+    assertThat(violation.policyThreatCategory).isEqualTo("SECURITY");
+    assertThat(violation.policyThreatLevel).isEqualTo(7);
+    assertThat(violation.grandfathered).isTrue();
+    assertThat(violation.waived).isTrue();
+
+    // constraint
+    assertThat(violation.constraints).hasSize(1);
+    ApiReportConstraintViolationDTOV2 constraint = violation.constraints.get(0);
+    assertThat(constraint.constraintId).isEqualTo("ebc08aa780524f9282b7fa8926893c3b");
+    assertThat(constraint.constraintName).isEqualTo("Medium risk CVSS score");
+    assertThat(constraint.conditions).hasSize(3);
+    ApiReportConstraintConditionDTOV2 condition = constraint.conditions.get(0);
+    assertThat(condition.conditionSummary).isEqualTo("Security Vulnerability Severity >= 4");
+    assertThat(condition.conditionReason).isEqualTo("Found security vulnerability CVE-2018-1199 with severity 5.3.");
+    condition = constraint.conditions.get(1);
+    assertThat(condition.conditionSummary).isEqualTo("Security Vulnerability Severity < 7");
+    assertThat(condition.conditionReason).isEqualTo("Found security vulnerability CVE-2018-1199 with severity 5.3.");
+    condition = constraint.conditions.get(2);
+    assertThat(condition.conditionSummary).isEqualTo("Security Vulnerability Status is not NOT_APPLICABLE");
+    assertThat(condition.conditionReason)
+        .isEqualTo("Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'.");
+
+    assertThat(component.violations.get(1).policyId).isEqualTo("644a8c0052eb42b2829d6f9fcaba7ea3");
+
+    // component 2
+    component = data.components.get(1);
+    assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
+    assertThat(component.matchState).isEqualTo("unknown");
+    assertThat(component.proprietary).isFalse();
+    assertThat(component.violations).isEmpty();
+    assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip");
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_NoViolations() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats-empty.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    assertThat(data.components).hasSize(2);
+    assertThat(data.components.get(0).violations).isEmpty();
+    assertThat(data.components.get(1).violations).isEmpty();
   }
 }

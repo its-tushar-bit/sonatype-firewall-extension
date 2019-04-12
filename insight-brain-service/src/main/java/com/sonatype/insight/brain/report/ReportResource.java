@@ -49,7 +49,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -350,7 +350,7 @@ public class ReportResource
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
-    ApiReportDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
+    ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils
         .parse(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
 

@@ -2,6 +2,5 @@
   "totalArtifactCount" : 2,
   "knownArtifactCount" : 1,
   "partiallyMatchedComponentCount": 0,
-  "exactlyMatchedComponentCount": 1,
-  "grandfatheredPolicyViolationCount": 3
+  "exactlyMatchedComponentCount": 1
 }

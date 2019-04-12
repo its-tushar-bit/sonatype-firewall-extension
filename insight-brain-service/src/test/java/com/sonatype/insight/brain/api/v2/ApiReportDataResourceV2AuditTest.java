@@ -30,12 +30,12 @@ public class ApiReportDataResourceV2AuditTest
   }
 
   @Test
-  public void testGetData() throws Exception {
+  public void testGetRawData() throws Exception {
     mockReport(SCAN_ID, "/ReportResourceTest/report");
     restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
 
-    reportDataRequest(app.getPublicId(), SCAN_ID).get();
+    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.RAW_DATA_PATH).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -43,15 +43,37 @@ public class ApiReportDataResourceV2AuditTest
   }
 
   @Test
-  public void testGetData_Unauthorized() throws Exception {
-    reportDataRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).get();
+  public void testGetRawData_Unauthorized() throws Exception {
+    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.RAW_DATA_PATH).with(unauthorizedUser()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);
   }
 
-  private HttpRequest reportDataRequest(String appId, String scanId) {
-    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(ApiReportDataResourceV2.RAW_DATA_PATH)
+  @Test
+  public void testGetPolicyViolations() throws Exception {
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
+        .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
+
+    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.POLICY_DATA_PATH).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, "reportId", SCAN_ID);
+  }
+
+  @Test
+  public void testGetPolicyViolations_Unauthorized() throws Exception {
+    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .with(unauthorizedUser()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
+  private HttpRequest reportDataRequest(String appId, String scanId, String reportTypePath) {
+    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(reportTypePath)
         .parameter(appId, scanId);
   }
 }

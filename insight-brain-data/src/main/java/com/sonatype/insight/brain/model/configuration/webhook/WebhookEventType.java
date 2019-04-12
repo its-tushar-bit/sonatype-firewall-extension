@@ -14,7 +14,7 @@ public enum WebhookEventType
 {
   POLICY_MANAGEMENT("Policy Management"),
   APPLICATION_EVALUATION("Application Evaluation"),
-  POLICY_ALERT("Policy Alert"),
+  POLICY_ALERT("Violation Alert"),
   LICENSE_OVERRIDE_MANAGEMENT("License Override Management"),
   SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT("Security Vulnerability Override Management");
 

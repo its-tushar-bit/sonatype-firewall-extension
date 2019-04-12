@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
     <artifactId>insight-brain</artifactId>
-    <version>1.64.0-01</version>
+    <version>1.65-SNAPSHOT</version>
   </parent>
 
   <artifactId>nexus-iq-server</artifactId>

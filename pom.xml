@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>13</version>
+    <version>14</version>
     <relativePath />
   </parent>
 
@@ -839,7 +839,6 @@
         <plugin>
           <groupId>com.github.wvengen</groupId>
           <artifactId>proguard-maven-plugin</artifactId>
-          <version>2.0.14</version>
           <executions>
             <execution>
               <id>obfuscate</id>
@@ -853,13 +852,6 @@
             <addMavenDescriptor>true</addMavenDescriptor>
             <maxMemory>896m</maxMemory>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>net.sf.proguard</groupId>
-              <artifactId>proguard-base</artifactId>
-              <version>6.1.0beta2</version>
-            </dependency>
-          </dependencies>
         </plugin>
         <plugin>
           <groupId>com.github.klieber</groupId>
@@ -877,12 +869,7 @@
           </configuration>
         </plugin>
         <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.0</version>
-        </plugin>
-        <plugin>
           <artifactId>maven-pmd-plugin</artifactId>
-          <version>3.10.0</version>
           <configuration>
             <linkXRef>false</linkXRef>
             <printFailingErrors>true</printFailingErrors>
@@ -989,7 +976,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.0.0</version>
         <configuration>
           <consoleOutput>true</consoleOutput>
           <configLocation>sonatype/checkstyle-configuration.xml</configLocation>

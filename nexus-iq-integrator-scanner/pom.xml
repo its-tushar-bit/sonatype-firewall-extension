@@ -171,7 +171,6 @@
             <groupId>com.github.wvengen</groupId>
             <artifactId>proguard-maven-plugin</artifactId>
             <configuration>
-              <injar>${project.build.finalName}.jar</injar>
               <includeDependency>false</includeDependency>
             </configuration>
           </plugin>
@@ -188,7 +187,7 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.build.directory}/proguard_seeds.txt</file>
+                      <file>${project.build.directory}/proguard_seed.txt</file>
                       <classifier>seeds</classifier>
                       <type>txt</type>
                     </artifact>

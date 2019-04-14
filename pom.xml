@@ -851,7 +851,6 @@
           </executions>
           <configuration>
             <addMavenDescriptor>true</addMavenDescriptor>
-            <seedFileName>proguard_seeds.txt</seedFileName>
             <maxMemory>896m</maxMemory>
             <libs>
               <lib>${rt.jar}</lib>

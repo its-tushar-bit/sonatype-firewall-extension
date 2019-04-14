@@ -852,15 +852,12 @@
           <configuration>
             <addMavenDescriptor>true</addMavenDescriptor>
             <maxMemory>896m</maxMemory>
-            <libs>
-              <lib>${rt.jar}</lib>
-            </libs>
           </configuration>
           <dependencies>
             <dependency>
               <groupId>net.sf.proguard</groupId>
               <artifactId>proguard-base</artifactId>
-              <version>5.3.3</version>
+              <version>6.1.0beta2</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -1120,6 +1117,53 @@
       <modules>
         <module>insight-brain-performance-test</module>
       </modules>
+    </profile>
+    <profile>
+      <id>obfuscate-java-8</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>com.github.wvengen</groupId>
+              <artifactId>proguard-maven-plugin</artifactId>
+              <configuration>
+                <libs>
+                  <lib>${rt.jar}</lib>
+                </libs>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>obfuscate-java-9+</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>com.github.wvengen</groupId>
+              <artifactId>proguard-maven-plugin</artifactId>
+              <configuration>
+                <libs>
+                  <lib>${java.home}/jmods/java.base.jmod</lib>
+                  <lib>${java.home}/jmods/java.datatransfer.jmod</lib>
+                  <lib>${java.home}/jmods/java.desktop.jmod</lib>
+                  <lib>${java.home}/jmods/java.logging.jmod</lib>
+                  <lib>${java.home}/jmods/java.sql.jmod</lib>
+                  <lib>${java.home}/jmods/java.xml.jmod</lib>
+                </libs>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
     </profile>
     <profile>
       <id>obfuscate-ci-osx</id>

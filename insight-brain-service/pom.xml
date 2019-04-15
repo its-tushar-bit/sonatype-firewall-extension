@@ -623,10 +623,8 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
+        <groupId>org.eclipse.sisu</groupId>
         <artifactId>sisu-maven-plugin</artifactId>
-        <!-- Use 1.1 because: https://github.com/sonatype/insight-brain/commit/63133339 -->
-        <version>1.1</version><!--$NO-MVN-MAN-VER$-->
         <executions>
           <execution>
             <id>index-service</id>

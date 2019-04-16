@@ -93,7 +93,7 @@ public class ReportServiceTest
   @Test
   public void testFetchReport_DoesNotExist() throws Exception {
     MockReportDownloader mockReportDownloader = new MockReportDownloader();
-    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report.zip");
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report");
     reportDownloader = mockReportDownloader.getMock();
 
     ReportService reportService = createReportService();
@@ -281,8 +281,7 @@ public class ReportServiceTest
   }
 
   private void createReportFile() throws IOException {
-    FileUtils.copyURLToFile(getClass().getResource("/ReportServiceTest/report.zip"),
-        insightWork.getReportFile(app.getId(), scanId));
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
   }
 
   private void createReportFile(String appId, String scanId, File reportFile) throws IOException {

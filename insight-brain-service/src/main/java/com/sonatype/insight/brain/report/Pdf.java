@@ -62,15 +62,19 @@ final class Pdf
       final File templateDir = setupTemplateDir(reportFile, cacheDir, applicationName, stageName, contact);
       try {
         generate(pdfFile, templateDir);
+        new FileCleaner().delete(templateDir);
       }
       catch (Exception e) {
         if (!pdfFile.delete() && pdfFile.exists()) {
           log.error("Could not delete broken PDF {}", pdfFile);
         }
+        try {
+          new FileCleaner().delete(templateDir);
+        }
+        catch (Exception suppressed) {
+          e.addSuppressed(suppressed);
+        }
         throw e;
-      }
-      finally {
-        new FileCleaner().delete(templateDir);
       }
     }
     return pdfFile;

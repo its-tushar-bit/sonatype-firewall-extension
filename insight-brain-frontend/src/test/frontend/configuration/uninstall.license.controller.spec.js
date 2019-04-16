@@ -29,7 +29,7 @@ describe('uninstall.license.controller.spec.js', function () {
     vm.uninstall();
     $httpBackend.flush();
 
-    expect(vm.error).toEqual('failed');
+    expect(vm.submitError).toEqual('failed');
   }));
 
   it('reloads page upon success', inject(function($httpBackend, CLMLocations) {

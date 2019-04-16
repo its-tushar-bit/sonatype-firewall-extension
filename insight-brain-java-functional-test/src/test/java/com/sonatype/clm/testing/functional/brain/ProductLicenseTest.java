@@ -121,7 +121,7 @@ public class ProductLicenseTest
   }
 
   @Test
-  public void testUninstallAndInstallLicense() {
+  public void testUninstallAndInstallLicense() throws Exception {
     ProductLicensePage.uninstallLicenseBtn().shouldBe(visible).shouldHave(text("Uninstall License"));
     ProductLicensePage.uninstallLicenseBtn().click();
 
@@ -130,7 +130,23 @@ public class ProductLicenseTest
 
     uninstallModal.shouldBe(visible);
     uninstallModal.uninstallBtn().shouldBe(visible);
+
+    // simulate dead network by shutting off the server
+    testCLMServer.stop();
     uninstallModal.uninstallBtn().click();
+    uninstallModal.errorMessage().shouldBe(visible);
+    uninstallModal.retryBtn().shouldBe(visible);
+    // restart the server and log back in
+    testCLMServer.start();
+    beforeClass();
+
+    // continue license uninstall
+    ProductLicensePage.uninstallLicenseBtn().click();
+    uninstallModal.shouldBe(visible);
+    uninstallModal.errorMessage().shouldNotBe(visible);
+    uninstallModal.retryBtn().shouldNotBe(visible);
+    uninstallModal.shouldBe(visible);
+    uninstallModal.uninstallBtn().shouldBe(visible).click();
 
     FormMask.seeAndWaitForDismissal();
 

@@ -106,5 +106,13 @@ public class ProductLicensePage
     public SelenideElement uninstallBtn() {
       return child(".btn-primary");
     }
+
+    public SelenideElement retryBtn() {
+      return child(".btn-error");
+    }
+
+    public SelenideElement errorMessage() {
+      return child(".iq-alert--error");
+    }
   }
 }

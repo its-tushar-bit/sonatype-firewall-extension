@@ -7,13 +7,14 @@ export default function UninstallLicenseController($scope, $http, messages, clmL
   const vm = this;
 
   Object.assign(vm, {
-    error: undefined,
+    submitError: undefined,
     formMask: undefined,
 
     uninstall() {
-      vm.formMask.wrap($http['delete'](clmLocations.getLicenseUploadUrl()).then(() => $window.location.reload())).catch(
-          (error) => {
-            vm.error = messages.getHttpErrorMessage(error);
+      vm.formMask.wrap($http['delete'](clmLocations.getLicenseUploadUrl())
+          .then(() => $window.location.reload()))
+          .catch((error) => {
+            vm.submitError = messages.getHttpErrorMessage(error);
           });
     }
   });

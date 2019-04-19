@@ -111,7 +111,6 @@
                     <ignoreClass>com.thoughtworks.xstream.converters.reflection.LambdaConverter</ignoreClass>
                     <ignoreClass>com.thoughtworks.xstream.converters.time.*</ignoreClass>
                     <ignoreClass>com.thoughtworks.xstream.core.util.ISO8601JavaTimeConverter</ignoreClass>
-                    <ignoreClass>module-info</ignoreClass>
                   </ignoreClasses>
                   <ignoredScopes>
                     <ignoredScope>system</ignoredScope>
@@ -123,13 +122,6 @@
             </configuration>
           </execution>
         </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>extra-enforcer-rules</artifactId>
-            <version>1.0-beta-3</version>
-          </dependency>
-        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

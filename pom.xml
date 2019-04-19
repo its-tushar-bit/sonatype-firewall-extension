@@ -957,6 +957,13 @@
             </configuration>
           </execution>
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.2</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>com.sonatype.clm</groupId>

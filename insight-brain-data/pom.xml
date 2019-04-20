@@ -120,7 +120,7 @@
       <plugin>
         <groupId>org.apache.openjpa</groupId>
         <artifactId>openjpa-maven-plugin</artifactId>
-        <version>${openjpa.version}</version>
+        <version>3.0.0</version>
         <configuration>
           <includes>com/sonatype/insight/*/dto/*.class</includes>
           <addDefaultConstructor>true</addDefaultConstructor>
@@ -179,7 +179,7 @@
                   <pluginExecutionFilter>
                     <groupId>org.apache.openjpa</groupId>
                     <artifactId>openjpa-maven-plugin</artifactId>
-                    <versionRange>[${openjpa.version},)</versionRange>
+                    <versionRange>[3,)</versionRange>
                     <goals>
                       <goal>enhance</goal>
                     </goals>

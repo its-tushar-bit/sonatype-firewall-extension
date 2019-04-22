@@ -20,7 +20,6 @@ import javax.ws.rs.ext.Provider;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.service.RestComponent;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -35,7 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 // high priority (i.e. low number) to get called before others like LicenseAwareContainerDynamicFeature
 @Priority(value = Priorities.AUTHENTICATION / 2)
 class AuditContainerRequestFilter
-    implements ContainerRequestFilter, RestComponent
+    implements ContainerRequestFilter
 {
   @Context
   private ResourceInfo resInfo;

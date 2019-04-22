@@ -15,14 +15,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Provider;
 
 import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Named
 @Singleton
+@Provider
 public class BaseUrl
-    implements RestComponent
 {
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
       + "More information at https://links.sonatype.com/products/clm/docs/base-url";

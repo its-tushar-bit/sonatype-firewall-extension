@@ -18,8 +18,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
-import com.sonatype.insight.brain.service.RestComponent;
-
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -28,7 +26,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 @Provider
 @Produces("text/csv")
 public class CSVMessageBodyWriter
-    implements MessageBodyWriter<Object>, RestComponent
+    implements MessageBodyWriter<Object>
 {
   private final CsvMapper csvMapper;
 

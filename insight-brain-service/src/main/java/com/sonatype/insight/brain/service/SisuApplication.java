@@ -111,9 +111,7 @@ public abstract class SisuApplication<T extends Configuration>
     customize(configuration, environment);
     BeanLocator locator = injector.getInstance(BeanLocator.class);
     addHealthChecks(environment, locator);
-    addProviders(environment, locator);
     addRestComponents(environment, locator);
-    addResources(environment, locator);
     addDynamicFeatures(environment, locator);
     addTasks(environment, locator);
     addManaged(environment, locator);
@@ -171,37 +169,21 @@ public abstract class SisuApplication<T extends Configuration>
   }
 
   private void addRestComponents(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, RestComponent> restComponentBeanEntry : locate(locator, RestComponent.class)) {
-      RestComponent restComponent = restComponentBeanEntry.getValue();
-      environment.jersey().register(restComponent);
-      logger.debug("Added base rest component: {}", restComponent);
-    }
-  }
-
-  private void addProviders(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, Provider> providerBeanEntry : locate(locator, Provider.class)) {
-      Provider provider = providerBeanEntry.getValue();
-      environment.jersey().register(provider);
-      logger.debug("Added provider: {}", provider);
-    }
-  }
-
-  private void addResources(Environment environment, BeanLocator locator) {
     //
-    // Unfortunately @Path is not a qualifier in JSR330, so we need to check all known bindings.
+    // Unfortunately JAX-RS annotations are not a qualifier in JSR-330, so we need to check all known bindings.
     // (In practice this isn't that slow because of various caches in Sisu to optimize lookups.)
     // We could always optimize this by introducing a marker interface for injectable resources.
     //
     for (BeanEntry<Annotation, Object> resourceBeanEntry : locate(locator, Object.class)) {
       Class<?> impl = resourceBeanEntry.getImplementationClass();
-      if (impl != null && impl.isAnnotationPresent(Path.class)) {
+      if (impl != null && (impl.isAnnotationPresent(Path.class) || impl.isAnnotationPresent(Provider.class))) {
         try {
-          Object resource = resourceBeanEntry.getValue();
-          environment.jersey().register(resource);
-          logger.debug("Added resource: {}", resource);
+          Object component = resourceBeanEntry.getValue();
+          environment.jersey().register(component);
+          logger.debug("Added REST component: {}", component);
         }
         catch (Exception e) {
-          logger.warn("Unable to add resource: {}", impl, e);
+          logger.warn("Unable to add REST component: {}", impl, e);
         }
       }
     }

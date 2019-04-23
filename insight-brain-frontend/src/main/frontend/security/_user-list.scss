@@ -1,12 +1,71 @@
 // System Preferences - Users page
 .iq-list__item.accordion-heading {
+  padding-top: 0;
+  padding-bottom: 0;
+
   .accordion-toggle {
-    padding: 9px 0 0 0;
+    @extend .truncate-ellipsis;
+    height: 45px;
+    line-height: 45px;
+    padding: 0;
   }
+
+  .iq-btn-group {
+    padding-top: 7px;
+  }
+
+  &:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
+    &:active {
+      background-color: $iq-off-white;
+      border-top: 1px solid inherit;
+      border-bottom: 1px solid inherit;
+    }
+  }
+}
+
+.iq-user-details {
+  padding: 0 15px;
+  white-space: normal;
+}
+
+.iq-read-only--user-details {
+  dt {
+    display: inline-block;
+    font-size: 14px;
+    width: 15%;
+  }
+
+  .iq-read-only-data {
+    display: inline-block;
+    padding-left: 0;
+    width: 85%;
+  }
+}
+
+.iq-label--password-change {
+  @include regular();
+  display: inline-block;
+  font-weight: normal;
+  vertical-align: baseline;
 }
 
 #generatedPassword {
   cursor: auto;
   margin-right: 8px;
-  width: 120px;
+  vertical-align: baseline;
+  width: 100px;
+}
+
+.iq-btn--reset-password {
+  vertical-align: baseline;
+}
+
+.iq-current-user {
+  color: $iq-dark-green;
+  font-size: 10px;
+  margin-left: 5px;
+}
+
+.accordion-toggle .iq-label {
+  margin-bottom: 0;
 }

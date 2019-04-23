@@ -7,6 +7,7 @@
   <div class="iq-form-group">
     <label class="iq-label" for="firstname">First Name</label>
     <input clm-input
+           class="iq-text-input"
            id="firstName"
            name="firstName"
            type="text"
@@ -20,6 +21,7 @@
   <div class="iq-form-group">
     <label class="iq-label" for="lastName">Last Name</label>
     <input clm-input
+           class="iq-text-input"
            id="lastName"
            name="lastName"
            type="text"
@@ -32,6 +34,7 @@
   <div class="iq-form-group">
     <label class="iq-label" for="email">Email</label>
     <input clm-input
+           class="iq-text-input"
            id="email"
            name="email"
            type="email"
@@ -90,12 +93,12 @@
           ng-click="vm.saveClick(vm.user)"
           ng-disabled="userForm.$invalid || userForm.$pristine || vm.saving">
     Save
-  </button>
-  <button id="{{vm.identifier}}user-form-cancel"
-          type="button"
-          class="iq-btn"
-          type="button"
-          ng-click="vm.cancelClick(vm.user)">
+  </button><!--
+--><button id="{{vm.identifier}}user-form-cancel"
+           type="button"
+           class="iq-btn"
+           type="button"
+           ng-click="vm.cancelClick(vm.user)">
     Cancel
   </button>
 </form>

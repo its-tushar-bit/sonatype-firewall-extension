@@ -1,64 +1,70 @@
 <div class="iq-body-container iq-body-container--single-pane" maximize-container-height>
-  <script type='text/ng-template' id='reset-password-modal'>
-<div class="iq-modal-header">
-  <h2 id="reset-password-modal-title">Reset Password</h2>
-</div>
-<div ng-switch="state" class="test-reset-password-modal">
-  <div ng-switch-default id="reset-password-modal">
-    <div class="iq-modal-content">
-      <div class="iq-alert">
-        <i class="fa fa-warning"></i>Are you sure you want to reset the password for <strong>{{::user.username}}</strong>?
-        This action cannot be undone.
+  <script type="text/ng-template" id="reset-password-modal">
+    <div class="iq-modal-header">
+      <h2 id="reset-password-modal-title">Reset Password</h2>
+    </div>
+    <div ng-switch="state" class="test-reset-password-modal">
+      <div ng-switch-default id="reset-password-modal">
+        <div class="iq-modal-content">
+          <div class="iq-alert">
+            <i class="fa fa-warning"></i><!--
+         -->Are you sure you want to reset the password for <strong>{{::user.username}}</strong>?
+            This action cannot be undone.
+          </div>
+        </div>
+        <div class="iq-modal-footer" ng-class="{'iq-error' : error}">
+          <div class="iq-alert iq-alert--error" ng-if="error">
+            <i class="fa fa-warning"></i>{{ error }}
+          </div>
+          <button class="iq-btn iq-btn--error" type="submit" ng-click="resetClick()" ng-if="error">
+            <i class="fa fa-refresh"></i>Retry
+          </button><!--
+       --><button ng-if="!error" class="iq-btn iq-btn--primary test-reset-button" ng-click="resetClick()">
+            Reset
+          </button><!--
+       --><button class="iq-btn iq-btn--dismiss test-cancel-button" ng-click="cancelClick()">Cancel</button>
+        </div>
+      </div>
+      <div ng-switch-when="pending">
+        <div class="iq-modal-content">
+          Reset pending...
+        </div>
+      </div>
+      <div ng-switch-when="complete">
+        <div class="iq-modal-content">
+          <form class="iq-form iq-form--no-padding iq-form--no-border">
+            <div class="iq-form-group">
+              <label class="iq-label iq-label--password-change">
+                The new password for <strong>{{user.username}}</strong> is
+              </label>
+              <input id="generatedPassword"
+                     type="text"
+                     class="iq-text-input iq-text-input--read-only iq-input-text--generated-password"
+                     ng-model="newPassword"
+                     readonly
+                     select-text
+                     focus-input="state == 'complete'"><!--
+            --><button class="iq-btn iq-btn--reset-password"
+                       type="button"
+                       copy-to-clipboard="newPassword"
+                       copied-tooltip>
+                <i class="fa fa-clipboard"></i>Copy to Clipboard
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="iq-modal-footer">
+          <button class="iq-btn iq-btn--primary test-ok-button" ng-click="okClick()">OK</button>
+        </div>
       </div>
     </div>
-    <div class="iq-modal-footer" ng-class="{error : error}">
-      <div class="iq-alert iq-alert--error" ng-if="error">
-        <i class="fa fa-warning"></i> {{ error }}
-      </div>
-      <button class="btn btn-error" type="submit" ng-click="resetClick()" ng-if="error">
-        <i class="fa fa-refresh"></i> Retry
-      </button>
-      <button ng-if="!error" class="btn btn-primary test-reset-button" ng-click="resetClick()">Reset</button>
-      <button class="btn btn-dismiss test-cancel-button" ng-click="cancelClick()">Cancel</button>
-    </div>
-  </div>
-  <div ng-switch-when="pending">
-    <div class="iq-modal-content">
-      <span>Reset pending...</span>
-    </div>
-  </div>
-  <div ng-switch-when="complete">
-    <div class="iq-modal-content">
-      <form>
-        <span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
-        <span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
-          <input id="generatedPassword"
-                 type="text"
-                 ng-model="newPassword"
-                 readonly
-                 select-text
-                 focus-input="state == 'complete'"><!--
-       --><button class="iq-btn iq-btn--tertiary"
-                  type="button"
-                  copy-to-clipboard="newPassword"
-                  copied-tooltip>
-            <i class="fa fa-clipboard"></i>Copy to Clipboard
-          </button>
-        </span>
-      </form>
-    </div>
-    <div class="iq-modal-footer">
-      <button class="btn btn-primary test-ok-button" ng-click="okClick()">OK</button>
-    </div>
-  </div>
-</div>
   </script>
   <div load-wrapper="error" reload="doLoad()">
     <div ng-if="$state.is('users')" authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
-      <div expand-user-on-event='userEditClick'></div>
+      <div expand-user-on-event="userEditClick"></div>
       <div class="iq-tile__actions">
-        <button id='user-new' type='button' class='btn add-new pull-right' ng-click='newUserClick()'>
-          <i class='icon icon-plus'></i> Create User
+        <button id="user-new" type="button" class="iq-btn iq-pull-right" ng-click="newUserClick()">
+          <i class="icon icon-plus"></i>Create User
         </button>
       </div>
       <div class="iq-tile-header">
@@ -66,29 +72,29 @@
           <h2>Users</h2>
         </div>
       </div>
-      <div class='iq-tile-content test-user-management'>
-        <h5 ng-hide='context.users'>
-          <i class='icon-time'></i> Loading...
+      <div class="iq-tile-content test-user-management">
+        <h5 ng-hide="context.users">
+          <i class="icon-time"></i>Loading...
         </h5>
         <div class="iq-list iq-list--clickable accordion">
           <ul>
             <li class="iq-list__item iq-list__item--expanding accordion-heading" ng-repeat="user in context.users">
-              <div class='btn-group floatRight'>
-                <button type='button'
-                        class="btn btn-mini user-button hover-buttons tm-iq-user-edit"
+              <div class="iq-btn-group iq-pull-right">
+                <button type="button"
+                        class="iq-btn iq-btn--icon-only tm-iq-user-edit"
                         title="Edit User"
-                        ng-disabled='context.userEditMap[user.id]'
+                        ng-disabled="context.userEditMap[user.id]"
                         ng-click="editClick(user)">
                     <i class="icon-pencil"></i>
-                </button>
-                <button type='button'
-                        class="btn btn-mini user-button hover-buttons tm-iq-user-reset-password"
+                </button><!--
+             --><button type="button"
+                        class="iq-btn iq-btn--icon-only tm-iq-user-reset-password"
                         title="Reset Password"
                         ng-click="resetPasswordClick(user)">
                   <i class="icon-reset-pw"></i>
-                </button>
-                <button type='button'
-                        class="btn btn-mini user-button hover-buttons tm-iq-user-remove"
+                </button><!--
+             --><button type="button"
+                        class="iq-btn iq-btn--icon-only tm-iq-user-remove"
                         title="Remove User"
                         ng-click="removeClick(user)">
                   <i class="icon-trash"></i>
@@ -96,36 +102,29 @@
               </div>
               <a class="accordion-toggle user-top collapsed"
                  ng-class="{ 'test-current-user': isCurrentUser(user) }"
-                 style="padding-bottom:4px;"
                  data-toggle="collapse"
                  data-target="#collapse{{user.id}}"
                  ng-click="closeUserEditForm(user)">
-                <h4 style="display:inline;margin-top:0px;margin-bottom:4px;">
+                <label class="iq-label iq-label--inline">
                   {{user.username}} ({{user.firstName}} {{user.lastName}})
-                </h4>
-                <span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">
+                </label>
+                <span ng-if="isCurrentUser(user)" class="iq-current-user">
                   Current User
                 </span>
               </a>
-            
+
               <div id="collapse{{user.id}}" class="accordion-body collapse">
-                <div class="accordion-inner" style="padding:0px 15px;" ng-if="!context.userEditMap[user.id]">
-                  <table style="margin-bottom:5px;">
-                    <tr>
-                      <td class="summary-label">First Name:</td>
-                      <td>{{user.firstName}}</td>
-                    </tr>
-                    <tr>
-                      <td class="summary-label">Last Name:</td>
-                      <td>{{user.lastName}}</td>
-                    </tr>
-                    <tr>
-                      <td class="summary-label">E-mail Address:</td>
-                      <td>{{user.email}}</td>
-                    </tr>
-                  </table>
+                <div class="accordion-inner iq-user-details" ng-if="!context.userEditMap[user.id]">
+                  <dl class="iq-read-only iq-read-only--user-details">
+                    <dt>First Name:</dt><!--
+                 --><dd class="iq-read-only-data test-user-first-name">{{user.firstName}}</dd>
+                    <dt>Last Name:</dt><!--
+                 --><dd class="iq-read-only-data test-user-last-name">{{user.lastName}}</dd>
+                    <dt>E-mail Address:</dt><!--
+                 --><dd class="iq-read-only-data test-user-email">{{user.email}}</dd>
+                  </dl>
                 </div>
-                <div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
+                <div class="accordion-inner" ng-if="context.userEditMap[user.id]">
                   <user-form user="user"
                              existing-users="context.users"
                              on-cancel="closeUserEditForm(user)"

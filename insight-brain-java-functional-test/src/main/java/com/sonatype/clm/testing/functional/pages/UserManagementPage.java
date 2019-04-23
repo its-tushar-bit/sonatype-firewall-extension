@@ -98,19 +98,15 @@ public class UserManagementPage
     }
 
     public SelenideElement firstName() {
-      return children("td", valueTd()).get(0);
+      return child(".test-user-first-name");
     }
 
     public SelenideElement lastName() {
-      return children("td", valueTd()).get(1);
+      return child(".test-user-last-name");
     }
 
     public SelenideElement email() {
-      return children("td", valueTd()).get(2);
-    }
-
-    private String valueTd() {
-      return nthChild(2);
+      return child(".test-user-email");
     }
   }
 

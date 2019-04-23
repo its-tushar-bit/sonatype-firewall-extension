@@ -112,6 +112,11 @@ $iq-form-element-wide: 395px;
   &:not(.iq-radio):not(.iq-checkbox__label).disabled {
     color: #cacaca;
   }
+
+  // Nested because of an inheritance issue
+  &.iq-label--inline {
+    display: inline-block;
+  }
 }
 
 .iq-label--optional {
@@ -214,6 +219,11 @@ textarea {
       border-color: $iq-grey-4;
       border-left-color: $iq-valid-color;
       box-shadow: initial;
+    }
+
+    &.iq-text-input--read-only {
+      border-color: $iq-grey-4;
+      border-left: 1px solid $iq-grey-4;
     }
   }
 

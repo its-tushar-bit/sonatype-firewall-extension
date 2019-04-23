@@ -7,6 +7,8 @@ $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
 $main-header-color: #CCCCCC;
 $main-header-highlight: #2476FC;
 $notification-item-border: 1px solid $iq-grey-1;
+$iq-notification-age-qualifier-width: 66px;
+$iq-notification-age-width: 43px;
 
 /*
   First Row
@@ -249,24 +251,27 @@ i.iq-navigation-menu__icon {
 }
 
 .iq-notification__age {
+  box-sizing: border-box;
   float: left;
   font-size: 20px;
   line-height: 20px;
   padding-right: 8px;
   text-align: right;
-  width: 35px;
+  width: $iq-notification-age-width;
 }
 
 .iq-notification__age-qualifier {
+  box-sizing: border-box;
   float: left;
   padding-right: 16px;
   text-align: left;
   white-space: normal;
-  width: 50px;
+  width: $iq-notification-age-qualifier-width;
 }
 
 .iq-notification__text {
-  display: inline;
+  display: inline-block;
+  width: calc(100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width});
   white-space: normal;
 }
 

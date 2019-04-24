@@ -17,8 +17,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum ApiVersionChangeOptionType
 {
   NEXT_NO_VIOLATIONS("next-no-violations"),
-  NEXT_NON_FAILING("next-non-failing"),
-  CURRENT("current");
+  NEXT_NON_FAILING("next-non-failing");
 
   private final String displayName;
 

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +14,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 public class ComponentDetailsDTO
@@ -51,4 +54,6 @@ public class ComponentDetailsDTO
   public ComponentDisplayName displayName;
 
   public ComponentIdentifier componentIdentifier;
+
+  public List<PolicyAlert> policyAlerts = Collections.emptyList();
 }

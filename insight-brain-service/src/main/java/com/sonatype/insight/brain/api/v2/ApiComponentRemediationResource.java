@@ -12,6 +12,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -43,8 +44,9 @@ public class ApiComponentRemediationResource
   public ApiComponentRemediationDTO getSuggestedRemediationForComponent(
       ApiComponentDTOV2 component,
       @PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId)
+      @PathParam("ownerId") final String ownerId,
+      @QueryParam("stageId") String stageId)
   {
-    return remediationService.getSuggestedRemediationForComponent(component, ownerType, ownerId);
+    return remediationService.getSuggestedRemediationForComponent(component, ownerType, ownerId, stageId);
   }
 }

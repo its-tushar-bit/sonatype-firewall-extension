@@ -5,15 +5,21 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
@@ -25,6 +31,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -49,7 +56,7 @@ public class ApiComponentRemediationService
 
   private static final String OPTION_NEXT_NO_VIOLATIONS_ATTR = "option_next_no_violations";
 
-  private static final String OPTION_CURRENT_ATTR =  "option_current";
+  private static final String OPTION_NEXT_NON_FAILING_ATTR = "option_next_non_failing";
 
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -68,8 +75,14 @@ public class ApiComponentRemediationService
   public ApiComponentRemediationDTO getSuggestedRemediationForComponent(
       ApiComponentDTOV2 componentDTO,
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      final String stageId)
   {
+
+    if (stageId != null && StageTypes.getById(stageId) == null) {
+      throw new BadRequestException("Invalid stage: " + stageId + ".");
+    }
+
     String publicOwnerId = ownerId;
 
     validateComponentIdentifier(componentDTO);
@@ -81,30 +94,54 @@ public class ApiComponentRemediationService
     }
 
     List<ComponentDetailsDTO> dtos = componentInfoService
-        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier);
+        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId);
     ApiComponentRemediationDTO componentRemediationDto = new ApiComponentRemediationDTO();
-    boolean versionReached = false;
+
+    int currentIndex =
+        IntStream.range(0, dtos.size()).filter(i -> dtos.get(i).componentIdentifier.equals(componentIdentifier))
+            .findFirst().orElse(-1);
     Map<String, Object> telemetryAttributes = new HashMap<>();
-    for (ComponentDetailsDTO dto : dtos) {
-      if (!versionReached && dto.componentIdentifier.equals(componentIdentifier)) {
-        // see if the supplied version is violation-free
-        if (dto.violatedPolicyCount == 0) {
-          componentRemediationDto.remediation.versionChanges
-              .add(createVersionChangeOption(dto, ApiVersionChangeOptionType.CURRENT));
-          telemetryAttributes.put(OPTION_CURRENT_ATTR, String.valueOf(true));
-          break;
-        }
-        versionReached = true;
-      }
-      if (versionReached && dto.violatedPolicyCount == 0) {
-        componentRemediationDto.remediation.versionChanges
-            .add(createVersionChangeOption(dto, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
-        telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(true));
-        break;
+
+    if (currentIndex != -1) {
+      findNoViolations(currentIndex, dtos)
+          .ifPresent(changeOptionType -> {
+            componentRemediationDto.remediation.versionChanges.add(changeOptionType);
+            telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(true));
+          });
+
+      // if stage is not specified we don't add non-failing remedies
+      if (stageId != null) {
+        findNonFailing(currentIndex, dtos)
+            .ifPresent(changeOptionType -> {
+              componentRemediationDto.remediation.versionChanges.add(changeOptionType);
+              telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
+            });
       }
     }
+
     sendTelemetry(ownerType, ownerId, componentIdentifier, telemetryAttributes);
     return componentRemediationDto;
+  }
+
+  private Optional<ApiVersionChangeOptionDTO> findNoViolations(int startingIndex,
+                                                               List<ComponentDetailsDTO> dtos)
+  {
+    return dtos.subList(startingIndex, dtos.size()).stream().filter(dto -> dto.violatedPolicyCount == 0).findFirst()
+        .map(dto -> createVersionChangeOption(dto, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
+
+  }
+
+  private Optional<ApiVersionChangeOptionDTO> findNonFailing(int startingIndex,
+                                                             List<ComponentDetailsDTO> dtos)
+  {
+    return dtos.subList(startingIndex, dtos.size()).stream().filter(dto -> !hasFailAction(dto.policyAlerts)).findFirst()
+        .map(dto -> createVersionChangeOption(dto, ApiVersionChangeOptionType.NEXT_NON_FAILING));
+  }
+
+  private boolean hasFailAction(List<PolicyAlert> alerts) {
+    return alerts.stream().anyMatch(
+        alert -> Optional.ofNullable(alert.getActions()).map(Collection::stream).orElseGet(Stream::empty)
+            .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId())));
   }
 
   private void sendTelemetry(final OwnerType ownerType,
@@ -116,8 +153,8 @@ public class ApiComponentRemediationService
     attributes.put(COMPONENT_ATTR, HdsClientAnalytics.obfuscate(JsonUtils.writeUnformatted(componentIdentifier)));
     attributes.put(OWNER_TYPE_ATTR, ownerType.toString());
     attributes.put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
-    attributes.putIfAbsent(OPTION_CURRENT_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(false));
+    attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(false));
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
   }

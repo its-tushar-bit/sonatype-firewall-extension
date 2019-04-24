@@ -276,6 +276,14 @@ public class ComponentInfoService
                                                                            String ownerId,
                                                                            ComponentIdentifier componentIdentifier)
   {
+    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, null);
+  }
+
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
+                                                                           String ownerId,
+                                                                           ComponentIdentifier componentIdentifier,
+                                                                           String stageId)
+  {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     List<ComponentDetails> componentDetailsList = getComponentDetailsList(componentIdentifier).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
@@ -283,7 +291,7 @@ public class ComponentInfoService
 
     // Evaluate the policies and get the PolicyAlerts
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
-        .evaluate(owner.getId(), new Stage(BuildStageType.ID), components);
+        .evaluate(owner.getId(), new Stage(stageId != null ? stageId : BuildStageType.ID), components);
 
     Map<ComponentIdentifier, List<PolicyAlert>> policyAlertsByComponent = new HashMap<>();
     for (PolicyAlert policyAlert : allPolicyAlerts) {
@@ -316,6 +324,7 @@ public class ComponentInfoService
       List<PolicyAlert> policyAlerts = policyAlertsByComponent
           .getOrDefault(componentDetails.getComponentIdentifier(), Collections.emptyList());
 
+      dto.policyAlerts = policyAlerts;
       dto.policyMaxThreatLevelsByCategory = new HashMap<>();
       for (PolicyAlert policyAlert : policyAlerts) {
         PolicyFact policyFact = policyAlert.getTrigger();

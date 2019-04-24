@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
@@ -48,8 +49,8 @@ public class ApiComponentRemediationServiceAuthzTest
   private void configureHdsClientMock() {
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     componentDetailsList.setList(new ArrayList<>());
-    lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class))).thenReturn(
-        componentDetailsList);
+    lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class), any(String.class)))
+        .thenReturn(componentDetailsList);
   }
 
   private void testGetSuggestedRemediationForComponent_ReadPermission_Authorized(final Owner owner,
@@ -57,7 +58,8 @@ public class ApiComponentRemediationServiceAuthzTest
   {
     configureHdsClientMock();
     grantEvaluateComponentPermission(owner.getId());
-    apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId);
+    apiComponentRemediationService
+        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId, DevelopStageType.ID);
   }
 
   @Test
@@ -75,7 +77,8 @@ public class ApiComponentRemediationServiceAuthzTest
   {
     login();
 
-    apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId);
+    apiComponentRemediationService
+        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId, DevelopStageType.ID);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -91,7 +94,8 @@ public class ApiComponentRemediationServiceAuthzTest
   private void testGetSuggestedRemediationForComponent_ReadPermission_Unauthenticated(final Owner owner,
                                                                                       final String ownerId)
   {
-    apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId);
+    apiComponentRemediationService
+        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId, DevelopStageType.ID);
   }
 
   @Test(expected = UnauthenticatedException.class)

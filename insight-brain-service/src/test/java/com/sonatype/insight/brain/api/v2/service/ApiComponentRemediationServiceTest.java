@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,9 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
@@ -25,6 +29,7 @@ import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -61,6 +66,12 @@ public class ApiComponentRemediationServiceTest
   private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v3", "", "jar");
 
+  PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), Arrays.asList(new Action(
+      Action.ID_FAIL)));
+
+  PolicyAlert warnAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), Arrays.asList(new Action(
+      Action.ID_WARN)));
+
   private Application app;
 
   @Inject
@@ -85,9 +96,10 @@ public class ApiComponentRemediationServiceTest
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_NoComponentIdentifier() {
+  public void testGetSuggestedRemediationForComponent_NoComponentIdentifier() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.APPLICATION, app.getId());
+      service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.APPLICATION, app.getId(),
+          DevelopStageType.ID);
     }).withMessage("ComponentIdentifier must be supplied.");
   }
 
@@ -97,7 +109,7 @@ public class ApiComponentRemediationServiceTest
         "{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}";
     ApiComponentDTOV2 request = JsonUtils.parse(jsonRequest, ApiComponentDTOV2.class);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getSuggestedRemediationForComponent(request, OwnerType.APPLICATION, app.getId());
+      service.getSuggestedRemediationForComponent(request, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     }).withMessage("A component identifier must have at least one coordinate.");
   }
 
@@ -107,7 +119,7 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 component = createComponent(componentIdentifier);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId());
+      service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     }).withMessage(MISSING_COORDINATES + "[extension]");
   }
 
@@ -115,7 +127,7 @@ public class ApiComponentRemediationServiceTest
   public void testGetSuggestedRemediationForComponent_BadOwnerId() throws Exception {
     doCallRealMethod().when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(any(OwnerType.class), any(String.class),
-            any(ComponentIdentifier.class));
+            any(ComponentIdentifier.class), any(String.class));
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Cannot find organization with ID ");
   }
@@ -126,21 +138,24 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getSuggestedRemediationForComponent(dto, ownerType, "bogusOwnerId");
+      service.getSuggestedRemediationForComponent(dto, ownerType, "bogusOwnerId", DevelopStageType.ID);
     }).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_AllVersionsWithViolations() {
+  public void testGetSuggestedRemediationForComponent_AllVersionsWithViolations() {
     ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
     dto1.componentIdentifier = MAVEN_COORDINATES_V1;
     dto1.violatedPolicyCount = 1;
+    dto1.policyAlerts = Arrays.asList(failAlert);
     ComponentDetailsDTO dto2 = new ComponentDetailsDTO();
     dto2.componentIdentifier = MAVEN_COORDINATES_V2;
     dto2.violatedPolicyCount = 1;
+    dto2.policyAlerts = Arrays.asList(failAlert);
     ComponentDetailsDTO dto3 = new ComponentDetailsDTO();
     dto3.componentIdentifier = MAVEN_COORDINATES_V3;
     dto3.violatedPolicyCount = 1;
+    dto3.policyAlerts = Arrays.asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(dto1, dto2, dto3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list);
@@ -149,22 +164,24 @@ public class ApiComponentRemediationServiceTest
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(dto1.componentIdentifier);
 
     ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId());
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     assertRemediationZeroCounts(retVal.remediation);
     assertTelemetry("application", app.getId(), dto1.componentIdentifier);
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_PreviousNonVulnerableVersion() {
+  public void testGetSuggestedRemediationForComponent_NoViolations_PreviousNonVulnerableVersion() {
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 0;
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 1;
+    v2.policyAlerts = Arrays.asList(failAlert);
     ComponentDetailsDTO v3 = new ComponentDetailsDTO();
     v3.componentIdentifier = MAVEN_COORDINATES_V3;
     v3.violatedPolicyCount = 1;
+    v3.policyAlerts = Arrays.asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list);
@@ -173,22 +190,25 @@ public class ApiComponentRemediationServiceTest
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier);
 
     ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId());
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     // we only look forward so we shouldn't downgrade
     assertRemediationZeroCounts(retVal.remediation);
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_LastVersion() {
+  public void testGetSuggestedRemediationForComponent_NoViolations_LastVersion() {
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 1;
+    v1.policyAlerts = Arrays.asList(failAlert);
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 1;
+    v2.policyAlerts = Arrays.asList(failAlert);
     ComponentDetailsDTO v3 = new ComponentDetailsDTO();
     v3.componentIdentifier = MAVEN_COORDINATES_V3;
     v3.violatedPolicyCount = 1;
+    v3.policyAlerts = Arrays.asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list);
@@ -197,15 +217,16 @@ public class ApiComponentRemediationServiceTest
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v3.componentIdentifier);
 
     ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId());
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     assertRemediationZeroCounts(retVal.remediation);
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_NextNoViolations() {
+  public void testGetSuggestedRemediationForComponent_NoViolations_Next() {
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 1;
+    v1.policyAlerts = Arrays.asList(failAlert);
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 0;
@@ -220,15 +241,15 @@ public class ApiComponentRemediationServiceTest
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
 
     ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId());
-    assertRemediation(retVal.remediation,
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
-    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations");
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    assertNoViolations(retVal.remediation,
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier));
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_VersionUpgrade_Current() {
+  public void testGetSuggestedRemediationForComponent_NoViolations_SameVersion() {
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 0;
@@ -246,11 +267,96 @@ public class ApiComponentRemediationServiceTest
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
 
     ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId());
-    assertRemediation(retVal.remediation,
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier),
-        ApiVersionChangeOptionType.CURRENT);
-    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_current");
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    assertNoViolations(retVal.remediation,
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier));
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_NonFailing() {
+    ComponentDetailsDTO v1 = new ComponentDetailsDTO();
+    v1.componentIdentifier = MAVEN_COORDINATES_V1;
+    v1.violatedPolicyCount = 1;
+    v1.policyAlerts = Arrays.asList(warnAlert, failAlert);
+    ComponentDetailsDTO v2 = new ComponentDetailsDTO();
+    v2.componentIdentifier = MAVEN_COORDINATES_V2;
+    v2.violatedPolicyCount = 1;
+    v2.policyAlerts = Arrays.asList(warnAlert);
+    ComponentDetailsDTO v3 = new ComponentDetailsDTO();
+    v3.componentIdentifier = MAVEN_COORDINATES_V3;
+    v3.violatedPolicyCount = 1;
+    v3.policyAlerts = Arrays.asList(warnAlert);
+
+    List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
+    mockHdsGetComponentDetailsList(list);
+
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
+
+    ApiComponentRemediationDTO retVal = service
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    assertNonFailing(retVal.remediation,
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier));
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_non_failing");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_NoStage() {
+    ComponentDetailsDTO v1 = new ComponentDetailsDTO();
+    v1.componentIdentifier = MAVEN_COORDINATES_V1;
+    v1.violatedPolicyCount = 1;
+    v1.policyAlerts = Arrays.asList(failAlert);
+    ComponentDetailsDTO v2 = new ComponentDetailsDTO();
+    v2.componentIdentifier = MAVEN_COORDINATES_V2;
+    v2.violatedPolicyCount = 1;
+    v2.policyAlerts = Arrays.asList(failAlert);
+    ComponentDetailsDTO v3 = new ComponentDetailsDTO();
+    v3.componentIdentifier = MAVEN_COORDINATES_V3;
+    v3.violatedPolicyCount = 0;
+
+    List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
+    mockHdsGetComponentDetailsList(list);
+
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
+
+    ApiComponentRemediationDTO retVal = service
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), null);
+
+    ApiComponentIdentifierDTOV2 expectedComponentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(v3.componentIdentifier);
+    assertThat(retVal.remediation.componentOverrides).hasSize(0);
+    assertThat(retVal.remediation.policyWaivers).hasSize(0);
+
+    assertThat(retVal.remediation).isNotNull();
+
+    // no stage implies we do not process non-failing
+    assertThat(retVal.remediation.versionChanges).hasSize(1);
+    ApiVersionChangeOptionDTO noViolationsOption = retVal.remediation.versionChanges.get(0);
+    assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
+
+    assertThat(noViolationsDto.componentIdentifier).isNotNull();
+    assertThat(noViolationsDto.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(noViolationsDto.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(noViolationsDto.hash).isNull();
+    assertThat(noViolationsDto.proprietary).isNull();
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_BadStageId() {
+    ComponentDetailsDTO v1 = new ComponentDetailsDTO();
+
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), "bogusStageId");
+    }).withMessage("Invalid stage: bogusStageId.");
   }
 
   private void assertTelemetry(final String ownerType,
@@ -266,7 +372,7 @@ public class ApiComponentRemediationServiceTest
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("component", HdsClientAnalytics.obfuscate(JsonUtils.writeUnformatted(componentIdentifier)));
     expectedAttributes.put("option_next_no_violations", "false");
-    expectedAttributes.put("option_current", "false");
+    expectedAttributes.put("option_next_non_failing", "false");
     for (String attribute : expectedTrueAttributes) {
       expectedAttributes.put(attribute, "true");
     }
@@ -279,7 +385,7 @@ public class ApiComponentRemediationServiceTest
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list) {
     doReturn(list).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(eq(OwnerType.APPLICATION), eq(app.getPublicId()),
-            any(ComponentIdentifier.class));
+            any(ComponentIdentifier.class), any());
   }
 
   private void assertRemediationZeroCounts(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO) {
@@ -288,25 +394,56 @@ public class ApiComponentRemediationServiceTest
     assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(0);
   }
 
-  private void assertRemediation(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
-                                 ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
-                                 ApiVersionChangeOptionType expectedVersionChangeOptionType)
+  private void assertNoViolations(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
+                                  ApiComponentIdentifierDTOV2 expectedComponentIdentifier)
+  {
+    assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
+    assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
+
+    assertThat(apiComponentRemediationValueDTO).isNotNull();
+    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(2);
+    ApiVersionChangeOptionDTO noViolationsOption = apiComponentRemediationValueDTO.versionChanges.get(0);
+    assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
+
+    assertThat(noViolationsDto.componentIdentifier).isNotNull();
+    assertThat(noViolationsDto.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(noViolationsDto.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(noViolationsDto.hash).isNull();
+    assertThat(noViolationsDto.proprietary).isNull();
+
+    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(1);
+    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
+
+    assertThat(nonFailingDto.componentIdentifier).isNotNull();
+    assertThat(nonFailingDto.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(nonFailingDto.componentIdentifier.getCoordinates())
+        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(nonFailingDto.hash).isNull();
+    assertThat(nonFailingDto.proprietary).isNull();
+  }
+
+  private void assertNonFailing(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
+                                ApiComponentIdentifierDTOV2 expectedComponentIdentifier)
   {
     assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
 
     assertThat(apiComponentRemediationValueDTO).isNotNull();
     assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(1);
-    ApiVersionChangeOptionDTO apiVersionChangeOptionDTO = apiComponentRemediationValueDTO.versionChanges.get(0);
-    assertThat(apiVersionChangeOptionDTO.getType()).isEqualTo(expectedVersionChangeOptionType);
-    ApiComponentDTOV2 apiComponentDTOV2 = apiVersionChangeOptionDTO.getData().getComponent();
 
-    assertThat(apiComponentDTOV2.componentIdentifier).isNotNull();
-    assertThat(apiComponentDTOV2.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(apiComponentDTOV2.componentIdentifier.getCoordinates())
+    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(0);
+    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
+
+    assertThat(nonFailingDto.componentIdentifier).isNotNull();
+    assertThat(nonFailingDto.componentIdentifier.getFormat()).isEqualTo(expectedComponentIdentifier.getFormat());
+    assertThat(nonFailingDto.componentIdentifier.getCoordinates())
         .isEqualTo(expectedComponentIdentifier.getCoordinates());
-    assertThat(apiComponentDTOV2.hash).isNull();
-    assertThat(apiComponentDTOV2.proprietary).isNull();
+    assertThat(nonFailingDto.hash).isNull();
+    assertThat(nonFailingDto.proprietary).isNull();
   }
 
   private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier) {

@@ -85,9 +85,7 @@ public class ApiComponentRemediationService
 
     String publicOwnerId = ownerId;
 
-    validateComponentIdentifier(componentDTO);
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(
-        componentDTO.componentIdentifier.getFormat(), componentDTO.componentIdentifier.getCoordinates());
+    ComponentIdentifier componentIdentifier = validateComponentIdentifier(componentDTO);
 
     if (ownerType.equals(OwnerType.APPLICATION)) {
       publicOwnerId = applicationDAO.getByIdNotNull(ownerId).getPublicId();
@@ -168,7 +166,7 @@ public class ApiComponentRemediationService
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }
 
-  private void validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
+  private ComponentIdentifier validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
     if (componentDTO.componentIdentifier == null) {
       throw new BadRequestException("ComponentIdentifier must be supplied.");
     }
@@ -177,6 +175,7 @@ public class ApiComponentRemediationService
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
       componentIdentifier.ensureComplete();
+      return componentIdentifier;
     }
     catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);

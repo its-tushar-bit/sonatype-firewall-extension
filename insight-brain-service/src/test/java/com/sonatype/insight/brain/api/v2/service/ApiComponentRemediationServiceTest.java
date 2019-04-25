@@ -143,6 +143,29 @@ public class ApiComponentRemediationServiceTest
   }
 
   @Test
+  public void testGetSuggestedRemediationForComponent_NoClassifier() {
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = MAVEN_COORDINATES_V1;
+    componentDetailsDTO.violatedPolicyCount = 0;
+
+    List<ComponentDetailsDTO> list = Stream.of(componentDetailsDTO).collect(Collectors.toList());
+    mockHdsGetComponentDetailsList(list, componentDetailsDTO.componentIdentifier);
+
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+
+    // pass in a component identifier with no classifier
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"));
+
+    ApiComponentRemediationDTO retVal = service
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    assertNoViolations(retVal.remediation,
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentDetailsDTO.componentIdentifier));
+    assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
+  }
+
+  @Test
   public void testGetSuggestedRemediationForComponent_AllVersionsWithViolations() {
     ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
     dto1.componentIdentifier = MAVEN_COORDINATES_V1;
@@ -158,7 +181,7 @@ public class ApiComponentRemediationServiceTest
     dto3.policyAlerts = Arrays.asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(dto1, dto2, dto3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, dto1.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(dto1.componentIdentifier);
@@ -184,7 +207,7 @@ public class ApiComponentRemediationServiceTest
     v3.policyAlerts = Arrays.asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, v2.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier);
@@ -211,7 +234,7 @@ public class ApiComponentRemediationServiceTest
     v3.policyAlerts = Arrays.asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, v3.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v3.componentIdentifier);
@@ -235,7 +258,7 @@ public class ApiComponentRemediationServiceTest
     v3.violatedPolicyCount = 0;
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, v1.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
@@ -261,7 +284,7 @@ public class ApiComponentRemediationServiceTest
     v3.violatedPolicyCount = 0;
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, v1.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
@@ -290,7 +313,7 @@ public class ApiComponentRemediationServiceTest
     v3.policyAlerts = Arrays.asList(warnAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, v1.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
@@ -317,7 +340,7 @@ public class ApiComponentRemediationServiceTest
     v3.violatedPolicyCount = 0;
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
-    mockHdsGetComponentDetailsList(list);
+    mockHdsGetComponentDetailsList(list, v1.componentIdentifier);
 
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
@@ -382,10 +405,10 @@ public class ApiComponentRemediationServiceTest
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
-  private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list) {
+  private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
     doReturn(list).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(eq(OwnerType.APPLICATION), eq(app.getPublicId()),
-            any(ComponentIdentifier.class), any());
+            eq(componentIdentifier), any());
   }
 
   private void assertRemediationZeroCounts(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO) {

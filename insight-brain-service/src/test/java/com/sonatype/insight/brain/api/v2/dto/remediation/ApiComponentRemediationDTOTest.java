@@ -7,16 +7,10 @@ package com.sonatype.insight.brain.api.v2.dto.remediation;
 
 import java.util.Arrays;
 
-import javax.ws.rs.HttpMethod;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiRemediationRestActionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiComponentOverrideOptionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiComponentOverrideOptionType;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiPolicyWaiverOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -29,11 +23,6 @@ public class ApiComponentRemediationDTOTest
 {
   @Test
   public void testJsonSerializationAndDeserialization() throws Exception {
-    ApiRemediationRestActionDTO restAction = new ApiRemediationRestActionDTO("url", HttpMethod.POST, "{}");
-
-    ApiRemediationRestActionDTO restAction2 = new ApiRemediationRestActionDTO("url", HttpMethod.POST, "{hello}");
-
-    ApiPolicyWaiverOptionDTO policyWaiver = new ApiPolicyWaiverOptionDTO(restAction);
 
     ApiComponentDTOV2 componentIdentifier = new ApiComponentDTOV2();
     componentIdentifier.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(
@@ -53,15 +42,9 @@ public class ApiComponentRemediationDTOTest
         new ApiVersionChangeOptionDTO(ApiVersionChangeOptionType.NEXT_NON_FAILING,
             new ApiComponentChangeActionDTO(componentIdentifier2));
 
-    ApiComponentOverrideOptionDTO overrideOption =
-        new ApiComponentOverrideOptionDTO(ApiComponentOverrideOptionType.SECURITY_OVERRIDE,
-            restAction2);
-
     ApiComponentRemediationDTO dto = new ApiComponentRemediationDTO();
     dto.remediation = new ApiComponentRemediationValueDTO();
     dto.remediation.versionChanges = Arrays.asList(versionChange, versionChange2);
-    dto.remediation.componentOverrides = Arrays.asList(overrideOption);
-    dto.remediation.policyWaivers = Arrays.asList(policyWaiver);
 
     String output = JsonUtils.format(dto);
     ApiComponentRemediationDTO dto2 = JsonUtils.parse(output, ApiComponentRemediationDTO.class);

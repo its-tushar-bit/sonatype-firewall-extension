@@ -762,9 +762,9 @@
               <pluginExecutions>
                 <pluginExecution>
                   <pluginExecutionFilter>
-                    <groupId>org.sonatype.plugins</groupId>
+                    <groupId>org.eclipse.sisu</groupId>
                     <artifactId>sisu-maven-plugin</artifactId>
-                    <versionRange>[1.0,)</versionRange>
+                    <versionRange>[0.3.3,)</versionRange>
                     <goals>
                       <goal>index</goal>
                     </goals>

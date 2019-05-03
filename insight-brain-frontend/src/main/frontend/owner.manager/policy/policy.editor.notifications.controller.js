@@ -129,6 +129,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     if (vm.isWebhooksSupported) {
       WebhookStore[vm.loadError ? 'refresh' : 'get']().then(function(results) {
         vm.webhooks = results;
+        updateAvailableWebhooks();
       }, function(error) {
         vm.webhookError = error;
       });

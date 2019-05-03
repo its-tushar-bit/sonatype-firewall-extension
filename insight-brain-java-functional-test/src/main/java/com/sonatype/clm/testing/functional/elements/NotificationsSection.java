@@ -99,6 +99,10 @@ public class NotificationsSection
       return new Dropdown(rootSelector, "#recipient-role");
     }
 
+    public Dropdown webhook() {
+      return new Dropdown(rootSelector, "#recipient-webhook");
+    }
+
     public Dropdown project() {
       return new Dropdown(rootSelector, "#recipient-jira-project");
     }

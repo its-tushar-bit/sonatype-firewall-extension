@@ -48,6 +48,8 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -141,7 +143,8 @@ public abstract class AbstractPolicyEditorTest
       tempEntity.newTag(currentOwner.getId(), "PolicyEditorTest category");
     }
     Label sampleLabel = tempEntity.newLabel(currentOwner.getId(), "Sample Label");
-
+    Webhook webhook =
+        tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.POLICY_ALERT));
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.policyTile().addPolicyButton().click();
 
@@ -201,7 +204,12 @@ public abstract class AbstractPolicyEditorTest
     assertThat(newPolicy.getNotifications().getRoleNotifications()).hasSize(1);
     assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds())
         .containsExactlyInAnyOrder(Notification.CONTINUOUS_MONITORING);
-    
+
+    assertThat(newPolicy.getNotifications().getWebhookNotifications()).hasSize(1);
+    assertThat(newPolicy.getNotifications().getWebhookNotifications().get(0).getWebhookId()).isEqualTo(webhook.getId());
+    assertThat(newPolicy.getNotifications().getWebhookNotifications().get(0).getStageIds())
+        .containsExactlyInAnyOrder(Stage.ID_STAGE_RELEASE);
+
     testCreatePolicy_navigatingAwayWithUnsavedData();
   }
 
@@ -1065,12 +1073,22 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldHave(DISABLED);
     addNotification.email().shouldBe(empty);
 
+    // add webhook notifications
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(2).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.webhook().shouldBe(visible).selectedItem().click();
+    addNotification.webhook().listItems().findBy(text("http://localhost")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+
     NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
     NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));
+    NotificationsSection.notifications().get(2).shouldHave(text("Webhook: http://localhost"));
 
     // check stages
     NotificationsSection.notificationFor("aaa@sonatype.com").build().click();
     NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
+    NotificationsSection.notificationFor("Webhook: http://localhost").stageRelease().click();
   }
 
   private void assertNewPolicyStateIsCorrect() {

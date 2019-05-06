@@ -41,6 +41,11 @@ public class OperationalDataStoreProviderTest
     return OperationalDataStoreProvider.getDataSource();
   }
 
+  @Override
+  protected String getSchemaName() {
+    return OperationalDataStoreProvider.ID;
+  }
+
   @Test
   public void testInit_Migrate() throws Exception {
     File databaseDir = tempDir.newFolder();

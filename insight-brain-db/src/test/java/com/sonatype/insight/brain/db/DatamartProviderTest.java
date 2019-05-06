@@ -33,6 +33,11 @@ public class DatamartProviderTest
     return DatamartProvider.getDataSource();
   }
 
+  @Override
+  protected String getSchemaName() {
+    return DatamartProvider.ID;
+  }
+
   @Test
   public void testInit_Migrate() throws Exception {
     File databaseDir = tempDir.newFolder();

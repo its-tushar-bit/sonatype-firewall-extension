@@ -33,6 +33,11 @@ public class AggregationDataStoreProviderTest
     return AggregationDataStoreProvider.getDataSource();
   }
 
+  @Override
+  protected String getSchemaName() {
+    return AggregationDataStoreProvider.ID;
+  }
+
   @Test
   public void testInit_Migrate() throws Exception {
     File databaseDir = tempDir.newFolder();

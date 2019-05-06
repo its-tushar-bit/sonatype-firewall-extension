@@ -26,6 +26,8 @@ public abstract class AbstractDatabaseProviderTest
 
   protected abstract DataSource getDataSource();
 
+  protected abstract String getSchemaName();
+
   private void verifyDatabaseCreation(DatabaseConfig databaseConfig) throws Exception {
     assertThat(getDatabaseConfig()).isNull();
 
@@ -34,7 +36,7 @@ public abstract class AbstractDatabaseProviderTest
     assertThat(dataSource).isNotNull();
     try (Connection conn = dataSource.getConnection()) {
       try (Statement stmt = conn.createStatement()) {
-        stmt.execute("SELECT * FROM test_table");
+        stmt.execute("SELECT * FROM " + getSchemaName() + ".test_table");
       }
 
       String databaseURL = conn.getMetaData().getURL();

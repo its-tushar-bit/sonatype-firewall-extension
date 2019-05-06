@@ -16,6 +16,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -68,7 +70,8 @@ public class WebhookClientUtilTest
     });
     server.start();
 
-    webhookClientUtil = new WebhookClientUtil(new InsightProxy(new InsightConfig()));
+    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
+    webhookClientUtil = new WebhookClientUtil(new InsightProxy(new InsightConfig(), proxyConfig));
   }
 
   @After

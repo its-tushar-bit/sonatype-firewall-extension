@@ -25,6 +25,8 @@ public class SystemConfigurationProperty
   public static final String AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID =
       "AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID";
 
+  public static final String PROXY_EXCLUDE_HOSTS = "PROXY_EXCLUDE_HOSTS";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

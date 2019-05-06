@@ -156,7 +156,9 @@ public enum AuditEvent
 
   SEND_MAIL(Domain.NOTIFICATION_MAIL, Type.SEND),
 
-  CREATE_JIRA_ISSUE(Domain.NOTIFICATION_ISSUE_JIRA, Type.CREATE);
+  CREATE_JIRA_ISSUE(Domain.NOTIFICATION_ISSUE_JIRA, Type.CREATE),
+
+  CONFIGURE_PROXY(Domain.SERVER_PROXY, Type.CONFIGURE);
 
   private final String domain;
 
@@ -268,6 +270,8 @@ public enum AuditEvent
     String SERVER_SYSTEM_NOTICE = join(SERVER, "system-notice");
 
     String SERVER_WEBHOOK = join(SERVER, "webhook");
+
+    String SERVER_PROXY = join(SERVER, "proxy");
 
     String REPORTING_APPLICATION_COMPOSITION = join(REPORTING, "application-composition");
 

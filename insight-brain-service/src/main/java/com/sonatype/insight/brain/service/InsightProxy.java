@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -18,9 +19,14 @@ public class InsightProxy
 {
   private final InsightConfig insightConfig;
 
+  private final ApiProxyConfigurationServiceV2 proxyConfigurationService;
+
   @Inject
-  public InsightProxy(final InsightConfig insightConfig) {
+  public InsightProxy(final InsightConfig insightConfig,
+                      final ApiProxyConfigurationServiceV2 proxyConfigurationService)
+  {
     this.insightConfig = insightConfig;
+    this.proxyConfigurationService = proxyConfigurationService;
   }
 
   public <T extends HttpClientUtils.Configuration> T contextualize(final T httpConfig) {
@@ -35,6 +41,7 @@ public class InsightProxy
     if (proxyConfig.getHostname() != null) {
       httpConfig.setProxyHost(proxyConfig.getHostname());
       httpConfig.setProxyPort(proxyConfig.getPort());
+      httpConfig.setProxyExcludeHosts(proxyConfigurationService.get().getProxyExcludeHosts());
       if (proxyConfig.getUsername() != null) {
         final SimpleAuthentication proxyAuth = new SimpleAuthentication();
         proxyAuth.setUsername(proxyConfig.getUsername());

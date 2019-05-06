@@ -16,6 +16,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -83,7 +85,8 @@ public class HdsClientProxyTest
   private void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
-    client = new HdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
+    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
+    client = new HdsClient(new InsightProxy(config, proxyConfig), licenseManager, config, new VersionService(),
         mock(IdleConnectionReaper.class), telemetryId);
   }
 

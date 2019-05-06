@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.IdleConnectionReaper;
@@ -67,10 +69,11 @@ public class HdsIdeResourcePerformanceUtils
 
   static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
+    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
     config.setHdsUrl(hdsUrl);
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
-    return new HdsClient(new InsightProxy(config),
+    return new HdsClient(new InsightProxy(config, proxyConfig),
         new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter(), null), config,
         new VersionService(), Mockito.mock(IdleConnectionReaper.class), new TelemetryId(config));
   }

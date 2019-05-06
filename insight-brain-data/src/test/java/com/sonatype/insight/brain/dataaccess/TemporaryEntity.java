@@ -303,6 +303,8 @@ public class TemporaryEntity
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS, ""));
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);

@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
-import org.junit.After;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
@@ -25,11 +24,6 @@ public class ApiProxyConfigurationResourceV2Test
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.PROXY_CONFIG_PATH_V2);
-  }
-
-  @After
-  public void cleanup() {
-    new ProxyConfigurationDAO().setProxyExcludeHosts("");
   }
 
   @Test

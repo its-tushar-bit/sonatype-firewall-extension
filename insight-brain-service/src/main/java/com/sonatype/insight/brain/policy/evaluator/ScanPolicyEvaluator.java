@@ -450,7 +450,6 @@ public class ScanPolicyEvaluator
         return;
       }
       Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
-      // Only policy violations with threat level <= 8 should be grandfathered.
       policyViolations.stream() //
           .filter(policyViolation -> policiesById.get(policyViolation.getPolicyId())
               .isPolicyViolationGrandfatheringAllowed())

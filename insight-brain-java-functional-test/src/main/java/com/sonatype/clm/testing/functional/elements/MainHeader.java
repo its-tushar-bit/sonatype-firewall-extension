@@ -11,6 +11,10 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class MainHeader
 {
+  public static SelenideElement get() {
+    return $("main-header");
+  }
+
   public static SelenideElement productVersion() {
     return $(".iq-title__version");
   }

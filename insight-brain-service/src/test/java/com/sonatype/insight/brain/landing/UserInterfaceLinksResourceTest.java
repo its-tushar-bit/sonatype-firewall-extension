@@ -41,7 +41,7 @@ public class UserInterfaceLinksResourceTest
     assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
     HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
-    assertRedirect(response, "assets/index.html#/reports/app%20id/scan%20id");
+    assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy");
   }
 
   @Test
@@ -49,7 +49,7 @@ public class UserInterfaceLinksResourceTest
     assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable");
     HttpResponse response = get(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, "app id", "scan id");
-    assertRedirect(response, "rest/report/app%20id/scan%20id/browseReport/index.html");
+    assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy?embeddable");
   }
 
   @Test

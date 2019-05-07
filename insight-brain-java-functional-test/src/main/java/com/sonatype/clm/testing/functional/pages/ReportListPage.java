@@ -36,5 +36,13 @@ public class ReportListPage
     public SelenideElement buildReportLink() {
       return child(".iq-cell:nth-child(4) .iq-report-list__report-links a");
     }
+
+    public SelenideElement stageReleaseReportLink() {
+      return child(".iq-cell:nth-child(5) .iq-report-list__report-links a");
+    }
+
+    public SelenideElement releaseReportLink() {
+      return child(".iq-cell:nth-child(6) .iq-report-list__report-links a");
+    }
   }
 }

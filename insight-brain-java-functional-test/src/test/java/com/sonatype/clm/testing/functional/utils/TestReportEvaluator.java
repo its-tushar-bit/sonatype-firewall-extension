@@ -39,7 +39,24 @@ public class TestReportEvaluator
 
   final String scanId;
 
+  final String stageId;
+
   private boolean hasEvaluation = false;
+
+  public TestReportEvaluator(Application app,
+                             String scanId,
+                             URL locationOfTestReport,
+                             String brainBaseUrl,
+                             InsightWork workStorage,
+                             String stageId)
+  {
+    this.app = app;
+    this.scanId = scanId;
+    this.locationOfTestReport = locationOfTestReport;
+    this.brainBaseUrl = brainBaseUrl;
+    this.workStorage = workStorage;
+    this.stageId = stageId;
+  }
 
   public TestReportEvaluator(Application app,
                              String scanId,
@@ -47,11 +64,7 @@ public class TestReportEvaluator
                              String brainBaseUrl,
                              InsightWork workStorage)
   {
-    this.app = app;
-    this.scanId = scanId;
-    this.locationOfTestReport = locationOfTestReport;
-    this.brainBaseUrl = brainBaseUrl;
-    this.workStorage = workStorage;
+    this(app, scanId, locationOfTestReport, brainBaseUrl, workStorage, Stage.ID_BUILD);
   }
 
   public void evaluatePolicy() throws IOException {
@@ -77,7 +90,7 @@ public class TestReportEvaluator
   private void evaluatePolicyForScanId() throws IOException {
     HttpClient client = HttpClientBuilder.create().build();
     HttpPost post = new HttpPost(brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId);
-    post.setEntity(new StringEntity(JsonUtils.format(new Stage(Stage.ID_BUILD)), ContentType.APPLICATION_JSON));
+    post.setEntity(new StringEntity(JsonUtils.format(new Stage(stageId)), ContentType.APPLICATION_JSON));
     // please don't change the admin password on me!
     post.setHeader("Authorization",
         "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));

@@ -28,7 +28,7 @@ import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -200,7 +200,7 @@ public class ApplicationSummaryViewTest
       ActionDropDown.reportLink(i).followLink();
       Selenide.switchTo().window(1);
 
-      waitUntilUrl(ApplicationReportContainerPage.url(application.getPublicId(), policyEvaluations.get(i).getScanId()));
+      waitUntilUrl(ApplicationReportPage.url(application, policyEvaluations.get(i).getScanId()));
 
       WebDriverRunner.getWebDriver().close();
       Selenide.switchTo().window(0);
@@ -442,7 +442,7 @@ public class ApplicationSummaryViewTest
 
         Selenide.switchTo().window(1);
 
-        waitUntilUrl(ApplicationReportContainerPage.url(application.getPublicId(), policyEvaluations.getScanId()));
+        waitUntilUrl(ApplicationReportPage.url(application, policyEvaluations.getScanId()));
 
         WebDriverRunner.getWebDriver().close();
         Selenide.switchTo().window(0);

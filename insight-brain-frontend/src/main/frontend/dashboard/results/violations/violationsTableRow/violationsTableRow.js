@@ -40,7 +40,7 @@ function ViolationsTableRowController(StageTypeStore, $window, $state) {
 
   function openReport(appPublicId, scanId) {
     if (scanId) {
-      $window.open($state.href('report', {
+      $window.open($state.href('applicationReport.policy', {
         publicId: appPublicId,
         scanId: scanId
       }), '_blank');

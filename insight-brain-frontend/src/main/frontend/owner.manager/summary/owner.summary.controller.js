@@ -156,7 +156,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
 
   function openReport(stage) {
     if (vm.applicationSummary.policyEvaluations[stage.stageTypeId]) {
-      $window.open($state.href('report', {
+      $window.open($state.href('applicationReport.policy', {
         publicId: vm.applicationSummary.publicId,
         scanId: vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId
       }), '_blank');

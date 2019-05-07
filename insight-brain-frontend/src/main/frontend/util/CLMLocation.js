@@ -360,6 +360,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getReportPartialMatchedUrl: getBrowseReportUrl('partialmatched.json'),
 
+      getExpandedCoverageEmbeddableUrl: getBrowseReportUrl('index.html'),
+
       getReportAuditLogUrl: function(appPublicId, reportId, component) {
         const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),
             encodedAppId = encodeURIComponent(appPublicId),

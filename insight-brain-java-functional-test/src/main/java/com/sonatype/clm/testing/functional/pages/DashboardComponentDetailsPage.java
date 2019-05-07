@@ -120,10 +120,6 @@ public class DashboardComponentDetailsPage
       this.stageColumnOffset = stageColumnOffset;
     }
 
-    public static String reportLink(String applicationPublicId, String evaluationId) {
-      return BaseUrl.resolvePageUrl("/reports/{applicationId}/{scanId}", applicationPublicId, evaluationId);
-    }
-
     public SelenideElement pie() {
       return child("svg");
     }

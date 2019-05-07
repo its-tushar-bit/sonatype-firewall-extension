@@ -30,6 +30,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.PolicyTyp
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ViolationStateFilter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ExpandedCoverageReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
@@ -55,6 +56,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
@@ -64,9 +67,9 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchesText;
 import static com.codeborne.selenide.Condition.selected;
@@ -557,7 +560,6 @@ public class ApplicationReportTest
 
     MainHeader.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
-    ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
 
     headers.policyNameFilterInput().shouldBe(Condition.empty);
     violations.shouldHaveSize(64);
@@ -569,7 +571,6 @@ public class ApplicationReportTest
 
     MainHeader.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
-    ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
 
     headers.componentNameFilterInput().shouldBe(Condition.empty);
     violations.shouldHaveSize(64);
@@ -697,12 +698,21 @@ public class ApplicationReportTest
     // navigate elsewhere and then back to this report, without triggering a full refresh
     MainHeader.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
-    ApplicationReportContainerPage.policyCentricAppReportPreviewLink().shouldBe(visible).click();
 
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.showAllViolationsRadio().shouldNotBe(selected);
     headers.policyNameHeader().sortArrowUp().shouldNotBeSelected();
     reportPage.proprietaryFilter().nonProprietary().shouldNotBe(selected);
+  }
+
+  @Test
+  public void testEmbeddable() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID) + "?embeddable");
+
+    // test that the header is not present but that the data and sidebar are
+    MainHeader.get().shouldNot(exist);
+    reportPage.resultRows().shouldHaveSize(64);
+    reportPage.showAllViolationsRadio().shouldBe(visible);
   }
 
   @Test
@@ -739,6 +749,23 @@ public class ApplicationReportTest
     policyTypeFilter.security().shouldBe(disabled);
     policyTypeFilter.security().shouldNotBe(selected);
     violations.shouldHaveSize(63);
+  }
+
+  @Test
+  public void testExpandedCoverageRedirect() throws Exception {
+    final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
+    Application app2 = tempEntity.newApplicationWithParent();
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-expanded_coverage", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    FileUtils.copyURLToFile(zippedReport, work.getReportFile(app2.getId(), SCAN_ID2));
+    refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+
+    waitUntilUrl(ApplicationReportContainerPage.url(app2.getPublicId(), SCAN_ID2));
+
+    ApplicationReportContainerPage.getIframe().shouldBe(visible);
+    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
+
+    ExpandedCoverageReportPage.componentTabButton().shouldBe(visible);
   }
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {

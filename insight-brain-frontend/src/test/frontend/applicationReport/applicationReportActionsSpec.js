@@ -1,11 +1,12 @@
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 
-const createMockState = (isUnknownJs, bomData, unknownJsData, metadata) => ({
+const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
     reportParameters: {
       appId: 'appId',
       scanId: 'scanId',
-      isUnknownJs
+      isUnknownJs,
+      embeddable: !!embeddable
     },
     bomData,
     unknownJsData,
@@ -29,14 +30,17 @@ const mockLicenseData = {
 const mockReportData = { fooReport: 'barReport' };
 
 describe('applicationReportActions', function() {
-  let applicationReportActions, CLMLocations, $httpBackend;
+  let applicationReportActions, CLMLocations, $httpBackend, $state;
 
-  beforeEach(angular.mock.module(applicationReportModule.name));
+  beforeEach(angular.mock.module(applicationReportModule.name, function($provide) {
+    $provide.value('$window', { location: {} });
+  }));
 
-  beforeEach(inject(function($injector) {
-    applicationReportActions = $injector.get('applicationReportActions');
-    CLMLocations = $injector.get('CLMLocations');
-    $httpBackend = $injector.get('$httpBackend');
+  beforeEach(inject(function(_applicationReportActions_, _CLMLocations_, _$httpBackend_, _$state_) {
+    applicationReportActions = _applicationReportActions_;
+    CLMLocations = _CLMLocations_;
+    $httpBackend = _$httpBackend_;
+    $state = _$state_;
   }));
 
   afterEach(function() {
@@ -47,7 +51,7 @@ describe('applicationReportActions', function() {
   describe('setReportParameters', () => {
     it('dispatches SET_REPORT_PARAMETERS action', () => {
       const store = SpecUtil.mockReduxStore({});
-      store.dispatch(applicationReportActions.setReportParameters('appId', 'scanId', true));
+      store.dispatch(applicationReportActions.setReportParameters('appId', 'scanId', true, false));
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({
@@ -55,7 +59,8 @@ describe('applicationReportActions', function() {
         payload: {
           appId: 'appId',
           scanId: 'scanId',
-          isUnknownJs: true
+          isUnknownJs: true,
+          embeddable: false
         }
       });
     });
@@ -215,6 +220,46 @@ describe('applicationReportActions', function() {
         payload: 'Error 500'
       });
     });
+
+    it('redirects to the old app report page if this is an XC report', function() {
+      spyOn($state, 'go');
+
+      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(1);
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId')))
+          .respond(200, mockBomData);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId')))
+          .respond(200, { expandedCoverage: true });
+      $httpBackend.flush();
+
+      expect($state.go).toHaveBeenCalledWith('report', { publicId: 'appId', scanId: 'scanId' });
+      expect(errorSpy).toHaveBeenCalled();
+      expect(store.getActions().length).toBe(1);
+    });
+
+    it('redirects to the old iframe URL if this is an XC report and the embeddable flag is set',
+        inject(function($window) {
+          const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined, true));
+          const errorSpy = jasmine.createSpy('errorSpy');
+          store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+
+          expect(store.getActions().length).toBe(1);
+
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId')))
+              .respond(200, mockBomData);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId')))
+              .respond(200, { expandedCoverage: true });
+          $httpBackend.flush();
+
+          expect($window.location).toBe(CLMLocations.getExpandedCoverageEmbeddableUrl('appId', 'scanId'));
+          expect(errorSpy).toHaveBeenCalled();
+          expect(store.getActions().length).toBe(1);
+        })
+    );
   }
 
   describe('loadReport', function() {

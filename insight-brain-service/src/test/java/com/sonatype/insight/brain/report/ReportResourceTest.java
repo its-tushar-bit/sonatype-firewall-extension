@@ -122,19 +122,36 @@ public class ReportResourceTest
         .as(Report.DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
         .isLessThan(2 * 60 * 1000);
 
+    calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
+    String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar
+        .getTime());
+    response = request.subpath("data.json").header("If-Modified-Since", ifModifiedSinceHeader).get();
+    assertResponseStatus(304, response);
+  }
+
+  @Test
+  public void testBrowseReportEntryExpirationDate_ExpandedCoverageIndexHtml() throws Exception {
+    final String scanId = "ReportResourceTest_ScanId";
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/report-expanded_coverage");
+
+    TimeZone gmt = TimeZone.getTimeZone("GMT");
+    final Calendar calendar = Calendar.getInstance(gmt);
+    final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm", Locale.ENGLISH);
+    expirationHeaderFormat.setTimeZone(gmt);
+
     calendar.setTime(new Date());
-    response = request.subpath("index.html").get();
+    HttpResponse response = request.subpath("index.html").get();
     assertResponseStatus(200, response);
-    expiresHeader = response.getHeader("Expires");
-    expires = expirationHeaderFormat.parse(expiresHeader);
+    String expiresHeader = response.getHeader("Expires");
+    Date expires = expirationHeaderFormat.parse(expiresHeader);
     assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
         .as("index.html expires immediately: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
     String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar
         .getTime());
-    response = request.subpath(Report.DATA_JSON_FILENAME).header("If-Modified-Since", ifModifiedSinceHeader).get();
-    assertResponseStatus(304, response);
 
     // make sure index.html always returns 200, no 304s here
     response = request.subpath("index.html").header("If-Modified-Since", ifModifiedSinceHeader).get();
@@ -183,6 +200,7 @@ public class ReportResourceTest
       verifiedFileCount++;
 
       String entry = file.getName();
+
       response = request.subpath(entry).get();
       assertResponseStatus(200, response);
 
@@ -245,8 +263,8 @@ public class ReportResourceTest
             .isEqualTo(org.apache.commons.io.FileUtils.readFileToByteArray(file));
       }
     }
-    assertThat(verifiedFileCount).isEqualTo(110);
 
+    assertThat(verifiedFileCount).isEqualTo(110);
     assertResponseStatus(200, request.subpath("/").get());
   }
 

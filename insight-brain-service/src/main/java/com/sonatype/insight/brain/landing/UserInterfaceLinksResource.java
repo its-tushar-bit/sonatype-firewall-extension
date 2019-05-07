@@ -60,6 +60,7 @@ public class UserInterfaceLinksResource
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
     URI uri = uriBuilder.build(parameters);
     uri = URI.create(uri.toString().replaceAll("%2F", "/"));
+    uri = URI.create(uri.toString().replaceAll("%3F", "?"));
     return Response.temporaryRedirect(uri).build();
   }
 
@@ -77,10 +78,7 @@ public class UserInterfaceLinksResource
   public Response linkToReport(@PathParam("applicationPublicId") String applicationPublicId,
                                @PathParam("scanId") String scanId)
   {
-    UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(
-        "/reports/{applicationPublicId}/{scanId}");
-    return redirect(uriBuilder, applicationPublicId, scanId);
+    return linkToReport(applicationPublicId, scanId, false);
   }
 
   /**
@@ -91,8 +89,15 @@ public class UserInterfaceLinksResource
   public Response linkToEmbeddableReport(@PathParam("applicationPublicId") String applicationPublicId,
                                          @PathParam("scanId") String scanId)
   {
+    return linkToReport(applicationPublicId, scanId, true);
+  }
+
+  private Response linkToReport(String applicationPublicId, String scanId, boolean embeddable) {
+    String fragmentTemplate = "/applicationReport/{applicationPublicId}/{scanId}/policy" +
+        (embeddable ? "?embeddable" : "");
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.BROWSE_PATH).path("index.html");
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
+
     return redirect(uriBuilder, applicationPublicId, scanId);
   }
 

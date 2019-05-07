@@ -27,7 +27,7 @@
 
 </head>
 <body class="iq-body" ng-csp="no-unsafe-eval">
-  <main-header product-edition="{{productEdition}}"></main-header>
+  <main-header ng-if="!$state.params.embeddable" product-edition="{{productEdition}}"></main-header>
   <div ng-show='!error' class="iq-main-view">
     <system-notice></system-notice>
     <change-default-admin-password-notice></change-default-admin-password-notice>

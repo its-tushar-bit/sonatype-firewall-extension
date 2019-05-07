@@ -38,7 +38,7 @@ export default angular.module('applicationReportModule',
 function routes($stateProvider, $urlRouterProvider) {
   $stateProvider
       .state('applicationReport', {
-        url: '/applicationReport/{publicId}/{scanId}?unknownjs',
+        url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable',
         abstract: true,
         component: 'applicationReportRoot'
       })

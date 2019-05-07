@@ -13,7 +13,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications.Applic
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -167,10 +167,10 @@ public class DashboardApplicationsTest
         "Release",        //
         "Operate"         //
     ));
-    app5.getStageLink(0).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5build")));
-    app5.getStageLink(1).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5stage-release")));
-    app5.getStageLink(2).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5release")));
-    app5.getStageLink(3).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5operate")));
+    app5.getStageLink(0).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5build")));
+    app5.getStageLink(1).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5stage-release")));
+    app5.getStageLink(2).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5release")));
+    app5.getStageLink(3).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5operate")));
 
     // check the csv export default sort order
     ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(

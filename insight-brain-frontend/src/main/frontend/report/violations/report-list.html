@@ -81,7 +81,10 @@
                     <div class="iq-report-list__violation-links"
                          ng-show="vm.applicationHasViolationsForStage(application, stage)">
                       <a title="View Report"
-                         ui-sref="report({publicId: application.publicId, scanId: application.policyEvaluations[stage.stageTypeId].scanId})">
+                         ui-sref="applicationReport.policy({
+                           publicId: application.publicId,
+                           scanId: application.policyEvaluations[stage.stageTypeId].scanId
+                         })">
                         <div class="iq-threat-indicators">
                           <div chiclets
                                critical="application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount"
@@ -97,7 +100,10 @@
                     </div>
                     <div class="iq-report-list__report-links">
                       <a title="View Report"
-                         ui-sref="report({publicId: application.publicId, scanId: application.policyEvaluations[stage.stageTypeId].scanId})">
+                         ui-sref="applicationReport.policy({
+                           publicId: application.publicId,
+                           scanId: application.policyEvaluations[stage.stageTypeId].scanId
+                         })">
                         View Report ({{::application.policyEvaluations[stage.stageTypeId].time | ago}})</a>
                     </div>
                   </div>

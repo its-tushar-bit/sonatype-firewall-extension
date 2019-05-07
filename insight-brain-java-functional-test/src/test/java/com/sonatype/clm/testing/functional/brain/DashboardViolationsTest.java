@@ -25,7 +25,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -240,9 +240,9 @@ public class DashboardViolationsTest
     // check the report link - opens new window
     firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
     Selenide.switchTo().window(1);
-    waitUntilUrl(ApplicationReportContainerPage.url(app1.getPublicId(), buildEvalNow.getScanId()));
-    ApplicationReportContainerPage.getReportTitle().shouldBe(visible)
-        .shouldHave(text(app1.getName() + now().toString(" - YYYY-MM-dd -") + " Build Report"));
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    waitUntilUrl(ApplicationReportPage.url(app1, buildEvalNow.getScanId()));
+    reportPage.shouldBe(visible);
     WebDriverRunner.getWebDriver().close();
     Selenide.switchTo().window(0);
     waitUntilUrl(DashboardPage.VIOLATIONS_URL);

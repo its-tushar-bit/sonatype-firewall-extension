@@ -71,7 +71,10 @@
               ng-repeat-end ng-repeat="stage in application.stageRisks">
             <td class="iq-cell iq-cell--label iq-cell--application-name">
               <a title="View application report"
-                 ng-href="index.html#/reports/{{vm.encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
+                 ui-sref="applicationReport.policy({
+                   publicId: application.applicationId,
+                   scanId: stage.scanId
+                 })"
                  target="_blank">
                 <i class="fa fa-external-link fa-fw"></i>{{::stage.stageTypeName}}
               </a>

@@ -70,7 +70,7 @@ describe('violationsTableRow.spec', function() {
         return state + '.' + params.publicId + '.' + params.scanId;
       });
       violationsTableRow.openReport('appId', 'scanId');
-      expect(mockWindow.open).toHaveBeenCalledWith('report.appId.scanId', '_blank');
+      expect(mockWindow.open).toHaveBeenCalledWith('applicationReport.policy.appId.scanId', '_blank');
     });
 
     it('Gets the latest report', function() {

@@ -24,12 +24,4 @@ public class ApplicationReportContainerPage
   public static SelenideElement getIframe() {
     return $("#evaluation-report-container > iframe");
   }
-
-  public static SelenideElement policyCentricAppReportPreviewAlert() {
-    return $("#policy-centric-report-preview-alert");
-  }
-
-  public static SelenideElement policyCentricAppReportPreviewLink() {
-    return policyCentricAppReportPreviewAlert().$("a");
-  }
 }

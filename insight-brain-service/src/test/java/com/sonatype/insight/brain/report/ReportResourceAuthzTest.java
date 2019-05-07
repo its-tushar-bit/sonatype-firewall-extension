@@ -45,7 +45,7 @@ public class ReportResourceAuthzTest
     grantReadPermission(app.getId());
 
     HttpRequest request = restRequest().path("browseReport/{path}")
-        .parameter(app.getPublicId(), scanId, "index.html");
+        .parameter(app.getPublicId(), scanId, "data.json");
     testAuthzGet(request);
   }
 

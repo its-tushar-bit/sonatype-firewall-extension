@@ -136,7 +136,7 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
 
   function openReport() {
     if (vm.evaluationStatus && vm.evaluationStatus.scanId) {
-      $window.open($state.href('report', {
+      $window.open($state.href('applicationReport.policy', {
         publicId: vm.evaluationStatus.applicationPublicId,
         scanId: vm.evaluationStatus.scanId
       }), '_blank');

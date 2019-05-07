@@ -20,7 +20,8 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
       const actions = pick(['setReportParameters'], applicationReportActions);
 
       vm.unsubscribe = $ngRedux.connect(null, actions)(vm);
-      vm.setReportParameters($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
+      vm.setReportParameters($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs,
+          !!$state.params.embeddable);
     },
 
     $onDestroy() {

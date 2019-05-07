@@ -33,19 +33,19 @@ export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD
 export const SET_SORTING = 'SET_SORTING';
 export const SET_SORTING_RAW_DATA = 'SET_SORTING_RAW_DATA';
 
-export default function applicationReportActions($http, $q, CLMLocations, Messages) {
+export default function applicationReportActions($http, $q, $state, $window, CLMLocations, Messages) {
 
-  function setReportParameters(appId, scanId, isUnknownJs) {
+  function setReportParameters(appId, scanId, isUnknownJs, embeddable) {
     return {
       type: SET_REPORT_PARAMETERS,
-      payload: { appId, scanId, isUnknownJs }
+      payload: { appId, scanId, isUnknownJs, embeddable }
     };
   }
 
   function fetchCommonData(forceClearMetadata = false) {
     return (dispatch, getState) => {
       const {bomData, unknownJsData, metadata, reportParameters} = getState().applicationReport;
-      const {appId, scanId, isUnknownJs} = reportParameters;
+      const {appId, scanId, isUnknownJs, embeddable} = reportParameters;
 
       if (forceClearMetadata || (!metadata || !bomData || (!unknownJsData && isUnknownJs))) {
         const promises = {
@@ -62,14 +62,35 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
               const bomResult = results.bomResult.data || undefined;
               const metadataResult = results.metadata.data;
               const unknownJsResult = (isUnknownJs && results.unknownJsResult.data) || undefined;
-              return dispatch(loadCommonDataFulfilled({
-                bomData: bomResult,
-                metadata: metadataResult,
-                unknownJsData: unknownJsResult
-              }));
+
+              if (metadataResult.expandedCoverage) {
+                // this is an Expanded Coverage report and should not be viewed on the Policy Centric app report
+                // page. Redirect to the old report page, or if embeddable was requested, then to the iframe URL
+                if (embeddable) {
+                  $window.location = CLMLocations.getExpandedCoverageEmbeddableUrl(appId, scanId);
+                }
+                else {
+                  $state.go('report', {
+                    publicId: appId,
+                    scanId
+                  });
+                }
+
+                return $q.reject('XC Report');
+              }
+              else {
+                return dispatch(loadCommonDataFulfilled({
+                  bomData: bomResult,
+                  metadata: metadataResult,
+                  unknownJsData: unknownJsResult
+                }));
+              }
             })
             .catch(error => {
-              dispatch(loadCommonDataFailed(error));
+              if (error !== 'XC Report') {
+                dispatch(loadCommonDataFailed(error));
+              }
+
               return $q.reject(error);
             });
       }
@@ -240,4 +261,4 @@ export default function applicationReportActions($http, $q, CLMLocations, Messag
   };
 }
 
-applicationReportActions.$inject = ['$http', '$q', 'CLMLocations', 'Messages'];
+applicationReportActions.$inject = ['$http', '$q', '$state', '$window', 'CLMLocations', 'Messages'];

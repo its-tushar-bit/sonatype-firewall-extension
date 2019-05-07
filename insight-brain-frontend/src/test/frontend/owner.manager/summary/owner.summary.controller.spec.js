@@ -155,7 +155,7 @@ describe('owner.summary.controller.js', function() {
 
         vm.openReport(MockData.getDashboardStageData()[0]);
 
-        expect(mockState.href).toHaveBeenCalledWith('report', {
+        expect(mockState.href).toHaveBeenCalledWith('applicationReport.policy', {
           publicId: applicationResourceMockData.getApplicationSummaryUrl().publicId,
           scanId: applicationResourceMockData.getApplicationSummaryUrl()
               .policyEvaluations[MockData.getDashboardStageData()[0].stageTypeId].scanId

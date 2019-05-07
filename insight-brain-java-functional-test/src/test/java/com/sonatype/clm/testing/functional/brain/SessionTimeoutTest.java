@@ -95,7 +95,7 @@ public class SessionTimeoutTest
   }
 
   /**
-   * Test that the relogin works when triggered from within a report iframe
+   * Test that the re-login works when triggered from within a report iframe
    */
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpirationInReport() throws IOException {
@@ -118,7 +118,7 @@ public class SessionTimeoutTest
     hardreset();
 
     // try to access another page of the report after the session is expired. This is expected to
-    // bring up the relogin modal, and then after successful reauthentication, is expected to navigate to the
+    // bring up the re-login modal, and then after successful reauthentication, is expected to navigate to the
     // other page
     ReportPage.policyTabButton().click();
 
@@ -132,7 +132,7 @@ public class SessionTimeoutTest
 
     ReportPage.policyTabButton().click();
 
-    // expire the session again in order to test the relogin for the CIP itself
+    // expire the session again in order to test the re-login for the CIP itself
     hardreset();
 
     // click a row. This triggers the re-login using different logic so it needs to be tested separately

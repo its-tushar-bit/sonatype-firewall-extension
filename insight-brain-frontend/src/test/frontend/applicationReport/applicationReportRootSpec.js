@@ -2,7 +2,7 @@ import applicationReportModule from '../../../main/frontend/applicationReport/mo
 
 describe('applicationReportRoot', function() {
 
-  let vm;
+  let createController;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -11,29 +11,42 @@ describe('applicationReportRoot', function() {
   }));
 
   beforeEach(inject(function($componentController) {
-    vm = $componentController('applicationReportRoot', {
-      $state: {
-        params: {
-          publicId: 'testApp',
-          scanId: 'testReport'
+    createController = function(publicId, scanId, unknownJs, embeddable) {
+      const vm = $componentController('applicationReportRoot', {
+        $state: {
+          params: {
+            publicId,
+            scanId,
+            unknownJs,
+            embeddable
+          }
         }
-      }
-    });
-    vm.$onInit();
+      });
+
+      vm.$onInit();
+
+      return vm;
+    };
   }));
 
   describe('$onInit()', function() {
     it('subscribes to the redux store', () => {
+      const vm = createController();
+
       expect(vm.unsubscribe).toBeDefined();
     });
 
     it('calls setReportParameters with the correct parameters', function() {
-      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false);
+      const vm = createController('testApp', 'testReport', false, true);
+
+      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true);
     });
   });
 
   describe('$onDestroy()', function() {
     it('unsubscribes from redux store', function() {
+      const vm = createController();
+
       expect(vm.unsubscribe).not.toHaveBeenCalled();
       vm.$onDestroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);

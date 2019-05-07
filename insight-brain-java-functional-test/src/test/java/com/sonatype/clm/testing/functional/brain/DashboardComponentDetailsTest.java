@@ -9,6 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.AccordionRow;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationRow;
@@ -35,7 +36,6 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationRow.appIconImageSource;
-import static com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationRow.reportLink;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static java.util.Arrays.asList;
 
@@ -128,7 +128,7 @@ public class DashboardComponentDetailsTest
       row.shareOfRisk().shouldHave(text("64%"));
       row.risk().shouldHave(text("9"));
       row.build().anchor().shouldHave(text("1min"), attribute("title", "View application report"),
-          attribute("href", reportLink(app1.getPublicId(), eval1.getScanId())));
+          attribute("href", ApplicationReportPage.url(app1, eval1.getScanId())));
       row.stage().shouldBe(empty);
       row.release().shouldBe(empty);
       row.operate().shouldBe(empty);
@@ -156,7 +156,7 @@ public class DashboardComponentDetailsTest
       row.build().shouldBe(empty);
       row.stage().shouldBe(empty);
       row.release().anchor().shouldHave(text("1min"), attribute("title", "View application report"),
-          attribute("href", reportLink(app2.getPublicId(), eval2.getScanId())));
+          attribute("href", ApplicationReportPage.url(app2, eval2.getScanId())));
       row.operate().shouldBe(empty);
     }
 

@@ -48,11 +48,6 @@ public class H2DatabaseMigrator
       return;
     }
 
-    File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
-    String databaseFilename = databasePath.getName();
-    File databaseDir = databasePath.getParentFile();
-    File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
-
     try {
       int desiredVersion = determineDesiredVersion(databaseName);
 
@@ -62,25 +57,32 @@ public class H2DatabaseMigrator
         return;
       }
 
+      File databasePath = null;
+      File databaseVersionFile = null;
+
       // The database exists and it may require migration.
       int currentVersion;
       if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseName)) {
         currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName);
       }
-      else if (databaseVersionFile.exists()) {
-        String sCurrentVersion = FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
-        currentVersion = Integer.parseInt(sCurrentVersion);
-      }
       else {
-        throw new IllegalStateException(
-            "Missing the database schema version either in the database itself or in the database version file " +
-                databaseVersionFile + ".");
+        databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
+        databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
+        if (databaseVersionFile.exists()) {
+          String sCurrentVersion = FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
+          currentVersion = Integer.parseInt(sCurrentVersion);
+        }
+        else {
+          throw new IllegalStateException(
+              "Missing the database schema version either in the database itself or in the database version file " +
+                  databaseVersionFile + ".");
+        }
       }
 
-      log.info("Current version of database {}: {}", databaseFilename, currentVersion);
+      log.info("Current version of database {}: {}", databaseName, currentVersion);
       if (currentVersion > desiredVersion) {
-        throw new IllegalStateException(databaseFilename + " was created by a newer product version. " +
-            "Please upgrade your IQ Server or restore a database backup taken by your current version.");
+        throw new IllegalStateException("Database schema " + databaseName + " was created by a newer product version. "
+            + "Please upgrade your IQ Server or restore a database backup taken by your current version.");
       }
 
       if (currentVersion == desiredVersion) {
@@ -91,17 +93,20 @@ public class H2DatabaseMigrator
         upgradeGuard.accept(currentVersion);
       }
 
-      log.info("Migrating database {} to version: {}", databaseFilename, desiredVersion);
-      log.info(" Database dir: {}", databaseDir);
+      log.info("Migrating database schema {} to version: {}", databaseName, desiredVersion);
 
-      File backupDir = new File(databaseDir, "backup");
-      if (backupDir.exists()) {
-        throw new IllegalStateException(
-            "Cannot migrate database. The backup directory '" + backupDir.getAbsolutePath() + "' already exists"
-                + ", indicating that a previous migration failed. Please contact support for further assistance.");
+      File backupDir = null;
+      if (databasePath != null) {
+        File databaseDir = databasePath.getParentFile();
+        backupDir = new File(databaseDir, "backup");
+        if (backupDir.exists()) {
+          throw new IllegalStateException(
+              "Cannot migrate database. The backup directory '" + backupDir.getAbsolutePath() + "' already exists"
+                  + ", indicating that a previous migration failed. Please contact support for further assistance.");
+        }
+        log.info("Creating backup of database {} in {}", databaseName, backupDir);
+        backup(databaseDir, databasePath.getName(), backupDir);
       }
-      log.info("Creating backup of database {} in {}", databaseFilename, backupDir);
-      backup(databaseDir, databaseFilename, backupDir);
 
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
         String scriptName = getIncrementalFileName(databaseName, "sql", i);
@@ -116,10 +121,14 @@ public class H2DatabaseMigrator
         }
       }
 
-      log.info("Deleting backup of database {} from {}", databaseFilename, backupDir);
       FileCleaner fileCleaner = new FileCleaner();
-      fileCleaner.delete(backupDir);
-      fileCleaner.delete(databaseVersionFile);
+      if (databaseVersionFile != null) {
+        fileCleaner.delete(databaseVersionFile);
+      }
+      if (backupDir != null) {
+        log.info("Deleting backup of database {} from {}", databaseName, backupDir);
+        fileCleaner.delete(backupDir);
+      }
     }
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);

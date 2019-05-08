@@ -13,6 +13,8 @@ import com.sonatype.insight.db.DatabaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.joining;
+
 /**
  * @since 1.37
  */
@@ -36,6 +38,11 @@ public class DatabaseConfigProvider
   }
 
   public DatabaseConfig getDatabaseConfig(DatabaseName databaseName) {
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig = config.getDatabase();
+    if (dbConfig != null) {
+      return getExternalDatabaseConfig(dbConfig);
+    }
+
     File databaseDir = new File(config.getSonatypeWork(), "data");
     log.debug("Data directory: {}", databaseDir.getAbsolutePath());
 
@@ -65,6 +72,27 @@ public class DatabaseConfigProvider
     databaseConfig.setUrl(urlBuilder.toString());
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
+    databaseConfig.setMaxConnections(50);
+    return databaseConfig;
+  }
+
+  private DatabaseConfig getExternalDatabaseConfig(com.sonatype.insight.brain.service.DatabaseConfig dbConfig) {
+    String url = "jdbc:postgresql://" + dbConfig.getHostname();
+    if (dbConfig.getPort() != null) {
+      url += ":" + dbConfig.getPort();
+    }
+    url += "/" + dbConfig.getName();
+    if (dbConfig.getParameters() != null && !dbConfig.getParameters().isEmpty()) {
+      url += "?" + dbConfig.getParameters().entrySet().stream()
+          .filter(entry -> !"user".equals(entry.getKey()) && !"password".equals(entry.getKey()))
+          .map(entry -> entry.getKey() + '=' + entry.getValue()).collect(joining("&"));
+    }
+
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
+    databaseConfig.setUrl(url);
+    databaseConfig.setUsername(dbConfig.getUsername());
+    databaseConfig.setPassword(dbConfig.getPassword());
     databaseConfig.setMaxConnections(50);
     return databaseConfig;
   }

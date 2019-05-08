@@ -77,6 +77,13 @@ public class InsightConfig
   private SupportConfig support = new SupportConfig();
 
   /**
+   * @since 1.65
+   */
+  @Valid
+  @JsonProperty
+  private DatabaseConfig database;
+
+  /**
    * The directory where db backups are created. If set to a relative path, then it is considered relative to the
    * {@link sonatypeWork} directory.
    * 
@@ -658,5 +665,13 @@ public class InsightConfig
 
   public void setCspEnabled(final boolean cspEnabled) {
     this.cspEnabled = cspEnabled;
+  }
+
+  public DatabaseConfig getDatabase() {
+    return database;
+  }
+
+  public void setDatabase(DatabaseConfig database) {
+    this.database = database;
   }
 }

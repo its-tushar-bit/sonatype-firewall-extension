@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,6 +16,9 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.db.AbstractDataSourceFactory;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseEngine;
+import com.sonatype.insight.db.DatabaseException;
+import com.sonatype.insight.db.H2DatabaseEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +44,33 @@ public class DataSourceFactory
   @Override
   protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseName) {
     DataSource dataSource = super.loadDataSource(databaseConfig, databaseName);
-    boolean isNew = populateDatabaseSchema(dataSource, databaseName);
-    logDatabaseSettings(dataSource);
+    DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
+    boolean isNew = populateDatabaseSchema(dataSource, databaseEngine, databaseName);
+    if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {
+      logDatabaseSettings(dataSource);
+    }
     newDataSources.put(dataSource, isNew);
 
     return dataSource;
+  }
+
+  DatabaseEngine getDatabaseEngine(DataSource dataSource) {
+    try (Connection conn = dataSource.getConnection()) {
+      return getDatabaseEngine(conn.getMetaData().getDatabaseProductName());
+    }
+    catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  DatabaseEngine getDatabaseEngine(String databaseProductName) {
+    if ("h2".equalsIgnoreCase(databaseProductName)) {
+      return H2DatabaseEngine.INSTANCE;
+    }
+    if ("postgresql".equalsIgnoreCase(databaseProductName)) {
+      return PostgresDatabaseEngine.INSTANCE;
+    }
+    throw new DatabaseException("Unsupported database engine: " + databaseProductName);
   }
 
   boolean isNewDataSource(DataSource dataSource) {

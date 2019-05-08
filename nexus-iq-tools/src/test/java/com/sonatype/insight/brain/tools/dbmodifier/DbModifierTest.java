@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tools.dbmodifier;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
@@ -18,14 +19,20 @@ import java.util.List;
 import com.sonatype.insight.brain.tools.dbmodifier.DbModifier.TableAndColumns;
 import com.sonatype.insight.brain.tools.dbmodifier.DbModifier.TableDateMinMax;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DbModifierTest
 {
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   private static final String TEST_SCHEMA = "TEST_SCHEMA";
 
   private static final LocalDate MAX_DATE = LocalDate.of(2017, 8, 1);
@@ -57,7 +64,7 @@ public class DbModifierTest
   public void init() throws Exception {
     dbConnection = createTestDbConnection();
     createTestDb(dbConnection);
-    dbModifier = new DbModifier(TEST_DB_CONNECTION_STRING, USER_NAME, PASSWORD, TEST_SCHEMA);
+    dbModifier = new DbModifier(null, TEST_DB_CONNECTION_STRING, USER_NAME, PASSWORD, TEST_SCHEMA);
   }
 
   @After
@@ -220,6 +227,31 @@ public class DbModifierTest
     createEmptyTimestampDb(dbConnection);
     Timestamp minTimestamp = dbModifier.getMinTimestamp();
     assertThat(minTimestamp).isNull();
+  }
+
+  @Test
+  public void testDbVersion_FromDatabase() throws Exception {
+    File databaseDir = tempDir.newFolder("db");
+    FileUtils.copyFileToDirectory(new File("target/test-classes/DbModifierTest/testDbVersion_FromDatabase/test.h2.db"),
+        databaseDir);
+    DbModifier dbModifier = new DbModifier(new File(databaseDir, "test"), "sa", PASSWORD, "test");
+
+    assertThat(dbModifier.dbVersion()).isEqualTo("1");
+  }
+  
+  @Test
+  public void testDbVersion_FromFile() throws Exception {
+    File databaseDir = tempDir.newFolder("db");
+    FileUtils.copyFileToDirectory(new File("target/test-classes/DbModifierTest/testDbVersion_FromFile/test.h2.db"),
+        databaseDir);
+    DbModifier dbModifier = new DbModifier(new File(databaseDir, "test"), "sa", PASSWORD, "test");
+    
+    assertThat(dbModifier.dbVersion()).isEqualTo("-1");
+    
+    FileUtils.copyFileToDirectory(new File("target/test-classes/DbModifierTest/testDbVersion_FromFile/test.ver"),
+        databaseDir);
+    
+    assertThat(dbModifier.dbVersion()).isEqualTo("1");
   }
 
   private static Connection createTestDbConnection() throws Exception {

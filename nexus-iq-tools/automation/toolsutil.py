@@ -61,3 +61,7 @@ class IqToolsUtil(object):
         params = ['urlrunner', '-s', '"http://localhost:8070"', '-f', self.test_url_file]
         self.run_tools_jar(params, "url-runner-out.txt", profile_opts)
         return os.path.join(self.working_dir, "url-runner-out.txt")
+
+    def db_version(self, profile_params=[], profile_opts=[]):
+        params = ['dbmod', '-db', self.ods, '-dbv']
+        self.run_tools_jar(params, "tools-version.out")

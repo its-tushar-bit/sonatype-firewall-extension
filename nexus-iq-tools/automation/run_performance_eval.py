@@ -69,17 +69,17 @@ def getDbVersionFromFilename(filename):
     return int(fname)
 
 
-def reportDbInfo(working_dir):
+def reportDbInfo(tools_util, iq_running=False):
     dbinfo = []
-    for root, dirs, files in os.walk(working_dir):
+    for root, dirs, files in os.walk(tools_util.working_dir):
         for filename in files:
             if filename.lower().endswith('.h2.db'):
                 dbfile = os.path.join(root, filename)
                 dbsize = os.stat(dbfile).st_size
                 dbver = -1
-                verfile = dbfile[:-6] + '.ver'
-                if os.path.isfile(verfile):
-                    dbver = int(open(verfile, 'r').read())
+                if not iq_running:
+                    tools_util.db_version()
+                    dbver = int(open(tools_util.working_dir + '/tools-version.out', 'r').read().strip())
                 dbinfo.append((dbfile, dbver, dbsize))
     return dbinfo
 
@@ -137,14 +137,17 @@ def copyIqTools(iqToolsBin, workingDir):
 
 
 def statsdec(func):
-    def stats_decorator(profile, util):
+    def stats_decorator(profile, util, iq_util=None, iq_running=False):
         res = Result()
-        res.db_info_before = reportDbInfo(util.working_dir)
+        res.db_info_before = reportDbInfo(util, iq_running)
         res.start = round(time.time())
-        res.payload = func(profile, util)
+        if iq_util:
+            res.payload = func(profile, util, iq_util)
+        else:
+            res.payload = func(profile, util)
         res.end = round(time.time())
         res.elapsed = res.end - res.start
-        res.db_info_after = reportDbInfo(util.working_dir)
+        res.db_info_after = reportDbInfo(util, iq_running)
         log.info("{}: start: {}  end: {}  elapsed: {}sec".format(func.__name__, res.start, res.end, res.elapsed))
 
         profile['results'][func.__name__] = res
@@ -160,7 +163,7 @@ def get_params_and_opts(testProfile, util, key):
 
 
 @statsdec
-def migrateDb(testProfile, iq_util):
+def migrateDb(testProfile, tools_util, iq_util):
     "start / stop iq against dataset. report size before/after."
     "capture before/after version"
     params, opts = get_params_and_opts(testProfile, 'iq_server', 'run_server')
@@ -188,7 +191,7 @@ def buildUrlTemplate(testProfile, tools_util):
 
 
 @statsdec
-def executeTest(testProfile, tools_util):
+def executeTest(testProfile, tools_util, iq_running=True):
     "start iq in one thread, execute url runner in another"
     return tools_util.run_test()
 
@@ -257,7 +260,7 @@ def main():
     tools_util = IqToolsUtil(workingDir, os.path.basename(parsed.iq_tools), sonatype_work_dir)
 
     # **** migrate db
-    migrateDb(testProfile, iq_util)
+    migrateDb(testProfile, tools_util, iq_util)
     log.info('migrate done')
 
     # *** shift db
@@ -278,7 +281,7 @@ def main():
     log.info('iq started... about to test')
 
     # *** run test
-    executeTest(testProfile, tools_util)
+    executeTest(testProfile, tools_util, iq_running=True)
     log.info('tests done')
 
     # *** stop Iq

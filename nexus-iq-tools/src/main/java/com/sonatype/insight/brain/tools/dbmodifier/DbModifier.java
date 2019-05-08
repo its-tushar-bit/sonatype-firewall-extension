@@ -22,8 +22,12 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.codehaus.plexus.util.FileUtils;
+
 public class DbModifier
 {
+  private final File databaseFile;
+
   private final String schemaName;
 
   private final String dbConnectionString;
@@ -51,7 +55,13 @@ public class DbModifier
   }
 
   // visible for testing
-  DbModifier(final String dbConnectionString, final String username, final String password, final String schemaName) {
+  DbModifier(final File file,
+             final String dbConnectionString,
+             final String username,
+             final String password,
+             final String schemaName)
+  {
+    this.databaseFile = file;
     this.dbConnectionString = dbConnectionString + ";SCHEMA=" + schemaName;
     this.username = username;
     this.password = password;
@@ -59,7 +69,7 @@ public class DbModifier
   }
 
   public DbModifier(final File file, final String username, final String password, final String schemaName) {
-    this(getDbConnectionString(file), username, password, schemaName);
+    this(file, getDbConnectionString(file), username, password, schemaName);
   }
 
   private Connection getConnection() throws SQLException {
@@ -245,5 +255,51 @@ public class DbModifier
     catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public String dbVersion() {
+    String dbVersion = dbVersionFromDatabase();
+    if (dbVersion == null) {
+      dbVersion = dbVersionFromFile();
+    }
+    if (dbVersion == null) {
+      dbVersion = "-1";
+    }
+    return dbVersion;
+  }
+
+  private String dbVersionFromDatabase() {
+    try (Connection connection = getConnection()) {
+      try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(
+          "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + schemaName +
+              "' AND TABLE_NAME = 'schema_version'")) {
+        if (!result.next()) {
+          return null;
+        }
+      }
+      try (Statement statement = connection.createStatement(); ResultSet result = statement
+          .executeQuery("SELECT * FROM " + schemaName + ".schema_version")) {
+        if (result.next()) {
+          return String.valueOf(result.getInt("schema_version"));
+        }
+      }
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
+  private String dbVersionFromFile() {
+    File databaseVersionFile = new File(databaseFile.getAbsolutePath() + ".ver");
+    if (databaseVersionFile.exists()) {
+      try {
+        return FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return null;
   }
 }

@@ -65,6 +65,9 @@ public final class DbModifierCli
   @Parameter(names = {"-sk", "-scrub-keep"}, description = "Keep files used during scrub operations.")
   private boolean scrubKeep;
 
+  @Parameter(names = {"-dbv", "-db-version"}, description = "Print db version info and exit.")
+  private boolean dbVersion;
+
   private static void noArgsCheck(int argCount) {
     if (argCount == 0) {
       printUsage();
@@ -173,6 +176,9 @@ public final class DbModifierCli
     }
     else if (scrub || scrubNoBuild) {
       dbmod.scrub(!scrubNoBuild, scrubNoBuild || scrubKeep);
+    }
+    else if (dbVersion) {
+      log.info(dbmod.dbVersion());
     }
     else {
       printUsage();

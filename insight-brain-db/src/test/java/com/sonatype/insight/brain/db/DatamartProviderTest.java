@@ -48,7 +48,9 @@ public class DatamartProviderTest
 
     initDatabase(getDatabaseConfig(databaseDir, "dm"));
 
+    assertThat(databaseVersionFile).doesNotExist();
     int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(DatamartProvider.ID);
-    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredDbVersion));
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(DatamartProvider.getDataSource(), DatamartProvider.ID))
+        .isEqualTo(desiredDbVersion);
   }
 }

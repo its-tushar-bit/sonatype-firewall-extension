@@ -61,7 +61,9 @@ public class DiagnosticsCli
     log.info("-- Database Diagnostics --");
     log.info("Total database size: {} bytes", h2.length());
 
-    logSchemaVersion(ods);
+    logSchemaVersionFromFile(ods);
+    String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+    logSchemaVersionFromDatabase(dbUrl);
 
     if (params.isRecover()) {
       recoverDatabase(ods);
@@ -72,7 +74,6 @@ public class DiagnosticsCli
       logDiskSpeed(h2);
     }
 
-    String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
     try (Connection connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD)) {
       connection.setAutoCommit(true);
       if (params.isCompact()) {
@@ -93,7 +94,7 @@ public class DiagnosticsCli
     }
   }
 
-  private void logSchemaVersion(File ods) throws Exception {
+  private void logSchemaVersionFromFile(File ods) throws Exception {
     File versionFile = new File(ods + ".ver");
     String version;
     if (versionFile.isFile()) {
@@ -102,7 +103,31 @@ public class DiagnosticsCli
     else {
       version = "(unknown - " + versionFile + " missing)";
     }
-    log.info("Schema version: {}", version);
+    log.info("Schema version from file: {}", version);
+  }
+
+  private void logSchemaVersionFromDatabase(String dbUrl) throws Exception {
+    try (Connection connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD)) {
+      try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(
+          "SELECT * FROM INFORMATION_SCHEMA.TABLES " +
+              "WHERE TABLE_SCHEMA = 'insight_brain_ods' AND TABLE_NAME = 'schema_version'")) {
+        if (!result.next()) {
+          log.info("Schema version from database: {}", "(unknown - insight_brain_ods version table missing)");
+          return;
+        }
+      }
+      try (Statement statement = connection.createStatement();
+           ResultSet result = statement.executeQuery("SELECT * FROM insight_brain_ods.schema_version")) {
+        if (result.last() && result.getRow() == 1) {
+          log.info("Schema version from database: {}", result.getInt("schema_version"));
+        }
+        else {
+          log.info("Schema version from database: {}",
+              "(unknown - insight_brain_ods schema_version table should have 1 entry but has " + result.getRow() +
+                  ")");
+        }
+      }
+    }
   }
 
   private void logDiskSpeed(File dbFile) throws Exception {

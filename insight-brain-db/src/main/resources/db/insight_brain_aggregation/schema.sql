@@ -117,3 +117,8 @@ CREATE TABLE success_metrics_report_data (
   CONSTRAINT success_metrics_report_data_fk FOREIGN KEY (success_metrics_report_data_id) REFERENCES
       success_metrics_report(success_metrics_report_id)
 );
+
+CREATE TABLE schema_version (
+  schema_version int NOT NULL
+);
+INSERT INTO schema_version (schema_version) VALUES (-1);

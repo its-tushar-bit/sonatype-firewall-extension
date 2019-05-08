@@ -1,0 +1,2 @@
+SET SCHEMA testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript;
+DROP TABLE does_not_exist;

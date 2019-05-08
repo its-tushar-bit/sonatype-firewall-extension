@@ -57,8 +57,11 @@ public class OperationalDataStoreProviderTest
 
     initDatabase(getDatabaseConfig(databaseDir, "ods"));
 
+    assertThat(databaseVersionFile).doesNotExist();
     int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
-    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredDbVersion));
+    assertThat(DatabaseUtil
+        .getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID))
+        .isEqualTo(desiredDbVersion);
   }
 
   @Test
@@ -96,11 +99,12 @@ public class OperationalDataStoreProviderTest
   public void testInit_Migrate_NoConsentForNewViolationModel_AlreadyMigratedToNewModel() throws Exception {
     File databaseDir = tempDir.newFolder();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/MigrateNewViolationModel");
-    File databaseVersionFile = new File(databaseDir, "ods.ver");
 
     OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
 
     int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
-    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredDbVersion));
+    assertThat(DatabaseUtil
+        .getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID))
+        .isEqualTo(desiredDbVersion);
   }
 }

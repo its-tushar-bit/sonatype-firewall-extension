@@ -47,6 +47,22 @@ public class H2DatabaseMigratorTest
   }
 
   @Test
+  public void testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
+    File databaseDir = tempDir.newFolder("db");
+    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/"
+        + "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"), databaseDir);
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
+    String databaseName = "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript";
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, databaseName);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(1);
+
+    // Should fail to upgrade to version 3 because it tries to drop a non-existing table
+    assertThatThrownBy(() -> new H2DatabaseMigrator().migrate(databaseConfig, databaseName, dataSource))
+        .isInstanceOf(ScriptStatementFailedException.class);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(2);
+  }
+
+  @Test
   public void testMigrate_RunsPostIncrementalMigrators() throws Exception {
     File databaseDir = tempDir.newFolder();
     copyDatabase(databaseDir,  getClass().getSimpleName() + "/PostIncrementalMigrator");
@@ -58,7 +74,6 @@ public class H2DatabaseMigratorTest
 
     new H2DatabaseMigrator().migrate(databaseConfig, "PostIncrementalMigrator", dataSource);
 
-    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredVersion));
     assertThat(PostIncrementalMigratorVersionMinus1.invoked).isFalse();
     assertThat(PostIncrementalMigratorVersion.invoked).isFalse();
     assertThat(PostIncrementalMigratorVersionPlus1.invoked).isTrue();
@@ -87,18 +102,20 @@ public class H2DatabaseMigratorTest
   }
 
   @Test
-  public void testMigrate_MissingVersionFile() throws Exception {
+  public void testMigrate_MissingVersion() throws Exception {
     File databaseDir = tempDir.newFolder();
-    copyDatabase(databaseDir, getClass().getSimpleName() + "/MissingVersionFile");
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/MissingVersion");
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
     assertThat(databaseVersionFile).doesNotExist();
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "MissingVersionFile");
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "MissingVersion");
+    assertThat(DatabaseUtil.schemaVersionTableExists(dataSource, "MissingVersion")).isFalse();
 
     assertThatThrownBy(() -> {
-      new H2DatabaseMigrator().migrate(databaseConfig, "MissingVersionFile", dataSource);
-    }).isInstanceOf(IllegalStateException.class)
-        .hasMessage("Missing the database version file " + databaseVersionFile + ".");
+      new H2DatabaseMigrator().migrate(databaseConfig, "MissingVersion", dataSource);
+    }).isInstanceOf(IllegalStateException.class).hasMessage(
+        "Missing the database schema version either in the database itself or in the database version file " +
+            databaseVersionFile + ".");
   }
 
   @Test
@@ -143,6 +160,32 @@ public class H2DatabaseMigratorTest
   @Test
   public void testDetermineDesiredVersion() {
     assertThat(H2DatabaseMigrator.determineDesiredVersion("DetermineDesiredVersion")).isEqualTo(12);
+  }
+
+  @Test
+  public void testMigrate_NewAggregationDatabase_PopulatesVersion() throws Exception {
+    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStoreProvider.ID);
+  }
+
+  @Test
+  public void testMigrate_NewDatamartDatabase_PopulatesVersion() throws Exception {
+    testMigrate_NewDatabase_PopulatesVersion(DatamartProvider.ID);
+  }
+
+  @Test
+  public void testMigrate_NewOperationalDataStoreDatabase_PopulatesVersion() throws Exception {
+    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStoreProvider.ID);
+  }
+
+  private void testMigrate_NewDatabase_PopulatesVersion(String databaseName) throws Exception {
+    File databaseDir = tempDir.newFolder();
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, databaseName);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, databaseName);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(-1);
+
+    new H2DatabaseMigrator().migrate(databaseConfig, databaseName, dataSource);
+
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isNotEqualTo(-1);
   }
 
   static class PostIncrementalMigratorVersionMinus1

@@ -27,3 +27,8 @@ CREATE TABLE multi_license_license (
   CONSTRAINT multi_license_license_multi_fk FOREIGN KEY (multi_license_id) REFERENCES multi_license(multi_license_id),
   CONSTRAINT multi_license_license_license_fk FOREIGN KEY (license_id) REFERENCES license(license_id)
 );
+
+CREATE TABLE schema_version (
+  schema_version int NOT NULL
+);
+INSERT INTO schema_version (schema_version) VALUES (-1);

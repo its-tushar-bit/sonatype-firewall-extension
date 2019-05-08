@@ -6,31 +6,22 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Creates a backup of an H2 database. The backup includes the db version file and instructions for restoring the
- * database from the backup.
+ * Creates a backup of an H2 database. The backup includes instructions for restoring the database from the backup.
  * 
  * @since 1.15.0
  */
@@ -58,7 +49,6 @@ public class H2DatabaseBackup
     File dbBackupFile = new File(dbBackupDir, databaseName + BACKUP_FILENAME_SUFFIX);
 
     createDbBackup(dataSource, dbBackupFile);
-    copyDbVersionFile(databasePath, dbBackupFile);
     createDbRestoreIntructions(databasePath, dbBackupDir);
 
     log.debug("Created database backup '{}' in {} ms.", dbBackupDir.getAbsolutePath(), System.currentTimeMillis()
@@ -73,42 +63,6 @@ public class H2DatabaseBackup
     }
     catch (SQLException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  private void copyDbVersionFile(File databasePath, File dbBackupFile) {
-    // The API for zip files doesn't allow to just add a file to a zip. We need to rename the zip to a temp file, copy
-    // its content to a new zip file and add the db version file to the new zip.
-    File tempFile = new File(dbBackupFile.getAbsolutePath() + ".tmp");
-    try {
-      FileUtils.rename(dbBackupFile, tempFile);
-
-      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dbBackupFile));
-          ZipFile oldZipFile = new ZipFile(tempFile)) {
-        // Copy the entries from the old zip file to the new zip file
-        Enumeration<? extends ZipEntry> zipEntries = oldZipFile.entries();
-        while (zipEntries.hasMoreElements()) {
-          ZipEntry zipEntry = zipEntries.nextElement();
-          zos.putNextEntry(zipEntry);
-          IOUtil.copy(oldZipFile.getInputStream(zipEntry), zos);
-          zos.closeEntry();
-        }
-
-        // Add the db version file to the new zip file
-        File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
-        zos.putNextEntry(new ZipEntry(databaseVersionFile.getName()));
-        try (InputStream is = new FileInputStream(databaseVersionFile)) {
-          IOUtil.copy(is, zos);
-        }
-      }
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    finally {
-      if (!tempFile.delete()) {
-        log.error("Cannot delete temp file '{}'.", tempFile.getAbsolutePath());
-      }
     }
   }
 

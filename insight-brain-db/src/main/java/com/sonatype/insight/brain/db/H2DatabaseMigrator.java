@@ -58,18 +58,23 @@ public class H2DatabaseMigrator
 
       if (new DataSourceFactory().isNewDataSource(dataSource)) {
         // This is a new database, nothing to migrate here.
-        FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(desiredVersion));
+        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseName, desiredVersion);
         return;
       }
 
       // The database exists and it may require migration.
       int currentVersion;
-      if (databaseVersionFile.exists()) {
+      if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseName)) {
+        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName);
+      }
+      else if (databaseVersionFile.exists()) {
         String sCurrentVersion = FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
         currentVersion = Integer.parseInt(sCurrentVersion);
       }
       else {
-        throw new IllegalStateException("Missing the database version file " + databaseVersionFile + ".");
+        throw new IllegalStateException(
+            "Missing the database schema version either in the database itself or in the database version file " +
+                databaseVersionFile + ".");
       }
 
       log.info("Current version of database {}: {}", databaseFilename, currentVersion);
@@ -103,11 +108,18 @@ public class H2DatabaseMigrator
         runScript(dataSource, scriptName);
         String postIncrementalMigratorFileName = getIncrementalFileName(databaseName, "cls", i);
         runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
-        FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
+        if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseName)) {
+          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseName, i);
+        }
+        else {
+          FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
+        }
       }
 
       log.info("Deleting backup of database {} from {}", databaseFilename, backupDir);
-      new FileCleaner().delete(backupDir);
+      FileCleaner fileCleaner = new FileCleaner();
+      fileCleaner.delete(backupDir);
+      fileCleaner.delete(databaseVersionFile);
     }
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);

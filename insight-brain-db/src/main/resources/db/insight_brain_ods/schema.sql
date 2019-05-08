@@ -577,3 +577,8 @@ INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_i
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a4', 'ROOT_ORGANIZATION_ID', 'operate', true, 3650);
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a5', 'ROOT_ORGANIZATION_ID', 'continuous-monitoring', true, 90);
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a6', 'ROOT_ORGANIZATION_ID', 'success-metrics', true, 365);
+
+CREATE TABLE schema_version (
+  schema_version int NOT NULL
+);
+INSERT INTO schema_version (schema_version) VALUES (-1);

@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.support;
 import java.io.File;
 import java.io.IOException;
 
+import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +44,8 @@ class DbDiagnostics
       result.append("Database path: " + ods.getCanonicalPath() + "\n");
       result.append("Total database size: " + h2.length() + " bytes\n");
 
-      final File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(ods);
-      final String version = FileUtils.fileRead(databaseVersionFile, "UTF-8");
+      final int version = DatabaseUtil
+          .getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID);
       result.append("Schema version: " + version + "\n");
     }
     return result.toString();

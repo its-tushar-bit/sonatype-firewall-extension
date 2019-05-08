@@ -34,7 +34,7 @@ public class DatabaseUtil
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
          ResultSet result = statement.executeQuery("SELECT * FROM " + databaseName + ".schema_version")) {
-      if (result.last() && result.getRow() == 1) {
+      if (result.next() && result.isLast()) {
         return result.getInt("schema_version");
       }
       else {
@@ -50,13 +50,13 @@ public class DatabaseUtil
   public static void updateDatabaseSchemaVersion(DataSource dataSource, String databaseName, int schemaVersion) {
     try (Connection connection = dataSource.getConnection(); PreparedStatement preparedStatement = connection
         .prepareStatement("UPDATE " + databaseName + ".schema_version SET schema_version = ?")) {
+      connection.setAutoCommit(true);
       preparedStatement.setInt(1, schemaVersion);
       int updated = preparedStatement.executeUpdate();
       if (updated != 1) {
         throw new IllegalStateException(
             databaseName + " schema_version table should have 1 entry but has " + updated + ".");
       }
-      connection.commit();
     }
     catch (Exception e) {
       throw new IllegalStateException(

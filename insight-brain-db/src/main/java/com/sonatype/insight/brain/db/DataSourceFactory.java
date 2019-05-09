@@ -54,7 +54,7 @@ public class DataSourceFactory
     return dataSource;
   }
 
-  DatabaseEngine getDatabaseEngine(DataSource dataSource) {
+  public static DatabaseEngine getDatabaseEngine(DataSource dataSource) {
     try (Connection conn = dataSource.getConnection()) {
       return getDatabaseEngine(conn.getMetaData().getDatabaseProductName());
     }
@@ -63,7 +63,7 @@ public class DataSourceFactory
     }
   }
 
-  DatabaseEngine getDatabaseEngine(String databaseProductName) {
+  static DatabaseEngine getDatabaseEngine(String databaseProductName) {
     if ("h2".equalsIgnoreCase(databaseProductName)) {
       return H2DatabaseEngine.INSTANCE;
     }

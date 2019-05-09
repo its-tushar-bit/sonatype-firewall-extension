@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseEngine;
+import com.sonatype.insight.db.H2DatabaseEngine;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -57,7 +59,6 @@ public class H2DatabaseMigrator
         return;
       }
 
-      File databasePath = null;
       File databaseVersionFile = null;
 
       // The database exists and it may require migration.
@@ -66,7 +67,7 @@ public class H2DatabaseMigrator
         currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName);
       }
       else {
-        databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
+        File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
         databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
         if (databaseVersionFile.exists()) {
           String sCurrentVersion = FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
@@ -96,7 +97,9 @@ public class H2DatabaseMigrator
       log.info("Migrating database schema {} to version: {}", databaseName, desiredVersion);
 
       File backupDir = null;
-      if (databasePath != null) {
+      DatabaseEngine databaseEngine = DataSourceFactory.getDatabaseEngine(dataSource);
+      if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {
+        File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
         File databaseDir = databasePath.getParentFile();
         backupDir = new File(databaseDir, "backup");
         if (backupDir.exists()) {

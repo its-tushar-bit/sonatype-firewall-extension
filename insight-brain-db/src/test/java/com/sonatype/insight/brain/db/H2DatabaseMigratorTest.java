@@ -47,6 +47,50 @@ public class H2DatabaseMigratorTest
   }
 
   @Test
+  public void testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInTheDatabase() throws Exception {
+    File databaseDir = tempDir.newFolder("db");
+    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/"
+        + "testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInTheDatabase"), databaseDir);
+
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
+
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+
+    // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
+    // removed this table.
+    // The version file must be updated to contain the number of the last incremental script applied successfully (in
+    // this case, schema_incremental_0006.sql).
+    assertThatThrownBy(() -> {
+      new H2DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+    }).isInstanceOf(ScriptStatementFailedException.class);
+
+    File backupFile = new File(databaseDir, "backup/dm.zip");
+    assertThat(backupFile).isFile();
+  }
+
+  @Test
+  public void testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile() throws Exception {
+    File databaseDir = tempDir.newFolder("db");
+    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/"
+        + "testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile"), databaseDir);
+
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
+
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+
+    // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
+    // removed this table.
+    // The version file must be updated to contain the number of the last incremental script applied successfully (in
+    // this case, schema_incremental_0006.sql).
+    assertThatThrownBy(() -> {
+      new H2DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+    }).isInstanceOf(ScriptStatementFailedException.class);
+
+    File backupFile = new File(databaseDir, "backup/dm.zip");
+    assertThat(backupFile).isFile();
+  }
+
+  @Test
   public void testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseDir = tempDir.newFolder("db");
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/"

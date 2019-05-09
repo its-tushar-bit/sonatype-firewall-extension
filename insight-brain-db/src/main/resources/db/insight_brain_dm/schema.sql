@@ -9,7 +9,7 @@ CREATE TABLE license (
   shortDisplayName varchar(1000) NOT NULL,
   longDisplayName varchar(1000) default NULL,
   CONSTRAINT license_pk PRIMARY KEY (license_id),
-  UNIQUE KEY license_shortDisplayName_uk (shortDisplayName)
+  CONSTRAINT license_shortDisplayName_uk UNIQUE (shortDisplayName)
 );
 
 CREATE TABLE multi_license (
@@ -17,7 +17,7 @@ CREATE TABLE multi_license (
   shortDisplayName varchar(1000) NOT NULL,
   longDisplayName varchar(1000) default NULL,
   CONSTRAINT multi_license_pk PRIMARY KEY (multi_license_id),
-  UNIQUE KEY multi_license_shortDisplayName_uk (shortDisplayName)
+  CONSTRAINT multi_license_shortDisplayName_uk UNIQUE (shortDisplayName)
 );
 
 CREATE TABLE multi_license_license (

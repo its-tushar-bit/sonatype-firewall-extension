@@ -7,8 +7,8 @@ CREATE TABLE test_table (
 CREATE TABLE policy_violation_aggregation (
   policy_violation_aggregation_id VARCHAR(50) NOT NULL,
   application_id VARCHAR(50) NOT NULL,
-  time_period_start DATETIME NOT NULL,
-  time_period_end DATETIME NULL,
+  time_period_start timestamp NOT NULL,
+  time_period_end timestamp NULL,
   mttr_low_threat BIGINT NULL,
   mttr_moderate_threat BIGINT NULL,
   mttr_severe_threat BIGINT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE policy_violation_aggregation (
   open_count_other_critical_threat INTEGER NOT NULL,
 
   CONSTRAINT policy_violation_aggregation_pk PRIMARY KEY (policy_violation_aggregation_id),
-  CONSTRAINT policy_violation_aggregation_uk UNIQUE KEY (application_id, time_period_start, time_period)
+  CONSTRAINT policy_violation_aggregation_uk UNIQUE (application_id, time_period_start, time_period)
 );
 
 CREATE TABLE success_metrics_report (
@@ -89,11 +89,11 @@ CREATE TABLE success_metrics_report (
   username VARCHAR(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
   name VARCHAR(60) NOT NULL,
   name_lowercase_no_whitespace VARCHAR(60) NOT NULL,
-  scope_json CLOB NOT NULL, -- The scope (app/org ids) stored in json format
-  create_time DATETIME NOT NULL,
+  scope_json text NOT NULL, -- The scope (app/org ids) stored in json format
+  create_time timestamp NOT NULL,
   include_latest_data BOOLEAN NOT NULL DEFAULT true,
   CONSTRAINT success_metrics_report_pk PRIMARY KEY (success_metrics_report_id),
-  CONSTRAINT success_metrics_report_uk UNIQUE KEY (username, name_lowercase_no_whitespace)
+  CONSTRAINT success_metrics_report_uk UNIQUE (username, name_lowercase_no_whitespace)
 );
 
 
@@ -104,14 +104,14 @@ CREATE TABLE success_metrics_report_data (
   success_metrics_report_data_id VARCHAR(50) NOT NULL,
 
   -- things that need to be tracked in order to determine when this data must be refreshed
-  last_updated DATETIME NOT NULL,
-  included_application_ids_json CLOB NOT NULL,
+  last_updated timestamp NOT NULL,
+  included_application_ids_json text NOT NULL,
 
   -- summary data
   month_count SMALLINT NOT NULL,
   active_application_count INTEGER NOT NULL,
 
-  chart_data_json CLOB NOT NULL,
+  chart_data_json text NOT NULL,
 
   CONSTRAINT success_metrics_report_data_pk PRIMARY KEY (success_metrics_report_data_id),
   CONSTRAINT success_metrics_report_data_fk FOREIGN KEY (success_metrics_report_data_id) REFERENCES

@@ -1,5 +1,3 @@
-SET MAX_LENGTH_INPLACE_LOB 100000;
-
 -- For tests only
 CREATE TABLE test_table (
   test_table_id varchar(50) NOT NULL,
@@ -22,7 +20,7 @@ CREATE TABLE organization (
   policy_violation_grandfathering_enabled boolean,
   allow_policy_violation_grandfathering_override boolean DEFAULT true NOT NULL, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
-  CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
+  CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
 );
 INSERT INTO organization (organization_id, parent_organization_id, name, name_lowercase_no_whitespace) VALUES('ROOT_ORGANIZATION_ID', null, 'Root Organization', 'rootorganization');
@@ -38,8 +36,8 @@ CREATE TABLE application (
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
   policy_violation_grandfathering_enabled boolean,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
-  CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase),
-  CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
+  CONSTRAINT application_uk UNIQUE (public_id_lowercase),
+  CONSTRAINT application_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT application_organization_fk FOREIGN KEY (organization_id) REFERENCES organization(organization_id)
 );
 
@@ -51,7 +49,7 @@ CREATE TABLE label (
   color varchar(20) NOT NULL,
   description varchar(255) NULL,
   CONSTRAINT label_pk PRIMARY KEY (label_id),
-  CONSTRAINT label_uk UNIQUE KEY (owner_id, label_lowercase)
+  CONSTRAINT label_uk UNIQUE (owner_id, label_lowercase)
 );
 
 CREATE TABLE component_label (
@@ -61,7 +59,7 @@ CREATE TABLE component_label (
   hash varchar(20) NOT NULL,
   CONSTRAINT component_label_pk PRIMARY KEY (component_label_id),
   CONSTRAINT component_label_label_fk FOREIGN KEY (label_id) REFERENCES label(label_id),
-  CONSTRAINT component_label_uk UNIQUE KEY (owner_id, hash, label_id)
+  CONSTRAINT component_label_uk UNIQUE (owner_id, hash, label_id)
 );
 
 -- owner_id can be an application or an organization id
@@ -70,9 +68,9 @@ CREATE TABLE license_threat_group (
   owner_id varchar(50) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
-  threat_level smallint(2) NOT NULL,
+  threat_level smallint NOT NULL,
   CONSTRAINT license_threat_group_pk PRIMARY KEY (license_threat_group_id),
-  CONSTRAINT license_threat_group_uk UNIQUE KEY (owner_id, name_lowercase_no_whitespace)
+  CONSTRAINT license_threat_group_uk UNIQUE (owner_id, name_lowercase_no_whitespace)
 );
 
 -- owner_id can be an application or an organization id
@@ -83,7 +81,7 @@ CREATE TABLE license_threat_group_license (
   license_id varchar(1000) NOT NULL,
   CONSTRAINT license_threat_group_license_pk PRIMARY KEY (license_threat_group_license_id),
   CONSTRAINT license_threat_group_license_group_fk FOREIGN KEY (license_threat_group_id) REFERENCES license_threat_group(license_threat_group_id),
-  CONSTRAINT license_threat_group_license_uk UNIQUE KEY (license_threat_group_id, license_id)
+  CONSTRAINT license_threat_group_license_uk UNIQUE (license_threat_group_id, license_id)
 );
 
 CREATE TABLE hash_component_identifier (
@@ -92,10 +90,10 @@ CREATE TABLE hash_component_identifier (
   component_id_format varchar(10) NOT NULL,
   component_id_coordinates_json varchar(1000) NOT NULL, -- the component identifier coordinates stored in json format
   comment varchar(1000) NULL,
-  create_time datetime NULL,
+  create_time timestamp NULL,
   CONSTRAINT hash_component_identifier_pk PRIMARY KEY (hash_component_identifier_id),
-  CONSTRAINT hash_component_identifier_component_id_uk UNIQUE KEY (component_id_format, component_id_coordinates_json),
-  CONSTRAINT hash_component_identifier_hash_uk UNIQUE KEY (hash)
+  CONSTRAINT hash_component_identifier_component_id_uk UNIQUE (component_id_format, component_id_coordinates_json),
+  CONSTRAINT hash_component_identifier_hash_uk UNIQUE (hash)
 );
 
 -- owner_id can be an application or an organization id
@@ -104,12 +102,12 @@ CREATE TABLE policy (
   owner_id varchar(50) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
-  threat_level smallint(2) NOT NULL,
+  threat_level smallint NOT NULL,
   policy_violation_grandfathering_allowed boolean NOT NULL,
-  content CLOB NOT NULL,
-  drools_code CLOB NOT NULL,
+  content text NOT NULL,
+  drools_code text NOT NULL,
   CONSTRAINT policy_pk PRIMARY KEY (policy_id),
-  CONSTRAINT policy_name_uk UNIQUE KEY (owner_id, name_lowercase_no_whitespace)
+  CONSTRAINT policy_name_uk UNIQUE (owner_id, name_lowercase_no_whitespace)
 );
 
 CREATE TABLE policy_waiver (
@@ -119,9 +117,9 @@ CREATE TABLE policy_waiver (
   owner_id varchar(50) NOT NULL,
   -- record of the policy constraints/conditions that were violated
   -- it is nullable because legacy policy waivers (before Insight Brain 1.53) do not store this data.
-  constraint_facts_json CLOB NULL,
+  constraint_facts_json text NULL,
   comment varchar(1000) NULL,
-  create_time datetime NOT NULL,
+  create_time timestamp NOT NULL,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
@@ -134,7 +132,7 @@ CREATE TABLE license_override (
   status varchar(20) NOT NULL,
   comment varchar(1000) NULL,
   CONSTRAINT license_override_pk PRIMARY KEY (license_override_id),
-  CONSTRAINT license_override_uk UNIQUE KEY (owner_id, component_id_format, component_id_coordinates_json)
+  CONSTRAINT license_override_uk UNIQUE (owner_id, component_id_format, component_id_coordinates_json)
 );
 
 CREATE TABLE license_override_license (
@@ -142,7 +140,7 @@ CREATE TABLE license_override_license (
   license_override_id varchar(50) NOT NULL,
   license_id varchar(1000) NOT NULL,
   CONSTRAINT license_override_license_pk PRIMARY KEY (license_override_license_id),
-  CONSTRAINT license_override_license_uk UNIQUE KEY (license_override_id, license_id),
+  CONSTRAINT license_override_license_uk UNIQUE (license_override_id, license_id),
   CONSTRAINT license_override_license_override_fk FOREIGN KEY (license_override_id) REFERENCES license_override(license_override_id)
 );
 
@@ -155,10 +153,10 @@ CREATE TABLE sv_override (
   status varchar(20) NOT NULL,
   comment varchar(1000) NULL,
   CONSTRAINT sv_override_pk PRIMARY KEY (sv_override_id),
-  CONSTRAINT sv_override_uk UNIQUE KEY (owner_id, hash, source, reference_id)
+  CONSTRAINT sv_override_uk UNIQUE (owner_id, hash, source, reference_id)
 );
 
-CREATE TABLE user (
+CREATE TABLE "user" (
   user_id varchar(50) NOT NULL,
   username varchar(60) NOT NULL,
   username_lowercase varchar(60) NOT NULL,
@@ -167,9 +165,9 @@ CREATE TABLE user (
   last_name varchar(100) NOT NULL,
   email varchar(255) NOT NULL,
   CONSTRAINT user_pk PRIMARY KEY (user_id),
-  CONSTRAINT user_username_uk UNIQUE KEY (username_lowercase)
+  CONSTRAINT user_username_uk UNIQUE (username_lowercase)
 );
-INSERT INTO user (user_id, username, username_lowercase, password, first_name, last_name, email ) VALUES ('ADMIN', 'admin', 'admin', '$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=', 'Admin', 'BuiltIn', 'admin@localhost');
+INSERT INTO "user" (user_id, username, username_lowercase, password, first_name, last_name, email ) VALUES ('ADMIN', 'admin', 'admin', '$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=', 'Admin', 'BuiltIn', 'admin@localhost');
 
 CREATE TABLE role (
   role_id varchar(50) NOT NULL,
@@ -180,7 +178,7 @@ CREATE TABLE role (
   global boolean NOT NULL,
   built_in boolean DEFAULT false NOT NULL,
   CONSTRAINT role_pk PRIMARY KEY (role_id),
-  CONSTRAINT role_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+  CONSTRAINT role_name_uk UNIQUE (name_lowercase_no_whitespace)
 );
 
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('1b92fae3e55a411793a091fb821c422d', 'System Administrator', 'systemadministrator', 100, 'Manages system configuration and users.', TRUE, TRUE);
@@ -195,7 +193,7 @@ CREATE TABLE role_permission (
   role_id varchar(50) NOT NULL,
   permission varchar(50) NOT NULL,
   CONSTRAINT role_permission_pk PRIMARY KEY (role_permission_id),
-  CONSTRAINT role_permission_uk UNIQUE KEY (role_id, permission),
+  CONSTRAINT role_permission_uk UNIQUE (role_id, permission),
   CONSTRAINT role_permission_role_fk FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 -- System Administrator role
@@ -235,7 +233,7 @@ CREATE TABLE membership_mapping (
   member_name varchar(60) NOT NULL,
   member_type varchar(20) NOT NULL,
   CONSTRAINT membership_mapping_pk PRIMARY KEY (membership_mapping_id),
-  CONSTRAINT membership_mapping_uk UNIQUE KEY (context_id, role_id, member_name, member_type),
+  CONSTRAINT membership_mapping_uk UNIQUE (context_id, role_id, member_name, member_type),
   CONSTRAINT membership_mapping_role_fk FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 CREATE INDEX membership_mapping_member_name_idx ON membership_mapping(member_name);
@@ -248,8 +246,8 @@ CREATE TABLE ldap_server (
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   priority int NOT NULL,
   CONSTRAINT ldap_server_pk PRIMARY KEY (ldap_server_id),
-  CONSTRAINT ldap_server_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
-  CONSTRAINT ldap_server_priority_uk UNIQUE KEY (priority)
+  CONSTRAINT ldap_server_name_uk UNIQUE (name_lowercase_no_whitespace),
+  CONSTRAINT ldap_server_priority_uk UNIQUE (priority)
 );
 
 CREATE TABLE ldap_connection (
@@ -257,17 +255,17 @@ CREATE TABLE ldap_connection (
   ldap_server_id varchar(50) NOT NULL,
   protocol varchar(5) NOT NULL,
   hostname varchar(255) NOT NULL,
-  port int(5) NOT NULL,
+  port int NOT NULL,
   search_base varchar(255),
   authentication_method varchar(10) NOT NULL,
   sasl_realm varchar(255),
   system_username varchar(255),
   system_password varchar(255),
-  connection_timeout smallint(3), -- in seconds
-  retry_delay smallint(3), -- in seconds
+  connection_timeout smallint, -- in seconds
+  retry_delay smallint, -- in seconds
   CONSTRAINT ldap_connection_pk PRIMARY KEY (ldap_connection_id),
   CONSTRAINT ldap_connection_server_fk FOREIGN KEY (ldap_server_id) REFERENCES ldap_server(ldap_server_id),
-  CONSTRAINT ldap_connection_server_id_uk UNIQUE KEY (ldap_server_id)
+  CONSTRAINT ldap_connection_server_id_uk UNIQUE (ldap_server_id)
 );
 
 CREATE TABLE ldap_usermapping (
@@ -298,7 +296,7 @@ CREATE TABLE ldap_usermapping (
 
   CONSTRAINT ldap_usermapping_pk PRIMARY KEY (ldap_usermapping_id),
   CONSTRAINT ldap_usermapping_server_fk FOREIGN KEY (ldap_server_id) REFERENCES ldap_server(ldap_server_id),
-  CONSTRAINT ldap_usermapping_server_id_uk UNIQUE KEY (ldap_server_id)
+  CONSTRAINT ldap_usermapping_server_id_uk UNIQUE (ldap_server_id)
 );
 
 CREATE TABLE policy_monitoring (
@@ -306,7 +304,7 @@ CREATE TABLE policy_monitoring (
   owner_id varchar(50) NOT NULL,
   stage_type_id varchar(50) NOT NULL,
   CONSTRAINT policy_monitoring_pk PRIMARY KEY (policy_monitoring_id),
-  CONSTRAINT policy_monitoring_uk UNIQUE KEY (owner_id)
+  CONSTRAINT policy_monitoring_uk UNIQUE (owner_id)
 );
 
 CREATE TABLE tag (
@@ -317,7 +315,7 @@ CREATE TABLE tag (
   description varchar(255) NOT NULL,
   color varchar(20) NOT NULL,
   CONSTRAINT tag_pk PRIMARY KEY (tag_id),
-  CONSTRAINT tag_uk UNIQUE KEY (organization_id, name_lowercase_no_whitespace),
+  CONSTRAINT tag_uk UNIQUE (organization_id, name_lowercase_no_whitespace),
   CONSTRAINT tag_organization_fk FOREIGN KEY (organization_id) REFERENCES organization(organization_id)
 );
 
@@ -326,7 +324,7 @@ CREATE TABLE application_tag (
   application_id varchar(50) NOT NULL,
   tag_id varchar(50) NOT NULL,
   CONSTRAINT application_tag_pk PRIMARY KEY (application_tag_id),
-  CONSTRAINT application_tag_uk UNIQUE KEY (application_id, tag_id),
+  CONSTRAINT application_tag_uk UNIQUE (application_id, tag_id),
   CONSTRAINT application_tag_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
   CONSTRAINT application_tag_tag_fk FOREIGN KEY (tag_id) REFERENCES tag(tag_id)
 );
@@ -336,7 +334,7 @@ CREATE TABLE policy_tag (
   policy_id varchar(50) NOT NULL,
   tag_id varchar(50) NOT NULL,
   CONSTRAINT policy_tag_pk PRIMARY KEY (policy_tag_id),
-  CONSTRAINT policy_tag_uk UNIQUE KEY (policy_id, tag_id),
+  CONSTRAINT policy_tag_uk UNIQUE (policy_id, tag_id),
   CONSTRAINT policy_tag_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id),
   CONSTRAINT policy_tag_tag_fk FOREIGN KEY (tag_id) REFERENCES tag(tag_id)
 );
@@ -349,7 +347,7 @@ CREATE TABLE policy_evaluation (
   reevaluation bool DEFAULT false NOT NULL,
   for_monitoring bool DEFAULT false NOT NULL,
   for_obsolete_scan bool DEFAULT false NOT NULL,
-  time datetime NOT NULL,
+  time timestamp NOT NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
@@ -366,7 +364,7 @@ CREATE TABLE policy_violation (
   -- summary of the policy that caused the violation
   policy_id varchar(50) NOT NULL, -- no foreign key constraint to policy, policies can be deleted at any time
   policy_name varchar(60) NOT NULL,
-  threat_level smallint(2) NOT NULL,
+  threat_level smallint NOT NULL,
   threat_category varchar(20) NOT NULL,
 
   -- identification of the component that caused the violation
@@ -376,16 +374,16 @@ CREATE TABLE policy_violation (
   filename varchar(1000),
 
   -- record of the most recent policy constraints/conditions that were violated
-  constraint_facts_json CLOB NOT NULL,
+  constraint_facts_json text NOT NULL,
 
   -- the most recent action during the violation's lifetime
   action_type_id varchar(20), 
 
   -- timestamps recording the state and transitions thereof for the violation
-  open_time datetime NOT NULL,    -- when the violation first occurred
-  waive_time datetime NULL,       -- when the violation was waived
-  grandfather_time datetime NULL, -- when the violation was grandfathered
-  fix_time datetime NULL,         -- when the violation disappeared entirely
+  open_time timestamp NOT NULL,    -- when the violation first occurred
+  waive_time timestamp NULL,       -- when the violation was waived
+  grandfather_time timestamp NULL, -- when the violation was grandfathered
+  fix_time timestamp NULL,         -- when the violation disappeared entirely
 
   -- details of the waiver that suppressed this violation
   policy_waiver_id varchar(50) NULL,  -- no foreign key constraint to policy_waiver, waivers can be deleted at any time
@@ -410,26 +408,26 @@ CREATE TABLE dashboard_filter (
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   based_on_filter_name varchar(60),
   acknowledged boolean DEFAULT false NOT NULL,
-  filter_json CLOB NOT NULL, -- The dashboard filter stored in json format
+  filter_json text NOT NULL, -- The dashboard filter stored in json format
   CONSTRAINT dashboard_filter_pk PRIMARY KEY (dashboard_filter_id),
-  CONSTRAINT dashboard_filter_uk UNIQUE KEY (username, name_lowercase_no_whitespace)
+  CONSTRAINT dashboard_filter_uk UNIQUE (username, name_lowercase_no_whitespace)
 );
 
 CREATE TABLE application_component (
   application_component_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
-  time datetime NOT NULL,
+  time timestamp NOT NULL,
   hash varchar(20) NOT NULL,
   component_id_format varchar(10),
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates stored in json format
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,
   proprietary bool DEFAULT false NOT NULL,
-  pathnames CLOB, -- the paths to the component that caused the policy violation, paths are new line delimited
+  pathnames text, -- the paths to the component that caused the policy violation, paths are new line delimited
   CONSTRAINT application_component_pk PRIMARY KEY (application_component_id),
   CONSTRAINT application_component_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
-  CONSTRAINT application_component_uk UNIQUE KEY (application_id, stage_type_id, hash)
+  CONSTRAINT application_component_uk UNIQUE (application_id, stage_type_id, hash)
 );
 CREATE INDEX application_component_hash_idx ON application_component(hash);
 CREATE INDEX application_component_time_idx ON application_component(time);
@@ -439,7 +437,7 @@ CREATE TABLE last_policy_evaluation (
   application_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
   CONSTRAINT last_policy_evaluation_PK PRIMARY KEY (policy_evaluation_id),
-  CONSTRAINT last_policy_evaluation_uk UNIQUE KEY (application_id, stage_type_id),
+  CONSTRAINT last_policy_evaluation_uk UNIQUE (application_id, stage_type_id),
   CONSTRAINT last_policy_evaluation_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
   CONSTRAINT last_policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
@@ -449,14 +447,14 @@ CREATE TABLE user_viewed_product_notification (
   username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
   notification_id varchar(50) NOT NULL,
   CONSTRAINT notification_viewed_pk PRIMARY KEY (user_viewed_product_notification_id),
-  CONSTRAINT notification_viewed_uk UNIQUE KEY (notification_id, username)
+  CONSTRAINT notification_viewed_uk UNIQUE (notification_id, username)
 );
 
 CREATE TABLE repository_manager (
   repository_manager_id varchar(50) NOT NULL,
   instance_id varchar(50) NOT NULL,
   CONSTRAINT repository_manager_pk PRIMARY KEY (repository_manager_id),
-  CONSTRAINT repository_manager_uk UNIQUE KEY (instance_id)
+  CONSTRAINT repository_manager_uk UNIQUE (instance_id)
 );
 
 CREATE TABLE repository (
@@ -467,7 +465,7 @@ CREATE TABLE repository (
   quarantine_enabled bool DEFAULT false NOT NULL,
   format varchar(50),
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
-  CONSTRAINT repository_uk UNIQUE KEY (repository_manager_id, public_id),
+  CONSTRAINT repository_uk UNIQUE (repository_manager_id, public_id),
   CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id)
 );
 
@@ -475,18 +473,18 @@ CREATE TABLE repository_component (
   repository_component_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
   pathname varchar(1000) NOT NULL, 
-  time datetime NOT NULL,
+  time timestamp NOT NULL,
   hash varchar(20) NOT NULL,
   component_id_format varchar(10),
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates stored in json format
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,
-  last_evaluation_time datetime NOT NULL,
-  quarantine_time datetime,
-  unquarantine_time datetime,
+  last_evaluation_time timestamp NOT NULL,
+  quarantine_time timestamp,
+  unquarantine_time timestamp,
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
   CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
-  CONSTRAINT repository_component_uk UNIQUE KEY (repository_id, pathname)
+  CONSTRAINT repository_component_uk UNIQUE (repository_id, pathname)
 );
 CREATE INDEX repository_component_hash_idx ON repository_component(hash);
 CREATE INDEX repository_component_repository_unquarantine_idx ON repository_component(repository_id, unquarantine_time);
@@ -495,15 +493,15 @@ CREATE TABLE repository_policy_violation (
   repository_policy_violation_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
   pathname varchar(1000) NOT NULL, 
-  time datetime NOT NULL,
+  time timestamp NOT NULL,
   policy_id varchar(50) NOT NULL,
   policy_name varchar(60) NOT NULL, -- the policy name as it was when the policy violation was generated
-  threat_level smallint(2) NOT NULL,
+  threat_level smallint NOT NULL,
   threat_category varchar(20) NOT NULL,
   hash varchar(20),
   component_id_format varchar(10),
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates (that caused the policy violation) stored in json format
-  constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
+  constraint_facts_json text NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   action_type_id varchar(20),
   waived bool DEFAULT false NOT NULL,
   active bool DEFAULT true NOT NULL, -- Whether this violation is still active. If false, then the component was removed from the repository or a more recent evaluation was performed for this component.
@@ -515,10 +513,10 @@ CREATE INDEX repository_policy_violation_pathname_idx ON repository_policy_viola
 CREATE TABLE proprietary_config (
   proprietary_config_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
-  packages_json CLOB NULL,
-  regexes_json CLOB NULL,
+  packages_json text NULL,
+  regexes_json text NULL,
   CONSTRAINT proprietary_config_pk PRIMARY KEY (proprietary_config_id),
-  CONSTRAINT proprietary_config_owner_uk UNIQUE KEY (owner_id)
+  CONSTRAINT proprietary_config_owner_uk UNIQUE (owner_id)
 );
 
 CREATE TABLE webhook (
@@ -549,7 +547,7 @@ CREATE TABLE system_configuration_property (
   name varchar(50) NOT NULL,
   value varchar(500) NOT NULL,
   CONSTRAINT system_configuration_property_pk PRIMARY KEY (system_configuration_property_id),
-  CONSTRAINT system_configuration_property_name_uk UNIQUE KEY (name)
+  CONSTRAINT system_configuration_property_name_uk UNIQUE (name)
 );
 -- Add  default value for SUCCESS_METRICS_ENABLED (true)
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('39ae05576fcf474da6771b9f879759f7', 'SUCCESS_METRICS_ENABLED', 'true');
@@ -567,7 +565,7 @@ CREATE TABLE data_retention_policy (
   max_count smallint,
   max_age_in_days smallint,
   CONSTRAINT data_retention_policy_pk PRIMARY KEY (data_retention_policy_id),
-  CONSTRAINT data_retention_policy_uk UNIQUE KEY (owner_id, context_id)
+  CONSTRAINT data_retention_policy_uk UNIQUE (owner_id, context_id)
 );
 -- Add  default retention policies for root organization
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a0', 'ROOT_ORGANIZATION_ID', 'develop', true, 90);

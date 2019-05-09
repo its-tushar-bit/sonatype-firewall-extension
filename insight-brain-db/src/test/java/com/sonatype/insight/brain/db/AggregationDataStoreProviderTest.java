@@ -49,7 +49,7 @@ public class AggregationDataStoreProviderTest
     initDatabase(getDatabaseConfig(databaseDir, "aggregation"));
 
     assertThat(databaseVersionFile).doesNotExist();
-    int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(AggregationDataStoreProvider.ID);
+    int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(AggregationDataStoreProvider.ID);
     assertThat(DatabaseUtil
         .getDatabaseSchemaVersion(AggregationDataStoreProvider.getDataSource(), AggregationDataStoreProvider.ID))
         .isEqualTo(desiredDbVersion);

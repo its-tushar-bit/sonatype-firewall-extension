@@ -20,7 +20,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.db.H2DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -109,7 +109,7 @@ public class PolicyViolationMigratorTest
     else {
       scriptResource = getClass().getSimpleName() + '/' + scriptName;
     }
-    new H2DatabaseMigrator().runScript(dataSource, scriptResource + ".sql");
+    new DatabaseMigrator().runScript(dataSource, scriptResource + ".sql");
   }
 
   private DataSource getDataSource(String scriptName) throws Exception {

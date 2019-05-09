@@ -61,7 +61,7 @@ public class OperationalDataStoreProvider
     OperationalDataStoreProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
-      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, currentVersion -> {
+      new DatabaseMigrator().migrate(databaseConfig, ID, dataSource, currentVersion -> {
         if (currentVersion < MINIMUM_DATABASE_VERSION) {
           throw new UnsupportedOperationException(String.format(
               "Cannot migrate %s database, this requires version %s at minimum, but you have version %s.\n"

@@ -44,7 +44,7 @@ public class DatamartProvider
 
     DatamartProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
-    new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
+    new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainDM", props);

@@ -32,9 +32,9 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
-public class H2DatabaseMigrator
+public class DatabaseMigrator
 {
-  private static final Logger log = LoggerFactory.getLogger(H2DatabaseMigrator.class);
+  private static final Logger log = LoggerFactory.getLogger(DatabaseMigrator.class);
 
   public void migrate(DatabaseConfig databaseConfig, String databaseName, DataSource dataSource) {
     migrate(databaseConfig, databaseName, dataSource, null /* upgradeGuard */);

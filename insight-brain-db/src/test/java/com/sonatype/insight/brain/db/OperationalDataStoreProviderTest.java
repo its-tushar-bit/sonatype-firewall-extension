@@ -58,7 +58,7 @@ public class OperationalDataStoreProviderTest
     initDatabase(getDatabaseConfig(databaseDir, "ods"));
 
     assertThat(databaseVersionFile).doesNotExist();
-    int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
+    int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
     assertThat(DatabaseUtil
         .getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID))
         .isEqualTo(desiredDbVersion);
@@ -102,7 +102,7 @@ public class OperationalDataStoreProviderTest
 
     OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
 
-    int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
+    int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
     assertThat(DatabaseUtil
         .getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID))
         .isEqualTo(desiredDbVersion);

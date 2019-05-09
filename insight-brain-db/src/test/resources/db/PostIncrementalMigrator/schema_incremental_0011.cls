@@ -1,1 +1,1 @@
-com.sonatype.insight.brain.db.H2DatabaseMigratorTest$PostIncrementalMigratorVersionPlus1
+com.sonatype.insight.brain.db.DatabaseMigratorTest$PostIncrementalMigratorVersionPlus1

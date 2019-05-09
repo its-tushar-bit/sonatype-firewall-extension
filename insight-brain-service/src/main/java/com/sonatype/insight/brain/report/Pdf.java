@@ -40,13 +40,13 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-final class Pdf
+public final class Pdf
 {
   private static final Logger log = LoggerFactory.getLogger(Pdf.class);
 
   private static IReportEngine reportEngine;
 
-  static File getPdfFile(final File reportFile) {
+  public static File getPdfFile(final File reportFile) {
     return new File(reportFile.getParentFile(), "report.pdf");
   }
 

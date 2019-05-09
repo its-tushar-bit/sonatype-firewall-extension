@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -148,6 +149,7 @@ public final class Report
     // If this is called from a policy re-evaluation, some files may be cached.
     // Start fresh by deleting any cached files.
     new FileCleaner().delete(getCacheDir(reportFile));
+    deletePdfReport(reportFile);
 
     embedApplicationPublicId(application, reportFile);
 
@@ -235,6 +237,19 @@ public final class Report
     saveReportEntry(reportFile, DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private static void deletePdfReport(File reportFile) {
+    File pdfReportFile = Pdf.getPdfFile(reportFile);
+    try {
+      if (Files.deleteIfExists(pdfReportFile.toPath())) {
+        log.debug("Deleted obsolete PDF report file: {}.", pdfReportFile.getAbsolutePath());
+      }
+    }
+    catch (Exception e) {
+      log.error("Cannot delete obsolete PDF report file: {}. Cause: {}", pdfReportFile.getAbsolutePath(),
+          e.getMessage(), e);
+    }
   }
 
   @VisibleForTesting

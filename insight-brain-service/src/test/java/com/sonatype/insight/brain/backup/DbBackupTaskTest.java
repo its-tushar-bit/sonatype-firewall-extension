@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.After;
@@ -35,7 +36,7 @@ public class DbBackupTaskTest
   }
 
   @Test
-  public void testBackup() throws Exception {
+  public void testBackup_H2Database() throws Exception {
     // H2 does not allow backups of in-memory databases, so we need an on-disk database for this test.
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
@@ -54,5 +55,23 @@ public class DbBackupTaskTest
     assertThat(dbBackupDir.getParentFile().getAbsolutePath())
         .isEqualTo(getCLMServer().getConfiguration().getDbBackupDir().getAbsolutePath());
     assertThat(new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX)).isFile();
+  }
+
+  @Test
+  public void testBackup_NotH2Database() throws Exception {
+    InsightConfig insightConfig = getCLMServer().getConfiguration();
+    com.sonatype.insight.brain.service.DatabaseConfig savedDatabaseConfig = insightConfig.getDatabase();
+
+    try {
+      insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
+
+      HttpResponse response = adminRequest().path("tasks", DbBackupTask.PATH).post();
+      assertResponseStatus(500, response);
+      String message = response.getBodyText();
+      assertThat(message).contains("The DB backup task is supported only for h2 databases.");
+    }
+    finally {
+      insightConfig.setDatabase(savedDatabaseConfig);
+    }
   }
 }

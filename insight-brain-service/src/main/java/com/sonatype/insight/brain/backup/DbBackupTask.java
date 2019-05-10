@@ -16,6 +16,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.servlets.tasks.Task;
@@ -46,6 +47,10 @@ public class DbBackupTask
 
   @Override
   public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
+    if (config.getDatabase() != null) {
+      throw new BadRequestException("The DB backup task is supported only for h2 databases.");
+    }
+
     File dbBackupDir = getDbBackupDir();
     H2DatabaseBackup h2DatabaseBackup = new H2DatabaseBackup();
     h2DatabaseBackup.backup(OperationalDataStoreProvider.getDatabaseConfig(),

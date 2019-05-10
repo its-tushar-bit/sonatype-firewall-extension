@@ -247,6 +247,8 @@ public class InsightBrainService
 
     bootstrap.addCommand(new CompactCommand());
 
+    bootstrap.addCommand(new ResetAdminCommand());
+
     bootstrap.setConfigurationFactoryFactory(new DefaultConfigurationFactoryFactory<InsightConfig>()
     {
       @Override

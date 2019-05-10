@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.security;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -108,11 +110,15 @@ public class MembershipMapping
   }
 
   public boolean includes(UserPrincipal user) {
+    return includes(user.getUsername(), user.getMembership());
+  }
+
+  public boolean includes(String username, Set<String> groups) {
     if (MemberType.USER.equals(getMemberType())) {
-      return getMemberName().equalsIgnoreCase(user.getUsername());
+      return getMemberName().equalsIgnoreCase(username);
     }
     if (MemberType.GROUP.equals(getMemberType())) {
-      return user.getMembership().contains(getMemberName());
+      return groups.contains(getMemberName());
     }
     return false;
   }

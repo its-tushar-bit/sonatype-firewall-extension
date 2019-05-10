@@ -33,7 +33,7 @@ public class UserDAO
 
   public static final int MAX_EMAIL_SIZE = 255;
 
-  private User getByUsername(TransactionContext tx, String username) {
+  public User getByUsername(TransactionContext tx, String username) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
     return get(tx, sQuery, username.toLowerCase(Locale.ENGLISH));

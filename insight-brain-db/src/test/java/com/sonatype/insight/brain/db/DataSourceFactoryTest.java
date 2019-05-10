@@ -15,11 +15,11 @@ public class DataSourceFactoryTest
 {
   @Test
   public void testGetDatabaseEngine_H2() {
-    assertThat(new DataSourceFactory().getDatabaseEngine("h2")).isEqualTo(H2DatabaseEngine.INSTANCE);
+    assertThat(DataSourceFactory.getDatabaseEngine("h2")).isEqualTo(H2DatabaseEngine.INSTANCE);
   }
 
   @Test
   public void testGetDatabaseEngine_PostgreSQL() {
-    assertThat(new DataSourceFactory().getDatabaseEngine("PostgreSQL")).isEqualTo(PostgresDatabaseEngine.INSTANCE);
+    assertThat(DataSourceFactory.getDatabaseEngine("PostgreSQL")).isEqualTo(PostgresDatabaseEngine.INSTANCE);
   }
 }

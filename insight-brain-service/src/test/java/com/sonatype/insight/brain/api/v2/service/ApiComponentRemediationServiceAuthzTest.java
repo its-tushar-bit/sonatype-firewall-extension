@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -26,6 +27,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 public class ApiComponentRemediationServiceAuthzTest
@@ -49,8 +52,11 @@ public class ApiComponentRemediationServiceAuthzTest
   private void configureHdsClientMock() {
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     componentDetailsList.setList(new ArrayList<>());
-    lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class), any(String.class)))
-        .thenReturn(componentDetailsList);
+    lenient().when(hdsClientMock.get(eq(ComponentDetailsList.class), any(String.class), any(Map.class),
+        any(String.class))).thenReturn(componentDetailsList);
+
+    lenient().when(hdsClientMock.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(true));
   }
 
   private void testGetSuggestedRemediationForComponent_ReadPermission_Authorized(final Owner owner,

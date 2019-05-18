@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -27,8 +29,10 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -64,10 +68,16 @@ public class ApiComponentRemediationService
 
   private final TelemetrySender telemetrySender;
 
+  private final HdsClient hdsClient;
+
   @Inject
-  public ApiComponentRemediationService(ComponentInfoService componentInfoService, TelemetrySender telemetrySender) {
+  public ApiComponentRemediationService(ComponentInfoService componentInfoService,
+                                        HdsClient hdsClient,
+                                        TelemetrySender telemetrySender)
+  {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
+    this.hdsClient = hdsClient;
     this.telemetrySender = telemetrySender;
   }
 
@@ -87,6 +97,13 @@ public class ApiComponentRemediationService
 
     ComponentIdentifier componentIdentifier = validateComponentIdentifier(componentDTO);
 
+    ComponentSummary componentSummary = getComponentSummary(componentIdentifier);
+
+    // Do not allow an empty or invalid version at this time
+    if (!componentSummary.isKnown()) {
+      throw new BadRequestException("Invalid Component Identifier");
+    }
+
     if (ownerType.equals(OwnerType.APPLICATION)) {
       publicOwnerId = applicationDAO.getByIdNotNull(ownerId).getPublicId();
     }
@@ -98,9 +115,10 @@ public class ApiComponentRemediationService
     int currentIndex =
         IntStream.range(0, dtos.size()).filter(i -> dtos.get(i).componentIdentifier.equals(componentIdentifier))
             .findFirst().orElse(-1);
+
     Map<String, Object> telemetryAttributes = new HashMap<>();
 
-    if (currentIndex != -1) {
+    if (currentIndex >= 0) { // should always be the case
       findNoViolations(currentIndex, dtos)
           .ifPresent(changeOptionType -> {
             componentRemediationDto.remediation.versionChanges.add(changeOptionType);
@@ -180,5 +198,11 @@ public class ApiComponentRemediationService
     catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
+  }
+
+  private ComponentSummary getComponentSummary(final ComponentIdentifier componentIdentifier) {
+    Map<String, String> queryParams = Collections.singletonMap("componentIdentifier",
+        ComponentIdentifierAdapter.toJson(componentIdentifier));
+    return hdsClient.get(ComponentSummary.class, "rest/component/summary", queryParams);
   }
 }

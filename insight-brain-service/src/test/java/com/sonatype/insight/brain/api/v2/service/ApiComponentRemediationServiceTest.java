@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -47,9 +49,11 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 public class ApiComponentRemediationServiceTest
@@ -83,16 +87,36 @@ public class ApiComponentRemediationServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  HdsClient hdsClientMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(HdsClient.class).toInstance(hdsClientMock);
+    lenient().doReturn(ComponentSummary.create(true)).when(hdsClientMock).get(eq(ComponentSummary.class),
+        eq("rest/component/summary"), anyMap());
     super.configure(binder);
   }
 
   @Before
   public void setupApplication() {
     app = tempEntity.newApplicationWithParent();
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_InvalidVersion() {
+    ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
+    componentDto.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "t1", "", "", "jar"));
+
+    lenient().doReturn(ComponentSummary.create(false)).when(hdsClientMock).get(eq(ComponentSummary.class),
+        eq("rest/component/summary"), anyMap());
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      service.getSuggestedRemediationForComponent(componentDto, OwnerType.APPLICATION, app.getId(),
+          DevelopStageType.ID);
+    }).withMessage("Invalid Component Identifier");
   }
 
   @Test

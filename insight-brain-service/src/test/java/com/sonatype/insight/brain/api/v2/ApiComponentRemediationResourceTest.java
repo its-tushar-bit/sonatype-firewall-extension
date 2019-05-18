@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -51,6 +52,7 @@ public class ApiComponentRemediationResourceTest
 
   @Test
   public void testSuggestedRemediation_Application() throws Exception {
+    mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Application app = tempEntity.newApplicationWithParent("testApp");
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());
 
@@ -75,6 +77,7 @@ public class ApiComponentRemediationResourceTest
 
   @Test
   public void testSuggestedRemediation_Organization() throws Exception {
+    mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Organization org = tempEntity.newOrganization("testOrg");
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());
 

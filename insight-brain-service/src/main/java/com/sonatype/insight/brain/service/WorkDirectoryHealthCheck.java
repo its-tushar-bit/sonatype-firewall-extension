@@ -15,14 +15,14 @@ import javax.inject.Singleton;
  */
 @Named
 @Singleton
-public class InsightHealth
+public class WorkDirectoryHealthCheck
     extends AbstractOperationalCheck
 {
   private final InsightConfig insightConfig;
 
   @Inject
-  public InsightHealth(final InsightConfig insightConfig) {
-    super("insight-brain-service");
+  public WorkDirectoryHealthCheck(final InsightConfig insightConfig) {
+    super("work-directory");
     this.insightConfig = insightConfig;
   }
 

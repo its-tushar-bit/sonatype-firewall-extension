@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -25,6 +28,9 @@ public class DatabaseTelemetryCollectorTest
 {
   @Inject
   private DatabaseTelemetryCollector telemetryCollector;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Test
   public void testCollectData_TelemetryPurpose() throws Exception {
@@ -46,13 +52,29 @@ public class DatabaseTelemetryCollectorTest
     try {
       OperationalDataStoreProvider.init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods),
           false);
-      String odsSizeBytes = (String) telemetryCollector.collectData().getAttributes()
-          .get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
+      Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
+      String odsSizeBytes = (String) attributes.get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
       assertThat(odsSizeBytes).isNotNull();
       assertThat(Long.valueOf(odsSizeBytes)).isGreaterThan(0);
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
+  }
+
+  @Test
+  public void testCollectData_DbEngine_DatabaseConfigNotNull() {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setType("postgresql");
+    insightConfig.setDatabase(databaseConfig);
+    Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
+    assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("postgresql");
+  }
+
+  @Test
+  public void testCollectData_DbEngine_DatabaseConfigNull() {
+    insightConfig.setDatabase(null);
+    Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
+    assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("h2");
   }
 }

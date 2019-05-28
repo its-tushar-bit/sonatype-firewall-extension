@@ -18,7 +18,9 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.error.exception.BadRequestException;
 
+import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -34,7 +36,8 @@ public class CompactCommand
   private static final Logger log = LoggerFactory.getLogger(CompactCommand.class);
 
   CompactCommand() {
-    super("compact-db", "Reduces the size of the server's database by freeing empty space");
+    super("compact-db",
+        "Reduces the size of the server's database by freeing empty space. It only applies to h2 databases.");
   }
 
   @Override
@@ -43,6 +46,10 @@ public class CompactCommand
                      final InsightConfig insightConfig)
       throws Exception
   {
+    if (insightConfig.getDatabase() != null) {
+      throw new BadRequestException("The " + getName() + " command is supported only for h2 databases.");
+    }
+
     final DatabaseConfig databaseConfig = new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods);
     final Path databaseFile = Paths.get(H2DatabaseUtil.getDatabasePath(databaseConfig).getAbsolutePath() + ".h2.db");
     try {
@@ -66,5 +73,12 @@ public class CompactCommand
       log.error("Failed to compact {}", databaseFile, e);
       throw e;
     }
+  }
+
+  @Override
+  public void onError(Cli cli, Namespace namespace, Throwable e) {
+    log.error(e.getMessage(), e);
+
+    super.onError(cli, namespace, e);
   }
 }

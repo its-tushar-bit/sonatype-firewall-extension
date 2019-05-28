@@ -12,15 +12,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CompactCommandTest
 {
@@ -30,14 +33,18 @@ public class CompactCommandTest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  @Before
+  public void before() {
+    DataSourceFactory.clear_ForTestsOnly();
+  }
+
   @After
   public void after() {
     DataSourceFactory.clear_ForTestsOnly();
   }
 
   @Test
-  public void testRun_Compact() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
+  public void testRun_Compact_H2Database() throws Exception {
     final Path databasePath = setupDatabaseFile();
     final long originalSize = Files.size(databasePath);
     final InsightConfig insightConfig = new InsightConfig();
@@ -53,6 +60,16 @@ public class CompactCommandTest
         .contains("This might take a while, please be patient.")
         .contains("Successfully compacted " + databasePath.toAbsolutePath().toString() + " from " + originalSize
             + " bytes to " + newSize + " bytes " + "(reduced by " + percentChange + "%) in");
+  }
+
+  @Test
+  public void testRun_Compact_NotH2Database() throws Exception {
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
+
+    assertThatThrownBy(() -> {
+      new CompactCommand().run(null, null, insightConfig);
+    }).isInstanceOf(BadRequestException.class).hasMessage("The compact-db command is supported only for h2 databases.");
   }
 
   private Path setupDatabaseFile() throws Exception {

@@ -9,19 +9,15 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-/**
- * This is a Dropwizard health check. It has nothing to do with Insight's Health Check features like "Application Health
- * Check" or "Repository Health Check". :)
- */
 @Named
 @Singleton
-public class WorkDirectoryHealthCheck
+public class WorkDirectoryOperationalCheck
     extends AbstractOperationalCheck
 {
   private final InsightConfig insightConfig;
 
   @Inject
-  public WorkDirectoryHealthCheck(final InsightConfig insightConfig) {
+  public WorkDirectoryOperationalCheck(final InsightConfig insightConfig) {
     super("work-directory");
     this.insightConfig = insightConfig;
   }

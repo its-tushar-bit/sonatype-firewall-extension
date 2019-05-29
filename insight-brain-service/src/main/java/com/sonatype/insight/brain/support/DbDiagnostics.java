@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+
+import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
@@ -27,27 +30,50 @@ class DbDiagnostics
     log.trace("getting db file info");
     final StringBuilder result = new StringBuilder("");
 
-    final DatabaseConfig databaseConfig = OperationalDataStoreProvider.getDatabaseConfig();
-    if (databaseConfig == null) {
-      result.append("Null DatabaseConfig.");
-      return result.toString();
+    DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+    String databaseProductName = getDatabaseProductName(dataSource);
+    result.append("-- Database Diagnostics --\n");
+    result.append("Database product name: " + databaseProductName + "\n");
+    result.append("Database product version: " + getDatabaseProductVersion(dataSource) + "\n");
+
+    if ("h2".equalsIgnoreCase(databaseProductName)) {
+      final DatabaseConfig databaseConfig = OperationalDataStoreProvider.getDatabaseConfig();
+      if (databaseConfig == null) {
+        result.append("Null DatabaseConfig.");
+        return result.toString();
+      }
+
+      final File ods = H2DatabaseUtil.getDatabasePath(databaseConfig);
+      final File h2 = new File(ods.getPath() + ".h2.db");
+      if (!h2.isFile()) {
+        result.append("Found no database file at " + h2.getCanonicalPath() + "\n");
+      }
+      else {
+        result.append("Database path: " + ods.getCanonicalPath() + "\n");
+        result.append("Total database size: " + h2.length() + " bytes\n");
+      }
     }
 
-    final File ods = H2DatabaseUtil.getDatabasePath(databaseConfig);
-    final File h2 = new File(ods.getPath() + ".h2.db");
-
-    if (!h2.isFile()) {
-      result.append("Found no database file at " + h2.getCanonicalPath() + "\n");
-    }
-    else {
-      result.append("-- Database Diagnostics --\n");
-      result.append("Database path: " + ods.getCanonicalPath() + "\n");
-      result.append("Total database size: " + h2.length() + " bytes\n");
-
-      final int version = DatabaseUtil
-          .getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID);
-      result.append("Schema version: " + version + "\n");
-    }
+    final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID);
+    result.append("Schema version: " + version + "\n");
     return result.toString();
+  }
+
+  private static String getDatabaseProductName(DataSource dataSource) {
+    try (Connection connection = dataSource.getConnection()) {
+      return connection.getMetaData().getDatabaseProductName();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed attempt to get database product name.", e);
+    }
+  }
+
+  private static String getDatabaseProductVersion(DataSource dataSource) {
+    try (Connection connection = dataSource.getConnection()) {
+      return connection.getMetaData().getDatabaseProductVersion();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed attempt to get database product version.", e);
+    }
   }
 }

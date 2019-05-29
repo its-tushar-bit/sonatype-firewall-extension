@@ -48,7 +48,11 @@ public class DbDiagnosticsTest
 
     final String dbDiagnostics = DbDiagnostics.getDBFileInfo();
     assertThat(dbDiagnostics)
-        .startsWith("-- Database Diagnostics --\n" + "Database path: " + tempDir.getRoot().getCanonicalPath())
-        .contains("Total database size: ").contains("Schema version: ");
+        .startsWith("-- Database Diagnostics --\n")
+        .contains("Database product name: H2")
+        .contains("Database product version: ")
+        .contains("Database path: " + tempDir.getRoot().getCanonicalPath())
+        .contains("Total database size: ")
+        .contains("Schema version: ");
   }
 }

@@ -1,6 +1,4 @@
 -- Since 1.33.0
-SET SCHEMA insight_brain_ods;
-
 CREATE TABLE system_configuration_property (
   system_configuration_property_id varchar(50) NOT NULL,
   name varchar(50) NOT NULL,

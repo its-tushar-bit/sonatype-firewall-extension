@@ -1,6 +1,4 @@
 -- Since 1.22.0
-SET SCHEMA insight_brain_ods;
-
 CREATE TABLE proprietary_config (
   proprietary_config_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,

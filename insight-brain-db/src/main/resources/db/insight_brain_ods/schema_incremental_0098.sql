@@ -1,6 +1,4 @@
 -- Since 1.20.0
-SET SCHEMA insight_brain_ods;
-
 UPDATE label SET color='dark_purple' WHERE color='black';
 UPDATE label SET color='dark_blue' WHERE color='blue';
 UPDATE label SET color='dark_green' WHERE color='green';

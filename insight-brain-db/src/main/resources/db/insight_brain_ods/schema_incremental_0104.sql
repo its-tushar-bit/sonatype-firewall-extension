@@ -1,6 +1,4 @@
 -- Since 1.25.0
-SET SCHEMA insight_brain_ods;
-
 ALTER TABLE ldap_server ADD COLUMN priority int;
 
 ALTER TABLE ldap_server ADD CONSTRAINT ldap_server_priority_uk UNIQUE KEY (priority);

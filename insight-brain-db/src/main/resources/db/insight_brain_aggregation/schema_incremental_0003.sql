@@ -1,5 +1,3 @@
-SET SCHEMA insight_brain_aggregation;
-
 CREATE TABLE success_metrics (
   success_metrics_id VARCHAR(50) NOT NULL,
   username VARCHAR(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)

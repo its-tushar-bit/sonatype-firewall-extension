@@ -1,6 +1,4 @@
 -- Since 1.20.0
-SET SCHEMA insight_brain_ods;
-
 CREATE TABLE sv_override (
   sv_override_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,

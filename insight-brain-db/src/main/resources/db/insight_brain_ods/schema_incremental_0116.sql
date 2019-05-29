@@ -1,6 +1,4 @@
 -- Since 1.45.0
-SET SCHEMA insight_brain_ods;
-
 DROP TABLE first_occurrence_policy_violation;
 DROP TABLE waived_policy_violation;
 DROP TABLE policy_violation;

@@ -1,5 +1,3 @@
-SET SCHEMA insight_brain_aggregation;
-
 -- Cached data to be displayed in this success metrics chart. Derived from the policy_violation_aggregations.
 CREATE TABLE success_metrics_report_data (
   -- id and also foreign key to the success_metrics_report table. A success_metrics_report can have at most one

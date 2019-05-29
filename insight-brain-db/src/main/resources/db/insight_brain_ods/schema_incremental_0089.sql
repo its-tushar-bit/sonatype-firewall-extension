@@ -1,6 +1,4 @@
 -- Since 1.17.0
-SET SCHEMA insight_brain_ods;
-
 ALTER TABLE policy_waiver DROP CONSTRAINT policy_waiver_uk;
 
 ALTER TABLE policy_waiver DROP COLUMN constraint_id;

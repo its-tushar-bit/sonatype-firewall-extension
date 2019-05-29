@@ -1,6 +1,4 @@
 -- Since 1.22.0
-SET SCHEMA insight_brain_ods;
-
 -- System Administrator
 UPDATE role SET
     description='Manages system configuration and users.'

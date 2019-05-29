@@ -1,6 +1,4 @@
 -- Since 1.17.0
-SET SCHEMA insight_brain_ods;
-
 ALTER TABLE organization ADD COLUMN parent_organization_id varchar(50) NULL;
 ALTER TABLE organization ADD CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id);
 

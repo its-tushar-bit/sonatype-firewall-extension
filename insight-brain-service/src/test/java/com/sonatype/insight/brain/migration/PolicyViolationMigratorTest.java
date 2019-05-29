@@ -109,7 +109,7 @@ public class PolicyViolationMigratorTest
     else {
       scriptResource = getClass().getSimpleName() + '/' + scriptName;
     }
-    new DatabaseMigrator().runScript(dataSource, scriptResource + ".sql");
+    new DatabaseMigrator().runScript(dataSource, "", scriptResource + ".sql");
   }
 
   private DataSource getDataSource(String scriptName) throws Exception {

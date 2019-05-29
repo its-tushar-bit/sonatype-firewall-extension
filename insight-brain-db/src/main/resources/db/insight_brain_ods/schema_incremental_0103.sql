@@ -1,6 +1,4 @@
 -- Since 1.24.0
-SET SCHEMA insight_brain_ods;
-
 ALTER TABLE dashboard_filter ADD COLUMN name varchar(60);
 ALTER TABLE dashboard_filter ADD COLUMN name_lowercase_no_whitespace varchar(60);
 

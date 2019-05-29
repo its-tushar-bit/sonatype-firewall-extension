@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.function.IntConsumer;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -111,9 +112,10 @@ public class DatabaseMigrator
         backup(databaseDir, databasePath.getName(), backupDir);
       }
 
+      String setSchemaSql = databaseEngine.buildSetSchemaSql(databaseName);
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
         String scriptName = getIncrementalFileName(databaseName, "sql", i);
-        runScript(dataSource, scriptName);
+        runScript(dataSource, setSchemaSql, scriptName);
         String postIncrementalMigratorFileName = getIncrementalFileName(databaseName, "cls", i);
         runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
         if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseName)) {
@@ -173,10 +175,13 @@ public class DatabaseMigrator
     }
   }
 
-  public void runScript(DataSource dataSource, String scriptName) throws SQLException {
+  public void runScript(DataSource dataSource, String setSchemaSql, String scriptName) throws SQLException {
     ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
     resourceDatabasePopulator.addScript(loadIncrementalScriptResource(scriptName));
     try (Connection conn = dataSource.getConnection()) {
+      try (Statement statement = conn.createStatement()) {
+        statement.execute(setSchemaSql);
+      }
       resourceDatabasePopulator.populate(conn);
     }
   }

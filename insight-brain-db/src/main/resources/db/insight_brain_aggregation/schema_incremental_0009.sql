@@ -1,6 +1,4 @@
 -- Since 1.51
-SET SCHEMA insight_brain_aggregation;
-
 DELETE FROM policy_violation_aggregation;
 
 ALTER TABLE policy_violation_aggregation DROP COLUMN resolved_count_low_threat;

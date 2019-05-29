@@ -1,5 +1,3 @@
-SET SCHEMA insight_brain_dm;
-
 DELETE FROM multi_license_license where multi_license_id ='CECILL-1.1English';
 DELETE FROM multi_license where multi_license_id ='CECILL-1.1English';
 DELETE FROM license where license_id ='CECILL-1.1English';

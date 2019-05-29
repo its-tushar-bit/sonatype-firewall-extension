@@ -1,6 +1,4 @@
 -- Since 1.29.0
-SET SCHEMA insight_brain_ods;
-
 CREATE TABLE system_notice (
   system_notice_id varchar(50) NOT NULL,
   message varchar(500) NOT NULL,

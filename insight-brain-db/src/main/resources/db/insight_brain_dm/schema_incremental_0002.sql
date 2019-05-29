@@ -1,5 +1,3 @@
-SET SCHEMA insight_brain_dm;
-
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Adobe','Adobe','Adobe','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Adobe-AFM','Adobe-AFM','Adobe-AFM','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Adobe-EULA','Adobe-EULA','Adobe-EULA','NON-STANDARD');

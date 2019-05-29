@@ -1,6 +1,4 @@
 -- Since 1.45.0
-SET SCHEMA insight_brain_ods;
-
 ALTER TABLE policy_violation DROP CONSTRAINT policy_violation_pk;
 
 CREATE TABLE new_policy_violation (

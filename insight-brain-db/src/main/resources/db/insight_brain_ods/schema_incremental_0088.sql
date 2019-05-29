@@ -1,7 +1,4 @@
 -- Since 1.17.0
-SET SCHEMA insight_brain_ods;
-
-
 CREATE TABLE repository_manager (
   repository_manager_id varchar(50) NOT NULL,
   instance_id varchar(50) NOT NULL,

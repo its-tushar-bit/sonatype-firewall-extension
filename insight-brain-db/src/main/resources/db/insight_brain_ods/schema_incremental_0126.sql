@@ -1,6 +1,4 @@
 -- Since 1.63
-SET SCHEMA insight_brain_ods;
-
 CREATE TABLE data_retention_policy (
   data_retention_policy_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,

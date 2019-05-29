@@ -1,6 +1,4 @@
 -- Since 1.13.0
-SET SCHEMA insight_brain_dm;
-
 alter table license alter column license_id varchar(1000) not null;
 alter table license alter column shortDisplayName varchar(1000) not null;
 alter table license alter column longDisplayName varchar(1000) default null;

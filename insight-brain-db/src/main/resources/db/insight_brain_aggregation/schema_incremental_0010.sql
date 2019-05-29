@@ -1,6 +1,4 @@
 -- Since 1.52
-SET SCHEMA insight_brain_aggregation;
-
 DELETE FROM policy_violation_aggregation;
 
 ALTER TABLE policy_violation_aggregation DROP COLUMN open_count_security;

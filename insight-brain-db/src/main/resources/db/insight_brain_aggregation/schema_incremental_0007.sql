@@ -1,5 +1,3 @@
-SET SCHEMA insight_brain_aggregation;
-
 -- Delete all aggregation data.
 -- It will be regenerated on demand and it will include values for the new column added below.
 DELETE FROM policy_violation_aggregation;

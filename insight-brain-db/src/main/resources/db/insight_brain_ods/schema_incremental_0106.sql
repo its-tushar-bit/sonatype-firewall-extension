@@ -1,6 +1,4 @@
 -- Since 1.25.0
-SET SCHEMA insight_brain_ods;
-
 CREATE TABLE webhook (
   webhook_id varchar(50) NOT NULL,
   url varchar(2048) NOT NULL,

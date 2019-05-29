@@ -27,6 +27,9 @@ import com.codahale.metrics.annotation.Timed;
 import static com.sonatype.insight.brain.support.SupportResource.RESOURCE_PATH;
 
 /**
+ * To create a support zip file via curl:
+ * curl -u admin:admin123 http://localhost:8070/rest/support?includeDb=true >support.zip
+ *
  * @since 1.27
  */
 @Named

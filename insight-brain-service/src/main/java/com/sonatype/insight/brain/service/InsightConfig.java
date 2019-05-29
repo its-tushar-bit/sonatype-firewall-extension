@@ -674,4 +674,8 @@ public class InsightConfig
   public void setDatabase(DatabaseConfig database) {
     this.database = database;
   }
+
+  public boolean isDatabaseEmbedded() {
+    return database == null;
+  }
 }

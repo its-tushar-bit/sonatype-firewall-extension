@@ -45,7 +45,7 @@ public class DatabaseTelemetryCollector
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.DATABASE);
     Map<String, Object> attributes = telemetryData.getAttributes();
 
-    if (config.getDatabase() == null) {
+    if (config.isDatabaseEmbedded()) {
       attributes.put(DB_ENGINE, "h2");
       attributes.put(ODS_SIZE_BYTES, getOdsSizeBytes());
     }

@@ -46,7 +46,7 @@ public class CompactCommand
                      final InsightConfig insightConfig)
       throws Exception
   {
-    if (insightConfig.getDatabase() != null) {
+    if (!insightConfig.isDatabaseEmbedded()) {
       throw new BadRequestException("The " + getName() + " command is supported only for h2 databases.");
     }
 

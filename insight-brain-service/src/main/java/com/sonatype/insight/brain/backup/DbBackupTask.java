@@ -47,7 +47,7 @@ public class DbBackupTask
 
   @Override
   public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
-    if (config.getDatabase() != null) {
+    if (!config.isDatabaseEmbedded()) {
       throw new BadRequestException("The DB backup task is supported only for h2 databases.");
     }
 

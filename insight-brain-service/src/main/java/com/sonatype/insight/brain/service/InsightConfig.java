@@ -675,6 +675,7 @@ public class InsightConfig
     this.database = database;
   }
 
+  @JsonIgnore
   public boolean isDatabaseEmbedded() {
     return database == null;
   }

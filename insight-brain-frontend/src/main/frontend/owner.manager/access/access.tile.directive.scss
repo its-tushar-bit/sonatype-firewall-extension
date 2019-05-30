@@ -12,4 +12,5 @@
 
 .iq-cell--access-members {
   @include semi-bold();
+  white-space: normal;
 }
